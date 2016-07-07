@@ -447,6 +447,14 @@ namespace OpenMS
         {
           osecv = "Percolator";
         }
+        else if (sof_name == "OpenMSxQuest")
+        {
+          osecv = "OpenXQuest";
+        }
+        else if (cv_.hasTermWithName(sof_name))
+        {
+          osecv = sof_name;
+        }
         else
         {
           osecv = "analysis software";
@@ -502,7 +510,10 @@ namespace OpenMS
         {
           sip += "\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
         }
-        writeMetaInfos_(sip, it->getSearchParameters(), 3);
+        //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
+        ProteinIdentification::SearchParameters p = it->getSearchParameters();
+        p.removeMetaValue("MS:1001029");
+        writeMetaInfos_(sip, p, 3);
         sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += String("\t\t</AdditionalSearchParams>\n");
@@ -584,6 +595,10 @@ namespace OpenMS
           //TODO Searchdb file format type cvParam handling
           search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
           search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + sdb_file + String("\"/>\n\t\t\t</DatabaseName>\n");
+          if (it->getSearchParameters().metaValueExists("MS:1001029"))
+          {
+            search_database += String(3, '\t') + cv_.getTerm("MS:1001029").toXMLString(cv_ns, it->getSearchParameters().getMetaValue("MS:1001029")) + String(" \n");
+          }
           search_database += "\t\t</SearchDatabase> \n";
 
           sdb_ids.insert(make_pair(sdb_file, sdb_id));
@@ -793,7 +808,7 @@ namespace OpenMS
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
                 p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
-                p += "\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"Xlink:DSS\"/>\n";
+                p += "\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"DSS\"/>\n";
               }
               else
               {
@@ -1136,11 +1151,11 @@ namespace OpenMS
       }
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
-         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<" "
+         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<" "
          << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML"<< v_s <<".xsd\"\n"
-         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s <<"\"\n"
+         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<"\"\n"
          << "\tversion=\"" << v_s << "\"\n";
-       os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
+      os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
       //--------------------------------------------------------------------------------------------
@@ -1437,14 +1452,14 @@ namespace OpenMS
                     + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_mz\""
                     + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
-          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_Int\""
+          s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_int\""
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
               s += String(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
-                        + " values=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
               s += String(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
-                        + " values=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
           }
           s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
           s += String(indent+1, '\t') + "</IonType>\n";
@@ -1474,6 +1489,7 @@ namespace OpenMS
         r = r.substr(1);
       if (r.hasSuffix("]"))
         r = r.substr(0,r.size()-1);
+      r.substitute("\\","/");
       return r;
     }
   } //namespace Internal
