@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         void readFromOBOFile(String & filename) nogil except +
         void readFromUnimodXMLFile(String & filename) nogil except +
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
+        bool has(String modification) nogil except +
 
         # POINTER # ResidueModification * getBestModificationsByMonoMass(String residue, double mass, double max_error) nogil except +
         # POINTER # ResidueModification * getBestModificationsByDiffMonoMass(String residue, double mass, double max_error) nogil except +

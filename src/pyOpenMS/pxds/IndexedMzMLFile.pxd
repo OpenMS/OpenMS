@@ -18,4 +18,5 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFile.h>" namespace "OpenMS":
         size_t getNrChromatograms() nogil except +
         shared_ptr[Spectrum] getSpectrumById(int id_) nogil except +
         shared_ptr[Chromatogram] getChromatogramById(int id_) nogil except +
+        void setSkipXMLChecks(bool skip) nogil except +
 

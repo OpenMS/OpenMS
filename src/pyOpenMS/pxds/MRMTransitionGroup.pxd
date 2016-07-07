@@ -41,5 +41,6 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         void addFeature(MRMFeature feature) nogil except +
 
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
+        MRMTransitionGroup subset(libcpp_vector[ libcpp_string ] tr_ids) nogil except +
         #   LightMRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], LightTransition]
 

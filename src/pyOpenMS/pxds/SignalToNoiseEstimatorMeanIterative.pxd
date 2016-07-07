@@ -9,6 +9,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
         #  ProgressLogger
         # wrap-instances:
         #   SignalToNoiseEstimator := SignalToNoiseEstimator[ MSSpectrum[Peak1D] ]
+
         SignalToNoiseEstimatorMeanIterative() nogil except +
         SignalToNoiseEstimatorMeanIterative(SignalToNoiseEstimatorMeanIterative) nogil except +
         # void init(PeakIterator & it_begin, PeakIterator & it_end) nogil except +
@@ -26,3 +27,9 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
 # #        AUTOMAXBYPERCENT
 # #
 
+cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>" namespace "OpenMS::SignalToNoiseEstimatorMeanIterative<MSSpectrum<> >":
+    
+    cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMeanIterative<MSSpectrum<> >::IntensityThresholdCalculation":
+        MANUAL
+        AUTOMAXBYSTDEV
+        AUTOMAXBYPERCENT

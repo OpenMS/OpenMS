@@ -4,7 +4,6 @@ from AASequence cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
-
     cdef cppclass EnzymaticDigestion:
 
       EnzymaticDigestion() nogil except +
@@ -16,6 +15,9 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       # Enzyme getEnzyme()  nogil except +
       # void setEnzyme(Enzyme enzyme) nogil except +
       # Enzyme getEnzymeByName(String & name) nogil except +
+
+      String getEnzymeName() nogil except +
+      void setEnzyme(String name) nogil except +
 
       void digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except +
       Size peptideCount(AASequence & protein) nogil except +
@@ -30,6 +32,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       Specificity getSpecificityByName(String name)nogil except +
 
       bool isValidProduct(AASequence protein, Size pep_pos, Size pep_length) nogil except +
+
+      # void digestUnmodifiedString(StringView sequence, libcpp_vector[ StringView ] & output, Size min_length, Size max_length) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":
 
