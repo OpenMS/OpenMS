@@ -7,13 +7,17 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
     cdef cppclass LightTransition:
         LightTransition() nogil except +
         LightTransition(LightTransition) nogil except +
-        int fragment_charge
-        bool decoy 
         libcpp_string transition_name
         libcpp_string peptide_ref
         double library_intensity
         double product_mz
         double precursor_mz
+
+        int fragment_charge
+        bool decoy 
+        bool detecting_transition
+        bool quantifying_transition
+        bool identifying_transition
 
         int getProductChargeState() nogil except +
         bool isProductChargeStateSet() nogil except +
@@ -78,4 +82,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_vector[LightProtein] getProteins() nogil except +
 
         LightCompound getCompoundByRef(libcpp_string & ref) nogil except +
+        LightCompound getPeptideByRef(libcpp_string & ref) nogil except +
 
