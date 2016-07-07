@@ -102,7 +102,8 @@ namespace OpenMS
       cpro_id_(0),
       cpep_id_(0),
       schema_version_(version),
-      mzid_parser_()
+      mzid_parser_(),
+      xl_ms_search_(false)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
@@ -193,6 +194,35 @@ namespace OpenMS
 
         // no need to free this pointer - owned by the parent parser object
         xercesc::DOMDocument* xmlDoc = mzid_parser_.getDocument();
+
+        // Catch special case: Cross-Linking MS
+        DOMNodeList* additionalSearchParams = xmlDoc->getElementsByTagName(XMLString::transcode("AdditionalSearchParams"));
+        const  XMLSize_t as_node_count = additionalSearchParams->getLength();
+
+        for (XMLSize_t i = 0; i < as_node_count; ++i)
+        {
+          DOMNode* current_sp = additionalSearchParams->item(i);
+
+          DOMElement* element_SearchParams = dynamic_cast<xercesc::DOMElement*>(current_sp);
+          String cross_linking_search = XMLString::transcode(element_SearchParams->getAttribute(XMLString::transcode("id")));
+          DOMElement* child = element_SearchParams->getFirstElementChild();
+
+          while (child && !xl_ms_search_)
+          {
+            String accession = XMLString::transcode(child->getAttribute(XMLString::transcode("accession")));
+            if (accession == "MS:1002494") // accession for "cross-linking search"
+            {
+              xl_ms_search_ = true;
+            }
+            child = child->getNextElementSibling();
+          }
+        }
+
+        if (xl_ms_search_)
+        {
+          LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
+        }
+
 
         // 0. AnalysisSoftware {1,unbounded}
         DOMNodeList* analysisSoftwareElements = xmlDoc->getElementsByTagName(XMLString::transcode("AnalysisSoftware"));
@@ -670,11 +700,12 @@ namespace OpenMS
           String id = XMLString::transcode(element_pep->getAttribute(XMLString::transcode("id")));
 
 
-          DOMNodeList* pep_sib = element_pep->getChildNodes();
+          //DOMNodeList* pep_sib = element_pep->getChildNodes();
           AASequence aas;
           try
           {
-            aas = parsePeptideSiblings_(pep_sib);
+            //aas = parsePeptideSiblings_(pep_sib);
+            aas = parsePeptideSiblings_(element_pep);
           }
           catch (...)
           {
@@ -1134,7 +1165,7 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseSpectrumIdentificationListElements_(DOMNodeList* spectrumIdentificationListElements)
     {
       const  XMLSize_t node_count = spectrumIdentificationListElements->getLength();
-      int count = 0;
+      //int count = 0;
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
         DOMNode* current_lis = spectrumIdentificationListElements->item(c);
@@ -1143,7 +1174,7 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_lis = dynamic_cast<xercesc::DOMElement*>(current_lis);
-          ++count;
+          //++count;
           String id = XMLString::transcode(element_lis->getAttribute(XMLString::transcode("id")));
 //          String name = XMLString::transcode(element_res->getAttribute(XMLString::transcode("name")));
 
@@ -1155,54 +1186,327 @@ namespace OpenMS
               String spectra_data_ref = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectraData_ref"))); //ref to the sourcefile, could be useful but now nowhere to store
               String spectrumID = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectrumID")));
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(element_res->getChildNodes());
-              pep_id_->push_back(PeptideIdentification());
-              pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
-              pep_id_->back().setMetaValue("spectrum_reference", spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
 
-              //fill pep_id_->back() with content
-              DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
-              String sil = XMLString::transcode(parent->getAttribute(XMLString::transcode("id")));
 
-              DOMElement* child = element_res->getFirstElementChild();
-              while (child)
+
+
+
+
+              if (xl_ms_search_)
               {
-                if ((std::string)XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
+                std::multimap<String, int> xl_val_map;
+                std::set<String> xl_val_set;
+                int index_counter = 0;
+                DOMElement* sii = element_res->getFirstElementChild();
+
+                while (sii)
                 {
-                  parseSpectrumIdentificationItemElement_(child, pep_id_->back(), sil);
+                  if ((std::string)XMLString::transcode(sii->getTagName()) == "SpectrumIdentificationItem")
+                  {
+                    DOMNodeList* sii_cvp = sii->getElementsByTagName(XMLString::transcode("cvParam"));
+                    const  XMLSize_t cv_count = sii_cvp->getLength();
+                    for (XMLSize_t i = 0; i < cv_count; ++i)
+                    {
+                      DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
+                      //cout << "accession: " << XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession"))) << endl;
+                      if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002511")) // cross-link spectrum identification item
+                      {
+                        String xl_val = XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")));
+                        xl_val_map.insert(make_pair(xl_val, index_counter));
+                        xl_val_set.insert(xl_val);
+                        cout << "accession: MS:1002511 confirmed." << endl;
+                      }
+                      //cout << "SII cv counter: " << i << endl;
+                    }
+                  }
+                  sii = sii->getNextElementSibling();
+                  ++index_counter;
+                  //cout << "SII Index counter: " << index_counter << endl;
                 }
-                child = child->getNextElementSibling();
-              }
-              // TODO @mths: setSignificanceThreshold, but from where?
 
-//              String identi = si_pro_map_[id]->getSearchEngine()+"_"
-//                      +si_pro_map_[id]->getDateTime().getDate()
-//                      +"T"+si_pro_map_[id]->getDateTime().getTime();
-              pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
-              pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
+                cout << "xl_val_map and set lengths: " << xl_val_map.size() << "\t" << xl_val_set.size() << endl;
 
-              pep_id_->back().sortByRank();
-
-              //adopt cv s
-              for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
-              {
-                if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
+                for (set<String>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); set_it++)
                 {
-                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
-                }
-                else
+                  // each value in the set corresponds to one PeptideIdentification object
+                  std::pair <std::multimap<String, int>::iterator, std::multimap<String, int>::iterator> range;
+                  range = xl_val_map.equal_range(*set_it);
+                  DOMNodeList* siis = element_res->getElementsByTagName(XMLString::transcode("SpectrumIdentificationItem"));
+                  // initialize all needed values, extract them one by one in vectors, e.g. using max and min to determine which are heavy which light
+                  // get peptide id, that way determine donor, acceptor (alpha, beta)
+                  std::vector<String> peptides;
+                  double score = -1;
+                  std::vector<double> exp_mzs;
+                  std::vector<double> RTs;
+                  int rank = 0;
+                  int charge = 0;
+                  vector<PeptideHit::FragmentAnnotation> frag_annotations;
+
+                  cout << "range: " << (*range.first).second << " " << (*range.second).second << endl;
+                  for (std::multimap<String, int>::iterator it=range.first; it!=range.second; ++it)
+                  {
+                    DOMElement* cl_sii = dynamic_cast<xercesc::DOMElement*>(siis->item(it->second));
+                    // Attributes
+                    String peptide = XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("peptide_ref")));
+                    peptides.push_back(peptide);
+                    double exp_mz = atof(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("experimentalMassToCharge"))));
+                    exp_mzs.push_back(exp_mz);
+
+                    cout << "exp_mz: " << exp_mz << endl;
+
+                    if (rank == 0)
+                    {
+                      rank = atoi(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("rank"))));
+                    }
+                    if (charge == 0)
+                    {
+                      charge = atoi(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("chargeState"))));
+                    }
+
+                    cout << "rank and charge: " << rank << "\t" << charge << endl;
+
+                    // CVs
+                    DOMNodeList* sii_cvp = cl_sii->getElementsByTagName(XMLString::transcode("cvParam"));
+                    const  XMLSize_t cv_count = sii_cvp->getLength();
+                    for (XMLSize_t i = 0; i < cv_count; ++i)
+                    {
+                      DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
+                      if (score < 0)
+                      {
+                        if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002681")) // OpenXQuest:combined score
+                        {
+                          score = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+                        }
+                      }
+                      if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
+                      {
+                        double RT = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+                        RTs.push_back(RT);
+                      }
+                      cout << "SII cv counter after Attributes: " << i << endl;
+                    }
+                    // TODO extract metaValueScores
+
+                    // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
+                    if (frag_annotations.empty())
+                    {
+                      DOMElement* frag_element = dynamic_cast<xercesc::DOMElement*>(cl_sii->getElementsByTagName(XMLString::transcode("Fragmentation"))->item(0));
+                      DOMNodeList* ion_types = frag_element->getElementsByTagName(XMLString::transcode("IonType"));
+                      const  XMLSize_t ion_type_count = ion_types->getLength();
+                      for (XMLSize_t i = 0; i < ion_type_count; ++i)
+                      {
+                        PeptideHit::FragmentAnnotation frag_anno;
+                        // TODO fill
+                        // single/equal values: Charge, ion type (b or y)
+                        // multiple values: mz, Intens, ion type (alpha or beta, ci or xi)
+                        frag_annotations.push_back(frag_anno);
+                      }
+                    }
+                    }
+                    // Generate and fill PeptideIdentification
+                    vector<Size> light;
+                    vector<Size> heavy;
+                    double MZ_light = *std::min_element(exp_mzs.begin(), exp_mzs.end());
+                    double MZ_heavy = *std::max_element(exp_mzs.begin(), exp_mzs.end());
+
+                    for (Size i = 0; i < exp_mzs.size(); ++i)
+                    {
+                      if (MZ_light == exp_mzs[i])
+                      {
+                        light.push_back(i);
+                      }
+                      else
+                      {
+                        heavy.push_back(i);
+                      }
+                    }
+                    double RT_light = RTs[light[0]];
+                    double RT_heavy = RTs[heavy[0]];
+
+                    vector<Size> alpha;
+                    vector<Size> beta;
+                    for (Size i = 0; i < peptides.size(); ++i)
+                    {
+                      cout << "current peptide: " << peptides[i] << endl;
+                      try
+                      {
+                        String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
+                        alpha.push_back(i);
+                      }
+                      catch (const std::out_of_range& oor)
+                      {
+                        // TODO check in acceptor_map_ ? if not in any of the two, something is wrong
+                        beta.push_back(i);
+                      }
+//                      String donor_pep = xl_id_donor_map_.at(peptides[i]);
+//                      cout << "donor_pep: " << donor_pep << endl;
+//                      if (donor_pep == "wtf") // found in map, must be a donor/alpha
+//                      {
+//                        alpha.push_back(i);
+//                      }
+//                      else
+//                      {
+//                        beta.push_back(i);
+//                      }
+                    }
+                    String xl_type = "mono-link";
+                    cout << "RTs: " << RTs[0] << "\t" << RTs[1] << endl;
+                    cout << "score: " << score << endl;
+                    cout << "alpha size: " << alpha.size() << endl;
+                    cout << "beta size: " << beta.size() << endl;
+                    Size alpha_pos = xl_pos_map_.at(xl_id_donor_map_.at(peptides[alpha[0]]));
+                    vector<String> spectrumIDs;
+                    spectrumID.split(",", spectrumIDs);
+
+                    if (alpha.size() == 2 && beta.size() == 2) // if 4 SIIs, then there is an alpha and a beta chain, must be cross-link
+                    {
+                      xl_type = "cross-link";
+                    }
+                    else
+                    {
+                    try
+                      {
+                        String donor_val = xl_id_donor_map_.at(peptides[alpha[0]]);      // map::at throws an out-of-range
+                        String acceptor_val = xl_id_acceptor_map_.at(peptides[alpha[0]]);
+                        if (donor_val  == acceptor_val) // if donor and acceptor on same peptide have the same CV value, it must be a loop-link
+                        {
+                          xl_type = "loop-link";
+                        }
+                      }
+                      catch (const std::out_of_range& oor)
+                      {
+                        // do nothing
+                      }
+                     }
+//                    else if (peptides[alpha[0]] == xl_id_acceptor_map_.at(xl_id_donor_map_.at(peptides[alpha[0]])))
+//                    {
+//                      xl_type = "loop-link";
+//                    }
+
+                    PeptideIdentification current_pep_id;
+                    current_pep_id.setRT(RT_light);
+                    current_pep_id.setMZ(MZ_light);
+                    current_pep_id.setMetaValue("spectrum_reference", spectrumID);
+                    current_pep_id.setScoreType("OpenXQuest:combined score");
+
+                    vector<PeptideHit> phs;
+                    PeptideHit ph_alpha;
+                    ph_alpha.setSequence((*pep_map_.find(peptides[alpha[0]])).second);
+                    ph_alpha.setCharge(charge);
+                    ph_alpha.setScore(score);
+                    ph_alpha.setRank(rank);
+                    ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
+                    ph_alpha.setMetaValue("xl_pos", alpha_pos);
+                    ph_alpha.setMetaValue("spec_heavy_RT", RT_heavy);
+                    ph_alpha.setMetaValue("spec_heavy_MZ", MZ_heavy);
+                    ph_alpha.setMetaValue("spectrum_reference", spectrumIDs[0]);
+                    ph_alpha.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+                    ph_alpha.setMetaValue("xl_type", xl_type);
+                    ph_alpha.setMetaValue("xl_rank", rank);
+
+                    cout << "xl_type: " << xl_type << endl;
+                    if (xl_type == "loop-link")
+                    {
+                      Size pos2 = xl_pos_map_.at(xl_id_acceptor_map_.at(peptides[alpha[0]]));
+                      ph_alpha.setMetaValue("pos2", pos2);
+                    }
+
+                    if (xl_type != "mono-link")
+                    {
+                      ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
+                      ph_alpha.setMetaValue("xl_mass",xl_mass_map_.at(peptides[alpha[0]]));
+                    }
+
+                    // TODO other scores
+
+                    phs.push_back(ph_alpha);
+
+                    if (xl_type == "cross-link")
+                    {
+                      PeptideHit ph_beta;
+                      Size beta_pos = xl_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
+                      ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
+                      ph_beta.setCharge(charge);
+                      ph_beta.setScore(score);
+                      ph_beta.setRank(rank);
+                      ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
+                      ph_beta.setMetaValue("xl_pos", beta_pos);
+                      ph_beta.setMetaValue("spec_heavy_RT", RT_heavy);
+                      ph_beta.setMetaValue("spec_heavy_MZ", MZ_heavy);
+                      ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
+                      ph_beta.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+
+                      // TODO other scores
+
+                      phs.push_back(ph_beta);
+                    }
+
+                    current_pep_id.setHits(phs);
+                    current_pep_id.setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
+                    current_pep_id.setHigherScoreBetter(true);
+                    pep_id_->push_back(current_pep_id);
+                  }
+             //   }
+
+
+              }
+              else // start of "not-XLMS-results"
+              {
+
+
+
+
+                pep_id_->push_back(PeptideIdentification());
+                pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
+                pep_id_->back().setMetaValue("spectrum_reference", spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
+
+                //fill pep_id_->back() with content
+                DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
+                String sil = XMLString::transcode(parent->getAttribute(XMLString::transcode("id")));
+
+                DOMElement* child = element_res->getFirstElementChild();
+                while (child)
                 {
-                  pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
+                  if ((std::string)XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
+                  {
+                    parseSpectrumIdentificationItemElement_(child, pep_id_->back(), sil);
+                  }
+                  child = child->getNextElementSibling();
                 }
-              }
-              //adopt up s
-              for (map<String, DataValue>::const_iterator upit = params.second.begin(); upit != params.second.end(); ++upit)
-              {
-                pep_id_->back().setMetaValue(upit->first, upit->second);
-              }
-              if (pep_id_->back().getRT() != pep_id_->back().getRT())
-              {
-                LOG_WARN << "No retention time found for 'SpectrumIdentificationResult'" << endl;
-              }
+                // TODO @mths: setSignificanceThreshold, but from where?
+
+  //              String identi = si_pro_map_[id]->getSearchEngine()+"_"
+  //                      +si_pro_map_[id]->getDateTime().getDate()
+  //                      +"T"+si_pro_map_[id]->getDateTime().getTime();
+                pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
+                //pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
+
+                pep_id_->back().sortByRank();
+
+                //adopt cv s
+                for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
+                {
+                  if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
+                  {
+                    pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
+                  }
+                  else
+                  {
+                    pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
+                  }
+                }
+                //adopt up s
+                for (map<String, DataValue>::const_iterator upit = params.second.begin(); upit != params.second.end(); ++upit)
+                {
+                  pep_id_->back().setMetaValue(upit->first, upit->second);
+                }
+                if (pep_id_->back().getRT() != pep_id_->back().getRT())
+                {
+                  LOG_WARN << "No retention time found for 'SpectrumIdentificationResult'" << endl;
+                }
+
+              } // end of "not-XLMS-results"
+
             }
             element_res = element_res->getNextElementSibling();
           }
@@ -1491,8 +1795,9 @@ namespace OpenMS
 //      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
     }
 
-    AASequence MzIdentMLDOMHandler::parsePeptideSiblings_(DOMNodeList* peptideSiblings)
+    AASequence MzIdentMLDOMHandler::parsePeptideSiblings_(DOMElement* peptide)
     {
+      DOMNodeList* peptideSiblings = peptide->getChildNodes();
       const  XMLSize_t node_count = peptideSiblings->getLength();
       String as;
       //1. Sequence
@@ -1571,36 +1876,117 @@ namespace OpenMS
             }
 
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
-            DOMElement* cvp = element_sib->getFirstElementChild();
-            while (cvp)
+
+            if (xl_ms_search_) // special case: XL-MS search results
             {
-              CVTerm cv = parseCvParam_(cvp);
-              if (cv.getCVIdentifierRef() != "UNIMOD")
+              String pep_id = XMLString::transcode(peptide->getAttribute(XMLString::transcode("id")));
+              //DOMNodeList* cvParams = element_sib->getElementsByTagName(XMLString::transcode("cvParam"));
+              DOMElement* cvp = element_sib->getFirstElementChild();
+              //for (XMLSize_t i = 0; i < cvParams.length(); ++i)
+              bool donor_acceptor_found = false;
+              bool xlink_mod_found = false;
+
+              while (cvp)
               {
-                //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
+                if (String(XMLString::transcode(cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002509")) // cross-link donor
+                {
+                  String donor_val = XMLString::transcode(cvp->getAttribute(XMLString::transcode("value")));
+                  xl_id_donor_map_.insert(make_pair(pep_id, donor_val));
+                  double monoisotopicMassDelta = atof(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
+                  xl_mass_map_.insert(make_pair(pep_id, monoisotopicMassDelta));
+                  xl_pos_map_.insert(make_pair(donor_val, index));
+
+                  DOMElement* cvp1 = element_sib->getFirstElementChild();
+                  String xl_mod_name = XMLString::transcode(cvp1->getAttribute(XMLString::transcode("name")));
+                  xl_mod_map_.insert(make_pair(pep_id, xl_mod_name));
+                  donor_acceptor_found = true;
+                }
+                else if (String(XMLString::transcode(cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002510")) // cross-link acceptor
+                {
+                  String acceptor_val = XMLString::transcode(cvp->getAttribute(XMLString::transcode("value")));
+                  xl_id_acceptor_map_.insert(make_pair(pep_id, acceptor_val));
+                  xl_pos_map_.insert(make_pair(acceptor_val, index));
+                  donor_acceptor_found = true;
+                }
+                else
+                {
+                  CVTerm cv = parseCvParam_(cvp);
+                  String cvname = cv.getName();
+                  if (cvname.hasPrefix("Xlink"))
+                  {
+                    xlink_mod_found = true;
+                  }
+                  else // normal mod, copied from below
+                  {
+                    if (cv.getCVIdentifierRef() != "UNIMOD")
+                    {
+                         //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+                    }
+                    if (index == 0)
+                    {
+                      aas.setNTerminalModification(cv.getName());
+                    }
+                    else if (index == static_cast<SignedSize>(aas.size() + 1))
+                    {
+                      aas.setCTerminalModification(cv.getName());
+                    }
+                    else
+                    {
+                      try
+                      {
+                        aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                      }
+                      catch (Exception::BaseException& e)
+                      {
+                        LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
+                      }
+                    }
+                  }
+                  if (!donor_acceptor_found && xlink_mod_found) // mono-link, here using pep_id also as the CV value, since mono-links dont have a cross-linking CV term
+                  {
+                    xl_id_donor_map_.insert(make_pair(pep_id, pep_id));
+                    xl_pos_map_.insert(make_pair(pep_id, index));
+                  }
+                }
                 cvp = cvp->getNextElementSibling();
-                continue;
               }
-              if (index == 0)
+              cout << "xl_map sizes: " << xl_id_donor_map_.size() << "\t" << xl_id_acceptor_map_.size() << "\t" << xl_pos_map_.size() << "\t" << xl_mass_map_.size() << "\t" << xl_mod_map_.size() << endl;
+            }
+            else //  general case
+            {
+              DOMElement* cvp = element_sib->getFirstElementChild();
+              while (cvp)
               {
-                aas.setNTerminalModification(cv.getName());
-              }
-              else if (index == static_cast<SignedSize>(aas.size() + 1))
-              {
-                aas.setCTerminalModification(cv.getName());
-              }
-              else
-              {
-                try
+                CVTerm cv = parseCvParam_(cvp);
+                if (cv.getCVIdentifierRef() != "UNIMOD")
                 {
-                  aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                  //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
+                  cvp = cvp->getNextElementSibling();
+                  continue;
                 }
-                catch (Exception::BaseException& e)
+                if (index == 0)
                 {
-                  LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
+                  aas.setNTerminalModification(cv.getName());
                 }
+                else if (index == static_cast<SignedSize>(aas.size() + 1))
+                {
+                  aas.setCTerminalModification(cv.getName());
+                }
+                else
+                {
+                  try
+                  {
+                     aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                  }
+                  catch (Exception::BaseException& e)
+                  {
+                    LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
+                  }
+                }
+                cvp = cvp->getNextElementSibling();
               }
-              cvp = cvp->getNextElementSibling();
             }
           }
         }
