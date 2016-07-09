@@ -173,8 +173,8 @@ namespace OpenMS
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         else if (errno == ENOTDIR)
           throw (runtime_error("A component of the path is not a directory."));
-        else if (errno == ELOOP)
-          throw (runtime_error("Too many symbolic links encountered while traversing the path."));
+        //else if (errno == ELOOP)
+        //  throw (runtime_error("Too many symbolic links encountered while traversing the path."));
         else if (errno == EACCES)
           throw (runtime_error("Permission denied."));
         else if (errno == ENAMETOOLONG)
