@@ -82,8 +82,16 @@ if(WM5_FOUND)
   #------------------------------------------------------------------------------
   # check if we have a static Wm5 lib
   if(MSVC AND NOT DEFINED WM5_IS_STATIC)
-    # we try the optimized version of WM5_CORE to win32 path
-    list(GET WM5_Wm5Core_LIBRARY 1 _wm5_opt_core)
+  
+    # if we found more than one lib, we try the optimized version of WM5_CORE
+    # to win32 path 
+    list(LENGTH WM5_Wm5Core_LIBRARY nrlibs)
+    if(nrlibs GREATER 1)
+      list(GET WM5_Wm5Core_LIBRARY 1 _wm5_opt_core)
+    else()
+      list(GET WM5_Wm5Core_LIBRARY 0 _wm5_opt_core)
+    endif()
+
     file(TO_NATIVE_PATH "${_wm5_opt_core}" _native_wm5_opt_core)
 
     # find dumpbin and translate to win32 path
