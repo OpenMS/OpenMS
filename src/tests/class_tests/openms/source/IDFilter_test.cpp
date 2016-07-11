@@ -820,7 +820,7 @@ START_SECTION((static void keepUniquePeptidesPerProtein(vector<PeptideIdentifica
 }
 END_SECTION
 
-START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentification>& peptides)))
+START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentification>& peptides, bool seq_only)))
 {
   vector<PeptideIdentification> peptides(1, global_peptides[0]);
   vector<PeptideHit>& hits = peptides[0].getHits();
@@ -848,6 +848,12 @@ START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentificati
   TEST_EQUAL(hits[3].getCharge(), 2);
   TEST_EQUAL(hits[4].getSequence().toString(), "DFPIANGEK");
   TEST_EQUAL(hits[4].getCharge(), 5);
+
+  IDFilter::removeDuplicatePeptideHits(peptides, true);
+  TEST_EQUAL(hits.size(), 2);
+  TEST_EQUAL(hits[0].getSequence().toString(), "DFPIANGER");
+  TEST_EQUAL(hits[0].getScore(), 0.3);
+  TEST_EQUAL(hits[1].getSequence().toString(), "DFPIANGEK");
 }
 END_SECTION
 
