@@ -100,7 +100,7 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
-  set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
+  set (GUI_lnk_flags "/FORCE:MULTIPLE /ignore:4006 /ignore:4088")
   set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
 
