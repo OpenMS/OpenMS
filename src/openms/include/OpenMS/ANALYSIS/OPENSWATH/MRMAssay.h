@@ -228,9 +228,9 @@ protected:
       @brief Generate alternative modified peptide forms according to ModificationsDB
 
       @details An input peptide sequence containing modifications is used as template to generate
-      all modification-carrying residue permutations (n choose k possibilites) that are
+      all modification-carrying residue permutations (n choose k possibilities) that are
       physicochemically possible according to ModificationsDB. Instead of the target sequence, the
-      permutations are transfered to the decoy sequence that might contain additional modifiable
+      permutations are transferred to the decoy sequence that might contain additional modifiable
       residues. E.g. target sequence SAS(Phospho)K could result in [SAS(Phospho)K, S(Phospho)ASK]
       but the responding set of the decoy sequence SSS(Phospho)K would be [SSS(Phospho)K, S(Phospho)SSK].
 

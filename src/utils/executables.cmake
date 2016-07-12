@@ -27,6 +27,7 @@ MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
 MSSimulator
+MultiplexResolver
 MzMLSplitter
 OpenMSInfo
 PeakPickerIterative

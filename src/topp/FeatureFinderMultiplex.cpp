@@ -169,7 +169,7 @@ private:
   String averagine_type_;
 
   // section "labels"
-  map<String, double> label_massshift_;
+  map<String, double> label_mass_shift_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -226,7 +226,7 @@ public:
       defaults.setValue("averagine_similarity_scaling", 0.75, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("averagine_similarity_scaling", 0.0);
       defaults.setMaxFloat("averagine_similarity_scaling", 1.0);
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
+      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
@@ -236,35 +236,14 @@ public:
 
     if (section == "labels")
     {
-      // create labels that can be chosen in section "algorithm/labels"
-      defaults.setValue("Arg6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.008268600, "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg10", 0.0);
-      defaults.setValue("Lys4", 4.0251069836, "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys4", 0.0);
-      defaults.setValue("Lys6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys6", 0.0);
-      defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("Dimethyl0", 28.031300, "Dimethyl  |  H(4) C(2)  |  unimod #36", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl0", 0.0);
-      defaults.setValue("Dimethyl4", 32.056407, "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl4", 0.0);
-      defaults.setValue("Dimethyl6", 34.063117, "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl6", 0.0);
-      defaults.setValue("Dimethyl8", 36.075670, "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl8", 0.0);
-      defaults.setValue("ICPL0", 105.021464, "ICPL  |  H(3) C(6) N O  |  unimod #365", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL0", 0.0);
-      defaults.setValue("ICPL4", 109.046571, "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL4", 0.0);
-      defaults.setValue("ICPL6", 111.041593, "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL6", 0.0);
-      defaults.setValue("ICPL10", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL10", 0.0);
-      //defaults.setValue("18O", 2.004246, "Label:18O(1)  |  O(-1) 18O  |  unimod #258", ListUtils::create<String>("advanced"));
-      //defaults.setMinFloat("18O", 0.0);
+      MultiplexDeltaMassesGenerator generator;
+      Param p = generator.getParameters();
+      
+      for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
+      {
+        defaults.setValue(it->name, it->value, it->description, ListUtils::create<String>("advanced"));
+        defaults.setMinFloat(it->name, 0.0);
+      }
     }
 
     return defaults;
@@ -330,20 +309,13 @@ public:
    */
   void getParameters_labels_()
   {
+    Param p = getParam_();
+    
     // create map of pairs (label as string, mass shift as double)
-    label_massshift_.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
-    label_massshift_.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
-    label_massshift_.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
-    label_massshift_.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
-    label_massshift_.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_massshift_.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
-    label_massshift_.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
-    label_massshift_.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
-    label_massshift_.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
-    label_massshift_.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
-    label_massshift_.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
-    label_massshift_.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
-    label_massshift_.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
+    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
+    {
+      label_mass_shift_.insert(make_pair(it->name, it->value));
+    }    
   }
 
   /**
@@ -739,7 +711,7 @@ public:
         }
         else
         {
-          shift = label_massshift_[label_string];
+          shift = label_mass_shift_[label_string];
         }
 
         single_label_map[shift] = label_string;
@@ -1005,15 +977,15 @@ private:
     /**
      * filter for peak patterns
      */
-    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_massshift_);
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_mass_shift_);
     if (knock_out_)
     {
       generator.generateKnockoutDeltaMasses();
     }
-    generator.printLabelsList();
-    generator.printMassPatternList();
+    generator.printSamplesLabelsList();
+    generator.printDeltaMassesList();
     
-    std::vector<MultiplexDeltaMasses> masses = generator.getMassPatternList();
+    std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
     bool missing_peaks_ = false;
