@@ -50,6 +50,8 @@ TopPerc
 xQuest
 XMLValidator
 RNPxlSearch
+PPXL
+MzIdentML_READ_TEST
 )
 
 if(NOT DISABLE_OPENSWATH)

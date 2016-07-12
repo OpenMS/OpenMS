@@ -1,3 +1,4 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -29,7 +30,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
-// $Authors: Timo Sachsenberg, Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OpenXQuestScores.h>
@@ -181,7 +182,7 @@ public:
 
 protected:
   static void wrap_(const String& input, Size width, String & output)
-  { 
+  {
     Size start = 0;
 
     while (start + width < input.size())
@@ -189,7 +190,7 @@ protected:
       output += input.substr(start, width) + "\n";
       start += width;
     }
-    
+
     if (start < input.size())
     {
       output += input.substr(start, input.size() - start) + "\n";
@@ -231,17 +232,17 @@ protected:
 //      }
       s += "0";
 
-      s += "\n"; 
+      s += "\n";
 
       sl.push_back(s);
     }
-    
+
     String out;
     out.concatenate(sl.begin(), sl.end(), "");
     in_strings.push_back(out);
 
     String out_encoded;
-    Base64().encodeStrings(in_strings, out_encoded, false, false);   
+    Base64().encodeStrings(in_strings, out_encoded, false, false);
     String out_wrapped;
     wrap_(out_encoded, 76, out_wrapped);
     return out_wrapped;
@@ -254,8 +255,8 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file containing the spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.");
-    setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));
+    //registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.");
+    //setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));
 
     registerInputFile_("database", "<file>", "", "Input file containing the protein database.");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
@@ -386,7 +387,7 @@ protected:
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
     // TODO perl code filters by dynamic range (1000), meaning everything below max_intensity / 1000 is filtered out additionally to 0 int, before scaling / normalizing
- 
+
     Normalizer normalizer;
     normalizer.filterPeakMap(exp);
     // TODO perl code scales to 0-100: int / max_int * 100
@@ -402,7 +403,7 @@ protected:
 //    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
 //    window_mower_filter.setParameters(filter_param);
 //    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
-  
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -509,7 +510,7 @@ protected:
 //      return 0;
 //    }
 //  }
-  
+
 //  // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, a constant binsize)
 //  template <typename SpectrumType1, typename SpectrumType2>
 //  vector< double > xCorrelation(const SpectrumType1 & spec1, const SpectrumType2 & spec2, Int maxshift, double tolerance)
@@ -692,7 +693,7 @@ protected:
   PreprocessedPairSpectra_ preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
   {
     PreprocessedPairSpectra_ preprocessed_pair_spectra(spectrum_pairs.size());
- 
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -878,9 +879,9 @@ protected:
     // bucket size should be 2.0 * fragment mass tolerance
     // this ensures that two neighboring buckets cover all position possible given the fragment mass tolerance
     // Note: min and max are the absolute boundaries so no (position < min) or (position > max) is allowed
-    HashGrid1D(double min, double max, double bucket_size) : 
-      min_(min), 
-      max_(max), 
+    HashGrid1D(double min, double max, double bucket_size) :
+      min_(min),
+      max_(max),
       bucket_size_(bucket_size)
     {
       Size n_buckets = ceil((max - min) / bucket_size) + 1;
@@ -888,9 +889,9 @@ protected:
     }
 
     void insert(double position, AASequence*& v)
-    {     
-      if (position < min_ || position > max_) 
-      { 
+    {
+      if (position < min_ || position > max_)
+      {
         cerr << "Trying to add element left or right of allowed bounds. (min, max, position): " << min_ << ", " << max_ << ", " << position << endl;
         return;
       }
@@ -901,7 +902,7 @@ protected:
 
     vector<AASequence*> get(double position, Size max_elements = numeric_limits<Size>::max())
     {
-      if (position < min_ || position > max_) 
+      if (position < min_ || position > max_)
       {
         cerr << "Trying to access element left or right of allowed bounds. (min, max, position): " << min_ << ", " << max_ << ", " << position << endl;
         if (position < min_) return vector<AASequence*>();
@@ -1038,138 +1039,87 @@ protected:
 
     // Deisotopes and single charges spectrum, may be more useful with higher resolution data
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-//    RichPeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false)
-//    {
+    RichPeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false)
+    {
 
-//      // Input Spectrum originally called "in"
-//      //PeakSpectrum old_spectrum = in;
-//      RichPeakSpectrum out;
-//      vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
-//      if (old_spectrum.empty())
-//      {
-//        return out;
-//      }
+      // Input Spectrum originally called "in"
+      //PeakSpectrum old_spectrum = in;
+      RichPeakSpectrum out;
+      vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+      if (old_spectrum.empty())
+      {
+        return out;
+      }
 
 
-//      // determine charge seeds and extend them
-//      vector<Int> features(old_spectrum.size(), -1);
-//      Int feature_number = 0;
+      // determine charge seeds and extend them
+      vector<Int> features(old_spectrum.size(), -1);
+      Int feature_number = 0;
 
-//      for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-//      {
-//        double current_mz = old_spectrum[current_peak].getPosition()[0];
+      for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+      {
+        double current_mz = old_spectrum[current_peak].getPosition()[0];
 
-//        for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
-//        {
-//          // try to extend isotopes from mono-isotopic peak
-//          // if extension larger then min_isopeaks possible:
-//          //   - save charge q in mono_isotopic_peak[]
-//          //   - annotate all isotopic peaks with feature number
-//          if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
-//          {
-//            bool has_min_isopeaks = true;
-//            vector<Size> extensions;
-//            for (Size i = 0; i < max_isopeaks; ++i)
-//            {
-//              double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
-//              Size p = old_spectrum.findNearest(expected_mz);
-//              double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-//              if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)   // test for missing peak
-//              {
-//                if (i < min_isopeaks)
-//                {
-//                  has_min_isopeaks = false;
-//                }
-//                break;
-//              }
-//              else
-//              {
-//                // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
-//                Size n_extensions = extensions.size();
-//                if (n_extensions != 0)
-//                {
-//                  if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
-//                  {
-//                    if (i < min_isopeaks)
-//                    {
-//                      has_min_isopeaks = false;
-//                    }
-//                    break;
-//                  }
-//                }
+        for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
+        {
+          // try to extend isotopes from mono-isotopic peak
+          // if extension larger then min_isopeaks possible:
+          //   - save charge q in mono_isotopic_peak[]
+          //   - annotate all isotopic peaks with feature number
+          if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
+          {
+            bool has_min_isopeaks = true;
+            vector<Size> extensions;
+            for (Size i = 0; i < max_isopeaks; ++i)
+            {
+              double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+              Size p = old_spectrum.findNearest(expected_mz);
+              double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
+              if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)   // test for missing peak
+              {
+                if (i < min_isopeaks)
+                {
+                  has_min_isopeaks = false;
+                }
+                break;
+              }
+              else
+              {
+                // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
+                Size n_extensions = extensions.size();
+                if (n_extensions != 0)
+                {
+                  if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
+                  {
+                    if (i < min_isopeaks)
+                    {
+                      has_min_isopeaks = false;
+                    }
+                    break;
+                  }
+                }
 
-//                // averagine check passed
-//                extensions.push_back(p);
-//              }
-//            }
+                // averagine check passed
+                extensions.push_back(p);
+              }
+            }
 
-//            if (has_min_isopeaks)
-//            {
-//              //LOG_DEBUG << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
-//              mono_isotopic_peak[current_peak] = q;
-//              for (Size i = 0; i != extensions.size(); ++i)
-//              {
-//                features[extensions[i]] = feature_number;
-//              }
-//              feature_number++;
-//            }
-//          }
-//        }
-//      }
+            if (has_min_isopeaks)
+            {
+              //LOG_DEBUG << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
+              mono_isotopic_peak[current_peak] = q;
+              for (Size i = 0; i != extensions.size(); ++i)
+              {
+                features[extensions[i]] = feature_number;
+              }
+              feature_number++;
+            }
+          }
+        }
+      }
 
-//// OLD VERSION, creating deisotoped PeakSpectrum
-////      in.clear(false);
-////      for (Size i = 0; i != old_spectrum.size(); ++i)
-////      {
-////        Int z = mono_isotopic_peak[i];
-////        if (keep_only_deisotoped)
-////        {
-////          if (z == 0)
-////          {
-////            continue;
-////          }
-
-////          // if already single charged or no decharging selected keep peak as it is
-////          if (!make_single_charged)
-////          {
-////            in.push_back(old_spectrum[i]);
-////          }
-////          else
-////          {
-////            Peak1D p = old_spectrum[i];
-////            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-////            in.push_back(p);
-////          }
-////        }
-////        else
-////        {
-////          // keep all unassigned peaks
-////          if (features[i] < 0)
-////          {
-////            in.push_back(old_spectrum[i]);
-////            continue;
-////          }
-
-////          // convert mono-isotopic peak with charge assigned by deisotoping
-////          if (z != 0)
-////          {
-////            if (!make_single_charged)
-////            {
-////              in.push_back(old_spectrum[i]);
-////            }
-////            else
-////            {
-////              Peak1D p = old_spectrum[i];
-////              p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-////              in.push_back(p);
-////            }
-////          }
-////        }
-////      }
-
-//      // NEW VERSION, creating RichPeakSpectrum containing charges
-//      //out.clear(false);
-
+// OLD VERSION, creating deisotoped PeakSpectrum
+//      in.clear(false);
 //      for (Size i = 0; i != old_spectrum.size(); ++i)
 //      {
 //        Int z = mono_isotopic_peak[i];
@@ -1183,19 +1133,13 @@ protected:
 //          // if already single charged or no decharging selected keep peak as it is
 //          if (!make_single_charged)
 //          {
-//            RichPeak1D p;
-//            p.setMZ(old_spectrum[i].getMZ());
-//            p.setIntensity(old_spectrum[i].getIntensity());
-//            p.setMetaValue("z", z);
-//            out.push_back(p);
+//            in.push_back(old_spectrum[i]);
 //          }
 //          else
 //          {
-//            RichPeak1D p;
-//            p.setIntensity(old_spectrum[i].getIntensity());
-//            p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-//            p.setMetaValue("z", 1);
-//            out.push_back(p);
+//            Peak1D p = old_spectrum[i];
+//            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+//            in.push_back(p);
 //          }
 //        }
 //        else
@@ -1203,11 +1147,7 @@ protected:
 //          // keep all unassigned peaks
 //          if (features[i] < 0)
 //          {
-//            RichPeak1D p;
-//            p.setMZ(old_spectrum[i].getMZ());
-//            p.setIntensity(old_spectrum[i].getIntensity());
-//            p.setMetaValue("z", 0);
-//            out.push_back(p);
+//            in.push_back(old_spectrum[i]);
 //            continue;
 //          }
 
@@ -1216,34 +1156,95 @@ protected:
 //          {
 //            if (!make_single_charged)
 //            {
-//              RichPeak1D p;
-//              p.setMZ(old_spectrum[i].getMZ());
-//              p.setIntensity(old_spectrum[i].getIntensity());
-//              p.setMetaValue("z", z);
-//              out.push_back(p);
+//              in.push_back(old_spectrum[i]);
 //            }
 //            else
 //            {
-//              RichPeak1D p;
-//              p.setMZ(old_spectrum[i].getMZ());
-//              p.setIntensity(old_spectrum[i].getIntensity());
-//              p.setMetaValue("z", z);
-//              out.push_back(p);
+//              Peak1D p = old_spectrum[i];
+//              p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+//              in.push_back(p);
 //            }
 //          }
 //        }
 //      }
 
-////      vector<Precursor> precursors;
-////      Precursor pc;
-////      pc.setMZ(712.0402832);
-////      pc.setCharge(3);
-////      precursors.push_back(pc);
-//      out.setPrecursors(old_spectrum.getPrecursors());
-//      out.setRT(old_spectrum.getRT());
-//      out.sortByPosition();
-//      return out;
-//    }
+      // NEW VERSION, creating RichPeakSpectrum containing charges
+      //out.clear(false);
+
+      for (Size i = 0; i != old_spectrum.size(); ++i)
+      {
+        Int z = mono_isotopic_peak[i];
+        if (keep_only_deisotoped)
+        {
+          if (z == 0)
+          {
+            continue;
+          }
+
+          // if already single charged or no decharging selected keep peak as it is
+          if (!make_single_charged)
+          {
+            RichPeak1D p;
+            p.setMZ(old_spectrum[i].getMZ());
+            p.setIntensity(old_spectrum[i].getIntensity());
+            p.setMetaValue("z", z);
+            out.push_back(p);
+          }
+          else
+          {
+            RichPeak1D p;
+            p.setIntensity(old_spectrum[i].getIntensity());
+            p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            p.setMetaValue("z", 1);
+            out.push_back(p);
+          }
+        }
+        else
+        {
+          // keep all unassigned peaks
+          if (features[i] < 0)
+          {
+            RichPeak1D p;
+            p.setMZ(old_spectrum[i].getMZ());
+            p.setIntensity(old_spectrum[i].getIntensity());
+            p.setMetaValue("z", 0);
+            out.push_back(p);
+            continue;
+          }
+
+          // convert mono-isotopic peak with charge assigned by deisotoping
+          if (z != 0)
+          {
+            if (!make_single_charged)
+            {
+              RichPeak1D p;
+              p.setMZ(old_spectrum[i].getMZ());
+              p.setIntensity(old_spectrum[i].getIntensity());
+              p.setMetaValue("z", z);
+              out.push_back(p);
+            }
+            else
+            {
+              RichPeak1D p;
+              p.setMZ(old_spectrum[i].getMZ());
+              p.setIntensity(old_spectrum[i].getIntensity());
+              p.setMetaValue("z", z);
+              out.push_back(p);
+            }
+          }
+        }
+      }
+
+//      vector<Precursor> precursors;
+//      Precursor pc;
+//      pc.setMZ(712.0402832);
+//      pc.setCharge(3);
+//      precursors.push_back(pc);
+      out.setPrecursors(old_spectrum.getPrecursors());
+      out.setRT(old_spectrum.getRT());
+      out.sortByPosition();
+      return out;
+    }
 
     // Spectrum Alignment function adapted from SpectrumAlignment.h, intensity_cutoff: 0 for not considering, 0.3 = lower intentity has to be at least 30% of higher intensity (< 70% difference)
     template <typename SpectrumType1, typename SpectrumType2>
@@ -1769,7 +1770,7 @@ protected:
     const string in_mzml(getStringOption_("in"));
     const string in_fasta(getStringOption_("database"));
     const string in_decoy_fasta(getStringOption_("decoy_database"));
-    const string in_consensus(getStringOption_("consensus"));
+    //const string in_consensus(getStringOption_("consensus"));
     const string out_idXML(getStringOption_("out_idXML"));
     const string out_xquest = getStringOption_("out_xquestxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
@@ -1832,7 +1833,7 @@ protected:
     vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
     vector<ResidueModification> variable_modifications = getModifications_(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
-    
+
     // load MS2 map
     PeakMap spectra;
     MzMLFile f;
@@ -1853,16 +1854,16 @@ protected:
     // load linked features
     ConsensusMap cfeatures;
     ConsensusXMLFile cf;
-    cf.load(in_consensus, cfeatures); 
+    //cf.load(in_consensus, cfeatures);
 
-    // load fasta database    
+    // load fasta database
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
     fastaFile.load(in_fasta, fasta_db);
 
     progresslogger.endProgress();
-    
+
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
     EnzymaticDigestion digestor;
     String enzyme_name = getStringOption_("peptide:enzyme");
@@ -1871,7 +1872,7 @@ protected:
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     multimap<StringView, AASequence> processed_peptides;
-    
+
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
 
@@ -1883,7 +1884,7 @@ protected:
     {
       int scan_index = s_it - spectra.begin();
       vector<Precursor> precursor = s_it->getPrecursors();
-    
+
       // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
       if (precursor.size() == 1 && s_it->size() >= peptide_min_size)
       {
@@ -1892,10 +1893,10 @@ protected:
         {
           continue;
         }
-    
+
         double precursor_mz = precursor[0].getMZ();
         double precursor_mass = static_cast<double>(precursor_charge) * precursor_mz - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
-    
+
         multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
         PeptideIdentification temp_pi;
         temp_pi.setRT(s_it->getRT());
@@ -1920,46 +1921,46 @@ protected:
     p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
 
-    vector< pair<Size, Size> > spectrum_pairs;
-    {
-      vector<ProteinIdentification> protein_ids;
-      // protein identifications (leave as is...)
-      protein_ids = vector<ProteinIdentification>(1);
-      protein_ids[0].setDateTime(DateTime::now());
-      protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+//    vector< pair<Size, Size> > spectrum_pairs;
+//    {
+//      vector<ProteinIdentification> protein_ids;
+//      // protein identifications (leave as is...)
+//      protein_ids = vector<ProteinIdentification>(1);
+//      protein_ids[0].setDateTime(DateTime::now());
+//      protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
-      idmapper.annotate(cfeatures, pseudo_ids, protein_ids, true, true);
+//      idmapper.annotate(cfeatures, pseudo_ids, protein_ids, true, true);
 
-      // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
-      for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
-      {
-        if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
-        {
-          for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
-          {
-            if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
-            {
-              for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)
-              {
-                if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
-                {
-                  const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
-                  const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
-                  spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+//      // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
+//      for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
+//      {
+//        if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
+//        {
+//          for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
+//          {
+//            if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
+//            {
+//              for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)
+//              {
+//                if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
+//                {
+//                  const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
+//                  const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
+//                  spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
 
     // create common peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
 //    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass_light, cross_link_mass_heavy);
-    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
+    //PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
     progresslogger.endProgress();
- 
+
     Size count_proteins = 0;
     Size count_peptides = 0;
 
@@ -1986,7 +1987,7 @@ protected:
     search_params.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
 
     // As MetaValues
-    search_params.setMetaValue("input_consensusXML", in_consensus);
+    //search_params.setMetaValue("input_consensusXML", in_consensus);
     protein_ids[0].setMetaValue("input_mzML", in_mzml);
     //protein_ids[0].setMetaValue("input_database", in_fasta);
 
@@ -2039,7 +2040,7 @@ protected:
         progresslogger.setProgress(static_cast<SignedSize>(fasta_index) * NUMBER_OF_THREADS);
       }
 
-      // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)    
+      // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
       vector<StringView> current_digest;
       digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
@@ -2080,7 +2081,7 @@ protected:
         {
           continue;
         }
-            
+
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
@@ -2096,7 +2097,7 @@ protected:
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
         }
-        
+
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
@@ -2239,7 +2240,7 @@ protected:
         // generate common ions
         spectrum_generator.getSpectrum(theo_spectrum, *seq, 3); // TODO check which charge and which ion series are used for ion index
         peptide_spectra.insert(make_pair(seq, theo_spectrum));
-      
+
         //sort by mz (is done in getCommonIonSpectrum)
 //        theo_spectrum.sortByPosition();
 
@@ -2266,37 +2267,37 @@ protected:
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     vector< vector< CrossLinkSpectrumMatch > > all_top_csms;
 
-    for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
+    for (Size scan_index = 0; scan_index < spectra.size(); ++scan_index)
     {
 
       // If this spectra pair has less than 15 common peaks, then ignore it.
       //TODO is a xquest.def parameter in perl xQuest, set to 25 usually
-      if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() < 15)
-      {
-        continue;
-      }
+//      if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() < 15)
+//      {
+//        continue;
+//      }
 
-      Size scan_index = spectrum_pairs[pair_index].first;
-      Size scan_index_heavy = spectrum_pairs[pair_index].second;
-      LOG_DEBUG << "Scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
-      const PeakSpectrum& spectrum_light = spectra[scan_index];
-      const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
-      const double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
+      //Size scan_index = spectrum_pairs[pair_index].first;
+      //Size scan_index_heavy = spectrum_pairs[pair_index].second;
+      LOG_DEBUG << "Scan index: " << scan_index << endl;
+      const PeakSpectrum& spectrum= spectra[scan_index];
+      const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
+      const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
 
       // Mean ion intensity (light spectrum, TODO add heavy spectrum?)
       double mean_intensity= 0;
-      for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j)
+      for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum.size()); ++j)
       {
-        mean_intensity += spectrum_light[j].getIntensity();
+        mean_intensity += spectrum[j].getIntensity();
       }
-      mean_intensity = mean_intensity / spectrum_light.size();
+      mean_intensity = mean_intensity / spectrum.size();
 
-      const PeakSpectrum& common_peaks = preprocessed_pair_spectra.spectra_common_peaks[pair_index];
+      const PeakSpectrum& common_peaks = spectra[scan_index];
 
       vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
-      if (common_peaks.size() > 0 || preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0) // TODO: check if this is done in xQuest?
+      if (common_peaks.size() > 0) // TODO: check if this is done in xQuest?
       {
         // determine candidates
         vector<pair<const AASequence*, const AASequence*> > candidates;
@@ -2332,7 +2333,7 @@ protected:
           for (set<AASequence*>::iterator candidate = ion_tag_candidates.begin(); candidate != ion_tag_candidates.end(); ++candidate)
           {
             vector< pair< Size, Size > > matched_spec;
-            getSpectrumAlignment(matched_spec, peptide_spectra.at(*candidate), preprocessed_pair_spectra.spectra_common_peaks[pair_index], fragment_mass_tolerance, false);
+            getSpectrumAlignment(matched_spec, peptide_spectra.at(*candidate), spectrum, fragment_mass_tolerance, false);
 
             double pre_score = 0;
             if (matched_spec.size() > 0)
@@ -2362,7 +2363,7 @@ protected:
           for (set<AASequence*>::iterator candidateA = ion_tag_candidates.begin(); candidateA != ion_tag_candidates.end(); ++candidateA)
           {
             const AASequence* peptide_a = *candidateA;
-              
+
             //for (Size j = i + 1; j < ion_tag_candidates.size(); ++j)
             for (set<AASequence*>::iterator candidateB = ion_tag_candidates.begin(); candidateB != ion_tag_candidates.end(); ++candidateB)
             {
@@ -2535,7 +2536,7 @@ protected:
           TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
           double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
-          LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
+          LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
 //          LOG_DEBUG << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass_light: " <<  cross_link_mass_light <<  endl;
 
@@ -2582,15 +2583,15 @@ protected:
           vector< pair< Size, Size > > matched_spec_xlinks_alpha;
           vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
-          if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() > 0)
+          if (spectrum.size() > 0)
           {
-            getSpectrumAlignment(matched_spec_common_alpha, theoretical_spec_common_alpha, preprocessed_pair_spectra.spectra_common_peaks[pair_index], fragment_mass_tolerance, false);
-            getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index], fragment_mass_tolerance, false);
+            getSpectrumAlignment(matched_spec_common_alpha, theoretical_spec_common_alpha, spectrum, fragment_mass_tolerance, false);
+            getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, spectrum, fragment_mass_tolerance, false);
           }
-          if (preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0)
+          if (spectrum.size() > 0)
           {
-            getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], fragment_mass_tolerance_xlinks, false);
-            getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], fragment_mass_tolerance_xlinks, false);
+            getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, false);
+            getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, false);
           }
 
           // Pre-Score calculations
@@ -2619,30 +2620,26 @@ protected:
              if (pre_score > pScoreMax) pScoreMax = pre_score;
 
              // compute intsum score
-             double intsum = OpenXQuestScores::total_matched_current(matched_spec_common_alpha, matched_spec_common_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index], preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+             double intsum = OpenXQuestScores::total_matched_current(matched_spec_common_alpha, matched_spec_common_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, spectrum, spectrum);
 
 
               // Total ion intensity of light spectrum
               // sum over common and xlink ion spectra instead of unfiltered
               double total_current = 0;
-              for (SignedSize j = 0; j < static_cast<SignedSize>(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size()); ++j)
+              for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum.size()); ++j)
               {
-                total_current += preprocessed_pair_spectra.spectra_common_peaks[pair_index][j].getIntensity();
-              }
-              for (SignedSize j = 0; j < static_cast<SignedSize>(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size()); ++j)
-              {
-                total_current += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][j].getIntensity();
+                total_current += spectrum[j].getIntensity();
               }
               double TIC = intsum / total_current;
 
               if (TIC > TICMax) TICMax = TIC;
 
               // TIC_alpha and _beta
-              double intsum_alpha = OpenXQuestScores::matched_current_chain(matched_spec_common_alpha, matched_spec_xlinks_alpha, preprocessed_pair_spectra.spectra_common_peaks[pair_index], preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+              double intsum_alpha = OpenXQuestScores::matched_current_chain(matched_spec_common_alpha, matched_spec_xlinks_alpha, spectrum, spectrum);
               double intsum_beta = 0;
               if (type_is_cross_link)
               {
-                intsum_beta = OpenXQuestScores::matched_current_chain(matched_spec_common_beta, matched_spec_xlinks_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index], preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+                intsum_beta = OpenXQuestScores::matched_current_chain(matched_spec_common_beta, matched_spec_xlinks_beta, spectrum, spectrum);
               }
 
               // normalize TIC_alpha and  _beta
@@ -2707,12 +2704,12 @@ protected:
                 theoretical_spec_xlinks = theoretical_spec_xlinks_alpha;
               }
 
-               vector< double > xcorrx = OpenXQuestScores::xCorrelation(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks, 5, 0.3);
-               vector< double > xcorrc = OpenXQuestScores::xCorrelation(preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common, 5, 0.2);
+               vector< double > xcorrx = OpenXQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.3);
+               vector< double > xcorrc = OpenXQuestScores::xCorrelation(spectrum, theoretical_spec_common, 5, 0.2);
 
                 // TODO save time: only needs to be done once per light spectrum, here it is repeated for cross-link each candidate
-                vector< double > aucorrx = OpenXQuestScores::xCorrelation(spectrum_light, spectrum_light, 5, 0.3);
-                vector< double > aucorrc = OpenXQuestScores::xCorrelation(spectrum_light, spectrum_light, 5, 0.2);
+                vector< double > aucorrx = OpenXQuestScores::xCorrelation(spectrum, spectrum, 5, 0.3);
+                vector< double > aucorrc = OpenXQuestScores::xCorrelation(spectrum, spectrum, 5, 0.2);
                 double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
                 double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
                 double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
@@ -2752,7 +2749,7 @@ protected:
                 csm.matched_xlink_alpha = matched_spec_xlinks_alpha.size();
                 csm.matched_xlink_beta = matched_spec_xlinks_beta.size();
                 csm.scan_index_light = scan_index;
-                csm.scan_index_heavy = scan_index_heavy;
+                csm.scan_index_heavy = -1;
 
 
                 // write fragment annotations
@@ -2762,8 +2759,8 @@ protected:
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("z"));
-                  frag_anno.mz = spectrum_light[matched_spec_common_alpha[k].second].getMZ();
-                  frag_anno.intensity = spectrum_light[matched_spec_common_alpha[k].second].getIntensity();
+                  frag_anno.mz = spectrum[matched_spec_common_alpha[k].second].getMZ();
+                  frag_anno.intensity = spectrum[matched_spec_common_alpha[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
@@ -2771,8 +2768,8 @@ protected:
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("z"));
-                  frag_anno.mz = spectrum_light[matched_spec_common_beta[k].second].getMZ();
-                  frag_anno.intensity = spectrum_light[matched_spec_common_beta[k].second].getIntensity();
+                  frag_anno.mz = spectrum[matched_spec_common_beta[k].second].getMZ();
+                  frag_anno.intensity = spectrum[matched_spec_common_beta[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
@@ -2780,8 +2777,8 @@ protected:
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("z"));
-                  frag_anno.mz = spectrum_light[matched_spec_xlinks_alpha[k].second].getMZ();
-                  frag_anno.intensity = spectrum_light[matched_spec_xlinks_alpha[k].second].getIntensity();
+                  frag_anno.mz = spectrum[matched_spec_xlinks_alpha[k].second].getMZ();
+                  frag_anno.intensity = spectrum[matched_spec_xlinks_alpha[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
@@ -2789,8 +2786,8 @@ protected:
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("z"));
-                  frag_anno.mz = spectrum_light[matched_spec_xlinks_beta[k].second].getMZ();
-                  frag_anno.intensity = spectrum_light[matched_spec_xlinks_beta[k].second].getIntensity();
+                  frag_anno.mz = spectrum[matched_spec_xlinks_beta[k].second].getMZ();
+                  frag_anno.intensity = spectrum[matched_spec_xlinks_beta[k].second].getIntensity();
                   frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
@@ -2891,10 +2888,10 @@ protected:
               ph_alpha.setRank(DataValue(i+1));
               ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
               ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
-              ph_alpha.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-              ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+              //ph_alpha.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+              //ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
               ph_alpha.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-              ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+              //ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
               ph_alpha.setMetaValue("xl_type", xltype);
               ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
 
@@ -2916,10 +2913,10 @@ protected:
                 ph_beta.setRank(DataValue(i+1));
                 ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
                 ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
-                ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-                ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+                //ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+                //ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
                 ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-                ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+                //ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
 
                 ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
                 ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
@@ -2930,9 +2927,9 @@ protected:
                 phs.push_back(ph_beta);
               }
 
-              peptide_id.setRT(spectrum_light.getRT());
+              peptide_id.setRT(spectrum.getRT());
               peptide_id.setMZ(precursor_mz);
-              String specIDs = spectra[scan_index].getNativeID() + "," + spectra[scan_index_heavy].getNativeID();
+              String specIDs = spectra[scan_index].getNativeID();
               peptide_id.setMetaValue("spectrum_reference", specIDs);
 //              peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
 //              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
@@ -2988,8 +2985,8 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
       //String spec_xml_filename = spec_xml_name + ".spec.xml";
-      writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra);
-      writeXQuestXMLSpec(base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
+      //writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra);
+      //writeXQuestXMLSpec(base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 
@@ -3002,7 +2999,7 @@ int main(int argc, const char** argv)
 {
 
   TOPPxQuest tool;
-  
+
   return tool.main(argc, argv);
 }
 
