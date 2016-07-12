@@ -55,8 +55,8 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          String exp_ref = it->getMetaValue("spectrum_reference").toString();
-          String scannumber = getScanIdentifier(it, peptide_ids.begin());
+          String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+          Int scan_number = getScanNumber(scan_identifier);
           int label = 1;
           if (hit->metaValueExists("target_decoy") && String(hit->getMetaValue("target_decoy")).hasSubstring("decoy"))
           {
@@ -64,9 +64,9 @@ namespace OpenMS
           }
 
           StringList collected_feats;
-          collected_feats.push_back(exp_ref);
+          collected_feats.push_back(scan_identifier);
           collected_feats.push_back(String(label));
-          collected_feats.push_back(scannumber);
+          collected_feats.push_back(String(scan_number));
 
           for (vector<String>::const_iterator feat = user_param_features.begin(); feat != user_param_features.end(); ++feat)
           {
@@ -123,21 +123,17 @@ namespace OpenMS
           if (hit->metaValueExists("NumMatchedMainIons"))
           {
             // only take features from first ranked entries and only with meanerrortop7 != 0.0
-            if (hit->getRank() == 1 && hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
+            if (hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
             {
-              int rank = hit->getRank();
               int charge = hit->getCharge();
 
-              String scannumber = getScanIdentifier(it, peptide_ids.begin());
+              String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+              Int scan_number = getScanNumber(scan_identifier);
               int label = 1;
-              String SpecId = "target_SII_";
               if ((String(hit->getMetaValue("target_decoy"))).hasSubstring("decoy"))
               {
-                SpecId = "decoy_SII_";
                 label = -1;
               }
-
-              SpecId += scannumber + "_" + String(rank) + "_" + String(charge);
 
               double rawScore = hit->getMetaValue("MS:1002049").toString().toDouble();
               double denovoScore = hit->getMetaValue("MS:1002050").toString().toDouble();
@@ -216,7 +212,7 @@ namespace OpenMS
               String protein = hit->getPeptideEvidences().front().getProteinAccession();
 
               // One PeptideSpectrumHit with all its features
-              String lis = SpecId + out_sep + String(label) + out_sep + scannumber + out_sep + (String)rawScore + out_sep +
+              String lis = scan_identifier + out_sep + String(label) + out_sep + String(scan_number) + out_sep + (String)rawScore + out_sep +
                            (String)denovoScore + out_sep + (String)scoreRatio + out_sep + (String)energy + out_sep + (String)ln_eval +
                            out_sep + (String)isotopeError + out_sep + (String)lnExplainedIonCurrentRatio + out_sep +
                            (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
@@ -310,7 +306,8 @@ namespace OpenMS
       {
         if (it->isHigherScoreBetter())
         {
-          String scannumber = getScanIdentifier(it, peptide_ids.begin());
+          String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+          Int scan_number = getScanNumber(scan_identifier);
           int charge = it->getHits().front().getCharge();
           int label = 1;
           double hyperscore = it->getHits().front().getScore();
@@ -386,8 +383,8 @@ namespace OpenMS
           String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
 
           // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
-            "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) +
+          String lis = scan_identifier + "_" + String(charge) +
+            "_1" + out_sep + String(label) + out_sep + String(scan_number) + out_sep + String(hyperscore) +
             out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep +
             String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) +
             String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
@@ -403,7 +400,8 @@ namespace OpenMS
       {
         if (it->isHigherScoreBetter())
         {
-          String scannumber = String(it->getMetaValue("spectrum_reference"));
+          String scan_identifier = String(it->getMetaValue("spectrum_reference"));
+          Int scan_number = getScanNumber(scan_identifier);
           int charge = it->getHits().front().getCharge();
           int label = -1;
           double hyperscore = it->getHits().front().getScore();
@@ -473,7 +471,7 @@ namespace OpenMS
           String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
 
           // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_decoy_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep
+          String lis = scan_identifier + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + String(scan_number) + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep
                        + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + out_sep + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
 
           // peptide Spectrum Hit pushed to the output file
@@ -517,15 +515,11 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
         }
         it->sort();
         it->assignRanks();
-        String scannumber = getScanIdentifier(it, peptide_ids.begin());
+        String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+        Int scan_number = getScanNumber(scan_identifier);
         std::vector<PeptideHit> hits = it->getHits();
         for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
         {
-          StringList idents;
-          idents.push_back(it->getBaseName());
-          idents.push_back(scannumber);
-          idents.push_back(String(jt->getRank()));
-          String sid = ListUtils::concatenate(idents, "_");
           int charge = jt->getCharge();
           int label = 1;
           if (jt->metaValueExists("target_decoy") && String(jt->getMetaValue("target_decoy")).hasSubstring("decoy"))
@@ -591,9 +585,9 @@ id	label	ScanNr	lnrSp	deltLCn	deltCn	lnExpect	Xcorr	Sp	IonFrac	Mass	PepLen	Charg
           }
 
           StringList row;
-          row.push_back(sid);
+          row.push_back(scan_identifier);
           row.push_back(label);
-          row.push_back(scannumber);
+          row.push_back(String(scan_number));
           row.push_back(lnrSp);
           row.push_back(deltaLCn);
           row.push_back(deltaCn);
@@ -668,7 +662,8 @@ feature abbreviation	feature description
         }
         it->sort();
         it->assignRanks();
-        String scannumber = getScanIdentifier(it, peptide_ids.begin());
+        String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+        Int scan_number = getScanNumber(scan_identifier);
         it->sort();
         it->assignRanks();
 
@@ -676,11 +671,6 @@ feature abbreviation	feature description
         assignDeltaScore(hits, "MS:1001171");
         for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
         {
-          StringList idents;
-          idents.push_back(it->getBaseName());
-          idents.push_back(scannumber);
-          idents.push_back(String(jt->getRank()));
-          String sid = ListUtils::concatenate(idents, "_");
           int label = 1;
           if (jt->metaValueExists("target_decoy") && String(jt->getMetaValue("target_decoy")).hasSubstring("decoy"))
           {
@@ -741,9 +731,9 @@ feature abbreviation	feature description
           }
 
           StringList row;
-          row.push_back(sid);
+          row.push_back(scan_identifier);
           row.push_back(label);
-          row.push_back(scannumber);
+          row.push_back(String(scan_number));
           row.push_back(String(mass));
           row.push_back(ListUtils::concatenate(chargen, out_sep));
           row.push_back(String(mScore));
@@ -826,10 +816,10 @@ feature abbreviation	feature description
     }
 
     // Function adapted from Enzyme.h in Percolator converter
-    size_t TopPerc::countEnzymatic(String peptide, string& enz)
+    Size TopPerc::countEnzymatic(String peptide, string& enz)
     {
-      size_t count = 0;
-      for (size_t ix = 1; ix < peptide.size(); ++ix)
+      Size count = 0;
+      for (Size ix = 1; ix < peptide.size(); ++ix)
       {
         if (isEnz(peptide[ix - 1], peptide[ix], enz))
         {
@@ -851,17 +841,31 @@ feature abbreviation	feature description
 
     String TopPerc::getScanIdentifier(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {
-      String scannumber = it->getMetaValue("spectrum_reference");
-      if (scannumber.empty())
+      String scan_identifier = it->getMetaValue("spectrum_reference");
+      if (scan_identifier.empty())
       {
-        scannumber = String(it->getMetaValue("spectrum_id"));
-        if (scannumber.empty())
+        scan_identifier = String(it->getMetaValue("spectrum_id"));
+        if (scan_identifier.empty())
         {
-          scannumber = String(it - start + 1);
+          scan_identifier = String(it - start + 1);
           LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
         }
       }
-      return scannumber.removeWhitespaces();
+      return scan_identifier.removeWhitespaces();
+    }
+    
+    Int TopPerc::getScanNumber(String scan_identifier)
+    {
+      Size idx = 0;
+      if ((idx = scan_identifier.find("index=")) != std::string::npos) 
+      {
+        scan_identifier = scan_identifier.substr(idx + 6);
+      }
+      else if ((idx = scan_identifier.find("scan=")) != std::string::npos) 
+      {
+        scan_identifier = scan_identifier.substr(idx + 5);
+      }
+      return scan_identifier.toInt();
     }
 
     void TopPerc::assignDeltaScore(vector<PeptideHit>& hits, String score_ref)
@@ -892,7 +896,7 @@ feature abbreviation	feature description
       //search parameters of all runs must correspond (considering front() of each only)
       if (!skip_checks)
       {
-        for (size_t i=1; i < protein_ids_list.size(); ++i)
+        for (Size i=1; i < protein_ids_list.size(); ++i)
         {
           if( protein_ids_list[i-1].front().getSearchParameters().db != protein_ids_list[i].front().getSearchParameters().db )
           {
@@ -922,7 +926,7 @@ feature abbreviation	feature description
             //set score in each hit to #SE hits
             hit->setScore(1);
             //rename common meta values (to SE:commonmetavaluename)
-            for (size_t i = 0; i < commonMetaValues.size(); ++i)
+            for (Size i = 0; i < commonMetaValues.size(); ++i)
             {
               if (hit->metaValueExists(commonMetaValues[i]))
               {
@@ -1114,10 +1118,9 @@ feature abbreviation	feature description
       {
         it->sort();
         it->assignRanks();
-        String scanidentifier = getScanIdentifier(it, peptide_ids.begin());
+        String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+        Int scan_number = getScanNumber(scan_identifier);
         StringList idents;
-        scanidentifier.split("=",idents);
-        String scannr = idents.back();
         std::vector<PeptideHit> hits = it->getHits();
         for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
         {
@@ -1185,9 +1188,9 @@ feature abbreviation	feature description
           }
 
           StringList row;
-          row.push_back(scanidentifier+"_"+String(std::distance(hits.begin(),jt)));
+          row.push_back(scan_identifier);
           row.push_back(label);
-          row.push_back(scannr);
+          row.push_back(String(scan_number));
           row.push_back(ListUtils::concatenate(sesp, out_sep));
           row.push_back(ListUtils::concatenate(chargen, out_sep));
           row.push_back(ionfrac);
@@ -1242,16 +1245,14 @@ feature abbreviation	feature description
       // get all the feature values
       for (vector<vector<PeptideIdentification> >::iterator pit = peptide_id_list.begin(); pit != peptide_id_list.end(); ++pit)
       {
-          size_t i = std::distance(peptide_id_list.begin(),pit);
+          Size i = std::distance(peptide_id_list.begin(),pit);
           String se = protein_id_list[i].front().getSearchEngine();
           for (vector<PeptideIdentification>::iterator it = pit->begin(); it != pit->end(); ++it)
           {
             it->sort();
             it->assignRanks();
-            String scanidentifier = getScanIdentifier(it, pit->begin());
-            StringList idents;
-            scanidentifier.split("=",idents);
-            String scannr = idents.back();
+            String scan_identifier = getScanIdentifier(it, pit->begin());
+            Int scan_number = getScanNumber(scan_identifier);
             std::vector<PeptideHit> hits = it->getHits();
             for (vector<PeptideHit>::iterator jt = hits.begin(); jt != hits.end(); ++jt)
             {
@@ -1341,9 +1342,9 @@ feature abbreviation	feature description
               }
 
               StringList row;
-              row.push_back(scanidentifier+"_"+String(std::distance(hits.begin(),jt)));
+              row.push_back(scan_identifier);
               row.push_back(label);
-              row.push_back(scannr);
+              row.push_back(String(scan_number));
               row.push_back(ListUtils::concatenate(sesp, out_sep));
               row.push_back(ListUtils::concatenate(chargen, out_sep));
               row.push_back(ev);
@@ -1362,6 +1363,24 @@ feature abbreviation	feature description
               txt.addLine(ListUtils::concatenate(row, out_sep));
           }
         }
+      }
+    }
+    
+    void TopPerc::readPoutAsMap(String pout_file, map<String, vector<PercolatorResult> >& pep_map)
+    {
+      CsvFile csv_file(pout_file, '\t');
+      StringList row;
+
+      for (Size i = 1; i < csv_file.rowCount(); ++i)
+      {
+        csv_file.getRow(i, row);
+        PercolatorResult res(row);
+        String spec_ref = res.PSMId;
+        if (pep_map.find(spec_ref) == pep_map.end())
+        {
+          pep_map[spec_ref] = vector<TopPerc::PercolatorResult>();
+        }
+        pep_map[spec_ref].push_back(res);
       }
     }
 

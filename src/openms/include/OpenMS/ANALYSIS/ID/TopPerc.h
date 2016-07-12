@@ -39,10 +39,12 @@
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <map>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 
 namespace OpenMS
 {
@@ -116,9 +118,11 @@ namespace OpenMS
         static void prepareMASCOTpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
         static void prepareMULTIpin(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
         static void prepareCONCATpin(std::vector<std::vector<PeptideIdentification> >& peptide_id_list, std::vector<std::vector<ProteinIdentification> >& protein_id_list, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
-        static size_t countEnzymatic(String peptide, std::string& enz);
+        static void readPoutAsMap(String pout_file, std::map<String, std::vector<PercolatorResult> >& pep_map);
+        static Size countEnzymatic(String peptide, std::string& enz);
         static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
         static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
+        static Int getScanNumber(String scan_identifier);
         static void assignDeltaScore(std::vector<PeptideHit>& hits, String score_ref);
         static void mergeMULTIids(std::vector<std::vector<ProteinIdentification> >& protein_ids_list, std::vector<std::vector<PeptideIdentification> >& peptide_ids_list, bool skip_checks=false);
 
