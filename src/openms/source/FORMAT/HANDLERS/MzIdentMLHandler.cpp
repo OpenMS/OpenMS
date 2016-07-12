@@ -754,9 +754,15 @@ namespace OpenMS
         {
           String pepid =  "PEP_" + String(UniqueIdGenerator::getUniqueId());
           String pepi = jt->getSequence().toString();
-          if (it->metaValueExists("xl_type"))
+
+          if (jt->metaValueExists("xl_chain"))
           {
-            pepi += "_xl";
+            pepi += "_" + jt->getMetaValue("xl_chain").toString();
+            if (jt->getMetaValue("xl_type") != "mono-link")  //sequence may contain more than one linker anchors; also code position linked
+            {
+              pepi += "_" + jt->getMetaValue("xl_pos").toString();
+            }
+            //TODO ppxl : should also code for which position is linked
           }
           std::map<String, String>::iterator pit = pep_ids.find(pepi);
           if (pit == pep_ids.end())
@@ -803,7 +809,7 @@ namespace OpenMS
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
               }
             }
-            if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv)
+            if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv) <- check for use of unimod:DSS use
             {
               int i = jt->getMetaValue("xl_pos").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
@@ -910,7 +916,7 @@ namespace OpenMS
           String cmz((jt->getSequence().getMonoWeight() +  jt->getCharge() * Constants::PROTON_MASS_U) / jt->getCharge()); //calculatedMassToCharge
           String r(jt->getRank()); //rank
           String sc(jt->getScore());
-          if (it->metaValueExists("xl_rank"))  // TODO ppxl location subject to change
+          if (it->metaValueExists("xl_rank"))
           {
             r = it->getMetaValue("xl_rank").toString();  // ppxl remove xl_rank later (in copy_jt)
           }
@@ -970,8 +976,6 @@ namespace OpenMS
           {
             writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5, is_ppxl);
           }
-
-          // TODO ppxl where to read https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.csv
 
           std::set<String> peptide_result_details;
           cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
@@ -1069,6 +1073,7 @@ namespace OpenMS
             ppxl_specref_2_element[sid] += sii_tmp;
             if (jt->metaValueExists("spec_heavy_RT") && jt->metaValueExists("spec_heavy_MZ"))
             {
+              // ppxl : TODO remove if existing <Fragmentation/>block
               sii_tmp = sii_tmp.substitute(String("experimentalMassToCharge=\"") + String(emz),
                                            String("experimentalMassToCharge=\"") + String(jt->getMetaValue("spec_heavy_MZ"))); // mz
               sii_tmp = sii_tmp.substitute(sii, String("SII_") + String(UniqueIdGenerator::getUniqueId())); // uid
