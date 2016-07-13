@@ -303,7 +303,7 @@ namespace OpenMS
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
 
-    // generate flat list of all occuring isotopic labels
+    // generate flat list of all occurring isotopic labels
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)

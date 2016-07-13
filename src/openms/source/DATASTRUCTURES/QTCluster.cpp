@@ -159,7 +159,7 @@ namespace OpenMS
       {
         if (center_point_->getAnnotations() != element->getAnnotations()) 
         {
-          // Both annotations are non-empty and are unequal, we dont add
+          // Both annotations are non-empty and are unequal, we don't add
           return;
         }
       }
