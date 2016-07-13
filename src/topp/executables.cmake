@@ -71,6 +71,7 @@ PeakPickerHiRes
 PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
+PercolatorAdapter
 PhosphoScoring
 PrecursorIonSelector
 PrecursorMassCorrector

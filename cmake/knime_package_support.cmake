@@ -118,6 +118,8 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # PercolatorAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # FidoAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
@@ -274,9 +276,15 @@ if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
+<<<<<<< HEAD
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
+=======
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). Please check use the one from the SVN.")
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). Please check use the one from the SVN.")
+>>>>>>> PercolatorAdapter working
 elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (MyriMatch is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 endif()

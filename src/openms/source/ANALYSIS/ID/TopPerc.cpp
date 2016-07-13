@@ -42,7 +42,93 @@ namespace OpenMS
     //TODO for all prepare* PSMId as written in PeptideIdentification::spectrum_reference
     //  and pre/post AA as - if begin/end of protein ([/] in PeptideEvidence) - see prepareMULTIpin
     //id <tab> label <tab> scannr <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
-
+    
+    void TopPerc::preparePin(vector<PeptideIdentification>& peptide_ids, StringList& feature_set, std::string& enz, TextFile& txt, int min_charge, int max_charge, const char out_sep)
+    {
+      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      {
+        String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
+        Int scan_number = getScanNumber(scan_identifier);
+        double exp_mass = it->getMZ();
+        for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
+        {
+          PeptideHit hit(*jt); // make a copy of the hit to store temporary features
+          hit.setMetaValue("SpecId", scan_identifier);
+          hit.setMetaValue("ScanNr", scan_number);
+          
+          int label = 1;
+          if (hit.metaValueExists("target_decoy") && String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
+          {
+            label = -1;
+          }
+          hit.setMetaValue("Label", label);
+          
+          int charge = hit.getCharge();
+          String unmodified_sequence = hit.getSequence().toUnmodifiedString();
+          
+          double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
+          hit.setMetaValue("CalcMass", calc_mass);
+          
+          
+          hit.setMetaValue("ExpMass", exp_mass);
+          hit.setMetaValue("mass", exp_mass);
+          
+          double score = hit.getScore();
+          hit.setMetaValue("score", score);
+          
+          int peptide_length = unmodified_sequence.size();
+          hit.setMetaValue("peplen", peptide_length);
+          
+          for (int i = min_charge; i <= max_charge; ++i)
+          {
+             hit.setMetaValue("charge" + String(i), charge == i);
+          }
+          
+          bool enzN = isEnz(hit.getPeptideEvidences().front().getAABefore(), unmodified_sequence.prefix(1)[0], enz);
+          hit.setMetaValue("enzN", enzN);
+          bool enzC = isEnz(unmodified_sequence.suffix(1)[0], hit.getPeptideEvidences().front().getAAAfter(), enz);
+          hit.setMetaValue("enzC", enzC);
+          int enzInt = countEnzymatic(unmodified_sequence, enz);
+          hit.setMetaValue("enzInt", enzInt);
+          
+          double delta_mass = exp_mass - calc_mass;
+          hit.setMetaValue("dm", delta_mass);
+          
+          double abs_delta_mass = abs(delta_mass);
+          hit.setMetaValue("absdm", abs_delta_mass);
+          
+          //peptide
+          String sequence = "";
+          sequence += String(hit.getPeptideEvidences().front().getAABefore()); // just first peptide evidence
+          sequence += "." + hit.getSequence().toString() + ".";
+          sequence += String(hit.getPeptideEvidences().front().getAAAfter()); //just first peptide evidence
+          hit.setMetaValue("Peptide", sequence);
+          
+          //proteinId1
+          StringList proteins;
+          for (vector<PeptideEvidence>::const_iterator kt = hit.getPeptideEvidences().begin(); kt != hit.getPeptideEvidences().end(); ++kt)
+          {
+            proteins.push_back(kt->getProteinAccession());
+          }
+          hit.setMetaValue("Proteins", ListUtils::concatenate(proteins, out_sep));
+          
+          StringList feats;
+          for (vector<String>::const_iterator feat = feature_set.begin(); feat != feature_set.end(); ++feat)
+          {
+          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
+            if (hit.metaValueExists(*feat))
+            {
+              feats.push_back(hit.getMetaValue(*feat).toString());
+            }
+          }
+          if (feats.size() == feature_set.size())
+          { // only if all feats were present add
+            txt.addLine(ListUtils::concatenate(feats, out_sep));
+          }
+        }
+      }
+    }
+    
     void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, TextFile& txt, vector<String>& user_param_features, char out_sep)
     {
       // Create header for the features

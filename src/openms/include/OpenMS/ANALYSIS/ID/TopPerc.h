@@ -111,6 +111,7 @@ namespace OpenMS
 
     public:
         static bool isEnz(const char& n, const char& c, std::string& enz);
+        static void preparePin(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set, std::string& enz, TextFile& txt, int min_charge, int max_charge, const char out_sep='\t');
         static void prepareCUSTOMpin(std::vector<PeptideIdentification>& peptide_ids, TextFile& txt, std::vector<String>& user_param_features, char out_sep='\t');
         static void prepareMSGFpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, bool addMHC = false, char out_sep='\t');
         static void prepareXTANDEMpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
