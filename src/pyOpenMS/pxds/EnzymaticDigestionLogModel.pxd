@@ -14,6 +14,9 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>" namespace "Op
       # void setEnzyme(Enzyme enzyme) nogil except +
       # Enzyme getEnzymeByName(String & name) nogil except +
 
+      String getEnzymeName() nogil except +
+      void setEnzyme(String name) nogil except +
+
       double getLogThreshold() nogil except +
       void setLogThreshold(double threshold) nogil except +
 

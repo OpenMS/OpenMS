@@ -16,7 +16,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" n
         # XCorrMatrixType  getXCorrMatrix() nogil except +
         # NAMESPACE # # POINTER # void initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize) nogil except +
         double calcXcorrCoelutionScore() nogil except +
+        libcpp_string calcIndXcorrIdCoelutionScore() nogil except +
         double calcXcorrShape_score() nogil except +
+        libcpp_string calcIndXcorrIdShape_score() nogil except +
         double calcXcorrShape_score_weighted(libcpp_vector[ double ] & normalized_library_intensity) nogil except +
         double calcXcorrCoelutionScore_weighted(libcpp_vector[ double ] & normalized_library_intensity) nogil except +
         # NAMESPACE # # POINTER # void calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, libcpp_vector[ TransitionType ] & transitions, double & correlation, double & rmsd, double & manhattan, double & dotprod) nogil except +
@@ -25,3 +27,4 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" n
 
         double calcMS1XcorrCoelutionScore() nogil except +
         double calcMS1XcorrShape_score() nogil except +
+
