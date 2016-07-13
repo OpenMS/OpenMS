@@ -7,15 +7,15 @@ input.file <- commandArgs(TRUE)[1]
 output.file <- commandArgs(TRUE)[2]
 
 # count the occurences of character c in string s
-count.occurrences <- function(char,s) {
+countOccurrences <- function(char,s) {
 	s2 <- gsub(char,"",s)
 	return (nchar(s) - nchar(s2))
 }
 
 # check that all protein accessions are of the format *|*|*
-check.accession.format <- function(accessions) {
+checkAccessionFormat <- function(accessions) {
 	n <- length(accessions)
-	count <- count.occurrences("[|]",accessions)
+	count <- countOccurrences("[|]",accessions)
 	m <- length(which(count==2))
 	return (n==m)
 }
@@ -34,7 +34,7 @@ readMzTabPEP <- function(file) {
   
   # simplify accession (in case it is of the format *|*|* )
   peptide.data$accession <- as.character(peptide.data$accession)
-  if (check.accession.format(peptide.data$accession)) {
+  if (checkAccessionFormat(peptide.data$accession)) {
     list <- strsplit(peptide.data$accession,"[|]")
     peptide.data$accession <- unlist(lapply(list, '[[', 2))
     peptide.data$gene <- unlist(lapply(list, '[[', 3))
