@@ -173,6 +173,7 @@ namespace OpenMS
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         else if (errno == ENOTDIR)
           throw (runtime_error("A component of the path is not a directory."));
+        // On MSVC 2008, the ELOOP constant is not declared and thus introduces a compile error
         //else if (errno == ELOOP)
         //  throw (runtime_error("Too many symbolic links encountered while traversing the path."));
         else if (errno == EACCES)
