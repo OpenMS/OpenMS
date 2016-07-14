@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_TOPPERC_H
@@ -44,89 +44,23 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/CsvFile.h>
 
 namespace OpenMS
 {
     class OPENMS_DLLAPI TopPerc
     {
-    public:
-      struct PercolatorResult
-      {
-        String PSMId;
-        double score;
-        double qvalue;
-        double posterior_error_prob;
-        String peptide;
-        char preAA;
-        char postAA;
-        StringList proteinIds;
-
-        PercolatorResult(const String& pid, const double s, const double q, const String& p, const char pre, const char pos, const StringList& pl):
-            PSMId (pid),
-            score (s),
-            qvalue (q),
-            peptide (p),
-            preAA (pre),
-            postAA (pos),
-            proteinIds (pl)
-        {
-        }
-
-        PercolatorResult(StringList& row):
-        proteinIds()
-        {
-          // peptide sequence
-          StringList pep;
-          row[4].split(".", pep);
-          //TODO test pep size 3
-          peptide = pep[1];
-          preAA = pep[0]=="-"?'[':pep[0].c_str()[0];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
-          postAA = pep[2]=="-"?']':pep[2].c_str()[0]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
-          // SVM-score
-          score = row[1].toDouble();
-          // q-Value
-          qvalue = row[2].toDouble();
-          // PEP
-          posterior_error_prob = row[3].toDouble();
-          // scannr. as written in preparePIN
-          PSMId = row[0];
-          proteinIds = std::vector<String>(row.begin()+5,row.end());
-        }
-
-        bool operator!=(const TopPerc::PercolatorResult& rhs) const
-        {
-          if (PSMId != rhs.PSMId || score != rhs.score || qvalue != rhs.qvalue ||
-              posterior_error_prob != rhs.posterior_error_prob || peptide != rhs.peptide ||
-              proteinIds != rhs.proteinIds)
-            return true;
-          return false;
-        }
-
-        bool operator==(const TopPerc::PercolatorResult& rhs) const
-        {
-          return !(operator !=(rhs));
-        }
-    };
 
     public:
-        static bool isEnz(const char& n, const char& c, std::string& enz);
-        static void preparePin(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set, std::string& enz, TextFile& txt, int min_charge, int max_charge, const char out_sep='\t');
-        static void prepareCUSTOMpin(std::vector<PeptideIdentification>& peptide_ids, TextFile& txt, std::vector<String>& user_param_features, char out_sep='\t');
-        static void prepareMSGFpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, bool addMHC = false, char out_sep='\t');
-        static void prepareXTANDEMpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
-        static void prepareCOMETpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
-        static void prepareMASCOTpin(std::vector<PeptideIdentification>& peptide_ids, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
-        static void prepareMULTIpin(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
-        static void prepareCONCATpin(std::vector<std::vector<PeptideIdentification> >& peptide_id_list, std::vector<std::vector<ProteinIdentification> >& protein_id_list, std::string& enz, TextFile& txt, int min_charge, int max_charge, char out_sep='\t');
-        static void readPoutAsMap(String pout_file, std::map<String, std::vector<PercolatorResult> >& pep_map);
-        static Size countEnzymatic(String peptide, std::string& enz);
-        static double rescaleFragmentFeature(double featureValue, int NumMatchedMainIons);
-        static String getScanIdentifier(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
-        static Int getScanNumber(String scan_identifier);
-        static void assignDeltaScore(std::vector<PeptideHit>& hits, String score_ref);
-        static void mergeMULTIids(std::vector<std::vector<ProteinIdentification> >& protein_ids_list, std::vector<std::vector<PeptideIdentification> >& peptide_ids_list, bool skip_checks=false);
-
+        static void mergeMULTISEids(std::vector<ProteinIdentification>& all_protein_ids, std::vector<PeptideIdentification>& all_peptide_ids, std::vector<ProteinIdentification>& new_protein_ids, std::vector<PeptideIdentification>& new_peptide_ids, StringList& search_engines_used);
+        static void concatMULTISEids(std::vector<ProteinIdentification>& all_protein_ids, std::vector<PeptideIdentification>& all_peptide_ids, std::vector<ProteinIdentification>& new_protein_ids, std::vector<PeptideIdentification>& new_peptide_ids, StringList& search_engines_used);
+        
+        static void addMSGFFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addXTANDEMFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addCOMETFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addMASCOTFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+        static void addMULTISEFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set);
+        static void addCONCATSEFeatures(std::vector<PeptideIdentification>& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
+        
         struct lq_ProteinHit
         {
           inline bool operator() (const ProteinHit& h1, const ProteinHit& h2)
@@ -142,12 +76,15 @@ namespace OpenMS
             return (h1.getProteinAccession() < h2.getProteinAccession());
           }
         };
+        
 
-    private:
+    protected:
         TopPerc();
         virtual ~TopPerc();
-
-
+        
+        static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
+        static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
+        static bool hasMHCEnd_(String peptide);
 
     };
 
