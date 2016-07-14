@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Eugen Netz $
+// $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
 
@@ -138,7 +138,7 @@ public:
     virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const;
 
     /// adds the precursor peaks to the spectrum
-    virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
+    virtual void addPrecursorPeaks(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink & cross_link, Int charge) const;
 
     /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
     void addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const;
@@ -150,17 +150,17 @@ public:
 
     protected:
       /// helper to add an isotope cluster to a spectrum
-      // TODO generate isotope patterns for cross-linked peptides
-      //void addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
+      void addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence ion, const AASequence other_peptide, double cross_linker_mass, Residue::ResidueType res_type, Int charge, double intensity, String ion_type) const;
 
       /// helper to add a single peak to a spectrum
-      //void addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const;
+      void addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
 
       /// helper for mapping residue type to letter
-      //char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
       /// helper to add full neutral loss ladders
-      //void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const;
+      //void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge, bool fragment_alpha_chain) const;
+      void addXLinkLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, const AASequence & second_peptide, double cross_linker_mass, Residue::ResidueType res_type, int charge, double intensity, String ion_type) const;
 
       bool add_b_ions_;
       bool add_y_ions_;
@@ -174,6 +174,7 @@ public:
       bool add_isotopes_;
       bool add_precursor_peaks_;
       bool add_abundant_immonium_ions_;
+      bool multiple_fragmentation_mode_;
       double a_intensity_;
       double b_intensity_;
       double c_intensity_;
