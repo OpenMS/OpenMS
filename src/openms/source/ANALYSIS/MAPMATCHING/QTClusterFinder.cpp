@@ -204,7 +204,7 @@ namespace OpenMS
          map_it != input_maps.end(); ++map_it)
     {
       max_intensity = max(max_intensity, map_it->getMaxInt());
-      max_mz = max(max_mz, map_it->getMax()[0]);
+      max_mz = max(max_mz, map_it->getMax()[1]);
     }
 
     setParameters_(max_intensity, max_mz);
