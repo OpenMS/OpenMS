@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+LowMemPeakPickerHiRes_RandomAccess// --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -116,7 +116,7 @@ class TOPPLowMemPeakPickerHiRes_RandomAccess :
 {
 public:
   TOPPLowMemPeakPickerHiRes_RandomAccess() :
-    TOPPBase("LowMemPeakPickerHiRes_RandomAccess", "Finds mass spectrometric peaks in profile mass spectra.", false)
+    TOPPBase("LowMemPeakPickerHiResRandomAccess", "Finds mass spectrometric peaks in profile mass spectra.", false)
   {
   }
 
