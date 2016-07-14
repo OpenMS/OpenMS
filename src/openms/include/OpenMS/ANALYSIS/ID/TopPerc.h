@@ -51,8 +51,9 @@ namespace OpenMS
     {
 
     public:
-        static void mergeMULTISEids(std::vector<ProteinIdentification>& all_protein_ids, std::vector<PeptideIdentification>& all_peptide_ids, std::vector<ProteinIdentification>& new_protein_ids, std::vector<PeptideIdentification>& new_peptide_ids, StringList& search_engines_used);
-        static void concatMULTISEids(std::vector<ProteinIdentification>& all_protein_ids, std::vector<PeptideIdentification>& all_peptide_ids, std::vector<ProteinIdentification>& new_protein_ids, std::vector<PeptideIdentification>& new_peptide_ids, StringList& search_engines_used);
+        static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
+        static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids);
+        static void mergeMULTISEProteinIds(std::vector<ProteinIdentification>& all_protein_ids, std::vector<ProteinIdentification>& new_protein_ids);
         
         static void addMSGFFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
         static void addXTANDEMFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);

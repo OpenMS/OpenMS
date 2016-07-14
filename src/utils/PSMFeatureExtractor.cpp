@@ -106,9 +106,10 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", false);
     registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", false);
     registerFlag_("multiple_search_engines", "Combine PSMs from different search engines by merging on scan level.");
-
-    registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true);
-    registerFlag_("override_db_check", "Manual override to check if same settings for multiple search engines were applied.", true);
+    
+    // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
+    //registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true); 
+    registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied.", true);
     registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together wtih -multiple_search_engines flag.", true);
   }
   
@@ -119,13 +120,20 @@ protected:
     //-------------------------------------------------------------
     vector<PeptideIdentification> all_peptide_ids;
     vector<ProteinIdentification> all_protein_ids;
-
+    
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     const StringList in_list = getStringList_("in");
+    bool multiple_search_engines = getFlag_("multiple_search_engines");
     LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
-
+    if (in_list.size() > 1 && !multiple_search_engines)
+    {
+      writeLog_("Fatal error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+    
     const String mzid_out(getStringOption_("mzid_out"));
     const String out(getStringOption_("out"));
     if (mzid_out.empty() && out.empty())
@@ -138,8 +146,7 @@ protected:
     //-------------------------------------------------------------
     // read input
     //-------------------------------------------------------------
-    bool multiple_search_engines = getFlag_("multiple-search-engines");
-    bool override_db_check = getFlag_("override_db_check");
+    bool skip_db_check = getFlag_("skip_db_check");
     bool concatenate = getFlag_("concat");
     StringList search_engines_used;
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
@@ -149,6 +156,7 @@ protected:
       String in = *fit;
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
+      LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_ids, peptide_ids);
@@ -158,51 +166,16 @@ protected:
         LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
-      //else catched by TOPPBase:registerInput being mandatory mzid or idxml
-      
-      //paranoia check if this comes from the same search engine! (only in the first proteinidentification of the first proteinidentifications vector vector)
+      //else caught by TOPPBase:registerInput being mandatory mzid or idxml
+
+      if (multiple_search_engines && !skip_db_check && !all_protein_ids.empty())
       {
         ProteinIdentification::SearchParameters all_search_parameters = all_protein_ids.front().getSearchParameters();
         ProteinIdentification::SearchParameters search_parameters = protein_ids.front().getSearchParameters();
-        if (!multiple_search_engines && protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
+        if (search_parameters.db != all_search_parameters.db)
         {
-          writeLog_("Input files are not all from the same search engine, set -multiple_search_engines to allow this. Aborting!");
+          writeLog_("Input files are not searched with the same protein database, set -skip_db_check flag to ignore this. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
-        }
-        
-        if (!override_db_check && search_parameters.db != all_search_parameters.db)
-        {
-          writeLog_("Input files are not searched with the same protein database, set -override_db_check flag to allow this. Aborting!");
-          return INCOMPATIBLE_INPUT_DATA;
-        }
-        
-        if (protein_ids.front().getScoreType()        != all_protein_ids.front().getScoreType()        )
-        {
-          LOG_WARN << "Warning: differing ScoreType between input files" << endl;
-        }
-        if (search_parameters.digestion_enzyme        != all_search_parameters.digestion_enzyme        )
-        {
-          LOG_WARN << "Warning: differing DigestionEnzyme between input files" << endl;
-        }
-        if (search_parameters.variable_modifications  != all_search_parameters.variable_modifications  )
-        {
-          LOG_WARN << "Warning: differing VarMods between input files" << endl;
-        }
-        if (search_parameters.fixed_modifications     != all_search_parameters.fixed_modifications     )
-        {
-          LOG_WARN << "Warning: differing FixMods between input files" << endl;
-        }
-        if (search_parameters.charges                 != all_search_parameters.charges                 )
-        {
-          LOG_WARN << "Warning: differing SearchCharges between input files" << endl;
-        }
-        if (search_parameters.fragment_mass_tolerance != all_search_parameters.fragment_mass_tolerance )
-        {
-          LOG_WARN << "Warning: differing FragTol between input files" << endl;
-        }
-        if (search_parameters.precursor_tolerance     != all_search_parameters.precursor_tolerance     )
-        {
-          LOG_WARN << "Warning: differing PrecTol between input files" << endl;
         }
       }
       
@@ -210,15 +183,40 @@ protected:
       {
         all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
       }
-      else if (concatenate)
-      {
-        TopPerc::concatMULTISEids(all_protein_ids, all_peptide_ids, protein_ids, peptide_ids, search_engines_used);
-      }
       else
       {
-        // will collapse the list (reference)
-        TopPerc::mergeMULTISEids(all_protein_ids, all_peptide_ids, protein_ids, peptide_ids, search_engines_used);
+        String search_engine = protein_ids.front().getSearchEngine();
+        if (!ListUtils::contains(search_engines_used, search_engine))
+        {
+          search_engines_used.push_back(search_engine);
+        }
+        
+        if (concatenate)
+        {
+          // will concatenate the list
+          TopPerc::concatMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
+        }
+        else
+        {
+          // will collapse the list (reference)
+          TopPerc::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids);
+        }
       }
+      TopPerc::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
+    }
+    
+    if (all_peptide_ids.empty())
+    {
+      writeLog_("No peptide hits found in input file. Aborting!");
+      printUsage_();
+      return INPUT_FILE_EMPTY;
+    }
+    
+    if (all_protein_ids.empty())
+    {
+      writeLog_("No protein hits found in input file. Aborting!");
+      printUsage_();
+      return INPUT_FILE_EMPTY;
     }
 
     //-------------------------------------------------------------
@@ -253,6 +251,13 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
     
+    String run_identifier = all_protein_ids.front().getIdentifier();
+    for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
+    {
+      it->setIdentifier(run_identifier);
+    }
+    
+    // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
     for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
     {
       ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();

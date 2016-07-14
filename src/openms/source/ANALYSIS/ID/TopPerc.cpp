@@ -320,7 +320,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::mergeMULTISEids(vector<ProteinIdentification>& all_protein_ids, vector<PeptideIdentification>& all_peptide_ids, vector<ProteinIdentification>& new_protein_ids, vector<PeptideIdentification>& new_peptide_ids, StringList& search_engines_used)
+    void TopPerc::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids)
     {
       LOG_DEBUG << "creating spectrum map" << endl;
       
@@ -333,12 +333,6 @@ namespace OpenMS
         ins.setIdentifier("TopPerc_multiple_SE_input");
         String spectrum_reference = ins.getMetaValue("spectrum_reference");
         unified[spectrum_reference] = ins;
-      }
-      
-      String search_engine = new_protein_ids.front().getSearchEngine();
-      if (!ListUtils::contains(search_engines_used, search_engine))
-      {
-        search_engines_used.push_back(search_engine);
       }
       
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
@@ -409,19 +403,29 @@ namespace OpenMS
       }
       all_peptide_ids.swap(swip);
       LOG_DEBUG << "Now containing " << all_peptide_ids.size() << " spectra identifications."<< endl;        
-      
-      
+    }
+    
+    // references from PeptideHits to ProteinHits work with the protein accessions, so no need to update the PeptideHits
+    void TopPerc::mergeMULTISEProteinIds(vector<ProteinIdentification>& all_protein_ids, vector<ProteinIdentification>& new_protein_ids)
+    {      
       LOG_DEBUG << "merging search parameters" << endl;
       //care for search parameters!!
-      all_protein_ids.front().setIdentifier("TopPerc_multiple_SE_input");
-      all_protein_ids.front().setDateTime(DateTime::currentDateTime());
-
+      if (all_protein_ids.empty())
+      {
+        all_protein_ids.push_back(ProteinIdentification());
+        DateTime now = DateTime::now();
+        String date_string = now.getDate();
+        String identifier = "TopPerc_" + date_string;
+        all_protein_ids.front().setDateTime(now);
+        all_protein_ids.front().setIdentifier(identifier);
+        all_protein_ids.front().setSearchParameters(new_protein_ids.front().getSearchParameters());
+      }
       std::vector<ProteinHit>& all_protein_hits = all_protein_ids.front().getHits();
-      std::vector<ProteinHit>& new_protein_hits = all_protein_ids.front().getHits();
-      all_protein_hits.resize(new_protein_hits.size() + all_protein_hits.size());
+      std::vector<ProteinHit>& new_protein_hits = new_protein_ids.front().getHits();
       
+      LOG_DEBUG << "Sorting " << new_protein_hits.size() << " new ProteinHits." << endl;
       std::sort(new_protein_hits.begin(), new_protein_hits.end(), TopPerc::lq_ProteinHit());
-      LOG_DEBUG << "Sorted " << new_protein_hits.size() << " new ProteinHits." << endl;
+      
       LOG_DEBUG << "Melting with " << all_protein_hits.size() << " previous ProteinHits." << endl;
       if (all_protein_hits.empty())
       {
@@ -429,48 +433,65 @@ namespace OpenMS
       }
       else
       {
-        std::vector<ProteinHit>::iterator uni = std::set_union(
+        std::vector<ProteinHit> tmp_protein_hits(new_protein_hits.size() + all_protein_hits.size());
+        std::vector<ProteinHit>::iterator uni = set_union(
             all_protein_hits.begin(), all_protein_hits.end(),
-            new_protein_hits.begin(), new_protein_hits.end(), all_protein_hits.begin(),
+            new_protein_hits.begin(), new_protein_hits.end(), tmp_protein_hits.begin(),
             TopPerc::lq_ProteinHit() );
-        all_protein_hits.resize(uni - all_protein_hits.begin());
+        tmp_protein_hits.resize(uni - tmp_protein_hits.begin());
+        all_protein_hits.swap(tmp_protein_hits);
       }
-      LOG_DEBUG << "Melting ProteinHits." << endl;
       LOG_DEBUG << "Done with next ProteinHits." << endl;
 
-      ProteinIdentification::SearchParameters sp = new_protein_ids.front().getSearchParameters();
-      String SE = new_protein_ids.front().getSearchEngine();
-      LOG_DEBUG << "Melting Parameters from " << SE << " into MetaInfo." << endl;
-      {//insert into MetaInfo as SE:param
-        all_protein_ids.front().setMetaValue("SE:"+SE,new_protein_ids.front().getSearchEngineVersion());
-        all_protein_ids.front().setMetaValue(SE+":db",sp.db);
-        all_protein_ids.front().setMetaValue(SE+":db_version",sp.db_version);
-        all_protein_ids.front().setMetaValue(SE+":taxonomy",sp.taxonomy);
-        all_protein_ids.front().setMetaValue(SE+":charges",sp.charges);
-        all_protein_ids.front().setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
-        all_protein_ids.front().setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
-        all_protein_ids.front().setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
-        all_protein_ids.front().setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
-        all_protein_ids.front().setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
-        all_protein_ids.front().setMetaValue(SE+":precursor_tolerance",sp.precursor_tolerance);
-        all_protein_ids.front().setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
-        all_protein_ids.front().setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
-        all_protein_ids.front().setPrimaryMSRunPath(new_protein_ids.front().getPrimaryMSRunPath());
-        all_protein_ids.front().setSearchEngine("multiple");
+      String SE = new_protein_ids.front().getSearchEngine();      
+      StringList keys;
+      all_protein_ids.front().getSearchParameters().getKeys(keys);      
+      if (!ListUtils::contains(keys, "SE:" + SE)) 
+      {
+        LOG_DEBUG << "Melting Parameters from " << SE << " into MetaInfo." << endl;
+        
+        //insert into MetaInfo as SE:param
+        ProteinIdentification::SearchParameters sp = new_protein_ids.front().getSearchParameters();
+        ProteinIdentification::SearchParameters all_sp = all_protein_ids.front().getSearchParameters();
+        all_sp.setMetaValue("SE:"+SE,new_protein_ids.front().getSearchEngineVersion());
+        all_sp.setMetaValue(SE+":db",sp.db);
+        all_sp.setMetaValue(SE+":db_version",sp.db_version);
+        all_sp.setMetaValue(SE+":taxonomy",sp.taxonomy);
+        all_sp.setMetaValue(SE+":charges",sp.charges);
+        all_sp.setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
+        all_sp.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
+        all_sp.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
+        all_sp.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
+        all_sp.setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
+        all_sp.setMetaValue(SE+":precursor_tolerance",sp.precursor_tolerance);
+        all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
+        all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+        
+        if (!all_protein_ids.front().getSearchEngine().empty())
+        {
+          all_protein_ids.front().setSearchEngine("multiple");
+        }
+        else
+        {
+          all_protein_ids.front().setSearchEngine(SE);
+          LOG_DEBUG << "Setting search engine to " << SE << endl;
+        }
         LOG_DEBUG << "Done with next Parameters." << endl;
+        all_protein_ids.front().setSearchParameters(all_sp);
       }
+      
+      StringList all_primary_ms_run_path = all_protein_ids.front().getPrimaryMSRunPath();
+      StringList new_primary_ms_run_path = new_protein_ids.front().getPrimaryMSRunPath();
+      all_primary_ms_run_path.insert(all_primary_ms_run_path.end(), new_primary_ms_run_path.begin(), new_primary_ms_run_path.end());
+      all_protein_ids.front().setPrimaryMSRunPath(all_primary_ms_run_path);
+      LOG_DEBUG << "New primary run paths: " << ListUtils::concatenate(new_primary_ms_run_path,",") << endl;
+      LOG_DEBUG << "All primary run paths: " << ListUtils::concatenate(all_primary_ms_run_path,",") << endl;
       
       LOG_DEBUG << "All merging finished." << endl;
     }
     
-    void TopPerc::concatMULTISEids(vector<ProteinIdentification>& all_protein_ids, vector<PeptideIdentification>& all_peptide_ids, vector<ProteinIdentification>& new_protein_ids, vector<PeptideIdentification>& new_peptide_ids, StringList& search_engines_used)
-    {
-      String search_engine = new_protein_ids.front().getSearchEngine();
-      if (!ListUtils::contains(search_engines_used, search_engine))
-      {
-        search_engines_used.push_back(search_engine);
-      }
-      
+    void TopPerc::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    {      
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         for (vector<PeptideHit>::iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
@@ -500,28 +521,6 @@ namespace OpenMS
         }
       }
       all_peptide_ids.insert(all_peptide_ids.end(), new_peptide_ids.begin(), new_peptide_ids.end());
-      
-      ProteinIdentification::SearchParameters sp = new_protein_ids.front().getSearchParameters();
-      String SE = new_protein_ids.front().getSearchEngine();
-      LOG_DEBUG << "Melting Parameters from " << SE << " into MetaInfo." << endl;
-      {//insert into MetaInfo as SE:param
-        all_protein_ids.front().setMetaValue("SE:"+SE,new_protein_ids.front().getSearchEngineVersion());
-        all_protein_ids.front().setMetaValue(SE+":db",sp.db);
-        all_protein_ids.front().setMetaValue(SE+":db_version",sp.db_version);
-        all_protein_ids.front().setMetaValue(SE+":taxonomy",sp.taxonomy);
-        all_protein_ids.front().setMetaValue(SE+":charges",sp.charges);
-        all_protein_ids.front().setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
-        all_protein_ids.front().setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
-        all_protein_ids.front().setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
-        all_protein_ids.front().setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
-        all_protein_ids.front().setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
-        all_protein_ids.front().setMetaValue(SE+":precursor_tolerance",sp.precursor_tolerance);
-        all_protein_ids.front().setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
-        all_protein_ids.front().setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
-        all_protein_ids.front().setPrimaryMSRunPath(new_protein_ids.front().getPrimaryMSRunPath());
-        all_protein_ids.front().setSearchEngine("multiple");
-        LOG_DEBUG << "Done with next Parameters." << endl;
-      }
     }
 
     void TopPerc::addMULTISEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set)
