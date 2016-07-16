@@ -263,8 +263,9 @@ public:
         public CVTermList
       {
         double avg_mass_delta;
-        int location;
         double mono_mass_delta;
+        Int32 location;
+        Int32 unimod_id;
       };
 
       Peptide() :
