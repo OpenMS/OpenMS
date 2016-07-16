@@ -961,6 +961,67 @@ namespace OpenMS
             inter_it != prod_it->getInterpretationList().end(); ++inter_it)
         {
           os << "          <Interpretation>" << "\n";
+          if (inter_it->ordinal > 0)
+          {
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000903\" name=\"product ion series ordinal\" value=\"" << 
+              (int)inter_it->ordinal << "\"/>\n";
+          }
+          if (inter_it->rank > 0)
+          {
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000926\" name=\"product interpretation rank\" value=\"" << 
+              (int)inter_it->rank << "\"/>\n";
+          }
+
+          // Ion Type
+          switch (inter_it->iontype)
+          {
+            case Residue::AIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001229\" name=\"frag: a ion\"/>\n";
+              break;
+            case Residue::BIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001224\" name=\"frag: b ion\"/>\n";
+              break;
+            case Residue::CIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001231\" name=\"frag: c ion\"/>\n";
+              break;
+            case Residue::XIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001228\" name=\"frag: x ion\"/>\n";
+              break;
+            case Residue::YIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001220\" name=\"frag: y ion\"/>\n";
+              break;
+            case Residue::ZIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
+              break;
+            case Residue::Precursor:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
+              break;
+            case Residue::BIonMinusH20:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001222\" name=\"frag: b ion - H2O\"/>\n";
+              break;
+            case Residue::YIonMinusH20:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001223\" name=\"frag: y ion - H2O\"/>\n";
+              break;
+            case Residue::BIonMinusNH3:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001232\" name=\"frag: b ion - NH3\"/>\n";
+              break;
+            case Residue::YIonMinusNH3:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001233\" name=\"frag: y ion - NH3\"/>\n";
+              break;
+            case Residue::NonIdentified:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001240\" name=\"non-identified ion\"/>\n";
+              break;
+            case Residue::Unannotated:
+              // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
+              break;
+            // invalid values
+            case Residue::Full: break;
+            case Residue::Internal: break;
+            case Residue::NTerminal: break;
+            case Residue::CTerminal: break;
+            case Residue::SizeOfResidueType:
+              break;
+          }
           writeCVParams_(os, *inter_it, 6);
           writeUserParam_(os, (MetaInfoInterface) * inter_it, 6);
           os << "          </Interpretation>" << "\n";
@@ -1223,7 +1284,93 @@ namespace OpenMS
       }
       else if (parent_tag == "Interpretation")
       {
-        actual_interpretation_.addCVTerm(cv_term);
+
+        ////
+        ////    enum ResidueType
+        ////    {
+        ////      Full = 0,       // with N-terminus and C-terminus
+        ////      Internal,       // internal, without any termini
+        ////      NTerminal,      // only N-terminus
+        ////      CTerminal,      // only C-terminus
+        ////      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+        ////      BIon,           // MS:1001224 N-terminus up to the peptide bond
+        ////      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+        ////      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
+        ////      YIon,           // MS:1001220 peptide bond up to the C-terminus
+        ////      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
+        ////      Precursor,      // MS:1001523 Precursor ion
+        ////      BIonMinusH20,   // MS:1001222 b ion without water
+        ////      YIonMinusH20,   // MS:1001223 y ion without water
+        ////      BIonMinusNH3,   // MS:1001232 b ion without ammonia
+        ////      YIonMinusNH3,   // MS:1001233 y ion without ammonia
+        ////      Unannotated,    // unknown annotation
+        ////      SizeOfResidueType
+        ////    };
+
+        if (cv_term.getAccession() == "MS:1000903")
+        {
+          // name: product ion series ordinal
+          // def: "The ordinal of the fragment within a specified ion series. (e.g. 8 for a y8 ion)." [PSI:PI]
+          actual_interpretation_.ordinal = cv_term.getValue().toString().toInt();
+        }
+        else if (cv_term.getAccession() == "MS:1000926")
+        {
+          // name: product interpretation rank
+          // def: "The integer rank given an interpretation of an observed product ion. For example, if y8 is selected as the most likely interpretation of a peak, then it is assigned a rank of 1." [PSI:MS]
+          actual_interpretation_.rank = cv_term.getValue().toString().toInt();
+        }
+        else if (cv_term.getAccession() == "MS:1001229")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::AIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001224")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::BIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001231")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::CIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001228")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::XIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001220")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::YIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001230")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::ZIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001523")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::Precursor;
+        }
+        else if (cv_term.getAccession() == "MS:1001222")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::BIonMinusH20;
+        }
+        else if (cv_term.getAccession() == "MS:1001223")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::YIonMinusH20;
+        }
+        else if (cv_term.getAccession() == "MS:1001232")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::BIonMinusNH3;
+        }
+        else if (cv_term.getAccession() == "MS:1001233")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::YIonMinusNH3;
+        }
+        else if (cv_term.getAccession() == "MS:1001240")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::NonIdentified;
+        }
+        else
+        {
+          actual_interpretation_.addCVTerm(cv_term);
+        }
       }
       else if (parent_tag == "ValidationStatus")
       {

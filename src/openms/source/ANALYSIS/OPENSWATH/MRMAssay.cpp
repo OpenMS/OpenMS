@@ -681,14 +681,21 @@ namespace OpenMS
       target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + 
           String("_") + String(precursor_charge) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
 
-      // Annotate transition: Either set correct CV terms from annotation or (if enable_reannotation == true) do annotation using theoretical ion series
+      // Annotate transition: Either set correct CV terms from annotation or
+      // (if enable_reannotation == true) do annotation using theoretical ion
+      // series
       // Parameters set allowed fragment charges, tolerance, etc. All unannoted transitions are discarded
-      mrmis.annotateTransition(tr, target_peptide, precursor_mz_threshold, product_mz_threshold, enable_reannotation, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      mrmis.annotateTransition(tr, target_peptide, precursor_mz_threshold,
+          product_mz_threshold, enable_reannotation, fragment_types,
+          fragment_charges, enable_specific_losses, enable_unspecific_losses,
+          round_decPow);
 
       // Skip unannotated transitions from previous step
-      if (tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001240"))
+      if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
       {
-        LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+        LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
+          << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
+          << " " << tr.getMetaValue("annotation") << std::endl;
         continue;
       }
       else
@@ -740,9 +747,11 @@ namespace OpenMS
       if (tr.getProduct().getInterpretationList().size() > 0)
       {
         // Check if transition is unannotated at primary annotation and if yes, skip
-        if (tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001240"))
+        if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
         {
-          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence 
+            << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
+            << " " << tr.getMetaValue("annotation") << std::endl;
           continue;
         }
       }

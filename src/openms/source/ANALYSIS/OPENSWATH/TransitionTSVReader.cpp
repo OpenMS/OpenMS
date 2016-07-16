@@ -794,22 +794,12 @@ namespace OpenMS
 
     if (tr_it->fragment_nr != -1)
     {
-      CVTerm rank;
-      rank.setCVIdentifierRef("MS");
-      rank.setAccession("MS:1000926");
-      rank.setName("product interpretation rank");
-      rank.setValue(1); // we only store the best interpretation
-      interpretation.addCVTerm(rank);
+      interpretation.rank = 1; // we only store the best interpretation
     }
 
     if (tr_it->fragment_nr != -1)
     {
-      CVTerm frag_nr;
-      frag_nr.setCVIdentifierRef("MS");
-      frag_nr.setAccession("MS:1000903");
-      frag_nr.setName("product ion series ordinal");
-      frag_nr.setValue(tr_it->fragment_nr);
-      interpretation.addCVTerm(frag_nr);
+      interpretation.ordinal = tr_it->fragment_nr;
     }
 
     if (tr_it->fragment_mzdelta != -1)
@@ -851,51 +841,27 @@ namespace OpenMS
     }
     else if (tr_it->fragment_type == "x")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001228");
-      ion.setName("frag: x ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::XIon;
     }
     else if (tr_it->fragment_type == "y")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001220");
-      ion.setName("frag: y ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::YIon;
     }
     else if (tr_it->fragment_type == "z")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001230");
-      ion.setName("frag: z ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::ZIon;
     }
     else if (tr_it->fragment_type == "a")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001229");
-      ion.setName("frag: a ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::AIon;
     }
     else if (tr_it->fragment_type == "b")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001224");
-      ion.setName("frag: b ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::BIon;
     }
     else if (tr_it->fragment_type == "c")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001231");
-      ion.setName("frag: c ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::CIon;
     }
     else if (tr_it->fragment_type == "d")
     {
@@ -907,16 +873,11 @@ namespace OpenMS
     }
     else
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001240");
-      ion.setName("non-identified ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
     }
 
     p.addInterpretation(interpretation);
     rm_trans.setProduct(p);
-
 
     // add collision energy
     if (tr_it->CE > 0.0)
