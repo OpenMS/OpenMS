@@ -78,6 +78,17 @@ namespace OpenMS
       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+      static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+      static const XMLCh* s_sequence = xercesc::XMLString::transcode("sequence");
+      static const XMLCh* s_fullName = xercesc::XMLString::transcode("fullName");
+      static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+      static const XMLCh* s_URI = xercesc::XMLString::transcode("URI");
+
+      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+      static const XMLCh* s_unit_name = xercesc::XMLString::transcode("unitName");
+      static const XMLCh* s_unit_cvref = xercesc::XMLString::transcode("unitCvRef");
+      static const XMLCh* s_unit_ref = xercesc::XMLString::transcode("cvRef");
 
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -118,21 +129,26 @@ namespace OpenMS
       //determine parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
+      }
       String parent_parent_tag;
       if (open_tags_.size() > 2)
+      {
         parent_parent_tag = *(open_tags_.end() - 3);
+      }
 
       if (tag_ == "cvParam")
       {
         String value, cv_ref, unit_accession, unit_name, unit_cv_ref;
-        optionalAttributeAsString_(value, attributes, "value");
-        optionalAttributeAsString_(unit_accession, attributes, "unitAccession");
-        optionalAttributeAsString_(unit_name, attributes, "unitName");
-        optionalAttributeAsString_(unit_cv_ref, attributes, "unitCvRef");
-        optionalAttributeAsString_(cv_ref, attributes, "cvRef");
+        optionalAttributeAsString_(value, attributes, s_value);
+        optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
+        optionalAttributeAsString_(unit_name, attributes, s_unit_name);
+        optionalAttributeAsString_(unit_cv_ref, attributes, s_unit_cvref);
+        optionalAttributeAsString_(cv_ref, attributes, s_unit_ref);
         CVTerm::Unit unit(unit_accession, unit_name, unit_cv_ref);
-        CVTerm cv_term(attributeAsString_(attributes, "accession"), attributeAsString_(attributes, "name"), cv_ref, value, unit);
+        CVTerm cv_term(attributeAsString_(attributes, s_accession), 
+                       attributeAsString_(attributes, s_name), cv_ref, value, unit);
 
         handleCVParam_(parent_parent_tag, parent_tag, cv_term);
         return;
@@ -147,35 +163,38 @@ namespace OpenMS
       }
       else if (tag_ == "cv")
       {
-        exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, "id"), attributeAsString_(attributes, "fullName"), attributeAsString_(attributes, "version"), attributeAsString_(attributes, "URI")));
+        exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, s_id), 
+                                           attributeAsString_(attributes, s_fullName),
+                                           attributeAsString_(attributes, s_version),
+                                           attributeAsString_(attributes, s_URI)));
       }
       else if (tag_ == "Contact")
       {
-        actual_contact_.id = attributeAsString_(attributes, "id");
+        actual_contact_.id = attributeAsString_(attributes, s_id);
       }
       else if (tag_ == "Publication")
       {
-        actual_publication_.id = attributeAsString_(attributes, "id");
+        actual_publication_.id = attributeAsString_(attributes, s_id);
       }
       else if (tag_ == "Instrument")
       {
-        actual_instrument_.id = attributeAsString_(attributes, "id");
+        actual_instrument_.id = attributeAsString_(attributes, s_id);
       }
       else if (tag_ == "Software")
       {
-        actual_software_.setName(attributeAsString_(attributes, "id"));
-        actual_software_.setVersion(attributeAsString_(attributes, "version"));
+        actual_software_.setName(attributeAsString_(attributes, s_id));
+        actual_software_.setVersion(attributeAsString_(attributes, s_version));
       }
       else if (tag_ == "Protein")
       {
         actual_protein_ = TargetedExperiment::Protein();
-        actual_protein_.id = attributeAsString_(attributes, "id");
+        actual_protein_.id = attributeAsString_(attributes, s_id);
       }
       else if (tag_ == "Peptide")
       {
         actual_peptide_ = TargetedExperiment::Peptide();
-        actual_peptide_.id = attributeAsString_(attributes, "id");
-        actual_peptide_.sequence = attributeAsString_(attributes, "sequence");
+        actual_peptide_.id = attributeAsString_(attributes, s_id);
+        actual_peptide_.sequence = attributeAsString_(attributes, s_sequence);
       }
       else if (tag_ == "Modification")
       {
@@ -192,7 +211,7 @@ namespace OpenMS
       else if (tag_ == "Compound")
       {
         actual_compound_ = TargetedExperiment::Compound();
-        actual_compound_.id = attributeAsString_(attributes, "id");
+        actual_compound_.id = attributeAsString_(attributes, s_id);
       }
       else if (tag_ == "Prediction")
       {
@@ -216,7 +235,7 @@ namespace OpenMS
       {
         actual_transition_ = ReactionMonitoringTransition();
         String id;
-        if (optionalAttributeAsString_(id, attributes, "id"))
+        if (optionalAttributeAsString_(id, attributes, s_id))
         {
           actual_transition_.setName(id);
         }
@@ -250,8 +269,8 @@ namespace OpenMS
       }
       else if (tag_ == "SourceFile")
       {
-        actual_sourcefile_.setNativeIDType(attributeAsString_(attributes, "id"));
-        actual_sourcefile_.setNameOfFile(attributeAsString_(attributes, "name"));
+        actual_sourcefile_.setNativeIDType(attributeAsString_(attributes, s_id));
+        actual_sourcefile_.setNameOfFile(attributeAsString_(attributes, s_name));
         actual_sourcefile_.setPathToFile(attributeAsString_(attributes, "location"));
       }
       else if (tag_ == "ProteinRef")
@@ -262,7 +281,7 @@ namespace OpenMS
       {
         actual_target_ = IncludeExcludeTarget();
         String id;
-        if (optionalAttributeAsString_(id, attributes, "id"))
+        if (optionalAttributeAsString_(id, attributes, s_id))
         {
           actual_target_.setName(id);
         }
