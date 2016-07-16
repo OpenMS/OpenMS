@@ -274,7 +274,6 @@ namespace OpenMS
           m.location = boost::numeric_cast<int>(i);
           m.unimod_id = rmod.getUniModAccession();
           p.modifications.push_back(m);
-
         }
       }
 
@@ -305,9 +304,12 @@ namespace OpenMS
     OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
 
     aa_sequence = AASequence::fromString(peptide.sequence);
-    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
+    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin();
+        it != peptide.modifications.end(); ++it)
     {
-      TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
+      TargetedExperimentHelper::setModification(it->location, 
+                                                boost::numeric_cast<int>(peptide.sequence.size()), 
+                                                it->unimod_id, aa_sequence);
     }
   }
 

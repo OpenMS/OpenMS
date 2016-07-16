@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
@@ -622,6 +623,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       // compound list
       //--------------------------------------------------------------------------------------------
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
       if (exp.getCompounds().size()  + exp.getPeptides().size() > 0)
       {
         os << "  <CompoundList>" << "\n";
@@ -649,7 +651,8 @@ namespace OpenMS
 
           if (it->mods.size() > 0)
           {
-            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator mit = it->mods.begin(); mit != it->mods.end(); ++mit)
+            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator 
+                mit = it->mods.begin(); mit != it->mods.end(); ++mit)
             {
               os << "      <Modification";
               os << " location=\"" << mit->location + 1 << "\""; // TraML stores locations starting with 1
@@ -662,6 +665,15 @@ namespace OpenMS
                 os << " averageMassDelta=\"" << mit->avg_mass_delta << "\"";
               }
               os << ">\n";
+              if (mit->unimod_id != -1)
+              {
+                // Get the name of the modifications from its unimod identifier (using getId)
+                const ResidueModification & rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id));
+                String modname = rmod.getId();
+                os << "           <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id 
+                  << "\" name=\"" << modname << "\"/>\n";
+              }
+
               writeCVParams_(os, (CVTermList) * mit, 4);
               writeUserParam_(os, (MetaInfoInterface) * mit, 4);
               os << "      </Modification>\n";
@@ -1160,7 +1172,18 @@ namespace OpenMS
       }
       else if (parent_tag == "Modification")
       {
-        actual_peptide_.mods.back().addCVTerm(cv_term);
+        // if we find a CV term that starts with UniMod, chances are we can use
+        // the UniMod accession number to identify the modification
+        if (cv_term.getAccession().size() > 7 && cv_term.getAccession().prefix(7).toLower() == String("unimod:"))
+        {
+          // check for Exception::ConversionError ?
+          actual_peptide_.mods.back().unimod_id = cv_term.getAccession().substr(7).toInt();
+        }
+        else
+        {
+          actual_peptide_.mods.back().addCVTerm(cv_term);
+        }
+
       }
       else if (parent_tag == "Compound")
       {

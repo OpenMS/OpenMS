@@ -266,6 +266,14 @@ public:
         double mono_mass_delta;
         Int32 location;
         Int32 unimod_id;
+
+        Modification() :
+          CVTermList(),
+          location(-1),
+          unimod_id(-1)
+        {
+        }
+
       };
 
       Peptide() :
