@@ -443,7 +443,7 @@ namespace OpenMS
       else if (tag_ == "Interpretation")
       {
         actual_product_.addInterpretation(actual_interpretation_);
-        actual_interpretation_ = CVTermList();
+        actual_interpretation_ = TargetedExperiment::Interpretation();
       }
       else if (tag_ == "Prediction")
       {
@@ -957,7 +957,8 @@ namespace OpenMS
       if (!prod_it->getInterpretationList().empty())
       {
         os << "        <InterpretationList>" << "\n";
-        for (std::vector<CVTermList>::const_iterator inter_it = prod_it->getInterpretationList().begin(); inter_it != prod_it->getInterpretationList().end(); ++inter_it)
+        for (std::vector<TargetedExperiment::Interpretation>::const_iterator inter_it = prod_it->getInterpretationList().begin(); 
+            inter_it != prod_it->getInterpretationList().end(); ++inter_it)
         {
           os << "          <Interpretation>" << "\n";
           writeCVParams_(os, *inter_it, 6);

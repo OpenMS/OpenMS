@@ -79,9 +79,10 @@ namespace OpenMS
     return ion;
   }
 
-  CVTermList MRMIonSeries::annotationToCVTermList_(String annotation)
+  TargetedExperiment::Interpretation MRMIonSeries::annotationToCVTermList_(String annotation)
   {
-    CVTermList interpretation;
+    // CVTermList interpretation;
+    TargetedExperiment::Interpretation interpretation;
 
     String fragment_type;
     int fragment_nr = -1;
@@ -242,7 +243,7 @@ namespace OpenMS
       annotation = best_annotation[0];
     }
 
-    CVTermList interpretation = annotationToCVTermList_(annotation);
+    TargetedExperiment::Interpretation interpretation = annotationToCVTermList_(annotation);
 
     p.resetInterpretations();
     p.addInterpretation(interpretation);
@@ -261,7 +262,7 @@ namespace OpenMS
     // TODO: we should not have transitions without charge states
     // OPENMS_PRECONDITION(tr.isProductChargeStateSet(), "Cannot annotate transition without a charge state")
 
-    CVTermList interpretation;
+    TargetedExperiment::Interpretation interpretation;
     OpenMS::AASequence sequence = TargetedExperimentHelper::getAASequence(peptide);
     int precursor_charge = 1; // assume default to be 1 (should always be set, see precondition)
     int fragment_charge = 1; // assume default to be 1 (should always be set, see precondition)

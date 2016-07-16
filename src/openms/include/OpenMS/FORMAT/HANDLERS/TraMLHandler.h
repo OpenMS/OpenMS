@@ -122,7 +122,7 @@ protected:
 
       CVTermList actual_validation_;
 
-      CVTermList actual_interpretation_;
+      TargetedExperiment::Interpretation actual_interpretation_;
 
       std::vector<ReactionMonitoringTransition::Product> actual_intermediate_products_;
 

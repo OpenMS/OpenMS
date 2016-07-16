@@ -790,7 +790,7 @@ namespace OpenMS
 
     // add interpretation
     OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
-    CVTermList interpretation;
+    TargetedExperiment::Interpretation interpretation;
 
     if (tr_it->fragment_nr != -1)
     {

@@ -512,6 +512,62 @@ protected:
 
     };
 
+    struct OPENMS_DLLAPI Interpretation :
+      public CVTermList
+    {
+      Interpretation() :
+        CVTermList(),
+        ordinal(0),
+        rank(0),
+        iontype(Residue::Unannotated)
+      {
+      }
+
+      /*
+      enum ResidueType
+      {
+        Full = 0,       // with N-terminus and C-terminus
+        Internal,       // internal, without any termini
+        NTerminal,      // only N-terminus
+        CTerminal,      // only C-terminus
+        AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+        BIon,           // MS:1001224 N-terminus up to the peptide bond
+        CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+        XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
+        YIon,           // MS:1001220 peptide bond up to the C-terminus
+        ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
+        Precursor,      // MS:1001523 Precursor ion
+        BIonMinusH20,   // MS:1001222 b ion without water
+        YIonMinusH20,   // MS:1001223 y ion without water
+        BIonMinusNH3,   // MS:1001232 b ion without ammonia
+        YIonMinusNH3,   // MS:1001233 y ion without ammonia
+        Unannotated,    // unknown annotation
+        SizeOfResidueType
+      };
+      */
+
+      typedef Residue::ResidueType IonType; // Interpretation IonType
+
+      unsigned char ordinal; // MS:1000903 (product ion series ordinal)
+      unsigned char rank; // MS:1000926 (product interpretation rank)
+      IonType iontype; // which type of ion (b/y/z/ ...), see Residue::ResidueType
+
+      bool operator==(const Interpretation & rhs) const
+      {
+        return CVTermList::operator==(rhs);
+      }
+
+      Interpretation & operator=(const Interpretation & rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermList::operator=(rhs);
+        }
+        return *this;
+      }
+
+    };
+
     struct OPENMS_DLLAPI TraMLProduct :
       public CVTermList
     {
@@ -590,12 +646,12 @@ protected:
         cv_terms_ = cv_terms;
       }
 
-      const std::vector<CVTermList> & getInterpretationList() const
+      const std::vector<Interpretation> & getInterpretationList() const
       {
         return interpretation_list_;
       }
 
-      void addInterpretation(const CVTermList interpretation)
+      void addInterpretation(const Interpretation interpretation)
       {
         return interpretation_list_.push_back(interpretation);
       }
@@ -610,7 +666,7 @@ private:
       bool charge_set_;
       double mz_;
       std::vector<Configuration> configuration_list_;
-      std::vector<CVTermList> interpretation_list_;
+      std::vector<Interpretation> interpretation_list_;
 
     };
 
