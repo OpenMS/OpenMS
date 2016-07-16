@@ -28,7 +28,12 @@ except Exception as e:
     print("maybe you miss some libraries. please run ldd (on linux) or")
     print("dependency walker (on windows) on ")
     print("\n")
-    print(os.path.join(here, "pyopenms.so"))
+    if sys.platform.startswith("linux"):
+        print(os.path.join(here, "pyopenms.so"))
+    elif sys.platform.startswith("win"):
+        print(os.path.join(here, "pyopenms.pyd"))
+    else:
+        print(os.path.join(here, "pyopenms.so"))
     print("\n")
     try:
         import PyQt4.QtCore
