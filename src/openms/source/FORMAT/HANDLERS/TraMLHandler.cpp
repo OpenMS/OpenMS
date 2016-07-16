@@ -934,6 +934,11 @@ namespace OpenMS
       {
         os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  prod_it->getChargeState() << "\"/>\n";
       }
+      if (prod_it->getMZ() > 0)
+      {
+        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<  
+          prod_it->getMZ() << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
+      }
       writeCVParams_(os, *prod_it, 4);
       writeUserParam_(os, (MetaInfoInterface) * prod_it, 4);
 
@@ -1230,13 +1235,28 @@ namespace OpenMS
       }
       else if (parent_tag == "IntermediateProduct")
       {
-        actual_product_.addCVTerm(cv_term);
+        if (cv_term.getAccession() == "MS:1000041")
+        {
+          actual_product_.setChargeState(cv_term.getValue().toString().toDouble());
+        }
+        else if (cv_term.getAccession() == "MS:1000827")
+        {
+          actual_product_.setMZ(cv_term.getValue().toString().toDouble());
+        }
+        else
+        {
+          actual_product_.addCVTerm(cv_term);
+        }
       }
       else if (parent_tag == "Product")
       {
         if (cv_term.getAccession() == "MS:1000041")
         {
           actual_product_.setChargeState(cv_term.getValue().toString().toDouble());
+        }
+        else if (cv_term.getAccession() == "MS:1000827")
+        {
+          actual_product_.setMZ(cv_term.getValue().toString().toDouble());
         }
         else
         {
@@ -1278,10 +1298,10 @@ namespace OpenMS
       }
       else
       {
-        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
+        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + 
+              cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
       }
       return;
-
     }
 
     void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
@@ -1393,7 +1413,9 @@ namespace OpenMS
         actual_transition_.setMetaValue(name, data_value);
       }
       else
+      {
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+      }
     }
 
     void TraMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
@@ -1425,3 +1447,4 @@ namespace OpenMS
 
   } //namespace Internal
 } // namespace OpenMS
+
