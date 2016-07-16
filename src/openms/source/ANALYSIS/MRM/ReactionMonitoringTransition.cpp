@@ -175,34 +175,12 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setProductMZ(double mz)
   {
-    CVTerm product_mz;
-    std::vector<CVTerm> product_cvterms;
-    product_mz.setCVIdentifierRef("MS");
-    product_mz.setAccession("MS:1000827");
-    product_mz.setName("isolation window target m/z");
-    product_mz.setValue(mz);
-    product_cvterms.push_back(product_mz);
-
-    Map<String, std::vector<CVTerm> >  cvtermlist = product_.getCVTerms();
-    cvtermlist[product_mz.getAccession()] = product_cvterms;
-
-    product_.replaceCVTerms(cvtermlist);
+    product_.setMZ(mz);
   }
 
   double ReactionMonitoringTransition::getProductMZ() const
   {
-    try
-    {
-      if (!product_.getCVTerms().has("MS:1000827"))
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
-      }
-      return product_.getCVTerms()["MS:1000827"][0].getValue().toString().toDouble();
-    }
-    catch (char * /*str*/)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
-    }
+    return product_.getMZ();
   }
 
   int ReactionMonitoringTransition::getProductChargeState() const

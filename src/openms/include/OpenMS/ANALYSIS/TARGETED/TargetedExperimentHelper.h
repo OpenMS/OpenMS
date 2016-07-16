@@ -509,7 +509,8 @@ protected:
       TraMLProduct() :
         CVTermList(),
         charge_(0),
-        charge_set_(false)
+        charge_set_(false),
+        mz_(0)
       {
       }
 
@@ -518,6 +519,7 @@ protected:
         return CVTermList::operator==(rhs) &&
                charge_ == rhs.charge_ &&
                charge_set_ == rhs.charge_set_ &&
+               mz_ == rhs.mz_ &&
                configuration_list_ == rhs.configuration_list_ &&
                interpretation_list_ == rhs.interpretation_list_;
       }
@@ -529,6 +531,7 @@ protected:
           CVTermList::operator=(rhs);
           charge_ = rhs.charge_;
           charge_set_ = rhs.charge_set_;
+          mz_ = rhs.mz_;
           configuration_list_ = rhs.configuration_list_;
           interpretation_list_ = rhs.interpretation_list_;
         }
@@ -551,6 +554,16 @@ protected:
       {
         OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
         return charge_;
+      }
+
+      double getMZ() const
+      {
+        return mz_;
+      }
+
+      void setMZ(double mz)
+      {
+        mz_ = mz;
       }
 
       const std::vector<Configuration> & getConfigurationList() const
@@ -586,6 +599,7 @@ protected:
 private:
       int charge_;
       bool charge_set_;
+      double mz_;
       std::vector<Configuration> configuration_list_;
       std::vector<CVTermList> interpretation_list_;
 
