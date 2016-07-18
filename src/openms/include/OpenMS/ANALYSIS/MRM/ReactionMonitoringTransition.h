@@ -108,12 +108,20 @@ public:
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);
 
+    /// get the precursor mz (Q1 value)
     double getPrecursorMZ() const;
+
+    /// Returns true if precursor CV Terms exist (means it is safe to call getPrecursorCVTermList)
+    bool hasPrecursorCVTerms() const;
 
     void setPrecursorCVTermList(const CVTermList & list);
 
     void addPrecursorCVTerm(const CVTerm & cv_term);
 
+    /* @brief Obtain the list of CV Terms for the precusor
+     *
+     * @note You first need to check whether they exist using hasPrecursorCVTerms() 
+    */
     const CVTermList & getPrecursorCVTermList() const;
 
     void setProductMZ(double mz);
@@ -124,11 +132,7 @@ public:
 
     bool isProductChargeStateSet() const;
 
-    //void setProductCVTermList(const CVTermList& list);
-
     void addProductCVTerm(const CVTerm & cv_term);
-
-    //const CVTermList& getProductCVTermList() const;
 
     const std::vector<Product> & getIntermediateProducts() const;
 
@@ -144,10 +148,17 @@ public:
 
     const RetentionTime & getRetentionTime() const;
 
+    /// Returns true if a Prediction object exists (means it is safe to call getPrediction)
+    bool hasPrediction() const;
+
     void setPrediction(const Prediction & prediction);
 
     void addPredictionTerm(const CVTerm & prediction);
 
+    /* @brief Obtain the Prediction object 
+     *
+     * @note You first need to check whether the object is accessible using hasPrediction() 
+    */
     const Prediction & getPrediction() const;
 
     DecoyTransitionType getDecoyTransitionType() const;
@@ -242,24 +253,30 @@ protected:
     // Prediction
     // cvparam / userParam
 
-    // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z)
+    /// A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z)
     double precursor_mz_;
 
-    CVTermList precursor_cv_terms_;
-
-    Product product_;
-
-    std::vector<Product> intermediate_products_;
-
-    RetentionTime rts;
-
-    Prediction prediction_;
-    //@}
+    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the <Transition> tag)
+    double library_intensity_;
 
     /// specific properties of a transition (e.g. specific CV terms)
     DecoyTransitionType decoy_type_;
 
-    double library_intensity_;
+    /// (Other) CV Terms of the Precursor (Q1) of the transition or target
+    CVTermList* precursor_cv_terms_;
+
+    /// Product (Q3) of the transition
+    Product product_;
+
+    /// Intermediate product ion information of the transition when using MS3 or above (optional)
+    std::vector<Product> intermediate_products_;
+
+    /// Information about predicted or calibrated retention time (optional)
+    RetentionTime rts;
+
+    /// Information about a prediction for a suitable transition using some software (optional)
+    Prediction* prediction_;
+    //@}
   };
 }
 
