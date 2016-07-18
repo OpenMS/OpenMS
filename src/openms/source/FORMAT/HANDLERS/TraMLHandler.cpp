@@ -789,8 +789,11 @@ namespace OpenMS
           os << "      <Precursor>" << "\n";
           os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<
             precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
-          writeCVParams_(os, it->getPrecursorCVTermList(), 4);
-          writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
+          if (it->hasPrecursorCVTerms())
+          {
+            writeCVParams_(os, it->getPrecursorCVTermList(), 4);
+            writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
+          }
           os << "      </Precursor>" << "\n";
 
           for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin();
@@ -822,7 +825,7 @@ namespace OpenMS
             os << "      </RetentionTime>" << "\n";
           }
 
-          if (!it->getPrediction().empty())
+          if (it->hasPrediction())
           {
             os << "      <Prediction softwareRef=\"" << it->getPrediction().software_ref << "\"";
             if (!it->getPrediction().contact_ref.empty())
