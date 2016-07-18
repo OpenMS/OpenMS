@@ -596,7 +596,7 @@ namespace OpenMS
         for (std::vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
         {
           os << "    <Software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << "\n";
-          writeCVParams_(os, (CVTermList) * it, 3);
+          writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "    </Software>" << "\n";
         }
@@ -612,7 +612,7 @@ namespace OpenMS
         for (std::vector<TargetedExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
         {
           os << "    <Protein id=\"" << it->id << "\">" << "\n";
-          writeCVParams_(os, (CVTermList) * it, 3);
+          writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "      <Sequence>" << it->sequence << "</Sequence>" << "\n";
           os << "    </Protein>" << "\n";
@@ -641,7 +641,7 @@ namespace OpenMS
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000893\" name=\"peptide group label\" value=\"" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
-          writeCVParams_(os, (CVTermList) * it, 3);
+          writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
           for (std::vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
@@ -674,7 +674,7 @@ namespace OpenMS
                   << "\" name=\"" << modname << "\"/>\n";
               }
 
-              writeCVParams_(os, (CVTermList) * mit, 4);
+              writeCVParams_(os, *mit, 4);
               writeUserParam_(os, (MetaInfoInterface) * mit, 4);
               os << "      </Modification>\n";
             }
@@ -691,7 +691,7 @@ namespace OpenMS
                 os << " softwareRef=\"" << rit->software_ref << "\"";
               }
               os << ">" << "\n";
-              writeCVParams_(os, (CVTermList) * rit, 5);
+              writeCVParams_(os, *rit, 5);
               writeUserParam_(os, (MetaInfoInterface) * rit, 5);
               os << "        </RetentionTime>" << "\n";
             }
@@ -733,7 +733,7 @@ namespace OpenMS
               it->smiles_string << "\"/>\n";
           }
 
-          writeCVParams_(os, (CVTermList) * it, 3);
+          writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
           if (it->rts.size() > 0)
@@ -747,7 +747,7 @@ namespace OpenMS
                 os << " softwareRef=\"" << rit->software_ref << "\"";
               }
               os << ">" << "\n";
-              writeCVParams_(os, (CVTermList) * rit, 5);
+              writeCVParams_(os, *rit, 5);
               writeUserParam_(os, (MetaInfoInterface) * rit, 5);
               os << "        </RetentionTime>" << "\n";
             }
@@ -820,7 +820,7 @@ namespace OpenMS
               os << " softwareRef=\"" << rit->software_ref << "\"";
             }
             os << ">" << "\n";
-            writeCVParams_(os, (CVTermList) * rit, 4);
+            writeCVParams_(os, *rit, 4);
             writeUserParam_(os, (MetaInfoInterface) * rit, 4);
             os << "      </RetentionTime>" << "\n";
           }
@@ -838,7 +838,7 @@ namespace OpenMS
             os << "      </Prediction>" << "\n";
           }
 
-          writeCVParams_(os, (CVTermList) * it, 3);
+          writeCVParams_(os, *it, 3);
           // Special CV Params
           if (it->getLibraryIntensity() > -100)
           {
@@ -923,7 +923,7 @@ namespace OpenMS
           os << " softwareRef=\"" << rit->software_ref << "\"";
         }
         os << ">" << "\n";
-        writeCVParams_(os, (CVTermList) * rit, 5);
+        writeCVParams_(os, *rit, 5);
         writeUserParam_(os, (MetaInfoInterface) * rit, 5);
         os << "        </RetentionTime>" << "\n";
       }
@@ -1051,7 +1051,7 @@ namespace OpenMS
       }
       os << ">" << "\n";
 
-      writeCVParams_(os, (CVTermList) * cit, 6);
+      writeCVParams_(os, *cit, 6);
       writeUserParam_(os, (MetaInfoInterface) * cit, 6);
       if (cit->validations.size() != 0)
       {
@@ -1068,27 +1068,6 @@ namespace OpenMS
       }
 
       os << "          </Configuration>" << "\n";
-    }
-
-    void TraMLHandler::writeCVParams_(std::ostream& os, const CVTermList& cv_terms, UInt indent) const
-    {
-      for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.getCVTerms().begin(); it != cv_terms.getCVTerms().end(); ++it)
-      {
-        for (std::vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
-        {
-          os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
-          if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
-          {
-            os << " value=\"" << cit->getValue().toString() << "\"";
-          }
-
-          if (cit->hasUnit())
-          {
-            os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
-          }
-          os << "/>" << "\n";
-        }
-      }
     }
 
     void TraMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term)
