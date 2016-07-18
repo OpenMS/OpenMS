@@ -42,11 +42,14 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -136,7 +139,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
-    String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
+    String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
@@ -144,7 +147,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
+    formats = "mzData,mzXML,mzML,cachedMzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
@@ -259,6 +262,54 @@ protected:
         exp.set2DData<true>(fm);
       }
     }
+    else if (in_type == FileTypes::CACHEDMZML)
+    {
+      // Special handling of cached mzML as input types: 
+      // we expect two paired input files which we should read into exp
+      std::vector<String> split_out;
+      in.split(".cachedMzML", split_out);
+      if (split_out.size() != 2)
+      {
+        LOG_ERROR << "Cannot deduce base path from input '" << in 
+          << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      String in_meta = split_out[0] + ".mzML";
+
+      MzMLFile f;
+      f.setLogType(log_type_);
+      CachedmzML cacher;
+      cacher.setLogType(log_type_);
+      MSExperiment<> tmp_exp;
+
+      f.load(in_meta, exp);
+      cacher.readMemdump(tmp_exp, in);
+
+      // Sanity check
+      if (exp.size() != tmp_exp.size())
+      {
+        LOG_ERROR << "Paired input files do not match, cannot convert: " << in_meta << " and " << in << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+
+      // Populate meta data with actual data points
+      for (Size i=0; i < tmp_exp.size(); ++i)
+      {
+        for (Size j = 0; j < tmp_exp[i].size(); j++)
+        {
+          exp[i].push_back(tmp_exp[i][j]);
+        }
+      }
+      std::vector<MSChromatogram<ChromatogramPeak> > old_chromatograms = exp.getChromatograms();
+      for (Size i=0; i < tmp_exp.getChromatograms().size(); ++i)
+      {
+        for (Size j = 0; j < tmp_exp.getChromatograms()[i].size(); j++)
+        {
+          old_chromatograms[i].push_back(tmp_exp.getChromatograms()[i][j]);
+        }
+      }
+      exp.setChromatograms(old_chromatograms);
+    }
     else if (process_lowmemory)
     {
       // Special switch for the low memory options:
@@ -280,9 +331,32 @@ protected:
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_mzML_index);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzXMLFile mzxmlfile; 
+        MzXMLFile mzxmlfile;
         mzxmlfile.setLogType(log_type_);
         mzxmlfile.transform(in, &consumer);
+        return EXECUTION_OK;
+      }
+      else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
+      {
+        std::vector<String> split_out;
+        out.split(".cachedMzML", split_out);
+        if (split_out.size() != 2)
+        {
+          LOG_ERROR << "Cannot deduce base path from input '" << in 
+            << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+          return ILLEGAL_PARAMETERS;
+        }
+        String path = split_out[0];
+        String out_meta = path + ".mzML";
+
+        CachedmzML cacher;
+        cacher.setLogType(log_type_);
+        MSExperiment<> exp_meta;
+
+        MSDataCachedConsumer consumer(out);
+        MzMLFile().transform(in, &consumer, exp_meta);
+        cacher.writeMetadata(exp_meta, out_meta);
+
         return EXECUTION_OK;
       }
       else
@@ -451,6 +525,27 @@ protected:
       }
       if (fm.size() > 0) EDTAFile().store(out, fm);
       else if (cm.size() > 0) EDTAFile().store(out, cm);
+    }
+    else if (out_type == FileTypes::CACHEDMZML)
+    {
+      // Determine output path for meta information (empty mzML)
+      std::vector<String> split_out;
+      out.split(".cachedMzML", split_out);
+      if (split_out.size() != 2)
+      {
+        LOG_ERROR << "Cannot deduce base path from input '" << in 
+          << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      String out_meta = split_out[0] + ".mzML";
+
+      CachedmzML cacher;
+      MzMLFile f;
+      cacher.setLogType(log_type_);
+      f.setLogType(log_type_);
+
+      cacher.writeMetadata(exp, out_meta);
+      cacher.writeMemdump(exp, out);
     }
     else if (out_type == FileTypes::CSV)
     {
