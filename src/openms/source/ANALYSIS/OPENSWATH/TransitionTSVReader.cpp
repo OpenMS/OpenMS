@@ -33,7 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -84,16 +87,18 @@ namespace OpenMS
     "Replicates",
     "NrModifications",
     "PrecursorCharge",
-    "FragmentCharge",
     "PeptideGroupLabel",
     "LabelType",
     "UniprotID",
+    "FragmentCharge", 
+    "FragmentType", 
+    "FragmentSeriesNumber",
     "detecting_transition",
     "identifying_transition",
     "quantifying_transition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 26);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 28);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -1260,6 +1265,68 @@ namespace OpenMS
         mytransition.fragment_charge = String(it->getProductChargeState());
       }
 
+      const ReactionMonitoringTransition::Product & product = it->getProduct();
+      for (std::vector<TargetedExperiment::Interpretation>::const_iterator
+          int_it = product.getInterpretationList().begin(); int_it !=
+          product.getInterpretationList().end(); int_it++)
+      {
+        // only report first / best interpretation
+        if (int_it->rank == 1)
+        {
+          mytransition.fragment_nr = int_it->ordinal;
+          switch (int_it->iontype)
+          {
+            case Residue::AIon:
+              mytransition.fragment_type = "a";
+              break;
+            case Residue::BIon:
+              mytransition.fragment_type = "b";
+              break;
+            case Residue::CIon:
+              mytransition.fragment_type = "c";
+              break;
+            case Residue::XIon:
+              mytransition.fragment_type = "x";
+              break;
+            case Residue::YIon:
+              mytransition.fragment_type = "y";
+              break;
+            case Residue::ZIon:
+              mytransition.fragment_type = "z";
+              break;
+            case Residue::Precursor:
+              mytransition.fragment_type = "prec";
+              break;
+            case Residue::BIonMinusH20:
+              mytransition.fragment_type = "b-H20";
+              break;
+            case Residue::YIonMinusH20:
+              mytransition.fragment_type = "y-H20";
+              break;
+            case Residue::BIonMinusNH3:
+              mytransition.fragment_type = "b-NH3";
+              break;
+            case Residue::YIonMinusNH3:
+              mytransition.fragment_type = "y-NH3";
+              break;
+            case Residue::NonIdentified:
+              mytransition.fragment_type = "unknown";
+              break;
+            case Residue::Unannotated:
+              // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
+              mytransition.fragment_type = "";
+              break;
+            // invalid values
+            case Residue::Full: break;
+            case Residue::Internal: break;
+            case Residue::NTerminal: break;
+            case Residue::CTerminal: break;
+            case Residue::SizeOfResidueType:
+              break;
+          }
+        }
+      }
+
       mytransition.transition_name = it->getNativeID();
       mytransition.CE = -1;
       if (it->hasCVTerm("MS:1000045"))
@@ -1373,10 +1440,12 @@ namespace OpenMS
         + (String)0                            + "\t"
         + (String)0                            + "\t"
         + (String)it->precursor_charge         + "\t"
-        + (String)it->fragment_charge          + "\t"
         + (String)it->peptide_group_label      + "\t"
         + (String)it->label_type               + "\t"
         + (String)it->uniprot_id               + "\t"
+        + (String)it->fragment_charge          + "\t"
+        + (String)it->fragment_type            + "\t"
+        + (String)it->fragment_nr              + "\t"
         + (String)it->detecting_transition     + "\t"
         + (String)it->identifying_transition   + "\t"
         + (String)it->quantifying_transition;
