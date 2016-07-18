@@ -1054,6 +1054,32 @@ namespace OpenMS
             copy_jt.removeMetaValue("spectrum_reference");
             copy_jt.removeMetaValue("spec_heavy_MZ");
             copy_jt.removeMetaValue("spec_heavy_RT");
+
+            if (copy_jt.metaValueExists("OpenXQuest:xcorr xlink"))
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OpenXQuest:xcorr xlink").toXMLString(cv_ns, copy_jt.getMetaValue("OpenXQuest:xcorr xlink")) + "\n";
+              copy_jt.removeMetaValue("OpenXQuest:xcorr xlink");
+            }
+            if (copy_jt.metaValueExists("OpenXQuest:xcorr common"))
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OpenXQuest:xcorr common").toXMLString(cv_ns, copy_jt.getMetaValue("OpenXQuest:xcorr common")) + "\n";
+              copy_jt.removeMetaValue("OpenXQuest:xcorr common");
+            }
+            if (copy_jt.metaValueExists("OpenXQuest:match-odds"))
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OpenXQuest:match-odds").toXMLString(cv_ns, copy_jt.getMetaValue("OpenXQuest:match-odds")) + "\n";
+              copy_jt.removeMetaValue("OpenXQuest:match-odds");
+            }
+            if (copy_jt.metaValueExists("OpenXQuest:intsum"))
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OpenXQuest:intsum").toXMLString(cv_ns, copy_jt.getMetaValue("OpenXQuest:intsum")) + "\n";
+              copy_jt.removeMetaValue("OpenXQuest:intsum");
+            }
+            if (copy_jt.metaValueExists("OpenXQuest:wTIC"))
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTermByName("OpenXQuest:wTIC").toXMLString(cv_ns, copy_jt.getMetaValue("OpenXQuest:wTIC")) + "\n";
+              copy_jt.removeMetaValue("OpenXQuest:wTIC");
+            }
           }
           writeMetaInfos_(sii_tmp, copy_jt, 5);
 
