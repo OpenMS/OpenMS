@@ -34,21 +34,14 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/IBSpectraFile.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/ConversionHelper.h>
-
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -156,7 +149,7 @@ protected:
       TICConsumer consumer;
       MzMLFile mzml;
       mzml.setLogType(log_type_);
-      mzml.transform(in, &consumer);
+      mzml.transform(in, &consumer, true, true);
 
       std::cout << "There are " << consumer.nr_spectra << " spectra and " << consumer.nr_peaks << " peaks in the input file." << std::endl;
       std::cout << "The total ion current is " << consumer.TIC << std::endl;
@@ -285,8 +278,7 @@ int main(int argc, const char** argv)
   std::cout << " Memory consumption before " << before << std::endl;
   tool.main(argc, argv);
   SysInfo::getProcessMemoryConsumption(after);
-  std::cout << " Memory consumption after " << after << std::endl;
-  // SysInfo::getProcessMemoryConsumption(before);
+  std::cout << " Memory consumption final " << after << std::endl;
   return 0;
 }
 
