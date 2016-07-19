@@ -245,15 +245,6 @@ namespace OpenMS
       mytransition.precursor                    = String(tmp_line[header_dict["PrecursorMz"]]).toDouble();
       mytransition.product                      = String(tmp_line[header_dict["ProductMz"]]).toDouble();
       mytransition.library_intensity            = String(tmp_line[header_dict["LibraryIntensity"]]).toDouble();
-      mytransition.CE                           = -1.0;
-      mytransition.decoy                        = 0;
-      mytransition.fragment_charge              = "NA";
-      mytransition.fragment_nr                  = -1;
-      mytransition.fragment_mzdelta             = -1;
-      mytransition.fragment_modification        = 0;
-      mytransition.detecting_transition         = true;
-      mytransition.identifying_transition       = false;
-      mytransition.quantifying_transition       = true;
 
       if (FileTypes::typeToName(filetype) == "mrm")
       {
@@ -797,6 +788,16 @@ namespace OpenMS
     OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
     TargetedExperiment::Interpretation interpretation;
 
+    // check if we have any information about the interpretation
+    bool interpretation_set = false;
+    if (tr_it->fragment_nr != -1 ||
+        tr_it->fragment_mzdelta != -1 ||
+        tr_it->fragment_modification < 0 ||
+        tr_it->fragment_type != "" )
+    {
+      interpretation_set = true;
+    }
+
     if (tr_it->fragment_nr != -1)
     {
       interpretation.rank = 1; // we only store the best interpretation
@@ -891,7 +892,11 @@ namespace OpenMS
       interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
     }
 
-    p.addInterpretation(interpretation);
+    // dont add empty interpretations
+    if (interpretation_set) 
+    {
+      p.addInterpretation(interpretation);
+    }
     rm_trans.setProduct(p);
 
     // add collision energy
