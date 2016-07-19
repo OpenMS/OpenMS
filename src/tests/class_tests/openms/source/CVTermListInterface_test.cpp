@@ -135,6 +135,10 @@ START_SECTION((const Map<String, std::vector<CVTerm> >& getCVTerms() const ))
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   CVTerm cv_term2("my_accession2", "my_name2", "my_cv_identifier_ref2", "4.0", unit);
   CVTermListInterface cv_term_list;
+  TEST_EQUAL(cv_term_list.getCVTerms().size(), 0); // test empty one
+  CVTermListInterface cv_term_list2;
+  TEST_EQUAL(cv_term_list2.getCVTerms().size(), 0); // test empty one
+
   vector<CVTerm> cv_terms;
   cv_terms.push_back(cv_term);
   cv_terms.push_back(cv_term2);

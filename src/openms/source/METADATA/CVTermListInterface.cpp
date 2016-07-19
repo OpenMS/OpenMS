@@ -41,6 +41,9 @@
 
 namespace OpenMS
 {
+
+  static const Map<String, std::vector<CVTerm> > empty_cvterm_map = Map<String, std::vector<CVTerm> >();
+
   CVTermListInterface::CVTermListInterface() :
       MetaInfoInterface(),
       cvt_ptr_(0)
@@ -145,8 +148,7 @@ namespace OpenMS
   {
     if (!cvt_ptr_)
     {
-      static const Map<String, std::vector<CVTerm> > empty;
-      return empty;
+      return empty_cvterm_map;
     }
     else
     {
