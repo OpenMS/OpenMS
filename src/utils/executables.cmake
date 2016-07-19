@@ -46,6 +46,7 @@ SequenceCoverageCalculator
 SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
+TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
