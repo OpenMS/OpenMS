@@ -148,7 +148,7 @@ private:
       bool isPeptide() 
       {
         return CompoundName.empty();
-      };
+      }
     };
 
     static const char* strarray_[];
