@@ -45,8 +45,40 @@
 #include <unistd.h>
 #endif
 
+#include <iostream>
+
 namespace OpenMS
 {
+
+  // see http://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
+  typedef struct {
+      unsigned long size,resident,share,text,lib,data,dt;
+  } statm_t;
+
+  bool read_off_memory_status_linux(statm_t& result)
+  {
+    unsigned long dummy;
+    const char* statm_path = "/proc/self/statm";
+
+    FILE *f = fopen(statm_path,"r");
+    if(!f)
+    {
+      return false;
+      // perror(statm_path);
+      //abort();
+    }
+    if(7 != fscanf(f,"%ld %ld %ld %ld %ld %ld %ld",
+              &result.size,&result.resident,&result.share,&result.text,&result.lib,&result.data,&result.dt))
+    {
+      fclose(f);
+      return false;
+      // perror(statm_path);
+      //abort();
+    }
+    fclose(f);
+    return true;
+  }
+
   bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
   {
     mem_virtual = 0;
@@ -69,31 +101,35 @@ namespace OpenMS
     }
     mem_virtual = t_info.resident_size / 1024; // byte to KB
 #else // Linux
-    long rss = 0L;
-    FILE* fp = NULL;
-    if ((fp = fopen("/proc/self/statm", "r")) == NULL)
+
+    // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too
+    // small and not changing, total memory (vmSize) is changing but usually
+    // too large)
+
+    // From the proc(5) man-page:
+    // 
+    //    /proc/[pid]/statm
+    //           Provides information about memory usage, measured in pages.  
+    //           The columns are:
+    // 
+    //               size       total program size
+    //                          (same as VmSize in /proc/[pid]/status)
+    //               resident   resident set size
+    //                          (same as VmRSS in /proc/[pid]/status)
+    //               share      shared pages (from shared mappings)
+    //               text       text (code)
+    //               lib        library (unused in Linux 2.6)
+    //               data       data + stack
+    //               dt         dirty pages (unused in Linux 2.6)
+
+    statm_t mem;
+    if(!read_off_memory_status_linux(mem)) 
     {
       return false;
     }
-    char buf[1024];
-    size_t result = fread(buf, 1, 1024, fp);
-    // We may not read 1024 bytes (most likely not) which means we reached EFO.
-    // To check whether reading fewer bytes is due to an error or EOF, we need
-    // to check ferror. Reaching EOF is okay, so we do not check feof.
-    if (result != 1024 && ferror(fp))
-    {
-      fclose(fp);
-      return false;
-    }
-    //printf("%s", buf);
-    // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too small and not changing, total memory (vmSize) is changing but usually too large)
-    if (sscanf(buf, "%*s%*s%*s%*s%*s%ld", &rss) != 1)
-    {
-      fclose(fp);
-      return false;
-    }
-    fclose(fp);
-    mem_virtual = (size_t)rss * (size_t)sysconf(_SC_PAGESIZE) / 1024;
+    std::cout << "Memory size: " <<  mem.size << " / Resident size:  " << mem.resident << std::endl;
+    mem_virtual = (size_t)mem.resident * (size_t)sysconf(_SC_PAGESIZE) / 1024;
+
 #endif
     return true;
   }
