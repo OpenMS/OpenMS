@@ -1280,7 +1280,7 @@ namespace OpenMS
       const ReactionMonitoringTransition::Product & product = it->getProduct();
       for (std::vector<TargetedExperiment::Interpretation>::const_iterator
           int_it = product.getInterpretationList().begin(); int_it !=
-          product.getInterpretationList().end(); int_it++)
+          product.getInterpretationList().end(); ++int_it)
       {
         // only report first / best interpretation
         if (int_it->rank == 1 || product.getInterpretationList().size() == 1)

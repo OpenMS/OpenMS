@@ -79,17 +79,11 @@ namespace OpenMS
       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
       static const XMLCh* s_id = xercesc::XMLString::transcode("id");
       static const XMLCh* s_sequence = xercesc::XMLString::transcode("sequence");
       static const XMLCh* s_fullName = xercesc::XMLString::transcode("fullName");
       static const XMLCh* s_version = xercesc::XMLString::transcode("version");
       static const XMLCh* s_URI = xercesc::XMLString::transcode("URI");
-
-      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh* s_unit_name = xercesc::XMLString::transcode("unitName");
-      static const XMLCh* s_unit_cvref = xercesc::XMLString::transcode("unitCvRef");
-      static const XMLCh* s_unit_ref = xercesc::XMLString::transcode("cvRef");
 
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -141,6 +135,13 @@ namespace OpenMS
 
       if (tag_ == "cvParam")
       {
+        // These are here because of cppcheck
+        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+        static const XMLCh* s_unit_name = xercesc::XMLString::transcode("unitName");
+        static const XMLCh* s_unit_cvref = xercesc::XMLString::transcode("unitCvRef");
+        static const XMLCh* s_unit_ref = xercesc::XMLString::transcode("cvRef");
+
         String value, cv_ref, unit_accession, unit_name, unit_cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
