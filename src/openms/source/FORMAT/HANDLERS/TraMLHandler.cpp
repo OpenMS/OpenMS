@@ -602,10 +602,11 @@ namespace OpenMS
         os << "  <CompoundList>" << "\n";
         std::vector<TargetedExperiment::Peptide> exp_peptides = exp.getPeptides();
 
+        // 1. do peptides
         for (std::vector<TargetedExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
         {
           os << "    <Peptide id=\"" << it->id << "\" sequence=\"" << it->sequence << "\">" << "\n";
-          if (it->getChargeState() != -1)
+          if (it->hasCharge())
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  it->getChargeState() << "\"/>\n";
           }
@@ -670,9 +671,31 @@ namespace OpenMS
           os << "    </Peptide>" << "\n";
         }
 
+        // 2. do compounds
         for (std::vector<TargetedExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
         {
           os << "    <Compound id=\"" << it->id << "\">" << "\n";
+
+          if (it->hasCharge())
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  it->getChargeState() << "\"/>\n";
+          }
+          if (it->theoretical_mass > 0.0)
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" << 
+              it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
+          }
+          if (!it->molecular_formula.empty())
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" << 
+              it->molecular_formula << "\"/>\n";
+          }
+          if (!it->smiles_string.empty())
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" << 
+              it->smiles_string << "\"/>\n";
+          }
+
           writeCVParams_(os, (CVTermList) * it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
@@ -882,7 +905,7 @@ namespace OpenMS
 
     void TraMLHandler::writeProduct_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator& prod_it) const
     {
-      if (prod_it->getChargeState() != -1)
+      if (prod_it->hasCharge())
       {
         os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  prod_it->getChargeState() << "\"/>\n";
       }
@@ -1111,7 +1134,26 @@ namespace OpenMS
       }
       else if (parent_tag == "Compound")
       {
-        actual_compound_.addCVTerm(cv_term);
+        if (cv_term.getAccession() == "MS:1001117")
+        {
+          actual_compound_.theoretical_mass = cv_term.getValue().toString().toDouble();
+        }
+        else if (cv_term.getAccession() == "MS:1000866")
+        {
+          actual_compound_.molecular_formula = cv_term.getValue().toString();
+        }
+        else if (cv_term.getAccession() == "MS:1000868")
+        {
+          actual_compound_.smiles_string = cv_term.getValue().toString();
+        }
+        else if (cv_term.getAccession() == "MS:1000041")
+        {
+          actual_compound_.setChargeState(cv_term.getValue().toString().toInt());
+        }
+        else
+        {
+          actual_compound_.addCVTerm(cv_term);
+        }
       }
       else if (parent_tag == "Protein")
       {

@@ -92,12 +92,20 @@ namespace OpenMS
       transition_exp.proteins.push_back(p);
     }
 
-    //copy peptides
+    //copy peptides and store as compounds
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
-      OpenSwath::LightPeptide p;
-      OpenSwathDataAccessHelper::convertTargetedPeptide(transition_exp_.getPeptides()[i], p);
-      transition_exp.peptides.push_back(p);
+      OpenSwath::LightCompound p;
+      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getPeptides()[i], p);
+      transition_exp.compounds.push_back(p);
+    }
+
+    //copy compounds and store as compounds 
+    for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
+    {
+      OpenSwath::LightCompound c;
+      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getCompounds()[i], c);
+      transition_exp.compounds.push_back(c);
     }
 
     //mapping of transitions
@@ -109,7 +117,15 @@ namespace OpenMS
       t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
       t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
       t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
-      t.fragment_charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
+      // try compound ref
+      if (t.peptide_ref.empty())
+      {
+        t.peptide_ref = transition_exp_.getTransitions()[i].getCompoundRef();
+      }
+      if (transition_exp_.getTransitions()[i].isProductChargeStateSet())
+      {
+        t.fragment_charge = transition_exp_.getTransitions()[i].getProductChargeState();
+      }
       t.decoy = false;
 
       // legacy
@@ -196,7 +212,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
     OpenSwath::LightModification m;
     OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
@@ -206,9 +222,23 @@ namespace OpenMS
     {
       p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
     }
-    p.charge = pep.getChargeState();
+    if (pep.hasCharge())
+    {
+      p.charge = pep.getChargeState();
+    }
+
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
+
+    // Is it potentially a metabolomics compound
+    if (pep.metaValueExists("SumFormula"))
+    {
+      p.sum_formula = (std::string)pep.getMetaValue("SumFormula");
+    }
+    if (pep.metaValueExists("CompoundName"))
+    {
+      p.compound_name = (std::string)pep.getMetaValue("CompoundName");
+    }
 
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
@@ -216,7 +246,8 @@ namespace OpenMS
       p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
     }
 
-    // Mapping of peptide modifications
+    // Mapping of peptide modifications (don't do this for metabolites...)
+    if (p.isPeptide()) 
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
       if ( !aa_sequence.getNTerminalModification().empty())
@@ -248,16 +279,36 @@ namespace OpenMS
       }
 
     }
-    // transition_exp.peptides.push_back(p);
   }
 
-  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
-      aa_sequence = AASequence::fromString(peptide.sequence);
-      for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
-      {
-        TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
-      }
+    comp.id = compound.id;
+    if (!compound.rts.empty())
+    {
+      comp.rt = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+    }
+    if (compound.hasCharge())
+    {
+      comp.charge = compound.getChargeState();
+    }
+
+    comp.sum_formula = (std::string)compound.molecular_formula;
+    if (compound.metaValueExists("CompoundName"))
+    {
+      comp.compound_name = (std::string)compound.getMetaValue("CompoundName");
+    }
+  }
+
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence)
+  {
+    OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
+
+    aa_sequence = AASequence::fromString(peptide.sequence);
+    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
+    {
+      TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
+    }
   }
 
 

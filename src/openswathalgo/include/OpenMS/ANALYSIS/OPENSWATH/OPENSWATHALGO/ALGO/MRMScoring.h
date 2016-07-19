@@ -88,7 +88,7 @@ public:
 
     typedef OpenSwath::SpectrumPtr SpectrumType;
     typedef OpenSwath::LightTransition TransitionType;
-    typedef OpenSwath::LightPeptide PeptideType;
+    typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
 
     typedef boost::shared_ptr<OpenSwath::IFeature> FeatureType;

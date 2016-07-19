@@ -48,7 +48,15 @@
 namespace OpenMS
 {
   /**
-    @brief This class stores an prediction of an SRM/MRM transition
+    @brief A description of a targeted experiment containing precursor and production ions.
+
+    A targeted experiment contains transitions used in SRM/MRM as well as
+    SWATH-MS/DIA analysis using a targeted approach. This container holds
+    descriptions of the precursors and product ions analyzed in such a targeted
+    experiment. Generally, the precursor ions can be peptides or small
+    molecules (for metabolomics) and each precursor has a set of product ions
+    associated with it.
+
   */
   class OPENMS_DLLAPI TargetedExperiment
   {
@@ -67,6 +75,7 @@ public:
 
     typedef std::map<String, const Protein *> ProteinReferenceMapType;
     typedef std::map<String, const Peptide *> PeptideReferenceMapType;
+    typedef std::map<String, const Compound *> CompoundReferenceMapType;
 
     /** @name Constructors and destructors
     */
@@ -182,6 +191,8 @@ public:
 
     const Peptide & getPeptideByRef(const String & ref);
 
+    const Compound & getCompoundByRef(const String & ref);
+
     void addPeptide(const Peptide & rhs);
 
     /// set transition list
@@ -223,11 +234,24 @@ public:
     void sortTransitionsByProductMZ();
     //@}
 
+    /**
+      @brief Checks whether the data structure (and the underlying TraML file) contains invalid references
+
+      First checks whether all of the references are unique (protein, peptide,
+      compound). Secondly, checks that each reference is valid and points
+      either to a protein, peptide or compound. 
+
+      Returns false if the file is valid.
+    */
+    bool containsInvalidReferences();
+
 protected:
 
     void createProteinReferenceMap_();
 
     void createPeptideReferenceMap_();
+
+    void createCompoundReferenceMap_();
 
     std::vector<CV> cvs_;
 
@@ -263,8 +287,11 @@ protected:
 
     bool peptide_reference_map_dirty_;
 
-  };
+    CompoundReferenceMapType compound_reference_map_;
 
+    bool compound_reference_map_dirty_;
+
+  };
 
   namespace TargetedExperimentHelper
   {

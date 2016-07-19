@@ -175,14 +175,22 @@ public:
 public:
 
       Compound() :
-        CVTermList()
+        CVTermList(),
+        theoretical_mass(0.0),
+        charge_(0),
+        charge_set_(false)
       {
       }
 
       Compound(const Compound & rhs) :
         CVTermList(rhs),
         id(rhs.id),
-        rts(rhs.rts)
+        rts(rhs.rts),
+        molecular_formula(rhs.molecular_formula),
+        smiles_string(rhs.smiles_string),
+        theoretical_mass(rhs.theoretical_mass),
+        charge_(rhs.charge_),
+        charge_set_(rhs.charge_set_)
       {
       }
 
@@ -193,6 +201,11 @@ public:
           CVTermList::operator=(rhs);
           id = rhs.id;
           rts = rhs.rts;
+          molecular_formula = rhs.molecular_formula;
+          smiles_string = rhs.smiles_string;
+          theoretical_mass = rhs.theoretical_mass;
+          charge_ = rhs.charge_;
+          charge_set_ = rhs.charge_set_;
         }
         return *this;
       }
@@ -201,11 +214,44 @@ public:
       {
         return CVTermList::operator==(rhs) &&
                id == rhs.id &&
-               rts == rhs.rts;
+               rts == rhs.rts &&
+               molecular_formula == rhs.molecular_formula &&
+               smiles_string == rhs.smiles_string &&
+               theoretical_mass == rhs.theoretical_mass &&
+               charge_ == rhs.charge_ &&
+               charge_set_ == rhs.charge_set_;
+      }
+
+      /// Set the peptide charge state
+      void setChargeState(int charge)
+      {
+        charge_ = charge;
+        charge_set_ = true;
+      }
+
+      /// Whether compound has set charge state
+      bool hasCharge() const
+      {
+        return charge_set_;
+      }
+
+      /// Return the compound charge state
+      int getChargeState() const
+      {
+        OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
+        return charge_;
       }
 
       String id;
       std::vector<RetentionTime> rts;
+      String molecular_formula;
+      String smiles_string;
+      double theoretical_mass;
+
+protected:
+      int charge_;
+      bool charge_set_;
+
     };
 
     class OPENMS_DLLAPI Peptide :
@@ -222,9 +268,10 @@ public:
       };
 
       Peptide() :
-        CVTermList()
+        CVTermList(),
+        charge_(0),
+        charge_set_(false)
       {
-        charge_ = -1;
       }
 
       Peptide(const Peptide & rhs) :
@@ -236,6 +283,7 @@ public:
         sequence(rhs.sequence),
         mods(rhs.mods),
         charge_(rhs.charge_),
+        charge_set_(rhs.charge_set_),
         peptide_group_label_(rhs.peptide_group_label_)
       {
       }
@@ -252,6 +300,7 @@ public:
           sequence = rhs.sequence;
           mods = rhs.mods;
           charge_ = rhs.charge_;
+          charge_set_ = rhs.charge_set_;
           peptide_group_label_ = rhs.peptide_group_label_;
         }
         return *this;
@@ -267,6 +316,7 @@ public:
                sequence == rhs.sequence &&
                mods == rhs.mods &&
                charge_ == rhs.charge_ &&
+               charge_set_ == rhs.charge_set_ &&
                peptide_group_label_ == rhs.peptide_group_label_;
       }
 
@@ -274,11 +324,19 @@ public:
       void setChargeState(int charge)
       {
         charge_ = charge;
+        charge_set_ = true;
+      }
+
+      /// Whether peptide has set charge state
+      bool hasCharge() const
+      {
+        return charge_set_;
       }
 
       /// Return the peptide charge state
       int getChargeState() const
       {
+        OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
         return charge_;
       }
 
@@ -326,6 +384,7 @@ public:
 
 protected:
       int charge_;
+      bool charge_set_;
       String peptide_group_label_;
     };
 
@@ -448,15 +507,17 @@ protected:
       public CVTermList
     {
       TraMLProduct() :
-        CVTermList()
+        CVTermList(),
+        charge_(0),
+        charge_set_(false)
       {
-        charge_ = -1;
       }
 
       bool operator==(const TraMLProduct & rhs) const
       {
         return CVTermList::operator==(rhs) &&
                charge_ == rhs.charge_ &&
+               charge_set_ == rhs.charge_set_ &&
                configuration_list_ == rhs.configuration_list_ &&
                interpretation_list_ == rhs.interpretation_list_;
       }
@@ -467,6 +528,7 @@ protected:
         {
           CVTermList::operator=(rhs);
           charge_ = rhs.charge_;
+          charge_set_ = rhs.charge_set_;
           configuration_list_ = rhs.configuration_list_;
           interpretation_list_ = rhs.interpretation_list_;
         }
@@ -476,10 +538,18 @@ protected:
       void setChargeState(int charge)
       {
         charge_ = charge;
+        charge_set_ = true;
+      }
+
+      /// Whether product has set charge state
+      bool hasCharge() const
+      {
+        return charge_set_;
       }
 
       int getChargeState() const
       {
+        OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
         return charge_;
       }
 
@@ -515,6 +585,7 @@ protected:
 
 private:
       int charge_;
+      bool charge_set_;
       std::vector<Configuration> configuration_list_;
       std::vector<CVTermList> interpretation_list_;
 

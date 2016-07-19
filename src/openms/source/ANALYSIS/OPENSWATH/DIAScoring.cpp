@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
@@ -177,7 +178,7 @@ namespace OpenMS
 
   /// Precursor isotope scores
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
-                                          double& isotope_corr, double& isotope_overlap)
+                                          double& isotope_corr, double& isotope_overlap, std::string sum_formula)
   {
     // collect the potential isotopes of this peak
     double max_ratio;
@@ -185,8 +186,10 @@ namespace OpenMS
     std::vector<double> isotopes_int;
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
-      double left  = precursor_mz - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
-      double right = precursor_mz + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double left  = precursor_mz - dia_extract_window_ / 2.0 + 
+                       iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double right = precursor_mz + dia_extract_window_ / 2.0 + 
+                       iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
       double mz, intensity;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       isotopes_int.push_back(intensity);
@@ -194,7 +197,7 @@ namespace OpenMS
 
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
-    isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, charge_state);
+    isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, charge_state, sum_formula);
     largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurences, max_ratio);
     isotope_overlap = max_ratio;
   }
@@ -280,8 +283,10 @@ namespace OpenMS
       // collect the potential isotopes of this peak
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 +
+                        iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + 
+                        iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
         double mz, intensity;
         integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -338,28 +343,37 @@ namespace OpenMS
   }
 
   double DIAScoring::scoreIsotopePattern_(double product_mz,
-                                             const std::vector<double>& isotopes_int, int putative_fragment_charge)
+                                          const std::vector<double>& isotopes_int, int putative_fragment_charge,
+                                          std::string sum_formula)
   {
     OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
 
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
-    // create the theoretical distribution
-    IsotopeDistribution d;
     TheoreticalIsotopePattern isotopes;
-    d.setMaxIsotope(dia_nr_isotopes_ + 1);
-    d.estimateFromPeptideWeight(product_mz * putative_fragment_charge);
-    for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
+    IsotopeDistribution isotope_dist;
+    if (!sum_formula.empty())
+    {
+      // create the theoretical distribution from the sum formula
+      EmpiricalFormula empf(sum_formula);
+      isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
+    }
+    else 
+    {
+      // create the theoretical distribution from the peptide weight
+      isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);
+      isotope_dist.estimateFromPeptideWeight(product_mz * putative_fragment_charge);
+    }
+
+
+    for (IsotopeDistribution::Iterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
     {
       isotopes.intensity.push_back(it->second);
     }
-
-    //FEATURE ISO pattern for peptide sequence..
-
     isotopes.optional_begin = 0;
     isotopes.optional_end = dia_nr_isotopes_;
 
-    //scale the distribution to a maximum of 1
+    // scale the distribution to a maximum of 1
     double max = 0.0;
     for (Size i = 0; i < isotopes.intensity.size(); ++i)
     {

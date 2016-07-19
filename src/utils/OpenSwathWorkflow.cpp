@@ -162,7 +162,7 @@ namespace OpenMS
       ofs << "\n";
     }
 
-    String prepareLine(const OpenSwath::LightPeptide& pep,
+    String prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition* transition,
         FeatureMap& output, String id)
     {
@@ -234,6 +234,13 @@ namespace OpenMS
           if (group_label.empty()) group_label = id;
           if (group_label == "light") group_label = id; // legacy fix since there are many TraMLs floating around which have "light" in there
 
+          // If a protein is present, take the first one
+          String protein_name = "";
+          if (!pep.protein_refs.empty() )
+          {
+            protein_name = pep.protein_refs[0];
+          }
+
           String line = "";
           line += id + "_run0"
             + "\t" + group_label
@@ -241,12 +248,12 @@ namespace OpenMS
             + "\t" + input_filename_
             + "\t" + (String)feature_it->getRT()
             + "\t" + "f_" + feature_it->getUniqueId()  // TODO might not be unique!!!
-            + "\t" + pep.sequence
+            + "\t" + (String)pep.sequence
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
             + "\t" + (String)feature_it->getIntensity()
-            + "\t" + pep.protein_refs[0] // TODO what about other proteins?
+            + "\t" + protein_name 
             + "\t" + decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
@@ -535,9 +542,9 @@ namespace OpenMS
           {
 
             int batch_size;
-            if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getPeptides().size())
+            if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
             {
-              batch_size = transition_exp_used_all.getPeptides().size();
+              batch_size = transition_exp_used_all.getCompounds().size();
             }
             else
             {
@@ -552,16 +559,16 @@ namespace OpenMS
 #ifdef _OPENMP
               omp_get_thread_num() << " " <<
 #endif
-              "will analyze " << transition_exp_used_all.getPeptides().size() <<  " peptides and "
+              "will analyze " << transition_exp_used_all.getCompounds().size() <<  " compounds and "
               << transition_exp_used_all.getTransitions().size() <<  " transitions "
               "from SWATH " << i << " in batches of " << batch_size << std::endl;
             }
 
-            for (size_t pep_idx = 0; pep_idx <= (transition_exp_used_all.getPeptides().size() / batch_size); pep_idx++)
+            for (size_t pep_idx = 0; pep_idx <= (transition_exp_used_all.getCompounds().size() / batch_size); pep_idx++)
             {
               // Create the new, batch-size transition experiment
               OpenSwath::LightTargetedExperiment transition_exp_used;
-              selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
+              selectCompoundsForBatch_(transition_exp_used_all, transition_exp_used, batch_size, pep_idx);
 
               // Step 2.1: extract these transitions
               ChromatogramExtractor extractor;
@@ -627,61 +634,61 @@ namespace OpenMS
 
   private:
 
-    /** @brief Select which peptides to analyze in the next batch (and copy to output)
+    /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
-     * This function will select which peptides to analyze in the next batch j
-     * and will copy the the corresponding peptides and transitions into the
-     * output structure. The output will contain batch_size peptides.
+     * This function will select which compounds to analyze in the next batch j
+     * and will copy the the corresponding compounds and transitions into the
+     * output structure. The output will contain batch_size compounds.
      *
      * @param transition_exp_used_all input (all transitions for this swath)
      * @param transition_exp_used output (will contain only transitions for the next batch)
-     * @param batch_size how many peptides per batch
+     * @param batch_size how many compounds per batch
      * @param j batch number (peptides from j*batch_size to j*batch_size+batch_size will be copied)
      *
      * @note The proteins will be copied completely without checking for a match
      *
     */
-    void selectPeptidesForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
+    void selectCompoundsForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
       OpenSwath::LightTargetedExperiment& transition_exp_used, int batch_size, size_t j)
     {
       // compute batch start/end
       size_t start = j * batch_size;
       size_t end = j * batch_size + batch_size;
-      if (end > transition_exp_used_all.peptides.size())
+      if (end > transition_exp_used_all.compounds.size())
       {
-        end = transition_exp_used_all.peptides.size();
+        end = transition_exp_used_all.compounds.size();
       }
 
       // Create the new, batch-size transition experiment
       transition_exp_used.proteins = transition_exp_used_all.proteins;
-      transition_exp_used.peptides.insert(transition_exp_used.peptides.end(),
-          transition_exp_used_all.peptides.begin() + start, transition_exp_used_all.peptides.begin() + end);
-      copyBatchTransitions_(transition_exp_used.peptides, transition_exp_used_all.transitions, transition_exp_used.transitions);
+      transition_exp_used.compounds.insert(transition_exp_used.compounds.end(),
+          transition_exp_used_all.compounds.begin() + start, transition_exp_used_all.compounds.begin() + end);
+      copyBatchTransitions_(transition_exp_used.compounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
     }
 
     /** @brief Copy the required transitions to output
      *
-     * Copy all transitions matching to one of the peptides in the selected
+     * Copy all transitions matching to one of the compounds in the selected
      * peptide vector from all_transitions to the output.
      *
-     * @param used_peptides Which peptides to be used
+     * @param used_compounds Which peptides or metabolites to be used
      * @param all_transitions Transitions vector from which to select transitions
      * @param output Output vector containing matching transitions (taken from all_transitions)
      *
     */
-    void copyBatchTransitions_(const std::vector<OpenSwath::LightPeptide>& used_peptides,
+    void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output)
     {
-      std::set<std::string> selected_peptides;
-      for (Size i = 0; i < used_peptides.size(); i++)
+      std::set<std::string> selected_compounds;
+      for (Size i = 0; i < used_compounds.size(); i++)
       {
-        selected_peptides.insert(used_peptides[i].id);
+        selected_compounds.insert(used_compounds[i].id);
       }
 
       for (Size i = 0; i < all_transitions.size(); i++)
       {
-        if (selected_peptides.find(all_transitions[i].peptide_ref) != selected_peptides.end())
+        if (selected_compounds.find(all_transitions[i].peptide_ref) != selected_compounds.end())
         {
           output.push_back(all_transitions[i]);
         }
@@ -791,9 +798,9 @@ namespace OpenMS
 
       // 2. Store the peptide retention times in an intermediate map
       std::map<OpenMS::String, double> PeptideRTMap;
-      for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
+      for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
       {
-        PeptideRTMap[targeted_exp.getPeptides()[i].id] = targeted_exp.getPeptides()[i].rt;
+        PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt;
       }
 
       // 3. Extract the RT pairs from the input data
@@ -990,9 +997,9 @@ namespace OpenMS
       }
       // Map peptide id to sequence number
       std::map<String, int> assay_peptide_map;
-      for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
+      for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
       {
-        assay_peptide_map[transition_exp.getPeptides()[i].id] = boost::numeric_cast<int>(i);
+        assay_peptide_map[transition_exp.getCompounds()[i].id] = boost::numeric_cast<int>(i);
       }
       // Map peptide id to corresponding transitions
       typedef std::map<String, std::vector< const TransitionType* > > AssayMapT;
@@ -1010,7 +1017,7 @@ namespace OpenMS
         String id = assay_it->first;
         MRMTransitionGroupType transition_group;
         transition_group.setTransitionGroupID(id);
-        double expected_rt = transition_exp.getPeptides()[ assay_peptide_map[id] ].rt;
+        double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
         double precursor_mz = -1;
 
         // Go through all transitions, for each transition get chromatogram and
@@ -1067,7 +1074,7 @@ namespace OpenMS
         // Add to the output tsv if given
         if (tsv_writer.isActive())
         {
-          const OpenSwath::LightPeptide pep = transition_exp.getPeptides()[ assay_peptide_map[id] ];
+          const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
           const TransitionType* transition = assay_it->second[0];
           to_output.push_back(tsv_writer.prepareLine(pep, transition, output, id));
         }
@@ -1120,17 +1127,17 @@ namespace OpenMS
       {
         peptide_trans_map[transition_exp_used.getTransitions()[i].getPeptideRef()].push_back(&transition_exp_used.getTransitions()[i]);
       }
-      std::map<String, OpenSwath::LightPeptide*> trans_peptide_map;
-      for (Size i = 0; i < transition_exp_used.getPeptides().size(); i++)
+      std::map<String, OpenSwath::LightCompound*> trans_peptide_map;
+      for (Size i = 0; i < transition_exp_used.getCompounds().size(); i++)
       {
-        trans_peptide_map[transition_exp_used.getPeptides()[i].id] = &transition_exp_used.getPeptides()[i];
+        trans_peptide_map[transition_exp_used.getCompounds()[i].id] = &transition_exp_used.getCompounds()[i];
       }
 
       // Determine iteration size: 
-      // When extracting MS1/precursor transitions, we iterate over peptides.
+      // When extracting MS1/precursor transitions, we iterate over compounds.
       // Otherwise (for SWATH/fragment ions), we iterate over the transitions.
       Size itersize;
-      if (ms1) {itersize = transition_exp_used.getPeptides().size();}
+      if (ms1) {itersize = transition_exp_used.getCompounds().size();}
       else     {itersize = transition_exp_used.getTransitions().size();}
 
       for (Size i = 0; i < itersize; i++)
@@ -1139,12 +1146,12 @@ namespace OpenMS
         output_chromatograms.push_back(s);
 
         ChromatogramExtractor::ExtractionCoordinates coord;
-        OpenSwath::LightPeptide pep; // TargetedExperiment::Peptide pep;
+        OpenSwath::LightCompound pep; // TargetedExperiment::Peptide pep;
         OpenSwath::LightTransition transition;
 
         if (ms1)
         {
-          pep = transition_exp_used.getPeptides()[i];
+          pep = transition_exp_used.getCompounds()[i];
 
           // Catch cases where a peptide has no transitions
           if (peptide_trans_map.count(pep.id) == 0 )
@@ -1859,6 +1866,7 @@ protected:
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
 
+
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
@@ -1934,6 +1942,7 @@ protected:
     ///////////////////////////////////
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
+    std::cout << " do laod traml files " << std::endl;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
     FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);

@@ -122,6 +122,8 @@ public:
 
     int getProductChargeState() const;
 
+    bool isProductChargeStateSet() const;
+
     //void setProductCVTermList(const CVTermList& list);
 
     void addProductCVTerm(const CVTerm & cv_term);

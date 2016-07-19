@@ -389,14 +389,19 @@ namespace OpenMS
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue; }
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue;}
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
 
-      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
-      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      int decoy_charge = 1;
+      int target_charge = 1;
+      if (decoy_peptide.hasCharge()) {decoy_charge = decoy_peptide.getChargeState();}
+      if (target_peptide.hasCharge()) {target_charge = target_peptide.getChargeState();}
+
+      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
 
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
