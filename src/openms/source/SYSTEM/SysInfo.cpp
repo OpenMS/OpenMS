@@ -45,8 +45,6 @@
 #include <unistd.h>
 #endif
 
-#include <iostream>
-
 namespace OpenMS
 {
 
@@ -57,23 +55,40 @@ namespace OpenMS
 
   bool read_off_memory_status_linux(statm_t& result)
   {
-    unsigned long dummy;
     const char* statm_path = "/proc/self/statm";
 
     FILE *f = fopen(statm_path,"r");
-    if(!f)
+    if (!f)
     {
       return false;
-      // perror(statm_path);
-      //abort();
     }
-    if(7 != fscanf(f,"%ld %ld %ld %ld %ld %ld %ld",
+
+    // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too
+    // small and not changing, total memory (vmSize) is changing but usually
+    // too large)
+
+    // From the proc(5) man-page:
+    // 
+    //    /proc/[pid]/statm
+    //           Provides information about memory usage, measured in pages.  
+    //           The columns are:
+    // 
+    //               size       total program size
+    //                          (same as VmSize in /proc/[pid]/status)
+    //               resident   resident set size
+    //                          (same as VmRSS in /proc/[pid]/status)
+    //               share      shared pages (from shared mappings)
+    //               text       text (code)
+    //               lib        library (unused in Linux 2.6)
+    //               data       data + stack
+    //               dt         dirty pages (unused in Linux 2.6)
+
+
+    if (7 != fscanf(f,"%ld %ld %ld %ld %ld %ld %ld",
               &result.size,&result.resident,&result.share,&result.text,&result.lib,&result.data,&result.dt))
     {
       fclose(f);
       return false;
-      // perror(statm_path);
-      //abort();
     }
     fclose(f);
     return true;
@@ -101,35 +116,12 @@ namespace OpenMS
     }
     mem_virtual = t_info.resident_size / 1024; // byte to KB
 #else // Linux
-
-    // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too
-    // small and not changing, total memory (vmSize) is changing but usually
-    // too large)
-
-    // From the proc(5) man-page:
-    // 
-    //    /proc/[pid]/statm
-    //           Provides information about memory usage, measured in pages.  
-    //           The columns are:
-    // 
-    //               size       total program size
-    //                          (same as VmSize in /proc/[pid]/status)
-    //               resident   resident set size
-    //                          (same as VmRSS in /proc/[pid]/status)
-    //               share      shared pages (from shared mappings)
-    //               text       text (code)
-    //               lib        library (unused in Linux 2.6)
-    //               data       data + stack
-    //               dt         dirty pages (unused in Linux 2.6)
-
     statm_t mem;
     if(!read_off_memory_status_linux(mem)) 
     {
       return false;
     }
-    std::cout << "Memory size: " <<  mem.size << " / Resident size:  " << mem.resident << std::endl;
-    mem_virtual = (size_t)mem.resident * (size_t)sysconf(_SC_PAGESIZE) / 1024;
-
+    mem_virtual = (size_t)mem.resident * (size_t)sysconf(_SC_PAGESIZE) / 1024; // byte to KB
 #endif
     return true;
   }
