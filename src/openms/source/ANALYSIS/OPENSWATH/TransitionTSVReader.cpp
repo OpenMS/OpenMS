@@ -876,6 +876,16 @@ namespace OpenMS
       ion.setName("frag: d ion");
       interpretation.addCVTerm(ion);
     }
+    else if (tr_it->fragment_type == "unknown")
+    {
+      // unknown means that we should write CV Term "1001240"
+      interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
+    }
+    else if (tr_it->fragment_type == "")
+    {
+      // empty means that we have no information whatsoever
+      interpretation.iontype = TargetedExperiment::IonType::Unannotated;
+    }
     else
     {
       interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
@@ -1156,6 +1166,9 @@ namespace OpenMS
       mytransition.precursor = it->getPrecursorMZ();
       mytransition.product = it->getProductMZ();
       mytransition.rt_calibrated = -1;
+      mytransition.fragment_type = "";
+      mytransition.fragment_nr = -1;
+      mytransition.fragment_charge = "NA";
 
       if (!it->getPeptideRef().empty())
       {
@@ -1259,7 +1272,6 @@ namespace OpenMS
         // Error? 
       }
 
-      mytransition.fragment_charge = "NA";
       if (it->isProductChargeStateSet())
       {
         mytransition.fragment_charge = String(it->getProductChargeState());
@@ -1271,9 +1283,10 @@ namespace OpenMS
           product.getInterpretationList().end(); int_it++)
       {
         // only report first / best interpretation
-        if (int_it->rank == 1)
+        if (int_it->rank == 1 || product.getInterpretationList().size() == 1)
         {
-          mytransition.fragment_nr = int_it->ordinal;
+          if (int_it->ordinal != 0) mytransition.fragment_nr = int_it->ordinal;
+
           switch (int_it->iontype)
           {
             case Residue::AIon:
