@@ -43,14 +43,17 @@
 #else
 #include <cstdio>
 #include <unistd.h>
+#include <stdlib.h>
+#define OMS_USELINUXMEMORYPLATFORM
 #endif
 
 namespace OpenMS
 {
 
+#ifdef OMS_USELINUXMEMORYPLATFORM
   // see http://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
   typedef struct {
-      unsigned long size,resident,share,text,lib,data,dt;
+      long size,resident,share,text,lib,data,dt;
   } statm_t;
 
   bool read_off_memory_status_linux(statm_t& result)
@@ -68,11 +71,11 @@ namespace OpenMS
     // too large)
 
     // From the proc(5) man-page:
-    // 
+    //
     //    /proc/[pid]/statm
-    //           Provides information about memory usage, measured in pages.  
+    //           Provides information about memory usage, measured in pages.
     //           The columns are:
-    // 
+    //
     //               size       total program size
     //                          (same as VmSize in /proc/[pid]/status)
     //               resident   resident set size
@@ -93,6 +96,7 @@ namespace OpenMS
     fclose(f);
     return true;
   }
+#endif
 
   bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
   {
@@ -117,7 +121,7 @@ namespace OpenMS
     mem_virtual = t_info.resident_size / 1024; // byte to KB
 #else // Linux
     statm_t mem;
-    if(!read_off_memory_status_linux(mem)) 
+    if (!read_off_memory_status_linux(mem))
     {
       return false;
     }
