@@ -68,54 +68,6 @@ charge_cv.setAccession(charge_cv_acc);
 charge_cv.setName("charge state");
 charge_cv.setValue(3);
 
-START_SECTION(bool ReactionMonitoringTransition::isDetectingTransition() const)
-{
-  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
-
-  TEST_EQUAL(rmt.isDetectingTransition(),1)
-
-  rmt.setMetaValue("detecting_transition","false");
-
-  TEST_EQUAL(rmt.isDetectingTransition(),0)
-
-  rmt.setMetaValue("detecting_transition","true");
-
-  TEST_EQUAL(rmt.isDetectingTransition(),1)
-}
-END_SECTION
-
-START_SECTION(bool ReactionMonitoringTransition::isIdentifyingTransition() const)
-{
-  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
-
-  TEST_EQUAL(rmt.isIdentifyingTransition(),0)
-
-  rmt.setMetaValue("identifying_transition","false");
-
-  TEST_EQUAL(rmt.isIdentifyingTransition(),0)
-
-  rmt.setMetaValue("identifying_transition","true");
-
-  TEST_EQUAL(rmt.isIdentifyingTransition(),1)
-}
-END_SECTION
-
-START_SECTION(bool ReactionMonitoringTransition::isQuantifyingTransition() const)
-{
-  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
-
-  TEST_EQUAL(rmt.isQuantifyingTransition(),1)
-
-  rmt.setMetaValue("quantifying_transition","false");
-
-  TEST_EQUAL(rmt.isQuantifyingTransition(),0)
-
-  rmt.setMetaValue("quantifying_transition","true");
-
-  TEST_EQUAL(rmt.isQuantifyingTransition(),1)
-}
-END_SECTION
-
 START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &rhs)))
 {
   ReactionMonitoringTransition tr1, tr2, tr3;
@@ -127,6 +79,9 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
   tr1.setPrediction(p);
+  tr1.setIdentifyingTransition(false);
+  tr1.setDetectingTransition(false);
+  tr1.setQuantifyingTransition(false);
 	tr3 = ReactionMonitoringTransition(tr1);
   TEST_EQUAL(tr1 == tr3, true)
   TEST_EQUAL(tr1 == tr2, false)
@@ -260,6 +215,55 @@ START_SECTION((void addProductCVTerm(const CVTerm &cv_term)))
 }
 END_SECTION
 
+START_SECTION((ReactionMonitoringTransition::isDetectingTransition() const))
+{
+  TEST_EQUAL(transition.isDetectingTransition(), true)
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition::setDetectingTransition(bool val)))
+{
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setDetectingTransition(false);
+  TEST_EQUAL(tr.isDetectingTransition(), false)
+  tr.setDetectingTransition(true);
+  TEST_EQUAL(tr.isDetectingTransition(), true)
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition::isIdentifyingTransition() const))
+{
+  TEST_EQUAL(transition.isIdentifyingTransition(), false)
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition::setIdentifyingTransition(bool val)))
+{
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setIdentifyingTransition(true);
+  TEST_EQUAL(tr.isIdentifyingTransition(), true)
+  tr.setIdentifyingTransition(false);
+  TEST_EQUAL(tr.isIdentifyingTransition(), false)
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition::isQuantifyingTransition() const))
+{
+  TEST_EQUAL(transition.isQuantifyingTransition(), true)
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition::setQuantifyingTransition(bool val)))
+{
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setQuantifyingTransition(false);
+  TEST_EQUAL(tr.isQuantifyingTransition(), false)
+  tr.setQuantifyingTransition(true);
+  TEST_EQUAL(tr.isQuantifyingTransition(), true)
+}
+END_SECTION
+
+
 START_SECTION((bool operator==(const ReactionMonitoringTransition &rhs) const ))
 {
   ReactionMonitoringTransition tr1, tr2;
@@ -267,6 +271,14 @@ START_SECTION((bool operator==(const ReactionMonitoringTransition &rhs) const ))
 
   tr1.addPrecursorCVTerm(charge_cv);
   TEST_EQUAL(tr1 == tr2, false)
+  tr2.addPrecursorCVTerm(charge_cv);
+  TEST_EQUAL(tr1 == tr2, true)
+
+  tr1.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr2, false)
+  tr2.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr2, true)
+
 }
 END_SECTION
 
@@ -294,6 +306,14 @@ START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringT
   tr3 = tr1;
   TEST_EQUAL(tr1 == tr3, true)
   TEST_EQUAL(tr1 == tr2, false)
+
+  tr1.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr3, false)
+  tr1.setIdentifyingTransition(true);
+  tr1.setQuantifyingTransition(false);
+  TEST_EQUAL(tr1 == tr3, false)
+  tr3 = tr1;
+  TEST_EQUAL(tr1 == tr3, true)
 }
 END_SECTION
 

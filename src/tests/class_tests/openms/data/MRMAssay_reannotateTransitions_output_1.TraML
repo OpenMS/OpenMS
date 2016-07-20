@@ -163,9 +163,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="637.9"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="1_1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_658.8439_481.2511" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -186,9 +183,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="145.1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="2_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_285.6554" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -209,9 +203,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2506.3"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="3_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_507.2744" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -232,9 +223,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="354.9"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="4_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_542.7929" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -255,9 +243,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="313.5"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="5_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_471.7558" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -278,9 +263,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="285.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="6_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_212.1212" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -301,9 +283,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="281.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="7_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_616.7719_271.1256" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -324,9 +303,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="548.8"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="8_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_452.7027" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -347,9 +323,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="9_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_545.7348" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -370,9 +343,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="4943.9"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="10_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_581.2533" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -393,9 +363,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2254.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="11_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_404.1763" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -416,9 +383,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1637.4"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="12_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_109.5786" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -439,9 +403,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="732.8"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="13_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_510.2162" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -462,9 +423,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="362.1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="14_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_271.1256" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -485,9 +443,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="200.8"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="15_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_335.6469" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -508,9 +463,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="84.2"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="16_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_618.8635" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -531,9 +483,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="652.4"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="17_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_491.2844" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -554,9 +503,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="645.7"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="18_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_405.242" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -577,9 +523,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="421.1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="19_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_208.6344" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -600,9 +543,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="786"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="20_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_173.1159" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -623,9 +563,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="318.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="21_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_310.1527" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -646,9 +583,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="892.3"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="22_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_345.6712" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -669,9 +603,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="511.7"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="23_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_88.0631" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -692,9 +623,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="134.3"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="24_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_274.6341" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -715,9 +643,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="88.5"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="25_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.1898_274.6341" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -738,9 +663,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="54.7"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="26_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_346.1632" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -761,9 +683,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="335"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="27_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_310.6447" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -784,9 +703,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="244.7"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="28_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_346.1632" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -807,9 +723,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="131"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="29_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_88.0631" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -830,9 +743,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="86.3"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="30_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_275.1261" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -853,9 +763,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="84.3"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="31_1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_381.6818_310.6447" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -876,9 +783,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="74.2"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="32_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_314.1767" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -899,9 +803,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1618.5"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="33_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_278.6581" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -922,9 +823,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1116.8"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="34_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_230.1317" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -945,9 +843,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="125.7"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="35_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_314.1767" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -968,9 +863,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="120.8"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="36_1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_385.2138_349.6952" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -991,9 +883,6 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="113.9"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
   </TransitionList>
 </TraML>

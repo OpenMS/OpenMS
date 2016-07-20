@@ -38,9 +38,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.0628155785"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr6" compoundRef="compound_1">
       <Precursor>
@@ -52,9 +49,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.5492898082"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr7" compoundRef="compound_1">
       <Precursor>
@@ -66,9 +60,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.0987432789"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr8" compoundRef="compound_1">
       <Precursor>
@@ -80,9 +71,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.0861687031"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr9" compoundRef="compound_1">
       <Precursor>
@@ -94,9 +82,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.2576379826"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr10" compoundRef="compound_1">
       <Precursor>
@@ -108,9 +93,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.0653417551"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr11" compoundRef="compound_1">
       <Precursor>
@@ -122,9 +104,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.1081274607"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr12" compoundRef="compound_1">
       <Precursor>
@@ -136,9 +115,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.2081801254"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr13" compoundRef="compound_1">
       <Precursor>
@@ -150,9 +126,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.1051499068"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr14" compoundRef="compound_1">
       <Precursor>
@@ -164,9 +137,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr15" compoundRef="compound_1">
       <Precursor>
@@ -178,9 +148,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.0612758683"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr16" compoundRef="compound_1">
       <Precursor>
@@ -192,9 +159,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.0515150041"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr17" compoundRef="compound_2">
       <Precursor>
@@ -207,9 +171,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.25"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr18" compoundRef="compound_2">
       <Precursor>
@@ -222,9 +183,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr19" compoundRef="compound_2">
       <Precursor>
@@ -237,9 +195,6 @@
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.3"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:string" value="false"/>
-      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
   </TransitionList>
 </TraML>
