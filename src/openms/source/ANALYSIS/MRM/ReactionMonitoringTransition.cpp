@@ -214,7 +214,6 @@ namespace OpenMS
     if (!precursor_cv_terms_)
     {
       precursor_cv_terms_ = new CVTermList();
-      std::cout << " nwe list at " << precursor_cv_terms_ << std::endl;
     }
     precursor_cv_terms_->addCVTerm(cv_term);
   }
