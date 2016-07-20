@@ -89,7 +89,8 @@ public:
   // Create new consumer, set TIC to zero
   TICConsumer() :
     TIC(0.0),
-    nr_spectra(0.0)
+    nr_spectra(0.0),
+    nr_peaks(0)
     {}
 
   void consumeSpectrum(SpectrumType & s)
@@ -234,7 +235,7 @@ protected:
       CachedmzML cache;
       cache.createMemdumpIndex(in);
       const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
-      const std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
+      // const std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
 
       std::ifstream ifs_;
       ifs_.open(in.c_str(), std::ios::binary);
