@@ -923,14 +923,14 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
-    if (tr_it->detecting_transition) {rm_trans.setMetaValue("detecting_transition", "true");}
-    else if (!tr_it->detecting_transition) {rm_trans.setMetaValue("detecting_transition", "false");}
+    if (tr_it->detecting_transition) {rm_trans.setDetectingTransition(true);}
+    else if (!tr_it->detecting_transition) {rm_trans.setDetectingTransition(false);}
 
-    if (tr_it->identifying_transition) {rm_trans.setMetaValue("identifying_transition", "true");}
-    else if (!tr_it->identifying_transition) {rm_trans.setMetaValue("identifying_transition", "false");}
+    if (tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(true);}
+    else if (!tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(false);}
 
-    if (tr_it->quantifying_transition) {rm_trans.setMetaValue("quantifying_transition", "true");}
-    else if (!tr_it->quantifying_transition) {rm_trans.setMetaValue("quantifying_transition", "false");}
+    if (tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(true);}
+    else if (!tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(false);}
   }
 
   void TransitionTSVReader::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
@@ -1370,51 +1370,9 @@ namespace OpenMS
       {
         mytransition.Annotation = it->getMetaValue("annotation").toString();
       }
-      if (it->metaValueExists("detecting_transition"))
-      {
-        if (it->getMetaValue("detecting_transition").toBool())
-        {
-          mytransition.detecting_transition = true;
-        }
-        else if (!it->getMetaValue("detecting_transition").toBool())
-        {
-          mytransition.detecting_transition = false;
-        }
-      }
-      else
-      {
-        mytransition.detecting_transition = true;
-      }
-      if (it->metaValueExists("identifying_transition"))
-      {
-        if (it->getMetaValue("identifying_transition").toBool())
-        {
-          mytransition.identifying_transition = true;
-        }
-        else if (!it->getMetaValue("identifying_transition").toBool())
-        {
-          mytransition.identifying_transition = false;
-        }
-      }
-      else
-      {
-        mytransition.identifying_transition = false;
-      }
-      if (it->metaValueExists("quantifying_transition"))
-      {
-        if (it->getMetaValue("quantifying_transition").toBool())
-        {
-          mytransition.quantifying_transition = true;
-        }
-        else if (!it->getMetaValue("quantifying_transition").toBool())
-        {
-          mytransition.quantifying_transition = false;
-        }
-      }
-      else
-      {
-        mytransition.quantifying_transition = true;
-      }
+      mytransition.detecting_transition = it->isDetectingTransition();
+      mytransition.identifying_transition = it->isIdentifyingTransition();
+      mytransition.quantifying_transition = it->isQuantifyingTransition();
 
       mytransitions.push_back(mytransition);
       setProgress(progress++);

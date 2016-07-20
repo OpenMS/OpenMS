@@ -162,51 +162,9 @@ namespace OpenMS
         t.decoy = true;
       }
 
-      if (transition_exp_.getTransitions()[i].metaValueExists("detecting_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
-        {
-          t.detecting_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
-        {
-          t.detecting_transition = true;
-        }
-      }
-      else
-      {
-        t.detecting_transition = true;
-      }
-      if (transition_exp_.getTransitions()[i].metaValueExists("identifying_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
-        {
-          t.identifying_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
-        {
-          t.identifying_transition = true;
-        }
-      }
-      else
-      {
-        t.identifying_transition = false;
-      }
-      if (transition_exp_.getTransitions()[i].metaValueExists("quantifying_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
-        {
-          t.quantifying_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
-        {
-          t.quantifying_transition = true;
-        }
-      }
-      else
-      {
-        t.quantifying_transition = true;
-      }
+      t.detecting_transition = transition_exp_.getTransitions()[i].isDetectingTransition();
+      t.identifying_transition = transition_exp_.getTransitions()[i].isIdentifyingTransition();
+      t.quantifying_transition = transition_exp_.getTransitions()[i].isQuantifyingTransition();
 
       transition_exp.transitions.push_back(t);
     }

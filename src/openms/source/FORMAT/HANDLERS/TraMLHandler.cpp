@@ -856,6 +856,23 @@ namespace OpenMS
               os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002008\" name=\"decoy SRM transition\"/>\n";
             }
           }
+
+          // Output transition type (only write if non-default, otherwise assume default)
+          // Default is: true, false, true
+          // NOTE: do not change that, the same default is implicitely assumed in ReactionMonitoringTransition
+          if (!it->isDetectingTransition())
+          {
+              os << "      <userParam name=\"xsd:detecting_transition\" type=\"xsd:string\" value=\"false\"/>\n";
+          }
+          if (it->isIdentifyingTransition())
+          {
+              os << "      <userParam name=\"xsd:identifying_transition\" type=\"xsd:string\" value=\"true\"/>\n";
+          }
+          if (!it->isQuantifyingTransition())
+          {
+              os << "      <userParam name=\"xsd:quantifying_transition\" type=\"xsd:string\" value=\"false\"/>\n";
+          }
+
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
           os << "    </Transition>" << "\n";
@@ -1564,7 +1581,22 @@ namespace OpenMS
       }
       else if (parent_tag == "Transition")
       {
-        actual_transition_.setMetaValue(name, data_value);
+        if (name == "detecting_transition")
+        {
+          actual_transition_.setDetectingTransition(value == "true");
+        }
+        else if (name == "identifying_transition")
+        {
+          actual_transition_.setIdentifyingTransition(value == "true");
+        }
+        else if (name == "quantifying_transition")
+        {
+          actual_transition_.setQuantifyingTransition(value == "true");
+        }
+        else
+        {
+          actual_transition_.setMetaValue(name, data_value);
+        }
       }
       else
       {

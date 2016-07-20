@@ -556,14 +556,14 @@ namespace OpenMS
         if (isoforms.size() > 0)
         {
           ReactionMonitoringTransition trn;
-          trn.setMetaValue("detecting_transition", "false");
+          trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
           trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
           trn.setProductMZ(tr_it->second);
           trn.setPeptideRef(peptide.id);
           mrmis.annotateTransitionCV(trn, tr_it->first);
-          trn.setMetaValue("identifying_transition", "true");
-          trn.setMetaValue("quantifying_transition", "false");
+          trn.setIdentifyingTransition(true);
+          trn.setQuantifyingTransition(false);
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
           trn.setName(String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
           trn.setNativeID(String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
@@ -619,14 +619,14 @@ namespace OpenMS
         {
           ReactionMonitoringTransition trn;
           trn.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
-          trn.setMetaValue("detecting_transition", "false");
+          trn.setDetectingTransition(false);
           trn.setMetaValue("insilico_transition", "true");
           trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge, round_decPow));
           trn.setProductMZ(decoy_tr_it->second);
           trn.setPeptideRef(decoy_peptide.id);
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
-          trn.setMetaValue("identifying_transition", "true");
-          trn.setMetaValue("quantifying_transition", "false");
+          trn.setIdentifyingTransition(true);
+          trn.setQuantifyingTransition(false);
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
           trn.setName(String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
           trn.setNativeID(String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
@@ -836,7 +836,7 @@ namespace OpenMS
           if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition
-            tr.setMetaValue("detecting_transition", "true");
+            tr.setDetectingTransition(true);
             j += 1;
           }
           else

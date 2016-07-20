@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/CVTermList.h>
 
 #include <vector>
+#include <bitset>
 
 namespace OpenMS
 {
@@ -171,9 +172,11 @@ public:
 
     /** @brief Detecting transitions
      * 
-     * Detecting transitions represent the set of transitions of an assay that should be used
-     * to enable candidate peak group detection. Ideally they were observed and validated in 
-     * previous experiments and have an associated library intensity.
+     * Detecting transitions represent the set of transitions of an assay that
+     * should be used to enable candidate peak group detection. Ideally they
+     * were observed and validated in previous experiments and have an
+     * associated library intensity.
+     *
      * For an overview, see Schubert OT et al., Building high-quality assay libraries for
      * targeted analysis of SWATH MS data., Nat Protoc. 2015 Mar;10(3):426-41.
      * doi: 10.1038/nprot.2015.015. Epub 2015 Feb 12. PMID: 25675208 
@@ -181,24 +184,32 @@ public:
     */
     bool isDetectingTransition() const;
 
+    void setDetectingTransition(bool val);
+
     /** @brief Identifying transitions
      * 
-     * Identifying transitions represent the set of transitions of an assay that should be used
-     * for the independent identification of a candidate peak group. These transitions will
-     * be scored independently of the detecting transitions.
+     * Identifying transitions represent the set of transitions of an assay
+     * that should be used for the independent identification of a candidate
+     * peak group. These transitions will be scored independently of the
+     * detecting transitions.
      *
     */
     bool isIdentifyingTransition() const;
 
+    void setIdentifyingTransition(bool val);
+
     /** @brief Quantifying transitions
      * 
-     * Quantifying transitions represent the set of transitions of an assay that should be used
-     * for the quantification of the peptide. This includes exclusion of e.g. interfered
-     * transitions (example: light/heavy peptide pairs isolated in the same swath), that
-     * should not be used for quantification of the peptide.
+     * Quantifying transitions represent the set of transitions of an assay
+     * that should be used for the quantification of the peptide. This includes
+     * exclusion of e.g. interfered transitions (example: light/heavy peptide
+     * pairs isolated in the same swath window), that should not be used for
+     * quantification of the peptide.
      *
     */
     bool isQuantifyingTransition() const;
+
+    void setQuantifyingTransition(bool val);
 
     //@}
 
@@ -276,6 +287,10 @@ protected:
 
     /// Information about a prediction for a suitable transition using some software (optional)
     Prediction* prediction_;
+
+    /// A set of flags to store information about the transition at hand
+    // (currently: detecting, identifying and quantifying)
+    std::bitset<3> transition_flags_;
     //@}
   };
 }
