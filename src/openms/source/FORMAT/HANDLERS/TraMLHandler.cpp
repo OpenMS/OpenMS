@@ -862,15 +862,15 @@ namespace OpenMS
           // NOTE: do not change that, the same default is implicitely assumed in ReactionMonitoringTransition
           if (!it->isDetectingTransition())
           {
-              os << "      <userParam name=\"xsd:detecting_transition\" type=\"xsd:string\" value=\"false\"/>\n";
+              os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
           }
           if (it->isIdentifyingTransition())
           {
-              os << "      <userParam name=\"xsd:identifying_transition\" type=\"xsd:string\" value=\"true\"/>\n";
+              os << "      <userParam name=\"identifying_transition\" type=\"xsd:boolean\" value=\"true\"/>\n";
           }
           if (!it->isQuantifyingTransition())
           {
-              os << "      <userParam name=\"xsd:quantifying_transition\" type=\"xsd:string\" value=\"false\"/>\n";
+              os << "      <userParam name=\"quantifying_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
           }
 
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
@@ -1581,17 +1581,20 @@ namespace OpenMS
       }
       else if (parent_tag == "Transition")
       {
+        // see xsd:boolean reference (http://books.xmlschemata.org/relaxng/ch19-77025.html)
+        // The value space of xsd:boolean is true and false. Its lexical space
+        // accepts true, false, and also 1 (for true) and 0 (for false).
         if (name == "detecting_transition")
         {
-          actual_transition_.setDetectingTransition(value == "true");
+          actual_transition_.setDetectingTransition((value == "true" || value == "1"));
         }
         else if (name == "identifying_transition")
         {
-          actual_transition_.setIdentifyingTransition(value == "true");
+          actual_transition_.setIdentifyingTransition((value == "true" || value == "1"));
         }
         else if (name == "quantifying_transition")
         {
-          actual_transition_.setQuantifyingTransition(value == "true");
+          actual_transition_.setQuantifyingTransition((value == "true" || value == "1"));
         }
         else
         {
