@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
@@ -113,7 +114,7 @@ class TOPPTICCalculator :
 {
 public:
   TOPPTICCalculator() :
-    TOPPBase("TICCalculator", "Calculates the TIC from a mass spectrometric raw file")
+    TOPPBase("TICCalculator", "Calculates the TIC from a mass spectrometric raw file (useful for benchmarking).")
   {
   }
 
@@ -130,6 +131,10 @@ protected:
     registerStringOption_("read_method", "<method>", "regular", "Method to read the file", false);
     String method("regular,indexed,streaming,cached");
     setValidStrings_("read_method", ListUtils::create<String>(method));
+
+    registerStringOption_("loadData", "<method>", "true", "Whether to actually load and decode the binary data (or whether to skip decoding the binary data)", false);
+    String loadData("true,false");
+    setValidStrings_("loadData", ListUtils::create<String>(loadData));
   }
 
   ExitCodes main_(int, const char**)
@@ -141,6 +146,10 @@ protected:
     //input file names
     String in = getStringOption_("in");
     String read_method = getStringOption_("read_method");
+    bool load_data = getStringOption_("loadData") == "true";
+
+    PeakFileOptions p;
+    p.setFillData(load_data);
 
     if (read_method == "streaming")
     {
@@ -149,6 +158,7 @@ protected:
       // Create the consumer, set output file name, transform
       TICConsumer consumer;
       MzMLFile mzml;
+      mzml.setOptions(p);
       mzml.setLogType(log_type_);
       mzml.transform(in, &consumer, true, true);
 
@@ -163,6 +173,7 @@ protected:
       std::cout << "Read method: regular" << std::endl;
 
       MzMLFile mzml;
+      mzml.setOptions(p);
       mzml.setLogType(log_type_);
       MSExperiment<> map;
       mzml.load(in, map);
@@ -191,6 +202,7 @@ protected:
 
       // load data from an indexed mzML file
       OnDiscMSExperiment<> map;
+      imzml.setOptions(p);
       imzml.load(in, map);
       // Get the first spectrum in memory, do some constant (non-changing) data processing
       double TIC = 0.0;
