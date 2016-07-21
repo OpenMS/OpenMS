@@ -285,13 +285,25 @@ protected:
 
 int main(int argc, const char** argv)
 {
+
+  // Add -test at the end of the arguments in order to avoid calling the OpenMS
+  // server for usage statistics (and thus making the benchmark slower)
+  char testflag[] = "-test";
+  std::vector<const char *> newArgs(argc+1); // vector containing one element more than required
+  for(int arg = 0; arg < argc; ++arg)
+  {
+    newArgs[arg] = argv[arg];
+  }
+  newArgs[argc] = testflag;
+
   TOPPTICCalculator tool;
   size_t after, before;
   SysInfo::getProcessMemoryConsumption(before);
   std::cout << " Memory consumption before " << before << std::endl;
-  tool.main(argc, argv);
+  tool.main(argc+1, (const char **)&newArgs[0]);
   SysInfo::getProcessMemoryConsumption(after);
   std::cout << " Memory consumption final " << after << std::endl;
+
   return 0;
 }
 
