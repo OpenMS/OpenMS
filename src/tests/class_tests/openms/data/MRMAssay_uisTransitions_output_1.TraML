@@ -2281,9 +2281,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2302,9 +2302,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2323,9 +2323,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2344,9 +2344,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2365,9 +2365,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2386,9 +2386,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2407,9 +2407,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2428,9 +2428,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2449,9 +2449,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2470,9 +2470,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2491,9 +2491,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2512,9 +2512,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2533,9 +2533,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2554,9 +2554,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2575,9 +2575,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2596,9 +2596,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2617,9 +2617,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2638,9 +2638,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2659,9 +2659,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2680,9 +2680,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2701,9 +2701,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2722,9 +2722,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2743,9 +2743,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2764,9 +2764,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2785,9 +2785,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2806,9 +2806,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2827,9 +2827,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2848,9 +2848,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2869,9 +2869,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2890,9 +2890,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2911,9 +2911,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2932,9 +2932,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2953,9 +2953,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2974,9 +2974,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -2995,9 +2995,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3016,9 +3016,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3037,9 +3037,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3058,9 +3058,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3079,9 +3079,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3100,9 +3100,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3121,9 +3121,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3142,9 +3142,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3163,9 +3163,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3184,9 +3184,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3205,9 +3205,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3226,9 +3226,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3247,9 +3247,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3268,9 +3268,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3289,9 +3289,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3310,9 +3310,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3331,9 +3331,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3352,9 +3352,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3373,9 +3373,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3394,9 +3394,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3415,9 +3415,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3436,9 +3436,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3457,9 +3457,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3478,9 +3478,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3499,9 +3499,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3520,9 +3520,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3541,9 +3541,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3562,9 +3562,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3583,9 +3583,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3604,9 +3604,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3625,9 +3625,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3646,9 +3646,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3667,9 +3667,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3688,9 +3688,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3709,9 +3709,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3730,9 +3730,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3751,9 +3751,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3772,9 +3772,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3793,9 +3793,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3814,9 +3814,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3835,9 +3835,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3856,9 +3856,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3877,9 +3877,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3898,9 +3898,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3919,9 +3919,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3940,9 +3940,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3961,9 +3961,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -3982,9 +3982,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4003,9 +4003,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4024,9 +4024,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4045,9 +4045,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4066,9 +4066,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4087,9 +4087,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4108,9 +4108,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4129,9 +4129,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4150,9 +4150,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4171,9 +4171,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4192,9 +4192,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4213,9 +4213,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4234,9 +4234,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4255,9 +4255,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4276,9 +4276,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4297,9 +4297,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4318,9 +4318,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4339,9 +4339,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4360,9 +4360,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4381,9 +4381,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4402,9 +4402,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4423,9 +4423,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y14^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4444,9 +4444,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y15^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4465,9 +4465,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4486,9 +4486,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4507,9 +4507,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4528,9 +4528,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4549,9 +4549,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4570,9 +4570,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4591,9 +4591,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4612,9 +4612,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4633,9 +4633,9 @@
           </Interpretation>
         </InterpretationList>
       </Product>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4655,9 +4655,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4677,9 +4677,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4699,9 +4699,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4721,9 +4721,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4743,9 +4743,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4765,9 +4765,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4787,9 +4787,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4809,9 +4809,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4831,9 +4831,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4853,9 +4853,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4875,9 +4875,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4897,9 +4897,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4919,9 +4919,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4941,9 +4941,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4963,9 +4963,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -4985,9 +4985,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5007,9 +5007,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5029,9 +5029,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5051,9 +5051,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5073,9 +5073,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5095,9 +5095,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5117,9 +5117,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5139,9 +5139,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5161,9 +5161,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5183,9 +5183,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5205,9 +5205,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5227,9 +5227,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5249,9 +5249,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5271,9 +5271,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5293,9 +5293,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5315,9 +5315,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5337,9 +5337,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5359,9 +5359,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5381,9 +5381,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5403,9 +5403,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5425,9 +5425,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5447,9 +5447,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5469,9 +5469,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5491,9 +5491,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5513,9 +5513,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5535,9 +5535,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5557,9 +5557,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5579,9 +5579,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5601,9 +5601,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5623,9 +5623,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5645,9 +5645,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5667,9 +5667,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5689,9 +5689,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5711,9 +5711,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5733,9 +5733,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5755,9 +5755,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5777,9 +5777,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5799,9 +5799,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5821,9 +5821,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5843,9 +5843,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5865,9 +5865,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5887,9 +5887,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5909,9 +5909,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5931,9 +5931,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5953,9 +5953,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5975,9 +5975,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -5997,9 +5997,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6019,9 +6019,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6041,9 +6041,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6063,9 +6063,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6085,9 +6085,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6107,9 +6107,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6129,9 +6129,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6151,9 +6151,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6173,9 +6173,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6195,9 +6195,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6217,9 +6217,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6239,9 +6239,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6261,9 +6261,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6283,9 +6283,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6305,9 +6305,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6327,9 +6327,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6349,9 +6349,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6371,9 +6371,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6393,9 +6393,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6415,9 +6415,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6437,9 +6437,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6459,9 +6459,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6481,9 +6481,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6503,9 +6503,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6525,9 +6525,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6547,9 +6547,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6569,9 +6569,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6591,9 +6591,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6613,9 +6613,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6635,9 +6635,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6657,9 +6657,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6679,9 +6679,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6701,9 +6701,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y14^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6723,9 +6723,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y15^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6745,9 +6745,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6767,9 +6767,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6789,9 +6789,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6811,9 +6811,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6833,9 +6833,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6855,9 +6855,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6877,9 +6877,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6899,9 +6899,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
@@ -6921,9 +6921,9 @@
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
-      <userParam name="xsd:detecting_transition" type="xsd:string" value="false"/>
-      <userParam name="xsd:identifying_transition" type="xsd:string" value="true"/>
-      <userParam name="xsd:quantifying_transition" type="xsd:string" value="false"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
