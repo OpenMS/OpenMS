@@ -290,7 +290,7 @@ int main(int argc, const char** argv)
   // server for usage statistics (and thus making the benchmark slower)
   char testflag[] = "-test";
   std::vector<const char *> newArgs(argc+1); // vector containing one element more than required
-  for(int arg = 0; arg < argc; ++arg)
+  for (int arg = 0; arg < argc; ++arg)
   {
     newArgs[arg] = argv[arg];
   }
