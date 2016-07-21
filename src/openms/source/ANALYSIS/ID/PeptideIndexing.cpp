@@ -782,7 +782,7 @@ DefaultParamHandler("PeptideIndexing")
         else
         { // func is empty anyways, since no AC was run
           OPENMS_PRECONDITION(func.pep_to_prot.empty(), "Internal error - unexpected AhoCorasick results found");
-          swap(func, func_SA);
+          std::swap(func, func_SA);
         }
       } // SA run
     } // end local scope
