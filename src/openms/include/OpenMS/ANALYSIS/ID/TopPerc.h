@@ -86,6 +86,7 @@ namespace OpenMS
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
         static bool hasMHCEnd_(String peptide);
+        static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
 
     };
 

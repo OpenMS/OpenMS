@@ -241,35 +241,46 @@ protected:
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
   }
   
-  // TODO: add file specific scan identifiers
   String getScanIdentifier_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
   {
+    // MSGF+ uses this field, is empty if not specified
     String scan_identifier = it->getMetaValue("spectrum_reference");
     if (scan_identifier.empty())
     {
-      scan_identifier = String(it->getMetaValue("spectrum_id"));
-      if (scan_identifier.empty())
+      // XTandem uses this (integer) field
+      // these ids are 1-based in contrast to the index which is 0-based. This might be problematic to use for merging
+      if (it->metaValueExists("spectrum_id") && !it->getMetaValue("spectrum_id").toString().empty())
       {
-        scan_identifier = String(it - start + 1);
+        scan_identifier = "scan=" + it->getMetaValue("spectrum_id").toString();
+      }
+      else
+      {
+        scan_identifier = "index=" + String(it - start + 1);
         LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
       }
     }
     return scan_identifier.removeWhitespaces();
   }
   
-  // TODO: add file specific scan numbers
   Int getScanNumber_(String scan_identifier)
   {
-    Size idx = 0;
-    if ((idx = scan_identifier.find("index=")) != string::npos) 
+    Int scan_number = 0;
+    StringList fields = ListUtils::create<String>(scan_identifier);
+    for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
     {
-      scan_identifier = scan_identifier.substr(idx + 6);
+      // if scan number is not available, use the scan index
+      Size idx = 0;
+      if ((idx = it->find("scan=")) != string::npos) 
+      {
+        scan_number = it->substr(idx + 5).toInt();
+        break;
+      }
+      else if ((idx = it->find("index=")) != string::npos) 
+      {
+        scan_number = it->substr(idx + 6).toInt();
+      }
     }
-    else if ((idx = scan_identifier.find("scan=")) != string::npos) 
-    {
-      scan_identifier = scan_identifier.substr(idx + 5);
-    }
-    return scan_identifier.toInt();
+    return scan_number;
   }
   
   // Function adapted from Enzyme.h in Percolator converter
@@ -355,6 +366,7 @@ protected:
     {
       String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
       Int scan_number = getScanNumber_(scan_identifier);
+      
       double exp_mass = it->getMZ();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
@@ -362,8 +374,10 @@ protected:
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
+        if (!hit.metaValueExists("target_decoy") || hit.getMetaValue("target_decoy").toString().empty()) continue;
+        
         int label = 1;
-        if (hit.metaValueExists("target_decoy") && String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
+        if (String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
         {
           label = -1;
         }
@@ -750,6 +764,7 @@ protected:
     String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
     String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
     
+    LOG_DEBUG << "Writing percolator input file." << endl;
     TextFile txt;  
     txt.addLine(ListUtils::concatenate(feature_set, '\t'));
     preparePin_(all_peptide_ids, feature_set, enz_str, txt, min_charge, max_charge);
@@ -770,13 +785,17 @@ protected:
       arguments << "-m" << pout_target_file.toQString();
       arguments << "-M" << pout_decoy_file.toQString();
       
-      String fasta_file = getStringOption_("fasta");
-      if (fasta_file.empty()) fasta_file = "auto";
       if (protein_level_fdrs)
       {
-        arguments << "-f" << fasta_file.toQString();
         arguments << "-l" << pout_target_file_proteins.toQString();
         arguments << "-L" << pout_decoy_file_proteins.toQString();
+        
+        String fasta_file = getStringOption_("fasta");
+        if (fasta_file.empty()) fasta_file = "auto";
+        arguments << "-f" << fasta_file.toQString();
+        
+        String decoy_pattern = getStringOption_("decoy-pattern");
+        if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
       }
       
       double cpos = getDoubleOption_("cpos");
@@ -816,8 +835,6 @@ protected:
       Int description_of_correct = getIntOption_("doc");
       if (description_of_correct != 0) arguments << "-D" << String(description_of_correct).toQString();
 
-      String decoy_pattern = getStringOption_("decoy-pattern");
-      if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
       arguments << pin_file.toQString();
     }
     writeLog_("Prepared percolator input.");
@@ -863,8 +880,11 @@ protected:
     }
     
     map<String, PercolatorProteinResult> protein_map;
-    readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
-    readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
+    if (protein_level_fdrs)
+    {
+      readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
+      readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
+    }
     
     // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
     if (this->debug_level_ < 5)
@@ -904,6 +924,10 @@ protected:
           hit->setScore(pr->second.qvalue);
           ++cnt;
         }
+        else
+        {
+          hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
+        }
       }
     }
     //LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << all_peptide_ids.size() << endl;
@@ -927,7 +951,7 @@ protected:
           }
           else
           {
-            hit->setScore(1.0);
+            hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
           }
         }
         it->setSearchEngine("Percolator");

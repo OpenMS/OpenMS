@@ -174,7 +174,7 @@ protected:
         ProteinIdentification::SearchParameters search_parameters = protein_ids.front().getSearchParameters();
         if (search_parameters.db != all_search_parameters.db)
         {
-          writeLog_("Input files are not searched with the same protein database, set -skip_db_check flag to ignore this. Aborting!");
+          writeLog_("Input files are not searched with the same protein database, " + search_parameters.db + " vs. " + all_search_parameters.db + ". Set -skip_db_check flag to ignore this. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
       }

@@ -331,7 +331,7 @@ namespace OpenMS
         PeptideIdentification ins = *pit;
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
-        String spectrum_reference = ins.getMetaValue("spectrum_reference");
+        String spectrum_reference = getScanMergeKey_(pit, all_peptide_ids.begin());
         unified[spectrum_reference] = ins;
       }
       
@@ -345,7 +345,7 @@ namespace OpenMS
         }
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
-        String spectrum_reference = ins.getMetaValue("spectrum_reference");
+        String spectrum_reference = getScanMergeKey_(pit, new_peptide_ids.begin());
         //merge in unified map
         if (unified.find(spectrum_reference) == unified.end())
         {
@@ -410,6 +410,8 @@ namespace OpenMS
     {      
       LOG_DEBUG << "merging search parameters" << endl;
       //care for search parameters!!
+      
+      String SE = new_protein_ids.front().getSearchEngine();  
       if (all_protein_ids.empty())
       {
         all_protein_ids.push_back(ProteinIdentification());
@@ -418,7 +420,13 @@ namespace OpenMS
         String identifier = "TopPerc_" + date_string;
         all_protein_ids.front().setDateTime(now);
         all_protein_ids.front().setIdentifier(identifier);
+        all_protein_ids.front().setSearchEngine(SE);
+        LOG_DEBUG << "Setting search engine to " << SE << endl;
         all_protein_ids.front().setSearchParameters(new_protein_ids.front().getSearchParameters());
+      }
+      else if (all_protein_ids.front().getSearchEngine() != SE)
+      {
+        all_protein_ids.front().setSearchEngine("multiple");
       }
       std::vector<ProteinHit>& all_protein_hits = all_protein_ids.front().getHits();
       std::vector<ProteinHit>& new_protein_hits = new_protein_ids.front().getHits();
@@ -442,8 +450,7 @@ namespace OpenMS
         all_protein_hits.swap(tmp_protein_hits);
       }
       LOG_DEBUG << "Done with next ProteinHits." << endl;
-
-      String SE = new_protein_ids.front().getSearchEngine();      
+    
       StringList keys;
       all_protein_ids.front().getSearchParameters().getKeys(keys);      
       if (!ListUtils::contains(keys, "SE:" + SE)) 
@@ -467,15 +474,6 @@ namespace OpenMS
         all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
         all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
         
-        if (!all_protein_ids.front().getSearchEngine().empty())
-        {
-          all_protein_ids.front().setSearchEngine("multiple");
-        }
-        else
-        {
-          all_protein_ids.front().setSearchEngine(SE);
-          LOG_DEBUG << "Setting search engine to " << SE << endl;
-        }
         LOG_DEBUG << "Done with next Parameters." << endl;
         all_protein_ids.front().setSearchParameters(all_sp);
       }
@@ -542,11 +540,12 @@ namespace OpenMS
       }
       if (ListUtils::contains(search_engines_used, "XTandem"))
       {
-        feature_set.push_back("XTandem_score");
+        //TODO: create XTandem score
+        //feature_set.push_back("XTandem_score");
         feature_set.push_back("E-Value");
       }
-      feature_set.push_back("MULTI:ionFrac");
-      feature_set.push_back("MULTI:numHits");
+      //feature_set.push_back("MULTI:ionFrac");
+      //feature_set.push_back("MULTI:numHits"); // this is not informative if we only keep PSMs with hits for all search engines
       
       LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
 
@@ -557,8 +556,8 @@ namespace OpenMS
         it->assignRanks();
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          double ion_frac = hit->getMetaValue("matched_intensity").toString().toDouble() / hit->getMetaValue("sum_intensity").toString().toDouble();  // also consider "matched_ion_number"/"peak_number"
-          hit->setMetaValue("MULTI:ionFrac", ion_frac);
+          //double ion_frac = hit->getMetaValue("matched_intensity").toString().toDouble() / hit->getMetaValue("sum_intensity").toString().toDouble();  // also consider "matched_ion_number"/"peak_number"
+          //hit->setMetaValue("MULTI:ionFrac", ion_frac);
           
           int num_hits = hit->getScore();
           hit->setMetaValue("MULTI:numHits", num_hits);
@@ -608,5 +607,40 @@ namespace OpenMS
       }
       return suf;
     }
+    
+    // TODO: check if this is consistent for all search engines. MSGF+ and X!Tandem have been checked.
+    String TopPerc::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
+    {
+      // MSGF+ uses this field, is empty if not specified
+      String scan_identifier = it->getMetaValue("spectrum_reference");
+      if (scan_identifier.empty())
+      {
+        // XTandem uses this (integer) field
+        // these ids are 1-based in contrast to the index which is 0-based, so subtract 1.
+        if (it->metaValueExists("spectrum_id") && !it->getMetaValue("spectrum_id").toString().empty())
+        {
+          scan_identifier = "index=" + String(it->getMetaValue("spectrum_id").toString().toInt() - 1);
+        }
+        else
+        {
+          scan_identifier = "index=" + String(it - start + 1);
+          LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+        }
+      }
+      
+      Int scan_number = 0;
+      StringList fields = ListUtils::create<String>(scan_identifier);
+      for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
+      {
+        // if scan number is not available, use the scan index
+        Size idx = 0;
+        if ((idx = it->find("index=")) != string::npos) 
+        {
+          scan_number = it->substr(idx + 6).toInt();
+        }
+      }
+      return String(scan_number);
+    }
+    
 
 }
