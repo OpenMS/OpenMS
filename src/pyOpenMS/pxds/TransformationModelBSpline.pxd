@@ -15,8 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" na
 
         TransformationModelBSpline(libcpp_vector[ libcpp_pair[double, double ] ] data, Param params) nogil except +
 
-        # TODO put them in again
-        # double evaluate(double value) nogil except +
+        double evaluate(double value) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
 
