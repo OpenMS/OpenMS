@@ -68,6 +68,7 @@ set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
   CVTermList_test
+  CVTermListInterface_test
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test

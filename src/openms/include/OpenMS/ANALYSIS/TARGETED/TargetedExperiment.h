@@ -71,7 +71,9 @@ public:
     typedef TargetedExperimentHelper::Publication Publication;
     typedef TargetedExperimentHelper::Instrument Instrument;
     typedef TargetedExperimentHelper::Prediction Prediction;
+    typedef TargetedExperimentHelper::Interpretation Interpretation;
     typedef ReactionMonitoringTransition Transition;
+    typedef Residue IonType; // IonType enum of Interpretation class
 
     typedef std::map<String, const Protein *> ProteinReferenceMapType;
     typedef std::map<String, const Peptide *> PeptideReferenceMapType;

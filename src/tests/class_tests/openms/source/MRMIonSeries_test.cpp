@@ -234,24 +234,24 @@ START_SECTION((void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransit
 
   mrmis.annotateTransitionCV(tr, "y5^3");
   mrmis.annotateTransitionCV(tr2, "y5-H2O1^3");
-  mrmis.annotateTransitionCV(tr2, "y5-18^3");
+  mrmis.annotateTransitionCV(tr3, "y5-18^3");
 
   TEST_EQUAL(tr.getProduct().getChargeState(), 3)
-  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), true)
-  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].getCVTerms()["MS:1000903"][0].getValue().toString().toInt(), 5)
-  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), false)
+  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
+  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].ordinal, 5);
+  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), false)  // no neutral loss  
 
   TEST_EQUAL(tr2.getProduct().getChargeState(), 3)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), true)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1000903"][0].getValue().toString().toInt(), 5)
+  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
+  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].ordinal, 5)
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), true)
-  TEST_REAL_SIMILAR(tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1001524"][0].getValue(), -18)
+  TEST_REAL_SIMILAR(tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1001524"][0].getValue(), -18.0105650638)
 
-  TEST_EQUAL(tr2.getProduct().getChargeState(), 3)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), true)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1000903"][0].getValue().toString().toInt(), 5)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), true)
-  TEST_REAL_SIMILAR(tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1001524"][0].getValue(), -18)
+  TEST_EQUAL(tr3.getProduct().getChargeState(), 3)
+  TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
+  TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].ordinal, 5);
+  TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), true)
+  TEST_REAL_SIMILAR(tr3.getProduct().getInterpretationList()[0].getCVTerms()["MS:1001524"][0].getValue(), -18)
 }
 
 END_SECTION
@@ -278,16 +278,16 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
 
   TEST_REAL_SIMILAR(tr.getProductMZ(), 202.442879934638)
   TEST_EQUAL(tr.getProduct().getChargeState(), 3)
-  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), true)
-  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].getCVTerms()["MS:1000903"][0].getValue().toString().toInt(), 5)
-  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), false)
+  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
+  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].ordinal, 5)
+  TEST_EQUAL(tr.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), false) // no neutral loss
 
   tr2.setProductMZ(196.44287993);
   mrmis.annotateTransition(tr2, peptide, 0.05, 0.05, true, fragment_types, fragment_charges, true, true);
 
   TEST_EQUAL(tr2.getProduct().getChargeState(), 3)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), true)
-  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1000903"][0].getValue().toString().toInt(), 5)
+  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::YIon);
+  TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].ordinal, 5)
   TEST_EQUAL(tr2.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), true)
   TEST_EQUAL((int)tr2.getProduct().getInterpretationList()[0].getCVTerms()["MS:1001524"][0].getValue().toString().toDouble(), -18)
 
@@ -296,7 +296,7 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
 
   TEST_REAL_SIMILAR(tr3.getProductMZ(), 202.44)
   TEST_EQUAL(tr3.getProduct().hasCharge(), false)
-  TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001220"), false)
+  TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].iontype, TargetedExperiment::IonType::NonIdentified);
   TEST_EQUAL(tr3.getProduct().getInterpretationList()[0].hasCVTerm("MS:1001524"), false)
 }
 

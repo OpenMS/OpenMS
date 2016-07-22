@@ -1942,7 +1942,6 @@ protected:
     ///////////////////////////////////
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
-    std::cout << " do laod traml files " << std::endl;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
     FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);

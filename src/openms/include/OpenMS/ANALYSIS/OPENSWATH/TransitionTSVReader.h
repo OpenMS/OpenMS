@@ -38,9 +38,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -130,8 +128,27 @@ private:
       bool identifying_transition;
       bool quantifying_transition;
 
+      TSVTransition() :
+        precursor(-1),
+        product(-1),
+        rt_calibrated(-1),
+        CE(-1),
+        library_intensity(-1),
+        decoy(0),
+        fragment_charge("NA"),
+        fragment_nr(-1),
+        fragment_mzdelta(-1),
+        fragment_modification(0),
+        detecting_transition(true),
+        identifying_transition(false),
+        quantifying_transition(true)
+      {}
+
       // By convention, if there is no (metabolic) compound name, it is a peptide 
-      bool isPeptide() {return CompoundName.empty();}
+      bool isPeptide() 
+      {
+        return CompoundName.empty();
+      }
     };
 
     static const char* strarray_[];
@@ -278,3 +295,4 @@ public:
 }
 
 #endif // OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
+

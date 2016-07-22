@@ -162,51 +162,9 @@ namespace OpenMS
         t.decoy = true;
       }
 
-      if (transition_exp_.getTransitions()[i].metaValueExists("detecting_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
-        {
-          t.detecting_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
-        {
-          t.detecting_transition = true;
-        }
-      }
-      else
-      {
-        t.detecting_transition = true;
-      }
-      if (transition_exp_.getTransitions()[i].metaValueExists("identifying_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
-        {
-          t.identifying_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
-        {
-          t.identifying_transition = true;
-        }
-      }
-      else
-      {
-        t.identifying_transition = false;
-      }
-      if (transition_exp_.getTransitions()[i].metaValueExists("quantifying_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
-        {
-          t.quantifying_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
-        {
-          t.quantifying_transition = true;
-        }
-      }
-      else
-      {
-        t.quantifying_transition = true;
-      }
+      t.detecting_transition = transition_exp_.getTransitions()[i].isDetectingTransition();
+      t.identifying_transition = transition_exp_.getTransitions()[i].isIdentifyingTransition();
+      t.quantifying_transition = transition_exp_.getTransitions()[i].isQuantifyingTransition();
 
       transition_exp.transitions.push_back(t);
     }
@@ -274,7 +232,6 @@ namespace OpenMS
           m.location = boost::numeric_cast<int>(i);
           m.unimod_id = rmod.getUniModAccession();
           p.modifications.push_back(m);
-
         }
       }
 
@@ -305,9 +262,12 @@ namespace OpenMS
     OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
 
     aa_sequence = AASequence::fromString(peptide.sequence);
-    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
+    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin();
+        it != peptide.modifications.end(); ++it)
     {
-      TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
+      TargetedExperimentHelper::setModification(it->location, 
+                                                boost::numeric_cast<int>(peptide.sequence.size()), 
+                                                it->unimod_id, aa_sequence);
     }
   }
 

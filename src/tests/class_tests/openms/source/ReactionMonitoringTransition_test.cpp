@@ -59,147 +59,153 @@ START_SECTION(~ReactionMonitoringTransition())
   delete ptr;
 END_SECTION
 
-START_SECTION(bool ReactionMonitoringTransition::isDetectingTransition() const)
-{
-  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
+OpenMS::ReactionMonitoringTransition transition = ReactionMonitoringTransition();
 
-  TEST_EQUAL(rmt.isDetectingTransition(),1)
-
-  rmt.setMetaValue("detecting_transition","false");
-
-  TEST_EQUAL(rmt.isDetectingTransition(),0)
-
-  rmt.setMetaValue("detecting_transition","true");
-
-  TEST_EQUAL(rmt.isDetectingTransition(),1)
-}
-END_SECTION
-
-START_SECTION(bool ReactionMonitoringTransition::isIdentifyingTransition() const)
-{
-  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
-
-  TEST_EQUAL(rmt.isIdentifyingTransition(),0)
-
-  rmt.setMetaValue("identifying_transition","false");
-
-  TEST_EQUAL(rmt.isIdentifyingTransition(),0)
-
-  rmt.setMetaValue("identifying_transition","true");
-
-  TEST_EQUAL(rmt.isIdentifyingTransition(),1)
-}
-END_SECTION
-
-START_SECTION(bool ReactionMonitoringTransition::isQuantifyingTransition() const)
-{
-  OpenMS::ReactionMonitoringTransition rmt = ReactionMonitoringTransition();
-
-  TEST_EQUAL(rmt.isQuantifyingTransition(),1)
-
-  rmt.setMetaValue("quantifying_transition","false");
-
-  TEST_EQUAL(rmt.isQuantifyingTransition(),0)
-
-  rmt.setMetaValue("quantifying_transition","true");
-
-  TEST_EQUAL(rmt.isQuantifyingTransition(),1)
-}
-END_SECTION
+CVTerm charge_cv;
+String charge_cv_acc = "MS:1000041";
+charge_cv.setCVIdentifierRef("MS");
+charge_cv.setAccession(charge_cv_acc);
+charge_cv.setName("charge state");
+charge_cv.setValue(3);
 
 START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &rhs)))
 {
-  // TODO
-}
-END_SECTION
+  ReactionMonitoringTransition tr1, tr2, tr3;
 
-START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &rhs)))
-{
-  // TODO
+  tr1.addPrecursorCVTerm(charge_cv);
+  tr1.setPrecursorMZ(42.0);
+	tr2 = ReactionMonitoringTransition(tr1);
+  TEST_EQUAL(tr1 == tr2, true)
+  ReactionMonitoringTransition::Prediction p;
+  p.contact_ref = "dummy";
+  tr1.setPrediction(p);
+  tr1.setIdentifyingTransition(false);
+  tr1.setDetectingTransition(false);
+  tr1.setQuantifyingTransition(false);
+	tr3 = ReactionMonitoringTransition(tr1);
+  TEST_EQUAL(tr1 == tr3, true)
+  TEST_EQUAL(tr1 == tr2, false)
+
+
 }
 END_SECTION
 
 START_SECTION((void setName(const String &name)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setName("test_tr");
+
+  TEST_EQUAL(tr.getName(), "test_tr")
 }
 END_SECTION
 
 START_SECTION((const String& getName() const ))
 {
-  // TODO
+  TEST_EQUAL(transition.getName(), "")
 }
 END_SECTION
 
 START_SECTION((void setPeptideRef(const String &peptide_ref)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setPeptideRef("test_ref");
+
+  TEST_EQUAL(tr.getPeptideRef(), "test_ref")
 }
 END_SECTION
 
 START_SECTION((const String& getPeptideRef() const ))
 {
-  // TODO
+  TEST_EQUAL(transition.getPeptideRef(), "")
 }
 END_SECTION
 
 START_SECTION((void setCompoundRef(const String &compound_ref)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setCompoundRef("test_ref");
+
+  TEST_EQUAL(tr.getCompoundRef(), "test_ref")
 }
 END_SECTION
 
 START_SECTION((const String& getCompoundRef() const ))
 {
-  // TODO
+  TEST_EQUAL(transition.getCompoundRef(), "")
 }
 END_SECTION
 
 START_SECTION((void setPrecursorMZ(double mz)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setPrecursorMZ(42.0);
+
+  TEST_REAL_SIMILAR(tr.getPrecursorMZ(), 42.0)
 }
 END_SECTION
 
 START_SECTION((double getPrecursorMZ() const ))
 {
-  // TODO
+  TEST_REAL_SIMILAR(transition.getPrecursorMZ(), 0.0)
 }
 END_SECTION
 
 START_SECTION((void setPrecursorCVTermList(const CVTermList &list)))
 {
-  // TODO
+  CVTermList list;
+  list.addCVTerm(charge_cv);
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setPrecursorCVTermList(list);
+
+  TEST_EQUAL(tr.getPrecursorCVTermList().hasCVTerm(charge_cv_acc ), true)
+}
+END_SECTION
+
+START_SECTION((bool hasPrecursorCVTerms() const))
+{
+  CVTermList list;
+  list.addCVTerm(charge_cv);
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  TEST_EQUAL(tr.hasPrecursorCVTerms(), false)
+  tr.setPrecursorCVTermList(list);
+  TEST_EQUAL(tr.hasPrecursorCVTerms(), true)
 }
 END_SECTION
 
 START_SECTION((void addPrecursorCVTerm(const CVTerm &cv_term)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  TEST_EQUAL(tr.hasPrecursorCVTerms(), false)
+  tr.addPrecursorCVTerm(charge_cv);
+  TEST_EQUAL(tr.hasPrecursorCVTerms(), true)
+
+  TEST_EQUAL(tr.getPrecursorCVTermList().hasCVTerm(charge_cv_acc ), true)
 }
 END_SECTION
 
 START_SECTION((const CVTermList& getPrecursorCVTermList() const ))
 {
-  // TODO
+  CVTermList list;
+  list.addCVTerm(charge_cv);
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setPrecursorCVTermList(list);
+
+  TEST_EQUAL(tr.getPrecursorCVTermList() == list, true)
 }
 END_SECTION
 
 START_SECTION((void setProductMZ(double mz)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setProductMZ(42.0);
+
+  TEST_REAL_SIMILAR(tr.getProductMZ(), 42.0)
 }
 END_SECTION
 
 START_SECTION((double getProductMZ() const ))
 {
-  // TODO
-}
-END_SECTION
-
-START_SECTION((void setProductCVTermList(const CVTermList &list)))
-{
-  // TODO
+  TEST_REAL_SIMILAR(transition.getProductMZ(), 0.0)
 }
 END_SECTION
 
@@ -209,66 +215,107 @@ START_SECTION((void addProductCVTerm(const CVTerm &cv_term)))
 }
 END_SECTION
 
-START_SECTION((const CVTermList& getProductCVTermList() const ))
+START_SECTION((ReactionMonitoringTransition::isDetectingTransition() const))
 {
-  // TODO
+  TEST_EQUAL(transition.isDetectingTransition(), true)
 }
 END_SECTION
 
-START_SECTION((void setInterpretations(const std::vector< TransitionInterpretation > &interpretations)))
+START_SECTION((ReactionMonitoringTransition::setDetectingTransition(bool val)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setDetectingTransition(false);
+  TEST_EQUAL(tr.isDetectingTransition(), false)
+  tr.setDetectingTransition(true);
+  TEST_EQUAL(tr.isDetectingTransition(), true)
 }
 END_SECTION
 
-START_SECTION((const std::vector<TransitionInterpretation>& getInterpretations() const ))
+START_SECTION((ReactionMonitoringTransition::isIdentifyingTransition() const))
 {
-  // TODO
+  TEST_EQUAL(transition.isIdentifyingTransition(), false)
 }
 END_SECTION
 
-START_SECTION((void addInterpretation(const TransitionInterpretation &interpretation)))
+START_SECTION((ReactionMonitoringTransition::setIdentifyingTransition(bool val)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setIdentifyingTransition(true);
+  TEST_EQUAL(tr.isIdentifyingTransition(), true)
+  tr.setIdentifyingTransition(false);
+  TEST_EQUAL(tr.isIdentifyingTransition(), false)
 }
 END_SECTION
 
-START_SECTION((void setConfigurations(const std::vector< Configuration > &configuration)))
+START_SECTION((ReactionMonitoringTransition::isQuantifyingTransition() const))
 {
-  // TODO
+  TEST_EQUAL(transition.isQuantifyingTransition(), true)
 }
 END_SECTION
 
-START_SECTION((const std::vector<Configuration>& getConfigurations() const ))
+START_SECTION((ReactionMonitoringTransition::setQuantifyingTransition(bool val)))
 {
-  // TODO
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setQuantifyingTransition(false);
+  TEST_EQUAL(tr.isQuantifyingTransition(), false)
+  tr.setQuantifyingTransition(true);
+  TEST_EQUAL(tr.isQuantifyingTransition(), true)
 }
 END_SECTION
 
-START_SECTION((void addConfiguration(const Configuration &configuration)))
-{
-  // TODO
-}
-END_SECTION
 
 START_SECTION((bool operator==(const ReactionMonitoringTransition &rhs) const ))
 {
-  // TODO
+  ReactionMonitoringTransition tr1, tr2;
+  TEST_EQUAL(tr1 == tr2, true)
+
+  tr1.addPrecursorCVTerm(charge_cv);
+  TEST_EQUAL(tr1 == tr2, false)
+  tr2.addPrecursorCVTerm(charge_cv);
+  TEST_EQUAL(tr1 == tr2, true)
+
+  tr1.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr2, false)
+  tr2.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr2, true)
+
 }
 END_SECTION
 
 START_SECTION((bool operator!=(const ReactionMonitoringTransition &rhs) const ))
 {
-  // TODO
+  ReactionMonitoringTransition tr1, tr2;
+  TEST_EQUAL(tr1 != tr2, false)
+
+  tr1.addPrecursorCVTerm(charge_cv);
+  TEST_EQUAL(tr1 != tr2, true)
 }
 END_SECTION
 
 START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringTransition &rhs)))
 {
-  // TODO
+  ReactionMonitoringTransition tr1, tr2, tr3;
+
+  tr1.addPrecursorCVTerm(charge_cv);
+  tr1.setPrecursorMZ(42.0);
+	tr2 = tr1;
+  TEST_EQUAL(tr1 == tr2, true)
+  ReactionMonitoringTransition::Prediction p;
+  p.contact_ref = "dummy";
+  tr1.setPrediction(p);
+  tr3 = tr1;
+  TEST_EQUAL(tr1 == tr3, true)
+  TEST_EQUAL(tr1 == tr2, false)
+
+  tr1.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr3, false)
+  tr1.setIdentifyingTransition(true);
+  tr1.setQuantifyingTransition(false);
+  TEST_EQUAL(tr1 == tr3, false)
+  tr3 = tr1;
+  TEST_EQUAL(tr1 == tr3, true)
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

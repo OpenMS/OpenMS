@@ -122,7 +122,7 @@ protected:
 
       CVTermList actual_validation_;
 
-      CVTermList actual_interpretation_;
+      TargetedExperiment::Interpretation actual_interpretation_;
 
       std::vector<ReactionMonitoringTransition::Product> actual_intermediate_products_;
 
@@ -143,7 +143,28 @@ protected:
 
       void writeUserParams_(std::ostream & os, const std::vector<MetaInfoInterface> & meta, UInt indent) const;
 
-      void writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const;
+      template <typename CVTList>
+      void writeCVParams_(std::ostream & os, const CVTList & cv_terms, UInt indent) const
+      {
+        for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.getCVTerms().begin(); 
+            it != cv_terms.getCVTerms().end(); ++it)
+        {
+          for (std::vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
+          {
+            os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
+            if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
+            {
+              os << " value=\"" << cit->getValue().toString() << "\"";
+            }
+
+            if (cit->hasUnit())
+            {
+              os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
+            }
+            os << "/>" << "\n";
+          }
+        }
+      }
 
       // subfunctions of write
       void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;

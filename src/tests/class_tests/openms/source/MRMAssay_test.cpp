@@ -414,7 +414,9 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1, product_mz_threshold1, fragment_types1, fragment_charges1, enable_reannotation1, enable_losses1, enable_losses1);
+  mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1,
+      product_mz_threshold1, fragment_types1, fragment_charges1,
+      enable_reannotation1, enable_losses1, enable_losses1);
 
   String test1;
   NEW_TMP_FILE(test1);

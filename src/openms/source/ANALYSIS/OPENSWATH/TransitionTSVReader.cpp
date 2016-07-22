@@ -33,7 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -84,16 +87,18 @@ namespace OpenMS
     "Replicates",
     "NrModifications",
     "PrecursorCharge",
-    "FragmentCharge",
     "PeptideGroupLabel",
     "LabelType",
     "UniprotID",
+    "FragmentCharge", 
+    "FragmentType", 
+    "FragmentSeriesNumber",
     "detecting_transition",
     "identifying_transition",
     "quantifying_transition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 26);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 28);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -240,15 +245,6 @@ namespace OpenMS
       mytransition.precursor                    = String(tmp_line[header_dict["PrecursorMz"]]).toDouble();
       mytransition.product                      = String(tmp_line[header_dict["ProductMz"]]).toDouble();
       mytransition.library_intensity            = String(tmp_line[header_dict["LibraryIntensity"]]).toDouble();
-      mytransition.CE                           = -1.0;
-      mytransition.decoy                        = 0;
-      mytransition.fragment_charge              = "NA";
-      mytransition.fragment_nr                  = -1;
-      mytransition.fragment_mzdelta             = -1;
-      mytransition.fragment_modification        = 0;
-      mytransition.detecting_transition         = true;
-      mytransition.identifying_transition       = false;
-      mytransition.quantifying_transition       = true;
 
       if (FileTypes::typeToName(filetype) == "mrm")
       {
@@ -790,26 +786,26 @@ namespace OpenMS
 
     // add interpretation
     OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
-    CVTermList interpretation;
+    TargetedExperiment::Interpretation interpretation;
 
-    if (tr_it->fragment_nr != -1)
+    // check if we have any information about the interpretation
+    bool interpretation_set = false;
+    if (tr_it->fragment_nr != -1 ||
+        tr_it->fragment_mzdelta != -1 ||
+        tr_it->fragment_modification < 0 ||
+        tr_it->fragment_type != "" )
     {
-      CVTerm rank;
-      rank.setCVIdentifierRef("MS");
-      rank.setAccession("MS:1000926");
-      rank.setName("product interpretation rank");
-      rank.setValue(1); // we only store the best interpretation
-      interpretation.addCVTerm(rank);
+      interpretation_set = true;
     }
 
     if (tr_it->fragment_nr != -1)
     {
-      CVTerm frag_nr;
-      frag_nr.setCVIdentifierRef("MS");
-      frag_nr.setAccession("MS:1000903");
-      frag_nr.setName("product ion series ordinal");
-      frag_nr.setValue(tr_it->fragment_nr);
-      interpretation.addCVTerm(frag_nr);
+      interpretation.rank = 1; // we only store the best interpretation
+    }
+
+    if (tr_it->fragment_nr != -1)
+    {
+      interpretation.ordinal = tr_it->fragment_nr;
     }
 
     if (tr_it->fragment_mzdelta != -1)
@@ -851,51 +847,27 @@ namespace OpenMS
     }
     else if (tr_it->fragment_type == "x")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001228");
-      ion.setName("frag: x ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::XIon;
     }
     else if (tr_it->fragment_type == "y")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001220");
-      ion.setName("frag: y ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::YIon;
     }
     else if (tr_it->fragment_type == "z")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001230");
-      ion.setName("frag: z ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::ZIon;
     }
     else if (tr_it->fragment_type == "a")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001229");
-      ion.setName("frag: a ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::AIon;
     }
     else if (tr_it->fragment_type == "b")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001224");
-      ion.setName("frag: b ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::BIon;
     }
     else if (tr_it->fragment_type == "c")
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001231");
-      ion.setName("frag: c ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::CIon;
     }
     else if (tr_it->fragment_type == "d")
     {
@@ -905,18 +877,27 @@ namespace OpenMS
       ion.setName("frag: d ion");
       interpretation.addCVTerm(ion);
     }
+    else if (tr_it->fragment_type == "unknown")
+    {
+      // unknown means that we should write CV Term "1001240"
+      interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
+    }
+    else if (tr_it->fragment_type == "")
+    {
+      // empty means that we have no information whatsoever
+      interpretation.iontype = TargetedExperiment::IonType::Unannotated;
+    }
     else
     {
-      CVTerm ion;
-      ion.setCVIdentifierRef("MS");
-      ion.setAccession("MS:1001240");
-      ion.setName("non-identified ion");
-      interpretation.addCVTerm(ion);
+      interpretation.iontype = TargetedExperiment::IonType::NonIdentified;
     }
 
-    p.addInterpretation(interpretation);
+    // dont add empty interpretations
+    if (interpretation_set) 
+    {
+      p.addInterpretation(interpretation);
+    }
     rm_trans.setProduct(p);
-
 
     // add collision energy
     if (tr_it->CE > 0.0)
@@ -942,14 +923,14 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
-    if (tr_it->detecting_transition) {rm_trans.setMetaValue("detecting_transition", "true");}
-    else if (!tr_it->detecting_transition) {rm_trans.setMetaValue("detecting_transition", "false");}
+    if (tr_it->detecting_transition) {rm_trans.setDetectingTransition(true);}
+    else if (!tr_it->detecting_transition) {rm_trans.setDetectingTransition(false);}
 
-    if (tr_it->identifying_transition) {rm_trans.setMetaValue("identifying_transition", "true");}
-    else if (!tr_it->identifying_transition) {rm_trans.setMetaValue("identifying_transition", "false");}
+    if (tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(true);}
+    else if (!tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(false);}
 
-    if (tr_it->quantifying_transition) {rm_trans.setMetaValue("quantifying_transition", "true");}
-    else if (!tr_it->quantifying_transition) {rm_trans.setMetaValue("quantifying_transition", "false");}
+    if (tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(true);}
+    else if (!tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(false);}
   }
 
   void TransitionTSVReader::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
@@ -1190,6 +1171,9 @@ namespace OpenMS
       mytransition.precursor = it->getPrecursorMZ();
       mytransition.product = it->getProductMZ();
       mytransition.rt_calibrated = -1;
+      mytransition.fragment_type = "";
+      mytransition.fragment_nr = -1;
+      mytransition.fragment_charge = "NA";
 
       if (!it->getPeptideRef().empty())
       {
@@ -1293,10 +1277,72 @@ namespace OpenMS
         // Error? 
       }
 
-      mytransition.fragment_charge = "NA";
       if (it->isProductChargeStateSet())
       {
         mytransition.fragment_charge = String(it->getProductChargeState());
+      }
+
+      const ReactionMonitoringTransition::Product & product = it->getProduct();
+      for (std::vector<TargetedExperiment::Interpretation>::const_iterator
+          int_it = product.getInterpretationList().begin(); int_it !=
+          product.getInterpretationList().end(); ++int_it)
+      {
+        // only report first / best interpretation
+        if (int_it->rank == 1 || product.getInterpretationList().size() == 1)
+        {
+          if (int_it->ordinal != 0) mytransition.fragment_nr = int_it->ordinal;
+
+          switch (int_it->iontype)
+          {
+            case Residue::AIon:
+              mytransition.fragment_type = "a";
+              break;
+            case Residue::BIon:
+              mytransition.fragment_type = "b";
+              break;
+            case Residue::CIon:
+              mytransition.fragment_type = "c";
+              break;
+            case Residue::XIon:
+              mytransition.fragment_type = "x";
+              break;
+            case Residue::YIon:
+              mytransition.fragment_type = "y";
+              break;
+            case Residue::ZIon:
+              mytransition.fragment_type = "z";
+              break;
+            case Residue::Precursor:
+              mytransition.fragment_type = "prec";
+              break;
+            case Residue::BIonMinusH20:
+              mytransition.fragment_type = "b-H20";
+              break;
+            case Residue::YIonMinusH20:
+              mytransition.fragment_type = "y-H20";
+              break;
+            case Residue::BIonMinusNH3:
+              mytransition.fragment_type = "b-NH3";
+              break;
+            case Residue::YIonMinusNH3:
+              mytransition.fragment_type = "y-NH3";
+              break;
+            case Residue::NonIdentified:
+              mytransition.fragment_type = "unknown";
+              break;
+            case Residue::Unannotated:
+              // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
+              mytransition.fragment_type = "";
+              break;
+            // invalid values
+            case Residue::Full: break;
+            case Residue::Internal: break;
+            case Residue::NTerminal: break;
+            case Residue::CTerminal: break;
+            case Residue::SizeOfResidueType:
+              break;
+          }
+        }
       }
 
       mytransition.transition_name = it->getNativeID();
@@ -1324,51 +1370,9 @@ namespace OpenMS
       {
         mytransition.Annotation = it->getMetaValue("annotation").toString();
       }
-      if (it->metaValueExists("detecting_transition"))
-      {
-        if (it->getMetaValue("detecting_transition").toBool())
-        {
-          mytransition.detecting_transition = true;
-        }
-        else if (!it->getMetaValue("detecting_transition").toBool())
-        {
-          mytransition.detecting_transition = false;
-        }
-      }
-      else
-      {
-        mytransition.detecting_transition = true;
-      }
-      if (it->metaValueExists("identifying_transition"))
-      {
-        if (it->getMetaValue("identifying_transition").toBool())
-        {
-          mytransition.identifying_transition = true;
-        }
-        else if (!it->getMetaValue("identifying_transition").toBool())
-        {
-          mytransition.identifying_transition = false;
-        }
-      }
-      else
-      {
-        mytransition.identifying_transition = false;
-      }
-      if (it->metaValueExists("quantifying_transition"))
-      {
-        if (it->getMetaValue("quantifying_transition").toBool())
-        {
-          mytransition.quantifying_transition = true;
-        }
-        else if (!it->getMetaValue("quantifying_transition").toBool())
-        {
-          mytransition.quantifying_transition = false;
-        }
-      }
-      else
-      {
-        mytransition.quantifying_transition = true;
-      }
+      mytransition.detecting_transition = it->isDetectingTransition();
+      mytransition.identifying_transition = it->isIdentifyingTransition();
+      mytransition.quantifying_transition = it->isQuantifyingTransition();
 
       mytransitions.push_back(mytransition);
       setProgress(progress++);
@@ -1412,10 +1416,12 @@ namespace OpenMS
         + (String)0                            + "\t"
         + (String)0                            + "\t"
         + (String)it->precursor_charge         + "\t"
-        + (String)it->fragment_charge          + "\t"
         + (String)it->peptide_group_label      + "\t"
         + (String)it->label_type               + "\t"
         + (String)it->uniprot_id               + "\t"
+        + (String)it->fragment_charge          + "\t"
+        + (String)it->fragment_type            + "\t"
+        + (String)it->fragment_nr              + "\t"
         + (String)it->detecting_transition     + "\t"
         + (String)it->identifying_transition   + "\t"
         + (String)it->quantifying_transition;

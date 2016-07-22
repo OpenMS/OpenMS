@@ -34,17 +34,29 @@
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
+#include <OpenMS/CONCEPT/Helpers.h>
 #include <algorithm>
 
 namespace OpenMS
 {
 
+  static const unsigned char DETECTING_TRANSITION_LOC = 0;
+  static const unsigned char IDENTIFYING_TRANSITION_LOC = 1;
+  static const unsigned char QUANTIFYING_TRANSITION_LOC = 2;
+
   ReactionMonitoringTransition::ReactionMonitoringTransition() :
     CVTermList(),
     precursor_mz_(0.0),
+    library_intensity_(-101),
     decoy_type_(UNKNOWN),
-    library_intensity_(-101)
+    precursor_cv_terms_(NULL),
+    prediction_(NULL)
   {
+    // Default is: true, false, true
+    // NOTE: do not change that, the same default is implicitely assumed in TraMLHandler
+    transition_flags_[DETECTING_TRANSITION_LOC] = true;
+    transition_flags_[IDENTIFYING_TRANSITION_LOC] = false;
+    transition_flags_[QUANTIFYING_TRANSITION_LOC] = true;
   }
 
   ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs) :
@@ -53,18 +65,30 @@ namespace OpenMS
     peptide_ref_(rhs.peptide_ref_),
     compound_ref_(rhs.compound_ref_),
     precursor_mz_(rhs.precursor_mz_),
-    precursor_cv_terms_(rhs.precursor_cv_terms_),
+    library_intensity_(rhs.library_intensity_),
+    decoy_type_(rhs.decoy_type_),
+    precursor_cv_terms_(NULL),
     product_(rhs.product_),
     intermediate_products_(rhs.intermediate_products_),
     rts(rhs.rts),
-    prediction_(rhs.prediction_),
-    decoy_type_(rhs.decoy_type_),
-    library_intensity_(rhs.library_intensity_)
+    prediction_(NULL),
+    transition_flags_(rhs.transition_flags_)
   {
+    // We copy the internal object (not just the ptr)
+    if (rhs.precursor_cv_terms_ != NULL)
+    {
+      precursor_cv_terms_ = new CVTermList(*rhs.precursor_cv_terms_);
+    }
+    if (rhs.prediction_ != NULL)
+    {
+      prediction_ = new Prediction(*rhs.prediction_);
+    }
   }
 
   ReactionMonitoringTransition::~ReactionMonitoringTransition()
   {
+    delete precursor_cv_terms_;
+    delete prediction_;
   }
 
   ReactionMonitoringTransition & ReactionMonitoringTransition::operator=(const ReactionMonitoringTransition & rhs)
@@ -76,13 +100,28 @@ namespace OpenMS
       peptide_ref_ = rhs.peptide_ref_;
       compound_ref_ = rhs.compound_ref_;
       precursor_mz_ = rhs.precursor_mz_;
-      precursor_cv_terms_ = rhs.precursor_cv_terms_;
       intermediate_products_ = rhs.intermediate_products_;
       product_ = rhs.product_;
       rts = rhs.rts;
-      prediction_ = rhs.prediction_;
-      decoy_type_ = rhs.decoy_type_;
       library_intensity_ = rhs.library_intensity_;
+      decoy_type_ = rhs.decoy_type_;
+      transition_flags_ = rhs.transition_flags_;
+
+      // We copy the internal object (not just the ptr)
+      delete precursor_cv_terms_;
+      precursor_cv_terms_ = NULL;
+      if (rhs.precursor_cv_terms_ != NULL)
+      {
+        precursor_cv_terms_ = new CVTermList(*rhs.precursor_cv_terms_);
+      }
+
+      // We copy the internal object (not just the ptr)
+      delete prediction_;
+      prediction_ = NULL;
+      if (rhs.prediction_ != NULL)
+      {
+        prediction_ = new Prediction(*rhs.prediction_);
+      }
     }
     return *this;
   }
@@ -94,13 +133,14 @@ namespace OpenMS
            peptide_ref_ == rhs.peptide_ref_ &&
            compound_ref_ == rhs.compound_ref_ &&
            precursor_mz_ == rhs.precursor_mz_ &&
-           precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
+           OpenMS::Helpers::cmpPtrSafe< CVTermList* >(precursor_cv_terms_, rhs.precursor_cv_terms_) &&
            product_ == rhs.product_ &&
            intermediate_products_ == rhs.intermediate_products_ &&
            rts == rhs.rts &&
-           prediction_ == rhs.prediction_ &&
+           OpenMS::Helpers::cmpPtrSafe< Prediction* >(prediction_, rhs.prediction_) &&
+           library_intensity_ == rhs.library_intensity_ &&
            decoy_type_ == rhs.decoy_type_ &&
-           library_intensity_ == rhs.library_intensity_;
+           transition_flags_ == rhs.transition_flags_;
   }
 
   bool ReactionMonitoringTransition::operator!=(const ReactionMonitoringTransition & rhs) const
@@ -158,51 +198,40 @@ namespace OpenMS
     return precursor_mz_;
   }
 
+  bool ReactionMonitoringTransition::hasPrecursorCVTerms() const
+  {
+    return (precursor_cv_terms_ != NULL);
+  }
+
   void ReactionMonitoringTransition::setPrecursorCVTermList(const CVTermList & list)
   {
-    precursor_cv_terms_ = list;
+    delete precursor_cv_terms_;
+    precursor_cv_terms_ = new CVTermList(list);
   }
 
   void ReactionMonitoringTransition::addPrecursorCVTerm(const CVTerm & cv_term)
   {
-    precursor_cv_terms_.addCVTerm(cv_term);
+    if (!precursor_cv_terms_)
+    {
+      precursor_cv_terms_ = new CVTermList();
+    }
+    precursor_cv_terms_->addCVTerm(cv_term);
   }
 
   const CVTermList & ReactionMonitoringTransition::getPrecursorCVTermList() const
   {
-    return precursor_cv_terms_;
+    OPENMS_PRECONDITION(hasPrecursorCVTerms(), "ReactionMonitoringTransition has no PrecursorCVTerms, check first with hasPrecursorCVTerms()")
+    return *precursor_cv_terms_;
   }
 
   void ReactionMonitoringTransition::setProductMZ(double mz)
   {
-    CVTerm product_mz;
-    std::vector<CVTerm> product_cvterms;
-    product_mz.setCVIdentifierRef("MS");
-    product_mz.setAccession("MS:1000827");
-    product_mz.setName("isolation window target m/z");
-    product_mz.setValue(mz);
-    product_cvterms.push_back(product_mz);
-
-    Map<String, std::vector<CVTerm> >  cvtermlist = product_.getCVTerms();
-    cvtermlist[product_mz.getAccession()] = product_cvterms;
-
-    product_.replaceCVTerms(cvtermlist);
+    product_.setMZ(mz);
   }
 
   double ReactionMonitoringTransition::getProductMZ() const
   {
-    try
-    {
-      if (!product_.getCVTerms().has("MS:1000827"))
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
-      }
-      return product_.getCVTerms()["MS:1000827"][0].getValue().toString().toDouble();
-    }
-    catch (char * /*str*/)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
-    }
+    return product_.getMZ();
   }
 
   int ReactionMonitoringTransition::getProductChargeState() const
@@ -255,19 +284,30 @@ namespace OpenMS
     return rts;
   }
 
+  bool ReactionMonitoringTransition::hasPrediction() const
+  {
+    return (prediction_ != NULL);
+  }
+
   void ReactionMonitoringTransition::setPrediction(const Prediction & prediction)
   {
-    prediction_ = prediction;
+    delete prediction_;
+    prediction_ = new Prediction(prediction);
   }
 
   const ReactionMonitoringTransition::Prediction & ReactionMonitoringTransition::getPrediction() const
   {
-    return prediction_;
+    OPENMS_PRECONDITION(hasPrecursorCVTerms(), "ReactionMonitoringTransition has no Prediction object, check first with hasPrediction()")
+    return *prediction_;
   }
 
   void ReactionMonitoringTransition::addPredictionTerm(const CVTerm & term)
   {
-    prediction_.addCVTerm(term);
+    if (!prediction_)
+    {
+      prediction_ = new Prediction();
+    }
+    prediction_->addCVTerm(term);
   }
 
   void ReactionMonitoringTransition::updateMembers_()
@@ -296,56 +336,32 @@ namespace OpenMS
 
   bool ReactionMonitoringTransition::isDetectingTransition() const
   {
-    bool detecting = true;
-    if (this->metaValueExists("detecting_transition"))
-    {
-      if (!this->getMetaValue("detecting_transition").toBool())
-      {
-        detecting = false;
-      }
-      else if (this->getMetaValue("detecting_transition").toBool())
-      {
-        detecting = true;
-      }
-    }
+    return transition_flags_[DETECTING_TRANSITION_LOC];
+  }
 
-    return detecting;
+  void ReactionMonitoringTransition::setDetectingTransition(bool val)
+  {
+    transition_flags_[DETECTING_TRANSITION_LOC] = val;
   }
 
   bool ReactionMonitoringTransition::isIdentifyingTransition() const
   {
-    bool identifying = false;
-    if (this->metaValueExists("identifying_transition"))
-    {
-      if (!this->getMetaValue("identifying_transition").toBool())
-      {
-        identifying = false;
-      }
-      else if (this->getMetaValue("identifying_transition").toBool())
-      {
-        identifying = true;
-      }
-    }
+    return transition_flags_[IDENTIFYING_TRANSITION_LOC];
+  }
 
-    return identifying;
+  void ReactionMonitoringTransition::setIdentifyingTransition(bool val)
+  {
+    transition_flags_[IDENTIFYING_TRANSITION_LOC] = val;
   }
 
   bool ReactionMonitoringTransition::isQuantifyingTransition() const
   {
-    bool quantifying = true;
-    if (this->metaValueExists("quantifying_transition"))
-    {
-      if (!this->getMetaValue("quantifying_transition").toBool())
-      {
-        quantifying = false;
-      }
-      else if (this->getMetaValue("quantifying_transition").toBool())
-      {
-        quantifying = true;
-      }
-    }
+    return transition_flags_[QUANTIFYING_TRANSITION_LOC];
+  }
 
-    return quantifying;
+  void ReactionMonitoringTransition::setQuantifyingTransition(bool val)
+  {
+    transition_flags_[QUANTIFYING_TRANSITION_LOC] = val;
   }
 
 } // namespace OpenMS

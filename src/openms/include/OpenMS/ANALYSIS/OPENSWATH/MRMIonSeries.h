@@ -69,7 +69,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMIonSeries
   {
 private:
-    CVTermList annotationToCVTermList_(String annotation);
+    TargetedExperiment::Interpretation annotationToCVTermList_(String annotation);
 
     void annotationToCV_(ReactionMonitoringTransition& tr);
 

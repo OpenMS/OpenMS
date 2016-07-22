@@ -38,6 +38,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/METADATA/CVTermListInterface.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <boost/numeric/conversion/cast.hpp>
 
@@ -131,17 +133,17 @@ namespace OpenMS
     };
 
     class OPENMS_DLLAPI RetentionTime :
-      public CVTermList
+      public CVTermListInterface
     {
 public:
 
       RetentionTime() :
-        CVTermList()
+        CVTermListInterface()
       {
       }
 
       RetentionTime(const RetentionTime & rhs) :
-        CVTermList(rhs),
+        CVTermListInterface(rhs),
         software_ref(rhs.software_ref)
       {
       }
@@ -154,7 +156,7 @@ public:
       {
         if (&rhs != this)
         {
-          CVTermList::operator=(rhs);
+          CVTermListInterface::operator=(rhs);
           software_ref = rhs.software_ref;
         }
         return *this;
@@ -162,7 +164,7 @@ public:
 
       bool operator==(const RetentionTime & rhs) const
       {
-        return CVTermList::operator==(rhs) &&
+        return CVTermListInterface::operator==(rhs) &&
                software_ref == rhs.software_ref;
       }
 
@@ -260,11 +262,20 @@ protected:
 public:
 
       struct Modification :
-        public CVTermList
+        public CVTermListInterface
       {
         double avg_mass_delta;
-        int location;
         double mono_mass_delta;
+        Int32 location;
+        Int32 unimod_id;
+
+        Modification() :
+          CVTermListInterface(),
+          location(-1),
+          unimod_id(-1)
+        {
+        }
+
       };
 
       Peptide() :
@@ -503,21 +514,106 @@ protected:
 
     };
 
+    struct OPENMS_DLLAPI Interpretation :
+      public CVTermListInterface
+    {
+
+      /*
+      enum ResidueType
+      {
+        Full = 0,       // with N-terminus and C-terminus
+        Internal,       // internal, without any termini
+        NTerminal,      // only N-terminus
+        CTerminal,      // only C-terminus
+        AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+        BIon,           // MS:1001224 N-terminus up to the peptide bond
+        CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+        XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
+        YIon,           // MS:1001220 peptide bond up to the C-terminus
+        ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
+        Precursor,      // MS:1001523 Precursor ion
+        BIonMinusH20,   // MS:1001222 b ion without water
+        YIonMinusH20,   // MS:1001223 y ion without water
+        BIonMinusNH3,   // MS:1001232 b ion without ammonia
+        YIonMinusNH3,   // MS:1001233 y ion without ammonia
+        NonIdentified,  // MS:1001240 Non-identified ion
+        Unannotated,    // no stored annotation 
+        SizeOfResidueType
+      };
+      */
+
+      typedef Residue::ResidueType IonType; // Interpretation IonType
+
+      unsigned char ordinal; // MS:1000903 (product ion series ordinal)
+      unsigned char rank; // MS:1000926 (product interpretation rank)
+      IonType iontype; // which type of ion (b/y/z/ ...), see Residue::ResidueType
+
+      // Constructor
+      Interpretation() :
+        CVTermListInterface(),
+        ordinal(0),
+        rank(0),
+        iontype(Residue::Unannotated) // Unannotated does not imply any MS OBO term
+      {
+      }
+
+      // Copy constructor
+      Interpretation(const Interpretation & rhs) :
+        CVTermListInterface(rhs),
+        ordinal(rhs.ordinal),
+        rank(rhs.rank),
+        iontype(rhs.iontype)
+      {
+      }
+
+      /** @name Operators assignment, equality, inequality
+      */
+      //@{
+      bool operator==(const Interpretation & rhs) const
+      {
+        return CVTermListInterface::operator==(rhs) &&
+               ordinal == rhs.ordinal &&
+               rank == rhs.rank &&
+               iontype == rhs.iontype;
+      }
+
+      Interpretation & operator=(const Interpretation & rhs)
+      {
+        if (&rhs != this)
+        {
+          CVTermListInterface::operator=(rhs);
+          ordinal = rhs.ordinal;
+          rank = rhs.rank;
+          iontype = rhs.iontype;
+        }
+        return *this;
+      }
+
+      bool operator!=(const Interpretation & rhs) const
+      {
+        return !(operator==(rhs));
+      }
+      //@}
+
+    };
+
     struct OPENMS_DLLAPI TraMLProduct :
-      public CVTermList
+      public CVTermListInterface
     {
       TraMLProduct() :
-        CVTermList(),
+        CVTermListInterface(),
         charge_(0),
-        charge_set_(false)
+        charge_set_(false),
+        mz_(0)
       {
       }
 
       bool operator==(const TraMLProduct & rhs) const
       {
-        return CVTermList::operator==(rhs) &&
+        return CVTermListInterface::operator==(rhs) &&
                charge_ == rhs.charge_ &&
                charge_set_ == rhs.charge_set_ &&
+               mz_ == rhs.mz_ &&
                configuration_list_ == rhs.configuration_list_ &&
                interpretation_list_ == rhs.interpretation_list_;
       }
@@ -526,9 +622,10 @@ protected:
       {
         if (&rhs != this)
         {
-          CVTermList::operator=(rhs);
+          CVTermListInterface::operator=(rhs);
           charge_ = rhs.charge_;
           charge_set_ = rhs.charge_set_;
+          mz_ = rhs.mz_;
           configuration_list_ = rhs.configuration_list_;
           interpretation_list_ = rhs.interpretation_list_;
         }
@@ -553,6 +650,16 @@ protected:
         return charge_;
       }
 
+      double getMZ() const
+      {
+        return mz_;
+      }
+
+      void setMZ(double mz)
+      {
+        mz_ = mz;
+      }
+
       const std::vector<Configuration> & getConfigurationList() const
       {
         return configuration_list_;
@@ -563,17 +670,12 @@ protected:
         return configuration_list_.push_back(configuration);
       }
 
-      void replaceCVTerms(Map<String, std::vector<CVTerm> > & cv_terms)
-      {
-        cv_terms_ = cv_terms;
-      }
-
-      const std::vector<CVTermList> & getInterpretationList() const
+      const std::vector<Interpretation> & getInterpretationList() const
       {
         return interpretation_list_;
       }
 
-      void addInterpretation(const CVTermList interpretation)
+      void addInterpretation(const Interpretation interpretation)
       {
         return interpretation_list_.push_back(interpretation);
       }
@@ -586,8 +688,9 @@ protected:
 private:
       int charge_;
       bool charge_set_;
+      double mz_;
       std::vector<Configuration> configuration_list_;
-      std::vector<CVTermList> interpretation_list_;
+      std::vector<Interpretation> interpretation_list_;
 
     };
 
@@ -598,6 +701,7 @@ private:
     OPENMS_DLLAPI void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas);
 
   }
+
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENTHELPER_H
