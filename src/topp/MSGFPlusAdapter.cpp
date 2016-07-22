@@ -201,6 +201,7 @@ protected:
     
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", true, false, ListUtils::create<String>("skipexists"));
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
@@ -428,6 +429,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    String java_executable = getStringOption_("java_executable");
     String db_name = getStringOption_("database");
     if (!File::readable(db_name))
     {
@@ -454,9 +456,9 @@ protected:
 
     if (!getFlag_("force"))
     {
-      if (!JavaInfo::canRun("java"))
+      if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable. If you are certain java is installed, please set the 'force' flag in order to avoid this error message.");
+        writeLog_("Fatal error: Java is needed to run MS-GF+!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -542,7 +544,7 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    int status = QProcess::execute("java", process_params);
+    int status = QProcess::execute(java_executable.toQString(), process_params);
     if (status != 0)
     {
       writeLog_("Fatal error: Running MS-GF+ returned an error code. Does the MS-GF+ executable (.jar file) exist?");
@@ -572,7 +574,7 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        status = QProcess::execute("java", process_params);
+        status = QProcess::execute(java_executable.toQString(), process_params);
         if (status != 0)
         {
           writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code.");

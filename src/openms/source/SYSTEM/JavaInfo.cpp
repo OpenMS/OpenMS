@@ -33,17 +33,72 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QProcess>
+#include <QtCore/QDir>
 
 namespace OpenMS
 {
 
-  bool JavaInfo::canRun(String java_executable)
+  bool JavaInfo::canRun(const String& java_executable, bool verbose_on_error)
   {
+    //
+    // first check the file exists
+    //
+    try
+    {
+      // throws exception if not found
+      File::find(java_executable);
+    }
+    catch (...)
+    {
+      if (verbose_on_error)
+      {
+        LOG_ERROR << "Java-Check:"
+          << "  Java not found at '" << java_executable << "'!\n"
+          << "  Make sure Java is installed and this location is correct.\n";
+        if (QDir::isRelativePath(java_executable.toQString()))
+        {
+          static String path;
+          if (path.empty())
+          {
+            path = getenv("PATH");
+          }
+          LOG_ERROR << "  You might need to add the Java binary to your PATH variable\n"
+                    << "  or use an absolute path+filename pointing to Java.\n" 
+                    << "  The current SYSTEM PATH is: '" << path << "'.\n\n"
+#ifdef __APPLE__
+                    << "  On MacOSX, application bundles change the system PATH; Use an abolute path to Java or open your exectuable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle!\n"
+#endif
+                    << std::endl;
+        }
+        else 
+        {
+          LOG_ERROR << "  You gave an absolute path to Java. Please check if it's correct.\n"
+                    << "  You can also try 'java' if your system path is correctly configured.\n"
+                    << std::endl;
+        }
+
+        return false;
+      }
+    }
+    
+    //
+    // then, check if it can be run
+    //
     QProcess qp;
-    qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);   // does automatic escaping etc...
+    qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);
     bool success = qp.waitForFinished();
+    if (!success && verbose_on_error)
+    {
+      LOG_ERROR << "Java-Check:"
+                << "  Java was found at '" << java_executable << "' but cannot be executed or the process timed out (can happen on very busy systems).\n"
+                << "  Please fix permissions or if your system is under heavy load, set the TOPP tools 'force' flag in order to avoid this check." << std::endl;
+    }
     return success;
   }
 
