@@ -1,8 +1,8 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp cimport bool
 from String cimport *
 from CVTerm cimport *
-from Map    cimport *
+from Residue cimport *
+from Map cimport *
 from DataValue cimport *
 from CVTermList cimport *
 
@@ -191,7 +191,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         libcpp_vector[String] protein_refs
         CVTermList evidence
         String sequence
-        libcpp_vector[Modification] mods
+        libcpp_vector[TargetedExperiment_Modification] mods
 
         void setChargeState(int charge) nogil except +
         int getChargeState() nogil except +
@@ -391,6 +391,48 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
+    cdef cppclass TargetedExperiment_Interpretation "OpenMS::TargetedExperimentHelper::Interpretation":
+        TargetedExperiment_Interpretation() nogil except +
+        TargetedExperiment_Interpretation(TargetedExperiment_Interpretation) nogil except + #wrap-ignore
+
+        unsigned char ordinal
+        unsigned char rank
+        ResidueType iontype
+
+        # CVTermList:
+        void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
+        void replaceCVTerm(CVTerm & term)               nogil except +
+
+        # void replaceCVTerms(libcpp_vector[CVTerm] cv_terms,
+        #                     String accession
+        #                    ) nogil except +
+
+        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
+                           ) nogil except +
+
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
+        void addCVTerm(CVTerm & term)                   nogil except +
+
+        bool hasCVTerm(String accession)  nogil except +
+        bool empty()                      nogil except +
+
+
+
+        # MetaInfoInterface:
+        # cython has a problem with inheritance of overloaded methods,
+        # so we do not declare them here, but separately in each derived
+        # class which we want to be wrapped:
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
+        DataValue getMetaValue(unsigned int) nogil except +
+        DataValue getMetaValue(String) nogil except +
+        void setMetaValue(unsigned int, DataValue) nogil except +
+        void setMetaValue(String, DataValue) nogil except +
+        bool metaValueExists(String) nogil except +
+        bool metaValueExists(unsigned int) nogil except +
+        void removeMetaValue(String) nogil except +
+        void removeMetaValue(unsigned int) nogil except +
+
     cdef cppclass TraMLProduct :
         TraMLProduct() nogil except +
         TraMLProduct(TraMLProduct) nogil except + #wrap-ignore
@@ -401,8 +443,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         bool hasCharge() nogil except +
         libcpp_vector[ Configuration ]  getConfigurationList() nogil except +
         void addConfiguration(Configuration configuration) nogil except +
-        libcpp_vector[ CVTermList ]  getInterpretationList() nogil except +
-        void addInterpretation(CVTermList interpretation) nogil except +
+        libcpp_vector[ TargetedExperiment_Interpretation ] getInterpretationList() nogil except +
+        void addInterpretation(TargetedExperiment_Interpretation interpretation) nogil except +
         void resetInterpretations() nogil except +
 
         # CVTermList:
@@ -441,9 +483,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 # no support for nested classes yet in Cython
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::Peptide":
 
-    cdef cppclass Modification:
-        Modification() nogil except +
-        Modification(Modification) nogil except +
+    cdef cppclass TargetedExperiment_Modification "OpenMS::TargetedExperimentHelper::Peptide::Modification":
+        TargetedExperiment_Modification() nogil except +
+        TargetedExperiment_Modification(TargetedExperiment_Modification) nogil except +
 
         # members
         double avg_mass_delta
