@@ -1,6 +1,3 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.set cimport set as libcpp_set
-from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
@@ -8,6 +5,8 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
+        # wrap-hash:
+        #   getName().c_str()
 
         Residue() nogil except +
         Residue(Residue) nogil except + # wrap-ignore
