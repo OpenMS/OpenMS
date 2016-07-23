@@ -1,9 +1,10 @@
-from smart_ptr cimport shared_ptr
-from ProgressLogger cimport *
+from Types cimport *
+from String cimport *
 from OpenSwathDataStructures cimport *
 from SpectrumAccessOpenMS cimport *
+from SpectrumAccessOpenMSCached cimport *
 from ISpectrumAccess cimport *
-from libcpp cimport bool
+from ProgressLogger cimport *
 
 # typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 
@@ -17,11 +18,19 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm) nogil except + 
 
         void extractChromatograms(
-            shared_ptr[ ISpectrumAccess ] input,
+            shared_ptr[ SpectrumAccessOpenMS ] input,
             libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
             libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
             double mz_extraction_window,
-            bool ppm, String filter) nogil except + # wrap-ignore
+            bool ppm, String filter) nogil except +
+
+        void extractChromatograms(
+            shared_ptr[ SpectrumAccessOpenMSCached ] input,
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            double mz_extraction_window,
+            bool ppm, String filter) nogil except +
+
 
         # void extract_value_tophat # -> uses iterators
 
