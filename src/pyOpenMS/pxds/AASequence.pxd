@@ -8,6 +8,8 @@ from Map cimport *
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
     cdef cppclass AASequence:
+        # wrap-hash:
+        #   toString().c_str()
 
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
