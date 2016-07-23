@@ -1,8 +1,7 @@
-from smart_ptr cimport shared_ptr
-from libcpp.vector cimport vector as libcpp_vector
+from Types cimport *
+from String cimport *
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
-from MSExperiment cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>" namespace "OpenMS":
 

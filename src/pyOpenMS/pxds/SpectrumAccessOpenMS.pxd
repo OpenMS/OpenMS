@@ -1,4 +1,4 @@
-from smart_ptr cimport shared_ptr
+from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
