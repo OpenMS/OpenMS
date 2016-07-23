@@ -3,6 +3,8 @@ from __future__ import print_function
 import pyopenms
 import copy
 
+from pyopenms import String as s
+
 print(b"IMPORTED b", pyopenms.__file__)
 
 try:
@@ -806,7 +808,9 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.getMetaValue
     ac = dp.getProcessingActions()
     assert ac == set(())
+    ac = set([ pyopenms.ProcessingAction.PEAK_PICKING, pyopenms.ProcessingAction.BASELINE_REDUCTION])
     dp.setProcessingActions(ac)
+    assert len(dp.getProcessingActions() ) == 2
     assert isinstance(dp.getSoftware().getName(), bytes)
     assert isinstance(dp.getSoftware().getVersion(), bytes)
     dp.isMetaEmpty()
@@ -4159,4 +4163,273 @@ def test_BSpline2d():
     assert spline.ok()
     assert abs(spline.eval(6.0) - 5.0 < 0.01)
 
+
+@report
+def testConsensusIDAlgorithmAverage():
+    algo = pyopenms.ConsensusIDAlgorithmAverage()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmBest():
+    algo = pyopenms.ConsensusIDAlgorithmBest()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmIdentity():
+    algo = pyopenms.ConsensusIDAlgorithmIdentity()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmPEPIons():
+    algo = pyopenms.ConsensusIDAlgorithmPEPIons()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmPEPMatrix():
+    algo = pyopenms.ConsensusIDAlgorithmPEPMatrix()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmRanks():
+    algo = pyopenms.ConsensusIDAlgorithmRanks()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmSimilarity():
+    algo = pyopenms.ConsensusIDAlgorithmSimilarity()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmWorst():
+    algo = pyopenms.ConsensusIDAlgorithmWorst()
+    assert algo.apply
+
+@report
+def testEnzymes():
+    f = pyopenms.EmpiricalFormula()
+    e = pyopenms.Enzyme(b"testEnzyme", "K", set([]), b"", f, f, b"", b"", 0)
+
+@report
+def testMRMAssay():
+    e = pyopenms.MRMAssay()
+    assert e
+
+@report
+def testMRMIonSeries():
+    e = pyopenms.MRMIonSeries()
+    assert e
+
+@report
+def testPeptideIndexing():
+    e = pyopenms.PeptideIndexing()
+    assert e
+
+@report
+def testPeptideProteinResolution():
+    e = pyopenms.PeptideProteinResolution(False)
+    assert e
+
+@report
+def testPercolatorOutfile():
+    e = pyopenms.PercolatorOutfile()
+    assert e
+
+
+
+@report
+def testHiddenMarkovModel():
+    hmm = pyopenms.HiddenMarkovModel()
+    assert hmm
+
+    assert hmm.getNumberOfStates() == 0
+
+    ss = s("testState")
+    hmm.addNewState(ss)
+
+    assert hmm.getNumberOfStates() == 1
+
+    e = pyopenms.HMMState()
+    # hmm.addNewState(e) # Segfault !
+
+    r = hmm.getState(s("testState"))
+    assert r
+    ## assert r == ss # requires ==
+
+@report
+def testHMMState():
+    e = pyopenms.HMMState()
+    assert e
+    e.setName(s("somename"))
+    assert e.getName() == b"somename", e.getName()
+    e.setHidden(True)
+    assert e.isHidden()
+
+    pre = pyopenms.HMMState()
+    pre.setName(s("pre"))
+    suc = pyopenms.HMMState()
+    suc.setName(s("suc"))
+
+    e.addPredecessorState(pre)
+    e.addSuccessorState(suc)
+
+    assert e.getPredecessorStates()
+    assert e.getSuccessorStates()
+
+
+
+@report
+def testEnzymesDB():
+    edb = pyopenms.EnzymesDB()
+    assert edb.setEnzymes
+    del edb
+
+    # create a second instance of EnzymesDB without anything bad happening 
+    edb = pyopenms.EnzymesDB()
+
+    f = pyopenms.EmpiricalFormula()
+    synonyms = set([b"dummy", b"other"])
+    e = pyopenms.Enzyme(b"testEnzyme", b"someregex", synonyms, b"", f, f, b"", b"", 0)
+    edb.addEnzyme(e)
+    assert edb.hasEnzyme(pyopenms.String("testEnzyme"))
+
+    edb = pyopenms.EnzymesDB(); 
+    assert edb.hasEnzyme(pyopenms.String("Trypsin"))
+
+    trypsin = edb.getEnzyme(pyopenms.String("Trypsin"))
+    edb.addEnzyme(trypsin)
+
+    names = []
+    edb.getAllNames(names)
+    assert b"testEnzyme" in names
+    assert edb.hasEnzyme(s(b"testEnzyme"))
+    assert edb.hasRegEx(s(b"someregex"))
+
+    edb.clear()
+    assert not edb.hasEnzyme(pyopenms.String("testEnzyme"))
+    assert not edb.hasEnzyme(pyopenms.String("Trypsin"))
+
+
+@report
+def testElementDB():
+    edb = pyopenms.ElementDB()
+    del edb
+
+    # create a second instance of ElementDB without anything bad happening 
+    edb = pyopenms.ElementDB()
+
+    assert edb.hasElement(16)
+    edb.hasElement(pyopenms.String(b"O"))
+
+    e = edb.getElement(16)
+
+    assert e.getName() == b"Sulfur"
+    assert e.getSymbol() == b"S"
+    assert e.getIsotopeDistribution()
+
+    e2 = edb.getElement(pyopenms.String(b"O"))
+
+    assert e2.getName() == b"Oxygen"
+    assert e2.getSymbol() == b"O"
+    assert e2.getIsotopeDistribution()
+
+    # assert e == e2
+
+    #  not yet implemented
+    # 
+    # const Map[ String, Element * ]  getNames() nogil except +
+    # const Map[ String, Element * ] getSymbols() nogil except +
+    # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
+
+
+@report
+def testResidueDB():
+    rdb = pyopenms.ResidueDB()
+    del rdb
+
+    # create a second instance of ResidueDB without anything bad happening 
+    rdb = pyopenms.ResidueDB()
+
+    assert rdb.getNumberOfResidues() >= 20
+    assert len(rdb.getResidueSets() ) >= 1
+    el = rdb.getResidues(pyopenms.String(rdb.getResidueSets().pop()))
+
+    assert len(el) >= 1
+
+    assert rdb.hasResidue(s(b"Glycine"))
+    glycine = rdb.getResidue(s(b"Glycine"))
+
+    nrr = rdb.getNumberOfResidues()
+
+    r = pyopenms.Residue()
+    rdb.addResidue(r)
+    assert rdb.getNumberOfResidues() == nrr+1
+
+@report
+def testModificationsDB():
+    mdb = pyopenms.ModificationsDB()
+    del mdb
+
+    # create a second instance of ModificationsDB without anything bad happening 
+    mdb = pyopenms.ModificationsDB()
+
+    assert mdb.getNumberOfModifications() > 1
+    m = mdb.getModification(1)
+
+    assert mdb.getNumberOfModifications() > 1
+    m = mdb.getModification(1)
+    assert m is not None
+
+    mods = set([])
+    mdb.searchModifications(mods, s("T"), s("Phosphorylation"), pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
+    assert len(mods) == 1 
+
+    mods = set([])
+    mdb.searchModifications(mods, s("Phosphorylation"), pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
+    assert len(mods) > 1
+
+    mods = set([])
+    mdb.searchTerminalModifications(mods, s("NIC"), pyopenms.ResidueModification.Term_Specificity.N_TERM)
+    assert len(mods) == 1 
+
+    m = mdb.getTerminalModification(s("Acetyl"), pyopenms.ResidueModification.Term_Specificity.N_TERM)
+    assert m.getFullId() == "Acetyl (N-term)"
+
+    m = mdb.getModification(s("Carboxymethyl (C)") )
+    assert m.getFullId() == "Carboxymethyl (C)"
+
+    m = mdb.getModification(s("S"), s("Phosphorylation"),  pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
+    assert m.getId() == "Phospho"
+
+    mods = []
+    m = mdb.getAllSearchModifications(mods)
+    assert len(mods) > 100
+
+    assert "Phospho (S)" in mods
+    assert "Sulfo (S)" in mods
+    assert not ("Phospho" in mods)
+
+    m = mdb.getBestModificationsByDiffMonoMass(b"T", 80, 1)
+    assert m is not None 
+    assert m.getId() == b"Phospho"
+    assert m.getFullName() == b"Phosphorylation"
+    assert m.getUniModAccession() == b"UniMod:21"
+
+    m = mdb.getBestModificationsByDiffMonoMass(b"T", 80, 100)
+    assert m is not None 
+    assert m.getId() == b"Phospho"
+    assert m.getFullName() == b"Phosphorylation"
+    assert m.getUniModAccession() == b"UniMod:21"
+
+    m = mdb.getBestModificationsByMonoMass(b"T", 80, 20)
+    assert m is not None 
+    assert m.getId() == "MOD:00439"
+
+    m = mdb.getBestModificationsByMonoMass(b"T", 96, 20)
+    assert m is not None 
+    assert m.getId() == b"Thr->Pro"
+    assert m.getUniModAccession() == b"UniMod:662"
+
+    # Test NULL ptr
+    m = mdb.getBestModificationsByMonoMass(b"T", 999999999, 0.20)
+    assert m is None
 
