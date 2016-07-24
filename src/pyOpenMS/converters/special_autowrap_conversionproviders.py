@@ -169,27 +169,48 @@ class OpenMSStringConverter(TypeConverterBase):
         return  not cpp_type.is_ptr
 
     def matching_python_type(self, cpp_type):
-        return "String" if cpp_type.is_ref else "bytes"
+        # We allow bytes, unicode, str and String
+        return ""
 
     def type_check_expression(self, cpp_type, argument_var):
-        if cpp_type.is_ref:
-            return "isinstance(%s, String)" % (argument_var,)
-        return "isinstance(%s, bytes)" % (argument_var,)
+        # Allow conversion from unicode str, bytes and OpenMS::String
+        return "(isinstance(%s, str) or isinstance(%s, unicode) or isinstance(%s, bytes) or isinstance(%s, String))" % (
+            argument_var,argument_var,argument_var, argument_var)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
-        # here we inject special behavoir for testing if this converter
-        # was called !
-        if cpp_type.is_ref:
-            call_as = "deref(%s.inst.get())" % argument_var
-        else:
-            call_as = "(_String(<char *>%s))" % argument_var
-        code = cleanup = ""
+        # First create a ptr to a _String instance. In case the user only
+        # provides a str, unicode or bytes argument, we will have to create a
+        # new String object and then delete it afterwards (presumably the user
+        # does not want to have the value returned by reference).
+
+        code = Code().add("""
+            |cdef _String * cs_$argument_var
+            |cdef char* c_string_$argument_var
+            |if isinstance($argument_var, String):
+            |    cs_$argument_var = (<String>$argument_var).inst.get()
+            |elif isinstance($argument_var, bytes):
+            |    cs_$argument_var = new _String(<char*>$argument_var) 
+            |elif isinstance($argument_var, str):
+            |    py_byte_string = $argument_var.encode('UTF-8')
+            |    c_string_$argument_var = py_byte_string
+            |    cs_$argument_var = new _String((<char *>c_string_$argument_var))
+            |elif isinstance($argument_var, unicode):
+            |    py_byte_string = $argument_var.encode('UTF-8')
+            |    c_string_$argument_var = py_byte_string
+            |    cs_$argument_var = new _String((<char *>c_string_$argument_var))
+        """, locals())
+        cleanup = Code().add("""
+            |if not isinstance($argument_var, String):
+            |    del cs_$argument_var
+        """, locals())
+        call_as = "deref(cs_%s)" % argument_var
+        if cpp_type.is_ptr:
+            call_as = "s_%s.inst.get()" % argument_var
         return code, call_as, cleanup
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
         return "%s = _cast_const_away(<char*>%s.c_str())" % (output_py_var,
                                                              input_cpp_var)
-
 
 class AbstractOpenMSListConverter(TypeConverterBase):
 
