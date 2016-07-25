@@ -3,6 +3,8 @@ from String cimport *
 from OpenSwathDataStructures cimport *
 from SpectrumAccessOpenMS cimport *
 from SpectrumAccessOpenMSCached cimport *
+from SpectrumAccessOpenMSInMemory cimport *
+from SpectrumAccessQuadMZTransforming cimport *
 from ISpectrumAccess cimport *
 from ProgressLogger cimport *
 
@@ -17,6 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         ChromatogramExtractorAlgorithm() nogil except +
         ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm) nogil except + 
 
+        # abstract base class ISpectrumAccess given as first input arg
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMS ] input,
             libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
@@ -26,6 +29,20 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMSCached ] input,
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            double mz_extraction_window,
+            bool ppm, String filter) nogil except +
+
+        void extractChromatograms(
+            shared_ptr[ SpectrumAccessOpenMSInMemory ] input,
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            double mz_extraction_window,
+            bool ppm, String filter) nogil except +
+
+        void extractChromatograms(
+            shared_ptr[ SpectrumAccessQuadMZTransforming ] input,
             libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
             libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
             double mz_extraction_window,
