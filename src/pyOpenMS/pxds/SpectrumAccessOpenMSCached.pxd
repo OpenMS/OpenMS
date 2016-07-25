@@ -10,5 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCach
         # wrap-inherits:
         #  ISpectrumAccess
 
+        SpectrumAccessOpenMSCached() # wrap-pass-constructor
+
         SpectrumAccessOpenMSCached(String filename) nogil except +
+        SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached q) nogil except + # wrap-ignore
 
