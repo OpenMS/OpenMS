@@ -190,9 +190,6 @@ protected:
     String read_method = getStringOption_("read_method");
     bool load_data = getStringOption_("loadData") == "true";
 
-    PeakFileOptions p;
-    p.setFillData(load_data);
-
     if (read_method == "streaming")
     {
       std::cout << "Read method: streaming" << std::endl;
