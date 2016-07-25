@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8  -*-
 from __future__ import print_function
 
 import pyopenms
@@ -3798,11 +3800,13 @@ def testTransformationModels():
      TransformationModelLinear.getParameters
     """
     for clz in [pyopenms.TransformationModelLinear,
+                pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
-        mod = clz()
         p = pyopenms.Param()
+        data = [ [9.0, 8.9], [5.0, 6.0], [8.0, 8.0] ]
+        mod = clz(data, p)
+        mod.evaluate(7.0)
         mod.getDefaultParameters(p)
-
 
 @report
 def testTransformationXMLFile():
@@ -4392,21 +4396,21 @@ def testModificationsDB():
     assert len(mods) == 1 
 
     m = mdb.getTerminalModification(s("Acetyl"), pyopenms.ResidueModification.Term_Specificity.N_TERM)
-    assert m.getFullId() == "Acetyl (N-term)"
+    assert m.getFullId() == b"Acetyl (N-term)", m.getFullId()
 
     m = mdb.getModification(s("Carboxymethyl (C)") )
-    assert m.getFullId() == "Carboxymethyl (C)"
+    assert m.getFullId() == b"Carboxymethyl (C)"
 
     m = mdb.getModification(s("S"), s("Phosphorylation"),  pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
-    assert m.getId() == "Phospho"
+    assert m.getId() == b"Phospho"
 
     mods = []
     m = mdb.getAllSearchModifications(mods)
     assert len(mods) > 100
 
-    assert "Phospho (S)" in mods
-    assert "Sulfo (S)" in mods
-    assert not ("Phospho" in mods)
+    assert b"Phospho (S)" in mods
+    assert b"Sulfo (S)" in mods
+    assert not (b"Phospho" in mods)
 
     m = mdb.getBestModificationsByDiffMonoMass(b"T", 80, 1)
     assert m is not None 
@@ -4422,7 +4426,7 @@ def testModificationsDB():
 
     m = mdb.getBestModificationsByMonoMass(b"T", 80, 20)
     assert m is not None 
-    assert m.getId() == "MOD:00439"
+    assert m.getId() == b"MOD:00439"
 
     m = mdb.getBestModificationsByMonoMass(b"T", 96, 20)
     assert m is not None 
