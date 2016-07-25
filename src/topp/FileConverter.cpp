@@ -120,6 +120,23 @@ using namespace std;
   @htmlinclude TOPP_FileConverter.html
 */
 
+String extractCachedMetaFilename(const String& in)
+{
+  // Special handling of cached mzML as input types: 
+  // we expect two paired input files which we should read into exp
+  std::vector<String> split_out;
+  in.split(".cachedMzML", split_out);
+  if (split_out.size() != 2)
+  {
+    LOG_ERROR << "Cannot deduce base path from input '" << in 
+      << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+    return "";
+  }
+  String in_meta = split_out[0] + ".mzML";
+  return in_meta;
+}
+
+
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
@@ -264,17 +281,9 @@ protected:
     }
     else if (in_type == FileTypes::CACHEDMZML)
     {
-      // Special handling of cached mzML as input types: 
-      // we expect two paired input files which we should read into exp
-      std::vector<String> split_out;
-      in.split(".cachedMzML", split_out);
-      if (split_out.size() != 2)
-      {
-        LOG_ERROR << "Cannot deduce base path from input '" << in 
-          << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      String in_meta = split_out[0] + ".mzML";
+      // Determine location of meta information (empty mzML)
+      String in_meta = extractCachedMetaFilename(in);
+      if (in_meta.empty()) return ILLEGAL_PARAMETERS;
 
       MzMLFile f;
       f.setLogType(log_type_);
@@ -338,16 +347,9 @@ protected:
       }
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
-        std::vector<String> split_out;
-        out.split(".cachedMzML", split_out);
-        if (split_out.size() != 2)
-        {
-          LOG_ERROR << "Cannot deduce base path from input '" << in 
-            << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-        String path = split_out[0];
-        String out_meta = path + ".mzML";
+        // Determine output path for meta information (empty mzML)
+        String out_meta = extractCachedMetaFilename(out);
+        if (out_meta.empty()) return ILLEGAL_PARAMETERS;
 
         CachedmzML cacher;
         cacher.setLogType(log_type_);
@@ -529,15 +531,8 @@ protected:
     else if (out_type == FileTypes::CACHEDMZML)
     {
       // Determine output path for meta information (empty mzML)
-      std::vector<String> split_out;
-      out.split(".cachedMzML", split_out);
-      if (split_out.size() != 2)
-      {
-        LOG_ERROR << "Cannot deduce base path from input '" << in 
-          << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      String out_meta = split_out[0] + ".mzML";
+      String out_meta = extractCachedMetaFilename(out);
+      if (out_meta.empty()) return ILLEGAL_PARAMETERS;
 
       CachedmzML cacher;
       MzMLFile f;
