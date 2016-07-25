@@ -251,20 +251,66 @@ protected:
       
       IndexedMzMLFileLoader imzml;
       // load data from an indexed MzML file
-      PeakFileOptions opt = imzml.getOptions();
-      opt.setFillData(load_data); // whether to actually load any data
-      imzml.setOptions(opt);
-
       OnDiscMSExperiment<> map;
       imzml.load(in, map);
       double TIC = 0.0;
       long int nr_peaks = 0;
-      for (Size i =0; i < map.getNrSpectra(); i++)
+      if (load_data)
       {
-        OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
+        for (Size i =0; i < map.getNrSpectra(); i++)
+        {
+          OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
 
-        nr_peaks += sptr->getIntensityArray()->data.size();
-        TIC += std::accumulate(sptr->getIntensityArray()->data.begin(), sptr->getIntensityArray()->data.end(), 0.0);
+          nr_peaks += sptr->getIntensityArray()->data.size();
+          TIC += std::accumulate(sptr->getIntensityArray()->data.begin(), sptr->getIntensityArray()->data.end(), 0.0);
+        }
+      }
+
+      std::cout << "There are " << map.getNrSpectra() << " spectra and " << nr_peaks << " peaks in the input file." << std::endl;
+      std::cout << "The total ion current is " << TIC << std::endl;
+      size_t after;
+      SysInfo::getProcessMemoryConsumption(after);
+      std::cout << " Memory consumption after " << after << std::endl;
+    }
+    else if (read_method == "indexed_parallel")
+    {
+      std::cout << "Read method: indexed (parallel)" << std::endl;
+      
+      IndexedMzMLFileLoader imzml;
+      PeakFileOptions opt = imzml.getOptions();
+      opt.setFillData(load_data); // whether to actually load any data
+      imzml.setOptions(opt);
+
+      // load data from an indexed MzML file
+      OnDiscMSExperiment<> map;
+      map.openFile(in, true);
+      map.setSkipXMLChecks(true);
+
+      double TIC = 0.0;
+      long int nr_peaks = 0;
+
+      if (load_data)
+      {
+
+        // firstprivate means that each thread has its own instance of the
+        // variable, each copy initialized with the initial value 
+#ifdef _OPENMP
+#pragma omp parallel for firstprivate(map) 
+#endif
+        for (SignedSize i =0; i < map.getNrSpectra(); i++)
+        {
+          OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
+          double nr_peaks_l = sptr->getIntensityArray()->data.size();
+          double TIC_l = std::accumulate(sptr->getIntensityArray()->data.begin(), sptr->getIntensityArray()->data.end(), 0.0);
+#ifdef _OPENMP
+#pragma omp critical (indexed)
+#endif
+          {
+            TIC += TIC_l;
+            nr_peaks += nr_peaks_l;
+          }
+        }
+
       }
 
       std::cout << "There are " << map.getNrSpectra() << " spectra and " << nr_peaks << " peaks in the input file." << std::endl;
