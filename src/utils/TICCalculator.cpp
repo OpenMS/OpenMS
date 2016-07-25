@@ -115,6 +115,14 @@ public:
   void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
 };
 
+/**
+  @brief Abstraction of a std::ifstream 
+
+  Useful for parallel access to the file when each thread is given its own
+  instance of this class. Each thread will then have its own file stream and
+  access the file independently.
+
+*/
 class FileAbstraction
 {
 
