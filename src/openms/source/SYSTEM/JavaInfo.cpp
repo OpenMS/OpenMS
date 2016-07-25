@@ -72,7 +72,7 @@ namespace OpenMS
                     << "  or use an absolute path+filename pointing to Java.\n" 
                     << "  The current SYSTEM PATH is: '" << path << "'.\n\n"
 #ifdef __APPLE__
-                    << "  On MacOSX, application bundles change the system PATH; Use an abolute path to Java or open your exectuable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle!\n"
+                    << "  On MacOSX, application bundles change the system PATH; Use an absolute path to Java or open your executable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS)!\n"
 #endif
                     << std::endl;
         }
