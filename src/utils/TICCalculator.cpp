@@ -200,8 +200,14 @@ protected:
       // Create the consumer, set output file name, transform
       TICConsumer consumer;
       MzMLFile mzml;
-      mzml.setOptions(p);
       mzml.setLogType(log_type_);
+
+      PeakFileOptions opt = mzml.getOptions();
+      opt.setFillData(load_data); // whether to actually load any data
+      opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+      opt.setMaxDataPoolSize(100);
+      opt.setAlwaysAppendData(false);
+      mzml.setOptions(opt);
       mzml.transform(in, &consumer, true, true);
 
       std::cout << "There are " << consumer.nr_spectra << " spectra and " << consumer.nr_peaks << " peaks in the input file." << std::endl;
@@ -215,8 +221,11 @@ protected:
       std::cout << "Read method: regular" << std::endl;
 
       MzMLFile mzml;
-      mzml.setOptions(p);
       mzml.setLogType(log_type_);
+      PeakFileOptions opt = mzml.getOptions();
+      opt.setFillData(load_data); // whether to actually load any data
+      opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+      mzml.setOptions(opt);
       MSExperiment<> map;
       mzml.load(in, map);
       double TIC = 0.0;
@@ -241,22 +250,21 @@ protected:
       std::cout << "Read method: indexed" << std::endl;
       
       IndexedMzMLFileLoader imzml;
+      // load data from an indexed MzML file
+      PeakFileOptions opt = imzml.getOptions();
+      opt.setFillData(load_data); // whether to actually load any data
+      imzml.setOptions(opt);
 
-      // load data from an indexed mzML file
       OnDiscMSExperiment<> map;
-      imzml.setOptions(p);
       imzml.load(in, map);
-      // Get the first spectrum in memory, do some constant (non-changing) data processing
       double TIC = 0.0;
       long int nr_peaks = 0;
       for (Size i =0; i < map.getNrSpectra(); i++)
       {
         OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
+
         nr_peaks += sptr->getIntensityArray()->data.size();
-        for (Size j = 0; j < sptr->getIntensityArray()->data.size(); j++)
-        {
-          TIC += sptr->getIntensityArray()->data[j];
-        }
+        TIC += std::accumulate(sptr->getIntensityArray()->data.begin(), sptr->getIntensityArray()->data.end(), 0.0);
       }
 
       std::cout << "There are " << map.getNrSpectra() << " spectra and " << nr_peaks << " peaks in the input file." << std::endl;
