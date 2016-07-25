@@ -1328,6 +1328,12 @@ namespace OpenMS
       int charge = 0;
       vector<PeptideHit::FragmentAnnotation> frag_annotations;
 
+      double xcorrx = 0;
+      double xcorrc = 0;
+      double matchodds = 0;
+      double intsum = 0;
+      double wTIC = 0;
+
       for (std::multimap<String, int>::iterator it=range.first; it!=range.second; ++it)
       {
         DOMElement* cl_sii = dynamic_cast<xercesc::DOMElement*>(siis->item(it->second));
@@ -1352,20 +1358,36 @@ namespace OpenMS
         for (XMLSize_t i = 0; i < cv_count; ++i)
         {
           DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
-          if (score < 0)
+          if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002681")) // OpenXQuest:combined score
           {
-            if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002681")) // OpenXQuest:combined score
-            {
-              score = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
-            }
+            score = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
           }
-          if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002682")) // OpenXQuest: xcorr common
+          {
+            xcorrx = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+          }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002683")) // OpenXQuest: xcorr xlink
+          {
+            xcorrc = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+          }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002684")) // OpenXQuest: match-odds
+          {
+            matchodds = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+          }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002685")) // OpenXQuest: intsum
+          {
+            intsum = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+          }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002686")) // OpenXQuest: wTIC
+          {
+            wTIC = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+          }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
           {
             double RT = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
             RTs.push_back(RT);
           }
         }
-        // TODO extract metaValueScores
 
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
@@ -1392,15 +1414,12 @@ namespace OpenMS
             for (XMLSize_t f = 0; f < frag_array_count; ++f)
             {
               DOMElement* frag_array_element = dynamic_cast<xercesc::DOMElement*>(frag_arrays->item(f));
-              cout << "measure_ref = " << XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref"))) << endl;
               if ( String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref")))) == "Measure_mz")
               {
-                cout << "MZs found" << endl;
                 String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("values")))).split(" ", positions);
               }
               if ( String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref")))) == "Measure_int")
               {
-                cout << "Ints found" << endl;
                 String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("values")))).split(" ", intensities);
 
               }
@@ -1411,15 +1430,12 @@ namespace OpenMS
             for (XMLSize_t u = 0; u < userParam_count; ++u)
             {
               DOMElement* userParam_element = dynamic_cast<xercesc::DOMElement*>(userParams->item(u));
-              cout << "userParam name = " << XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name"))) << endl;
               if ( String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name")))) == "cross-link_chain")
               {
-                cout << "chains found" << endl;
                 String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("value")))).split(" ", chains);
               }
               if ( String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name")))) == "cross-link_ioncategory")
               {
-                cout << "categories found" << endl;
                 String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("value")))).split(" ", categories);
               }
             }
@@ -1541,6 +1557,9 @@ namespace OpenMS
       double MZ_light = *std::min_element(exp_mzs.begin(), exp_mzs.end());
       double MZ_heavy = *std::max_element(exp_mzs.begin(), exp_mzs.end());
 
+      // are the cross-links labeled?
+      bool labeled = MZ_light != MZ_heavy;
+
       for (Size i = 0; i < exp_mzs.size(); ++i)
       {
         if (MZ_light == exp_mzs[i])
@@ -1553,14 +1572,19 @@ namespace OpenMS
         }
       }
       double RT_light = RTs[light[0]];
-      double RT_heavy = RTs[heavy[0]];
+      double RT_heavy = RT_light;
+
+      if (labeled)
+      {
+        RT_heavy = RTs[heavy[0]];
+      }
 
       vector<Size> alpha;
       vector<Size> beta;
       for (Size i = 0; i < peptides.size(); ++i)
       {
         //cout << "current peptide: " << peptides[i] << endl;
-        cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
+        //cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
         try
         {
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
@@ -1577,7 +1601,7 @@ namespace OpenMS
       vector<String> spectrumIDs;
       spectrumID.split(",", spectrumIDs);
 
-      if (alpha.size() == 2 && beta.size() == 2) // if 4 SIIs, then there is an alpha and a beta chain, must be cross-link
+      if (alpha.size() == beta.size()) // if a beta exists at all, it must be cross-link. But they should also each have the mase number of SIIs in the mzid
       {
         xl_type = "cross-link";
       }
@@ -1587,14 +1611,14 @@ namespace OpenMS
         {
           String donor_val = xl_id_donor_map_.at(peptides[alpha[0]]);      // map::at throws an out-of-range
           String acceptor_val = xl_id_acceptor_map_.at(peptides[alpha[0]]);
-          if (donor_val  == acceptor_val) // if donor and acceptor on same peptide have the same CV value, it must be a loop-link
+          if (donor_val  == acceptor_val) // if donor and acceptor on the same peptide belong to the same cross-link, it must be a loop-link
           {
             xl_type = "loop-link";
           }
         }
         catch (const std::out_of_range& oor)
         {
-            // do nothing
+            // do nothing. Must be a mono-link, which is already set
         }
       }
 
@@ -1612,14 +1636,25 @@ namespace OpenMS
       ph_alpha.setCharge(charge);
       ph_alpha.setScore(score);
       ph_alpha.setRank(rank);
+      ph_alpha.setMetaValue("spectrum_reference", spectrumIDs[0]);
       ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
       ph_alpha.setMetaValue("xl_pos", alpha_pos);
-      ph_alpha.setMetaValue("spec_heavy_RT", RT_heavy);
-      ph_alpha.setMetaValue("spec_heavy_MZ", MZ_heavy);
-      ph_alpha.setMetaValue("spectrum_reference", spectrumIDs[0]);
-      ph_alpha.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+
+      if (labeled)
+      {
+        ph_alpha.setMetaValue("spec_heavy_RT", RT_heavy);
+        ph_alpha.setMetaValue("spec_heavy_MZ", MZ_heavy);
+        ph_alpha.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+      }
+
       ph_alpha.setMetaValue("xl_type", xl_type);
       ph_alpha.setMetaValue("xl_rank", rank);
+
+      ph_alpha.setMetaValue("OpenXQuest:xcorr xlink",xcorrx);
+      ph_alpha.setMetaValue("OpenXQuest:xcorr common", xcorrc);
+      ph_alpha.setMetaValue("OpenXQuest:match-odds", matchodds);
+      ph_alpha.setMetaValue("OpenXQuest:intsum", intsum);
+      ph_alpha.setMetaValue("OpenXQuest:wTIC", wTIC);
 
       ph_alpha.setFragmentAnnotations(frag_annotations);
 
@@ -1627,7 +1662,7 @@ namespace OpenMS
       if (xl_type == "loop-link")
       {
         Size pos2 = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[alpha[0]]));
-        ph_alpha.setMetaValue("pos2", pos2);
+        ph_alpha.setMetaValue("xl_pos2", pos2);
       }
 
       if (xl_type != "mono-link")
@@ -1635,8 +1670,6 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
         ph_alpha.setMetaValue("xl_mass",DataValue(xl_mass_map_.at(peptides[alpha[0]])));
       }
-
-      // TODO other scores
 
       phs.push_back(ph_alpha);
 
@@ -1648,14 +1681,22 @@ namespace OpenMS
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
         ph_beta.setRank(rank);
+        ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
         ph_beta.setMetaValue("xl_pos", beta_pos);
-        ph_beta.setMetaValue("spec_heavy_RT", RT_heavy);
-        ph_beta.setMetaValue("spec_heavy_MZ", MZ_heavy);
-        ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
-        ph_beta.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
 
-        // TODO other scores
+        if (labeled)
+        {
+          ph_beta.setMetaValue("spec_heavy_RT", RT_heavy);
+          ph_beta.setMetaValue("spec_heavy_MZ", MZ_heavy);
+          ph_beta.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+        }
+
+        ph_beta.setMetaValue("OpenXQuest:xcorr xlink", xcorrx);
+        ph_beta.setMetaValue("OpenXQuest:xcorr common", xcorrc);
+        ph_beta.setMetaValue("OpenXQuest:match-odds", matchodds);
+        ph_beta.setMetaValue("OpenXQuest:intsum", intsum);
+        ph_beta.setMetaValue("OpenXQuest:wTIC", wTIC);
 
         phs.push_back(ph_beta);
       }
@@ -1671,6 +1712,31 @@ namespace OpenMS
       {
 
         String peptide_ref = unique_peptides[pep];
+
+        // Debug output
+//        cout << "peptides: ";
+//        for (Size k = 0; k < peptides.size(); ++k)
+//        {
+//          cout << "nr." << k << ": " << peptides[k] << "\t";
+//        }
+//        cout << endl << "unique peptides: ";
+//        for (Size k = 0; k < unique_peptides.size(); ++k)
+//        {
+//          cout << "nr." << k << ": " << unique_peptides[k] << "\t";
+//        }
+//        cout << endl << "alpha: " << alpha[0];
+//        if (beta.size() > 0)
+//        {
+//          cout << "\t beta: " << beta[0];
+//        }
+//        cout << endl;
+//        cout << "xl_type: " << xl_type << "\tphs_size: " << phs.size() << endl;
+//        cout << "phs0: " << phs[0].getSequence().toString() << endl;
+//        if (phs.size() > 1)
+//        {
+//          cout << "phs1: " << phs[1].getSequence().toString() << endl;
+//        }
+
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<String, String>::iterator, multimap<String, String>::iterator> pev_its;
         pev_its = p_pv_map_.equal_range(peptide_ref);
@@ -1684,11 +1750,12 @@ namespace OpenMS
             pev.setAABefore(pv.pre);
             pev.setAAAfter(pv.post);
 
-            if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
-            {
-              phs[pep].setMetaValue("start", pv.start);
-              phs[pep].setMetaValue("end", pv.stop);
-            }
+            // TODO is this still necessary anywhere?
+//            if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
+//            {
+//              phs[pep].setMetaValue("start", pv.start);
+//              phs[pep].setMetaValue("end", pv.stop);
+//            }
 
             idec = pv.idec;
             if (idec)
@@ -2197,7 +2264,6 @@ namespace OpenMS
                 }
                 cvp = cvp->getNextElementSibling();
               }
-              //cout << "xl_map sizes: " << xl_id_donor_map_.size() << "\t" << xl_id_acceptor_map_.size() << "\t" << xl_donor_pos_map_.size() << "\t" << xl_mass_map_.size() << "\t" << xl_mod_map_.size() << endl;
             }
             else //  general case
             {
