@@ -238,6 +238,42 @@ def testElement():
     ins.setSymbol(b"C")
     ins.getSymbol()
 
+    e = pyopenms.Element()
+    e.setSymbol("blah")
+    e.setSymbol(b"blah")
+    e.setSymbol(u"blah")
+    e.setSymbol(str("blah"))
+    oms_string = s(b"blub")
+    e.setSymbol(oms_string)
+    assert oms_string
+    assert oms_string.toString() == "blub"
+
+    evil = u"blüb"
+    evil8 = evil.encode("utf8")
+    evil1 = evil.encode("latin1")
+
+
+    e.setSymbol(evil.encode("utf8"))
+    assert e.getSymbol().decode("utf8") == u"blüb"
+    e.setSymbol(evil.encode("latin1"))
+    assert e.getSymbol().decode("latin1") == u"blüb"
+
+    # If we get the raw symbols, we get bytes (which we would need to decode first)
+    e.setSymbol(evil8.decode("utf8"))
+    assert e.getSymbol() == b'bl\xc3\xbcb'
+    assert e.getSymbol() == u"blüb".encode("utf8")
+    # OpenMS strings, however, understand the decoding
+    assert s(e.getSymbol()) == s(u"blüb")
+    assert s(e.getSymbol()).toString() == u"blüb"
+
+    # What if you use the wrong decoding ?
+    e.setSymbol(evil1)
+    #print(e.getSymbol().decode("latin1"))
+    assert e.getSymbol().decode("latin1") == u"blüb"
+    e.setSymbol(evil8)
+    #print(e.getSymbol().decode("utf8"))
+    assert e.getSymbol().decode("latin1") == u"blüb".encode("utf8").decode("latin1")
+
 @report
 def testResidue():
     """
@@ -334,6 +370,9 @@ def testIdentificationHit():
     assert pyopenms.IdentificationHit().getRank is not None
 
     f.setId(b"test_id")
+    assert f.getId() == b"test_id"
+
+    f.setId("test_id")
     assert f.getId() == b"test_id"
 
     f.setCharge(5)
@@ -4436,4 +4475,50 @@ def testModificationsDB():
     # Test NULL ptr
     m = mdb.getBestModificationsByMonoMass(b"T", 999999999, 0.20)
     assert m is None
+
+def testString():
+    pystr = pyopenms.String()
+    pystr = pyopenms.String("blah")
+    assert (pystr.toString() == "blah")
+    pystr = pyopenms.String(b"blah")
+    assert (pystr.toString() == "blah")
+    pystr = pyopenms.String(u"blah")
+    assert (pystr.toString() == "blah")
+    pystr = pyopenms.String(pystr)
+    assert (pystr.toString() == "blah")
+    assert (len(pystr.toString()) == 4)
+    cstr = pystr.c_str()
+
+    # Printing should work ...
+    print(cstr)
+    print(pystr)
+    print(pystr.toString())
+    assert (pystr.toString() == "blah")
+
+    pystr = pyopenms.String("bläh")
+    assert (pystr.toString() == u"bläh")
+    # pystr = pyopenms.String(b"bläh") # Not Python 3 compatible
+    pystr = pyopenms.String(u"bläh")
+    assert (pystr.toString() == u"bläh")
+    pystr = pyopenms.String(pystr)
+    assert (pystr.toString() == u"bläh")
+
+    # Printing should work ...
+    print(cstr)
+    print(pystr)
+    print(pystr.toString())
+
+    assert len(pystr.toString()) == 4
+    assert len(pystr.c_str()) == 5 # C does not know about Unicode, so be careful with c_str
+    print(pystr) # this prints the C string, due to Py 2/3 compatibility
+    print(pystr.toString()) # this prints the correct String
+
+    pystr1 = pyopenms.String("bläh")
+    pystr2 = pyopenms.String("bläh")
+    assert(pystr1 == pystr2)
+
+    pystr1 = pyopenms.String(u"bläh")
+    pystr2 = pyopenms.String(u"bläh")
+    assert(pystr1 == pystr2)
+
 
