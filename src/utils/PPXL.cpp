@@ -116,70 +116,6 @@ public:
   {
   }
 
-//  struct CrossLinkSpectrumMatch
-//  {
-//    /// structure of the cross-link
-//    TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link;
-
-//    /// reference to pair of spectra
-//    Size scan_index_light;
-//    Size scan_index_heavy;
-
-//    /// final score
-//    double score;
-
-//    /// rank among the matches to the same spectrum
-//    Size rank;
-
-//    /// counts, scores and other data for xQuest-like output
-//    double pre_score;
-//    double percTIC;
-//    double wTIC;
-//    double int_sum;
-//    double match_odds;
-//    vector< double > xcorrx;
-//    double xcorrx_max;
-//    vector< double > xcorrc;
-//    double xcorrc_max;
-//    Size matched_common_alpha;
-//    Size matched_common_beta;
-//    Size matched_xlink_alpha;
-//    Size matched_xlink_beta;
-
-//    vector<PeptideHit::FragmentAnnotation> frag_annotations;
-
-//    Size peptide_id_index;
-////    PeptideIdentification *peptide_id = NULL;
-
-//    bool operator<(const CrossLinkSpectrumMatch& other) const
-//    {
-//      return score < other.score;
-//    }
-
-//    bool operator==(const CrossLinkSpectrumMatch& other) const
-//    {
-//      return cross_link.alpha == other.cross_link.alpha &&
-//           cross_link.beta == other.cross_link.beta &&
-//           cross_link.cross_link_position == other.cross_link.cross_link_position &&
-//           score == other.score &&
-//           pre_score == other.pre_score &&
-//           percTIC == other.percTIC &&
-//           wTIC == other.wTIC &&
-//           int_sum == other.int_sum &&
-//           match_odds == other.match_odds &&
-//           xcorrx == other.xcorrx &&
-//           xcorrx_max == other.xcorrx_max &&
-//           xcorrc == other.xcorrc &&
-//           xcorrc_max == other.xcorrc_max &&
-//           matched_common_alpha == other.matched_common_alpha &&
-//           matched_common_beta == other.matched_common_beta &&
-//           matched_xlink_alpha == other.matched_xlink_alpha &&
-//           matched_xlink_beta == other.matched_xlink_beta &&
-//           rank == other.rank;
-//    }
-
-//  };
-
 protected:
   static void wrap_(const String& input, Size width, String & output)
   {
@@ -312,8 +248,8 @@ protected:
     registerTOPPSubsection_("cross_linker", "Cross Linker Options");
     registerStringList_("cross_linker:residue1", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to", false);
     registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false);
-    registerDoubleOption_("cross_linker:mass_light", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false);
-    registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false);
+    registerDoubleOption_("cross_linker:mass", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false);
+    //registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false);
     registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.0786442, 155.0964278"), "Possible masses of the linker, when attached to only one peptide", false);
     registerStringList_("cross_linker:names", "<list of strings>", ListUtils::create<String>("Xlink:DSS, Xlink:DSS!Hydrolyzed, Xlink:DSS!Amidated"), "Names of the searched cross-links, first the cross-link and then the mono-links in the same order as their masses", false);
 
@@ -368,17 +304,6 @@ protected:
         Size min_size_;
   };
 
-//  void nlargest_filter_rich(RichPeakSpectrum & spectrum, Size peakcount)
-//  {
-//    if (spectrum.size() <= peakcount) return;
-
-//    // sort by reverse intensity
-//    spectrum.sortByIntensity(true);
-
-//    // keep the n largest peaks if more than n are present
-//    spectrum.resize(peakcount);
-//  }
-
 protected:
   void preprocessSpectra_(PeakMap& exp)
   {
@@ -396,13 +321,13 @@ protected:
     exp.sortSpectra(false);
 
     // filter settings
-//    WindowMower window_mower_filter;
-//    Param filter_param = window_mower_filter.getParameters();
-//    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-//    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
-//    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
-//    window_mower_filter.setParameters(filter_param);
-//    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+    NLargest nlargest_filter = NLargest(500);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -411,468 +336,12 @@ protected:
     {
 //      // sort by mz
       exp[exp_index].sortByPosition();
-//      nlargest_filter.filterSpectrum(exp[exp_index]);
-//      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      nlargest_filter.filterSpectrum(exp[exp_index]);
 //      // sort (nlargest changes order)
 //      exp[exp_index].sortByPosition();
      }
    }
-
-//  // fast pre-Score for cross-links
-//  // required: numbers of peaks for each chain, and how many of them were matched
-//  float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
-//  {
-//    if ( (ionsAlpha > 0) && (ionsBeta > 0) )
-//    {
-//      float result = sqrt((static_cast<float>(matchedAlpha) / static_cast<float>(ionsAlpha)) * (static_cast<float>(matchedBeta) / static_cast<float>(ionsBeta)));
-//      return result;
-//    } else
-//    {
-//      return 0.0;
-//    }
-//  }
-
-//  // fast pre-Score for mono-links and loop-links
-//  float preScore(Size matchedAlpha, Size ionsAlpha)
-//  {
-//    if (ionsAlpha > 0)
-//    {
-//      float result = static_cast<float>(matchedAlpha) / static_cast<float>(ionsAlpha);
-//      return result;
-//    } else
-//    {
-//      return 0.0;
-//    }
-//  }
-
-//  // Statistics/Combinatorics functions for match-odds score
-//  // Standard cumulative binomial distribution
-//  double cumulativeBinomial(Size n, Size k, double p)
-//  {
-//    double p_cumul = 0.0;
-//    if (p < 1e-99) return static_cast<double>(k == 0); //  (not true/false, but 1/0 as probability)
-//    if (1 - p < 1e-99) return static_cast<double>(k != n); //
-//    if (k > n)  return 1.0;
-
-//    for (Size j = 0; j < k; j++)
-//    {
-//      double coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
-//      p_cumul += coeff * pow(p,  j) * pow((1-p), (n-j));
-//    }
-
-//    // match-odds score becomes INFINITY for p_cumul >= 1, p_cumul might reach 1 because of insufficient precision, solved by using largest value smaller than 1
-//    if (p_cumul >= 1.0)
-//    {
-//      p_cumul = nexttoward(1.0, 0.0);
-//    }
-
-//    return p_cumul;
-//  }
-
-//  // match odds score, spectra must be sorted by position
-//  double match_odds_score(const RichPeakSpectrum& theoretical_spec,  const vector< pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1)
-//  {
-//    // TODO Theoretical spectra for cross-links contain 1. and 2. isotopic peak, is mostly one of them matched making theo_size = 2 * matched_size in the best case?
-//    // how does that skew the statistics?
-//    // should we use theo_size / 2 for cross-links?
-//    // or n_charges * 2?
-//    Size matched_size = matched_spec.size();
-//    Size theo_size = theoretical_spec.size();
-//    double range = theoretical_spec[theo_size-1].getMZ() -  theoretical_spec[0].getMZ();
-
-//    // Compute fragment tolerance for the middle of the range / mean of MZ values, if ppm
-//    // TODO mean should be used, so sum over MZs and devide by number, if ppm
-//    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? (theoretical_spec[theo_size-1].getMZ() + range / 2) * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
-
-//    // A priori probability of a random match given info about the theoretical spectrum
-//    //    double a_priori_p = a_priori_probability(tolerance_Th, theo_size, range, 3);
-//    double a_priori_p = 0;
-
-//    if (is_xlink_spectrum)
-//    {
-//      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (theo_size / n_charges))));
-//    }
-//    else
-//    {
-//      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (theo_size))));
-//    }
-
-//    double match_odds = 0;
-//    match_odds = -log(1 - cumulativeBinomial(theo_size, matched_size, a_priori_p) + 1e-5);
-
-//    // score lower than 0 does not make sense, but can happen if cumBinom = 0, -log( 1 + 1e5 ) < 0
-//    if (match_odds >= 0.0)
-//    {
-//      return match_odds;
-//    }
-//    else
-//    {
-//      return 0;
-//    }
-//  }
-
-//  // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, a constant binsize)
-//  template <typename SpectrumType1, typename SpectrumType2>
-//  vector< double > xCorrelation(const SpectrumType1 & spec1, const SpectrumType2 & spec2, Int maxshift, double tolerance)
-//  {
-//    // generate vector of results, filled with zeroes
-//    vector< double > results(maxshift * 2 + 1, 0);
-
-//    // return 0 = no correlation, either positive nor negative, when one of the spectra is empty (e.g. when no common ions or xlink ions could be matched between light and heavy spectra)
-//    if (spec1.size() == 0 || spec2.size() == 0) {
-//      return results;
-//    }
-
-//    double maxionsize = max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
-//    Int table_size = ceil(maxionsize / tolerance)+1;
-//    vector< double > ion_table1(table_size, 0);
-//    vector< double > ion_table2(table_size, 0);
-
-//    // Build tables of the same size, each bin has the size of the tolerance
-//    for (Size i = 0; i < spec1.size(); ++i)
-//    {
-//      Size pos = static_cast<Size>(ceil(spec1[i].getMZ() / tolerance));
-//      // TODO this line leads to using real intensities
-////      ion_table1[pos] = spec1[i].getIntensity();
-//      // TODO this line leads to using intensities normalized to 10
-//      ion_table1[pos] = 10.0;
-//    }
-//    for (Size i = 0; i < spec2.size(); ++i)
-//    {
-//      Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
-//      // TODO this line leads to using real intensities
-////      ion_table2[pos] = spec2[i].getIntensity();
-//      // TODO this line leads to using intensities normalized to 10
-//      ion_table2[pos] = 10.0;
-//    }
-
-//    // Compute means for real intensities
-//    double mean1 = (accumulate(ion_table1.begin(), ion_table1.end(), 0.0)) / table_size;
-//    double mean2 = (accumulate(ion_table2.begin(), ion_table2.end(), 0.0)) / table_size;
-
-//    // Compute denominator
-//    double s1 = 0;
-//    double s2 = 0;
-//    for (Int i = 0; i < table_size; ++i)
-//    {
-//      s1 += pow((ion_table1[i] - mean1), 2);
-//      s2 += pow((ion_table2[i] - mean2), 2);
-//    }
-//    double denom = sqrt(s1 * s2);
-
-//    // Calculate correlation for each shift
-//    for (Int shift = -maxshift; shift <= maxshift; ++shift)
-//    {
-//      double s = 0;
-//      for (Int i = 0; i < table_size; ++i)
-//      {
-//        Int j = i + shift;
-//        if ( (j >= 0) && (j < table_size))
-//        {
-//          s += (ion_table1[i] - mean1) * (ion_table2[j] - mean2);
-//        }
-//      }
-//      if (denom > 0)
-//      {
-//        results[shift + maxshift] = s / denom;
-//      }
-//    }
-//    return results;
-//  }
-
-//  // weigthed TIC score, using standard max- and mindigestlength, TODO remove digestlength from equation after benchmarking scores against xQuest?
-//  double weighted_TIC_score(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double intsum, double total_current, bool type_is_cross_link)
-//  {
-//    // TODO from xquest.def, but not used in this program aside from this calculation
-//    double maxdigestlength = 50;
-//    double mindigestlength = 5;
-//    if (!type_is_cross_link)
-//    {
-//      beta_size = ( maxdigestlength + mindigestlength ) - alpha_size;
-//      // this should already be the case
-//      intsum_beta = 0;
-//      intsum_alpha = intsum;
-//    }
-
-//    double aatotal = alpha_size + beta_size;
-
-//    // TODO maybe use this alternative version, based only on the lengths of the sequences?
-//    //double invMax = 1 / (min(alpha_size, beta_size) / aatotal);
-//    double invMax = 1 / (mindigestlength / (mindigestlength + maxdigestlength));
-//    double invFrac_alpha = 1 / (alpha_size / aatotal);
-//    double invFrac_beta = 1 / (beta_size / aatotal);
-//    double TIC_weight_alpha = invFrac_alpha / invMax;
-//    double TIC_weight_beta = invFrac_beta / invMax;
-
-//    double wTIC = TIC_weight_alpha * (intsum_alpha / total_current ) + TIC_weight_beta * (intsum_beta / total_current);
-//    return wTIC;
-//  }
-
-//  // Sum of matched ion intesity, for Intsum score and %TIC score
-//  double matched_current_chain(const vector< pair< Size, Size > >& matched_spec_common, const vector< pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
-//  {
-//    double intsum = 0;
-//    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
-//    {
-//      intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
-//    }
-//    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
-//    {
-//      intsum += spectrum_xlink_peaks[matched_spec_xlinks[j].second].getIntensity();
-//    }
-//    return intsum;
-//  }
-
-//  double total_matched_current(const vector< pair< Size, Size > >& matched_spec_common_alpha, const vector< pair< Size, Size > >& matched_spec_common_beta, const vector< pair< Size, Size > >& matched_spec_xlinks_alpha, const vector< pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
-//  {
-//    // make vectors of matched peak indices
-//    double intsum = 0;
-//    vector< Size > indices_common;
-//    vector< Size > indices_xlinks;
-//    for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
-//    {
-//      indices_common.push_back(matched_spec_common_alpha[j].second);
-//    }
-//    for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
-//    {
-//      indices_common.push_back(matched_spec_common_beta[j].second);
-//    }
-//    for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
-//    {
-//      indices_xlinks.push_back(matched_spec_xlinks_alpha[j].second);
-//    }
-//    for (Size j = 0; j < matched_spec_xlinks_beta.size(); ++j)
-//    {
-//      indices_xlinks.push_back(matched_spec_xlinks_beta[j].second);
-//    }
-
-//    // make the indices in the vectors unique
-//    sort(indices_common.begin(), indices_common.end());
-//    sort(indices_xlinks.begin(), indices_xlinks.end());
-//    vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
-//    vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
-//    indices_common.erase(last_unique_common, indices_common.end());
-//    indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
-
-//    // sum over intensities under the unique indices
-//    for (Size j = 0; j < indices_common.size(); ++j)
-//    {
-//      intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
-//    }
-//    for (Size j = 0; j < indices_xlinks.size(); ++j)
-//    {
-//      intsum += spectrum_xlinks_peaks[indices_xlinks[j]].getIntensity();
-//    }
-
-//    return intsum;
-//  }
-
-  struct PreprocessedPairSpectra_
-  {
-    // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra.
-//    PeakMap spectra_light_different; // peaks in light spectrum after common peaks have been removed
-//    PeakMap spectra_heavy_different; // peaks in heavy spectrum after common peaks have been removed
-//    PeakMap spectra_heavy_to_light; // heavy peaks transformed to light ones and after common peaks have been removed
-    PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-    PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
-
-    PreprocessedPairSpectra_(Size size)
-    {
-      for (Size i = 0; i != size; ++i)
-      {
-//        spectra_light_different.addSpectrum(PeakSpectrum());
-//        spectra_heavy_different.addSpectrum(PeakSpectrum());
-//        spectra_heavy_to_light.addSpectrum(PeakSpectrum());
-        spectra_common_peaks.addSpectrum(PeakSpectrum());
-        spectra_xlink_peaks.addSpectrum(PeakSpectrum());
-      }
-    }
-  };
-
-  // create common / shifted peak spectra for all pairs
-  PreprocessedPairSpectra_ preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
-  {
-    PreprocessedPairSpectra_ preprocessed_pair_spectra(spectrum_pairs.size());
-
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-    for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
-    {
-      Size scan_index = spectrum_pairs[pair_index].first;
-      const PeakSpectrum& spectrum_light = spectra[scan_index];
-      Size max_charge_xlink = spectrum_light.getPrecursors()[0].getCharge();
-
-      const Size scan_index_heavy = spectrum_pairs[pair_index].second;
-      const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
-      vector< pair< Size, Size > > matched_fragments_without_shift;
-      //ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
-      //getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
-      getSpectrumIntensityMatching(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
-
-      // different fragments may carry light or heavy cross-linker.
-      PeakSpectrum spectrum_heavy_different;
-      PeakSpectrum spectrum_light_different;
-
-      // TODO: maybe speed this up - can be done in linear time
-      for (Size i = 0; i != spectrum_light.size(); ++i)
-      {
-        bool found = false;
-        for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
-        {
-          if (matched_fragments_without_shift[j].first == i) { found = true; break; }
-        }
-        if (!found)
-        {
-          spectrum_light_different.push_back(spectrum_light[i]);
-        }
-      }
-      for (Size i = 0; i != spectrum_heavy.size(); ++i)
-      {
-        bool found = false;
-        for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
-        {
-          if (matched_fragments_without_shift[j].second == i) { found = true; break; }
-        }
-        if (!found)
-        {
-          spectrum_heavy_different.push_back(spectrum_heavy[i]);
-        }
-      }
-
-      // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
-      // assume different charged MS2 fragments
-      PeakSpectrum spectrum_heavy_to_light;
-      PeakSpectrum xlink_peaks;
-      for (Size charge = 1; charge <= max_charge_xlink; ++charge)
-      {
-        spectrum_heavy_to_light.clear(false);
-        double mass_shift = cross_link_mass_iso_shift / charge;
-        // transform heavy spectrum to light spectrum, collect peaks with the current charge into the spectrum
-        // for (Size i = 0; i != spectrum_heavy_different.size(); ++i)  // in xQuest the whole heavy spec is used
-        for (Size i = 0; i != spectrum_heavy.size(); ++i)
-        {
-          //Peak1D p = spectrum_heavy_different[i];
-          Peak1D p = spectrum_heavy[i];
-          p.setMZ(p.getMZ() - mass_shift);
-          spectrum_heavy_to_light.push_back(p);
-        }
-
-        // align potentially shifted peaks from light MS2 with potentially shifted peaks from heavy (after transformation to resemble the light MS2)
-        // matching fragments are potentially carrying the cross-linker
-        vector< pair< Size, Size > > matched_fragments_with_shift;
-
-        //ms2_aligner_xlinks.getSpectrumAlignment(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light);
-        spectrum_heavy_to_light.sortByPosition();
-        if (spectrum_light_different.size() > 0 && spectrum_heavy_to_light.size() > 0)
-        {
-          //getSpectrumIntensityMatching(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light, 0.3, false, 0.3); // OLD maybe better version
-          getSpectrumIntensityMatching(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, 0.3, false, 0.3); // xQuest Perl does not remove common peaks from xlink search
-
-          for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
-          {
-            //xlink_peaks.push_back(spectrum_light_different[matched_fragments_with_shift[i].first]);
-            xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
-          }
-          // make sure to not include the same peaks more than once with a different charge
-//          for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
-//          {
-//            spectrum_light_different.erase(spectrum_light_different.begin() + matched_fragments_with_shift[i].first);
-//            Size heavy_index = spectrum_heavy_different.findNearest(spectrum_heavy_to_light[matched_fragments_with_shift[i].second].getMZ() + mass_shift);
-//            spectrum_heavy_different.erase(spectrum_heavy_different.begin() + heavy_index);
-//          }
-        }
-      }
-
-
-#ifdef DEBUG_XQUEST
-        LOG_DEBUG << "Common peaks: " << matched_fragments_without_shift.size() << " different peaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
-        LOG_DEBUG << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_different.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
-#endif
-      // generate common peaks spectrum
-      PeakSpectrum common_peaks;
-      for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
-      {
-        common_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
-      }
-#ifdef DEBUG_XQUEST
-        LOG_DEBUG << "Peaks to match: " << common_peaks.size() << endl;
-#endif
-      // TODO make this a tool parameter
-      Size max_peak_number = 100;
-      NLargest nlargest_filter = NLargest(max_peak_number);
-      nlargest_filter.filterSpectrum(common_peaks);
-      nlargest_filter.filterSpectrum(xlink_peaks);
-//      swap(preprocessed_pair_spectra.spectra_light_different[pair_index], spectrum_light_different);
-//      swap(preprocessed_pair_spectra.spectra_heavy_different[pair_index], spectrum_heavy_different);
-//      swap(preprocessed_pair_spectra.spectra_heavy_to_light[pair_index], spectrum_heavy_to_light);
-      swap(preprocessed_pair_spectra.spectra_common_peaks[pair_index], common_peaks);
-      swap(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], xlink_peaks);
-
-      preprocessed_pair_spectra.spectra_common_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
-      preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
-
-//      preprocessed_pair_spectra.spectra_light_different[pair_index].sortByPosition();
-//      preprocessed_pair_spectra.spectra_heavy_different[pair_index].sortByPosition();
-//      preprocessed_pair_spectra.spectra_heavy_to_light[pair_index].sortByPosition();
-      preprocessed_pair_spectra.spectra_common_peaks[pair_index].sortByPosition();
-      preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].sortByPosition();
-
-#ifdef DEBUG_XQUEST
-        LOG_DEBUG << "spectrum_light_different: " << preprocessed_pair_spectra.spectra_light_different[pair_index].size() << endl;
-        LOG_DEBUG << "spectrum_heavy_different: " << preprocessed_pair_spectra.spectra_heavy_different[pair_index].size() << endl;
-        LOG_DEBUG << "spectrum_heavy_to_light alignment: " << preprocessed_pair_spectra.spectra_heavy_to_light[pair_index].size() << endl;
-        LOG_DEBUG << "spctrum_common_peaks: " << preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() << endl;
-        LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
-#endif
-
-    }
-    return preprocessed_pair_spectra;
-  }
-
-//  struct OPENMS_DLLAPI MatchedIonCount
-//  {
-//    // Note: code is optimize for theo_spectrum to contain less peaks than the exp_spectrum
-//    static Size compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<RichPeak1D>& theo_spectrum, const MSSpectrum<Peak1D>& exp_spectrum)
-//    {
-//      Size matches(0), i(0), j(0);
-//      const Size count_exp_spectrum = exp_spectrum.size();
-//      const Size count_theo_spectrum = theo_spectrum.size();
-//      do
-//      {
-//        // advance i until in or right of tolerance window
-//        while (i < count_exp_spectrum && j < count_theo_spectrum)
-//        {
-//          const double tolerance_Th = fragment_mass_tolerance_unit_ppm ? theo_spectrum[j].getMZ() * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
-//          if (exp_spectrum[i].getMZ() < (theo_spectrum[j].getMZ() - tolerance_Th))
-//          {
-//            ++i;
-//          }
-//          else
-//          {
-//            break;
-//          }
-//        }
-
-//        if (i == count_exp_spectrum || j == count_theo_spectrum) return matches;
-
-//        // check if in tolerance window (could also be to the right of it) and count as match
-//        const double tolerance_Th = fragment_mass_tolerance_unit_ppm ? theo_spectrum[j].getMZ() * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
-//        if (exp_spectrum[i].getMZ() < (theo_spectrum[j].getMZ() + tolerance_Th))
-//        {
-//          // matched i and j (can't match again)
-//          ++matches;
-//          ++j;
-//          ++i;
-//        }
-
-//        if (i == count_exp_spectrum || j == count_theo_spectrum) return matches;
-
-//        ++j;
-//      } while (true);
-//      return matches;
-//    }
-//  };
 
   struct OPENMS_DLLAPI HashGrid1D
   {
@@ -952,7 +421,7 @@ protected:
 
   // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
   // At this point the only difference between mono-links and loop-links is the added cross-link mass
-  static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
+  static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
   {
     multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
     Size countA = 0;
@@ -970,9 +439,9 @@ protected:
       // generate mono-links
       for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
       {
-        double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_mono_link[i];
+        double cross_linked_pair_mass = a->second.getMonoWeight() + cross_link_mass_mono_link[i];
         // Make sure it is clear this is a monolink, (is a NULL pointer a good idea?)
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
+        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
       }
 
       // generate loop-links
@@ -998,16 +467,16 @@ protected:
       // If both sides of a homo- or heterobifunctional cross-linker can link to this peptide, generate the loop-link
       if (first_res && second_res)
       {
-        double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_light;
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
+        double cross_linked_pair_mass = a->second.getMonoWeight() + cross_link_mass;
+        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
       }
 
       // Generate cross-link between two peptides
       for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
       {
         // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
-        double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light;
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), &(b->second))));
+        double cross_linked_pair_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass;
+        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), &(b->second))));
       }
     }
 
@@ -1050,7 +519,6 @@ protected:
       {
         return out;
       }
-
 
       // determine charge seeds and extend them
       vector<Int> features(old_spectrum.size(), -1);
@@ -1234,12 +702,6 @@ protected:
           }
         }
       }
-
-//      vector<Precursor> precursors;
-//      Precursor pc;
-//      pc.setMZ(712.0402832);
-//      pc.setCharge(3);
-//      precursors.push_back(pc);
       out.setPrecursors(old_spectrum.getPrecursors());
       out.setRT(old_spectrum.getRT());
       out.sortByPosition();
@@ -1541,7 +1003,7 @@ protected:
       double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
 
       StringList cross_link_names = getStringList_("cross_linker:names");
-      double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
+      double cross_link_mass = getDoubleOption_("cross_linker:mass");
       DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
       String mono_masses;
       for (Size k = 0; k < cross_link_mass_mono_link.size()-1; ++k)
@@ -1566,7 +1028,7 @@ protected:
       }
       aarequired2 += cross_link_residue2[cross_link_residue2.size()-1];
 
-      double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
+      //double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
       String enzyme_name = getStringOption_("peptide:enzyme");
       Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
 
@@ -1574,9 +1036,9 @@ protected:
              "\" author=\"Eugen Netz, Timo Sachsenberg\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
              "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
              "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
-             "\" crosslinkername=\"" << cross_link_names[0] << "\" xlinkermw=\"" << cross_link_mass_light <<
+             "\" crosslinkername=\"" << cross_link_names[0] << "\" xlinkermw=\"" << cross_link_mass <<
              "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
-             "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
+             "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << 0 <<
              "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
              "\" Iontag_charges_for_index=\"1\" missed_cleavages=\"" << missed_cleavages <<
              "\" ntermxlinkable=\"0\" CID_match2ndisotope=\"1" <<
@@ -1591,36 +1053,31 @@ protected:
         if (!top_vector.empty())
         {
           // Spectrum Data, for each spectrum
-          Size scan_index_light = top_vector[0].scan_index_light;
-          Size scan_index_heavy = top_vector[0].scan_index_heavy;
-          const PeakSpectrum& spectrum_light = spectra[scan_index_light];
-          double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
+          Size scan_index = top_vector[0].scan_index_light;
+          //Size scan_index_heavy = top_vector[0].scan_index_heavy;
+          const PeakSpectrum& spectrum = spectra[scan_index];
+          double precursor_charge = spectrum.getPrecursors()[0].getCharge();
 
-          double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
-          double precursor_rt = spectrum_light.getRT();
+          double precursor_mz = spectrum.getPrecursors()[0].getMZ();
+          double precursor_rt = spectrum.getRT();
           double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
 
-          double precursor_mz_heavy = spectra[scan_index_heavy].getPrecursors()[0].getMZ();
-          double precursor_rt_heavy = spectra[scan_index_heavy].getRT();
-
           // print information about new peak to file (starts with <spectrum_search..., ends with </spectrum_search>
-          String spectrum_light_name = base_name + ".light." + scan_index_light;
-          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-//          String spectrum_light_name = String("spectrumlight") + scan_index_light;
-//          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
-          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
-          String rt_scans = String(precursor_rt) + ":" + String(precursor_rt_heavy);
-          String mz_scans = String(precursor_mz) + ":" + String(precursor_mz_heavy);
+          String spectrum_light_name = base_name + ".light." + scan_index;
+          String spectrum_heavy_name = base_name + ".heavy." + scan_index;
+
+          String spectrum_name = spectrum_light_name + "_" + spectrum_heavy_name;
+          String rt_scans = String(precursor_rt) + ":" + String(precursor_rt);
+          String mz_scans = String(precursor_mz) + ":" + String(precursor_mz);
 
           // Mean ion intensity (light spectrum, TODO add heavy spectrum?)
           double mean_intensity= 0;
-          for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum_light.size()); ++j) mean_intensity += spectrum_light[j].getIntensity();
-          for (SignedSize j = 0; j < static_cast<SignedSize>(spectra[scan_index_heavy].size()); ++j) mean_intensity += spectra[scan_index_heavy][j].getIntensity();
-          mean_intensity = mean_intensity / (spectrum_light.size() + spectra[scan_index_heavy].size());
+          for (SignedSize j = 0; j < static_cast<SignedSize>(spectrum.size()); ++j) mean_intensity += spectrum[j].getIntensity();
+          mean_intensity = mean_intensity / spectrum.size();
 
           xml_file << "<spectrum_search spectrum=\"" << spectrum_name << "\" mean_ionintensity=\"" << mean_intensity << "\" ionintensity_stdev=\"" << "TODO" << "\" addedMass=\"" << "TODO" << "\" iontag_ncandidates=\"" << "TODO"
             << "\"  apriori_pmatch_common=\"" << "TODO" << "\" apriori_pmatch_xlink=\"" << "TODO" << "\" ncommonions=\"" << "TODO" << "\" nxlinkions=\"" << "TODO" << "\" mz_precursor=\"" << precursor_mz
-            << "\" scantype=\"" << "light_heavy" << "\" charge_precursor=\"" << precursor_charge << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans << "\" >" << endl;
+            << "\" scantype=\"" << "light" << "\" charge_precursor=\"" << precursor_charge << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans << "\" >" << endl;
 
 
           for (vector< CrossLinkSpectrumMatch>::const_iterator top_csm = top_csms_spectrum->begin(); top_csm != top_csms_spectrum->end(); ++top_csm)
@@ -1713,7 +1170,7 @@ protected:
       return;
     }
 
-    void writeXQuestXMLSpec(String base_name, const PreprocessedPairSpectra_& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+    void writeXQuestXMLSpec(String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
     {
       String spec_xml_filename = base_name + "_matched.spec.xml";
       // XML Header
@@ -1722,36 +1179,32 @@ protected:
       // TODO write actual data
       spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
 
-      for (Size i = 0; i < spectrum_pairs.size(); ++i)
+      for (Size i = 0; i < spectra.size(); ++i)
       {
         if (!all_top_csms[i].empty())
         {
-          Size scan_index_light = spectrum_pairs[i].first;
-          Size scan_index_heavy = spectrum_pairs[i].second;
-          // TODO more correct alternative
-          String spectrum_light_name = base_name + ".light." + scan_index_light;
-          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-//          String spectrum_light_name = String("spectrumlight") + scan_index_light;
-//          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
+          String spectrum_light_name = base_name + ".light." + i;
+          String spectrum_heavy_name = base_name + ".heavy." + i;
+
           String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
           // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
           spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
-          spec_xml_file << TOPPxQuest::getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""));
+          spec_xml_file << TOPPxQuest::getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
           spec_xml_file << "</spectrum>" << endl;
 
           spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
-          spec_xml_file << TOPPxQuest::getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""));
+          spec_xml_file << TOPPxQuest::getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
           spec_xml_file << "</spectrum>" << endl;
 
           String spectrum_common_name = spectrum_name + String("_common.txt");
           spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
-          spec_xml_file << TOPPxQuest::getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+          spec_xml_file << TOPPxQuest::getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
           spec_xml_file << "</spectrum>" << endl;
 
           String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
           spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
-          spec_xml_file <<TOPPxQuest::getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+          spec_xml_file <<TOPPxQuest::getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
           spec_xml_file << "</spectrum>" << endl;
         }
       }
@@ -1802,8 +1255,8 @@ protected:
 
     StringList cross_link_residue1 = getStringList_("cross_linker:residue1");
     StringList cross_link_residue2 = getStringList_("cross_linker:residue2");
-    double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
-    double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
+    double cross_link_mass = getDoubleOption_("cross_linker:mass");
+    //double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
     DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
     StringList cross_link_names = getStringList_("cross_linker:names");
 
@@ -1921,43 +1374,9 @@ protected:
     p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
 
-//    vector< pair<Size, Size> > spectrum_pairs;
-//    {
-//      vector<ProteinIdentification> protein_ids;
-//      // protein identifications (leave as is...)
-//      protein_ids = vector<ProteinIdentification>(1);
-//      protein_ids[0].setDateTime(DateTime::now());
-//      protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-
-//      idmapper.annotate(cfeatures, pseudo_ids, protein_ids, true, true);
-
-//      // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
-//      for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
-//      {
-//        if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
-//        {
-//          for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
-//          {
-//            if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
-//            {
-//              for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)
-//              {
-//                if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
-//                {
-//                  const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
-//                  const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
-//                  spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
-//                }
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
-
     // create common peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
-//    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass_light, cross_link_mass_heavy);
+//    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass, cross_link_mass_heavy);
     //PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
     progresslogger.endProgress();
 
@@ -2010,8 +1429,8 @@ protected:
 
     search_params.setMetaValue("cross_link:residue1", cross_link_residue1);
     search_params.setMetaValue("cross_link:residue2", cross_link_residue2);
-    search_params.setMetaValue("cross_link:mass", cross_link_mass_light);
-    search_params.setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
+    search_params.setMetaValue("cross_link:mass", cross_link_mass);
+    //search_params.setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
     search_params.setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
 
     //protein_ids[0].setMetaValue("modifications:fixed", fixedModNames);
@@ -2224,7 +1643,7 @@ protected:
     if (!ion_index_mode)
     {
       progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-      enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2);
+      enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2);
       progresslogger.endProgress();
       LOG_DEBUG << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
     }
@@ -2279,8 +1698,8 @@ protected:
 
       //Size scan_index = spectrum_pairs[pair_index].first;
       //Size scan_index_heavy = spectrum_pairs[pair_index].second;
-      LOG_DEBUG << "Scan index: " << scan_index << endl;
       const PeakSpectrum& spectrum= spectra[scan_index];
+      LOG_DEBUG << "Scan index: " << scan_index << "\tSpectrum native ID: " << spectrum.getNativeID()  << endl;
       const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
       const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
@@ -2369,8 +1788,8 @@ protected:
             {
               const AASequence* peptide_b = *candidateB;
 
-              double cross_link_mass = peptide_a->getMonoWeight() + peptide_b->getMonoWeight() + cross_link_mass_light; //TODO: find a way to precalculate individual peptide masses
-              double error_Da = abs(cross_link_mass - precursor_mass);
+              double cross_linked_pair_mass = peptide_a->getMonoWeight() + peptide_b->getMonoWeight() + cross_link_mass; //TODO: find a way to precalculate individual peptide masses
+              double error_Da = abs(cross_linked_pair_mass- precursor_mass);
               if (error_Da < precursor_mass_tolerance)
               {
                 candidates.push_back(make_pair(peptide_a, peptide_b));
@@ -2427,7 +1846,7 @@ protected:
 
           // TODO mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
           // Find out which is the case. But it should not happen often enough to slow down the tool significantly.
-          bool is_loop = abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_light)) <= allowed_error;
+          bool is_loop = abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass)) <= allowed_error;
 
           for (Size k = 0; k < seq_first.size()-1; ++k)
           {
@@ -2503,7 +1922,7 @@ protected:
               // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
               if (link_pos_second[y] != -1)
               {
-                cross_link_candidate.cross_linker_mass = cross_link_mass_light;
+                cross_link_candidate.cross_linker_mass = cross_link_mass;
                 cross_link_candidate.cross_linker_name = cross_link_names[0];
                 cross_link_candidates.push_back(cross_link_candidate);
               }
@@ -2538,7 +1957,7 @@ protected:
 
           LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
-//          LOG_DEBUG << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass_light: " <<  cross_link_mass_light <<  endl;
+//          LOG_DEBUG << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass: " <<  cross_link_mass <<  endl;
 
 	  CrossLinkSpectrumMatch csm;
 	  csm.cross_link = cross_link_candidate;
@@ -2755,7 +2174,7 @@ protected:
                 // write fragment annotations
                 LOG_DEBUG << "Start writing annotations" << endl;
                 vector<PeptideHit::FragmentAnnotation> frag_annotations;
-                for (Size k = 0; k < matched_spec_common_alpha.size(); --k)
+                for (Size k = 0; k < matched_spec_common_alpha.size(); ++k)
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("z"));
@@ -2764,7 +2183,7 @@ protected:
                   frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
-                for (Size k = 0; k < matched_spec_common_beta.size(); --k)
+                for (Size k = 0; k < matched_spec_common_beta.size(); ++k)
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("z"));
@@ -2773,7 +2192,7 @@ protected:
                   frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
-                for (Size k = 0; k < matched_spec_xlinks_alpha.size(); --k)
+                for (Size k = 0; k < matched_spec_xlinks_alpha.size(); ++k)
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("z"));
@@ -2782,7 +2201,7 @@ protected:
                   frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
-                for (Size k = 0; k < matched_spec_xlinks_beta.size(); --k)
+                for (Size k = 0; k < matched_spec_xlinks_beta.size(); ++k)
                 {
                   PeptideHit::FragmentAnnotation frag_anno;
                   frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("z"));
@@ -2791,7 +2210,7 @@ protected:
                   frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
                   frag_annotations.push_back(frag_anno);
                 }
-                LOG_DEBUG << "End writing annotations" << endl;
+                LOG_DEBUG << "End writing annotations, size: " << frag_annotations.size() << endl;
                 csm.frag_annotations = frag_annotations;
 
                 all_csms_spectrum.push_back(csm);
@@ -2984,9 +2403,9 @@ protected:
       getStringOption_("in").split(String("/"), input_split_dir);
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
-      //String spec_xml_filename = spec_xml_name + ".spec.xml";
-      //writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra);
-      //writeXQuestXMLSpec(base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
+
+      writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra);
+      writeXQuestXMLSpec(base_name, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 
