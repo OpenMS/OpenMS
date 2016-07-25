@@ -171,7 +171,7 @@ protected:
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
     registerStringOption_("read_method", "<method>", "regular", "Method to read the file", false);
-    String method("regular,indexed,streaming,cached");
+    String method("regular,indexed,indexed_parallel,streaming,cached,cached_parallel");
     setValidStrings_("read_method", ListUtils::create<String>(method));
 
     registerStringOption_("loadData", "<method>", "true", "Whether to actually load and decode the binary data (or whether to skip decoding the binary data)", false);
