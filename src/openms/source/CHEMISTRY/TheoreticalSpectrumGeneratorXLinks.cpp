@@ -284,7 +284,7 @@ namespace OpenMS
         {
           mono_weight += peptideA.getPrefix(i).getMonoWeight(Residue::Internal);
         }
-        for (; i < peptideA.size(); ++i)
+        for (; i < peptideA.size()-1; ++i)
         {
           mono_weight += peptideA[i].getMonoWeight(Residue::Internal);
           double pos(mono_weight);
@@ -315,7 +315,7 @@ namespace OpenMS
         {
           mono_weight += peptideB.getPrefix(i).getMonoWeight(Residue::Internal);
         }
-        for (; i < peptideB.size(); ++i)
+        for (; i < peptideB.size()-1; ++i)
         {
           mono_weight += peptideB[i].getMonoWeight(Residue::Internal);
           double pos(mono_weight);
@@ -387,7 +387,8 @@ namespace OpenMS
           mono_weight += peptideA.getCTerminalResidueModification()->getDiffMonoMass();
         }
         Size i = peptideA.size() - xlink_pos_A - 1;
-        if (i < peptideA.size())
+
+        if (i < peptideA.size()) // should be unnecessary as long as xlink_pos_A is positive
         {
           mono_weight += peptideA.getSuffix(i).getMonoWeight(Residue::Internal);
         }
@@ -405,11 +406,11 @@ namespace OpenMS
             default: break;
           }
           //String ion_type = "alpha|xi";
-          addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type_A);
+          addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type_A);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::NEUTRON_MASS_U / charge;
-            addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type_A);
+            addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type_A);
           }
         }
 
@@ -437,11 +438,11 @@ namespace OpenMS
             default: break;
           }
           //String ion_type = "beta|xi";
-          addPeak_(spec_beta, pos, intensity, res_type, i, charge, ion_type_B);
+          addPeak_(spec_beta, pos, intensity, res_type, i-1, charge, ion_type_B);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::NEUTRON_MASS_U / charge;
-            addPeak_(spec_beta, pos, intensity, res_type, i, charge, ion_type_B);
+            addPeak_(spec_beta, pos, intensity, res_type, i-1, charge, ion_type_B);
           }
         }
       }
@@ -462,7 +463,7 @@ namespace OpenMS
         {
           const AASequence ion = peptideB.getSuffix(i);
           //String ion_type = "beta|xi";
-          addIsotopeCluster_(spec_alpha, ion, peptideA, cross_link.cross_linker_mass, res_type, charge, intensity, ion_type_B);
+          addIsotopeCluster_(spec_beta, ion, peptideA, cross_link.cross_linker_mass, res_type, charge, intensity, ion_type_B);
         }
       }
 
@@ -573,7 +574,7 @@ namespace OpenMS
         {
           mono_weight += peptideA.getPrefix(i).getMonoWeight(Residue::Internal);
         }
-        for (; i < peptideA.size(); ++i)
+        for (; i < peptideA.size() - 1; ++i)
         {
           mono_weight += peptideA[i].getMonoWeight(Residue::Internal);
           double pos(mono_weight);
@@ -642,11 +643,11 @@ namespace OpenMS
             default: break;
           }
           //String ion_type = "alpha|xi";
-          addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type);
+          addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::NEUTRON_MASS_U / charge;
-            addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type);
+            addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type);
           }
         }
       }
@@ -793,7 +794,7 @@ namespace OpenMS
     SignedSize xlink_pos_A;
     SignedSize xlink_pos_B;
 
-    // xlink_pos_A is the lower index of the two, in case of a loop link. Otherwise they are the same
+    // xlink_pos_A is the lower index of the two, in case of a loop link. Otherwise they are the same (here only one chain is fragmented, so both positions always refer to the same peptide)
     if (fragment_alpha_chain)
     {
       peptide = cross_link.alpha;
@@ -823,11 +824,11 @@ namespace OpenMS
     }
 
 
-    if (peptide.empty())
-    {
-      cout << "Warning: Attempt at creating Common Ions Spectrum from empty string!" << endl;
-      return;
-    }
+//    if (peptide.empty())
+//    {
+//      cout << "Warning: Attempt at creating Common Ions Spectrum from empty string!" << endl;
+//      return;
+//    }
 
     Map<double, AASequence> ions;
     Map<double, String> names;
@@ -943,11 +944,11 @@ namespace OpenMS
             case Residue::ZIon: pos = (pos + Residue::getInternalToZIon().getMonoWeight()) / charge; break;
             default: break;
           }
-          addPeak_(spectrum, pos, intensity, res_type, i, charge, ion_type);
+          addPeak_(spectrum, pos, intensity, res_type, i-1, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::NEUTRON_MASS_U / charge;
-            addPeak_(spectrum, pos, intensity, res_type, i, charge, ion_type);
+            addPeak_(spectrum, pos, intensity, res_type, i-1, charge, ion_type);
           }
         }
       }
@@ -1109,7 +1110,7 @@ namespace OpenMS
     p.setIntensity(intensity);
     if (add_metainfo_)
     {
-      String ion_name = "[" + ion_type + "$" + String(residueTypeToIonLetter_(res_type)) + String(ion_index) + "]"; //+ String(charge, '+');
+      String ion_name = "[" + ion_type + "$" + String(residueTypeToIonLetter_(res_type)) + String(ion_index+1) + "]"; //+ String(charge, '+');
       p.setMetaValue("IonName", ion_name);
       p.setMetaValue("z", charge);
     }
