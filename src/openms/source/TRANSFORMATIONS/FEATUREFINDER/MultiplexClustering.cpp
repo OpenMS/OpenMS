@@ -115,6 +115,14 @@ namespace OpenMS
     double rt_min = exp.getMinRT();
     double rt_max = exp.getMaxRT();
     
+    // extend the grid by a small absolute margin
+    double rt_margin = 0.001;
+    double mz_margin = 0.001;
+    mz_min -= mz_margin; 
+    mz_max += mz_margin; 
+    rt_min -= rt_margin; 
+    rt_max += rt_margin; 
+    
     // generate grid spacing
     // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.
     double scaling = 1.0;
