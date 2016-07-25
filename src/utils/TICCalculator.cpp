@@ -42,9 +42,15 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
+#include <numeric>
 
 using namespace OpenMS;
 using namespace std;
@@ -107,6 +113,34 @@ public:
   void consumeChromatogram(ChromatogramType& /* c */) {}
   void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
   void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
+};
+
+class FileAbstraction
+{
+
+public:
+  // constructor
+  FileAbstraction(std::string filename) :
+    filename_(filename)
+  {
+    ifs_.open(filename.c_str(), std::ios::binary);
+  }
+
+  // copy constructor
+  FileAbstraction(const FileAbstraction& source) :
+    filename_(source.filename_),
+    ifs_(source.filename_.c_str())
+  {}
+
+  // access to underlying stream
+  std::ifstream & getStream()
+  {
+    return ifs_;
+  }
+
+private:
+  std::string filename_;
+  std::ifstream ifs_;
 };
 
 class TOPPTICCalculator :
