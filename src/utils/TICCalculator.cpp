@@ -343,7 +343,6 @@ protected:
       CachedmzML cache;
       cache.createMemdumpIndex(in);
       const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
-      // const std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
 
       std::ifstream ifs_;
       ifs_.open(in.c_str(), std::ios::binary);
@@ -364,6 +363,66 @@ protected:
         for (Size j = 0; j < intensity_array->data.size(); j++)
         {
           TIC += intensity_array->data[j];
+        }
+      }
+
+      std::cout << "There are " << spectra_index.size() << " spectra and " << nr_peaks << " peaks in the input file." << std::endl;
+      std::cout << "The total ion current is " << TIC << std::endl;
+      size_t after;
+      SysInfo::getProcessMemoryConsumption(after);
+      std::cout << " Memory consumption after " << after << std::endl;
+    }
+    else if (read_method == "cached_parallel")
+    {
+      std::cout << "Read method: cached parallel" << std::endl;
+
+      // Special handling of cached mzML as input types: 
+      // we expect two paired input files which we should read into exp
+      std::vector<String> split_out;
+      in.split(".cachedMzML", split_out);
+      if (split_out.size() != 2)
+      {
+        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+          "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      String in_meta = split_out[0] + ".mzML";
+
+      MzMLFile f;
+      f.setLogType(log_type_);
+      CachedmzML cacher;
+      cacher.setLogType(log_type_);
+
+      CachedmzML cache;
+      cache.createMemdumpIndex(in);
+      const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
+
+      FileAbstraction filestream(in);
+
+      double TIC = 0.0;
+      long int nr_peaks = 0;
+#ifdef _OPENMP
+#pragma omp parallel for firstprivate(filestream) 
+#endif
+      for (Size i=0; i < spectra_index.size(); ++i)
+      {
+
+        BinaryDataArrayPtr mz_array(new BinaryDataArray);
+        BinaryDataArrayPtr intensity_array(new BinaryDataArray);
+        int ms_level = -1;
+        double rt = -1.0;
+        // we only change the position of the thread-local filestream
+        filestream.getStream().seekg(spectra_index[i]);
+        CachedmzML::readSpectrumFast(mz_array, intensity_array, filestream.getStream(), ms_level, rt);
+
+        double nr_peaks_l = intensity_array->data.size();
+        double TIC_l = std::accumulate(intensity_array->data.begin(), intensity_array->data.end(), 0.0);
+#ifdef _OPENMP
+#pragma omp critical (indexed)
+#endif
+        {
+          TIC += TIC_l;
+          nr_peaks += nr_peaks_l;
         }
       }
 
