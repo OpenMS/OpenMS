@@ -128,7 +128,7 @@ class FileAbstraction
 
 public:
   // constructor
-  FileAbstraction(std::string filename) :
+  explicit FileAbstraction(std::string filename) :
     filename_(filename)
   {
     ifs_.open(filename.c_str(), std::ios::binary);
@@ -294,7 +294,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for firstprivate(map) 
 #endif
-        for (SignedSize i =0; i < map.getNrSpectra(); i++)
+        for (SignedSize i =0; i < (SignedSize)map.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
           double nr_peaks_l = sptr->getIntensityArray()->data.size();
