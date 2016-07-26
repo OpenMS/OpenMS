@@ -148,7 +148,7 @@
 				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
 			</FileFormat>
 			<SpectrumIDFormat> 
- 				<cvParam accession="MS:1000774" cvRef="PSI-MS" name="multiple peak list nativeID format"/>
+ 				<cvParam accession="MS:1001530" cvRef="PSI-MS" name="mzML unique identifier"/>
 			</SpectrumIDFormat> 
 		</SpectraData>
 	</Inputs>
