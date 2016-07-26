@@ -7,25 +7,28 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
     cdef cppclass PScore "OpenMS::PScore":
         PScore(PScore) nogil except + #wrap-ignore
 
-        libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz,
-                                                                 libcpp_vector[ double ] & intensities, 
-                                                                 double mz_window) nogil except +
-
-        libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment[Peak1D, ChromatogramPeak] & peak_map, 
-                                                                  double mz_window) nogil except +
-
-        # libcpp_map[ Size, MSSpectrum[Peak1D] ] calculatePeakLevelSpectra(MSSpectrum[Peak1D] & spec,
-        #                                                                  libcpp_vector[ size_t ] & ranks,
-        #                                                                  Size min_level,
-        #                                                                  Size max_level) nogil except +
-
-        double massCorrectionTerm(double mass) nogil except +
-        double cleavageCorrectionTerm(Size cleavages,
-                                      bool consecutive_cleavage) nogil except +
-
-        double modificationCorrectionTerm(Size modifications) nogil except +
-
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS::PScore":
+
+    libcpp_vector[ size_t ] calculateIntensityRankInMZWindow(libcpp_vector[ double ] & mz,
+                                                             libcpp_vector[ double ] & intensities, 
+                                                             double mz_window) nogil except + # wrap-attach:PScore
+
+    libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment[Peak1D, ChromatogramPeak] & peak_map, 
+                                                              double mz_window) nogil except + # wrap-attach:PScore
+
+    # libcpp_map[ Size, MSSpectrum[Peak1D] ] calculatePeakLevelSpectra(MSSpectrum[Peak1D] & spec,
+    #                                                                  libcpp_vector[ size_t ] & ranks,
+    #                                                                  Size min_level,
+    #                                                                  Size max_level) nogil except +
+
+    double massCorrectionTerm(double mass) nogil except + # wrap-attach:PScore
+
+    double cleavageCorrectionTerm(Size cleavages,
+                                  bool consecutive_cleavage) nogil except + # wrap-attach:PScore
+
+
+    double modificationCorrectionTerm(Size modifications) nogil except + # wrap-attach:PScore
+
 
     double computePScore(double fragment_mass_tolerance, 
                          bool fragment_mass_tolerance_unit_ppm,
