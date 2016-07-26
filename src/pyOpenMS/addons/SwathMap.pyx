@@ -24,19 +24,19 @@ ctypedef _SpectrumAccessQuadMZTransforming * _SpectrumAccessQuadMZTransformingPt
         cdef _SpectrumAccessQuadMZTransforming * ptr_quad = dynamic_cast[ _SpectrumAccessQuadMZTransformingPtr ](_r.get() )
 
         if (ptr_sa != NULL):
-          res_sa = SpectrumAccessOpenMS()
+          res_sa = SpectrumAccessOpenMS(__createUnsafeObject__=True)
           res_sa.inst = dynamic_pointer_cast[_SpectrumAccessOpenMS, _ISpectrumAccess](_r)
           return res_sa
         elif (ptr_inmem != NULL):
-          res_inmem = SpectrumAccessOpenMSInMemory()
+          res_inmem = SpectrumAccessOpenMSInMemory(__createUnsafeObject__=True)
           res_inmem.inst = dynamic_pointer_cast[_SpectrumAccessOpenMSInMemory, _ISpectrumAccess](_r)
           return res_inmem
         elif (ptr_cached != NULL):
-          res_cached = SpectrumAccessOpenMSCached()
+          res_cached = SpectrumAccessOpenMSCached(__createUnsafeObject__=True)
           res_cached.inst = dynamic_pointer_cast[_SpectrumAccessOpenMSCached, _ISpectrumAccess](_r)
           return res_cached
         elif (ptr_quad != NULL):
-          res_quad = SpectrumAccessQuadMZTransforming()
+          res_quad = SpectrumAccessQuadMZTransforming(__createUnsafeObject__=True)
           res_quad.inst = dynamic_pointer_cast[_SpectrumAccessQuadMZTransforming, _ISpectrumAccess](_r)
           return res_quad
         else:
