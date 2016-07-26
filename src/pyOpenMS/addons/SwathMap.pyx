@@ -1,8 +1,7 @@
 cdef extern from *:
     cdef T dynamic_cast[T](void *) except +
 cdef extern from "boost/smart_ptr/shared_ptr.hpp" namespace "boost":
-    # template<class T, class U> shared_ptr<T> static_pointer_cast(shared_ptr<U> const &r);
-    cdef shared_ptr[T] dynamic_pointer_cast[T,U](shared_ptr[U]& r) except + # wrap-ignore
+    cdef shared_ptr[T] dynamic_pointer_cast[T,U](shared_ptr[U]& r) except +
 from SpectrumAccessOpenMS cimport SpectrumAccessOpenMS as _SpectrumAccessOpenMS
 from SpectrumAccessOpenMSCached cimport SpectrumAccessOpenMSCached as _SpectrumAccessOpenMSCached
 from SpectrumAccessOpenMSInMemory cimport SpectrumAccessOpenMSInMemory as _SpectrumAccessOpenMSInMemory
