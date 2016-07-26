@@ -231,15 +231,12 @@ public:
       }
 
       for (Size i = 0; i < chromatograms.size(); i++)
-      { 
+      {
         const OpenSwath::ChromatogramPtr & chromptr = chromatograms[i];
         const ChromatogramExtractor::ExtractionCoordinates & coord = coordinates[i];
 
-        typename TransitionExpT::Peptide pep;
-        typename TransitionExpT::Transition transition;
-        OpenMS::MSChromatogram<> chrom;
-
         // copy data
+        OpenMS::MSChromatogram<> chrom;
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, chromptr);
         chrom.setNativeID(coord.id);
 
@@ -250,14 +247,15 @@ public:
         Precursor prec;
         if (ms1) 
         {
-          pep = transition_exp_used.getPeptideByRef(coord.id); 
           prec.setMZ(coord.mz);
           chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+
+          String r = extract_id_(transition_exp_used, coord.id);
+          prec.setMetaValue("peptide_sequence", r);
         }
         else 
         {
-          transition = (*trans_map[coord.id]);
-          pep = transition_exp_used.getPeptideByRef(transition.getPeptideRef()); 
+          typename TransitionExpT::Transition transition = (*trans_map[coord.id]);
 
           prec.setMZ(transition.getPrecursorMZ());
           if (settings.getPrecursors().size() > 0)
@@ -271,8 +269,18 @@ public:
           prod.setMZ(transition.getProductMZ());
           chrom.setProduct(prod);
           chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+
+          if (!transition.getPeptideRef().empty())
+          {
+            String r = extract_id_(transition_exp_used, transition.getPeptideRef());
+            prec.setMetaValue("peptide_sequence", r);
+          }
+          else
+          {
+            String r = extract_id_(transition_exp_used, transition.getCompoundRef());
+            prec.setMetaValue("peptide_sequence", r);
+          }
         }
-        prec.setMetaValue("peptide_sequence", pep.sequence);
         chrom.setPrecursor(prec);
 
         // Set the rest of the meta-data
@@ -431,6 +439,16 @@ public:
 private:
 
     /**
+     * @brief Extracts id (peptide sequence or compound name) for a compound
+     *
+     * @param transition_exp The transition experiment used as input (is constant)
+     * @param id The identifier of the compound or peptide
+     *
+    */
+    template <typename TransitionExpT>
+    static String extract_id_(TransitionExpT& transition_exp_used, String id);
+
+    /**
      * @brief This populates the chromatograms vector with empty chromatograms
      * (but sets their meta-information)
      *
@@ -463,7 +481,7 @@ private:
           prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
         }
 
-        // 3) set precursor peptide sequence
+        // 3) set precursor peptide sequence / compound id
         String pepref = transition->getPeptideRef();
         for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
         {
@@ -474,6 +492,17 @@ private:
             break;
           }
         }
+        String compref = transition->getCompoundRef();
+        for (Size comp_idx = 0; comp_idx < transition_exp.getCompounds().size(); comp_idx++)
+        {
+          const OpenMS::TargetedExperiment::Compound* comp = &transition_exp.getCompounds()[comp_idx];
+          if (comp->id == compref)
+          {
+            prec.setMetaValue("peptide_sequence", String(comp->id) );
+            break;
+          }
+        }
+
         // add precursor to spectrum
         chrom.setPrecursor(prec);
 
@@ -517,4 +546,4 @@ private:
 
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
