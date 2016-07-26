@@ -4,6 +4,7 @@ from MultiplexDeltaMasses cimport *
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>" namespace "OpenMS":
     
     cdef cppclass MultiplexIsotopicPeakPattern "OpenMS::MultiplexIsotopicPeakPattern":
+
         MultiplexIsotopicPeakPattern(MultiplexIsotopicPeakPattern) nogil except + #wrap-ignore
         MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) nogil except +
 

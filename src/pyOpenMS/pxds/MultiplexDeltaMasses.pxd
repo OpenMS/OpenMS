@@ -1,8 +1,5 @@
 from Types cimport *
-from AASequence cimport *
 from String cimport *
-from DefaultParamHandler cimport *
-from MultiplexDeltaMasses cimport *
 
 # typedef std::multiset<String> LabelSet;
 
@@ -11,19 +8,22 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
     cdef cppclass MultiplexDeltaMasses "OpenMS::MultiplexDeltaMasses":
         MultiplexDeltaMasses() nogil except +
         MultiplexDeltaMasses(MultiplexDeltaMasses) nogil except + #wrap-ignore
-        MultiplexDeltaMasses(libcpp_vector[ DeltaMass ] & dm) nogil except +
-        libcpp_vector[ DeltaMass ]  getDeltaMasses() nogil except +
-        libcpp_vector[ DeltaMass ]  getDeltaMasses() nogil except +
+
+        MultiplexDeltaMasses(libcpp_vector[ MultiplexDeltaMasses_DeltaMass ] & dm) nogil except +
+        libcpp_vector[ MultiplexDeltaMasses_DeltaMass ]  getDeltaMasses() nogil except +
+
         # String labelSetToString(LabelSet ls) nogil except +
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS::MultiplexDeltaMassesGenerator":
+
+cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS::MultiplexDeltaMasses":
     
-    cdef cppclass MultiplexDeltaMassesGenerator_Label "OpenMS::MultiplexDeltaMassesGenerator::Label":
-        MultiplexDeltaMassesGenerator_Label(MultiplexDeltaMassesGenerator_Label) nogil except + #wrap-ignore
-        MultiplexDeltaMassesGenerator_Label(String sn, String ln, String d, double dm) nogil except +
+    cdef cppclass MultiplexDeltaMasses_DeltaMass "OpenMS::MultiplexDeltaMasses::DeltaMass":
 
-        String short_name
-        String long_name
-        String description
+        MultiplexDeltaMasses_DeltaMass(MultiplexDeltaMasses_DeltaMass) nogil except + #wrap-ignore
+        MultiplexDeltaMasses_DeltaMass(double dm, String l) nogil except +
+        # DeltaMass(double dm, LabelSet ls);
+
         double delta_mass
-
+        # LabelSet label_set
+      
+      
