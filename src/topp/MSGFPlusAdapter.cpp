@@ -136,9 +136,6 @@ protected:
   // primary MS run referenced in the mzML file
   StringList primary_ms_run_path_;
   
-  // legacy conversion via tsv instead of mzid
-  bool legacy_conversion_;
-
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
@@ -535,8 +532,6 @@ protected:
     {
       process_params << "-mod" << mod_file.toQString();
     }
-    
-    legacy_conversion_ = getFlag_("legacy_conversion");
 
     //-------------------------------------------------------------
     // execute MS-GF+
@@ -547,7 +542,7 @@ protected:
     int status = QProcess::execute(java_executable.toQString(), process_params);
     if (status != 0)
     {
-      writeLog_("Fatal error: Running MS-GF+ returned an error code. Does the MS-GF+ executable (.jar file) exist?");
+      writeLog_("Fatal error: Running MS-GF+ returned an error code '" + String(status) + "'. Does the MS-GF+ executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -557,7 +552,7 @@ protected:
     
     if (!out.empty())
     {
-      if (legacy_conversion_)
+      if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
         String tsv_out = temp_dir + "msgfplus_converted.tsv";
@@ -577,7 +572,7 @@ protected:
         status = QProcess::execute(java_executable.toQString(), process_params);
         if (status != 0)
         {
-          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code.");
+          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code '" + String(status) + "'.");
           return EXTERNAL_PROGRAM_ERROR;
         }
     

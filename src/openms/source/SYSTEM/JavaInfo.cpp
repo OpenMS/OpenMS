@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -46,58 +46,50 @@ namespace OpenMS
 
   bool JavaInfo::canRun(const String& java_executable, bool verbose_on_error)
   {
-    //
-    // first check the file exists
-    //
-    try
-    {
-      // throws exception if not found
-      File::find(java_executable);
-    }
-    catch (...)
-    {
-      if (verbose_on_error)
-      {
-        LOG_ERROR << "Java-Check:"
-          << "  Java not found at '" << java_executable << "'!\n"
-          << "  Make sure Java is installed and this location is correct.\n";
-        if (QDir::isRelativePath(java_executable.toQString()))
-        {
-          static String path;
-          if (path.empty())
-          {
-            path = getenv("PATH");
-          }
-          LOG_ERROR << "  You might need to add the Java binary to your PATH variable\n"
-                    << "  or use an absolute path+filename pointing to Java.\n" 
-                    << "  The current SYSTEM PATH is: '" << path << "'.\n\n"
-#ifdef __APPLE__
-                    << "  On MacOSX, application bundles change the system PATH; Use an absolute path to Java or open your executable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS)!\n"
-#endif
-                    << std::endl;
-        }
-        else 
-        {
-          LOG_ERROR << "  You gave an absolute path to Java. Please check if it's correct.\n"
-                    << "  You can also try 'java' if your system path is correctly configured.\n"
-                    << std::endl;
-        }
-
-        return false;
-      }
-    }
-    
-    //
-    // then, check if it can be run
-    //
     QProcess qp;
     qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);
     bool success = qp.waitForFinished();
     if (!success && verbose_on_error)
     {
-      LOG_ERROR << "Java-Check:"
-                << "  Java was found at '" << java_executable << "' but cannot be executed or the process timed out (can happen on very busy systems).\n"
-                << "  Please fix permissions or if your system is under heavy load, set the TOPP tools 'force' flag in order to avoid this check." << std::endl;
+        LOG_ERROR << "Java-Check:\n";
+        if (qp.error() == QProcess::Timedout)
+        {
+          LOG_ERROR
+            << "  Java was found at '" << java_executable << "' but the process timed out (can happen on very busy systems).\n"
+            << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check." << std::endl;
+        }
+        else if (qp.error() == QProcess::FailedToStart)
+        {
+          LOG_ERROR
+            << "  Java not found at '" << java_executable << "'!\n"
+            << "  Make sure Java is installed and this location is correct.\n";
+          if (QDir::isRelativePath(java_executable.toQString()))
+          {
+            static String path;
+            if (path.empty())
+            {
+              path = getenv("PATH");
+            }
+            LOG_ERROR << "  You might need to add the Java binary to your PATH variable\n"
+              << "  or use an absolute path+filename pointing to Java.\n" 
+              << "  The current SYSTEM PATH is: '" << path << "'.\n\n"
+  #ifdef __APPLE__
+              << "  On MacOSX, application bundles change the system PATH; Open your executable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS) to preserve the system PATH or use an absolute path to Java!\n"
+  #endif
+              << std::endl;
+          }
+          else 
+          {
+            LOG_ERROR << "  You gave an absolute path to Java. Please check if it's correct.\n"
+              << "  You can also try 'java' if your system path is correctly configured.\n"
+              << std::endl;
+          }
+        }
+        else
+        {
+          LOG_ERROR << "  Error executing '" << java_executable << "'!\n"
+                    << "  Error description: '" << qp.errorString() << "'.\n";
+        }
     }
     return success;
   }
