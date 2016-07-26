@@ -32,6 +32,7 @@
 // $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -392,6 +393,14 @@ namespace OpenMS
       std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids;
       std::map<String, double> pp_identifier_2_thresh;
 
+      // file type-specific definitions needed for SpectraData element:
+      std::map<FileTypes::Type, std::pair<String, String> > formats_map;
+      formats_map[FileTypes::MZML] = make_pair("mzML format", "mzML unique identifier");
+      formats_map[FileTypes::MZXML] = make_pair("ISB mzXML format", "scan number only nativeID format");
+      formats_map[FileTypes::MZDATA] = make_pair("PSI mzData format", "spectrum identifier nativeID format");
+      formats_map[FileTypes::MGF] = make_pair("Mascot MGF format", "multiple peak list nativeID format");
+
+
       //TODO if constructed with a msexperiment - not yet implemented
       //~ if(ms_exp_ == 0)
       //~ {
@@ -415,7 +424,7 @@ namespace OpenMS
       1st: iterate over proteinidentification vector
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
-      {     
+      {
         //~ collect analysissoftware in this loop - does not go into inputelement
         String sof_id;
         String sof_name = String(it->getSearchEngine());
@@ -524,7 +533,7 @@ namespace OpenMS
         String sdat_id;
         StringList sdat_files;
         String sdat_file("UNKNOWN");
-        
+
         if (it->metaValueExists("spectra_data"))
         {
           sdat_files = it->getMetaValue("spectra_data");
@@ -539,12 +548,15 @@ namespace OpenMS
         {
           sdat_id = "SDAT_" + String(UniqueIdGenerator::getUniqueId());
 
+          FileTypes::Type type = FileHandler::getTypeByFileName(sdat_file);
+          if (formats_map.find(type) == formats_map.end()) type = FileTypes::MZML; // default
+
           //xml
           spectra_data += String("\t\t<SpectraData location=\"") + sdat_file + String("\" id=\"") + sdat_id + String("\">");
           spectra_data += String("\n\t\t\t<FileFormat> \n");
-          spectra_data += String(4, '\t') + cv_.getTermByName("mzML format").toXMLString(cv_ns);
+          spectra_data += String(4, '\t') + cv_.getTermByName(formats_map[type].first).toXMLString(cv_ns);
           spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
-          spectra_data += String(4, '\t') + cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
+          spectra_data += String(4, '\t') + cv_.getTermByName(formats_map[type].second).toXMLString(cv_ns);
           spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
 
           sdat_ids.insert(make_pair(sdat_file, sdat_id));
@@ -757,7 +769,7 @@ namespace OpenMS
 
           std::vector<String> pevid_ids;
           if (pit == pep_ids.end())
-          {        
+          {
             std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
             // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
