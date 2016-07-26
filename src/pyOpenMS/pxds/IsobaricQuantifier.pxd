@@ -5,7 +5,7 @@ from IsobaricQuantitationMethod cimport *
 from ItraqFourPlexQuantitationMethod cimport *
 from ItraqEightPlexQuantitationMethod cimport *
 from TMTSixPlexQuantitationMethod cimport *
-from TMTTenPlexQuantitationMethod_test cimport *
+from TMTTenPlexQuantitationMethod cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>" namespace "OpenMS":
     
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>" namespace
         IsobaricQuantifier(ItraqFourPlexQuantitationMethod *quant_method) nogil except +
         IsobaricQuantifier(ItraqEightPlexQuantitationMethod *quant_method) nogil except +
         IsobaricQuantifier(TMTSixPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricQuantifier(TMTTenPlexQuantitationMethod_test *quant_method) nogil except +
+        IsobaricQuantifier(TMTTenPlexQuantitationMethod *quant_method) nogil except +
 
         void quantify(ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_out) nogil except +
 

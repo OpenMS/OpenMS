@@ -29,5 +29,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>" nam
                                                                TMTSixPlexQuantitationMethod * quant_method) nogil except +
         IsobaricQuantifierStatistics correctIsotopicImpurities(ConsensusMap & consensus_map_in,
                                                                ConsensusMap & consensus_map_out,
-                                                               TMTTenPlexQuantitationMethod_test * quant_method) nogil except +
+                                                               TMTTenPlexQuantitationMethod * quant_method) nogil except +
 
