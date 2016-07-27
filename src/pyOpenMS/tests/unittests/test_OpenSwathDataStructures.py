@@ -29,12 +29,12 @@ class TestOpenSwathDataStructures(unittest.TestCase):
         rt_exp = [1,2,3]
         int_exp = [4,5,6]
 
-        chromatogram.setTimeArray(mz_exp)
+        chromatogram.setTimeArray(rt_exp)
         chromatogram.setIntensityArray(int_exp)
         time = chromatogram.getTimeArray()
         intensity = chromatogram.getIntensityArray()
 
-        for m,e in zip(rt, rt_exp):
+        for m,e in zip(time, rt_exp):
             self.assertAlmostEqual(m,e)
 
         for i,e in zip(intensity, int_exp):
