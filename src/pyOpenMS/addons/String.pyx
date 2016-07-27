@@ -1,3 +1,32 @@
+from String cimport String as _String
+cdef class StringPtrWrapper:
+    cdef shared_ptr[_String] wrapped
+    def __dealloc__(self): self.wrapped.reset()
+cdef convString(argument_var):
+    cdef StringPtrWrapper wrapper = StringPtrWrapper()
+    #cdef _String * cs_argument_var
+    cdef char* c_string_argument_var
+    # cdef shared_ptr[_String] res
+    if isinstance(argument_var, String):
+        wrapper.wrapped = (<String>argument_var).inst
+        return wrapper
+    elif isinstance(argument_var, bytes):
+        wrapper.wrapped = shared_ptr[_String](new _String(<char*>argument_var))
+        return wrapper
+    elif isinstance(argument_var, str):
+        py_byte_string = argument_var.encode('UTF-8')
+        c_string_argument_var = py_byte_string
+        # cs_argument_var = new _String((<char *>c_string_argument_var))
+        wrapper.wrapped = shared_ptr[_String](new _String(<char*>c_string_argument_var))
+        return wrapper
+    elif isinstance(argument_var, unicode):
+        py_byte_string = argument_var.encode('UTF-8')
+        c_string_argument_var = py_byte_string
+        #cs_argument_var = new _String((<char *>c_string_argument_var))
+        wrapper.wrapped = shared_ptr[_String](new _String(<char*>c_string_argument_var))
+        return wrapper
+    else:
+        raise Exception("Can only convert the following types to String: pyopenms.String, bytes, str, unicode")
 
 
 
@@ -29,6 +58,12 @@
         self.inst = shared_ptr[_String](new _String((<char *>c_string)))
     
     def __init__(self, *args):
+
+        #cdef shared_ptr[_String] mystr = (<shared_ptr[_String]>convString(*args))
+        cdef StringPtrWrapper mystr = (<StringPtrWrapper>convString(args[0]))
+        cdef shared_ptr[_String] mystr2 = (<StringPtrWrapper>convString(args[0])).wrapped
+
+
         # Note: even though Python 3.x does not know the unicode keyword,
         # Cython does and uses the PyUnicode_Check call. We just need to check
         # for unicode last, this will ensure all Python 3.x call go through the
