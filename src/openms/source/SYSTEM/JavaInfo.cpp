@@ -88,7 +88,7 @@ namespace OpenMS
         else
         {
           LOG_ERROR << "  Error executing '" << java_executable << "'!\n"
-                    << "  Error description: '" << qp.errorString() << "'.\n";
+                    << "  Error description: '" << qp.errorString().toStdString() << "'.\n";
         }
     }
     return success;
