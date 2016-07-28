@@ -700,9 +700,9 @@ protected:
     {
       Size scan_index = spectrum_pairs[pair_index].first;
       const PeakSpectrum& spectrum_light = spectra[scan_index];
+      const Size scan_index_heavy = spectrum_pairs[pair_index].second;
       Size max_charge_xlink = spectrum_light.getPrecursors()[0].getCharge();
 
-      const Size scan_index_heavy = spectrum_pairs[pair_index].second;
       const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
       vector< pair< Size, Size > > matched_fragments_without_shift;
       //ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
@@ -802,20 +802,26 @@ protected:
       NLargest nlargest_filter = NLargest(max_peak_number);
       nlargest_filter.filterSpectrum(common_peaks);
       nlargest_filter.filterSpectrum(xlink_peaks);
+
+#ifdef _OPENMP
+#pragma omp critical (preprocessed_pair_spectra_access)
+#endif
+      {
 //      swap(preprocessed_pair_spectra.spectra_light_different[pair_index], spectrum_light_different);
 //      swap(preprocessed_pair_spectra.spectra_heavy_different[pair_index], spectrum_heavy_different);
 //      swap(preprocessed_pair_spectra.spectra_heavy_to_light[pair_index], spectrum_heavy_to_light);
-      swap(preprocessed_pair_spectra.spectra_common_peaks[pair_index], common_peaks);
-      swap(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], xlink_peaks);
+        swap(preprocessed_pair_spectra.spectra_common_peaks[pair_index], common_peaks);
+        swap(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], xlink_peaks);
 
-      preprocessed_pair_spectra.spectra_common_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
-      preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
+        preprocessed_pair_spectra.spectra_common_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
+        preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
 
 //      preprocessed_pair_spectra.spectra_light_different[pair_index].sortByPosition();
 //      preprocessed_pair_spectra.spectra_heavy_different[pair_index].sortByPosition();
 //      preprocessed_pair_spectra.spectra_heavy_to_light[pair_index].sortByPosition();
-      preprocessed_pair_spectra.spectra_common_peaks[pair_index].sortByPosition();
-      preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].sortByPosition();
+        preprocessed_pair_spectra.spectra_common_peaks[pair_index].sortByPosition();
+        preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].sortByPosition();
+      }
 
 #ifdef DEBUG_XQUEST
         LOG_DEBUG << "spectrum_light_different: " << preprocessed_pair_spectra.spectra_light_different[pair_index].size() << endl;
@@ -949,69 +955,69 @@ protected:
     double bucket_size_;
   };
 
-  // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
-  // At this point the only difference between mono-links and loop-links is the added cross-link mass
-  static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
-  {
-    multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
-    Size countA = 0;
+//  // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
+//  // At this point the only difference between mono-links and loop-links is the added cross-link mass
+//  static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
+//  {
+//    multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
+//    Size countA = 0;
 
-    for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a)
-    {
-      String seq_first = a->second.toUnmodifiedString();
+//    for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a)
+//    {
+//      String seq_first = a->second.toUnmodifiedString();
 
-      countA += 1;
-      if (countA % 50 == 0)
-      {
-        LOG_DEBUG << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
-      }
+//      countA += 1;
+//      if (countA % 50 == 0)
+//      {
+//        LOG_DEBUG << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
+//      }
 
-      // generate mono-links
-      for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
-      {
-        double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_mono_link[i];
-        // Make sure it is clear this is a monolink, (is a NULL pointer a good idea?)
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
-      }
+//      // generate mono-links
+//      for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
+//      {
+//        double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_mono_link[i];
+//        // Make sure it is clear this is a monolink, (is a NULL pointer a good idea?)
+//        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
+//      }
 
-      // generate loop-links
-      bool first_res = false;
-      bool second_res = false;
-      for (Size k = 0; k < seq_first.size()-1; ++k)
-      {
-        for (Size i = 0; i < cross_link_residue1.size(); ++i)
-        {
-          if (seq_first.substr(k, 1) == cross_link_residue1[i])
-          {
-            first_res = true;
-          }
-        }
-        for (Size i = 0; i < cross_link_residue2.size(); ++i)
-        {
-          if (seq_first.substr(k, 1) == cross_link_residue2[i])
-          {
-            second_res = true;
-          }
-        }
-      }
-      // If both sides of a homo- or heterobifunctional cross-linker can link to this peptide, generate the loop-link
-      if (first_res && second_res)
-      {
-        double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_light;
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
-      }
+//      // generate loop-links
+//      bool first_res = false;
+//      bool second_res = false;
+//      for (Size k = 0; k < seq_first.size()-1; ++k)
+//      {
+//        for (Size i = 0; i < cross_link_residue1.size(); ++i)
+//        {
+//          if (seq_first.substr(k, 1) == cross_link_residue1[i])
+//          {
+//            first_res = true;
+//          }
+//        }
+//        for (Size i = 0; i < cross_link_residue2.size(); ++i)
+//        {
+//          if (seq_first.substr(k, 1) == cross_link_residue2[i])
+//          {
+//            second_res = true;
+//          }
+//        }
+//      }
+//      // If both sides of a homo- or heterobifunctional cross-linker can link to this peptide, generate the loop-link
+//      if (first_res && second_res)
+//      {
+//        double cross_link_mass = a->second.getMonoWeight() + cross_link_mass_light;
+//        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), NULL)));
+//      }
 
-      // Generate cross-link between two peptides
-      for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
-      {
-        // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
-        double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light;
-        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), &(b->second))));
-      }
-    }
+//      // Generate cross-link between two peptides
+//      for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
+//      {
+//        // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
+//        double cross_link_mass = a->second.getMonoWeight() + b->second.getMonoWeight() + cross_link_mass_light;
+//        mass_to_candidates.insert(make_pair(cross_link_mass, make_pair<const AASequence*, const AASequence*>(&(a->second), &(b->second))));
+//      }
+//    }
 
-    return mass_to_candidates;
-  }
+//    return mass_to_candidates;
+//  }
 
   // Transform a PeakSpectrum into a RichPeakSpectrum
 //  RichPeakSpectrum makeRichPeakSpectrum(PeakSpectrum spectrum, bool is_common_or_xlink_spectrum)
@@ -2023,15 +2029,15 @@ protected:
 
     vector<PeptideIdentification> peptide_ids;
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for
+//#endif
     // digest and filter database
     for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_db.size()); ++fasta_index)
     {
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
+//#ifdef _OPENMP
+//#pragma omp atomic
+//#endif
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -2061,9 +2067,9 @@ protected:
         if (skip) continue;
 
         bool already_processed = false;
-#ifdef _OPENMP
-#pragma omp critical (processed_peptides_access)
-#endif
+//#ifdef _OPENMP
+//#pragma omp critical (processed_peptides_access)
+//#endif
         {
           if (processed_peptides.find(*cit) != processed_peptides.end())
           {
@@ -2081,9 +2087,9 @@ protected:
           continue;
         }
             
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
+//#ifdef _OPENMP
+//#pragma omp atomic
+//#endif
         ++count_peptides;
 
         vector<AASequence> all_modified_peptides;
@@ -2101,9 +2107,9 @@ protected:
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
 
-#ifdef _OPENMP
-#pragma omp critical (processed_peptides_access)
-#endif
+//#ifdef _OPENMP
+//#pragma omp critical (processed_peptides_access)
+//#endif
           {
             processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
           }
@@ -2120,9 +2126,9 @@ protected:
 
       for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_decoys.size()); ++fasta_index)
       {
-  #ifdef _OPENMP
-  #pragma omp atomic
-  #endif
+//  #ifdef _OPENMP
+//  #pragma omp atomic
+//  #endif
         ++count_proteins;
 
         IF_MASTERTHREAD
@@ -2143,9 +2149,9 @@ protected:
           if (!cit->getString().has('K')) continue;
 
           bool already_processed = false;
-  #ifdef _OPENMP
-  #pragma omp critical (processed_peptides_access)
-  #endif
+//  #ifdef _OPENMP
+//  #pragma omp critical (processed_peptides_access)
+//  #endif
           {
             if (processed_peptides.find(*cit) != processed_peptides.end())
             {
@@ -2163,9 +2169,9 @@ protected:
             continue;
           }
 
-  #ifdef _OPENMP
-  #pragma omp atomic
-  #endif
+//  #ifdef _OPENMP
+//  #pragma omp atomic
+//  #endif
           ++count_peptides;
 
           vector<AASequence> all_modified_peptides;
@@ -2183,9 +2189,9 @@ protected:
           {
             const AASequence& candidate = all_modified_peptides[mod_pep_idx];
 
-  #ifdef _OPENMP
-  #pragma omp critical (processed_peptides_access)
-  #endif
+//  #ifdef _OPENMP
+//  #pragma omp critical (processed_peptides_access)
+//  #endif
             {
               processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
               fasta_db.reserve(fasta_db.size() + fasta_decoys.size());
@@ -2202,6 +2208,24 @@ protected:
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
     TheoreticalSpectrumGeneratorXLinks specGen;
+
+    // Set parameters for cross-link fragmentation
+    Param specGenParams = specGen.getParameters();
+    specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
+    specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
+    specGenParams.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+    specGenParams.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+    specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
+    specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
+    specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    specGenParams.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+    specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    // TODO does nothing yet
+     specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
+    specGen.setParameters(specGenParams);
 
     // TODO constant binsize for HashGrid computation
     double tolerance_binsize = 0.2;
@@ -2223,7 +2247,7 @@ protected:
     if (!ion_index_mode)
     {
       progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-      enumerated_cross_link_masses = enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2);
+      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(processed_peptides, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2);
       progresslogger.endProgress();
       LOG_DEBUG << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
     }
@@ -2266,6 +2290,10 @@ protected:
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     vector< vector< CrossLinkSpectrumMatch > > all_top_csms;
 
+// TODO check if parallel code works fine
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
     for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
     {
 
@@ -2388,12 +2416,16 @@ protected:
           if (precursor_mass_tolerance_unit_ppm) // ppm
           {
             allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
-            low_it = enumerated_cross_link_masses.lower_bound(precursor_mass - allowed_error);
-            up_it = enumerated_cross_link_masses.upper_bound(precursor_mass + allowed_error);
           }
           else // Dalton
           {
             allowed_error = precursor_mass_tolerance;
+          }
+
+#ifdef _OPENMP
+#pragma omp critical (enumerated_cross_link_masses_access)
+#endif
+          {
             low_it = enumerated_cross_link_masses.lower_bound(precursor_mass - allowed_error);
             up_it =  enumerated_cross_link_masses.upper_bound(precursor_mass + allowed_error);
           }
@@ -2527,8 +2559,13 @@ protected:
         vector< CrossLinkSpectrumMatch > all_csms_spectrum;
 
         // TODO variables for benchmarking and testing purposes
-        if (cross_link_candidates.size() > maxMatchCount) maxMatchCount = cross_link_candidates.size();
-        sumMatchCount += cross_link_candidates.size();
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
+        {
+          if (cross_link_candidates.size() > maxMatchCount) maxMatchCount = cross_link_candidates.size();
+          sumMatchCount += cross_link_candidates.size();
+        }
 
         for (Size i = 0; i != cross_link_candidates.size(); ++i)
         {
@@ -2548,23 +2585,6 @@ protected:
 	  RichPeakSpectrum theoretical_spec_xlinks_beta;
 
 	  bool type_is_cross_link = cross_link_candidate.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS;
-
-          Param specGenParams = specGen.getParameters();
-          specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
-          specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
-          specGenParams.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-          specGenParams.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-          specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
-          specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-          specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-          specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-          specGenParams.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
-          specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-          specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-          specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-          // TODO does nothing yet
-          specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
-          specGen.setParameters(specGenParams);
 
           specGen.getCommonIonSpectrum(theoretical_spec_common_alpha, cross_link_candidate, 2, true);
           if (type_is_cross_link)
@@ -2617,6 +2637,10 @@ protected:
              //LOG_DEBUG << "Number of theoretical ions: " << theor_alpha_count << "\t" << theor_beta_count << endl;
              //LOG_DEBUG << "Pre Score: " << pre_score << endl;
              //LOG_DEBUG << "Peptide size: " << a->second.size() << "\t" << b->second.size() << "\t" << "K Pos:" << K_pos_a[i] << "\t" << K_pos_b[i] << endl;
+
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
              if (pre_score > pScoreMax) pScoreMax = pre_score;
 
              // compute intsum score
@@ -2636,6 +2660,9 @@ protected:
               }
               double TIC = intsum / total_current;
 
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
               if (TIC > TICMax) TICMax = TIC;
 
               // TIC_alpha and _beta
@@ -2656,8 +2683,13 @@ protected:
               // compute wTIC
               double wTIC = OpenXQuestScores::weighted_TIC_score(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, intsum, total_current, type_is_cross_link);
 
-              if (wTIC > wTICMax) wTICMax = wTIC;
-              if (intsum > intsumMax) intsumMax = intsum;
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
+              {
+                if (wTIC > wTICMax) wTICMax = wTIC;
+                if (intsum > intsumMax) intsumMax = intsum;
+              }
 
               // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
               Size n_xlink_charges = (precursor_charge - 1) - 2;
@@ -2678,13 +2710,9 @@ protected:
                 match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
               }
 
-              // Debug output, TODO remove if match odds is robust enough
-              if (match_odds == INFINITY)
-              {
-                LOG_DEBUG << "INFINITY Match-odds (bug, should not happen) \n";
-                return UNEXPECTED_RESULT;
-              }
-
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
               if (match_odds > matchOddsMax) matchOddsMax = match_odds;
 
               //Cross-correlation
@@ -2722,8 +2750,13 @@ protected:
 //                LOG_DEBUG << "xCorrelation C: " << xcorrc << endl;
 //                LOG_DEBUG << "Autocorr: " << aucorr << "\t Autocorr_sum: " << aucorr_sum << "\t xcorrx_max: " << xcorrx_max << "\t xcorrc_max: " << xcorrc_max << endl;
 
-                if (xcorrx_max > xcorrxMax) xcorrxMax = xcorrx_max;
-                if (xcorrc_max > xcorrcMax) xcorrcMax = xcorrc_max;
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
+                {
+                  if (xcorrx_max > xcorrxMax) xcorrxMax = xcorrx_max;
+                  if (xcorrc_max > xcorrcMax) xcorrcMax = xcorrc_max;
+                }
 
                 // Compute score from the 4 scores and 4 weights
                 double xcorrx_weight = 2.488;
@@ -2859,7 +2892,15 @@ protected:
                 LOG_DEBUG << "Matched ions common, cross-links " << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha << endl;
               }
             }
-            all_top_csms.push_back(top_csms_spectrum);
+
+            Size all_top_csms_current_index = 0;
+#ifdef _OPENMP
+#pragma omp critical (all_top_csms_access)
+#endif
+            {
+              all_top_csms.push_back(top_csms_spectrum);
+              all_top_csms_current_index = all_top_csms.size()-1;
+            }
 
             // Write PeptideIdentifications and PeptideHits for n top hits
             for (Size i = 0; i < top_csms_spectrum.size(); ++i)
@@ -2975,8 +3016,16 @@ protected:
 
               peptide_id.setHits(phs);
               peptide_id.setScoreType("OpenXQuest:combined score");
+
+#ifdef _OPENMP
+#pragma omp critical (peptides_ids_access)
+#endif
               peptide_ids.push_back(peptide_id);
-              all_top_csms[all_top_csms.size()-1][i].peptide_id_index = peptide_ids.size()-1;
+
+#ifdef _OPENMP
+#pragma omp critical (all_top_csms_access)
+#endif
+              all_top_csms[all_top_csms_current_index][i].peptide_id_index = peptide_ids.size()-1;
             }
 
 

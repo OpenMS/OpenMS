@@ -358,7 +358,6 @@ namespace OpenMS
             // get selected hit
             PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
 
-//              cout << peptide_id_index << " has hits: " << pis[peptide_id_index].getHits().size() << " selected hit: " << peptide_hit_index << " with frament annotations: " << ph.getFragmentAnnotations().size() << endl;
             if (ph.getFragmentAnnotations().empty())
             {
               // if no fragment annotations are stored, create a theoretical spectrum
@@ -433,7 +432,6 @@ namespace OpenMS
               {
                 widget_1D->canvas()->setTextBox(ph.getSequence().toString().toQString());
               }
-              cout << "END OF SPECTRUM" << endl;
 
 
             }
@@ -568,8 +566,6 @@ namespace OpenMS
         } // otherwise an arrow with the correct direction is already assigned
       }
 
-      cout << "Label: " << frag_annotations[i].annotation << "\tmz=" << frag_annotations[i].mz << "\tmass=" <<  (frag_annotations[i].mz * frag_annotations[i].charge) - frag_annotations[i].charge <<
-                    "\t charge: " << frag_annotations[i].charge << "\talpha=" << alpha << "\tci=" << ci << "\tleft=" << left << "\tpos=" << pos << endl;
     }
     alpha_string = "<font style=\"\">" + collapseStringVector(alpha_strings) + "</font>";
     beta_string = collapseStringVector(beta_strings);
