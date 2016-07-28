@@ -74,8 +74,8 @@ namespace OpenMS
     double rt_max = exp_profile.getMaxRT();
     
     // extend the grid by a small absolute margin
-    double mz_margin = 0.001;
-    double rt_margin = 0.001;
+    double mz_margin = pow(10,-15);
+    double rt_margin = pow(10,-15);
     mz_min -= mz_margin; 
     mz_max += mz_margin; 
     rt_min -= rt_margin; 
@@ -124,8 +124,8 @@ namespace OpenMS
     double rt_max = exp.getMaxRT();
     
     // extend the grid by a small absolute margin
-    double mz_margin = 0.001;
-    double rt_margin = 0.001;
+    double mz_margin = pow(10,-15);
+    double rt_margin = pow(10,-15);
     mz_min -= mz_margin; 
     mz_max += mz_margin; 
     rt_min -= rt_margin; 
