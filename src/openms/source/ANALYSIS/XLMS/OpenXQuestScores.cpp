@@ -36,7 +36,7 @@
 #include <boost/math/special_functions/binomial.hpp>
 //#include <numeric>
 
-
+using namespace std;
 
 namespace OpenMS
 {
@@ -287,6 +287,97 @@ namespace OpenMS
     }
 
     return intsum;
+  }
+
+  // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
+  // At this point the only difference between mono-links and loop-links is the added cross-link mass
+  multimap<double, pair<const AASequence*, const AASequence*> > OpenXQuestScores::enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
+  {
+    multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
+    Size countA = 0;
+
+    vector<const StringView*> peptide_SVs;
+    vector<const AASequence*> peptide_AASeqs;
+    // preparing vectors compatible with openmp multi-threading, TODO this should only be a temporary fix (too much overhead?)
+    for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a)
+    {
+      peptide_SVs.push_back(&(a->first));
+      peptide_AASeqs.push_back(&(a->second));
+    }
+
+    //for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a) // old loop version
+
+// Multithreading options: schedule: static, dynamic, guided with chunk size
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
+    for (Size p1 = 0; p1 < peptide_AASeqs.size(); ++p1)
+    {
+      String seq_first = peptide_AASeqs[p1]->toUnmodifiedString();
+
+      countA += 1;
+      if (countA % 500 == 0)
+      {
+        //LOG_DEBUG << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
+        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
+
+      }
+
+      // generate mono-links
+      for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
+      {
+        double cross_linked_pair_mass = peptide_AASeqs[p1]->getMonoWeight() + cross_link_mass_mono_link[i];
+        // Make sure it is clear this is a monolink, (is a NULL pointer a good idea?)
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(peptide_AASeqs[p1], NULL)));
+      }
+
+      // generate loop-links
+      bool first_res = false;
+      bool second_res = false;
+      for (Size k = 0; k < seq_first.size()-1; ++k)
+      {
+        for (Size i = 0; i < cross_link_residue1.size(); ++i)
+        {
+          if (seq_first.substr(k, 1) == cross_link_residue1[i])
+          {
+            first_res = true;
+          }
+        }
+        for (Size i = 0; i < cross_link_residue2.size(); ++i)
+        {
+          if (seq_first.substr(k, 1) == cross_link_residue2[i])
+          {
+            second_res = true;
+          }
+        }
+      }
+      // If both sides of a homo- or heterobifunctional cross-linker can link to this peptide, generate the loop-link
+      if (first_res && second_res)
+      {
+        double cross_linked_pair_mass = peptide_AASeqs[p1]->getMonoWeight() + cross_link_mass;
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(peptide_AASeqs[p1], NULL)));
+      }
+
+      // Generate cross-link between two peptides
+      //for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
+      for (Size p2 = p1; p2 < peptide_AASeqs.size(); ++p2)
+      {
+        // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
+        double cross_linked_pair_mass = peptide_AASeqs[p1]->getMonoWeight() + peptide_AASeqs[p2]->getMonoWeight() + cross_link_mass;
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(peptide_AASeqs[p1], peptide_AASeqs[p2])));
+      }
+    }
+
+    return mass_to_candidates;
   }
 
 }
