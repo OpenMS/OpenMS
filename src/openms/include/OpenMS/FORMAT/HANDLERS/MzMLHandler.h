@@ -2097,7 +2097,7 @@ protected:
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
-            spec_.getPrecursor().getActivationMethods().insert(Precursor::TRAP);
+            spec_.getPrecursors().getActivationMethods().insert(Precursor::TRAP);
           }
           else if (accession == "MS:1002481") //high-energy collision-induced dissociation
           {
