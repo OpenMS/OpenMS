@@ -401,9 +401,8 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for firstprivate(filestream) 
 #endif
-      for (Size i=0; i < spectra_index.size(); ++i)
+      for (SignedSize i=0; i < (SignedSize)spectra_index.size(); ++i)
       {
-
         BinaryDataArrayPtr mz_array(new BinaryDataArray);
         BinaryDataArrayPtr intensity_array(new BinaryDataArray);
         int ms_level = -1;
