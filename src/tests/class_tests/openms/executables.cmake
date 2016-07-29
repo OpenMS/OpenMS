@@ -56,11 +56,6 @@ set(datastructures_executables_list
   StringListUtils_test
   StringUtils_test
   String_test
-  SuffixArrayPeptideFinder_test
-  SuffixArraySeqan_test
-  SuffixArrayTrypticCompressed_test
-  SuffixArrayTrypticSeqan_test
-  SuffixArray_test
   #ToolDescription_test
 )
 
@@ -353,8 +348,6 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
-  EdwardsLippertIteratorTryptic_test
-  EdwardsLippertIterator_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
