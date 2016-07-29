@@ -89,18 +89,22 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:
-      CID,                      #< Collision-induced dissociation
-      PSD,                      #< Post-source decay
-      PD,                       #< Plasma desorption
-      SID,                      #< Surface-induced dissociation
-      BIRD,                             #< Blackbody infrared radiative dissociation
-      ECD,                              #< Electron capture dissociation
-      IMD,                              #< Infrared multiphoton dissociation
-      SORI,                             #< Sustained off-resonance irradiation
-      HCID,                             #< High-energy collision-induced dissociation
-      LCID,                             #< Low-energy collision-induced dissociation
-      PHD,                              #< Photodissociation
-      ETD,                              #< Electron transfer dissociation
-      PQD,                              #< Pulsed q dissociation
+      CID,                      # Collision-induced dissociation
+      PSD,                      # Post-source decay
+      PD,                       # Plasma desorption
+      SID,                      # Surface-induced dissociation
+      BIRD,                     # Blackbody infrared radiative dissociation
+      ECD,                      # Electron capture dissociation
+      IMD,                      # Infrared multiphoton dissociation
+      SORI,                     # Sustained off-resonance irradiation
+      HCID,                     # High-energy collision-induced dissociation
+      LCID,                     # Low-energy collision-induced dissociation
+      PHD,                      # Photodissociation
+      ETD,                      # Electron transfer dissociation
+      PQD,                      # Pulsed q dissociation
+      TRAP,                     # trap-type collision-induced dissociation (MS:1002472)
+      BEAM,                     # beam-type collision-induced dissociation (MS:1000422) "HCD"
+      INSOURCE,                 # in-source collision-induced dissociation (MS:1001880)
+      LIFT,                     # Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
 
