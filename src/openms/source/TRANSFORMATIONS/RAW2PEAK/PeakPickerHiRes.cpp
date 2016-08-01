@@ -28,6 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
+// $Author: Erhan Kenar $
 // $Maintainer: Erhan Kenar$
 // --------------------------------------------------------------------------
 //
@@ -60,6 +61,9 @@ namespace OpenMS
     defaults_.setValue("ms_levels", ListUtils::create<Int>("1,2"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
     defaults_.setMinInt("ms_levels", 1);
 
+    defaults_.setValue("report_FWHM", "false", "Add metadata for FWHM [ppm] (as floatDataArray named 'FWHM_ppm') for each picked peak.");
+    defaults_.setValidStrings("report_FWHM", ListUtils::create<String>("true,false"));
+
     // parameters for SNT estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
 
@@ -82,6 +86,7 @@ namespace OpenMS
     missing_ = param_.getValue("missing");
 
     ms_levels_ = getParameters().getValue("ms_levels");
+    report_FWHM_ = getParameters().getValue("report_FWHM").toBool();
   }
 
 }

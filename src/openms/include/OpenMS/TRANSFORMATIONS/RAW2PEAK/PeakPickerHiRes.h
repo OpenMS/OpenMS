@@ -28,6 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
+// $Author: Erhan Kenar $
 // $Maintainer: Erhan Kenar $
 // --------------------------------------------------------------------------
 
@@ -126,7 +127,12 @@ public:
       output.setMSLevel(input.getMSLevel());
       output.setName(input.getName());
       output.setType(SpectrumSettings::PEAKS);
-
+      if (report_FWHM_)
+      {
+        output.getFloatDataArrays().resize(1);
+        output.getFloatDataArrays()[0].setName("FWHM_ppm");
+      }
+      
       // don't pick a spectrum with less than 5 data points
       if (input.size() < 5) return;
 
@@ -301,8 +307,8 @@ public:
             ++k;
           }
 
-          //skip if the minimal number of 3 points for fitting is not reached
-          if (peak_raw_data.size() < 4) continue;
+          // skip if the minimal number of 3 points for fitting is not reached
+          if (peak_raw_data.size() < 3) continue;
 
           CubicSpline2d peak_spline (peak_raw_data);
 
@@ -342,9 +348,61 @@ public:
           }
           while (righthand - lefthand > threshold);
 
-          // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval(max_peak_mz);
+
+          //
+          // compute FWHM
+          //
+          if (report_FWHM_)
+          {
+            double fwhm_int = max_peak_int / 2.0;
+            threshold = 0.01 * fwhm_int;
+            double mz_mid, int_mid; 
+            // left:
+            double mz_left = peak_raw_data.begin()->first;
+            double mz_center = max_peak_mz;
+            if (peak_spline.eval(mz_left) > fwhm_int)
+            { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
+              mz_mid = mz_left;
+            } else
+            {
+              do 
+              {
+                mz_mid = (mz_left + mz_center) / 2;
+                int_mid = peak_spline.eval(mz_mid);
+                if (int_mid < fwhm_int) {
+                  mz_left = mz_mid;
+                } else {
+                  mz_center = mz_mid;
+                }
+              } while(abs(int_mid - fwhm_int) > threshold);
+            }
+            const double fwhm_left_mz = mz_mid;
+
+            // right ...
+            double mz_right = peak_raw_data.rbegin()->first;
+            mz_center = max_peak_mz;
+            if (peak_spline.eval(mz_right) > fwhm_int)
+            { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
+              mz_mid = mz_right;
+            } else
+              {
+              do 
+              {
+                mz_mid = (mz_right + mz_center) / 2;
+                int_mid = peak_spline.eval(mz_mid);
+                if (int_mid < fwhm_int) {
+                  mz_right = mz_mid;
+                } else {
+                  mz_center = mz_mid;
+                }
+
+              } while(abs(int_mid - fwhm_int) > threshold);
+            }
+            const double fwhm_right_mz = mz_mid;
+            output.getFloatDataArrays()[0].push_back((fwhm_right_mz - fwhm_left_mz) / max_peak_mz * 1e6);
+          } // FWHM
 
           // save picked peak into output spectrum
           PeakType peak;
@@ -354,6 +412,7 @@ public:
           peak_boundary.mz_min = input[left_boundary].getMZ();
           peak_boundary.mz_max = input[right_boundary].getMZ();
           output.push_back(peak);
+          
           boundaries.push_back(peak_boundary);
 
           // jump over raw data points that have been considered already
@@ -570,6 +629,9 @@ protected:
 
     // MS levels to which peak picking is applied
     std::vector<Int> ms_levels_;
+
+    /// add floatDataArray 'FWHM_ppm' to spectra with peak FWHM
+    bool report_FWHM_;
 
     // docu in base class
     void updateMembers_();

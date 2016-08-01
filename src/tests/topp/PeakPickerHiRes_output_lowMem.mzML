@@ -76,7 +76,7 @@
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
-	<dataProcessingList count="3">
+	<dataProcessingList count="2">
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000543" name="data processing action" />
@@ -122,12 +122,6 @@
 			</processingMethod>
 		</dataProcessing>
 		<dataProcessing id="dp_sp_0_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_4_bi_0">
 			<processingMethod order="0" softwareRef="so_default">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
 				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
@@ -340,13 +334,13 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=12663">8925</offset>
-		<offset idRef="scan=12664">16312</offset>
-		<offset idRef="scan=12665">25678</offset>
-		<offset idRef="scan=12666">42894</offset>
-		<offset idRef="scan=12667">53978</offset>
+		<offset idRef="scan=12663">8589</offset>
+		<offset idRef="scan=12664">15976</offset>
+		<offset idRef="scan=12665">25342</offset>
+		<offset idRef="scan=12666">42558</offset>
+		<offset idRef="scan=12667">53642</offset>
 	</index>
 </indexList>
-<indexListOffset>62359</indexListOffset>
+<indexListOffset>62023</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
