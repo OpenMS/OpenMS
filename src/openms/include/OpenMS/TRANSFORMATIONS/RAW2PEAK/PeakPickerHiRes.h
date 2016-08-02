@@ -369,14 +369,14 @@ public:
             {
               do 
               {
-                mz_mid = (mz_left + mz_center) / 2;
+                mz_mid = mz_left / 2 + mz_center / 2;
                 int_mid = peak_spline.eval(mz_mid);
                 if (int_mid < fwhm_int) {
                   mz_left = mz_mid;
                 } else {
                   mz_center = mz_mid;
                 }
-              } while(abs(int_mid - fwhm_int) > threshold);
+              } while(fabs(int_mid - fwhm_int) > threshold);
             }
             const double fwhm_left_mz = mz_mid;
 
@@ -390,7 +390,7 @@ public:
               {
               do 
               {
-                mz_mid = (mz_right + mz_center) / 2;
+                mz_mid = mz_right / 2 + mz_center / 2;
                 int_mid = peak_spline.eval(mz_mid);
                 if (int_mid < fwhm_int) {
                   mz_right = mz_mid;
@@ -398,10 +398,10 @@ public:
                   mz_center = mz_mid;
                 }
 
-              } while(abs(int_mid - fwhm_int) > threshold);
+              } while(fabs(int_mid - fwhm_int) > threshold);
             }
             const double fwhm_right_mz = mz_mid;
-            output.getFloatDataArrays()[0].push_back((fwhm_right_mz - fwhm_left_mz) / max_peak_mz * 1e6);
+            output.getFloatDataArrays()[0].push_back((fwhm_right_mz / max_peak_mz - fwhm_left_mz / max_peak_mz)  * 1e6);
           } // FWHM
 
           // save picked peak into output spectrum
