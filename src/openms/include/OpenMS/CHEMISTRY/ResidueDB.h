@@ -49,14 +49,14 @@ namespace OpenMS
 
   /** @ingroup Chemistry
 
-          @brief residue data base which holds residues
+      @brief residue data base which holds residues
 
-          The residues stored in this DB are defined in a
-          XML file under data/CHEMISTRY/residues.xml
+      The residues stored in this DB are defined in a
+      XML file under data/CHEMISTRY/residues.xml
 
-          By default no modified residues are stored in an instance. However, if one
-          queries the instance with getModifiedResidue, a new modified residue is
-          added.
+      By default no modified residues are stored in an instance. However, if one
+      queries the instance with getModifiedResidue, a new modified residue is
+      added.
   */
   class OPENMS_DLLAPI ResidueDB
   {
@@ -65,14 +65,14 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<Residue *>::iterator ResidueIterator;
-    typedef std::set<const Residue *>::const_iterator ResidueConstIterator;
+    typedef std::set<Residue*>::iterator ResidueIterator;
+    typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
     //@}
 
     /// this member function serves as a replacement of the constructor
-    inline static ResidueDB * getInstance()
+    inline static ResidueDB* getInstance()
     {
-      static ResidueDB * db_ = 0;
+      static ResidueDB* db_ = 0;
       if (db_ == 0)
       {
         db_ = new ResidueDB;
@@ -96,53 +96,65 @@ public:
     Size getNumberOfModifiedResidues() const;
 
     /// returns a pointer to the residue with name, 3 letter code or 1 letter code name
-    const Residue * getResidue(const String & name) const;
+    const Residue* getResidue(const String& name) const;
 
     /// returns a pointer to the residue with 1 letter code name
-    const Residue * getResidue(const unsigned char & one_letter_code) const;
+    const Residue* getResidue(const unsigned char& one_letter_code) const;
 
-    ///
-    const Residue * getModifiedResidue(const String & name);
+    /**
+       @brief Returns a pointer to a modified residue given a modification name
 
-    ///
-    const Residue * getModifiedResidue(const Residue * residue, const String & name);
-
-    /** @brief returns a set of all residues stored in this residue db
-
-            The possible residues are defined in share/OpenMS/CHEMISTRY/Residues.xml. At
-            the moment the following sets are available:
-                All - all residues stored in the file
-                Natural20 - default 20 naturally occurring residues
-                Natural19WithoutI - default natural amino acids, excluding isoleucine (isobaric to leucine)
-                Natural19WithoutL - default natural amino acids, excluding leucine (isobaric to isoleucine)
-                Natural19J - default natural amino acids,  (isobaric leucine/isoleucine are marked by 'J')
-                AmbiguousWithoutX -  all amino acids, including ambiguous ones
-                                 B (asparagine or aspartate)
-                                                         Z (glutamine or glutamate)
-                                                         J (isoleucine or leucine)
-                Ambiguous - all amino acids including all ambiguous ones (X can be every other amino acid)
-                AllNatural - naturally occurring residues, including selenocysteine (U)
+       The "base" residue is looked up in ModificationsDB using the modification name.
+       The modified residue is added to the database if it doesn't exist yet.
     */
-    const std::set<const Residue *> getResidues(const String & residue_set = "All") const;
+    const Residue* getModifiedResidue(const String& name);
+
+    /**
+       @brief Returns a pointer to a modified residue given a residue and a modification name
+
+       The modified residue is added to the database if it doesn't exist yet.
+
+       @throw Exception::IllegalArgument if the residue was not found
+       @throw Exception::InvalidValue if no matching modification was found (via ModificationsDB::getModification)
+    */
+    const Residue* getModifiedResidue(const Residue* residue, const String& name);
+
+    /**
+       @brief returns a set of all residues stored in this residue db
+
+       The possible residues are defined in share/OpenMS/CHEMISTRY/Residues.xml.
+       At the moment the following sets are available:
+       All - all residues stored in the file
+       Natural20 - default 20 naturally occurring residues
+       Natural19WithoutI - default natural amino acids, excluding isoleucine (isobaric to leucine)
+       Natural19WithoutL - default natural amino acids, excluding leucine (isobaric to isoleucine)
+       Natural19J - default natural amino acids,  (isobaric leucine/isoleucine are marked by 'J')
+       AmbiguousWithoutX - all amino acids, including ambiguous ones: B (asparagine or aspartate), Z (glutamine or glutamate), J (isoleucine or leucine)
+       Ambiguous - all amino acids including all ambiguous ones (X can be every other amino acid)
+       AllNatural - naturally occurring residues, including selenocysteine (U)
+
+       @throw Exception::ElementNotFound if the specified residue set is not defined
+    */
+    const std::set<const Residue*> getResidues(const String& residue_set = "All") const;
 
     /// returns all residue sets that are registered which this instance
-    const std::set<String> & getResidueSets() const;
+    const std::set<String>& getResidueSets() const;
 
     /// sets the residues from given file
-    void setResidues(const String & filename);
+    void setResidues(const String& filename);
 
     /// adds a residue, i.e. a unknown residue, where only the weight is known
-    void addResidue(const Residue & residue);
+    void addResidue(const Residue& residue);
     //@}
 
     /** @name Predicates
     */
     //@{
     /// returns true if the db contains a residue with the given name
-    bool hasResidue(const String & name) const;
+    bool hasResidue(const String& name) const;
 
     /// returns true if the db contains the residue of the given pointer
-    bool hasResidue(const Residue * residue) const;
+    bool hasResidue(const Residue* residue) const;
     //@}
 
     /** @name Iterators
@@ -166,21 +178,25 @@ protected:
     ResidueDB();
 
     ///copy constructor
-    ResidueDB(const ResidueDB & residue_db);
+    ResidueDB(const ResidueDB& residue_db);
     //@}
 
     /** @name Assignment
 */
     //@{
     /// assignment operator
-    ResidueDB & operator=(const ResidueDB & aa);
+    ResidueDB& operator=(const ResidueDB& aa);
     //@}
 
-    /// reads residues from the given file
-    void readResiduesFromFile_(const String & filename);
+    /**
+       @brief reads residues from the given file
+
+       @throw Exception::ParseError if the file cannot be parsed
+    */
+    void readResiduesFromFile_(const String& filename);
 
     /// parses a residue, given the key/value pairs from i.e. an XML file
-    Residue * parseResidue_(Map<String, String> & values);
+    Residue* parseResidue_(Map<String, String>& values);
 
     /// deletes all sub-instances of the stored data like modifications and residues
     void clear_();
@@ -191,24 +207,24 @@ protected:
     /// builds an index of residue names for fast access, synonyms are also considered
     void buildResidueNames_();
 
-    void addResidue_(Residue * residue);
+    void addResidue_(Residue* residue);
 
-    boost::unordered_map<String, Residue *> residue_names_;
+    boost::unordered_map<String, Residue*> residue_names_;
 
     // fast lookup table for residues
-    Residue * residue_by_one_letter_code_[256];
+    Residue* residue_by_one_letter_code_[256];
 
-    Map<String, Map<String, Residue *> > residue_mod_names_;
+    Map<String, Map<String, Residue*> > residue_mod_names_;
 
-    std::set<Residue *> residues_;
+    std::set<Residue*> residues_;
 
-    std::set<const Residue *> const_residues_;
+    std::set<const Residue*> const_residues_;
 
-    std::set<Residue *> modified_residues_;
+    std::set<Residue*> modified_residues_;
 
-    std::set<const Residue *> const_modified_residues_;
+    std::set<const Residue*> const_modified_residues_;
 
-    Map<String, std::set<const Residue *> > residues_by_set_;
+    Map<String, std::set<const Residue*> > residues_by_set_;
 
     std::set<String> residue_sets_;
   };
