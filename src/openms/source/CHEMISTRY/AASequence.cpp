@@ -765,22 +765,23 @@ namespace OpenMS
                             mod, ResidueModification::N_TERM));
       return mod_end;
     }
-    if (std::distance(mod_end, str.end()) == 1) // end of peptide -> C-terminal mod.?
+    try
     {
-      try
+      aas.peptide_.back() = ResidueDB::getInstance()->
+        getModifiedResidue(aas.peptide_.back(), mod);
+    }
+    catch (Exception::InvalidValue) // no such mod for this residue
+    {
+      if (std::distance(mod_end, str.end()) == 1) // C-terminal mod.?
       {
+        // this might throw ElementNotFound, but so be it:
         const ResidueModification* term_mod =
           &(mod_db->getTerminalModification(mod, ResidueModification::C_TERM));
         aas.c_term_mod_ = term_mod;
-        return mod_end;
       }
-      catch (Exception::ElementNotFound& /* e */)
-      { // just do nothing, the mod is presumably a non-terminal one
-      }
+      else throw; // re-throw the InvalidValue
     }
-    aas.peptide_.back() = ResidueDB::getInstance()->
-      getModifiedResidue(aas.peptide_.back(), mod);
-    // @TODO: if mod isn't found, "InvalidValue" is raised - catch it here?
+
     return mod_end;
   }
 

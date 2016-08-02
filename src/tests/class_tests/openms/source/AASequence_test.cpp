@@ -165,6 +165,12 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
 
   TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
+
+  // prefer residue mod. over C-term mod.:
+  AASequence seq19 = AASequence::fromString("PEPM(Oxidation)");
+  TEST_EQUAL(seq19.hasCTerminalModification(), false);
+  TEST_EQUAL(seq19.isModified(3), true);
+  TEST_STRING_EQUAL(seq19[3].getModification(), "Oxidation");
 }
 END_SECTION
 
@@ -246,7 +252,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   EmpiricalFormula ala_a_neutral = EmpiricalFormula("H")+ala_res-EmpiricalFormula("CHO");
   TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::AIon, 1), ala_a_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
   //44.04947
-  
+
   EmpiricalFormula ala_b_neutral = EmpiricalFormula("H")+ala_res-EmpiricalFormula("H");
   TEST_REAL_SIMILAR(AASequence::fromString("A").getMonoWeight(Residue::BIon, 1), ala_b_neutral.getMonoWeight()+Constants::PROTON_MASS_U);
   //72.04439
