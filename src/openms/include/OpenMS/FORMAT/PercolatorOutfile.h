@@ -44,7 +44,7 @@
 
 namespace OpenMS
 {
-  
+
   /**
      @brief Class for reading Percolator tab-delimited output files.
 
@@ -54,7 +54,7 @@ namespace OpenMS
   {
 
   public:
-    
+
     /// Types of Percolator scores
     enum ScoreType { QVALUE, POSTERRPROB, SCORE, SIZE_OF_SCORETYPE };
 
@@ -63,7 +63,7 @@ namespace OpenMS
 
     /// Return a score type given its name
     static enum ScoreType getScoreType(String score_type_name);
-    
+
     /// Constructor
     PercolatorOutfile();
 
@@ -76,7 +76,7 @@ namespace OpenMS
   private:
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
-    
+
   };
 
 } // namespace OpenMS
