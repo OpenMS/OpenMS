@@ -50,11 +50,11 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace() :
+    fwhm_mz_avg(0),
     trace_peaks_(),
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
-    fwhm_mz_avg(0),
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
@@ -65,11 +65,11 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace(const std::list<PeakType>& trace_peaks) :
+    fwhm_mz_avg(0),
     trace_peaks_(),
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
-    fwhm_mz_avg(0),
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
@@ -82,11 +82,11 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks) :
+    fwhm_mz_avg(0),
     trace_peaks_(trace_peaks),
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
-    fwhm_mz_avg(0),
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
@@ -101,11 +101,11 @@ namespace OpenMS
   }
 
   MassTrace::MassTrace(const MassTrace& mt) :
+    fwhm_mz_avg(mt.fwhm_mz_avg),
     trace_peaks_(mt.trace_peaks_),
     centroid_mz_(mt.centroid_mz_),
     centroid_sd_(mt.centroid_sd_),
     centroid_rt_(mt.centroid_rt_),
-    fwhm_mz_avg(mt.fwhm_mz_avg),
     label_(mt.label_),
     smoothed_intensities_(mt.smoothed_intensities_),
     fwhm_(mt.fwhm_),
@@ -120,11 +120,11 @@ namespace OpenMS
     if (this == &rhs)
       return *this;
 
+    fwhm_mz_avg = rhs.fwhm_mz_avg;
     trace_peaks_ = rhs.trace_peaks_;
     centroid_mz_ = rhs.centroid_mz_;
     centroid_rt_ = rhs.centroid_rt_;
     centroid_sd_ = rhs.centroid_sd_;
-    fwhm_mz_avg = rhs.fwhm_mz_avg;
     label_ = rhs.label_;
     smoothed_intensities_ = rhs.smoothed_intensities_;
     fwhm_ = rhs.fwhm_;
