@@ -15,7 +15,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@
 #cmakedefine OPENMS_COMPILER_GXX
 
 // __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
-#if defined(OPENMS_COMPILER_GXX) && ! defined(__PRETTY_FUNCTION__) 
+#if ! defined(OPENMS_COMPILER_GXX) && ! defined(__PRETTY_FUNCTION__) 
 #define __PRETTY_FUNCTION__ "<unknown>"
 #endif
 
@@ -119,6 +119,8 @@
 
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
+
+#cmakedefine ENABLE_USAGE_STATISTICS
 
 // is libc++ or has stream bug
 #cmakedefine OPENMS_HAS_STREAM_EXTRACTION_BUG

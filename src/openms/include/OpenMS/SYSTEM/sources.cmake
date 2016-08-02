@@ -4,6 +4,7 @@ set(directory include/OpenMS/SYSTEM)
 ### list all MOC filenames of the directory here
 set(sources_list
 FileWatcher.h
+NetworkGetRequest.h
 )
 
 ### add path to the filenames
@@ -25,8 +26,11 @@ set(sources_list_h
 File.h
 FileWatcher.h
 JavaInfo.h
+NetworkGetRequest.h
 StopWatch.h
+RWrapper.h
 SysInfo.h
+UpdateCheck.h
 )
 
 ### add path to the filenames

@@ -88,7 +88,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.size(), fm.size())
   TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.back(), fm.back())
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,20)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,20)
 
   //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
 //  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
@@ -151,7 +151,7 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,protein_ids2[0].getSearchParameters().charges)
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,protein_ids2[0].getSearchParameters().mass_type)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,protein_ids2[0].getSearchParameters().fragment_mass_tolerance)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,protein_ids2[0].getSearchParameters().precursor_tolerance)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,protein_ids2[0].getSearchParameters().precursor_mass_tolerance)
 
   //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
 //  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);

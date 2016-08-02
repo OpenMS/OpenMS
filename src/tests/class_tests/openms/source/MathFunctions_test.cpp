@@ -115,6 +115,16 @@ START_SECTION((bool approximatelyEqual(double a, double b, double tol)))
 	TEST_EQUAL(approximatelyEqual(1.1, 1.1002, 0.0001), false)
 END_SECTION
 
+START_SECTION((template <typename T> T getPPM(T mz_obs, T mz_ref)))
+  TEST_REAL_SIMILAR(getPPM(1001.0, 1000.0), 1000.0)  // == 1 / 1000 * 1e6
+  TEST_REAL_SIMILAR(getPPM( 999.0, 1000.0), -1000.0)  // == -1 / 1000 * 1e6
+END_SECTION
+
+START_SECTION((template <typename T> T getPPMAbs(T mz_obs, T mz_ref)))
+  TEST_REAL_SIMILAR(getPPMAbs(1001.0, 1000.0), 1000.0)  // == abs(1 / 1000 * 1e6)
+  TEST_REAL_SIMILAR(getPPMAbs( 999.0, 1000.0), 1000.0)  // == abs(-1 / 1000 * 1e6)
+END_SECTION
+
 /////////////////////////////////////////////////////////////);
 /////////////////////////////////////////////////////////////
 END_TEST

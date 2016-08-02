@@ -1,41 +1,31 @@
 from libcpp.vector cimport vector as libcpp_vector
-from PeptideIdentification cimport *
 from FeatureMap cimport *
-from Feature cimport *
+from MZTrafoModel cimport *
 from MSExperiment cimport *
-from MSSpectrum cimport *
-from Peak1D cimport *
 from ChromatogramPeak cimport *
+from Peak1D cimport *
 from PeptideIdentification cimport *
-from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from Types cimport *
 
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS":
 
-    cdef cppclass InternalCalibration(DefaultParamHandler, ProgressLogger):
+    cdef cppclass InternalCalibration(ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
         #    ProgressLogger
 
         InternalCalibration()      nogil except +
-        InternalCalibration(InternalCalibration)      nogil except + 
-        void calibrateMapSpectrumwise(MSExperiment[Peak1D,ChromatogramPeak] & raw,
-                                      MSExperiment[Peak1D,ChromatogramPeak] & calibrated,
-                                      libcpp_vector[double] & ref_masses)      nogil except +
-        void calibrateMapGlobally(MSExperiment[Peak1D,ChromatogramPeak] & raw,
-                                  MSExperiment[Peak1D,ChromatogramPeak] & calibrated,
-                                  libcpp_vector[double] & ref_masses,
-                                  String trafo_filename)      nogil except +
-        void calibrateMapGlobally(MSExperiment[Peak1D,ChromatogramPeak] & raw,
-                                  MSExperiment[Peak1D,ChromatogramPeak] & calibrated,
-                                  libcpp_vector[PeptideIdentification] & ref_ids,
-                                  String trafo_filename)      nogil except +
-        void calibrateMapGlobally(FeatureMap & raw,
-                                  FeatureMap & calibrated,
-                                  libcpp_vector[PeptideIdentification] & ref_ids,
-                                  String trafo_filename)      nogil except +
-        void calibrateMapGlobally(FeatureMap & raw,
-                                  FeatureMap & calibrated,
-                                  String trafo_filename)      nogil except +
-
+        InternalCalibration(InternalCalibration) nogil except + 
+        
+        Size fillCalibrants(MSExperiment[Peak1D,ChromatogramPeak], libcpp_vector[InternalCalibration::LockMass], double tol_ppm, bool, bool, bool) nogil except +
+        Size fillCalibrants(FeatureMap, double) nogil except +
+        Size fillCalibrants(libcpp_vector[PeptideIdentification], double) nogil except +
+        CalibrationData getCalibrationPoints() nogil except +
+        bool calibrate(MSExperiment[Peak1D,ChromatogramPeak], libcpp_vector[int], MZTrafoModel::MODELTYPE, double, bool, double, double, String, String) nogil except +
+                                     
+                      
+cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
+    
+    # static members               
+    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo) nogil except +
+    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo) nogil except +

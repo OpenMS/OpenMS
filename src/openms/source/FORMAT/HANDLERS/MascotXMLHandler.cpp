@@ -490,7 +490,7 @@ namespace OpenMS
       }
       else if (tag_ == "TOL")
       {
-        search_parameters_.precursor_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.precursor_mass_tolerance = (character_buffer_.trim()).toDouble();
       }
       else if (tag_ == "ITOL")
       {

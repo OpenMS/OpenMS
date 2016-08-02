@@ -416,6 +416,10 @@ private:
     {
       return;
     }
+    if (in.size() % 4 != 0)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Malformed base64 input, length is not a multiple of 4.");
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained

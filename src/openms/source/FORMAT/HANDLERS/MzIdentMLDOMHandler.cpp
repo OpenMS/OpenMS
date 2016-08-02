@@ -992,7 +992,7 @@ namespace OpenMS
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
                 p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
-                sp.precursor_tolerance = p_tol;
+                sp.precursor_mass_tolerance = p_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
                   sp.precursor_mass_tolerance_ppm = true;
