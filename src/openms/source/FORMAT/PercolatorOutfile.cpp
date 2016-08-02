@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   using namespace std;
-  
+
   // initialize static variable:
   const std::string PercolatorOutfile::score_type_names[] =
     {"qvalue", "PEP", "score"};
@@ -76,7 +76,7 @@ namespace OpenMS
                                   "Not a valid Percolator score type",
                                   score_type_name);
   }
-  
+
 
   void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
     const
@@ -101,8 +101,8 @@ namespace OpenMS
     peptide = boost::regex_replace(peptide, re, replacement);
     seq = AASequence::fromString(peptide);
   }
-  
-  
+
+
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins, 
                                vector<PeptideIdentification>& peptides,
@@ -154,7 +154,7 @@ namespace OpenMS
           items[0] + "' from row " + String(row);
         LOG_ERROR << msg << endl;
       }
-      
+
       PeptideHit hit;
       if (meta_data.precursor_charge != 0)
       {
@@ -214,7 +214,7 @@ namespace OpenMS
       AASequence seq;
       getPeptideSequence_(items[4], seq);
       hit.setSequence(seq);
-      
+
       for (Size pos = 5; pos < items.size(); ++pos)
       {
         accessions.insert(items[pos]);
@@ -231,7 +231,7 @@ namespace OpenMS
     proteins.setIdentifier("id");
     proteins.setDateTime(DateTime::now());
     proteins.setSearchEngine("Percolator");
-    
+
     for (set<String>::const_iterator it = accessions.begin();
          it != accessions.end(); ++it)
     {
