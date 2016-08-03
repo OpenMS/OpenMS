@@ -62,7 +62,7 @@ namespace OpenMS
     explicit HasMinPeptideLength(Size length):
       length(length)
     {}
-    
+
     bool operator()(const PeptideHit& hit) const
     {
       return hit.getSequence().size() >= length;
@@ -504,7 +504,7 @@ namespace OpenMS
       n_initial += pep_it->getHits().size();
       keepMatchingItems(pep_it->getHits(), present_filter);
       n_metavalue += pep_it->getHits().size();
-    
+
       keepMatchingItems(pep_it->getHits(), pvalue_filter);
     }
 
