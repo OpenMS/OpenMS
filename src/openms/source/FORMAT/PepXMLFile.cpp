@@ -395,7 +395,7 @@ namespace OpenMS
         if (seq.isModified())
         {
           f << "\t\t\t<modification_info modified_peptide=\""
-            << seq << "\"";
+            << modifiedSequenceToBracketString_(seq) << "\"";
 
           if (seq.hasNTerminalModification())
           {
@@ -1551,4 +1551,58 @@ namespace OpenMS
     }
   }
 
+  String PepXMLFile::modifiedSequenceToBracketString_(const AASequence & seq)
+  {
+    String bs;
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
+      const int nominal_mass = static_cast<int>(mod.getDiffMonoMass());
+      bs += "n" + String(nominal_mass);
+    }
+
+    for (Size i = 0; i != seq.size(); ++i)
+    {
+      if (seq[i]->isModified())
+      {
+        const double diff_mono_mass = (ModificationsDB::getInstance()->getModification(
+                  seq[i]->getOneLetterCode(),
+                  seq[i]->getModification(),
+                  ResidueModification::ANYWHERE).getDiffMonoMass());
+
+        const double residue_mono_mass = seq[i]->getMonoWeight();
+
+        if (seq[i]->getOneLetterCode() != "")
+        {
+          bs += seq[i]->getOneLetterCode();
+        }
+        else
+        {
+          // fallback to X[residue mass] if no one letter code is given 
+          bs += "X[" << static_cast<int>(residue_mono_mass) + "]"; 
+        }
+
+        os << "[" << precisionWrapper(diff_mono_mass) << "]";
+      }
+      else  // amino acid not modified
+      {
+        if (seq[i]->getOneLetterCode() != "")
+        {
+          bs += seq[i]->getOneLetterCode();
+        }
+        else // fallback to X[residue mass] if no one letter code is given
+        {
+          bs += "X[" << precisionWrapper(residue_mono_mass) << "]";
+        }
+      }
+    }
+
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
+      const int nominal_mass = static_cast<int>(mod.getDiffMonoMass());
+      bs += "c" + String(nominal_mass);
+    }
+    return bs;
+  }
 } // namespace OpenMS

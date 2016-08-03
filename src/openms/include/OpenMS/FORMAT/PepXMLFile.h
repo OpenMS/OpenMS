@@ -149,6 +149,12 @@ private:
     */
     void matchModification_(const double mass, const String& origin, String& modification_description);
 
+    /**
+        @brief create a TPP compatible string of the modified sequence using bracket notation
+        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+    */  
+    static String modifiedSequenceToBracketString_(const AASequence & seq);
+
     struct AminoAcidModification
     {
       String aminoacid;
