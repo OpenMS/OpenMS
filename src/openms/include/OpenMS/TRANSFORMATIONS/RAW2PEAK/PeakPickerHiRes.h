@@ -130,7 +130,7 @@ public:
       if (report_FWHM_)
       {
         output.getFloatDataArrays().resize(1);
-        output.getFloatDataArrays()[0].setName("FWHM_ppm");
+        output.getFloatDataArrays()[0].setName( report_FWHM_as_ppm_ ? "FWHM_ppm" : "FWHM");
       }
       
       // don't pick a spectrum with less than 5 data points
@@ -371,9 +371,12 @@ public:
               {
                 mz_mid = mz_left / 2 + mz_center / 2;
                 int_mid = peak_spline.eval(mz_mid);
-                if (int_mid < fwhm_int) {
+                if (int_mid < fwhm_int)
+                {
                   mz_left = mz_mid;
-                } else {
+                }
+                else
+                {
                   mz_center = mz_mid;
                 }
               } while(fabs(int_mid - fwhm_int) > threshold);
@@ -384,7 +387,7 @@ public:
             double mz_right = peak_raw_data.rbegin()->first;
             mz_center = max_peak_mz;
             if (peak_spline.eval(mz_right) > fwhm_int)
-            { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
+            { // the spline ends before half max is reached -- take the rightmost point (probably an underestimation)
               mz_mid = mz_right;
             } else
               {
@@ -392,16 +395,20 @@ public:
               {
                 mz_mid = mz_right / 2 + mz_center / 2;
                 int_mid = peak_spline.eval(mz_mid);
-                if (int_mid < fwhm_int) {
+                if (int_mid < fwhm_int)
+                {
                   mz_right = mz_mid;
-                } else {
+                }
+                else
+                {
                   mz_center = mz_mid;
                 }
 
               } while(fabs(int_mid - fwhm_int) > threshold);
             }
             const double fwhm_right_mz = mz_mid;
-            output.getFloatDataArrays()[0].push_back((fwhm_right_mz / max_peak_mz - fwhm_left_mz / max_peak_mz)  * 1e6);
+            const double fwhm_absolute = fwhm_right_mz - fwhm_left_mz;
+            output.getFloatDataArrays()[0].push_back( report_FWHM_as_ppm_ ? fwhm_absolute / max_peak_mz  * 1e6 : fwhm_absolute);
           } // FWHM
 
           // save picked peak into output spectrum
@@ -461,9 +468,13 @@ public:
         input_spectrum.push_back(*it);
       }
       pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
-      for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
+      output.insert(output.begin(), output_spectrum.begin(), output_spectrum.end());
+      // copy float data arrays (for FWHM)
+      output.getFloatDataArrays().resize(output_spectrum.getFloatDataArrays().size());
+      for (Size i = 0; i < output_spectrum.getFloatDataArrays().size(); ++i)
       {
-        output.push_back(*it);
+        output.getFloatDataArrays()[i].insert(output.getFloatDataArrays()[i].begin(), output_spectrum.getFloatDataArrays()[i].begin(), output_spectrum.getFloatDataArrays()[i].end());
+        output.getFloatDataArrays()[i].setName(output_spectrum.getFloatDataArrays()[i].getName());
       }
     }
 
@@ -630,8 +641,11 @@ protected:
     // MS levels to which peak picking is applied
     std::vector<Int> ms_levels_;
 
-    /// add floatDataArray 'FWHM_ppm' to spectra with peak FWHM
+    /// add floatDataArray 'FWHM'/'FWHM_ppm' to spectra with peak FWHM
     bool report_FWHM_;
+
+    /// unit of 'FWHM' float data array (can be absolute or ppm).
+    bool report_FWHM_as_ppm_;
 
     // docu in base class
     void updateMembers_();

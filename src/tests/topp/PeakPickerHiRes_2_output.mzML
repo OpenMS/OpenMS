@@ -87,7 +87,7 @@
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -99,6 +99,12 @@
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>NW4qQ8QFOEE=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="2" encodedLength="24" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<binary>AAAAYEWaskAAAADAFuaeQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -128,7 +134,7 @@
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -140,6 +146,12 @@
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>GnkOQo1VWEGa3SlBeNoCQQ==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="4" encodedLength="44" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<binary>AAAAIF6iq0AAAAAA3ZyoQAAAAKDzQalAAAAAQJKtp0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -169,7 +181,7 @@
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -181,6 +193,12 @@
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>eWoQRA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<binary>AAAAwL6ZsUA=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -210,7 +228,7 @@
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -222,6 +240,12 @@
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>NW4qQ8QFOEE=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="2" encodedLength="24" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<binary>AAAAYEWaskAAAADAFuaeQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -251,7 +275,7 @@
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
-				<binaryDataArrayList count="2">
+				<binaryDataArrayList count="3">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -264,6 +288,12 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>b62nQaBtwkHsoCtB</binary>
 					</binaryDataArray>
+					<binaryDataArray arrayLength="3" encodedLength="32" >
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
+						<binary>AAAAgNWAsEAAAABgdAy0QAAAAICJ8qRA</binary>
+					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
 		</chromatogramList>
@@ -272,12 +302,12 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="tr1">4007</offset>
-		<offset idRef="tr3">6765</offset>
-		<offset idRef="tr2">9555</offset>
-		<offset idRef="tr4">12296</offset>
-		<offset idRef="tr5">15054</offset>
+		<offset idRef="tr3">7142</offset>
+		<offset idRef="tr2">10329</offset>
+		<offset idRef="tr4">13435</offset>
+		<offset idRef="tr5">16570</offset>
 	</index>
 </indexList>
-<indexListOffset>17854</indexListOffset>
+<indexListOffset>19755</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
