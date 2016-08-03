@@ -196,6 +196,9 @@ namespace OpenMS
     {
       addModsToSearchParams_(map_it, params);
     }
+    sort(params.fixed_modifications.begin(), params.fixed_modifications.end());
+    sort(params.variable_modifications.begin(),
+         params.variable_modifications.end());
   }
 
 
