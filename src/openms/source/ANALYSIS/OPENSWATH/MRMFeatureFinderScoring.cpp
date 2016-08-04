@@ -282,31 +282,43 @@ namespace OpenMS
     transition_group_identification_decoy = transition_group.subsetDependent(identifying_transitions_decoy);
   }
 
-  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& transition_group_identification, OpenSwathScoring& scorer, const size_t feature_idx, const std::vector<std::string> native_ids_detection, const double sn_win_len_, const unsigned int sn_bin_count_, bool write_log_messages, OpenSwath::SpectrumAccessPtr swath_map)
+  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident, 
+                                                                 OpenSwathScoring& scorer, const size_t feature_idx,
+                                                                 const std::vector<std::string> native_ids_detection,
+                                                                 const double sn_win_len_,
+                                                                 const unsigned int sn_bin_count_,
+                                                                 bool write_log_messages,
+                                                                 OpenSwath::SpectrumAccessPtr swath_map)
   {
     typedef MRMTransitionGroupType::PeakType PeakT;
-    MRMFeature idmrmfeature = transition_group_identification.getFeaturesMuteable()[feature_idx];
-    OpenSwath::IMRMFeature* idimrmfeature;
-    idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
+    MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
+    OpenSwath::IMRMFeature* idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
 
     std::vector<std::string> native_ids_identification;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
 
-    for (Size i = 0; i < transition_group_identification.size(); i++)
+    for (Size i = 0; i < trgr_ident.size(); i++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
-      if ((snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) && (idmrmfeature.getFeature(transition_group_identification.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
+      String trgr_nativeid = trgr_ident.getTransitions()[i].getNativeID();
+      OpenSwath::ISignalToNoisePtr snptr( new OpenMS::SignalToNoiseOpenMS< PeakT >(
+            trgr_ident.getChromatogram(trgr_nativeid), sn_win_len_, sn_bin_count_, write_log_messages));
+
+      if ( (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) && 
+           (idmrmfeature.getFeature(trgr_nativeid).getIntensity() > uis_threshold_peak_area_))
       {
         signal_noise_estimators_identification.push_back(snptr);
-        native_ids_identification.push_back(transition_group_identification.getTransitions()[i].getNativeID());
+        native_ids_identification.push_back(trgr_nativeid);
       }
     }
 
     OpenSwath_Scores idscores;
-
     if (native_ids_identification.size() > 0)
     {
-      scorer.calculateChromatographicIdScores(idimrmfeature, native_ids_identification, native_ids_detection, signal_noise_estimators_identification, idscores);
+      scorer.calculateChromatographicIdScores(idimrmfeature,
+                                              native_ids_identification, 
+                                              native_ids_detection,
+                                              signal_noise_estimators_identification,
+                                              idscores);
 
       std::stringstream ind_transition_names;
       std::stringstream ind_log_intensity;
@@ -340,7 +352,9 @@ namespace OpenMS
       {
         OpenSwath_Scores tmp_scores;
 
-        scorer.calculateDIAIdScores(idimrmfeature, transition_group_identification.getTransition(native_ids_identification[i]), swath_map, diascoring_, tmp_scores);
+        scorer.calculateDIAIdScores(idimrmfeature, 
+                                    trgr_ident.getTransition(native_ids_identification[i]),
+                                    swath_map, diascoring_, tmp_scores);
 
         if (i != 0)
         {
@@ -358,7 +372,6 @@ namespace OpenMS
     }
 
     delete idimrmfeature;
-
     return idscores;
   }
 
@@ -451,7 +464,13 @@ namespace OpenMS
 
       if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
       {
-        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
+        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, 
+                                                         scorer, feature_idx,
+                                                         native_ids_detection,
+                                                         sn_win_len_,
+                                                         sn_bin_count_,
+                                                         write_log_messages,
+                                                         swath_map);
 
         mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
         mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
@@ -466,7 +485,13 @@ namespace OpenMS
 
       if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
       {
-        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
+        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
+                                                         scorer, feature_idx,
+                                                         native_ids_detection,
+                                                         sn_win_len_,
+                                                         sn_bin_count_,
+                                                         write_log_messages,
+                                                         swath_map);
 
         mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
         mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
