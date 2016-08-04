@@ -324,6 +324,14 @@ namespace OpenMS
           peak1d.setIntensity(cpeak.getIntensity());
           spectrum.push_back(peak1d);
         }
+        if (current_chrom.size() == 0) 
+        {
+          Peak1D peak1d;
+          peak1d.setMZ(-1);
+          peak1d.setIntensity(0);
+          spectrum.push_back(peak1d);
+        }
+
         chrom_exp_sptr->addSpectrum(spectrum);
         caption = fname + "[" + indices[index] + "]";
         if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
