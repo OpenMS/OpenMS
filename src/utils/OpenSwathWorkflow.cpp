@@ -515,8 +515,18 @@ namespace OpenMS
           {
             if ( chromatograms[j].empty() ) {continue;} // skip empty chromatograms
             ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
-            // write MS1 chromatograms to disk
-            chromConsumer->consumeChromatogram( chromatograms[j] );
+
+            // only write chromatograms inside the current swath windows
+            for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+            {
+              if (swath_maps.size() > 1 && !swath_maps[i].ms1 && // we have swath maps and its not MS1
+                  swath_maps[i].lower < coordinates[j].mz && swath_maps[i].upper > coordinates[j].mz)
+              {
+                // write MS1 chromatograms to disk
+                chromConsumer->consumeChromatogram( chromatograms[j] );
+              }
+            }
+
           }
         }
       }
@@ -613,7 +623,10 @@ namespace OpenMS
                 // write chromatograms to output if so desired
                 for (Size chrom_idx = 0; chrom_idx < chromatograms.size(); ++chrom_idx)
                 {
-                  chromConsumer->consumeChromatogram(chromatograms[chrom_idx]);
+                  if (!chromatograms[chrom_idx].empty())
+                  {
+                    chromConsumer->consumeChromatogram(chromatograms[chrom_idx]);
+                  }
                 }
 
                 // write features to output if so desired
