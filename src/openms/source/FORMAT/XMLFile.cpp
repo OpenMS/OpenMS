@@ -93,7 +93,8 @@ private:
 
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FeatureXMLFile, is used again)
+      // ensure handler->reset() is called to save memory (in case the XMLFile
+      // reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
       //try to open file
@@ -109,7 +110,8 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
       xercesc::SAX2XMLReader * parser = xercesc::XMLReaderFactory::createXMLReader();
@@ -152,21 +154,38 @@ private:
       try
       {
         parser->parse(*source);
-        delete(parser);
+        delete parser;
         delete source;
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+        delete parser;
+        delete source;
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", 
+            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+        delete parser;
+        delete source;
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
       {
-        //nothing to do here, as this exception is used to softly abort the parsing for whatever reason.
+        // nothing to do here except free memory, as this exception is used to
+        // softly abort the parsing for whatever reason.
+        delete parser;
+        delete source;
       }
+      catch (...)
+      {
+        // clean up memory first, then re-throw
+        delete parser;
+        delete source;
+        throw;
+      }
+
     }
 
     void XMLFile::save_(const String & filename, XMLHandler * handler) const

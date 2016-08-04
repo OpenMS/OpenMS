@@ -200,6 +200,17 @@ namespace OpenMS
 
     //*******************************************************************************************************************
 
+    
+    /*
+     * The main purpose of this class is to manage the string produced by
+     * XMLString::transcode which states in the documentation to use
+     * XMLString::release on the produced String once it is no longer needed.
+     *
+     * The decision when the string is no longer needed needs to be made in the
+     * child class which calls the functions described here (specifically the
+     * attributeAs* and optionalAttributeAs* functions
+     *
+    */
     StringManager::StringManager() :
       xml_strings_(0),
       c_strings_(0)
