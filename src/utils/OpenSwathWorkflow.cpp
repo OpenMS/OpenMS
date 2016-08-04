@@ -352,11 +352,21 @@ namespace OpenMS
     public ProgressLogger
   {
 
+    // this is the type in which we store the chromatograms for this analysis
+    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
+
+    typedef OpenSwath::LightTransition TransitionType;
+
+    // a transition group holds the MSSpectra with the Chromatogram peaks from above
+    typedef MRMTransitionGroup< RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
+
+
   public:
 
     explicit OpenSwathWorkflow(bool use_ms1_traces) :
       use_ms1_traces_(use_ms1_traces)
-    {}
+    {
+    }
 
     /** @brief ChromatogramExtractor parameters
      *
@@ -421,7 +431,7 @@ namespace OpenMS
         }
         catch (OpenMS::Exception::BaseException& /*e*/)
         {
-          LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+          LOG_DEBUG << "Error writing to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
       }
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
@@ -493,7 +503,7 @@ namespace OpenMS
           OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
           ChromatogramExtractor extractor;
 
-          // prepare the extraction coordinates & extract chromatogram
+          // prepare the extraction coordinates and extract MS1 chromatogram
           prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
           extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
@@ -963,12 +973,6 @@ namespace OpenMS
         std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms
         )
     {
-      typedef OpenSwath::LightTransition TransitionType;
-      // a transition group holds the MSSpectra with the Chromatogram peaks from above
-      typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
-      // this is the type in which we store the chromatograms for this analysis
-      typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-
       TransformationDescription trafo_inv = trafo;
       trafo_inv.invert();
 
@@ -1054,7 +1058,7 @@ namespace OpenMS
         // currently .tsv and .featureXML are mutually exclusive
         if (tsv_writer.isActive()) { output.clear(); }
 
-        // Set the MS1 chromatogram if available
+        // Set the MS1 chromatogram, if available
         if (!ms1_chromatograms.empty() && ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
         {
           OpenSwath::ChromatogramPtr cptr = ms1_chromatograms[ transition_group.getTransitionGroupID() ];
