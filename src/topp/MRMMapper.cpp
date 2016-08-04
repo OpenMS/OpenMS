@@ -67,14 +67,14 @@ using namespace OpenMS;
   SRM instrument) and a TraML file that contains the data that was used to
   generate the instrument method to measure said data. It then maps the
   transitions in the TraML file to the chromatograms found in the mzML file
-  and stores the mapping by replacing the "id" paramter in the mzML with the
+  and stores the mapping by replacing the "id" parameter in the mzML with the
   "id" of the transition in the TraML file. It removes chromatograms for
   which it cannot find a mapping and throws an error if more than one
   transitions maps to a chromatogram.
   In strict mode (default) it also throws an error it not all chromatograms
-  could be found in the TraML file.
+  are found in the TraML file.
 
-  The thus mapped file can then be used in a downstream analysis.
+  The thus mapped mzML file can then be used in a downstream analysis.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MRMMapper.cli
