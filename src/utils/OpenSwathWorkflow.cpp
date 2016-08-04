@@ -1035,7 +1035,7 @@ namespace OpenMS
           // Convert chromatogram to MSChromatogram
           OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
           MSChromatogram<ChromatogramPeak> chromatogram_old;
-          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
           RichPeakChromatogram chromatogram;
 
           // Extract and convert chromatogram to input chromatogram
@@ -1059,7 +1059,7 @@ namespace OpenMS
         {
           OpenSwath::ChromatogramPtr cptr = ms1_chromatograms[ transition_group.getTransitionGroupID() ];
           MSChromatogram<ChromatogramPeak> chromatogram_old;
-          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
           RichPeakChromatogram chromatogram;
           selectChrom_(chromatogram_old, chromatogram, -1, -1);
           chromatogram.setMetaValue("precursor_mz", precursor_mz);

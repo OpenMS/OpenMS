@@ -106,9 +106,12 @@ public:
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
-    typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; 
+
+    // a transition group holds the chromatographic data and peaks across
+    // multiple chromatograms from the same compound
+    typedef MRMTransitionGroup< RichPeakChromatogram, TransitionType> MRMTransitionGroupType; 
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
+
     //@}
 
     /// Constructor
@@ -159,7 +162,7 @@ public:
      * @param transition_exp The transition list describing the experiment
      *
     */
-    void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp);
+    void prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp);
     //@}
 
     /** @brief Splits combined transition groups into detection transition groups

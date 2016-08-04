@@ -61,21 +61,23 @@ namespace OpenMS
 {
 
   /**
-  @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-    @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+    @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-  It is called through pickTransitionGroup which will accept an
-  MRMTransitionGroup filled with n chromatograms and perform the following steps:
-   - Step 1: find features (peaks) in individual chromatograms
-   - Step 2: merge these features to consensus features that span multiple chromatograms
+      @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+
+    It is called through pickTransitionGroup which will accept an
+    MRMTransitionGroup filled with n chromatograms and perform the following steps:
+     - Step 1: find features (peaks) in individual chromatograms
+     - Step 2: merge these features to consensus features that span multiple chromatograms
 
 
-  Step 1 is performed by smoothing the individual chromatogram and applying the
-  PeakPickerHiRes.
+    Step 1 is performed by smoothing the individual chromatogram and applying the
+    PeakPickerHiRes.
 
-  Step 2 is performed by finding the largest peak overall and use this to
-  create a feature, propagating this through all chromatograms.
+    Step 2 is performed by finding the largest peak overall and use this to
+    create a feature, propagating this through all chromatograms.
+
   */
 
   class OPENMS_DLLAPI MRMTransitionGroupPicker :
@@ -117,7 +119,7 @@ public:
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
-      std::vector<RichPeakChromatogram> picked_chroms_;
+      std::vector<SpectrumT> picked_chroms_;
 
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));

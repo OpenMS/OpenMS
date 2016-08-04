@@ -237,7 +237,7 @@ public:
 
         // copy data
         OpenMS::MSChromatogram<> chrom;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, chromptr);
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromptr, chrom);
         chrom.setNativeID(coord.id);
 
         // Create precursor and set

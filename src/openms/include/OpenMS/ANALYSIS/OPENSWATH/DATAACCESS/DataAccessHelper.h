@@ -61,7 +61,7 @@ public:
     static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum);
 
     /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr);
+    static void convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram<> & chromatogram);
 
     /// convert from the OpenMS TargetedExperiment to the LightTargetedExperiment
     static void convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
@@ -79,4 +79,5 @@ public:
 
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
+

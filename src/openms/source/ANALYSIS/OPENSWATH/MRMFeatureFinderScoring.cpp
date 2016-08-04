@@ -229,7 +229,7 @@ namespace OpenMS
     return;
   }
 
-  void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp)
+  void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
   {
     for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
@@ -704,7 +704,7 @@ namespace OpenMS
       }
       MSChromatogram<ChromatogramPeak> chromatogram_old;
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-      OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
+      OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
       RichPeakChromatogram chromatogram;
 
       // Create the chromatogram information

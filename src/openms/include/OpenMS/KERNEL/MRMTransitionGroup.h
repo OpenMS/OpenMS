@@ -41,16 +41,16 @@
 namespace OpenMS
 {
   /**
-  @brief The representation of a transition group that has information about
-  the individual chromatograms as well as the transitions it refers to.
+    @brief The representation of a transition group that has information about
+    the individual chromatograms as well as the transitions it refers to.
 
-  This means that the MRM Transition Group establishes the mapping between the
-  individual Transition (containing the meta-data) and the Chromatogram data
-  points (measured data).
+    This means that the MRM Transition Group establishes the mapping between the
+    individual Transition (containing the meta-data) and the Chromatogram data
+    points (measured data).
 
-  Since not all the functions in OpenMS will work with MSChromatogram data
-  structures, this needs to accept also MSSpectrum as a type for raw data
-  storage.
+    Since not all the functions in OpenMS will work with MSChromatogram data
+    structures, this needs to accept also MSSpectrum as a type for raw data
+    storage.
   */
   template <typename SpectrumType, typename TransitionType>
   class MRMTransitionGroup
