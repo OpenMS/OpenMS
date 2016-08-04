@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 # a collection of wrapper for install functions that allows easier usage
-# througout the OpenMS build system
+# throughout the OpenMS build system
 
 set(OPENMS_EXPORT_SET "OpenMSTargets")
 
