@@ -45,7 +45,10 @@ namespace OpenMS
   /**
     @brief Linear model for transformations
 
-    The model can be inferred from data or specified using explicit parameters. If data is given, a least squares fit is used to find the model parameters (slope and intercept). Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
+    The model can be inferred from data or specified using explicit parameters. 
+    If data is given, a least squares fit is used to find the model parameters (slope and intercept). 
+    Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or
+    symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
 
     Without data, the model can be specified by giving the parameters @p slope and @p intercept explicitly.
 

@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/KERNEL/RichPeak1D.h>" namespace "OpenMS":
 
         RichPeak1D() nogil except +
         RichPeak1D(RichPeak1D &) nogil except +
+        RichPeak1D(float &, float &) nogil except +
         bool operator==(RichPeak1D) nogil except +
         bool operator!=(RichPeak1D) nogil except +
 

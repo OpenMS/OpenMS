@@ -33,15 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 
@@ -68,9 +69,11 @@ using namespace OpenMS;
     </table>
 </CENTER>
 
+  A detailed description of the parameters and functionality is given in PeptideIndexing.
+
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
+  PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -119,17 +122,11 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
-
     PeptideIndexing indexer;
-
     Param param = getParam_().copy("", true);
-
     Param param_pi = indexer.getParameters();
-    param_pi.update(param);
-
+    param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
-
-    bool keep_unreferenced_proteins = param.getValue("keep_unreferenced_proteins").toBool();
 
     String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
@@ -165,34 +162,34 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-
-
-    if (proteins.empty()) // we do not allow an empty database
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids,
+                                                          pep_ids);
+    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
     {
-      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
-      return INPUT_FILE_EMPTY;
-    }
-
-    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
-    {
-      LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
-      if (!keep_unreferenced_proteins)
+      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
       {
-        prot_ids.clear();
+        return INPUT_FILE_EMPTY;       
       }
-      IdXMLFile().store(out, prot_ids, pep_ids);
-      return EXECUTION_OK;
-    }
-
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
-    if ( (indexer_exit != PeptideIndexing::EXECUTION_OK) )
-    {
-      if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
       {
         return UNEXPECTED_RESULT;
-      } else
+      }
+      else
       {
         return UNKNOWN_ERROR;
+      }
+    }
+    
+    //-------------------------------------------------------------
+    // calculate protein coverage
+    //-------------------------------------------------------------
+    
+    if (param.getValue("write_protein_sequence").toBool())
+    {
+      for (Size i = 0; i < prot_ids.size(); ++i)
+      {
+        prot_ids[i].computeCoverage(pep_ids);
       }
     }
 

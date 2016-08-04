@@ -90,7 +90,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
 
   TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 1);
@@ -175,7 +175,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
   TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().fragment_mass_tolerance,0.3)
-  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
+  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[0],"Fixed")
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[1],"Fixed2")

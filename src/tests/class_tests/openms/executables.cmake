@@ -20,6 +20,7 @@ set(concept_executables_list
 set(datastructures_executables_list
   Adduct_test
   #BinaryTreeNode_test
+  CalibrationData_test
   ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
@@ -255,9 +256,12 @@ set(math_executables_list
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
-  #QuadraticRegression_test
+  QuadraticRegression_test
   #RegressionUtils_test
   RANSAC_test
+  RANSACModel_test
+  RANSACModelLinear_test
+  RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -297,6 +301,7 @@ set(filtering_executables_list
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
+  MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
