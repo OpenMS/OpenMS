@@ -109,17 +109,37 @@ namespace OpenMS
     // FEATURE we should not punish so much when one transition is missing!
     scores.massdev_score = scores.massdev_score / transitions.size();
 
+    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+    {
+      double precursor_mz = transitions[0].precursor_mz;
+      double rt = imrmfeature->getRT();
+
+      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores);
+    }
+
+  }
+
+  void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
+                                   OpenMS::DIAScoring & diascoring, 
+                                   double precursor_mz, 
+                                   double rt, 
+                                   const CompoundType& compound, 
+                                   OpenSwath_Scores & scores)
+  {
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0) 
     {
-      double precursor_mz = transitions[0].precursor_mz;
-      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
+      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, rt, add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
+      // derive precursor charge state (get from data if possible)
       int precursor_charge = 1;
-      if (compound.getChargeState() != 0) {precursor_charge = compound.getChargeState();}
+      if (compound.getChargeState() != 0) 
+      {
+        precursor_charge = compound.getChargeState();
+      }
 
       if (compound.isPeptide())
       {
@@ -135,6 +155,7 @@ namespace OpenMS
       }
     }
   }
+
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const TransitionType & transition,
       OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
