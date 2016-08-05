@@ -200,7 +200,7 @@ public:
     */
     void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
       std::vector< ExtractionCoordinates > & coordinates,
-      OpenMS::TargetedExperiment & transition_exp,
+      const OpenMS::TargetedExperiment & transition_exp,
       const double rt_extraction_window,
       const bool ms1) const;
 
