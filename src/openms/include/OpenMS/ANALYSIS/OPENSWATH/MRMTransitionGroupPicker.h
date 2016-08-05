@@ -212,7 +212,7 @@ public:
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
-                                std::vector<SpectrumT>& picked_chroms, int& chr_idx, int& peak_idx)
+                                std::vector<SpectrumT>& picked_chroms, const int chr_idx, const int peak_idx)
     {
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
