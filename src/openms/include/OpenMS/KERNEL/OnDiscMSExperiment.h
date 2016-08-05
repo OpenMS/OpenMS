@@ -59,8 +59,11 @@ namespace OpenMS
 
     @note This implementation is @a not thread-safe since it keeps internally a
     single file access pointer which it moves when accessing a specific
-    data item. The caller is responsible to ensure that access is performed
-    atomically.
+    data item. Please provide a separate copy to each thread, e.g. 
+
+    @code
+    #pragma omp parallel for firstprivate(ondisc_map) 
+    @endcode
 
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>

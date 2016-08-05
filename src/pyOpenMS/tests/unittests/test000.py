@@ -3794,11 +3794,13 @@ def testTransformationModels():
      TransformationModelLinear.getParameters
     """
     for clz in [pyopenms.TransformationModelLinear,
+                pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
-        mod = clz()
         p = pyopenms.Param()
+        data = [ [9.0, 8.9], [5.0, 6.0], [8.0, 8.0] ]
+        mod = clz(data, p)
+        mod.evaluate(7.0)
         mod.getDefaultParameters(p)
-
 
 @report
 def testTransformationXMLFile():
