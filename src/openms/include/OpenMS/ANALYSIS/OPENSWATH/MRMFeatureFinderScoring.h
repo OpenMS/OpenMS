@@ -219,7 +219,7 @@ public:
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
-                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output);
+                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output, bool ms1only=false);
 
     /** @brief Set the flag for strict mapping
     */
