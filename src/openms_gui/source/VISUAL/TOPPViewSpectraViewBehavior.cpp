@@ -324,7 +324,9 @@ namespace OpenMS
           peak1d.setIntensity(cpeak.getIntensity());
           spectrum.push_back(peak1d);
         }
-        if (current_chrom.size() == 0) 
+        
+        // Add at least one data point to the chromatogram, otherwise "addLayer" will fail and a segfault occurs later
+        if (current_chrom.empty()) 
         {
           Peak1D peak1d;
           peak1d.setMZ(-1);
