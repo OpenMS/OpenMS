@@ -312,6 +312,42 @@ START_SECTION ( MRMTransitionGroup subset(std::vector<std::string> tr_ids))
 }
 END_SECTION
 
+START_SECTION ( inline bool isInternallyConsistent() const)
+{
+  MRMTransitionGroupType mrmtrgroup;
+  TEST_EQUAL(mrmtrgroup.isInternallyConsistent(), true)
+}
+END_SECTION
+
+START_SECTION (inline bool chromatogramIdsMatch() const)
+{
+  
+  {
+    MRMTransitionGroupType mrmtrgroup;
+    RichPeakChromatogram c;
+    c.setNativeID("test");
+    mrmtrgroup.addChromatogram(c, "test");
+
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), true)
+    mrmtrgroup.addChromatogram(c, "test2");
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), false)
+  }
+  
+
+  {
+    MRMTransitionGroupType mrmtrgroup;
+    RichPeakChromatogram c;
+    c.setNativeID("test");
+    mrmtrgroup.addPrecursorChromatogram(c, "test");
+
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), true)
+    mrmtrgroup.addPrecursorChromatogram(c, "test2");
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), false)
+  }
+
+}
+END_SECTION
+
 
 START_SECTION ( MRMTransitionGroup subsetDependent(std::vector<std::string> tr_ids))
 {
