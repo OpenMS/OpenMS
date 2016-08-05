@@ -118,8 +118,10 @@ public:
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
-      std::vector<SpectrumT> picked_chroms_;
+      OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
+      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
+      std::vector<SpectrumT> picked_chroms_;
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
 
@@ -214,6 +216,9 @@ public:
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
                                 std::vector<SpectrumT>& picked_chroms, const int chr_idx, const int peak_idx)
     {
+      OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
+      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
+
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
@@ -266,10 +271,13 @@ public:
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
 
+      // Iterate over initial transitions / chromatograms (note that we may
+      // have a different number of picked chromatograms than total transitions
+      // as not all are detecting transitions).
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
-        const SpectrumT& chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
+        const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
           for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
