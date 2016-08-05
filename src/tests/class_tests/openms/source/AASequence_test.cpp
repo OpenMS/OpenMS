@@ -54,6 +54,10 @@ START_TEST(AASequence, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+// AASequence seq = AASequence::fromString("PEPTM(Met->Hse)IDE");
+// cout << seq.size() << endl;
+// cout << ModificationsDB::getInstance()->getModification("Acetyl", "", ResidueModification::N_TERM).getOrigin() << endl;
+
 AASequence* ptr = 0;
 AASequence* nullPointer = 0;
 START_SECTION(AASequence())
@@ -143,17 +147,20 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq14.isModified(),true);
   TEST_STRING_EQUAL(seq14[(Size)3].getModification(), "Label:13C(6)15N(4)")
 
-  AASequence seq15 = AASequence::fromString("PEPC[143]TIDEK");
-  TEST_EQUAL(seq15.isModified(),true);
-  TEST_STRING_EQUAL(seq15[(Size)3].getModification(), "Pyro-carbamidomethyl")
+  // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
+  // AASequence seq15 = AASequence::fromString("PEPC[143]TIDEK");
+  // TEST_EQUAL(seq15.isModified(),true);
+  // TEST_STRING_EQUAL(seq15[(Size)3].getModification(), "Pyro-carbamidomethyl")
 
-  AASequence seq16 = AASequence::fromString("PEPQ[111]TIDEK");
-  TEST_EQUAL(seq16.isModified(),true);
-  TEST_STRING_EQUAL(seq16[(Size)3].getModification(), "Gln->pyro-Glu")
+  // invalid test case: "Gln->pyro-Glu" is only defined as N-terminal
+  // AASequence seq16 = AASequence::fromString("PEPQ[111]TIDEK");
+  // TEST_EQUAL(seq16.isModified(),true);
+  // TEST_STRING_EQUAL(seq16[(Size)3].getModification(), "Gln->pyro-Glu")
 
-  AASequence seq17 = AASequence::fromString("PEPE[111]TIDEK");
-  TEST_EQUAL(seq17.isModified(),true);
-  TEST_STRING_EQUAL(seq17[(Size)3].getModification(), "Glu->pyro-Glu")
+  // invalid test case: "Glu->pyro-Glu" is only defined as N-terminal
+  // AASequence seq17 = AASequence::fromString("PEPE[111]TIDEK");
+  // TEST_EQUAL(seq17.isModified(),true);
+  // TEST_STRING_EQUAL(seq17[(Size)3].getModification(), "Glu->pyro-Glu")
 
   TEST_EXCEPTION(Exception::ParseError, AASequence::fromString("blDABCDEF"));
   TEST_EXCEPTION(Exception::ParseError, AASequence::fromString("a"));
@@ -817,12 +824,10 @@ START_SECTION([EXTRA] Test integer vs float tags)
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
   {
-  /* this does not work any more since there is no difference in the oxygen atom
-   *
-  AASequence seq11("PEPM[+15.994909]TIDEK"); // PSI-MOD oxMet is 15.994909
-  TEST_EQUAL(seq11.isModified(),true);
-  TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "MOD:00719")
-  */
+  // this does not work any more since there is no difference in the oxygen atom
+  // AASequence seq11("PEPM[+15.994909]TIDEK"); // PSI-MOD oxMet is 15.994909
+  // TEST_EQUAL(seq11.isModified(),true);
+  // TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "MOD:00719")
 
   AASequence seq12 = AASequence::fromString("PEPT[+79.957]TIDEK");
   TEST_EQUAL(seq12.isModified(),true);
@@ -878,9 +883,10 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("PEPS(UniMod:21)TIDEK"), AASequence::fromString("PEPS[+80]TIDEK"))
 
   // Test loss
-  TEST_EQUAL(AASequence::fromString("PEPTM(UniMod:10)IDE"), AASequence::fromString("PEPTM(Met->Hse)IDE"))
-  TEST_EQUAL(AASequence::fromString("PEPTM(UniMod:10)IDE"), AASequence::fromString("PEPTM[-30]IDE"))
-  TEST_EQUAL(AASequence::fromString("PEPTM(UniMod:10)IDE"), AASequence::fromString("PEPTM[101]IDE"))
+  TEST_EQUAL(AASequence::fromString("PEPTIDEM(UniMod:10)"), AASequence::fromString("PEPTIDEM(Met->Hse)"))
+
+  TEST_EQUAL(AASequence::fromString("PEPTM(Met->Thr)IDE"), AASequence::fromString("PEPTM[-30]IDE"))
+  TEST_EQUAL(AASequence::fromString("PEPTM(Met->Thr)IDE"), AASequence::fromString("PEPTM[101]IDE"))
 }
 END_SECTION
 
@@ -900,7 +906,6 @@ START_SECTION([EXTRA] Tag in peptides)
   TEST_REAL_SIMILAR(aa4.getMonoWeight(), 1017.487958568)
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

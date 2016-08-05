@@ -114,7 +114,7 @@ namespace OpenMS
       {
         const ResidueModification& n_term_mod =
           ModificationsDB::getInstance()->
-          getTerminalModification(mod, ResidueModification::N_TERM);
+          getModification(mod, "", ResidueModification::N_TERM);
         return n_term_mod.getFullId();
       }
       catch (Exception::ElementNotFound) {};
@@ -125,7 +125,7 @@ namespace OpenMS
       {
         const ResidueModification& c_term_mod =
           ModificationsDB::getInstance()->
-          getTerminalModification(mod, ResidueModification::C_TERM);
+          getModification(mod, "", ResidueModification::C_TERM);
         return c_term_mod.getFullId();
       }
       catch (Exception::ElementNotFound) {};

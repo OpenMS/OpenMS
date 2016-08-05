@@ -247,14 +247,14 @@ namespace OpenMS
       std::vector<size_t> mods_res;
 
       std::set<const ResidueModification*> modifiable_nterm;
-      ptr->searchTerminalModifications(modifiable_nterm, mod_it->first, ResidueModification::N_TERM);
+      ptr->searchModifications(modifiable_nterm, mod_it->first, "", ResidueModification::N_TERM);
       if (!modifiable_nterm.empty())
       {
         mods_res.push_back(0);
       }
 
       std::set<const ResidueModification*> modifiable_cterm;
-      ptr->searchTerminalModifications(modifiable_cterm, mod_it->first, ResidueModification::C_TERM);
+      ptr->searchModifications(modifiable_cterm, mod_it->first, "", ResidueModification::C_TERM);
       if (!modifiable_cterm.empty())
       {
         mods_res.push_back(sequence.size() + 1);
@@ -263,7 +263,7 @@ namespace OpenMS
       for (size_t i = 0; i < sequence.size(); ++i)
       {
         std::set<const ResidueModification*> modifiable_residues;
-        ptr->searchModifications(modifiable_residues, sequence.getResidue(i).getOneLetterCode(), mod_it->first, ResidueModification::ANYWHERE);
+        ptr->searchModifications(modifiable_residues, mod_it->first, sequence.getResidue(i).getOneLetterCode(), ResidueModification::ANYWHERE);
         if (!modifiable_residues.empty())
         {
           mods_res.push_back(i + 1);
@@ -306,14 +306,14 @@ namespace OpenMS
       std::vector<size_t> mods_res;
 
       std::set<const ResidueModification*> modifiable_nterm;
-      ptr->searchTerminalModifications(modifiable_nterm, mod_it->first, ResidueModification::N_TERM);
+      ptr->searchModifications(modifiable_nterm, mod_it->first, "", ResidueModification::N_TERM);
       if (!modifiable_nterm.empty())
       {
         mods_res.push_back(0);
       }
 
       std::set<const ResidueModification*> modifiable_cterm;
-      ptr->searchTerminalModifications(modifiable_cterm, mod_it->first, ResidueModification::C_TERM);
+      ptr->searchModifications(modifiable_cterm, mod_it->first, "", ResidueModification::C_TERM);
       if (!modifiable_cterm.empty())
       {
         mods_res.push_back(sequence.size() + 1);
@@ -322,7 +322,7 @@ namespace OpenMS
       for (size_t i = 0; i < sequence.size(); ++i)
       {
         std::set<const ResidueModification*> modifiable_residues;
-        ptr->searchModifications(modifiable_residues, sequence.getResidue(i).getOneLetterCode(), mod_it->first, ResidueModification::ANYWHERE);
+        ptr->searchModifications(modifiable_residues, mod_it->first, sequence.getResidue(i).getOneLetterCode(), ResidueModification::ANYWHERE);
         if (!modifiable_residues.empty())
         {
           mods_res.push_back(i + 1);
@@ -342,7 +342,7 @@ namespace OpenMS
     Size progress = 0;
     startProgress(0, exp.getPeptides().size(), "Generation of target in silico peptide map");
     for (size_t i = 0; i < exp.getPeptides().size(); ++i)
-    { 
+    {
       setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];

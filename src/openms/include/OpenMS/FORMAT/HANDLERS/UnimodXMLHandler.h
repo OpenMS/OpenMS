@@ -54,19 +54,19 @@ namespace OpenMS
     {
 public:
       /// Default constructor
-      UnimodXMLHandler(std::vector<ResidueModification *> & mods, const String & filename);
+      UnimodXMLHandler(std::vector<ResidueModification*>& mods, const String& filename);
 
       /// Destructor
       virtual ~UnimodXMLHandler();
 
       // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
       // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+      void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 
 private:
 
@@ -83,13 +83,13 @@ private:
       bool was_valid_peptide_modification_;
       std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
 
-      ResidueModification * modification_;
+      ResidueModification* modification_;
 
-      std::vector<ResidueModification *> & modifications_;
+      std::vector<ResidueModification*>& modifications_;
 
       std::vector<String> sites_;
 
-      std::vector<ResidueModification::Term_Specificity> term_specs_;
+      std::vector<ResidueModification::TermSpecificity> term_specs_;
     };
 
   }   // namespace Internal

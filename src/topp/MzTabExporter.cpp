@@ -719,7 +719,7 @@ protected:
           String mod_name = aas.getNTerminalModification();
           if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
           {
-            MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::N_TERM).getUniModAccession());
+            MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name, "", ResidueModification::N_TERM).getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(0, MzTabParameter()));
             mod.setModificationIdentifier(unimod_accession);
@@ -737,7 +737,7 @@ protected:
             if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
             {
               // MzTab standard is to just report Unimod accession.
-              MzTabString unimod_accession = MzTabString(mod_db->getModification(aas[ai].getOneLetterCode(), mod_name, ResidueModification::ANYWHERE).getUniModAccession());
+              MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name, aas[ai].getOneLetterCode(), ResidueModification::ANYWHERE).getUniModAccession());
               vector<std::pair<Size, MzTabParameter> > pos;
               pos.push_back(make_pair(ai + 1, MzTabParameter()));
               mod.setPositionsAndParameters(pos);
@@ -753,7 +753,7 @@ protected:
           String mod_name = aas.getCTerminalModification();
           if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
           {
-            MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::C_TERM).getUniModAccession());
+            MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name, "", ResidueModification::C_TERM).getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
             mod.setPositionsAndParameters(pos);
@@ -765,7 +765,7 @@ protected:
       mod_list.set(mods);
       return mod_list;
     }
-  
+
     static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
     {
       LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;

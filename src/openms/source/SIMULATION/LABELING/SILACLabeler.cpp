@@ -82,7 +82,7 @@ namespace OpenMS
     std::set<const ResidueModification*> modifications;
     try
     {
-      ModificationsDB::getInstance()->searchModifications(modifications, aa, modification_id, ResidueModification::ANYWHERE);
+      ModificationsDB::getInstance()->searchModifications(modifications, modification_id, aa);
     }
     catch (Exception::ElementNotFound& ex)
     {

@@ -357,23 +357,22 @@ namespace OpenMS
           if (optionalAttributeAsInt_(loc, attributes, "location"))
           {
             String uni_mod_id = accession.suffix(':');
-            // TODO handle ambiguous residues
             String residues;
             if (optionalAttributeAsString_(residues, attributes, "residues"))
             {
-
+              // TODO handle ambiguous/multiple residues
             }
             if (loc == 0)
             {
-              ModificationsDB::getInstance()->searchTerminalModifications(mods, uni_mod_id, ResidueModification::N_TERM);
+              ModificationsDB::getInstance()->searchModifications(mods, uni_mod_id, "", ResidueModification::N_TERM);
             }
             else if (loc == (Int)actual_peptide_.size())
             {
-              ModificationsDB::getInstance()->searchTerminalModifications(mods, uni_mod_id, ResidueModification::C_TERM);
+              ModificationsDB::getInstance()->searchModifications(mods, uni_mod_id, "", ResidueModification::C_TERM);
             }
             else
             {
-              ModificationsDB::getInstance()->searchModifications(mods, residues, uni_mod_id, ResidueModification::ANYWHERE);
+              ModificationsDB::getInstance()->searchModifications(mods, uni_mod_id, residues, ResidueModification::ANYWHERE);
             }
           }
           else
@@ -703,7 +702,7 @@ namespace OpenMS
                 p += "\t\t<Modification location=\"0\">\n";
                 String mod_str = jt->getSequence().getNTerminalModification();
                 std::set<const ResidueModification*> mods;
-                mod_db->searchTerminalModifications(mods, mod_str, ResidueModification::N_TERM);
+                mod_db->searchModifications(mods, mod_str, "", ResidueModification::N_TERM);
                 if (!mods.empty())
                 {
                   String acc = (*mods.begin())->getUniModAccession();
@@ -724,7 +723,7 @@ namespace OpenMS
                 p += "\"> \n";
                 String mod_str = jt->getSequence().getCTerminalModification();
                 std::set<const ResidueModification*> mods;
-                mod_db->searchTerminalModifications(mods, mod_str, ResidueModification::C_TERM);
+                mod_db->searchModifications(mods, mod_str, "", ResidueModification::C_TERM);
                 if (!mods.empty())
                 {
                   String acc = (*mods.begin())->getUniModAccession();
@@ -746,7 +745,7 @@ namespace OpenMS
                 if (!mod_str.empty())
                 {
                   std::set<const ResidueModification*> mods;
-                  mod_db->searchModifications(mods, jt->getSequence()[i].getOneLetterCode(), mod_str, ResidueModification::ANYWHERE);
+                  mod_db->searchModifications(mods, mod_str, jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
                   if (!mods.empty())
                   {
                     //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
@@ -1145,7 +1144,7 @@ namespace OpenMS
       for (std::vector<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
         std::set<const ResidueModification*> mods;
-        ModificationsDB::getInstance()->searchModifications(mods, *it, ResidueModification::ANYWHERE);
+        ModificationsDB::getInstance()->searchModifications(mods, *it);
         if (!mods.empty())
         {
           for (std::set<const ResidueModification*>::const_iterator mt = mods.begin(); mt != mods.end(); ++mt)
@@ -1155,7 +1154,7 @@ namespace OpenMS
 
             s += String(indent + 1, '\t') + "<SearchModification fixedMod=\"" + (fixed ? "true" : "false") + "\" massDelta=\"" + String((*mt)->getDiffMonoMass()) + "\" residues=\"" + origin + "\">\n";
 
-            ResidueModification::Term_Specificity spec = (*mt)->getTermSpecificity();
+            ResidueModification::TermSpecificity spec = (*mt)->getTermSpecificity();
             // @TODO: handle protein C-term/N-term
             if ((spec == ResidueModification::C_TERM) || (spec == ResidueModification::N_TERM))
             {

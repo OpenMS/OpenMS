@@ -203,18 +203,18 @@ namespace OpenMS
           AASequence p = h.getSequence();
           if (p.hasNTerminalModification())
           {
-            n_term_mods.insert(ModificationsDB::getInstance()->getTerminalModification(p.getNTerminalModification(), ResidueModification::N_TERM).getFullId());
+            n_term_mods.insert(ModificationsDB::getInstance()->getModification(p.getNTerminalModification(), "", ResidueModification::N_TERM).getFullId());
           }
           if (p.hasCTerminalModification())
           {
-            c_term_mods.insert(ModificationsDB::getInstance()->getTerminalModification(p.getCTerminalModification(), ResidueModification::C_TERM).getFullId());
+            c_term_mods.insert(ModificationsDB::getInstance()->getModification(p.getCTerminalModification(), "", ResidueModification::C_TERM).getFullId());
           }
 
           for (Size i = 0; i != p.size(); ++i)
           {
             if (p[i].isModified())
             {
-              aa_mods.insert(ModificationsDB::getInstance()->getModification(p[i].getOneLetterCode(), p[i].getModification(), ResidueModification::ANYWHERE).getFullId());
+              aa_mods.insert(ModificationsDB::getInstance()->getModification(p[i].getModification(), p[i].getOneLetterCode(), ResidueModification::ANYWHERE).getFullId());
             }
           }
         }
@@ -226,7 +226,7 @@ namespace OpenMS
     for (set<String>::const_iterator it = aa_mods.begin();
          it != aa_mods.end(); ++it)
     {
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
+      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
 
       // compute mass of modified residue
       EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula(Residue::Internal);
@@ -242,8 +242,7 @@ namespace OpenMS
 
     for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
     {
-      const ResidueModification& mod = ModificationsDB::getInstance()->
-                                       getModification(*it);
+      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
         << "<terminal_modification terminus=\"n\" massdiff=\""
         << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
@@ -253,7 +252,7 @@ namespace OpenMS
 
     for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
     {
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
+      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
         << "<terminal_modification terminus=\"c\" massdiff=\""
         << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
@@ -399,14 +398,14 @@ namespace OpenMS
 
           if (seq.hasNTerminalModification())
           {
-            const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
+            const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq.getNTerminalModification(), "", ResidueModification::N_TERM);
             f << " mod_nterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
-            const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
+            const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq.getCTerminalModification(), "", ResidueModification::C_TERM);
             f << " mod_cterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
@@ -417,7 +416,7 @@ namespace OpenMS
           {
             if (seq.isModified(i))
             {
-              const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
+              const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getModification(), seq[i].getOneLetterCode(), ResidueModification::ANYWHERE);
               // the modification position is 1-based
               f << "\t\t\t\t<mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<
@@ -553,17 +552,17 @@ namespace OpenMS
             f << "\t\t\t<search_score" << " name=\"Percolator_score\" value=\"" << h.getMetaValue("Percolator_score") << "\"" << "/>\n";
             f << "\t\t\t<search_score" << " name=\"Percolator_qvalue\" value=\"" << h.getMetaValue("Percolator_qvalue") << "\"" << "/>\n";
             f << "\t\t\t<search_score" << " name=\"Percolator_PEP\" value=\"" << pep_score << "\"" << "/>\n";
-            
+
             double probability = 1.0 - pep_score;
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
             f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
             f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
-            f << "\t\t\t</analysis_result>" << "\n";            
+            f << "\t\t\t</analysis_result>" << "\n";
           }
-          else 
+          else
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
-            
+
             if ( it->getScoreType() == "Posterior Error Probability")
             {
               double probability = 1.0 - h.getScore();
@@ -571,7 +570,7 @@ namespace OpenMS
               f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
               f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
               f << "\t\t\t</analysis_result>" << "\n";
-            }          
+            }
           }
         }
         f << "\t\t</search_hit>" << "\n";
@@ -589,7 +588,9 @@ namespace OpenMS
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
-    ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, mod_tol_);
+    // try more specific search first:
+    ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin, ResidueModification::ANYWHERE);
+    if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin);
 
     // no notification about ambiguities here - that was done when the
     // modification definitions were parsed ("aminoacid_modification" and
@@ -1086,7 +1087,7 @@ namespace OpenMS
           {
             double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, mod_tol_, ResidueModification::N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::N_TERM);
             if (!mods.empty())
             {
               current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
@@ -1111,7 +1112,7 @@ namespace OpenMS
           {
             double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, mod_tol_, ResidueModification::C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::C_TERM);
             if (!mods.empty())
             {
               current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
@@ -1164,18 +1165,29 @@ namespace OpenMS
       aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
       String is_variable = attributeAsString_(attributes, "variable");
+      ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
       if (element == "aminoacid_modification")
       {
         aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
+        // can't set term_spec to "ANYWHERE", because terminal mods. may not be registered as such!
       }
       else
       {
-        optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
-        aa_mod.terminus = attributeAsString_(attributes, "terminus");
-        // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
+        // Somehow very small fixed modifications (electron mass?) get annotated by X!Tandem. Don't add them as they interfere with other mods.
         if (fabs(aa_mod.massdiff.toDouble()) < xtandem_artificial_mod_tol_)
         {
           return;
+        }
+
+        optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
+        aa_mod.terminus = String(attributeAsString_(attributes, "terminus")).toLower();
+        if (aa_mod.terminus == "n")
+        {
+          term_spec = ResidueModification::N_TERM;
+        }
+        else if (aa_mod.terminus == "c")
+        {
+          term_spec = ResidueModification::C_TERM;
         }
       }
       String desc = "";
@@ -1184,7 +1196,7 @@ namespace OpenMS
       {
         try
         {
-          desc = ModificationsDB::getInstance()->getModification(aa_mod.description).getName();
+          desc = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec).getName();
           if (!desc.empty())
           {
             if (is_variable == "Y")
@@ -1211,20 +1223,15 @@ namespace OpenMS
       if (desc.empty())
       {
         vector<String> mods;
-        if (aa_mod.terminus != "")
+        if (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try more specific search first
         {
-          ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(
-                        mods, aa_mod.massdiff.toDouble(), mod_tol_, ResidueModification::ANYWHERE);
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+            mods, aa_mod.massdiff.toDouble(), mod_tol_, aa_mod.aminoacid, ResidueModification::ANYWHERE);
         }
-        else if (aa_mod.aminoacid != "")
+        if (mods.empty())
         {
-          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-                      mods, aa_mod.aminoacid, aa_mod.massdiff.toDouble(), mod_tol_);
-        }
-        else
-        {
-          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(
-                      mods, aa_mod.massdiff.toDouble(), mod_tol_);
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+            mods, aa_mod.massdiff.toDouble(), mod_tol_, aa_mod.aminoacid, term_spec);
         }
         if (mods.empty() && aa_mod.massdiff.toDouble() != 0)
         {
@@ -1238,7 +1245,7 @@ namespace OpenMS
             desc += String(aa_mod.massdiff);
           }
           //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
-          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta " + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "' which will probably fail using the data downstream.");
+          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta " + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "', which could lead to failures using the data downstream.");
         }
         else if (!mods.empty())
         {
@@ -1265,7 +1272,6 @@ namespace OpenMS
         {
           fixed_modifications_.push_back(aa_mod);
           params_.fixed_modifications.push_back(desc);
-          LOG_DEBUG << aa_mod.description << desc << std::endl;
         }
       }
     }
@@ -1464,7 +1470,7 @@ namespace OpenMS
           if (it->aminoacid == "" && it->terminus =="n")
           {
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, mod_tol_, ResidueModification::N_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::N_TERM);
             if (!mods.empty())
             {
               if (!temp_aa_sequence.hasNTerminalModification())
@@ -1486,7 +1492,7 @@ namespace OpenMS
           else if (it->aminoacid == "" && it->terminus =="c")
           {
             vector<String> mods;
-            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, mod_tol_, ResidueModification::C_TERM);
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::C_TERM);
             if (!mods.empty())
             {
               if (!temp_aa_sequence.hasCTerminalModification())
@@ -1515,7 +1521,8 @@ namespace OpenMS
         {
           double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
-          ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, mod_tol_);
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid, ResidueModification::ANYWHERE);
+          if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid);
           if (!mods.empty())
           {
             for (Size i = 0; i < temp_aa_sequence.size(); ++i)
@@ -1543,7 +1550,7 @@ namespace OpenMS
     else if (element == "search_summary")
     {
       // In idXML we only store search engine and date as identifier, but to distinguish two identification runs these values must be unique.
-      // As a workaround to support multiple runs, we make the date unique by adding one second for every additional identification run.   
+      // As a workaround to support multiple runs, we make the date unique by adding one second for every additional identification run.
       UInt hour, minute, second;
       date_.getTime(hour, minute, second);
       hour = (hour + (minute + (second + 1) / 60) / 60) % 24;

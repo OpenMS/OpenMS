@@ -93,6 +93,7 @@ public:
     /// returns the number of residues stored
     Size getNumberOfResidues() const;
 
+    /// returns the number of modified residues stored
     Size getNumberOfModifiedResidues() const;
 
     /// returns a pointer to the residue with name, 3 letter code or 1 letter code name

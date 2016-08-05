@@ -201,34 +201,33 @@ namespace OpenMS
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
+      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() );
     }
 
     // Mapping of peptide modifications (don't do this for metabolites...)
-    if (p.isPeptide()) 
+    if (p.isPeptide())
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
       if ( !aa_sequence.getNTerminalModification().empty())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-          m.location = -1;
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        ResidueModification rmod = mod_db->getModification(aa_sequence.getNTerminalModification(), "", ResidueModification::N_TERM);
+        m.location = -1;
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
       if ( !aa_sequence.getCTerminalModification().empty())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-          m.location = boost::numeric_cast<int>(aa_sequence.size());
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        ResidueModification rmod = mod_db->getModification(aa_sequence.getCTerminalModification(), "", ResidueModification::C_TERM);
+        m.location = boost::numeric_cast<int>(aa_sequence.size());
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
         if (aa_sequence[i].isModified())
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
+          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getModification(), aa_sequence.getResidue(i).getOneLetterCode(), ResidueModification::ANYWHERE);
           m.location = boost::numeric_cast<int>(i);
           m.unimod_id = rmod.getUniModAccession();
           p.modifications.push_back(m);

@@ -326,7 +326,7 @@ namespace OpenMS
         for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
         {
           if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-              fabs(ModificationsDB::getInstance()->getModification("M", pit->getModification(), ResidueModification::ANYWHERE).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+              fabs(ModificationsDB::getInstance()->getModification(pit->getModification(), "M", ResidueModification::ANYWHERE).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
           {
             peptide += "M(O)";
           }
@@ -348,7 +348,7 @@ namespace OpenMS
           String mod = hit.getSequence().getNTerminalModification();
           ++num_mods;
           String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + ",";
-          modification += ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM).getId();
+          modification += ModificationsDB::getInstance()->getModification(mod, "", ResidueModification::N_TERM).getId();
           modifications.push_back(modification);
         }
 
@@ -365,7 +365,7 @@ namespace OpenMS
           String res = pit->getOneLetterCode();
           ++num_mods;
           String modification = String(pos) + "," + res + ",";
-          modification += ModificationsDB::getInstance()->getModification(res, mod, ResidueModification::ANYWHERE).getId();
+          modification += ModificationsDB::getInstance()->getModification(mod, res, ResidueModification::ANYWHERE).getId();
           modifications.push_back(modification);
         }
 

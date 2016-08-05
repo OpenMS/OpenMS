@@ -71,7 +71,7 @@ namespace OpenMS
     return 0;
   }
 
-  const Residue * ResidueDB::getResidue(const unsigned char & one_letter_code) const
+  const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
     return residue_by_one_letter_code_[one_letter_code];
   }
@@ -144,7 +144,7 @@ namespace OpenMS
 
       // get all modification names
       vector<String> mod_names;
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getOneLetterCode(), r->getModification(), ResidueModification::ANYWHERE);
+      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getModification(), r->getOneLetterCode(), ResidueModification::ANYWHERE);
 
       mod_names.push_back(mod.getId());
       mod_names.push_back(mod.getFullName());
@@ -451,7 +451,8 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
-    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification);
+    // terminal mods. don't apply to residue (side chain), so don't consider them:
+    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
     return getModifiedResidue(getResidue(mod.getOrigin()), mod.getFullId());
   }
 
@@ -466,13 +467,13 @@ namespace OpenMS
                                                                                        + res_name + " was not registered in residue DB, register first!").c_str());
     }
 
-    String id = ModificationsDB::getInstance()->getModification(res_name, modification, ResidueModification::ANYWHERE).getId();
+    // terminal mods. don't apply to residue (side chain), so don't consider them:
+    String id = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE).getId();
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {
       return residue_mod_names_[res_name][id];
     }
-
 
     Residue* res = new Residue(*residue_names_[res_name]);
     res->setModification(id);

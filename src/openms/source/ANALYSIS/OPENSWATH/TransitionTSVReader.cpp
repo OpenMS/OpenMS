@@ -1064,12 +1064,12 @@ namespace OpenMS
     {
       if (!aa_sequence.getNTerminalModification().empty())
       {
-        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
+        ResidueModification rmod = mod_db->getModification(aa_sequence.getNTerminalModification(), "", ResidueModification::N_TERM);
         addModification_(mods, -1, rmod, aa_sequence.getNTerminalModification());
       }
       if (!aa_sequence.getCTerminalModification().empty())
       {
-        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
+        ResidueModification rmod = mod_db->getModification(aa_sequence.getCTerminalModification(), "", ResidueModification::C_TERM);
         addModification_(mods, aa_sequence.size(), rmod, aa_sequence.getCTerminalModification());
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
@@ -1078,8 +1078,7 @@ namespace OpenMS
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
           TargetedExperiment::Peptide::Modification mod;
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
+          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getModification(), aa_sequence.getResidue(i).getOneLetterCode(), ResidueModification::ANYWHERE);
           addModification_(mods, i, rmod, aa_sequence.getResidue(i).getModification());
         }
       }
