@@ -1131,7 +1131,7 @@ namespace OpenMS
           selectChrom_(chromatogram_old, chromatogram, -1, -1);
           chromatogram.setMetaValue("precursor_mz", precursor_mz);
           chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_" + "Precursor_i0");
-          transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
+          transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
         }
         // Process the MRMTransitionGroup: find peakgroups and score them
         trgroup_picker.pickTransitionGroup(transition_group);
