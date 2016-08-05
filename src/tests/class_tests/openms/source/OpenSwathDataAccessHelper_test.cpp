@@ -101,7 +101,7 @@ START_SECTION(OpenSwathDataAccessHelper::convertToSpectrumPtr(sptr))
 }
 END_SECTION
 
-START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram,cptr))
+START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram))
 {
   //void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram,
   //                                                          const OpenSwath::ChromatogramPtr cptr)
@@ -117,7 +117,7 @@ START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogra
   cptr->getIntensityArray()->data.push_back(1.0);
 
   MSChromatogram<> chromatogram;
-  OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram,cptr);
+  OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
 
   TEST_REAL_SIMILAR(chromatogram[0].getRT(),1.);
   TEST_REAL_SIMILAR(chromatogram[0].getIntensity(),4.);
