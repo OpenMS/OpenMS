@@ -202,8 +202,10 @@ private:
      *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
+     * @param feat_hypo A feature hypotheses containing mass traces
+     * @return 0 for 'no'; 1 for 'yes'; -1 if only a single mass trace exists
     */
-    bool isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const;
+    int isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const;
 
     void loadIsotopeModel_(const String&);
 
@@ -228,10 +230,6 @@ private:
      *
     */
     double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
-
-    /// Not used any more ???  -> seems to be old model 
-    /// TODO: remove
-    double scoreMZ2_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
 
     /** @brief Perform retention time scoring of two multiple mass traces
      *

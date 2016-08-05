@@ -334,12 +334,11 @@ namespace OpenMS
     return iso_score;
   }
 
-  bool FeatureFindingMetabo::isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const
+  int FeatureFindingMetabo::isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const
   {
     if (feat_hypo.getSize() == 1)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
+      return -1;
     }
 
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
@@ -404,7 +403,7 @@ namespace OpenMS
     // std::cout << "predict: " << predict << std::endl;
     delete[] nodes;
 
-    return (predict == 2.0) ? true : false;
+    return (predict == 2.0) ? 1 : 0;
   }
 
   void FeatureFindingMetabo::loadIsotopeModel_(const String& model_name)
@@ -501,48 +500,7 @@ namespace OpenMS
 
     return mz_score;
   }
-
-  double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
-  {
-    double mu((1.003355 * (double)iso_pos) / (double)charge); 
-    double sd(0.01 / (double)charge);
-    // only difference to above: model parameters
-
-    double mz1(tr1.getCentroidMZ());
-    double mz2(tr2.getCentroidMZ());
-
-    // double centered_mz(std::fabs(mz2 - mz1) - mu);
-    double diff_mz(std::fabs(mz2 - mz1));
-
-    double mt_sigma1(tr1.getCentroidSD());
-    double mt_sigma2(tr2.getCentroidSD());
-    // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
-    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
-
-    // double score_sigma_old(std::sqrt(sd*sd + mt_variances));
-
-    double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
-
-    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << std::endl;
-
-    double sigma_mult(3.0);
-
-    double mz_score(0.0);
-
-
-    if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
-    {
-      double tmp_exponent((diff_mz - mu) / score_sigma);
-      mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
-
-    }
-
-    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
-
-    return mz_score;
-  }
-
+  
   double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
     // return success if this filter is disabled
@@ -843,11 +801,7 @@ namespace OpenMS
     // output all hypotheses:
     for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
     {
-      bool legal(false);
-      if (feat_hypos[hypo_idx].getSize() > 1)
-      {
-        legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
-      }
+      bool legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]) > 0;
       std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << 
         " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
     }
@@ -892,21 +846,14 @@ namespace OpenMS
       // only). This is based on a pre-trained SVM model of isotopic
       // intensities.
       bool pass_isotope_filter = true;
-      if (feat_hypos[hypo_idx].getSize() > 1)
+      if (!disable_isotope_filtering_)
       {
-        if (!disable_isotope_filtering_)
+        if (isotope_model_ == "metabolites")
         {
-          if (isotope_model_ == "metabolites")
-          {
-            pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
-          }
-          else if (isotope_model_ == "peptides")
-          {
-            pass_isotope_filter = true;
-          }
+          pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]) != 0;
         }
-        // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
       }
+      // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
 
       if (!pass_isotope_filter) 
       {
@@ -916,7 +863,6 @@ namespace OpenMS
       //
       // Now accept hypothesis
       //
-
       Feature f;
       f.setRT(feat_hypos[hypo_idx].getCentroidRT());
       f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
@@ -944,7 +890,7 @@ namespace OpenMS
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
-      f.setMetaValue("legal_isotope_pattern", (feat_hypos[hypo_idx].getSize() > 1) ? (int)isLegalIsotopePattern_(feat_hypos[hypo_idx]) : -1 );
+      f.setMetaValue("legal_isotope_pattern", isLegalIsotopePattern_(feat_hypos[hypo_idx]));
       output_featmap.push_back(f);
 
       // add used traces to exclusion map
