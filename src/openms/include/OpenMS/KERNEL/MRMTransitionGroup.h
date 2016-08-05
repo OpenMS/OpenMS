@@ -174,6 +174,16 @@ public:
       return chromatogram_map_.find(key) != chromatogram_map_.end();
     }
 
+    inline const std::vector<SpectrumType> & getPrecursorChromatograms() const
+    {
+      return precursor_chromatograms_;
+    }
+
+    inline std::vector<SpectrumType> & getPrecursorChromatograms()
+    {
+      return precursor_chromatograms_;
+    }
+
     /** Add a precursor chromatogram (extracted from an MS1 map) to the feature
      *
      * While any key can be used, it is expected that the monoisotopic trace is
