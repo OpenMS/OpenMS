@@ -511,11 +511,14 @@ protected:
       {
         return transition_group.getChromatogram(native_id);
       }
-      else
+      else if (transition_group.hasPrecursorChromatogram(native_id))
       {
         return transition_group.getPrecursorChromatogram(native_id);
       }
-
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find chromatogram for id '" + native_id + "'.");
+      }
     }
 
     /**
