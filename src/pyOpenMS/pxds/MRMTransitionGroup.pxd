@@ -4,7 +4,9 @@ from MRMFeature cimport *
 from ReactionMonitoringTransition cimport *
 from LightTargetedExperiment cimport *
 from MSSpectrum cimport *
+from MSChromatogram cimport *
 from Peak1D cimport *
+from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
 
@@ -12,7 +14,11 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
 
         # wrap-instances:
         #   MRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], ReactionMonitoringTransition]
+        #   MRMTransitionGroupC := MRMTransitionGroup[MSSpectrum[ChromatogramPeak], ReactionMonitoringTransition]
+        #   MRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram[ChromatogramPeak], ReactionMonitoringTransition]
         #   LightMRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], LightTransition]
+        #   LightMRMTransitionGroupC := MRMTransitionGroup[MSSpectrum[ChromatogramPeak], LightTransition]
+        #   LightMRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition]
 
         MRMTransitionGroup() nogil except +
         MRMTransitionGroup(MRMTransitionGroup[SpectrumT, TransitionT] &) nogil except +
