@@ -33,6 +33,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         SpectrumT getChromatogram(String key) nogil except +
         bool hasChromatogram(String key) nogil except +
 
+        libcpp_vector[SpectrumT] getPrecursorChromatograms() nogil except+
         void addPrecursorChromatogram(SpectrumT chromatogram, String key) nogil except +
         SpectrumT getPrecursorChromatogram(String key) nogil except +
         bool hasPrecursorChromatogram(String key) nogil except +
