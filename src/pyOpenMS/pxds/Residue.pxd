@@ -212,11 +212,18 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
       Internal,       # internal, without any termini
       NTerminal,      # only N-terminus
       CTerminal,      # only C-terminus
-      AIon,           # N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           # N-terminus up to the peptide bond
-      CIon,           # N-terminus up to the amide/C-alpha bond
-      XIon,           # amide/C-alpha bond up to the C-terminus
-      YIon,           # peptide bond up to the C-terminus
-      ZIon,           # C-alpha/carbonyl carbon bond
+      AIon,           # MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           # MS:1001224 N-terminus up to the peptide bond
+      CIon,           # MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           # MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           # MS:1001220 peptide bond up to the C-terminus
+      ZIon,           # MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      # MS:1001523 Precursor ion
+      BIonMinusH20,   # MS:1001222 b ion without water
+      YIonMinusH20,   # MS:1001223 y ion without water
+      BIonMinusNH3,   # MS:1001232 b ion without ammonia
+      YIonMinusNH3,   # MS:1001233 y ion without ammonia
+      NonIdentified,  # MS:1001240 Non-identified ion
+      Unannotated,    # no stored annotation 
       SizeOfResidueType
 
