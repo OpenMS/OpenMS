@@ -92,7 +92,7 @@ START_SECTION((ModificationDefinition(const String &mod)))
 }
 END_SECTION
 
-START_SECTION((void setTermSpecificity(ResidueModification::Term_Specificity pos)))
+START_SECTION((void setTermSpecificity(ResidueModification::TermSpecificity pos)))
 {
   ptr->setTermSpecificity(ResidueModification::ANYWHERE);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE);
@@ -101,7 +101,7 @@ START_SECTION((void setTermSpecificity(ResidueModification::Term_Specificity pos
 }
 END_SECTION
 
-START_SECTION((ResidueModification::Term_Specificity getTermSpecificity() const ))
+START_SECTION((ResidueModification::TermSpecificity getTermSpecificity() const ))
 {
   ptr->setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
