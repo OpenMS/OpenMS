@@ -869,7 +869,7 @@ namespace OpenMS
     // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      if (trgroup_it->second.getChromatograms().size() > 0 && (trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size()))
+      if (!trgroup_it->second.isInternallyConsistent() || trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
                                          trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \
