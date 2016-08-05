@@ -40,6 +40,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief The representation of a transition group that has information about
     the individual chromatograms as well as the transitions it refers to.
@@ -47,6 +48,9 @@ namespace OpenMS
     This means that the MRM Transition Group establishes the mapping between the
     individual Transition (containing the meta-data) and the Chromatogram data
     points (measured data).
+
+    Note that for the data structure to be consistent, it needs to have the
+    same identifiers for the chromatograms as well as for the transitions.
 
     Since not all the functions in OpenMS will work with MSChromatogram data
     structures, this needs to accept also MSSpectrum as a type for raw data
@@ -68,7 +72,10 @@ public:
     typedef typename SpectrumType::PeakType PeakType;
     //@}
 
-    /// Constructor
+    /** @name Constructors and Destructor
+    */
+    //@{
+    /// Default constructor
     MRMTransitionGroup()
     {
     }
@@ -79,7 +86,7 @@ public:
       transitions_(rhs.transitions_),
       chromatograms_(rhs.chromatograms_),
       precursor_chromatograms_(rhs.precursor_chromatograms_),
-      cons_features_(rhs.cons_features_),
+      mrm_features_(rhs.mrm_features_),
       chromatogram_map_(rhs.chromatogram_map_),
       precursor_chromatogram_map_(rhs.precursor_chromatogram_map_),
       transition_map_(rhs.transition_map_)
@@ -90,6 +97,7 @@ public:
     virtual ~MRMTransitionGroup()
     {
     }
+    //@}
 
     MRMTransitionGroup & operator=(const MRMTransitionGroup & rhs)
     {
@@ -99,7 +107,7 @@ public:
         transitions_ = rhs.transitions_;
         chromatograms_ = rhs.chromatograms_;
         precursor_chromatograms_ = rhs.precursor_chromatograms_;
-        cons_features_ = rhs.cons_features_;
+        mrm_features_ = rhs.mrm_features_;
         transition_map_ = rhs.transition_map_;
         chromatogram_map_ = rhs.chromatogram_map_;
         precursor_chromatogram_map_ = rhs.precursor_chromatogram_map_;
@@ -122,6 +130,8 @@ public:
       tr_gr_id_ = tr_gr_id;
     }
 
+    /// @name Transition access
+    //@{
     inline const std::vector<TransitionType> & getTransitions() const
     {
       return transitions_;
@@ -138,16 +148,22 @@ public:
       transition_map_[key] = boost::numeric_cast<int>(transitions_.size()) - 1;
     }
 
-    inline const TransitionType & getTransition(String key) 
-    {
-      return transitions_[transition_map_[key]];
-    }
-
-    inline bool hasTransition(String key)
+    inline bool hasTransition(String key) const
     {
       return transition_map_.find(key) != transition_map_.end();
     }
 
+    inline const TransitionType & getTransition(String key)
+    {
+      OPENMS_PRECONDITION(hasTransition(key), "Cannot retrieve transitions that does not exist")
+      OPENMS_PRECONDITION(transitions_.size() > (size_t)transition_map_[key], "Mapping needs to be accurate")
+      return transitions_[transition_map_[key]];
+    }
+    //@}
+
+
+    /// @name (Fragment ion) chromatogram access
+    //@{
     inline const std::vector<SpectrumType> & getChromatograms() const
     {
       return chromatograms_;
@@ -164,16 +180,22 @@ public:
       chromatogram_map_[key] = boost::numeric_cast<int>(chromatograms_.size()) - 1;
     }
 
-    inline SpectrumType & getChromatogram(String key)
-    {
-      return chromatograms_[chromatogram_map_[key]];
-    }
-
     inline bool hasChromatogram(String key) const
     {
       return chromatogram_map_.find(key) != chromatogram_map_.end();
     }
 
+    inline SpectrumType & getChromatogram(String key)
+    {
+      OPENMS_PRECONDITION(hasChromatogram(key), "Cannot retrieve chromatogram that does not exist")
+      OPENMS_PRECONDITION(chromatograms_.size() > (size_t)chromatogram_map_[key], "Mapping needs to be accurate")
+      return chromatograms_[chromatogram_map_[key]];
+    }
+    //@}
+
+
+    /// @name (Precursor ion) chromatogram access
+    //@{
     inline const std::vector<SpectrumType> & getPrecursorChromatograms() const
     {
       return precursor_chromatograms_;
@@ -200,29 +222,69 @@ public:
       precursor_chromatogram_map_[key] = boost::numeric_cast<int>(precursor_chromatograms_.size()) - 1;
     }
 
-    inline SpectrumType & getPrecursorChromatogram(String key)
-    {
-      return precursor_chromatograms_[precursor_chromatogram_map_[key]];
-    }
-
     inline bool hasPrecursorChromatogram(String key) const
     {
       return precursor_chromatogram_map_.find(key) != precursor_chromatogram_map_.end();
     }
 
+    inline SpectrumType & getPrecursorChromatogram(String key)
+    {
+      OPENMS_PRECONDITION(hasPrecursorChromatogram(key), "Cannot retrieve precursor chromatogram that does not exist")
+      OPENMS_PRECONDITION(precursor_chromatograms_.size() > (size_t)precursor_chromatogram_map_[key], "Mapping needs to be accurate")
+      return precursor_chromatograms_[precursor_chromatogram_map_[key]];
+    }
+    //@}
+
+
+    /// @name MRM feature access (positions in RT where a peak was found across all chromatograms)
+    //@{
     inline const std::vector<MRMFeature> & getFeatures() const
     {
-      return cons_features_;
+      return mrm_features_;
     }
 
     inline std::vector<MRMFeature> & getFeaturesMuteable()
     {
-      return cons_features_;
+      return mrm_features_;
     }
 
     inline void addFeature(MRMFeature & feature)
     {
-      cons_features_.push_back(feature);
+      mrm_features_.push_back(feature);
+    }
+    //@}
+
+
+    /// @name Helper functions
+    //@{
+
+    /// Check whether internal state is consistent, e.g. same number of chromatograms and transitions are present (no runtime overhead in release mode)
+    inline bool isInternallyConsistent() const
+    {
+      OPENMS_PRECONDITION(transitions_.size() == chromatograms_.size(), "Same number of transitions as chromatograms are required")
+      OPENMS_PRECONDITION(transition_map_.size() == chromatogram_map_.size(), "Same number of transitions as chromatograms mappings are required")
+      OPENMS_PRECONDITION(isMappingConsistent_(), "Mapping needs to be consistent")
+      return true;
+    }
+
+    /// Ensure that chromatogram native ids match their keys in the map
+    inline bool chromatogramIdsMatch()
+    {
+      for (std::map<String, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
+      {
+        if (getChromatogram(it->first).getNativeID() != it->first)
+        {
+          return false;
+        }
+      }
+      for (std::map<String, int>::const_iterator it = precursor_chromatogram_map_.begin(); it != precursor_chromatogram_map_.end(); it++)
+      {
+        if (getPrecursorChromatogram(it->first).getNativeID() != it->first)
+        {
+          return false;
+        }
+      }
+      return true;
     }
 
     void getLibraryIntensity(std::vector<double> & result) const
@@ -261,7 +323,7 @@ public:
         }
       }
 
-      for (std::vector< MRMFeature >::iterator tgf_it = cons_features_.begin(); tgf_it != cons_features_.end(); ++tgf_it)
+      for (std::vector< MRMFeature >::iterator tgf_it = mrm_features_.begin(); tgf_it != mrm_features_.end(); ++tgf_it)
       {
         MRMFeature mf;
         mf.setIntensity(tgf_it->getIntensity());
@@ -305,15 +367,34 @@ public:
         }
       }
 
-      for (std::vector< MRMFeature >::iterator tgf_it = cons_features_.begin(); tgf_it != cons_features_.end(); ++tgf_it)
+      for (std::vector< MRMFeature >::iterator tgf_it = mrm_features_.begin(); tgf_it != mrm_features_.end(); ++tgf_it)
       {
         transition_group_subset.addFeature(*tgf_it);
       }
 
       return transition_group_subset;
     }
+    //@}
+
 
 protected:
+
+    /// Checks that the mapping between chromatograms and transitions is consistent
+    bool isMappingConsistent_() const
+    {
+      if (transition_map_.size() != chromatogram_map_.size()) 
+      {
+        return false;
+      }
+      for (std::map<String, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
+      {
+        if (!hasTransition(it->first)) 
+        {
+          return false;
+        }
+      }
+      return true;
+    }
 
     /// transition group id (peak group id)
     String tr_gr_id_;
@@ -328,7 +409,7 @@ protected:
     std::vector<SpectrumType> precursor_chromatograms_;
 
     /// feature list
-    MRMFeatureListType cons_features_;
+    MRMFeatureListType mrm_features_;
 
     std::map<String, int> chromatogram_map_;
     std::map<String, int> precursor_chromatogram_map_;
