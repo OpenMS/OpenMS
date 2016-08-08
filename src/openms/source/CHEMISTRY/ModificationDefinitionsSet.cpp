@@ -248,7 +248,7 @@ namespace OpenMS
               return false;
             }
             // check whether the modification is the same
-            if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModification())
+            if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModificationName())
             {
               return false;
             }
@@ -262,7 +262,7 @@ namespace OpenMS
     {
       if (it->isModified())
       {
-        String mod = ModificationsDB::getInstance()->getModification(it->getModification(), it->getOneLetterCode(), ResidueModification::ANYWHERE).getFullId();
+        String mod = it->getModification()->getFullId();
         if (var_names.find(mod) == var_names.end() &&
             fixed_names.find(mod) == fixed_names.end())
         {
@@ -273,7 +273,7 @@ namespace OpenMS
 
     if (peptide.hasNTerminalModification())
     {
-      String mod = ModificationsDB::getInstance()->getModification(peptide.getNTerminalModification(), "", ResidueModification::N_TERM).getFullId();
+      String mod = peptide.getNTerminalModification()->getFullId();
       if (var_names.find(mod) == var_names.end() &&
           fixed_names.find(mod) == fixed_names.end())
       {
@@ -283,7 +283,7 @@ namespace OpenMS
 
     if (peptide.hasCTerminalModification())
     {
-      String mod = ModificationsDB::getInstance()->getModification(peptide.getCTerminalModification(), "", ResidueModification::C_TERM).getFullId();
+      String mod = peptide.getCTerminalModification()->getFullId();
       if (var_names.find(mod) == var_names.end() &&
           fixed_names.find(mod) == fixed_names.end())
       {

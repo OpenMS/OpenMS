@@ -696,67 +696,39 @@ namespace OpenMS
             p += String("\t<Peptide id=\"") + pepid + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
             if (jt->getSequence().isModified())
             {
-              ModificationsDB* mod_db = ModificationsDB::getInstance();
-              if (!jt->getSequence().getNTerminalModification().empty())
+              const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
+              if (n_term_mod != 0)
               {
                 p += "\t\t<Modification location=\"0\">\n";
-                String mod_str = jt->getSequence().getNTerminalModification();
-                std::set<const ResidueModification*> mods;
-                mod_db->searchModifications(mods, mod_str, "", ResidueModification::N_TERM);
-                if (!mods.empty())
-                {
-                  String acc = (*mods.begin())->getUniModAccession();
-                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
-                  p += "\" name=\"" +  mod_str;
-                  p += "\" cvRef=\"UNIMOD\"/>";
-                }
-                else // TODO @mths file issue: as this appears to yield hodgepodge 'id's (sometimes e.g. Gln->pyro-Glu other times UNIMOD accessions) - issue is probably in some idXML writing code or xtandem xml consuming code
-                {
-                  p += "\t\t\t<cvParam accession=\"NA\" name=\"" +  mod_str + "\" cvRef=\"UNIMOD\"/>";
-                }
-                p += "\n\t\t</Modification>\n"; // "UNIMOD:" prefix??
+                String acc = n_term_mod->getUniModAccession();
+                p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                p += "\" name=\"" + n_term_mod->getId();
+                p += "\" cvRef=\"UNIMOD\"/>";
+                p += "\n\t\t</Modification>\n";
               }
-              if (!jt->getSequence().getCTerminalModification().empty())
+              const ResidueModification* c_term_mod = jt->getSequence().getCTerminalModification();
+              if (c_term_mod != 0)
               {
-                p += "\t\t<Modification location=\"";
-                p += String(jt->getSequence().size());
-                p += "\"> \n";
-                String mod_str = jt->getSequence().getCTerminalModification();
-                std::set<const ResidueModification*> mods;
-                mod_db->searchModifications(mods, mod_str, "", ResidueModification::C_TERM);
-                if (!mods.empty())
-                {
-                  String acc = (*mods.begin())->getUniModAccession();
-                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
-                  p += "\" name=\"" +  mod_str;
-                  p += "\" cvRef=\"UNIMOD\"/>";
-                }
-                else // TODO @mths file issue: as this appears to yield hodgepodge 'id's (sometimes e.g. Gln->pyro-Glu other times UNIMOD accessions) - issue is probably in some idXML writing code or xtandem xml consuming code
-                {
-                  p += "\t\t\t<cvParam accession=\"NA\" name=\"" +  mod_str + "\" cvRef=\"UNIMOD\"/>";
-                }
-
-                p += jt->getSequence().getCTerminalModification(); // "UNIMOD:" prefix??
+                p += "\t\t<Modification location=\"" + String(jt->getSequence().size()) + "\">\n";
+                String acc = c_term_mod->getUniModAccession();
+                p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                p += "\" name=\"" + c_term_mod->getId();
+                p += "\" cvRef=\"UNIMOD\"/>";
                 p += "\n\t\t</Modification>\n";
               }
               for (Size i = 0; i < jt->getSequence().size(); ++i)
               {
-                String mod_str =  jt->getSequence()[i].getModification(); // "UNIMOD:" prefix??
-                if (!mod_str.empty())
+                const ResidueModification* mod = jt->getSequence()[i].getModification(); // "UNIMOD:" prefix??
+                if (mod != 0)
                 {
-                  std::set<const ResidueModification*> mods;
-                  mod_db->searchModifications(mods, mod_str, jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
-                  if (!mods.empty())
-                  {
-                    //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
-                    p += "\t\t<Modification location=\"" + String(i + 1);
-                    p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
-                    String acc = (*mods.begin())->getUniModAccession();
-                    p += "\">\n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
-                    p += "\" name=\"" +  mod_str;
-                    p += "\" cvRef=\"UNIMOD\"/>";
-                    p += "\n\t\t</Modification>\n";
-                  }
+                  //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                  p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
+                  String acc = mod->getUniModAccession();
+                  p += "\">\n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
+                  p += "\" name=\"" + mod->getId();
+                  p += "\" cvRef=\"UNIMOD\"/>";
+                  p += "\n\t\t</Modification>\n";
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
               }

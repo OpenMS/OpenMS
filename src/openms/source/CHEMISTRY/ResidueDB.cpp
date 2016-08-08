@@ -126,7 +126,6 @@ namespace OpenMS
       names.push_back(*it);
     }
 
-
     if (!r->isModified())
     {
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
@@ -144,12 +143,12 @@ namespace OpenMS
 
       // get all modification names
       vector<String> mod_names;
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getModification(), r->getOneLetterCode(), ResidueModification::ANYWHERE);
+      const ResidueModification* mod = r->getModification();
 
-      mod_names.push_back(mod.getId());
-      mod_names.push_back(mod.getFullName());
-      set<String> mod_synonyms = mod.getSynonyms();
-      for (set<String>::iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
+      mod_names.push_back(mod->getId());
+      mod_names.push_back(mod->getFullName());
+      const set<String>& mod_synonyms = mod->getSynonyms();
+      for (set<String>::const_iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
       {
         mod_names.push_back(*it);
       }
@@ -459,16 +458,17 @@ namespace OpenMS
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
     // search if the mod already exists
-    String res_name(residue->getName());
+    String res_name = residue->getName();
 
     if (residue_names_.find(res_name) == residue_names_.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Residue with name "
-                                                                                       + res_name + " was not registered in residue DB, register first!").c_str());
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
     }
 
     // terminal mods. don't apply to residue (side chain), so don't consider them:
-    String id = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE).getId();
+    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+    String id = mod.getId();
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {
@@ -476,7 +476,7 @@ namespace OpenMS
     }
 
     Residue* res = new Residue(*residue_names_[res_name]);
-    res->setModification(id);
+    res->setModification_(mod);
     //res->setLossFormulas(vector<EmpiricalFormula>());
     //res->setLossNames(vector<String>());
 

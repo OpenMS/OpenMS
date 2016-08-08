@@ -203,18 +203,18 @@ namespace OpenMS
           AASequence p = h.getSequence();
           if (p.hasNTerminalModification())
           {
-            n_term_mods.insert(ModificationsDB::getInstance()->getModification(p.getNTerminalModification(), "", ResidueModification::N_TERM).getFullId());
+            n_term_mods.insert(p.getNTerminalModification()->getFullId());
           }
           if (p.hasCTerminalModification())
           {
-            c_term_mods.insert(ModificationsDB::getInstance()->getModification(p.getCTerminalModification(), "", ResidueModification::C_TERM).getFullId());
+            c_term_mods.insert(p.getCTerminalModification()->getFullId());
           }
 
           for (Size i = 0; i != p.size(); ++i)
           {
             if (p[i].isModified())
             {
-              aa_mods.insert(ModificationsDB::getInstance()->getModification(p[i].getModification(), p[i].getOneLetterCode(), ResidueModification::ANYWHERE).getFullId());
+              aa_mods.insert(p[i].getModification()->getFullId());
             }
           }
         }
@@ -398,14 +398,14 @@ namespace OpenMS
 
           if (seq.hasNTerminalModification())
           {
-            const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq.getNTerminalModification(), "", ResidueModification::N_TERM);
+            const ResidueModification& mod = *(seq.getNTerminalModification());
             f << " mod_nterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
-            const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq.getCTerminalModification(), "", ResidueModification::C_TERM);
+            const ResidueModification& mod = *(seq.getCTerminalModification());
             f << " mod_cterm_mass=\"" <<
               precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
@@ -416,7 +416,7 @@ namespace OpenMS
           {
             if (seq.isModified(i))
             {
-              const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getModification(), seq[i].getOneLetterCode(), ResidueModification::ANYWHERE);
+              const ResidueModification& mod = *(seq[i].getModification());
               // the modification position is 1-based
               f << "\t\t\t\t<mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<

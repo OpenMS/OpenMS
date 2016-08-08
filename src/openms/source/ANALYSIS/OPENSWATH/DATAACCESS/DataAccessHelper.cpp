@@ -208,16 +208,16 @@ namespace OpenMS
     if (p.isPeptide())
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
-      if ( !aa_sequence.getNTerminalModification().empty())
+      if (aa_sequence.hasNTerminalModification())
       {
-        ResidueModification rmod = mod_db->getModification(aa_sequence.getNTerminalModification(), "", ResidueModification::N_TERM);
+        const ResidueModification& rmod = *(aa_sequence.getNTerminalModification());
         m.location = -1;
         m.unimod_id = rmod.getUniModAccession();
         p.modifications.push_back(m);
       }
-      if ( !aa_sequence.getCTerminalModification().empty())
+      if (aa_sequence.hasCTerminalModification())
       {
-        ResidueModification rmod = mod_db->getModification(aa_sequence.getCTerminalModification(), "", ResidueModification::C_TERM);
+        const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
         m.location = boost::numeric_cast<int>(aa_sequence.size());
         m.unimod_id = rmod.getUniModAccession();
         p.modifications.push_back(m);
@@ -227,7 +227,7 @@ namespace OpenMS
         if (aa_sequence[i].isModified())
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getModification(), aa_sequence.getResidue(i).getOneLetterCode(), ResidueModification::ANYWHERE);
+          const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
           m.location = boost::numeric_cast<int>(i);
           m.unimod_id = rmod.getUniModAccession();
           p.modifications.push_back(m);

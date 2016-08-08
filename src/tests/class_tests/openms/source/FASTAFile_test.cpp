@@ -154,7 +154,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
 
   TEST_EQUAL(aa.isModified(), true)
   String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", ResidueModification::N_TERM).getId();
-  TEST_EQUAL(aa.getNTerminalModification(), expectedModification)
+  TEST_EQUAL(aa.getNTerminalModificationName(), expectedModification)
 
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "test")

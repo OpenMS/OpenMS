@@ -163,11 +163,11 @@ namespace OpenMS
          residue != feature.getPeptideIdentifications()[0].getHits()[0].getSequence().end();
          ++residue)
     {
-      if (*residue == 'R' && residue->getModification() == arginine_label)
+      if (*residue == 'R' && residue->getModificationName() == arginine_label)
       {
         unmodified_sequence.append("R");
       }
-      else if (*residue == 'K' && residue->getModification() == lysine_label)
+      else if (*residue == 'K' && residue->getModificationName() == lysine_label)
       {
         unmodified_sequence.append("K");
       }

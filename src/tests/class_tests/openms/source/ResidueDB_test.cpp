@@ -88,13 +88,13 @@ END_SECTION
 START_SECTION(const Residue* getModifiedResidue(const String& name))
 	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
+	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
 END_SECTION
 
 START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const String& name))
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
+	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
 END_SECTION
 
 START_SECTION((const std::set<const Residue*> getResidues(const String& residue_set="All") const))

@@ -176,16 +176,16 @@ namespace OpenMS
            ++hit_it)
       {
         const String& n_term_mod =
-          hit_it->getSequence().getNTerminalModification();
+          hit_it->getSequence().getNTerminalModificationName();
         mod_map["N-term"].insert(n_term_mod);
         const String& c_term_mod =
-          hit_it->getSequence().getCTerminalModification();
+          hit_it->getSequence().getCTerminalModificationName();
         mod_map["C-term"].insert(c_term_mod);
 
         for (AASequence::ConstIterator seq_it = hit_it->getSequence().begin();
              seq_it != hit_it->getSequence().end(); ++seq_it)
         {
-          const String& mod = seq_it->getModification();
+          const String& mod = seq_it->getModificationName();
           mod_map[seq_it->getOneLetterCode()].insert(mod);
         }
       }
@@ -203,12 +203,12 @@ namespace OpenMS
 
 
   void PercolatorOutfile::load(const String& filename,
-                               ProteinIdentification& proteins, 
+                               ProteinIdentification& proteins,
                                vector<PeptideIdentification>& peptides,
                                SpectrumMetaDataLookup& lookup,
                                enum ScoreType output_score)
   {
-    SpectrumMetaDataLookup::MetaDataFlags lookup_flags = 
+    SpectrumMetaDataLookup::MetaDataFlags lookup_flags =
       (SpectrumMetaDataLookup::MDF_RT |
        SpectrumMetaDataLookup::MDF_PRECURSORMZ |
        SpectrumMetaDataLookup::MDF_PRECURSORCHARGE);

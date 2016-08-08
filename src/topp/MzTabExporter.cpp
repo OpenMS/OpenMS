@@ -711,15 +711,13 @@ protected:
 
       if (aas.isModified())
       {
-        ModificationsDB* mod_db = ModificationsDB::getInstance();
-
         if (aas.hasNTerminalModification())
         {
           MzTabModification mod;
-          String mod_name = aas.getNTerminalModification();
-          if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+          const ResidueModification& res_mod = *(aas.getNTerminalModification());
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
           {
-            MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name, "", ResidueModification::N_TERM).getUniModAccession());
+            MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(0, MzTabParameter()));
             mod.setModificationIdentifier(unimod_accession);
@@ -733,11 +731,11 @@ protected:
           if (aas.isModified(ai))
           {
             MzTabModification mod;
-            String mod_name = aas[ai].getModification();
-            if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+            const ResidueModification& res_mod = *(aas[ai].getModification());
+            if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
             {
               // MzTab standard is to just report Unimod accession.
-              MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name, aas[ai].getOneLetterCode(), ResidueModification::ANYWHERE).getUniModAccession());
+              MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
               vector<std::pair<Size, MzTabParameter> > pos;
               pos.push_back(make_pair(ai + 1, MzTabParameter()));
               mod.setPositionsAndParameters(pos);
@@ -750,10 +748,10 @@ protected:
         if (aas.hasCTerminalModification())
         {
           MzTabModification mod;
-          String mod_name = aas.getCTerminalModification();
-          if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+          const ResidueModification& res_mod = *(aas.getCTerminalModification());
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
           {
-            MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name, "", ResidueModification::C_TERM).getUniModAccession());
+            MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
             mod.setPositionsAndParameters(pos);

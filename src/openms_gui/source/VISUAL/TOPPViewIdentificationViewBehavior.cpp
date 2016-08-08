@@ -539,7 +539,7 @@ namespace OpenMS
           {
             const Residue & r = aa_sequence.getResidue(j);
             aa_ss.append(r.getOneLetterCode().toQString());
-            if (r.getModification() != "")
+            if (r.getModificationName() != "")
             {
               aa_ss.append("*");
             }

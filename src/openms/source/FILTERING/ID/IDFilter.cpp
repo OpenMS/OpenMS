@@ -129,8 +129,7 @@ namespace OpenMS
       {
         if (seq.isModified(i))
         {
-          String mod_name = seq[i].getModification() + " (" +
-            seq[i].getOneLetterCode() + ")";
+          String mod_name = seq[i].getModification()->getFullId();
           if (mods.count(mod_name) > 0) return true;
         }
       }
@@ -138,20 +137,12 @@ namespace OpenMS
       // terminal modifications:
       if (seq.hasNTerminalModification())
       {
-        String mod_name = seq.getNTerminalModification() + " (N-term)";
-        if (mods.count(mod_name) > 0) return true;
-        // amino acid-specific terminal mod. (e.g. "Ammonia-loss (N-term C"):
-        mod_name[mod_name.size() - 1] = ' ';
-        mod_name += seq[Size(0)].getOneLetterCode() + ")";
+        String mod_name = seq.getNTerminalModification()->getFullId();
         if (mods.count(mod_name) > 0) return true;
       }
       if (seq.hasCTerminalModification())
       {
-        String mod_name = seq.getCTerminalModification() + " (C-term)";
-        if (mods.count(mod_name) > 0) return true;
-        // amino acid-specific terminal mod. (e.g. "Arg-loss (C-term R)"):
-        mod_name[mod_name.size() - 1] = ' ';
-        mod_name += seq[seq.size() - 1].getOneLetterCode() + ")";
+        String mod_name = seq.getCTerminalModification()->getFullId();
         if (mods.count(mod_name) > 0) return true;
       }
 

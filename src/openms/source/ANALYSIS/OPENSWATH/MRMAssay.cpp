@@ -214,31 +214,19 @@ namespace OpenMS
 
     if (sequence.hasNTerminalModification())
     {
-      if (mods.find(sequence.getNTerminalModification()) == mods.end())
-      {
-        mods[sequence.getNTerminalModification()] = 0;
-      }
-      mods[sequence.getNTerminalModification()] += 1;
+      mods[sequence.getNTerminalModificationName()] += 1;
     }
 
     if (sequence.hasCTerminalModification())
     {
-      if (mods.find(sequence.getCTerminalModification()) == mods.end())
-      {
-        mods[sequence.getCTerminalModification()] = 0;
-      }
-      mods[sequence.getCTerminalModification()] += 1;
+      mods[sequence.getCTerminalModificationName()] += 1;
     }
 
     for (size_t i = 0; i < sequence.size(); ++i)
     {
       if (sequence.isModified(i))
       {
-        if (mods.find(sequence.getResidue(i).getModification()) == mods.end())
-        {
-          mods[sequence.getResidue(i).getModification()] = 0;
-        }
-        mods[sequence.getResidue(i).getModification()] += 1;
+        mods[sequence.getResidue(i).getModificationName()] += 1;
       }
     }
 
@@ -285,19 +273,19 @@ namespace OpenMS
 
     if (sequence.hasNTerminalModification())
     {
-      mods[sequence.getNTerminalModification()] += 1;
+      mods[sequence.getNTerminalModificationName()] += 1;
     }
 
     if (sequence.hasCTerminalModification())
     {
-      mods[sequence.getCTerminalModification()] += 1;
+      mods[sequence.getCTerminalModificationName()] += 1;
     }
 
     for (size_t i = 0; i < sequence.size(); ++i)
     {
       if (sequence.isModified(i))
       {
-        mods[sequence.getResidue(i).getModification()] += 1;
+        mods[sequence.getResidue(i).getModificationName()] += 1;
       }
     }
 
