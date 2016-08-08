@@ -48,8 +48,7 @@ namespace OpenMS
     name_("unknown"),
     average_weight_(0.0f),
     mono_weight_(0.0f),
-    is_modified_(false),
-    modification_(""),
+    modification_(0),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -68,8 +67,7 @@ namespace OpenMS
     formula_(formula),
     average_weight_(0),
     mono_weight_(0),
-    is_modified_(false),
-    modification_(""),
+    modification_(0),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -95,8 +93,6 @@ namespace OpenMS
     internal_formula_(residue.internal_formula_),
     average_weight_(residue.average_weight_),
     mono_weight_(residue.mono_weight_),
-    is_modified_(residue.is_modified_),
-    pre_mod_name_(residue.pre_mod_name_),
     modification_(residue.modification_),
     loss_names_(residue.loss_names_),
     loss_formulas_(residue.loss_formulas_),
@@ -132,8 +128,6 @@ namespace OpenMS
       internal_formula_ = residue.internal_formula_;
       average_weight_ = residue.average_weight_;
       mono_weight_ = residue.mono_weight_;
-      is_modified_ = residue.is_modified_;
-      pre_mod_name_ = residue.pre_mod_name_;
       modification_ = residue.modification_;
       loss_names_ = residue.loss_names_;
       loss_formulas_ = residue.loss_formulas_;
@@ -501,14 +495,10 @@ namespace OpenMS
     }
   }
 
-  void Residue::setModification(const String& modification)
+  void Residue::setModification_(const ResidueModification& mod)
   {
-    //modification_ = modification;
+    modification_ = &mod;
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-    ResidueModification mod = mod_db->getModification(modification, one_letter_code_, ResidueModification::ANYWHERE);
-
-    modification_ = mod.getId();
     // update all the members
     if (mod.getAverageMass() != 0)
     {
@@ -558,13 +548,24 @@ namespace OpenMS
       loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
       loss_names_.push_back(mod.getNeutralLossDiffFormula().toString());
     }
-
-    is_modified_ = true;
   }
 
-  const String& Residue::getModification() const
+  const ResidueModification* Residue::getModification() const
   {
     return modification_;
+  }
+
+  void Residue::setModification(const String& name)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ResidueModification& mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+    setModification_(mod);
+  }
+
+  const String& Residue::getModificationName() const
+  {
+    if (modification_ == 0) return String::EMPTY;
+    return modification_->getId();
   }
 
   void Residue::setLowMassIons(const vector<EmpiricalFormula>& low_mass_ions)
@@ -624,7 +625,7 @@ namespace OpenMS
 
   bool Residue::isModified() const
   {
-    return is_modified_;
+    return modification_ != 0;
   }
 
   bool Residue::hasNeutralLoss() const
@@ -647,8 +648,6 @@ namespace OpenMS
            formula_ == residue.formula_ &&
            average_weight_ == residue.average_weight_ &&
            mono_weight_ == residue.mono_weight_ &&
-           is_modified_ == residue.is_modified_ &&
-           pre_mod_name_ == residue.pre_mod_name_ &&
            modification_ == residue.modification_ &&
            loss_names_ == residue.loss_names_ &&
            loss_formulas_ == residue.loss_formulas_ &&

@@ -37,6 +37,7 @@
 #define OPENMS_CHEMISTRY_RESIDUE_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -46,7 +47,6 @@
 
 namespace OpenMS
 {
-
   /**
       @ingroup Chemistry
 
@@ -61,6 +61,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI Residue
   {
+    friend class ResidueDB;
+
 public:
 
     /** @name Typedefs and Constants
@@ -276,17 +278,20 @@ public:
     /// returns average weight of the residue
     double getAverageWeight(ResidueType res_type = Full) const;
 
-    /// sets mono weight of the residue (must be full, with N and C-terminus)
+    /// sets monoisotopic weight of the residue (must be full, with N and C-terminus)
     void setMonoWeight(double weight);
 
-    /// returns mono weight of the residue
+    /// returns monoisotopic weight of the residue
     double getMonoWeight(ResidueType res_type = Full) const;
 
-    /// sets by the name, this mod should be present in ModificationsDB
+    /// returns a pointer to the modification, or zero if none is set
+    const ResidueModification* getModification() const;
+
+    /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const String& name);
 
-    /// returns the name of the modification to the modification
-    const String& getModification() const;
+    /// returns the name (ID) of the modification, or an empty string if none is set
+    const String& getModificationName() const;
 
     /// sets the low mass marker ions as a vector of formulas
     void setLowMassIons(const std::vector<EmpiricalFormula>& low_mass_ions);
@@ -396,11 +401,7 @@ protected:
     double mono_weight_;
 
     // modification
-    bool is_modified_;
-
-    String pre_mod_name_;
-
-    String modification_;
+    const ResidueModification* modification_;
 
     // loss
     std::vector<String> loss_names_;
@@ -435,6 +436,9 @@ protected:
 
     // residue sets this amino acid is contained in
     std::set<String> residue_sets_;
+
+    /// sets the modification (helper function)
+    void setModification_(const ResidueModification& mod);
 
   };
 

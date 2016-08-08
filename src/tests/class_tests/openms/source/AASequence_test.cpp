@@ -80,9 +80,9 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
 {
   AASequence seq = AASequence::fromString("CNARCKNCNCNARCDRE");
   TEST_EQUAL(seq.isModified(), false)
-  TEST_EQUAL(seq.hasNTerminalModification(),false);
-  TEST_EQUAL(seq.hasCTerminalModification(),false);
-  TEST_EQUAL(seq.getResidue((SignedSize)4).getModification(),"")
+  TEST_EQUAL(seq.hasNTerminalModification(), false);
+  TEST_EQUAL(seq.hasCTerminalModification(), false);
+  TEST_EQUAL(seq.getResidue((SignedSize)4).getModificationName(), "")
 
   AASequence seq2;
   seq2 = AASequence::fromString("CNARCKNCNCNARCDRE");
@@ -91,76 +91,76 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   // test complex term-mods
   AASequence seq3 = AASequence::fromString("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
   TEST_EQUAL(seq3.isModified(), true)
-  TEST_EQUAL(seq3.hasNTerminalModification(),false);
-  TEST_EQUAL(seq3.hasCTerminalModification(),true);
-  TEST_EQUAL(seq3.getResidue((SignedSize)4).getModification(),"")
-  TEST_EQUAL(seq3.getCTerminalModification(), "Label:18O(2)")
+  TEST_EQUAL(seq3.hasNTerminalModification(), false);
+  TEST_EQUAL(seq3.hasCTerminalModification(), true);
+  TEST_EQUAL(seq3.getResidue((SignedSize)4).getModificationName(), "")
+  TEST_EQUAL(seq3.getCTerminalModificationName(), "Label:18O(2)")
   AASequence seq4 = AASequence::fromString("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
-  TEST_EQUAL(seq3,seq4)
+  TEST_EQUAL(seq3, seq4)
 
   AASequence seq5 = AASequence::fromString("(ICPL:2H(4))CNARCNCNCN");
-  TEST_EQUAL(seq5.hasNTerminalModification(),true);
-  TEST_EQUAL(seq5.isModified(),true);
-  TEST_EQUAL(seq5.getNTerminalModification(),"ICPL:2H(4)")
+  TEST_EQUAL(seq5.hasNTerminalModification(), true);
+  TEST_EQUAL(seq5.isModified(), true);
+  TEST_EQUAL(seq5.getNTerminalModificationName(), "ICPL:2H(4)")
 
   AASequence seq6 = AASequence::fromString("CNARCK(Label:13C(6)15N(2))NCNCN");
-  TEST_EQUAL(seq6.hasNTerminalModification(),false);
-  TEST_EQUAL(seq6.hasCTerminalModification(),false);
-  TEST_EQUAL(seq6.isModified(),true);
-  TEST_EQUAL(seq6.getResidue((SignedSize)5).getModification(),"Label:13C(6)15N(2)")
-  TEST_EQUAL(seq6.getResidue((SignedSize)4).getModification(),"")
+  TEST_EQUAL(seq6.hasNTerminalModification(), false);
+  TEST_EQUAL(seq6.hasCTerminalModification(), false);
+  TEST_EQUAL(seq6.isModified(), true);
+  TEST_EQUAL(seq6.getResidue((SignedSize)5).getModificationName(), "Label:13C(6)15N(2)")
+  TEST_EQUAL(seq6.getResidue((SignedSize)4).getModificationName(), "")
 
   AASequence seq7 = AASequence::fromString("CNARCKNCNCNARCDRE(Amidated)");
-  TEST_EQUAL(seq7.hasNTerminalModification(),false);
-  TEST_EQUAL(seq7.hasCTerminalModification(),true);
-  TEST_EQUAL(seq7.isModified(),true);
-  TEST_EQUAL(seq7.getCTerminalModification(),"Amidated")
+  TEST_EQUAL(seq7.hasNTerminalModification(), false);
+  TEST_EQUAL(seq7.hasCTerminalModification(), true);
+  TEST_EQUAL(seq7.isModified(), true);
+  TEST_EQUAL(seq7.getCTerminalModificationName(), "Amidated")
 
   // test square bracket modifications
   AASequence seq8 = AASequence::fromString("PEPTIDEK[136]");
-  TEST_EQUAL(seq8.hasNTerminalModification(),false);
-  TEST_EQUAL(seq8.hasCTerminalModification(),false);
-  TEST_EQUAL(seq8.isModified(),true);
-  TEST_STRING_EQUAL(seq8[(Size)7].getModification(), "Label:13C(6)15N(2)")
+  TEST_EQUAL(seq8.hasNTerminalModification(), false);
+  TEST_EQUAL(seq8.hasCTerminalModification(), false);
+  TEST_EQUAL(seq8.isModified(), true);
+  TEST_STRING_EQUAL(seq8[(Size)7].getModificationName(), "Label:13C(6)15N(2)")
 
   AASequence seq9 = AASequence::fromString("PEPS[167]TIDEK");
-  TEST_EQUAL(seq9.isModified(),true);
-  TEST_STRING_EQUAL(seq9[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq9.isModified(), true);
+  TEST_STRING_EQUAL(seq9[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq10 = AASequence::fromString("PEPC[160]TIDEK");
-  TEST_EQUAL(seq10.isModified(),true);
-  TEST_STRING_EQUAL(seq10[(Size)3].getModification(), "Carbamidomethyl")
+  TEST_EQUAL(seq10.isModified(), true);
+  TEST_STRING_EQUAL(seq10[(Size)3].getModificationName(), "Carbamidomethyl")
 
   AASequence seq11 = AASequence::fromString("PEPM[147]TIDEK");
-  TEST_EQUAL(seq11.isModified(),true);
-  TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "Oxidation")
+  TEST_EQUAL(seq11.isModified(), true);
+  TEST_STRING_EQUAL(seq11[(Size)3].getModificationName(), "Oxidation")
 
   AASequence seq12 = AASequence::fromString("PEPT[181]TIDEK");
-  TEST_EQUAL(seq12.isModified(),true);
-  TEST_STRING_EQUAL(seq12[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq12.isModified(), true);
+  TEST_STRING_EQUAL(seq12[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq13 = AASequence::fromString("PEPY[243]TIDEK");
-  TEST_EQUAL(seq13.isModified(),true);
-  TEST_STRING_EQUAL(seq13[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq13.isModified(), true);
+  TEST_STRING_EQUAL(seq13[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq14 = AASequence::fromString("PEPR[166]TIDEK");
-  TEST_EQUAL(seq14.isModified(),true);
-  TEST_STRING_EQUAL(seq14[(Size)3].getModification(), "Label:13C(6)15N(4)")
+  TEST_EQUAL(seq14.isModified(), true);
+  TEST_STRING_EQUAL(seq14[(Size)3].getModificationName(), "Label:13C(6)15N(4)")
 
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
   // AASequence seq15 = AASequence::fromString("PEPC[143]TIDEK");
-  // TEST_EQUAL(seq15.isModified(),true);
-  // TEST_STRING_EQUAL(seq15[(Size)3].getModification(), "Pyro-carbamidomethyl")
+  // TEST_EQUAL(seq15.isModified(), true);
+  // TEST_STRING_EQUAL(seq15[(Size)3].getModificationName(), "Pyro-carbamidomethyl")
 
   // invalid test case: "Gln->pyro-Glu" is only defined as N-terminal
   // AASequence seq16 = AASequence::fromString("PEPQ[111]TIDEK");
-  // TEST_EQUAL(seq16.isModified(),true);
-  // TEST_STRING_EQUAL(seq16[(Size)3].getModification(), "Gln->pyro-Glu")
+  // TEST_EQUAL(seq16.isModified(), true);
+  // TEST_STRING_EQUAL(seq16[(Size)3].getModificationName(), "Gln->pyro-Glu")
 
   // invalid test case: "Glu->pyro-Glu" is only defined as N-terminal
   // AASequence seq17 = AASequence::fromString("PEPE[111]TIDEK");
-  // TEST_EQUAL(seq17.isModified(),true);
-  // TEST_STRING_EQUAL(seq17[(Size)3].getModification(), "Glu->pyro-Glu")
+  // TEST_EQUAL(seq17.isModified(), true);
+  // TEST_STRING_EQUAL(seq17[(Size)3].getModificationName(), "Glu->pyro-Glu")
 
   TEST_EXCEPTION(Exception::ParseError, AASequence::fromString("blDABCDEF"));
   TEST_EXCEPTION(Exception::ParseError, AASequence::fromString("a"));
@@ -177,7 +177,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   AASequence seq19 = AASequence::fromString("PEPM(Oxidation)");
   TEST_EQUAL(seq19.hasCTerminalModification(), false);
   TEST_EQUAL(seq19.isModified(3), true);
-  TEST_STRING_EQUAL(seq19[3].getModification(), "Oxidation");
+  TEST_STRING_EQUAL(seq19[3].getModificationName(), "Oxidation");
 }
 END_SECTION
 
@@ -483,7 +483,7 @@ END_SECTION
 START_SECTION(void setModification(Size index, const String &modification))
   AASequence seq1 = AASequence::fromString("ACDEFNK");
   seq1.setModification(5, "Deamidated");
-  TEST_STRING_EQUAL(seq1[(Size)5].getModification(), "Deamidated")
+  TEST_STRING_EQUAL(seq1[(Size)5].getModificationName(), "Deamidated")
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))
@@ -503,32 +503,32 @@ START_SECTION(void setNTerminalModification(const String &modification))
 END_SECTION
 
 
-START_SECTION(const String& getNTerminalModification() const)
+START_SECTION(const String& getNTerminalModificationName() const)
   AASequence seq1 = AASequence::fromString("(MOD:00051)DFPIANGER");
-  TEST_EQUAL(seq1.getNTerminalModification(), "MOD:00051")
+  TEST_EQUAL(seq1.getNTerminalModificationName(), "MOD:00051")
 
   AASequence seq2 = AASequence::fromString("DFPIANGER");
-  TEST_EQUAL(seq2.getNTerminalModification(), "")
+  TEST_EQUAL(seq2.getNTerminalModificationName(), "")
 
 END_SECTION
 
-START_SECTION(const String& getNTerminalResidueModification() const)
+START_SECTION(const ResidueModification* getNTerminalModification() const)
   AASequence seq1 = AASequence::fromString("(Formyl)DFPIANGER");
 
-  TEST_EQUAL(seq1.getNTerminalResidueModification()->getId(), "Formyl")
-  TEST_EQUAL(seq1.getNTerminalResidueModification()->getFullId(), "Formyl (N-term)")
+  TEST_EQUAL(seq1.getNTerminalModification()->getId(), "Formyl")
+  TEST_EQUAL(seq1.getNTerminalModification()->getFullId(), "Formyl (N-term)")
 
   AASequence seq2 = AASequence::fromString("DFPIANGER");
-  TEST_EQUAL(seq2.getNTerminalResidueModification(),  0)
+  TEST_EQUAL(seq2.getNTerminalModification(),  0)
 END_SECTION
 
-START_SECTION(const String& getCTerminalResidueModification() const)
+START_SECTION(const ResidueModification* getCTerminalModification() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFPIANGER(Amidated)");
 
-  TEST_EQUAL(seq2.getCTerminalResidueModification()->getId(), "Amidated")
-  TEST_EQUAL(seq2.getCTerminalResidueModification()->getFullId(), "Amidated (C-term)")
-  TEST_EQUAL(seq1.getCTerminalResidueModification(),  0)
+  TEST_EQUAL(seq2.getCTerminalModification()->getId(), "Amidated")
+  TEST_EQUAL(seq2.getCTerminalModification()->getFullId(), "Amidated (C-term)")
+  TEST_EQUAL(seq1.getCTerminalModification(),  0)
 END_SECTION
 
 START_SECTION(void setCTerminalModification(const String &modification))
@@ -562,12 +562,12 @@ START_SECTION(void setCTerminalModification(const String &modification))
   TEST_EQUAL(seq5 == seq6, true)
 END_SECTION
 
-START_SECTION(const String& getCTerminalModification() const)
+START_SECTION(const String& getCTerminalModificationName() const)
   AASequence seq1 = AASequence::fromString("DFPIANGER(Amidated)");
-  TEST_EQUAL(seq1.getCTerminalModification(), "Amidated")
+  TEST_EQUAL(seq1.getCTerminalModificationName(), "Amidated")
 
   AASequence seq2 = AASequence::fromString("DFPIANGER");
-  TEST_EQUAL(seq2.getCTerminalModification(), "")
+  TEST_EQUAL(seq2.getCTerminalModificationName(), "")
 END_SECTION
 
 START_SECTION(bool hasNTerminalModification() const)
@@ -753,8 +753,8 @@ START_SECTION([EXTRA] Arbitrary tag in peptides)
   TEST_EXCEPTION(Exception::ParseError, test = AASequence::fromString("PEPTX[+160.230654]IDE"));
 
   AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK");
-  TEST_EQUAL(seq11.isModified(),true);
-  TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "Oxidation")
+  TEST_EQUAL(seq11.isModified(), true);
+  TEST_STRING_EQUAL(seq11[(Size)3].getModificationName(), "Oxidation")
 }
 END_SECTION
 
@@ -765,39 +765,39 @@ START_SECTION([EXTRA] Test integer vs float tags)
   // Test a few modifications with the "correct" accurate mass
   {
   AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK"); // UniMod oxMet is 147.035405
-  TEST_EQUAL(seq11.isModified(),true);
-  TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "Oxidation")
+  TEST_EQUAL(seq11.isModified(), true);
+  TEST_STRING_EQUAL(seq11[(Size)3].getModificationName(), "Oxidation")
 
   AASequence seq12 = AASequence::fromString("PEPT[181.014]TIDEK");
-  TEST_EQUAL(seq12.isModified(),true);
-  TEST_STRING_EQUAL(seq12[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq12.isModified(), true);
+  TEST_STRING_EQUAL(seq12[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq13 = AASequence::fromString("PEPY[243.03]TIDEK");
-  TEST_EQUAL(seq13.isModified(),true);
-  TEST_STRING_EQUAL(seq13[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq13.isModified(), true);
+  TEST_STRING_EQUAL(seq13[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq15 = AASequence::fromString("PEPC[160.0306]TIDE");
-  TEST_EQUAL(seq15.isModified(),true);
-  TEST_STRING_EQUAL(seq15[(Size)3].getModification(), "Carbamidomethyl")
+  TEST_EQUAL(seq15.isModified(), true);
+  TEST_STRING_EQUAL(seq15[(Size)3].getModificationName(), "Carbamidomethyl")
   }
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
   {
   AASequence seq11 = AASequence::fromString("PEPM[147.035399]TIDEK"); // PSI-MOD oxMet is 147.035399
-  TEST_EQUAL(seq11.isModified(),true);
-  TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "MOD:00719")
+  TEST_EQUAL(seq11.isModified(), true);
+  TEST_STRING_EQUAL(seq11[(Size)3].getModificationName(), "MOD:00719")
 
   AASequence seq12 = AASequence::fromString("PEPT[181.004]TIDEK");
-  TEST_EQUAL(seq12.isModified(),true);
-  TEST_STRING_EQUAL(seq12[(Size)3].getModification(), "Sulfo")
+  TEST_EQUAL(seq12.isModified(), true);
+  TEST_STRING_EQUAL(seq12[(Size)3].getModificationName(), "Sulfo")
 
   AASequence seq13 = AASequence::fromString("PEPY[243.02]TIDEK");
-  TEST_EQUAL(seq13.isModified(),true);
-  TEST_STRING_EQUAL(seq13[(Size)3].getModification(), "Sulfo")
+  TEST_EQUAL(seq13.isModified(), true);
+  TEST_STRING_EQUAL(seq13[(Size)3].getModificationName(), "Sulfo")
 
   AASequence seq14 = AASequence::fromString("PEPTC[159.035405]IDE");
-  TEST_EQUAL(seq14.isModified(),true);
-  TEST_STRING_EQUAL(seq14[(Size)4].getModification(), "Delta:H(4)C(3)O(1)")
+  TEST_EQUAL(seq14.isModified(), true);
+  TEST_STRING_EQUAL(seq14[(Size)4].getModificationName(), "Delta:H(4)C(3)O(1)")
   }
 
 
@@ -806,20 +806,20 @@ START_SECTION([EXTRA] Test integer vs float tags)
   // Test a few modifications with the "correct" accurate mass
   {
   AASequence seq11 = AASequence::fromString("PEPM[+15.994915]TIDEK"); // UniMod oxMet is 15.994915
-  TEST_EQUAL(seq11.isModified(),true);
-  TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "Oxidation")
+  TEST_EQUAL(seq11.isModified(), true);
+  TEST_STRING_EQUAL(seq11[(Size)3].getModificationName(), "Oxidation")
 
   AASequence seq12 = AASequence::fromString("PEPT[+79.96632]TIDEK");
-  TEST_EQUAL(seq12.isModified(),true);
-  TEST_STRING_EQUAL(seq12[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq12.isModified(), true);
+  TEST_STRING_EQUAL(seq12[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq13 = AASequence::fromString("PEPY[+79.966331]TIDEK");
-  TEST_EQUAL(seq13.isModified(),true);
-  TEST_STRING_EQUAL(seq13[(Size)3].getModification(), "Phospho")
+  TEST_EQUAL(seq13.isModified(), true);
+  TEST_STRING_EQUAL(seq13[(Size)3].getModificationName(), "Phospho")
 
   AASequence seq14 = AASequence::fromString("PEPC[+57.02]TIDE");
-  TEST_EQUAL(seq14.isModified(),true);
-  TEST_STRING_EQUAL(seq14[(Size)3].getModification(), "Carbamidomethyl")
+  TEST_EQUAL(seq14.isModified(), true);
+  TEST_STRING_EQUAL(seq14[(Size)3].getModificationName(), "Carbamidomethyl")
   }
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
@@ -830,16 +830,16 @@ START_SECTION([EXTRA] Test integer vs float tags)
   // TEST_STRING_EQUAL(seq11[(Size)3].getModification(), "MOD:00719")
 
   AASequence seq12 = AASequence::fromString("PEPT[+79.957]TIDEK");
-  TEST_EQUAL(seq12.isModified(),true);
-  TEST_STRING_EQUAL(seq12[(Size)3].getModification(), "Sulfo")
+  TEST_EQUAL(seq12.isModified(), true);
+  TEST_STRING_EQUAL(seq12[(Size)3].getModificationName(), "Sulfo")
 
   AASequence seq13 = AASequence::fromString("PEPY[+79.9568]TIDEK");
-  TEST_EQUAL(seq13.isModified(),true);
-  TEST_STRING_EQUAL(seq13[(Size)3].getModification(), "Sulfo")
+  TEST_EQUAL(seq13.isModified(), true);
+  TEST_STRING_EQUAL(seq13[(Size)3].getModificationName(), "Sulfo")
 
   AASequence seq14 = AASequence::fromString("PEPTC[+56.026215]IDE");
-  TEST_EQUAL(seq14.isModified(),true);
-  TEST_STRING_EQUAL(seq14[(Size)4].getModification(), "Delta:H(4)C(3)O(1)")
+  TEST_EQUAL(seq14.isModified(), true);
+  TEST_STRING_EQUAL(seq14[(Size)4].getModificationName(), "Delta:H(4)C(3)O(1)")
   }
 
 }

@@ -694,20 +694,14 @@ namespace OpenMS
         {
           os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
         }
-        String id = ModificationsDB::getInstance()->getModification(
-                      peptide.peptide_[i]->getModification(),
-                      peptide.peptide_[i]->getOneLetterCode(),
-                      ResidueModification::ANYWHERE).getId();
+        const String& id = peptide.peptide_[i]->getModificationName();
         if (id != "")
         {
           os << "(" << id << ")";
         }
         else
         {
-          os << "([" << precisionWrapper(ModificationsDB::getInstance()->getModification(
-                  peptide.peptide_[i]->getModification(),
-                  peptide.peptide_[i]->getOneLetterCode(),
-                  ResidueModification::ANYWHERE).getDiffMonoMass()) << "])";
+          os << "([" << precisionWrapper(peptide.peptide_[i]->getModification()->getDiffMonoMass()) << "])";
         }
       }
       else
@@ -1024,35 +1018,25 @@ namespace OpenMS
     c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
   }
 
-  const String& AASequence::getNTerminalModification() const
+  const String& AASequence::getNTerminalModificationName() const
   {
-    static const String mod = "";
-    if (n_term_mod_ == 0)
-    {
-      return mod;
-    }
+    if (n_term_mod_ == 0) return String::EMPTY;
     return n_term_mod_->getId();
   }
 
-  /// returns the N-term modification; nullptr is returned if none was set
-  const ResidueModification* AASequence::getNTerminalResidueModification() const
+  const ResidueModification* AASequence::getNTerminalModification() const
   {
     return n_term_mod_;
   }
 
-  /// returns the C-term modification; nullptr is returned if none was set
-  const ResidueModification* AASequence::getCTerminalResidueModification() const
+  const ResidueModification* AASequence::getCTerminalModification() const
   {
     return c_term_mod_;
   }
 
-  const String& AASequence::getCTerminalModification() const
+  const String& AASequence::getCTerminalModificationName() const
   {
-    static const String mod = "";
-    if (c_term_mod_ == 0)
-    {
-      return mod;
-    }
+    if (c_term_mod_ == 0) return String::EMPTY;
     return c_term_mod_->getId();
   }
 
