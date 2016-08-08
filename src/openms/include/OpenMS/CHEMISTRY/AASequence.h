@@ -367,6 +367,13 @@ protected:
     /// returns the peptide as string without any modifications
     String toUnmodifiedString() const;
 
+    /**
+        @brief create a TPP compatible string of the modified sequence using bracket notation.
+        Modification names (fullId) passed in fixed modifications are omitted.
+        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+    */  
+    String toBracketString(const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+
     /// set the modification of the residue at position index
     void setModification(Size index, const String& modification);
 

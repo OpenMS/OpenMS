@@ -395,7 +395,7 @@ namespace OpenMS
         if (seq.isModified())
         {
           f << "\t\t\t<modification_info modified_peptide=\""
-            << modifiedSequenceToBracketString_(seq) << "\"";
+            << seq.toBracketString() << "\"";
 
           if (seq.hasNTerminalModification())
           {
@@ -1556,46 +1556,5 @@ namespace OpenMS
     }
   }
 
-  String PepXMLFile::modifiedSequenceToBracketString_(const AASequence & seq)
-  {
-    String bs;
-
-    if (seq.empty()) return bs;
-
-    if (seq.hasNTerminalModification())
-    {
-      const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
-      const int nominal_mass = static_cast<int>(Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass());
-      bs += "n[" + String(nominal_mass) + "]";
-    }
-
-    for (Size i = 0; i != seq.size(); ++i)
-    {
-      const Residue & r = seq[i];
-      const String aa = r.getOneLetterCode() != "" ? r.getOneLetterCode() : "X";
-      if (r.isModified())
-      {
-        const double diff_mono_mass = (ModificationsDB::getInstance()->getModification(
-                  r.getOneLetterCode(),
-                  r.getModification(),
-                  ResidueModification::ANYWHERE).getDiffMonoMass());
-
-        const double residue_mono_mass = r.getMonoWeight();
-        bs += aa + "[" + static_cast<int>(residue_mono_mass + diff_mono_mass) + "]"; 
-      }
-      else  // amino acid not modified
-      {
-        bs += aa;
-      }
-    }
-
-    if (seq.hasCTerminalModification())
-    {
-      const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
-      const int nominal_mass = static_cast<int>(Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass());
-      bs += "c[" + String(nominal_mass) + "]";
-    }
-    return bs;
-  }
 } // namespace OpenMS
 

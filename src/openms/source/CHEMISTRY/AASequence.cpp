@@ -122,6 +122,70 @@ namespace OpenMS
     return tmp;
   }
 
+  String AASequence::toBracketString(const vector<String> & fixed_modifications) const
+  {
+    const AASequence & seq = *this;
+
+    String bs;
+
+    if (seq.empty()) return bs;
+
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
+      const String & nterm_mod_name = mod.getFullId(); // e.g. "Acetyl (N-term)"
+
+      // only add to string if not a fixed modficiation
+      if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
+      {
+        const int nominal_mass = static_cast<int>(Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass());
+        bs += "n[" + String(nominal_mass) + "]";
+      }
+    }
+
+    for (Size i = 0; i != seq.size(); ++i)
+    {
+      const Residue & r = seq[i];
+      const String aa = r.getOneLetterCode() != "" ? r.getOneLetterCode() : "X";
+      if (r.isModified())
+      {
+        const ResidueModification & mod = ModificationsDB::getInstance()->getModification(
+                  r.getOneLetterCode(),
+                  r.getModification(),
+                  ResidueModification::ANYWHERE);
+
+        const String & mod_name = mod.getFullId();
+        if (std::find(fixed_modifications.begin(), fixed_modifications.end(), mod_name) == fixed_modifications.end())
+        {
+          const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
+          bs += aa + "[" + static_cast<int>(residue_mono_mass) + "]"; 
+        }
+        else
+        {
+          bs += aa; // don't print fixed modification
+        }
+      }
+      else  // amino acid not modified
+      {
+        bs += aa;
+      }
+    }
+
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
+      const String & cterm_mod_name = mod.getFullId();
+
+      // only add to string if not a fixed modficiation
+      if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
+      {
+        const int nominal_mass = static_cast<int>(Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass());
+        bs += "c[" + String(nominal_mass) + "]";
+      }
+    }
+    return bs;
+  }
+
   bool AASequence::operator<(const AASequence& rhs) const
   {
     // check size
