@@ -62,7 +62,7 @@
 		<search_hit hit_rank="1" peptide="RSHTILNSSQSFAKGCVQCK" peptide_prev_aa="K" peptide_next_aa="H" protein="rev000025591" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2307.1212295002" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="rev000001143" num_tol_term="2"/>
 		<alternative_protein protein="rev000450478" num_tol_term="2"/>
-			<modification_info modified_peptide="RSHTILNSSQSFAKGC[235]VQC[235]K">
+			<modification_info modified_peptide="RSHTILNSSQSFAKGC[160]VQC[160]K">
 				<mod_aminoacid_mass position="16" mass="160.0306489852"/>
 				<mod_aminoacid_mass position="19" mass="160.0306489852"/>
 			</modification_info>
