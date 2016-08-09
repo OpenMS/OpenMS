@@ -187,7 +187,7 @@ namespace OpenMS
           }
           else
           {
-            if (!temp_sequence.isModified(*pos_it - 1))
+            if (!temp_sequence[*pos_it - 1].isModified())
             {
               temp_sequence.setModification(*pos_it - 1, modification);
             }
@@ -224,7 +224,7 @@ namespace OpenMS
 
     for (size_t i = 0; i < sequence.size(); ++i)
     {
-      if (sequence.isModified(i))
+      if (sequence[i].isModified())
       {
         mods[sequence.getResidue(i).getModificationName()] += 1;
       }
@@ -283,7 +283,7 @@ namespace OpenMS
 
     for (size_t i = 0; i < sequence.size(); ++i)
     {
-      if (sequence.isModified(i))
+      if (sequence[i].isModified())
       {
         mods[sequence.getResidue(i).getModificationName()] += 1;
       }
@@ -430,7 +430,7 @@ namespace OpenMS
 
           for (size_t i = 0; i < seq.size(); ++i)
           {
-            if (seq.isModified(i))
+            if (seq[i].isModified())
             {
               decoy_peptide_string = decoy_peptide_string.replace(i, 1, seq.getSubsequence(i, 1).toUnmodifiedString());
             }

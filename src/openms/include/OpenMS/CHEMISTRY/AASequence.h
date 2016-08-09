@@ -389,9 +389,6 @@ protected:
     const ResidueModification* getCTerminalModification() const;
 
     /// returns a pointer to the residue at position @p index
-    const Residue& getResidue(SignedSize index) const;
-
-    /// returns a pointer to the residue at position @p index
     const Residue& getResidue(Size index) const;
 
     /// returns the formula of the peptide
@@ -464,9 +461,6 @@ protected:
 
     /// returns true if any of the residues or termini are modified
     bool isModified() const;
-
-    /// returns true if the residue at the position is modified
-    bool isModified(Size index) const;
 
     /// equality operator. Two sequences are equal iff all amino acids including PTMs are equal
     bool operator==(const AASequence& rhs) const;

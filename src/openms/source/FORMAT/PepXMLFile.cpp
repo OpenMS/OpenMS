@@ -414,7 +414,7 @@ namespace OpenMS
 
           for (Size i = 0; i != seq.size(); ++i)
           {
-            if (seq.isModified(i))
+            if (seq[i].isModified())
             {
               const ResidueModification& mod = *(seq[i].getModification());
               // the modification position is 1-based

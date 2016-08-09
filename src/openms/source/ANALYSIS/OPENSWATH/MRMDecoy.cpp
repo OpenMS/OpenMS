@@ -196,7 +196,7 @@ namespace OpenMS
           while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
           {
             pep_pos = (pseudoRNG() % shuffled_sequence.size());
-            if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
+            if (shuffled_sequence[pep_pos].isModified() || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
             {
               pep_pos = -1;
             }

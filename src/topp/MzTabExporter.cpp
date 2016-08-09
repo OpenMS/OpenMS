@@ -728,7 +728,7 @@ protected:
 
         for (Size ai = 0; ai != aas.size(); ++ai)
         {
-          if (aas.isModified(ai))
+          if (aas[ai].isModified())
           {
             MzTabModification mod;
             const ResidueModification& res_mod = *(aas[ai].getModification());

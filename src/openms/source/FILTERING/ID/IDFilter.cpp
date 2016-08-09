@@ -127,7 +127,7 @@ namespace OpenMS
 
       for (Size i = 0; i < seq.size(); ++i)
       {
-        if (seq.isModified(i))
+        if (seq[i].isModified())
         {
           String mod_name = seq[i].getModification()->getFullId();
           if (mods.count(mod_name) > 0) return true;

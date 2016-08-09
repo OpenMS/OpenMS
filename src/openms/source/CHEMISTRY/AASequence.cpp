@@ -82,20 +82,6 @@ namespace OpenMS
     return *this;
   }
 
-
-  const Residue& AASequence::getResidue(SignedSize index) const
-  {
-    if (index >= 0 && Size(index) >= peptide_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
-    }
-    if (index < 0)
-    {
-      throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, 0);
-    }
-    return *peptide_[index];
-  }
-
   const Residue& AASequence::getResidue(Size index) const
   {
     if (index >= peptide_.size())
@@ -663,16 +649,6 @@ namespace OpenMS
       }
     }
     return false;
-  }
-
-  bool AASequence::isModified(Size position) const
-  {
-    if (position >= peptide_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, peptide_.size());
-    }
-
-    return peptide_[position]->isModified();
   }
 
   std::ostream& operator<<(std::ostream& os, const AASequence& peptide)
