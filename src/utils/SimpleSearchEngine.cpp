@@ -47,6 +47,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -442,6 +443,22 @@ class SimpleSearchEngine :
       protein_ids[0].setDateTime(DateTime::now());
       protein_ids[0].setSearchEngine("SimpleSearchEngine");
       protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+
+      ProteinIdentification::SearchParameters search_parameters;
+      search_parameters.db = getStringOption_("database");
+      search_parameters.charges = "+" + String(getIntOption_("precursor:min_charge")) + "-+" + String(getIntOption_("precursor:max_charge"));
+
+      ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+      search_parameters.mass_type = mass_type;
+      search_parameters.fixed_modifications = getStringList_("modifications:fixed");
+      search_parameters.variable_modifications = getStringList_("modifications:variable");
+      search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
+      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+      search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
+      search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
+      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+      protein_ids[0].setSearchParameters(search_parameters);
     }
 
     ExitCodes main_(int, const char**)
@@ -526,6 +543,10 @@ class SimpleSearchEngine :
 
       // create spectrum generator
       TheoreticalSpectrumGenerator spectrum_generator;
+      Param param(spectrum_generator.getParameters());
+      param.setValue("add_first_prefix_ion", "true");
+      param.setValue("add_metainfo", "true");
+      spectrum_generator.setParameters(param);
 
       vector<vector<PeptideHit> > peptide_hits(spectra.size(), vector<PeptideHit>());
 
@@ -639,7 +660,7 @@ class SimpleSearchEngine :
               const Size& scan_index = low_it->second;
               const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
 
-              double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
               // no hit
               if (score < 1e-16)
@@ -670,6 +691,7 @@ class SimpleSearchEngine :
       progresslogger.endProgress();
 
       protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
