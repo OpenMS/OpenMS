@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
         double getMZ(Size) nogil except +
         double getRT(Size) nogil except +
         double getIntensity(Size) nogil except +
-        libcpp_vector[RichPeak2D].iterator begin() nogil except +
-        libcpp_vector[RichPeak2D].iterator end() nogil except +
+        # libcpp_vector[RichPeak2D].iterator begin() nogil except + # wrap-iter-begin:__iter__(RichPeak2D)
+        # libcpp_vector[RichPeak2D].iterator end() nogil except + # wrap-iter-end:__iter__(RichPeak2D)
         Size size() nogil except +
         bool empty() nogil except +
         void clear() nogil except +
@@ -33,3 +33,4 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS::
 
         # static members
         StringList getMetaValues() nogil except + # wrap-attach:CalibrationData
+

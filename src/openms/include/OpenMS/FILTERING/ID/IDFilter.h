@@ -764,10 +764,10 @@ public:
     /**
        @brief Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID).
 
-       Hits are considered duplicated if they compare as equal using PeptideHit::operator== (i.e. not only the sequences have to match!).
+       By default, hits are considered duplicated if they compare as equal using PeptideHit::operator==. However, if @p seq_only is set, only the sequences (incl. modifications) are compared. In both cases, the first occurrence of each hit in a peptide ID is kept, later ones are removed.
     */
     static void removeDuplicatePeptideHits(std::vector<PeptideIdentification>&
-                                           peptides);
+                                           peptides, bool seq_only = false);
 
     ///@}
 

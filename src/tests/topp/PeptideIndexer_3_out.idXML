@@ -21,7 +21,7 @@
 			<ProteinHit id="PH_4" accession="SOMEOTHER" score="0" sequence="AAAeerwefweAAEWATYTC(Carboxymethyl)VLGFHVYVPVR" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="test2_rev" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="DECOY_test2" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_6" accession="BSA4" score="0" sequence="" >
@@ -30,13 +30,13 @@
 			<ProteinHit id="PH_7" accession="Thyroglo" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="BSA4_rev" score="0" sequence="" >
+			<ProteinHit id="PH_8" accession="DECOY_BSA4" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="Thyroglo_rev" score="0" sequence="" >
+			<ProteinHit id="PH_9" accession="DECOY_Thyroglo" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="revonly_rev" score="0" sequence="" >
+			<ProteinHit id="PH_10" accession="DECOY_revonly" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 		</ProteinIdentification>

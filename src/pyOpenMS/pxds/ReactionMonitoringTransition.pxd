@@ -44,6 +44,13 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         double getLibraryIntensity()nogil except +
         void setLibraryIntensity(double intensity)nogil except +
 
+        int getProductChargeState() nogil except +
+        bool isProductChargeStateSet() nogil except +
+
+        bool isDetectingTransition() nogil except +
+        bool isIdentifyingTransition() nogil except +
+        bool isQuantifyingTransition() nogil except +
+
 cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespace "OpenMS::ReactionMonitoringTransition":
 
     cdef enum DecoyTransitionType:

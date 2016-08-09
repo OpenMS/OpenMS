@@ -213,9 +213,9 @@ protected:
 
     // 2. Store the peptide retention times in an intermediate map
     std::map<std::string, double> PeptideRTMap;
-    for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
+    for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
-      PeptideRTMap[targeted_exp.getPeptides()[i].id] = targeted_exp.getPeptides()[i].rt; 
+      PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt; 
     }
 
     MzMLFile f;

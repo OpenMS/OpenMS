@@ -414,7 +414,9 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1, product_mz_threshold1, fragment_types1, fragment_charges1, enable_reannotation1, enable_losses1, enable_losses1);
+  mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1,
+      product_mz_threshold1, fragment_types1, fragment_charges1,
+      enable_reannotation1, enable_losses1, enable_losses1);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -605,13 +607,14 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   fragment_charges1.push_back(2);
   bool enable_specific_losses1 = true;
   bool enable_unspecific_losses1 = false;
+  bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, product_mz_threshold1, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_specific_losses1, enable_unspecific_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -625,13 +628,14 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   fragment_charges2.push_back(2);
   bool enable_specific_losses2 = true;
   bool enable_unspecific_losses2 = true;
+  bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, product_mz_threshold2, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_specific_losses2, enable_unspecific_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42);
 
   String test2;
   NEW_TMP_FILE(test2);
@@ -690,13 +694,14 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(3);
   bool enable_losses1 = true;
+  bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_losses1, product_mz_threshold1, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp1, fragment_types1, fragment_charges1, enable_losses1, enable_losses1, enable_ms2_precursors1, product_mz_threshold1, swathes, -4, 20, 42);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -711,13 +716,14 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
   bool enable_losses2 = true;
+  bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2, product_mz_threshold2, swathes, -4, 20, 42);
+  mrma.uisTransitions(targeted_exp2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2, enable_ms2_precursors2, product_mz_threshold2, swathes, -4, 20, 42);
 
   String test2;
   NEW_TMP_FILE(test2);
@@ -725,6 +731,27 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
 
   TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
+  std::vector<String> fragment_types3;
+  fragment_types3.push_back(String("y"));
+  fragment_types3.push_back(String("b"));
+  std::vector<size_t> fragment_charges3;
+  fragment_charges3.push_back(2);
+  fragment_charges3.push_back(3);
+  bool enable_losses3 = true;
+  bool enable_ms2_precursors3 = true;
+  double product_mz_threshold3 = 0.05;
+
+  String out3 = "MRMAssay_uisTransitions_output_5.TraML";
+
+  TargetedExperiment targeted_exp3 = targeted_exp;
+
+  mrma.uisTransitions(targeted_exp3, fragment_types3, fragment_charges3, enable_losses3, enable_losses3, enable_ms2_precursors3, product_mz_threshold3, swathes, -4, 20, 42);
+
+  String test3;
+  NEW_TMP_FILE(test3);
+  traml.store(test3, targeted_exp3);
+
+  TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
 }
 
 END_SECTION

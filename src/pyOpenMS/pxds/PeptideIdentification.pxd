@@ -50,6 +50,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
         void       assignRanks() nogil except +
         void       sort() nogil except +
+        void sortByRank() nogil except +
         bool       empty() nogil except +
 
         libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) nogil except +

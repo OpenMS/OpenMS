@@ -368,10 +368,10 @@ PeptideIndexing::PeptideIndexing() :
 DefaultParamHandler("PeptideIndexing")
   {
 
-    defaults_.setValue("decoy_string", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins.");
 
-    defaults_.setValue("prefix", "false", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
-    defaults_.setValidStrings("prefix", ListUtils::create<String>("true,false"));
+    defaults_.setValue("decoy_string_position", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?");
+    defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
 
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
     defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn"));
@@ -449,7 +449,7 @@ DefaultParamHandler("PeptideIndexing")
   void PeptideIndexing::updateMembers_()
   {
     decoy_string_ = static_cast<String>(param_.getValue("decoy_string"));
-    prefix_ = param_.getValue("prefix").toBool();
+    prefix_ = (param_.getValue("decoy_string_position") == "prefix" ? true : false);
     missing_decoy_action_ = static_cast<String>(param_.getValue("missing_decoy_action"));
     enzyme_name_ = static_cast<String>(param_.getValue("enzyme:name"));
     enzyme_specificity_ = static_cast<String>(param_.getValue("enzyme:specificity"));
@@ -782,7 +782,7 @@ DefaultParamHandler("PeptideIndexing")
         else
         { // func is empty anyways, since no AC was run
           OPENMS_PRECONDITION(func.pep_to_prot.empty(), "Internal error - unexpected AhoCorasick results found");
-          swap(func, func_SA);
+          std::swap(func, func_SA);
         }
       } // SA run
     } // end local scope
@@ -928,7 +928,7 @@ DefaultParamHandler("PeptideIndexing")
     /// exit if no peptides were matched to decoy
     if ((stats_count_m_d + stats_count_m_td) == 0)
     {
-      String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'prefix' (=" + String(param_.getValue("prefix")) + ") settings correct?");
+      String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
       if (missing_decoy_action_== "error")
       {
         LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;

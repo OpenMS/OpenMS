@@ -183,6 +183,11 @@ public:
         dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
         MzMLFile().transform(file, dataConsumer, *exp.get());
       }
+      else if (readoptions == "split")
+      {
+        dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+        MzMLFile().transform(file, dataConsumer, *exp.get());
+      }
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -233,6 +238,11 @@ public:
       else if (readoptions == "cache")
       {
         dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+        MzXMLFile().transform(file, dataConsumer, *exp.get());
+      }
+      else if (readoptions == "split")
+      {
+        dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
         MzXMLFile().transform(file, dataConsumer, *exp.get());
       }
       else

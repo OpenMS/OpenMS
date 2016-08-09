@@ -71,6 +71,7 @@ namespace OpenMS
       TOPPAS,             ///< %OpenMS parameters file with workflow information (.toppas)
       TRANSFORMATIONXML,  ///< Transformation description file (.trafoXML)
       MZML,               ///< MzML file (.mzML)
+      CACHEDMZML,         ///< CachedMzML file (.cachedmzML)
       MS2,                ///< MS2 file (.ms2)
       PEPXML,             ///< TPP pepXML file (.pepXML)
       PROTXML,            ///< TPP protXML file (.protXML)

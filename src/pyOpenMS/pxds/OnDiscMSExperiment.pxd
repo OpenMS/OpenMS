@@ -18,8 +18,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         Size getNrSpectra() nogil except +
         Size getNrChromatograms() nogil except +
 
-        # TODO const shared ptr
-        # shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except + # wrap-ignore
+        shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except +
 
         MSSpectrum[PeakT] getSpectrum(Size id) nogil except +
         MSChromatogram[ChromoPeakT] getChromatogram(Size id) nogil except +
@@ -28,4 +27,5 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         shared_ptr[Spectrum] getSpectrumById(int id_) nogil except +
         shared_ptr[Chromatogram] getChromatogramById(int id_) nogil except +
 
+        void setSkipXMLChecks(bool skip) nogil except +
 

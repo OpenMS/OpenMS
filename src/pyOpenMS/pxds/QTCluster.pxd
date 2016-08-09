@@ -14,6 +14,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
         # POINTER #  QTCluster(GridFeature * center_point, Size num_maps, double max_distance, bool use_IDs) nogil except +
         double getCenterRT() nogil except +
         double getCenterMZ() nogil except +
+        Int getXCoord() nogil except +
+        Int getYCoord() nogil except +
         Size size() nogil except +
         bool operator<(QTCluster & cluster) nogil except +
         # POINTER # void add(GridFeature * element, double distance) nogil except +
@@ -23,5 +25,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
         libcpp_set[ AASequence ]  getAnnotations() nogil except +
         void setInvalid() nogil except +
         bool isInvalid() nogil except +
+        void initializeCluster() nogil except +
+        void finalizeCluster() nogil except +
+        # NAMESPACE # # POINTER # OpenMSBoost::unordered_map[ Size, libcpp_vector[ GridFeature * ] ] getAllNeighbors() nogil except +
         # NeighborMap getNeighbors() nogil except +
 

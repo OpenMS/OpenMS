@@ -9,6 +9,11 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
         SpectrumLookup() nogil except +
         # SpectrumLookup(SpectrumLookup) nogil except + # private
 
+        # TODO: Found attribute in C++ but not in pxd: variable public default_scan_regexp
+        # TODO: Found attribute in C++ but not in pxd: variable public reference_formats
+        # TODO: Found attribute in C++ but not in pxd: variable public rt_tolerance
+        double rt_tolerance
+
         bool empty() nogil except +
 
         void readSpectra(MSExperiment[Peak1D, ChromatogramPeak] spectra, String scan_regexp) nogil except +
