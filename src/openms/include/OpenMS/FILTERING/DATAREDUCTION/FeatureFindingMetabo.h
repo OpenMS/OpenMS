@@ -278,9 +278,7 @@ private:
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
-    bool disable_isotope_filtering_;
-    String isotope_model_;
-    String metabo_iso_noisemodel_;
+    String isotope_filtering_model_;
     bool use_smoothed_intensities_;
     
     bool use_mz_scoring_C13_;

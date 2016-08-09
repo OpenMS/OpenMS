@@ -277,7 +277,7 @@
 			<UserParam type="float" name="masstrace_intensity_1" value="554132.3125"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="119382.08984375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00242027816307, 1.0039812308014]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="string" name="scan_polarity" value="positive"/>
 		</feature>
 		<feature id="f_17749660155506638460">
@@ -533,7 +533,7 @@
 			<UserParam type="float" name="masstrace_intensity_1" value="423106.9375"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="2608735"/>
 			<UserParam type="floatList" name="isotope_distances" value="[0.999327058300196, 1.00415120181583]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="0"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_7804704400743266335">
 			<position dim="0">34.6652423223941</position>
@@ -606,7 +606,7 @@
 			<UserParam type="float" name="masstrace_intensity_1" value="68497.09765625"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="87731.234375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00079158250526, 1.00985746152332]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="0"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_15004869347769368353">
 			<position dim="0">49.356514054987</position>
@@ -767,7 +767,7 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="212593.5546875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="72429.6171875"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00331642307663]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_13440783915218733453">
 			<position dim="0">30.6017861003927</position>
@@ -1074,7 +1074,7 @@
 			<UserParam type="float" name="masstrace_intensity_1" value="423995.25"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="85205.4453125"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00360203039997, 1.00476919661662]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_15916652588957785155">
 			<position dim="0">43.5430061486606</position>
@@ -1126,7 +1126,7 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="77205.21875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="67114.9375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00459867850577]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="0"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_15157403601844400700">
 			<position dim="0">31.7876706595269</position>
@@ -1262,7 +1262,7 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="198293.140625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="88339.51171875"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00345846018286]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_6408859317243173796">
 			<position dim="0">31.7544721245571</position>
@@ -1456,7 +1456,7 @@
 			<UserParam type="float" name="masstrace_intensity_1" value="84955.67578125"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="71100.2734375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00357879806643, 0.991086867387708]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12999979801269632061">
 			<position dim="0">34.5892993595758</position>

@@ -96,12 +96,14 @@ fsc.setWhitelist(sl);
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {
     FeatureFindingMetabo test_ffm;
-    // run with default setting (C13 isotope distance)
+    // run with non-default setting (C13 isotope distance)
+    Param p = test_ffm.getParameters();
+    p.setValue("mz_scoring_13C", "true");
+    test_ffm.setParameters(p);
     test_ffm.run(splitted_mt, test_fm);
     TEST_EQUAL(test_fm.size(), 93);
 
-    // run with 'old' settings (from paper using charge+isotope# dependent distances)
-    Param p = test_ffm.getParameters();
+    // run with default settings (from paper using charge+isotope# dependent distances)
     p.setValue("report_convex_hulls", "true");
     p.setValue("mz_scoring_13C", "false");
     test_ffm.setParameters(p);

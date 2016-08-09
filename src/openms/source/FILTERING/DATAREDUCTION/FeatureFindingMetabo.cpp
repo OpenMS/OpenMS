@@ -254,15 +254,11 @@ namespace OpenMS
     defaults_.setValidStrings("report_summed_ints", ListUtils::create<String>("false,true"));
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
     defaults_.setValidStrings("enable_RT_filtering", ListUtils::create<String>("false,true"));
-    defaults_.setValue("disable_isotope_filtering", "false", "Disable isotope filtering.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("disable_isotope_filtering", ListUtils::create<String>("false,true"));
-    defaults_.setValue("isotope_model", "metabolites", "Change type of isotope model.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("isotope_model", ListUtils::create<String>("metabolites,peptides"));
 
-    defaults_.setValue("isotope_noisemodel", "5%RMS", "SVM isotope models were trained with either 2% or 5% RMS error. Select the appropriate noise model according to the quality of measurement or MS device.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("isotope_noisemodel", ListUtils::create<String>("5%RMS,2%RMS"));
+    defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
+    defaults_.setValidStrings("isotope_filtering_model", ListUtils::create<String>("metabolites (2% RMS),metabolites (5% RMS),peptides,none"));
 
-    defaults_.setValue("mz_scoring_13C", "true", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces. Disable to reproduce the behavior as described in Kenar et al. 2014, MCP.");
+    defaults_.setValue("mz_scoring_13C", "false", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces (highly recommended for lipidomics!). Disable for general metabolites (as described in Kenar et al. 2014, MCP.).");
     defaults_.setValidStrings("mz_scoring_13C", ListUtils::create<String>("false,true"));
 
     defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", ListUtils::create<String>("advanced"));
@@ -292,9 +288,8 @@ namespace OpenMS
 
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
     enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
-    disable_isotope_filtering_ = param_.getValue("disable_isotope_filtering").toBool();
-    isotope_model_ = param_.getValue("isotope_model");
-    metabo_iso_noisemodel_ = (String)param_.getValue("isotope_noisemodel");
+    
+    isotope_filtering_model_ = param_.getValue("isotope_filtering_model");
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
@@ -339,6 +334,11 @@ namespace OpenMS
     if (feat_hypo.getSize() == 1)
     {
       return -1;
+    }
+
+    if (svm_feat_centers_.empty() || svm_feat_scales_.empty())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Isotope filtering invoked, but no model loaded. Internal error. Please report this!");
     }
 
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
@@ -652,7 +652,7 @@ namespace OpenMS
           double int_score(1.0);
           // double int_score((candidates[0]->getIntensity(use_smoothed_intensities_))/total_weight + (candidates[mt_idx]->getIntensity(use_smoothed_intensities_))/total_weight);
 
-          if (isotope_model_ == "peptides")
+          if (isotope_filtering_model_ == "peptides")
           {
             std::vector<double> tmp_ints(fh_tmp.getAllIntensities());
             tmp_ints.push_back(candidates[mt_idx]->getIntensity(use_smoothed_intensities_));
@@ -736,12 +736,12 @@ namespace OpenMS
     // *********************************************************** //
     // Step 2 initialize SVM model for isotope ratio filtering
     // *********************************************************** //
-    if (metabo_iso_noisemodel_ == "2%RMS")
+    if (isotope_filtering_model_ == "metabolites (2% RMS)")
     {
       LOG_INFO << "Loading metabolite isotope model with 2% RMS error" << std::endl;
       loadIsotopeModel_("MetaboliteIsoModelNoised2");
     }
-    else
+    else if (isotope_filtering_model_ == "metabolites (5% RMS)")
     {
       LOG_INFO << "Loading metabolite isotope model with 5% RMS error" << std::endl;
       loadIsotopeModel_("MetaboliteIsoModelNoised5");
@@ -845,17 +845,15 @@ namespace OpenMS
       // Check whether the trace  passes the intensity filter (metabolites
       // only). This is based on a pre-trained SVM model of isotopic
       // intensities.
-      bool pass_isotope_filter = true;
-      if (!disable_isotope_filtering_)
+      int pass_isotope_filter = -1; // -1 == 'did not test'; 0 = no pass; 1 = pass
+      if (isotope_filtering_model_ != "none" && isotope_filtering_model_ != "peptides")
       {
-        if (isotope_model_ == "metabolites")
-        {
-          pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]) != 0;
-        }
+        pass_isotope_filter = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
       }
+    
       // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
 
-      if (!pass_isotope_filter) 
+      if (pass_isotope_filter == 0) // not passing filter
       {
         continue;
       }
@@ -890,7 +888,7 @@ namespace OpenMS
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
-      f.setMetaValue("legal_isotope_pattern", isLegalIsotopePattern_(feat_hypos[hypo_idx]));
+      f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       output_featmap.push_back(f);
 
       // add used traces to exclusion map
