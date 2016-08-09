@@ -62,7 +62,7 @@ namespace OpenMS
 
   boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSInMemory::lightClone() const
   {
-    // TODO this copies everyhing ... 
+    // TODO this copies everything ... 
     return boost::shared_ptr<SpectrumAccessOpenMSInMemory>(new SpectrumAccessOpenMSInMemory(*this));
   }
 

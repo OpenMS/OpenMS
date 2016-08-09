@@ -279,7 +279,7 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const
   {
-    double pos = ion.getMonoWeight(res_type, charge) / (double)charge;
+    double pos = ion.getMonoWeight(res_type, charge);
     RichPeak1D p;
     IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
 
@@ -352,7 +352,7 @@ namespace OpenMS
       {
         continue;
       }
-      double loss_pos = loss_ion.getMonoWeight() / (double)charge;
+      double loss_pos = loss_ion.getMonoWeight();
       const String& loss_name = *it;
 
       if (add_isotopes_)
@@ -374,7 +374,7 @@ namespace OpenMS
       }
       else
       {
-        p.setMZ(loss_pos);
+        p.setMZ(loss_pos / (double)charge);
         if (add_metainfo_)
         {
           // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
@@ -523,7 +523,7 @@ namespace OpenMS
     }
 
     // precursor peak
-    double mono_pos = peptide.getMonoWeight(Residue::Full, charge) / double(charge);
+    double mono_pos = peptide.getMonoWeight(Residue::Full, charge);
 
     if (add_isotopes_)
     {
@@ -538,7 +538,7 @@ namespace OpenMS
     }
     else
     {
-      p.setMZ(mono_pos);
+      p.setMZ(mono_pos / (double)charge);
       p.setIntensity(pre_int_);
       spec.push_back(p);
     }
@@ -546,7 +546,7 @@ namespace OpenMS
 
     //loss of water
     EmpiricalFormula ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H2O");
-    mono_pos = ion.getMonoWeight() / double(charge);
+    mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
       IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
@@ -565,7 +565,7 @@ namespace OpenMS
     }
     else
     {
-      p.setMZ(mono_pos);
+      p.setMZ(mono_pos / (double)charge);
       p.setIntensity(pre_int_H2O_);
       if (add_metainfo_)
       {
@@ -577,7 +577,7 @@ namespace OpenMS
 
     //loss of ammonia
     ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("NH3");
-    mono_pos = ion.getMonoWeight() / double(charge);
+    mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
       IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
@@ -596,7 +596,7 @@ namespace OpenMS
     }
     else
     {
-      p.setMZ(mono_pos);
+      p.setMZ(mono_pos / (double)charge);
       p.setIntensity(pre_int_NH3_);
       if (add_metainfo_)
       {

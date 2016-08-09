@@ -201,7 +201,7 @@ public:
         std::find(container.begin(), container.end(), elem);
       if (pos == container.end()) return -1;
 
-      return std::distance(container.begin(), pos);
+      return static_cast<Int>(std::distance(container.begin(), pos));
     }
 
   };

@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h> // for "OPENMS_PRECONDITION"
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 using namespace std;
 
@@ -88,12 +89,14 @@ namespace OpenMS
          pep_it != ids.end(); ++pep_it)
     {
       pep_it->sort();
-      if ((considered_hits_ > 0) && 
+      if ((considered_hits_ > 0) &&
           (pep_it->getHits().size() > considered_hits_))
       {
         pep_it->getHits().resize(considered_hits_);
       }
     }
+    // make sure there are no duplicated hits (by sequence):
+    IDFilter::removeDuplicatePeptideHits(ids, true);
 
     SequenceGrouping results;
     apply_(ids, results); // actual (subclass-specific) processing

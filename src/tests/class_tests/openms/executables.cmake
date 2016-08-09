@@ -56,11 +56,6 @@ set(datastructures_executables_list
   StringListUtils_test
   StringUtils_test
   String_test
-  SuffixArrayPeptideFinder_test
-  SuffixArraySeqan_test
-  SuffixArrayTrypticCompressed_test
-  SuffixArrayTrypticSeqan_test
-  SuffixArray_test
   #ToolDescription_test
 )
 
@@ -68,6 +63,7 @@ set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
   CVTermList_test
+  CVTermListInterface_test
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
@@ -172,6 +168,7 @@ set(format_executables_list
   GzipInputStream_test
   IBSpectraFile_test
   IdXMLFile_test
+  IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
   InspectInfile_test
@@ -351,8 +348,6 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
-  EdwardsLippertIteratorTryptic_test
-  EdwardsLippertIterator_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test

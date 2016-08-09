@@ -68,6 +68,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
         void setPeptides(libcpp_vector[Peptide] rhs) nogil except +
         libcpp_vector[Peptide] getPeptides() nogil except +
         Peptide getPeptideByRef(String ref) nogil except +
+        Compound getCompoundByRef(String ref) nogil except +
         void addPeptide(Peptide rhs) nogil except +
 
         # set transition list
@@ -86,4 +87,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
         void setSourceFiles(libcpp_vector[SourceFile] source_files) nogil except +
         libcpp_vector[SourceFile] getSourceFiles() nogil except +
         void addSourceFile(SourceFile source_file) nogil except +
+
+        bool containsInvalidReferences() nogil except +
 

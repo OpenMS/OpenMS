@@ -100,6 +100,7 @@ namespace OpenMS
     targetMap[FileTypes::TOPPAS] = "toppas";
     targetMap[FileTypes::TRANSFORMATIONXML] = "trafoXML";
     targetMap[FileTypes::MZML] = "mzML";
+    targetMap[FileTypes::CACHEDMZML] = "cachedMzML";
     targetMap[FileTypes::MS2] = "ms2";
     targetMap[FileTypes::PEPXML] = "pepXML";
     targetMap[FileTypes::PROTXML] = "protXML";

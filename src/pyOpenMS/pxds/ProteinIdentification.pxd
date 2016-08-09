@@ -72,7 +72,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void assignRanks() nogil except +
 
         # Compute the coverage (in percent) of all ProteinHits given PeptideHits
-        Size computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) nogil except +
+        void computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) nogil except +
 
         # Returns the date of the protein identification run
         DateTime getDateTime() nogil except +

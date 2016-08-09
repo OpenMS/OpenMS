@@ -32,6 +32,7 @@
 			<UserParam type="string" name="label" value="T1.1"/>
 			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
 			<UserParam type="float" name="SD" value="0.0477869713269535"/>
+			<UserParam type="float" name="SD_ppm" value="30.2605646491675"/>
 		</feature>
 		<feature id="f_17749660155506638460">
 			<position dim="0">2498.3931</position>
@@ -54,6 +55,7 @@
 			<UserParam type="string" name="label" value="T2.1"/>
 			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
 			<UserParam type="float" name="SD" value="0.0272612201411989"/>
+			<UserParam type="float" name="SD_ppm" value="16.4007404512026"/>
 		</feature>
 		<feature id="f_7804704400743266335">
 			<position dim="0">2481.1011</position>
@@ -76,6 +78,7 @@
 			<UserParam type="string" name="label" value="T3.1"/>
 			<UserParam type="float" name="FWHM" value="8.60939979553223"/>
 			<UserParam type="float" name="SD" value="0.0163882237455836"/>
+			<UserParam type="float" name="SD_ppm" value="9.37284221961562"/>
 		</feature>
 		<feature id="f_15004869347769368353">
 			<position dim="0">2264.0944</position>
@@ -94,10 +97,11 @@
 			<UserParam type="string" name="label" value="T4.1"/>
 			<UserParam type="float" name="FWHM" value="8.67650032043457"/>
 			<UserParam type="float" name="SD" value="0.00872039394540236"/>
+			<UserParam type="float" name="SD_ppm" value="6.15854362660379"/>
 		</feature>
 		<feature id="f_3332699010107892018">
 			<position dim="0">2494.9337</position>
-			<position dim="1">1373.33354496675</position>
+			<position dim="1">1373.33354496676</position>
 			<intensity>52839.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -120,6 +124,7 @@
 			<UserParam type="string" name="label" value="T5.1"/>
 			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
 			<UserParam type="float" name="SD" value="0.0414713174894492"/>
+			<UserParam type="float" name="SD_ppm" value="30.1975566252211"/>
 		</feature>
 		<feature id="f_13440783915218733453">
 			<position dim="0">2498.3931</position>
@@ -142,6 +147,7 @@
 			<UserParam type="string" name="label" value="T6.1"/>
 			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
 			<UserParam type="float" name="SD" value="0.016456683772425"/>
+			<UserParam type="float" name="SD_ppm" value="11.4625427951563"/>
 		</feature>
 		<feature id="f_15916652588957785155">
 			<position dim="0">2453.7277</position>
@@ -166,6 +172,7 @@
 			<UserParam type="string" name="label" value="T7.1"/>
 			<UserParam type="float" name="FWHM" value="11.9455003738403"/>
 			<UserParam type="float" name="SD" value="0.0254516778389911"/>
+			<UserParam type="float" name="SD_ppm" value="19.1694889166565"/>
 		</feature>
 		<feature id="f_15157403601844400700">
 			<position dim="0">2401.4906</position>
@@ -186,6 +193,7 @@
 			<UserParam type="string" name="label" value="T8.1"/>
 			<UserParam type="float" name="FWHM" value="8.67580032348633"/>
 			<UserParam type="float" name="SD" value="0.0198517769347103"/>
+			<UserParam type="float" name="SD_ppm" value="12.6326401688894"/>
 		</feature>
 		<feature id="f_6408859317243173796">
 			<position dim="0">2438.2814</position>
@@ -204,6 +212,7 @@
 			<UserParam type="string" name="label" value="T9"/>
 			<UserParam type="float" name="FWHM" value="8.67510032653809"/>
 			<UserParam type="float" name="SD" value="0.0556145771784038"/>
+			<UserParam type="float" name="SD_ppm" value="31.7348920119436"/>
 		</feature>
 		<feature id="f_474525871221756682">
 			<position dim="0">2441.7406</position>
@@ -226,6 +235,7 @@
 			<UserParam type="string" name="label" value="T10.1"/>
 			<UserParam type="float" name="FWHM" value="10.3985996246338"/>
 			<UserParam type="float" name="SD" value="0.0507649658031924"/>
+			<UserParam type="float" name="SD_ppm" value="30.5737474216701"/>
 		</feature>
 		<feature id="f_12999979801269632061">
 			<position dim="0">2418.9377</position>
@@ -244,6 +254,7 @@
 			<UserParam type="string" name="label" value="T11.1"/>
 			<UserParam type="float" name="FWHM" value="3.51909995079041"/>
 			<UserParam type="float" name="SD" value="0.0210218758850838"/>
+			<UserParam type="float" name="SD_ppm" value="16.8343785857495"/>
 		</feature>
 		<feature id="f_17413765565443951891">
 			<position dim="0">2498.3931</position>
@@ -268,6 +279,7 @@
 			<UserParam type="string" name="label" value="T12.1"/>
 			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
 			<UserParam type="float" name="SD" value="0.0410774023758532"/>
+			<UserParam type="float" name="SD_ppm" value="23.4116616293998"/>
 		</feature>
 		<feature id="f_2927519776102075938">
 			<position dim="0">2440.0082</position>
@@ -286,6 +298,7 @@
 			<UserParam type="string" name="label" value="T13"/>
 			<UserParam type="float" name="FWHM" value="6.92749977111816"/>
 			<UserParam type="float" name="SD" value="0.0435848854489741"/>
+			<UserParam type="float" name="SD_ppm" value="29.2500017522844"/>
 		</feature>
 		<feature id="f_16907355690727166316">
 			<position dim="0">2408.4245</position>
@@ -304,6 +317,7 @@
 			<UserParam type="string" name="label" value="T14"/>
 			<UserParam type="float" name="FWHM" value="6.94600009918213"/>
 			<UserParam type="float" name="SD" value="0.051668121940396"/>
+			<UserParam type="float" name="SD_ppm" value="29.9317297450761"/>
 		</feature>
 		<feature id="f_10306100746905639127">
 			<position dim="0">2260.6347</position>
@@ -322,6 +336,7 @@
 			<UserParam type="string" name="label" value="T15.1"/>
 			<UserParam type="float" name="FWHM" value="6.91450023651123"/>
 			<UserParam type="float" name="SD" value="0.0220918646468644"/>
+			<UserParam type="float" name="SD_ppm" value="12.9537759453029"/>
 		</feature>
 		<feature id="f_12524258085768770586">
 			<position dim="0">2445.1888</position>
@@ -344,6 +359,7 @@
 			<UserParam type="string" name="label" value="T16.1"/>
 			<UserParam type="float" name="FWHM" value="8.65100002288818"/>
 			<UserParam type="float" name="SD" value="0.0679316556073509"/>
+			<UserParam type="float" name="SD_ppm" value="41.2480968027092"/>
 		</feature>
 		<feature id="f_1755235105885170967">
 			<position dim="0">2445.1888</position>
@@ -366,6 +382,7 @@
 			<UserParam type="string" name="label" value="T17.1"/>
 			<UserParam type="float" name="FWHM" value="10.3636999130249"/>
 			<UserParam type="float" name="SD" value="0.0492855261129007"/>
+			<UserParam type="float" name="SD_ppm" value="31.5004126993793"/>
 		</feature>
 		<feature id="f_14811341817612382122">
 			<position dim="0">2474.2214</position>
@@ -388,6 +405,7 @@
 			<UserParam type="string" name="label" value="T18.1"/>
 			<UserParam type="float" name="FWHM" value="10.306300163269"/>
 			<UserParam type="float" name="SD" value="0.0264636619677224"/>
+			<UserParam type="float" name="SD_ppm" value="21.016530575514"/>
 		</feature>
 		<feature id="f_2684106197423007927">
 			<position dim="0">2232.9951</position>
@@ -412,6 +430,7 @@
 			<UserParam type="string" name="label" value="T19.1"/>
 			<UserParam type="float" name="FWHM" value="8.71739959716797"/>
 			<UserParam type="float" name="SD" value="0.0170953343914677"/>
+			<UserParam type="float" name="SD_ppm" value="9.05332373462136"/>
 		</feature>
 		<feature id="f_8119044117483804262">
 			<position dim="0">2493.2047</position>
@@ -430,6 +449,7 @@
 			<UserParam type="string" name="label" value="T20.1"/>
 			<UserParam type="float" name="FWHM" value="6.92019987106323"/>
 			<UserParam type="float" name="SD" value="0.00374452689034526"/>
+			<UserParam type="float" name="SD_ppm" value="2.60803782554616"/>
 		</feature>
 		<feature id="f_17314619952666245179">
 			<position dim="0">2231.2626</position>
@@ -448,6 +468,7 @@
 			<UserParam type="string" name="label" value="T21.1"/>
 			<UserParam type="float" name="FWHM" value="7.02479982376099"/>
 			<UserParam type="float" name="SD" value="0.00475371570451811"/>
+			<UserParam type="float" name="SD_ppm" value="2.79566434966343"/>
 		</feature>
 		<feature id="f_3023658190814908261">
 			<position dim="0">2406.691</position>
@@ -470,6 +491,7 @@
 			<UserParam type="string" name="label" value="T22.1"/>
 			<UserParam type="float" name="FWHM" value="10.4102001190186"/>
 			<UserParam type="float" name="SD" value="0.00740228638553306"/>
+			<UserParam type="float" name="SD_ppm" value="6.67272989071242"/>
 		</feature>
 		<feature id="f_7898004582401008768">
 			<position dim="0">2403.2204</position>
@@ -488,6 +510,7 @@
 			<UserParam type="string" name="label" value="T23.1"/>
 			<UserParam type="float" name="FWHM" value="6.93959999084473"/>
 			<UserParam type="float" name="SD" value="0.00315269727132602"/>
+			<UserParam type="float" name="SD_ppm" value="2.63905990565327"/>
 		</feature>
 		<feature id="f_15050004366391181853">
 			<position dim="0">2457.1369</position>
@@ -506,6 +529,7 @@
 			<UserParam type="string" name="label" value="T24.1"/>
 			<UserParam type="float" name="FWHM" value="8.51760005950928"/>
 			<UserParam type="float" name="SD" value="0.0104358814873511"/>
+			<UserParam type="float" name="SD_ppm" value="8.9128805104503"/>
 		</feature>
 		<feature id="f_17716858074023296841">
 			<position dim="0">2436.5378</position>
@@ -524,6 +548,7 @@
 			<UserParam type="string" name="label" value="T25"/>
 			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
 			<UserParam type="float" name="SD" value="0.0256082025435881"/>
+			<UserParam type="float" name="SD_ppm" value="14.6100536198824"/>
 		</feature>
 		<feature id="f_16250062551099875712">
 			<position dim="0">2264.0944</position>
@@ -548,6 +573,7 @@
 			<UserParam type="string" name="label" value="T26.1"/>
 			<UserParam type="float" name="FWHM" value="5.19659996032715"/>
 			<UserParam type="float" name="SD" value="0.0223707135928687"/>
+			<UserParam type="float" name="SD_ppm" value="17.1119685019045"/>
 		</feature>
 		<feature id="f_16177748921272733768">
 			<position dim="0">2446.9015</position>
@@ -566,6 +592,7 @@
 			<UserParam type="string" name="label" value="T27"/>
 			<UserParam type="float" name="FWHM" value="8.53400039672852"/>
 			<UserParam type="float" name="SD" value="0.00841527518333686"/>
+			<UserParam type="float" name="SD_ppm" value="4.49075917679844"/>
 		</feature>
 		<feature id="f_7276556891837796968">
 			<position dim="0">2420.7039</position>
@@ -584,6 +611,7 @@
 			<UserParam type="string" name="label" value="T28.1"/>
 			<UserParam type="float" name="FWHM" value="8.78890037536621"/>
 			<UserParam type="float" name="SD" value="0.0649210505090013"/>
+			<UserParam type="float" name="SD_ppm" value="37.5252175951522"/>
 		</feature>
 		<feature id="f_1147219038608936718">
 			<position dim="0">2234.7232</position>
@@ -604,6 +632,7 @@
 			<UserParam type="string" name="label" value="T29.1"/>
 			<UserParam type="float" name="FWHM" value="8.66720008850098"/>
 			<UserParam type="float" name="SD" value="0.0365453361319815"/>
+			<UserParam type="float" name="SD_ppm" value="22.4639259846955"/>
 		</feature>
 		<feature id="f_11115414975438642789">
 			<position dim="0">2496.6645</position>
@@ -624,6 +653,7 @@
 			<UserParam type="string" name="label" value="T30.1"/>
 			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
 			<UserParam type="float" name="SD" value="0.0480524723173237"/>
+			<UserParam type="float" name="SD_ppm" value="31.9503739412794"/>
 		</feature>
 		<feature id="f_14509930621887606273">
 			<position dim="0">2441.7406</position>
@@ -644,6 +674,7 @@
 			<UserParam type="string" name="label" value="T31.1"/>
 			<UserParam type="float" name="FWHM" value="10.4281997680664"/>
 			<UserParam type="float" name="SD" value="0.0347571318440003"/>
+			<UserParam type="float" name="SD_ppm" value="23.1354871274321"/>
 		</feature>
 		<feature id="f_13424404046998308790">
 			<position dim="0">2457.1369</position>
@@ -666,6 +697,7 @@
 			<UserParam type="string" name="label" value="T32.1"/>
 			<UserParam type="float" name="FWHM" value="8.51760005950928"/>
 			<UserParam type="float" name="SD" value="0.0535776679559192"/>
+			<UserParam type="float" name="SD_ppm" value="30.2562650460358"/>
 		</feature>
 		<feature id="f_12665713047548007769">
 			<position dim="0">2231.2626</position>
@@ -684,6 +716,7 @@
 			<UserParam type="string" name="label" value="T33"/>
 			<UserParam type="float" name="FWHM" value="8.66269969940186"/>
 			<UserParam type="float" name="SD" value="0.0433890066027768"/>
+			<UserParam type="float" name="SD_ppm" value="29.3393368018851"/>
 		</feature>
 		<feature id="f_17092894204355333314">
 			<position dim="0">2293.6847</position>
@@ -694,7 +727,7 @@
 			<overallquality>0.666667</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2288.5056" y="1546.85123072227" />
+				<pt x="2288.5056" y="1546.85123072228" />
 				<pt x="2293.6847" y="1546.91230656919" />
 				<pt x="2295.4041" y="1546.9303682917" />
 				<pt x="2293.6847" y="1546.91230656919" />
@@ -702,6 +735,7 @@
 			<UserParam type="string" name="label" value="T34"/>
 			<UserParam type="float" name="FWHM" value="6.89849996566772"/>
 			<UserParam type="float" name="SD" value="0.0326997838825244"/>
+			<UserParam type="float" name="SD_ppm" value="21.1389403488886"/>
 		</feature>
 		<feature id="f_3491056946625602141">
 			<position dim="0">2387.5374</position>
@@ -722,6 +756,7 @@
 			<UserParam type="string" name="label" value="T35.1"/>
 			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
 			<UserParam type="float" name="SD" value="0.0308230750821615"/>
+			<UserParam type="float" name="SD_ppm" value="24.9863878914933"/>
 		</feature>
 		<feature id="f_10627069796380146481">
 			<position dim="0">2257.1777</position>
@@ -740,6 +775,7 @@
 			<UserParam type="string" name="label" value="T36.1"/>
 			<UserParam type="float" name="FWHM" value="8.63549995422363"/>
 			<UserParam type="float" name="SD" value="0.0219719430622362"/>
+			<UserParam type="float" name="SD_ppm" value="16.7447548478632"/>
 		</feature>
 		<feature id="f_10052793688680741109">
 			<position dim="0">2364.3859</position>
@@ -758,6 +794,7 @@
 			<UserParam type="string" name="label" value="T37.1"/>
 			<UserParam type="float" name="FWHM" value="7.2733998298645"/>
 			<UserParam type="float" name="SD" value="0.0339743828780008"/>
+			<UserParam type="float" name="SD_ppm" value="19.2656664924864"/>
 		</feature>
 		<feature id="f_15166508592180818156">
 			<position dim="0">2491.4704</position>
@@ -778,6 +815,7 @@
 			<UserParam type="string" name="label" value="T38.1"/>
 			<UserParam type="float" name="FWHM" value="10.3739004135132"/>
 			<UserParam type="float" name="SD" value="0.0241990259609424"/>
+			<UserParam type="float" name="SD_ppm" value="16.0889110922107"/>
 		</feature>
 		<feature id="f_14768204679546465715">
 			<position dim="0">2109.6008</position>
@@ -800,6 +838,7 @@
 			<UserParam type="string" name="label" value="T39.1"/>
 			<UserParam type="float" name="FWHM" value="9.28689956665039"/>
 			<UserParam type="float" name="SD" value="0.0333861432086166"/>
+			<UserParam type="float" name="SD_ppm" value="22.3329131543802"/>
 		</feature>
 		<feature id="f_12156709473159629610">
 			<position dim="0">2494.9337</position>
@@ -820,6 +859,7 @@
 			<UserParam type="string" name="label" value="T40.1"/>
 			<UserParam type="float" name="FWHM" value="8.65069961547852"/>
 			<UserParam type="float" name="SD" value="0.0326099535042004"/>
+			<UserParam type="float" name="SD_ppm" value="17.5535539796074"/>
 		</feature>
 		<feature id="f_15885522598119108466">
 			<position dim="0">2310.9573</position>
@@ -838,6 +878,7 @@
 			<UserParam type="string" name="label" value="T41.1"/>
 			<UserParam type="float" name="FWHM" value="8.66329956054688"/>
 			<UserParam type="float" name="SD" value="0.0442519978341624"/>
+			<UserParam type="float" name="SD_ppm" value="30.8558218745996"/>
 		</feature>
 		<feature id="f_3823858840059792698">
 			<position dim="0">2496.6645</position>
@@ -856,6 +897,7 @@
 			<UserParam type="string" name="label" value="T42"/>
 			<UserParam type="float" name="FWHM" value="6.92269992828369"/>
 			<UserParam type="float" name="SD" value="0.0378693976422487"/>
+			<UserParam type="float" name="SD_ppm" value="29.9712568261837"/>
 		</feature>
 		<feature id="f_893904610286969204">
 			<position dim="0">2231.2626</position>
@@ -874,6 +916,7 @@
 			<UserParam type="string" name="label" value="T43"/>
 			<UserParam type="float" name="FWHM" value="6.92990016937256"/>
 			<UserParam type="float" name="SD" value="0.0251968263915768"/>
+			<UserParam type="float" name="SD_ppm" value="14.0767878641707"/>
 		</feature>
 		<feature id="f_14851350658635457156">
 			<position dim="0">2385.791</position>
@@ -892,6 +935,7 @@
 			<UserParam type="string" name="label" value="T44.1"/>
 			<UserParam type="float" name="FWHM" value="7.0460000038147"/>
 			<UserParam type="float" name="SD" value="0.00641059929624884"/>
+			<UserParam type="float" name="SD_ppm" value="4.19781041206794"/>
 		</feature>
 		<feature id="f_17447818880105247092">
 			<position dim="0">2316.1886</position>
@@ -916,6 +960,7 @@
 			<UserParam type="string" name="label" value="T45.1"/>
 			<UserParam type="float" name="FWHM" value="10.476300239563"/>
 			<UserParam type="float" name="SD" value="0.0298802385417161"/>
+			<UserParam type="float" name="SD_ppm" value="27.3473603202651"/>
 		</feature>
 		<feature id="f_1003624456647096845">
 			<position dim="0">2288.5056</position>
@@ -940,6 +985,7 @@
 			<UserParam type="string" name="label" value="T46.1"/>
 			<UserParam type="float" name="FWHM" value="10.3836002349854"/>
 			<UserParam type="float" name="SD" value="0.0198251693497021"/>
+			<UserParam type="float" name="SD_ppm" value="17.7576753075776"/>
 		</feature>
 		<feature id="f_15120290131060441429">
 			<position dim="0">2319.6713</position>
@@ -962,6 +1008,7 @@
 			<UserParam type="string" name="label" value="T47.1"/>
 			<UserParam type="float" name="FWHM" value="10.476300239563"/>
 			<UserParam type="float" name="SD" value="0.015914672577247"/>
+			<UserParam type="float" name="SD_ppm" value="13.7792719919028"/>
 		</feature>
 		<feature id="f_11275867043381640475">
 			<position dim="0">2300.5738</position>
@@ -982,6 +1029,7 @@
 			<UserParam type="string" name="label" value="T48"/>
 			<UserParam type="float" name="FWHM" value="6.90220022201538"/>
 			<UserParam type="float" name="SD" value="0.0121988311431363"/>
+			<UserParam type="float" name="SD_ppm" value="6.95913844335795"/>
 		</feature>
 		<feature id="f_3713543811689521337">
 			<position dim="0">2269.2999</position>
@@ -1000,6 +1048,7 @@
 			<UserParam type="string" name="label" value="T49.1"/>
 			<UserParam type="float" name="FWHM" value="6.93680000305176"/>
 			<UserParam type="float" name="SD" value="0.0337259751759271"/>
+			<UserParam type="float" name="SD_ppm" value="18.7888489493253"/>
 		</feature>
 		<feature id="f_8666254306116808202">
 			<position dim="0">2288.5056</position>
@@ -1022,6 +1071,7 @@
 			<UserParam type="string" name="label" value="T50.1"/>
 			<UserParam type="float" name="FWHM" value="8.66419982910156"/>
 			<UserParam type="float" name="SD" value="0.0418085008606726"/>
+			<UserParam type="float" name="SD_ppm" value="38.4621005108341"/>
 		</feature>
 		<feature id="f_3246735940528705071">
 			<position dim="0">2408.4245</position>
@@ -1046,6 +1096,7 @@
 			<UserParam type="string" name="label" value="T51.1"/>
 			<UserParam type="float" name="FWHM" value="10.444299697876"/>
 			<UserParam type="float" name="SD" value="0.0104773672894876"/>
+			<UserParam type="float" name="SD_ppm" value="9.78180561267901"/>
 		</feature>
 		<feature id="f_4584897071539917580">
 			<position dim="0">2408.4245</position>
@@ -1064,6 +1115,7 @@
 			<UserParam type="string" name="label" value="T52.1"/>
 			<UserParam type="float" name="FWHM" value="8.66499996185303"/>
 			<UserParam type="float" name="SD" value="0.0256795406039039"/>
+			<UserParam type="float" name="SD_ppm" value="23.9731663844463"/>
 		</feature>
 		<feature id="f_260132145239717571">
 			<position dim="0">2234.7232</position>
@@ -1082,6 +1134,7 @@
 			<UserParam type="string" name="label" value="T53.1"/>
 			<UserParam type="float" name="FWHM" value="8.71739959716797"/>
 			<UserParam type="float" name="SD" value="0.0524230689253112"/>
+			<UserParam type="float" name="SD_ppm" value="24.6792127507146"/>
 		</feature>
 		<feature id="f_17569764383250687096">
 			<position dim="0">2389.288</position>
@@ -1102,6 +1155,7 @@
 			<UserParam type="string" name="label" value="T54"/>
 			<UserParam type="float" name="FWHM" value="10.5071001052856"/>
 			<UserParam type="float" name="SD" value="0.0479772040356368"/>
+			<UserParam type="float" name="SD_ppm" value="31.2922428118539"/>
 		</feature>
 		<feature id="f_14317784148091680644">
 			<position dim="0">2398.0174</position>
@@ -1120,6 +1174,7 @@
 			<UserParam type="string" name="label" value="T55.1"/>
 			<UserParam type="float" name="FWHM" value="8.72939968109131"/>
 			<UserParam type="float" name="SD" value="0.0263203996356195"/>
+			<UserParam type="float" name="SD_ppm" value="19.6953518441163"/>
 		</feature>
 		<feature id="f_17671779025680303814">
 			<position dim="0">2285.0205</position>
@@ -1142,6 +1197,7 @@
 			<UserParam type="string" name="label" value="T56"/>
 			<UserParam type="float" name="FWHM" value="8.6939001083374"/>
 			<UserParam type="float" name="SD" value="0.0147349539351471"/>
+			<UserParam type="float" name="SD_ppm" value="12.8420903436559"/>
 		</feature>
 		<feature id="f_1196373166564353753">
 			<position dim="0">2489.7476</position>
@@ -1152,7 +1208,7 @@
 			<overallquality>0.666667</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2481.1011" y="2623.11474889586" />
+				<pt x="2481.1011" y="2623.11474889587" />
 				<pt x="2486.2845" y="2623.07305147306" />
 				<pt x="2489.7476" y="2623.02140777385" />
 				<pt x="2486.2845" y="2623.07305147306" />
@@ -1160,6 +1216,7 @@
 			<UserParam type="string" name="label" value="T57.1"/>
 			<UserParam type="float" name="FWHM" value="8.64649963378906"/>
 			<UserParam type="float" name="SD" value="0.0374281338063501"/>
+			<UserParam type="float" name="SD_ppm" value="14.2688291096471"/>
 		</feature>
 		<feature id="f_7539502987715517688">
 			<position dim="0">2387.5374</position>
@@ -1178,6 +1235,7 @@
 			<UserParam type="string" name="label" value="T58.1"/>
 			<UserParam type="float" name="FWHM" value="8.79240036010742"/>
 			<UserParam type="float" name="SD" value="0.00425144502292001"/>
+			<UserParam type="float" name="SD_ppm" value="2.7730984095079"/>
 		</feature>
 		<feature id="f_9126387050458671424">
 			<position dim="0">2115.1782</position>
@@ -1196,6 +1254,7 @@
 			<UserParam type="string" name="label" value="T59"/>
 			<UserParam type="float" name="FWHM" value="7.42700004577637"/>
 			<UserParam type="float" name="SD" value="0.031965993064079"/>
+			<UserParam type="float" name="SD_ppm" value="20.5604656828625"/>
 		</feature>
 		<feature id="f_13113514917555180171">
 			<position dim="0">2323.1737</position>
@@ -1214,6 +1273,7 @@
 			<UserParam type="string" name="label" value="T60.1"/>
 			<UserParam type="float" name="FWHM" value="6.98509979248047"/>
 			<UserParam type="float" name="SD" value="0.0113053949304533"/>
+			<UserParam type="float" name="SD_ppm" value="10.0684148408917"/>
 		</feature>
 		<feature id="f_7316644956366259183">
 			<position dim="0">2458.847</position>
@@ -1232,6 +1292,7 @@
 			<UserParam type="string" name="label" value="T61"/>
 			<UserParam type="float" name="FWHM" value="8.5241003036499"/>
 			<UserParam type="float" name="SD" value="0.0312126392002769"/>
+			<UserParam type="float" name="SD_ppm" value="25.4653113920323"/>
 		</feature>
 		<feature id="f_6182960951962378739">
 			<position dim="0">2115.1782</position>
@@ -1254,6 +1315,7 @@
 			<UserParam type="string" name="label" value="T62.1"/>
 			<UserParam type="float" name="FWHM" value="11.128999710083"/>
 			<UserParam type="float" name="SD" value="0.0172287336789648"/>
+			<UserParam type="float" name="SD_ppm" value="11.9677456724701"/>
 		</feature>
 		<feature id="f_14891455924036538147">
 			<position dim="0">2206.1445</position>
@@ -1272,6 +1334,7 @@
 			<UserParam type="string" name="label" value="T63.1"/>
 			<UserParam type="float" name="FWHM" value="7.32509994506836"/>
 			<UserParam type="float" name="SD" value="0.0499805931903082"/>
+			<UserParam type="float" name="SD_ppm" value="20.2161510882361"/>
 		</feature>
 		<feature id="f_5860084234476467938">
 			<position dim="0">2496.6645</position>
@@ -1292,6 +1355,7 @@
 			<UserParam type="string" name="label" value="T64.1"/>
 			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
 			<UserParam type="float" name="SD" value="0.0302290253807653"/>
+			<UserParam type="float" name="SD_ppm" value="22.9681733118484"/>
 		</feature>
 		<feature id="f_12758854762884412659">
 			<position dim="0">2366.1922</position>
@@ -1310,6 +1374,7 @@
 			<UserParam type="string" name="label" value="T65"/>
 			<UserParam type="float" name="FWHM" value="8.99650001525879"/>
 			<UserParam type="float" name="SD" value="0.0774569177497138"/>
+			<UserParam type="float" name="SD_ppm" value="46.2822837866461"/>
 		</feature>
 		<feature id="f_17287849381738438716">
 			<position dim="0">2438.2814</position>
@@ -1330,8 +1395,9 @@
 				<pt x="2433.0371" y="1502.37138027029" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T66.1"/>
-			<UserParam type="float" name="FWHM" value="6.97109985351562"/>
+			<UserParam type="float" name="FWHM" value="6.97109985351563"/>
 			<UserParam type="float" name="SD" value="0.0257042172877947"/>
+			<UserParam type="float" name="SD_ppm" value="17.1085168738248"/>
 		</feature>
 		<feature id="f_2660422259164526995">
 			<position dim="0">2052.3418</position>
@@ -1352,6 +1418,7 @@
 			<UserParam type="string" name="label" value="T67.1"/>
 			<UserParam type="float" name="FWHM" value="10.6562995910645"/>
 			<UserParam type="float" name="SD" value="0.0288043094950335"/>
+			<UserParam type="float" name="SD_ppm" value="18.2686195950547"/>
 		</feature>
 		<feature id="f_5495827884756377090">
 			<position dim="0">2050.5696</position>
@@ -1370,6 +1437,7 @@
 			<UserParam type="string" name="label" value="T68"/>
 			<UserParam type="float" name="FWHM" value="7.08449983596802"/>
 			<UserParam type="float" name="SD" value="0.0134252730488444"/>
+			<UserParam type="float" name="SD_ppm" value="8.10676327105272"/>
 		</feature>
 		<feature id="f_4143272592559840046">
 			<position dim="0">2113.3173</position>
@@ -1390,6 +1458,7 @@
 			<UserParam type="string" name="label" value="T69.1"/>
 			<UserParam type="float" name="FWHM" value="9.3129997253418"/>
 			<UserParam type="float" name="SD" value="0.0303279914952871"/>
+			<UserParam type="float" name="SD_ppm" value="18.7289752259931"/>
 		</feature>
 		<feature id="f_7870901012988979006">
 			<position dim="0">2135.693</position>
@@ -1410,6 +1479,7 @@
 			<UserParam type="string" name="label" value="T70.1"/>
 			<UserParam type="float" name="FWHM" value="7.30730009078979"/>
 			<UserParam type="float" name="SD" value="0.0186403660606977"/>
+			<UserParam type="float" name="SD_ppm" value="15.4042290466854"/>
 		</feature>
 		<feature id="f_5342974036930030800">
 			<position dim="0">2115.1782</position>
@@ -1428,6 +1498,7 @@
 			<UserParam type="string" name="label" value="T71"/>
 			<UserParam type="float" name="FWHM" value="7.41429996490479"/>
 			<UserParam type="float" name="SD" value="0.0436958100835435"/>
+			<UserParam type="float" name="SD_ppm" value="26.9826556061268"/>
 		</feature>
 		<feature id="f_11399299100673837381">
 			<position dim="0">2269.2999</position>
@@ -1446,6 +1517,7 @@
 			<UserParam type="string" name="label" value="T72"/>
 			<UserParam type="float" name="FWHM" value="6.94449996948242"/>
 			<UserParam type="float" name="SD" value="0.0188104292348954"/>
+			<UserParam type="float" name="SD_ppm" value="16.048408847941"/>
 		</feature>
 		<feature id="f_16164338904207598736">
 			<position dim="0">2222.456</position>
@@ -1464,6 +1536,7 @@
 			<UserParam type="string" name="label" value="T73"/>
 			<UserParam type="float" name="FWHM" value="8.91269969940186"/>
 			<UserParam type="float" name="SD" value="0.011149163498635"/>
+			<UserParam type="float" name="SD_ppm" value="6.54816241619849"/>
 		</feature>
 		<feature id="f_4410447320637600518">
 			<position dim="0">2159.018</position>
@@ -1482,6 +1555,7 @@
 			<UserParam type="string" name="label" value="T74.1"/>
 			<UserParam type="float" name="FWHM" value="8.87440013885498"/>
 			<UserParam type="float" name="SD" value="0.0462317259428333"/>
+			<UserParam type="float" name="SD_ppm" value="24.9724630497281"/>
 		</feature>
 		<feature id="f_12561328592123678330">
 			<position dim="0">2425.9917</position>
@@ -1500,6 +1574,7 @@
 			<UserParam type="string" name="label" value="T75"/>
 			<UserParam type="float" name="FWHM" value="7.05649995803833"/>
 			<UserParam type="float" name="SD" value="0.0294378876362279"/>
+			<UserParam type="float" name="SD_ppm" value="25.5188361113547"/>
 		</feature>
 		<feature id="f_8795943655088158336">
 			<position dim="0">2387.5374</position>
@@ -1522,6 +1597,7 @@
 			<UserParam type="string" name="label" value="T76"/>
 			<UserParam type="float" name="FWHM" value="10.5071001052856"/>
 			<UserParam type="float" name="SD" value="0.0365662187822118"/>
+			<UserParam type="float" name="SD_ppm" value="28.5023028259112"/>
 		</feature>
 		<feature id="f_6878260161865568505">
 			<position dim="0">2077.5722</position>
@@ -1540,6 +1616,7 @@
 			<UserParam type="string" name="label" value="T77"/>
 			<UserParam type="float" name="FWHM" value="9.34000015258789"/>
 			<UserParam type="float" name="SD" value="0.0178943825574434"/>
+			<UserParam type="float" name="SD_ppm" value="14.4533416281513"/>
 		</feature>
 		<feature id="f_4021463513649428920">
 			<position dim="0">2224.2378</position>
@@ -1558,6 +1635,7 @@
 			<UserParam type="string" name="label" value="T78.1"/>
 			<UserParam type="float" name="FWHM" value="7.16559982299805"/>
 			<UserParam type="float" name="SD" value="0.0482657860520709"/>
+			<UserParam type="float" name="SD_ppm" value="37.0524805941507"/>
 		</feature>
 		<feature id="f_3386388678910226661">
 			<position dim="0">2344.5056</position>
@@ -1576,6 +1654,7 @@
 			<UserParam type="string" name="label" value="T79.1"/>
 			<UserParam type="float" name="FWHM" value="8.99250030517578"/>
 			<UserParam type="float" name="SD" value="0.0622713313139067"/>
+			<UserParam type="float" name="SD_ppm" value="37.9775541064164"/>
 		</feature>
 		<feature id="f_13574947772324278593">
 			<position dim="0">2111.4734</position>
@@ -1594,6 +1673,7 @@
 			<UserParam type="string" name="label" value="T80"/>
 			<UserParam type="float" name="FWHM" value="9.2564001083374"/>
 			<UserParam type="float" name="SD" value="0.0371993743925293"/>
+			<UserParam type="float" name="SD_ppm" value="23.9280154685398"/>
 		</feature>
 		<feature id="f_3689406389503231823">
 			<position dim="0">2391.0357</position>
@@ -1612,6 +1692,7 @@
 			<UserParam type="string" name="label" value="T81"/>
 			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
 			<UserParam type="float" name="SD" value="0.0478793812058152"/>
+			<UserParam type="float" name="SD_ppm" value="26.8623668969906"/>
 		</feature>
 		<feature id="f_11106716189850669289">
 			<position dim="0">2385.791</position>
@@ -1624,14 +1705,15 @@
 			<convexhull nr="0">
 				<pt x="2376.966" y="1336.32941279768" />
 				<pt x="2384.0293" y="1336.27367877281" />
-				<pt x="2385.791" y="1336.26866392844" />
+				<pt x="2385.791" y="1336.26866392845" />
 				<pt x="2387.5374" y="1336.28375867272" />
-				<pt x="2385.791" y="1336.26866392844" />
+				<pt x="2385.791" y="1336.26866392845" />
 				<pt x="2384.0293" y="1336.27367877281" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T82.1"/>
 			<UserParam type="float" name="FWHM" value="10.5713996887207"/>
 			<UserParam type="float" name="SD" value="0.0220308327320836"/>
+			<UserParam type="float" name="SD_ppm" value="16.4865794259293"/>
 		</feature>
 		<feature id="f_11221884879889731173">
 			<position dim="0">2211.6235</position>
@@ -1650,6 +1732,7 @@
 			<UserParam type="string" name="label" value="T83.1"/>
 			<UserParam type="float" name="FWHM" value="9.04339981079102"/>
 			<UserParam type="float" name="SD" value="0.0368947536919325"/>
+			<UserParam type="float" name="SD_ppm" value="24.4788465430584"/>
 		</feature>
 		<feature id="f_575144564576995072">
 			<position dim="0">2073.8759</position>
@@ -1668,6 +1751,7 @@
 			<UserParam type="string" name="label" value="T84.1"/>
 			<UserParam type="float" name="FWHM" value="9.27110004425049"/>
 			<UserParam type="float" name="SD" value="0.00958574851422785"/>
+			<UserParam type="float" name="SD_ppm" value="5.7875600012452"/>
 		</feature>
 		<feature id="f_5805590394902791448">
 			<position dim="0">2150.1436</position>
@@ -1686,6 +1770,7 @@
 			<UserParam type="string" name="label" value="T85"/>
 			<UserParam type="float" name="FWHM" value="5.33050012588501"/>
 			<UserParam type="float" name="SD" value="0.048214530543606"/>
+			<UserParam type="float" name="SD_ppm" value="30.1322388440513"/>
 		</feature>
 		<feature id="f_11586291247413769442">
 			<position dim="0">2387.5374</position>
@@ -1704,6 +1789,7 @@
 			<UserParam type="string" name="label" value="T86.1"/>
 			<UserParam type="float" name="FWHM" value="7.0278000831604"/>
 			<UserParam type="float" name="SD" value="0.0642518196030629"/>
+			<UserParam type="float" name="SD_ppm" value="43.9007669507826"/>
 		</feature>
 		<feature id="f_7061025990090747374">
 			<position dim="0">2054.1124</position>
@@ -1722,6 +1808,7 @@
 			<UserParam type="string" name="label" value="T87.1"/>
 			<UserParam type="float" name="FWHM" value="7.09460020065308"/>
 			<UserParam type="float" name="SD" value="0.0214060250757186"/>
+			<UserParam type="float" name="SD_ppm" value="18.5200211591097"/>
 		</feature>
 		<feature id="f_8195437834883133454">
 			<position dim="0">2344.5056</position>
@@ -1740,10 +1827,11 @@
 			<UserParam type="string" name="label" value="T88"/>
 			<UserParam type="float" name="FWHM" value="8.93610000610352"/>
 			<UserParam type="float" name="SD" value="0.0315252235325958"/>
+			<UserParam type="float" name="SD_ppm" value="28.8509650175495"/>
 		</feature>
 		<feature id="f_3395379003172100421">
 			<position dim="0">2146.596</position>
-			<position dim="1">2246.27291014707</position>
+			<position dim="1">2246.27291014708</position>
 			<intensity>10000.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -1758,6 +1846,7 @@
 			<UserParam type="string" name="label" value="T89.1"/>
 			<UserParam type="float" name="FWHM" value="7.22849988937378"/>
 			<UserParam type="float" name="SD" value="0.014188033880049"/>
+			<UserParam type="float" name="SD_ppm" value="6.31625561433672"/>
 		</feature>
 		<feature id="f_11630589982317102322">
 			<position dim="0">2182.3749</position>
@@ -1776,6 +1865,7 @@
 			<UserParam type="string" name="label" value="T90.1"/>
 			<UserParam type="float" name="FWHM" value="9.11699962615967"/>
 			<UserParam type="float" name="SD" value="0.0405299325079976"/>
+			<UserParam type="float" name="SD_ppm" value="33.3744948079386"/>
 		</feature>
 		<feature id="f_1339341489815824759">
 			<position dim="0">2224.2378</position>
@@ -1796,6 +1886,7 @@
 			<UserParam type="string" name="label" value="T91.1"/>
 			<UserParam type="float" name="FWHM" value="7.16559982299805"/>
 			<UserParam type="float" name="SD" value="0.0137316349783092"/>
+			<UserParam type="float" name="SD_ppm" value="7.67559796329925"/>
 		</feature>
 		<feature id="f_17325731682080510033">
 			<position dim="0">2401.4906</position>
@@ -1816,6 +1907,7 @@
 			<UserParam type="string" name="label" value="T92"/>
 			<UserParam type="float" name="FWHM" value="8.67580032348633"/>
 			<UserParam type="float" name="SD" value="0.0356756415176259"/>
+			<UserParam type="float" name="SD_ppm" value="34.4559385704705"/>
 		</feature>
 		<feature id="f_13641829453453140763">
 			<position dim="0">2175.0676</position>
@@ -1834,6 +1926,7 @@
 			<UserParam type="string" name="label" value="T93"/>
 			<UserParam type="float" name="FWHM" value="5.47650003433228"/>
 			<UserParam type="float" name="SD" value="0.0107672341296384"/>
+			<UserParam type="float" name="SD_ppm" value="7.87219073066347"/>
 		</feature>
 		<feature id="f_12388384985798314387">
 			<position dim="0">2103.9472</position>
@@ -1852,6 +1945,7 @@
 			<UserParam type="string" name="label" value="T94.1"/>
 			<UserParam type="float" name="FWHM" value="7.54909992218018"/>
 			<UserParam type="float" name="SD" value="0.0232664863544197"/>
+			<UserParam type="float" name="SD_ppm" value="20.5626468729417"/>
 		</feature>
 		<feature id="f_4041634828915281168">
 			<position dim="0">2113.3173</position>
@@ -1872,6 +1966,7 @@
 			<UserParam type="string" name="label" value="T95.1"/>
 			<UserParam type="float" name="FWHM" value="11.1485004425049"/>
 			<UserParam type="float" name="SD" value="0.0118045236206405"/>
+			<UserParam type="float" name="SD_ppm" value="8.8065487461752"/>
 		</feature>
 		<feature id="f_17078574238716611972">
 			<position dim="0">2286.7695</position>
@@ -1892,6 +1987,7 @@
 			<UserParam type="string" name="label" value="T96.1"/>
 			<UserParam type="float" name="FWHM" value="8.63459968566895"/>
 			<UserParam type="float" name="SD" value="0.0379102079038374"/>
+			<UserParam type="float" name="SD_ppm" value="37.6232937638301"/>
 		</feature>
 		<feature id="f_5106727040801878879">
 			<position dim="0">2317.9356</position>
@@ -1910,6 +2006,7 @@
 			<UserParam type="string" name="label" value="T97"/>
 			<UserParam type="float" name="FWHM" value="6.97989988327026"/>
 			<UserParam type="float" name="SD" value="0.0187375841137358"/>
+			<UserParam type="float" name="SD_ppm" value="19.0013991892579"/>
 		</feature>
 		<feature id="f_18390135059454481268">
 			<position dim="0">2314.4472</position>
@@ -1928,10 +2025,11 @@
 			<UserParam type="string" name="label" value="T98"/>
 			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
 			<UserParam type="float" name="SD" value="0.0145789805268371"/>
+			<UserParam type="float" name="SD_ppm" value="15.5068501389947"/>
 		</feature>
 		<feature id="f_15721057298497490036">
 			<position dim="0">2115.1782</position>
-			<position dim="1">1295.78080069868</position>
+			<position dim="1">1295.78080069869</position>
 			<intensity>10759</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -1946,6 +2044,7 @@
 			<UserParam type="string" name="label" value="T99.1"/>
 			<UserParam type="float" name="FWHM" value="9.34519958496094"/>
 			<UserParam type="float" name="SD" value="0.033232312997814"/>
+			<UserParam type="float" name="SD_ppm" value="25.6465545560601"/>
 		</feature>
 		<feature id="f_2608380305220684729">
 			<position dim="0">2202.4805</position>
@@ -1964,6 +2063,7 @@
 			<UserParam type="string" name="label" value="T100.1"/>
 			<UserParam type="float" name="FWHM" value="9.14299964904785"/>
 			<UserParam type="float" name="SD" value="0.0255738677676383"/>
+			<UserParam type="float" name="SD_ppm" value="27.7330165314838"/>
 		</feature>
 		<feature id="f_11422463686885200558">
 			<position dim="0">2036.2596</position>
@@ -1982,6 +2082,7 @@
 			<UserParam type="string" name="label" value="T101.1"/>
 			<UserParam type="float" name="FWHM" value="5.60519981384277"/>
 			<UserParam type="float" name="SD" value="0.0193249559978627"/>
+			<UserParam type="float" name="SD_ppm" value="13.3771256593677"/>
 		</feature>
 	</featureList>
 </featureMap>

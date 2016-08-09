@@ -192,12 +192,12 @@ public:
     /// Sorts the protein hits by score and assigns ranks (best score has rank 1)
     void assignRanks();
     /**
-               @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
+       @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
-               @throws Exception::MissingInformation if ProteinsHits do not have sequence information
+       @throws Exception::MissingInformation if ProteinsHits do not have sequence information
 
-               @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
-          */
+       Does not return anything but stores the coverage inside the ProteinHit objects
+    */
     void computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
     //@}
 
