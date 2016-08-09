@@ -274,6 +274,7 @@ namespace OpenMS
         output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
       }
     }
+
     // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
     Size l = sequence.size() - pep_positions[count - 1];
     if (l >= min_length && l <= max_length)

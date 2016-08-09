@@ -74,8 +74,8 @@ namespace OpenMS
         return 0.0;
       }
 
-      const double theo_mz = theo_peak_it->getMZ();
-      const double theo_intensity = theo_peak_it->getIntensity();
+      const double& theo_mz = theo_peak_it->getMZ();
+      const double& theo_intensity = theo_peak_it->getIntensity();
 
       double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
