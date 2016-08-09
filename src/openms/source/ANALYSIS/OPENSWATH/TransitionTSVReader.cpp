@@ -1055,8 +1055,6 @@ namespace OpenMS
 
     AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-
     // in TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.

@@ -173,7 +173,6 @@ namespace OpenMS
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
     OpenSwath::LightModification m;
-    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
 
     p.id = pep.id;
     if (!pep.rts.empty())
