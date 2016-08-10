@@ -42,6 +42,7 @@
 namespace OpenMS
 {
 
+// struct to hold a single report line
 struct OPENMS_DLLAPI RNPxlReportRow
 {
   bool no_id;
@@ -66,31 +67,14 @@ struct OPENMS_DLLAPI RNPxlReportRow
   double m_3H;
   double m_4H;
   String fragment_annotation_string;  
-  String getString(String separator) const;
+  String getString(const String& separator) const;
 
 };
 
+// create header line
 struct OPENMS_DLLAPI RNPxlReportRowHeader
 {
-  String getString(String separator)
-  {
-    StringList sl;
-    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
-       << "best localization score" << "localization scores" << "best localization(s)"
-       << "peptide weight" << "RNA weight" << "cross-link weight";
-
-    // marker ion fields
-    RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
-    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        sl << String(it->first + "_" + it->second[i].first);
-      }
-    }
-    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation";
-    return ListUtils::concatenate(sl, separator);
-  }
+  static String getString(const String& separator);
 };
 
 // create report
