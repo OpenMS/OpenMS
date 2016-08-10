@@ -351,7 +351,6 @@ namespace OpenMS
       {
         if (cv_ref == "UNIMOD")
         {
-          //void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& origin, const String& name, ResidueModification::Term_Specificity term_spec) const
           set<const ResidueModification*> mods;
           Int loc = numeric_limits<Size>::max();
           if (optionalAttributeAsInt_(loc, attributes, "location"))
