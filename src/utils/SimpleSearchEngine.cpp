@@ -310,68 +310,6 @@ class SimpleSearchEngine :
       in.sortByPosition();
     }
 
-    double logfactorial(UInt x)
-    {
-      UInt y;
-
-      if (x < 2)
-        return 1;
-      else
-      {
-        double z = 0;
-        for (y = 2; y <= x; y++)
-        {
-          z = log((double)y) + z;
-        }
-
-        return z;
-      }
-    }
-
-    double computeHyperScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<Peak1D>& exp_spectrum, const MSSpectrum<RichPeak1D>& theo_spectrum)
-    {
-      double dot_product = 0.0;
-      UInt y_ion_count = 0;
-      UInt b_ion_count = 0;
-
-      for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
-      {
-        const double& theo_mz = theo_peak_it->getMZ();
-
-        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-        double exp_mz = exp_spectrum[index].getMZ();
-
-        // found peak match
-        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
-        {
-          dot_product += exp_spectrum[index].getIntensity();
-          if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
-          {
-            ++y_ion_count;
-          }
-          else
-          {
-            ++b_ion_count;
-          }
-        }
-      }
-
-      if (dot_product > 1e-1)
-      {
-        double yFact = logfactorial(y_ion_count);
-        double bFact = logfactorial(b_ion_count);
-        double hyperScore = log(dot_product) + yFact + bFact;
-        return hyperScore;
-      }
-      else
-      {
-        return 0;
-      }
-    }
-
     void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
     {
       // filter MS2 map
