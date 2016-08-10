@@ -243,12 +243,17 @@ namespace OpenMS
     if (e->button() == Qt::LeftButton)
     {
       // selection/deselection of annotation items
-      Annotation1DItem * item = getCurrentLayer_().getCurrentAnnotations().getItemAt(last_mouse_pos_);
+      Annotation1DItem* item = getCurrentLayer_().getCurrentAnnotations().getItemAt(last_mouse_pos_);
       if (item)
       {
         if (!(e->modifiers() & Qt::ControlModifier))
         {
-          if (!item->isSelected())
+          // edit via double-click
+          if (e->type() == QEvent::MouseButtonDblClick)
+          {
+            item->editText();
+          }
+          else if (!item->isSelected())
           {
             // the item becomes the only selected item
             getCurrentLayer_().getCurrentAnnotations().deselectAll();
@@ -1286,14 +1291,7 @@ namespace OpenMS
         }
         else if (result->text() == "Edit")
         {
-          const String & old_text = annot_item->getText();
-
-          bool ok;
-          QString text = QInputDialog::getText(this, "Edit text", "Enter text:", QLineEdit::Normal, old_text.toQString(), &ok);
-          if (ok && !text.isEmpty())
-          {
-            annot_item->setText(text);
-          }
+          annot_item->editText();
         }
         update_(__PRETTY_FUNCTION__);
       }
