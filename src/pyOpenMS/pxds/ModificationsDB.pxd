@@ -12,14 +12,14 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         # POINTER # ModificationsDB * getInstance() nogil except +
         Size getNumberOfModifications() nogil except +
         ResidueModification  getModification(Size index) nogil except +
-        # NAMESPACE # # POINTER # void searchTerminalModifications(libcpp_set[ ResidueModification * ] & mods, String & name, ResidueModification::Term_Specificity term_spec) nogil except +
-        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & orgin, String & mod_name, ResidueModification::Term_Specificity term_spec) nogil except +
-        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & mod_name, ResidueModification::Term_Specificity term_spec) nogil except +
-        ResidueModification getTerminalModification(String & name, Term_Specificity term_spec) nogil except +
-        ResidueModification getModification(String & residue_name, String & mod_name, Term_Specificity term_spec) nogil except +
+        # NAMESPACE # # POINTER # void searchTerminalModifications(libcpp_set[ ResidueModification * ] & mods, String & name, ResidueModification::TermSpecificity term_spec) nogil except +
+        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & orgin, String & mod_name, ResidueModification::TermSpecificity term_spec) nogil except +
+        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & mod_name, ResidueModification::TermSpecificity term_spec) nogil except +
+        ResidueModification getTerminalModification(String & name, TermSpecificity term_spec) nogil except +
+        ResidueModification getModification(String & residue_name, String & mod_name, TermSpecificity term_spec) nogil except +
         ResidueModification getModification(String & modification) nogil except +
         Size findModificationIndex(String & mod_name) nogil except +
-        void getTerminalModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error, Term_Specificity term_spec) nogil except +
+        void getTerminalModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error, TermSpecificity term_spec) nogil except +
         void getModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error) nogil except +
         void getModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, String & residue, double mass, double error) nogil except +
         void readFromOBOFile(String & filename) nogil except +
