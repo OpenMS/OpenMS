@@ -1160,11 +1160,11 @@ namespace OpenMS
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, default_value, description, required, advanced));
   }
 
-  void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
-    if (required && default_value.size() > 0)
+    if (required && default_value.size() > 0 && !ListUtils::contains(tags, "skipexists"))
       throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced));
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced, tags));
   }
 
   void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
