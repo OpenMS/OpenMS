@@ -1264,7 +1264,10 @@ namespace OpenMS
   isolation window starting at xx and ending at yy. OpenSwathWorkflow will try
   to read the SWATH windows from the data, if this is not possible please
   provide a tab-separated list with the correct windows using the
-  -swath_windows_file parameter.
+  -swath_windows_file parameter (this is recommended). Note that the software
+  expects extraction windows (e.g. which peptides to extract from
+  which window) which cannot have overlaps, otherwise peptides will be
+  extracted from two different windwos.
 
   Alternatively, a set of split files (n+1 mzML files) can be provided, each
   containing one SWATH map (or MS1 map).
@@ -1273,6 +1276,27 @@ namespace OpenMS
   whole file into memory but rather cache it somewhere on the disk using a
   fast-access data format. This can be specified using the -readOptions cache
   parameter (this is recommended!).
+
+  <h3>Parameters</h3>
+  The current parameters are optimized for 2 hour gradients on SCIEX 5600 /
+  6600 TripleTOF instruments with a peak width of around 30 seconds using iRT
+  peptides.  If your chromatography differs, please consider adjusting
+  -Scoring:TransitionGroupPicker:min_peak_width  to allow for smaller or larger
+  peaks and adjust the -rt_extraction_window to use a different extraction
+  window for the retention time. In m/z domain, it consider adjusting
+  -mz_extraction_window to your instrument resolution, which can be in Th or
+  ppm (using -ppm). 
+
+  Furthermore, if you wish to use MS1 information, use the -use_ms1_traces flag
+  and provide an MS1 map in addition to the SWATH data.
+
+  If you encounter issues with peak picking, try to disable peak filtering by
+  setting -Scoring:TransitionGroupPicker:compute_peak_quality false which will
+  disable the filtering of peaks by chromatographic quality. Furthermore, you
+  can adjust the smoothing parameters for the peak picking, by adjusting
+  -Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length or using a
+  Gaussian smoothing based on your estimated peak width. Adjusting the signal
+  to noise threshold will make the peaks wider or smaller.
 
   <h3>Output: Feature list and chromatograms </h3>
   The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
