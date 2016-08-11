@@ -156,7 +156,7 @@ namespace OpenMS
       //TODO IDENT
     }
 
-    //paint highlighed peak
+    // paint highlighted peak
     painter.save();
     painter.setPen(QPen(Qt::red, 2));
 
@@ -1629,7 +1629,7 @@ namespace OpenMS
       painter.setPen(Qt::black);
 
       QPoint line_begin, line_end;
-
+      // start of line
       if (selected_peak_.isValid())
       {
         if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1654,6 +1654,7 @@ namespace OpenMS
         line_begin = last_mouse_pos_;
       }
 
+      // end of line
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
       {
         dataToWidget_(measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getMZ(), measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getRT(), line_end);
@@ -1675,7 +1676,7 @@ namespace OpenMS
       highlightPeak_(painter, measurement_start_);
     }
 
-    //draw convex hulls or consensus feature elements
+    // draw convex hulls or consensus feature elements
     if (selected_peak_.isValid())
     {
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1698,7 +1699,7 @@ namespace OpenMS
       highlightPeak_(painter, selected_peak_);
     }
 
-    //draw delta for measuring
+    // draw delta for measuring
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       drawDeltas_(painter, measurement_start_, selected_peak_);

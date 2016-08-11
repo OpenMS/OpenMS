@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,11 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
-  String RNPxlReportRow::getString(String separator) const
+  String RNPxlReportRow::getString(const String& separator) const
   {
     StringList sl;
 
@@ -89,6 +90,25 @@ namespace OpenMS
     return ListUtils::concatenate(sl, separator);
   }
 
+  String RNPxlReportRowHeader::getString(const String& separator)
+  {
+    StringList sl;
+    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
+       << "best localization score" << "localization scores" << "best localization(s)"
+       << "peptide weight" << "RNA weight" << "cross-link weight";
+
+    // marker ion fields
+    RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
+    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        sl << String(it->first + "_" + it->second[i].first);
+      }
+    }
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation";
+    return ListUtils::concatenate(sl, separator);
+  }
 
   std::vector<RNPxlReportRow> RNPxlReport::annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance)
   {
@@ -162,7 +182,7 @@ namespace OpenMS
         double xl_weight = peptide_weight + rna_weight;
         double theo_mz = (xl_weight + static_cast<double>(charge) * Constants::PROTON_MASS_U) / (double)charge;
         double absolute_difference = theo_mz - mz;
-        double ppm_difference =  absolute_difference / theo_mz * 1e6;
+        double ppm_difference =  Math::getPPM(mz, theo_mz);
 
         String protein_accessions;
         std::set<String> accs = ph.extractProteinAccessions();
