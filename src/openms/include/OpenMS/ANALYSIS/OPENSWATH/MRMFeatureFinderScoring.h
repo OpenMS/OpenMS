@@ -103,7 +103,7 @@ public:
     typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightTargetedExperiment TargetedExpType;
-    typedef OpenSwath::LightPeptide PeptideType;
+    typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
     // a transition group holds the MSSpectra with the Chromatogram peaks from above

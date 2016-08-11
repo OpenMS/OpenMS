@@ -197,30 +197,39 @@ protected:
 
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
   {
-    // modification params are neccessary for further analysis tools (e.g. LuciPHOr2)
+    // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
     set<String> fixed_mods_set;
-    set<String> var_mods_set;    
+    set<String> var_mods_set;
+    StringList merged_spectra_data;
     for (vector<ProteinIdentification>::iterator it_prot_ids = prot_ids.begin(); it_prot_ids != prot_ids.end(); ++it_prot_ids)
     {
       ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
       std::copy(search_params.fixed_modifications.begin(), search_params.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(search_params.variable_modifications.begin(), search_params.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
-    }    
+      StringList spectra_data = it_prot_ids->getPrimaryMSRunPath();
+      std::copy(spectra_data.begin(), spectra_data.end(), std::inserter(merged_spectra_data, merged_spectra_data.end()));
+    }
     ProteinIdentification::SearchParameters search_params;
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
     search_params.fixed_modifications    = fixed_mods;
     search_params.variable_modifications = var_mods;
-    
+
     prot_ids.clear();
     prot_ids.resize(1);
     prot_ids[0].setDateTime(DateTime::now());
     prot_ids[0].setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     prot_ids[0].setSearchParameters(search_params);
+
+    // make file name entries unique
+    std::sort(merged_spectra_data.begin(), merged_spectra_data.end());
+    StringList::iterator last = std::unique(merged_spectra_data.begin(), merged_spectra_data.end());
+    merged_spectra_data.erase(last, merged_spectra_data.end());
+    prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
-  
+
   template <typename MapType>
   void processFeatureOrConsensusMap_(MapType& input_map,
                                      ConsensusIDAlgorithm* consensus)

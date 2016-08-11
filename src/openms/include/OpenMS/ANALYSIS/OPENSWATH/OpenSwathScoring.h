@@ -419,7 +419,7 @@ var_yseries_score   -0.0327896378737766
   */
   class OPENMS_DLLAPI OpenSwathScoring 
   {
-    typedef OpenSwath::LightPeptide PeptideType;
+    typedef OpenSwath::LightCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
 
     double rt_normalization_factor_;
@@ -516,7 +516,7 @@ var_yseries_score   -0.0327896378737766
     void calculateLibraryScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<TransitionType> & transitions,
-          const PeptideType& pep,
+          const CompoundType& pep,
           const double normalized_feature_rt,
           OpenSwath_Scores & scores);
 
@@ -538,7 +538,7 @@ var_yseries_score   -0.0327896378737766
         OpenSwath::SpectrumAccessPtr swath_map,
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
-        const PeptideType& pep,
+        const CompoundType& pep,
         OpenSwath_Scores & scores);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.

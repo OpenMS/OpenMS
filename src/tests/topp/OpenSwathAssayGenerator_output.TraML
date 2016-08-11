@@ -19,7 +19,7 @@
       <userParam name="full_peptide_name" type="xsd:string" value="AAADPHEC(UniMod:4)YAK"/>
       <ProteinRef ref="1;sp|P02768|ALBU_HUMAN"/>
       <Modification location="8" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
@@ -48,22 +48,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="452.7027"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="452.7027" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="15_1;sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_545.7348" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -71,22 +68,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="545.7348"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="545.7348" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="4943.9"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="16_1;sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_581.2533" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -94,22 +88,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="581.2533"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="581.2533" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2254.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="17_1;sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_404.1763" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -117,22 +108,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="404.1763"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="404.1763" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1637.4"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="20_1;sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_510.2162" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -140,22 +128,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.2162"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="510.2162" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="362.1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="21_1;sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_426.6689" peptideRef="1;sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -163,22 +148,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="426.6689"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="426.6689" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="287.5"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b8^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="30_1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_367.1976" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -186,22 +168,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="367.1976"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="367.1976" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1443.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b8^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="31_1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_618.8635" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -209,22 +188,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="618.8635"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="618.8635" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="652.4"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="32_1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_491.2844" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -232,22 +208,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="491.2844"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="491.2844" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="645.7"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="33_1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_474.2635" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -255,22 +228,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="474.2635"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="474.2635" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="554.6"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b10^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="34_1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_405.242" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -278,22 +248,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.242"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.242" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="421.1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
     <Transition id="35_1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_530.8055" peptideRef="1;sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -301,22 +268,19 @@
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="530.8055"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="530.8055" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
         <InterpretationList>
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
-            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+            <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="421.1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b11^2"/>
-      <userParam name="detecting_transition" type="xsd:string" value="true"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
     </Transition>
   </TransitionList>
 </TraML>

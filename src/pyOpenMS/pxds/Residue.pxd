@@ -208,21 +208,15 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
     cdef enum ResidueType:
       # wrap-attach:
       #   Residue
-      Full = 0,           # with N-terminus and C-terminus
-      Internal,           # internal, without any termini
-      NTerminal,           # only N-terminus
-      CTerminal,           # only C-terminus
+      Full = 0,       # with N-terminus and C-terminus
+      Internal,       # internal, without any termini
+      NTerminal,      # only N-terminus
+      CTerminal,      # only C-terminus
       AIon,           # N-terminus up to the C-alpha/carbonyl carbon bond
       BIon,           # N-terminus up to the peptide bond
-      CIonMinusOne,           # N-terminus up to the amide/C-alpha bond
       CIon,           # N-terminus up to the amide/C-alpha bond
-      CIonPlusOne,           # N-terminus up to the amide/C-alpha bond
-      CIonPlusTwo,           # N-terminus up to the amide/C-alpha bond
       XIon,           # amide/C-alpha bond up to the C-terminus
       YIon,           # peptide bond up to the C-terminus
-      ZIonMinusOne,           # C-alpha/carbonyl carbon bond
-      ZIon,            # C-alpha/carbonyl carbon bond
-      ZIonPlusOne,            # C-alpha/carbonyl carbon bond
-      ZIonPlusTwo,            # C-alpha/carbonyl carbon bond
+      ZIon,           # C-alpha/carbonyl carbon bond
       SizeOfResidueType
 

@@ -1022,7 +1022,7 @@ namespace OpenMS
         if (name == "peptide_mass_tolerance")
         {
           double value = attributeAsDouble_(attributes, "value");
-          params_.precursor_tolerance = value;
+          params_.precursor_mass_tolerance = value;
         }
         // this is quite comet specific, but so is parameter name peptide_mass_units, see comet configuration file documentation
         if (name == "peptide_mass_units")
@@ -1242,13 +1242,16 @@ namespace OpenMS
         }
         else if (!mods.empty())
         {
-          String mod_str = mods[0];
           desc = mods[0];
-          for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+          if (mods.size() > 1)
           {
-            mod_str += ", " + *mit;
+            String mod_str = mods[0];
+            for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
+            {
+              mod_str += ", " + *mit;
+            }
+            error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
           }
-          error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
         }
       }
       if (!desc.empty())

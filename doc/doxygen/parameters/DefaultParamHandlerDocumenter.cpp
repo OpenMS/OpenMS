@@ -379,7 +379,6 @@ int main(int argc, char** argv)
   DOCME(GaussModel);
   DOCME(GoodDiffFilter);
   DOCME(IDMapper);
-  DOCME(InternalCalibration);
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);

@@ -18,6 +18,9 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         void init(MSSpectrum[Peak1D] & spectrum) nogil except +
         void getSignalToNoise(Peak1D & data_point) nogil except +
 
+        double getSparseWindowPercent() nogil except +
+        double getHistogramRightmostPercent() nogil except +
+
         # Functions for SignalToNoiseEstimatorMedianChrom[MSChromatogram[ChromatogramPeak]]
         # use wrap-ignore because autowrap cannot handle them at the moment
         # see addons/SignalToNoiseEstimatorMedianChrom.pyx for the implementation

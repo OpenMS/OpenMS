@@ -194,7 +194,7 @@ protected:
 
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");
-    search_parameters.precursor_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
     search_parameters.fragment_mass_tolerance_ppm = false;    
     search_parameters.precursor_mass_tolerance_ppm = false;
     prot_id.setSearchParameters(search_parameters);

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 """
-=========================================================================
-        msproteomicstools -- Mass Spectrometry Proteomics Tools
-=========================================================================
-
-Copyright (c) 2013, ETH Zurich
-For a full list of authors, refer to the file AUTHORS.
+--------------------------------------------------------------------------
+                  OpenMS -- Open-Source Mass Spectrometry
+--------------------------------------------------------------------------
+Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -17,6 +16,7 @@ This software is released under a three-clause BSD license:
  * Neither the name of any author or any participating institution
    may be used to endorse or promote products derived from this software
    without specific prior written permission.
+For a full list of authors, refer to the file AUTHORS.
 --------------------------------------------------------------------------
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -77,7 +77,10 @@ def handle_member_definition(mdef, pxd_class, cnt):
             cnt.public_enums_missing += 1
             comp_name = mdef.parent_doxy_file.compound.get_compoundname()
             file_location = mdef.parent_doxy_file.getCompoundFileLocation()
-            internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+            if (len(file_location.split("/include/OpenMS")) > 1):
+                internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+            elif (len(file_location.split("/OpenMS")) > 1):
+                internal_file_name = "OpenMS" + file_location.split("/OpenMS")[1]
             namespace = comp_name
             true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
             enumr  = "\n"
@@ -1033,6 +1036,8 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         file_location_key = file_location
         if len(file_location.split("include/")) > 1:
             file_location_key = file_location.split("include/")[1]
+        elif len(file_location.split("OpenMS/")) > 1:
+            file_location_key = "OpenMS/" + file_location.split("OpenMS/")[-1]
 
         if file_location_key in pxd_file_matching:
             pxdfiles = pxd_file_matching[file_location_key]

@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
 
@@ -444,7 +445,7 @@ namespace OpenMS
   {
     if (measure_ == MEASURE_PPM)
     {
-      return (fabs(rt_distance) <= rt_tolerance_) && (fabs((mz_theoretical * 1e6 - mz_observed * 1e6) / mz_theoretical) <= mz_tolerance_);
+      return (fabs(rt_distance) <= rt_tolerance_) && (Math::getPPMAbs(mz_observed, mz_theoretical) <= mz_tolerance_);
     }
     else if (measure_ == MEASURE_DA)
     {

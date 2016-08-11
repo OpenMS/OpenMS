@@ -71,8 +71,6 @@ PyOpenMSChecker:
         - getProductName
     OpenMS::PeakPickerIterative:
         - updateMembers_
-    OpenMS::InternalCalibration:
-        - calibrateMapList
     OpenMS::QTCluster:
         - add
         - getElements
@@ -393,6 +391,7 @@ PyOpenMSChecker:
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
         - NamesOfSpecificity
+        - digestUnmodifiedString
     OpenMS::SourceFile:
         - NamesOfChecksumType
     OpenMS::Precursor:
@@ -889,6 +888,10 @@ PyOpenMSChecker:
     # renamed classes (they exist but under a different name)
     - OpenMS::PeakShape::Type
     - OpenMS::ResidueModification::Term_Specificity
+    - OpenMS::ControlledVocabulary::CVTerm
+    - OpenMS::MZTrafoModel::MODELTYPE
+    - OpenMS::ControlledVocabulary::CVTerm::XRefType
+    - OpenMS::PeakShape
 
     # rarely used classes
     - OpenMS::WeightWrapper

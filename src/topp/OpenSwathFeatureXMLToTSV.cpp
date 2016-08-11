@@ -141,7 +141,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   String full_peptide_name = "NA";
   String protein_name = "NA";
   String decoy = "NA";
-  int charge = -1;
+  String charge = "NA";
 
   const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
 
@@ -161,21 +161,20 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // handle charge
   if (pep.hasCVTerm("MS:1000041"))
   {
-    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString().toInt();
+    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString();
   }
-  else
+  else if (pep.hasCharge())
   {
-    charge = pep.getChargeState();
+    charge = (String)pep.getChargeState();
   }
-  if (charge == -1 && !full_peptide_name.empty())
+  if (charge == "NA" && !full_peptide_name.empty())
   {
     // deal with FullPeptideNames like PEPTIDE/2
     std::vector<String> substrings;
     full_peptide_name.split("/", substrings);
     if (substrings.size() == 2)
     {
-      //mytransition.FullPeptideName = substrings[0];
-      charge = substrings[1].toInt();
+      charge = substrings[1];
     }
   }
 

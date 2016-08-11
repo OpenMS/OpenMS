@@ -18,14 +18,15 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         UInt getRank() nogil except +
         String getSequence() nogil except +
         String getAccession() nogil except +
+        String getDescription() nogil except +
         double getCoverage() nogil except +
 
         void setScore(float ) nogil except +
         void setRank(UInt) nogil except +
         void setSequence(String) nogil except +
         void setAccession(String) nogil except +
+        void setDescription(String description) nogil except +
         void setCoverage(double) nogil except +
-
 
         bool operator==(ProteinHit) nogil except +
         bool operator!=(ProteinHit) nogil except +

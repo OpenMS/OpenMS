@@ -168,7 +168,7 @@ namespace OpenMS
       getFileDescriptions()[it->first].size = it->second.size + it2->second.size;
     }
 
-    // append proteinIdenficiation
+    // append proteinIdentification
     protein_identifications_.insert(protein_identifications_.end(),
                                     rhs.protein_identifications_.begin(),
                                     rhs.protein_identifications_.end());
@@ -193,7 +193,7 @@ namespace OpenMS
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifiactions
+    // append unassignedPeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());
