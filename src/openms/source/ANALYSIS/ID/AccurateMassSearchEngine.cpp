@@ -1264,10 +1264,10 @@ namespace OpenMS
     iso_similarity_ = param_.getValue("isotopic_similarity").toBool();
 
     // use defaults if empty for all .tsv files
-    db_mapping_file_ = (StringList)param_.getValue("db:mapping");
-    if (db_mapping_file_.empty()) db_mapping_file_ = (StringList)defaults_.getValue("db:mapping");
-    db_struct_file_ = (StringList)param_.getValue("db:struct");
-    if (db_struct_file_.empty()) db_struct_file_ = (StringList)defaults_.getValue("db:struct");
+    db_mapping_file_ = param_.getValue("db:mapping").toStringList();
+    if (db_mapping_file_.empty()) db_mapping_file_ = defaults_.getValue("db:mapping").toStringList();
+    db_struct_file_ = param_.getValue("db:struct").toStringList();
+    if (db_struct_file_.empty()) db_struct_file_ = defaults_.getValue("db:struct").toStringList();
 
     pos_adducts_fname_ = (String)param_.getValue("positive_adducts_file");
     if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts_file");
