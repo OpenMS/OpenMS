@@ -667,7 +667,7 @@ namespace OpenMS
       ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
       ams_result.setFoundAdduct("null");
-      ams_result.setEmpiricalFormula("null");
+      ams_result.setEmpiricalFormula("");
       ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
       results.push_back(ams_result);
     }
