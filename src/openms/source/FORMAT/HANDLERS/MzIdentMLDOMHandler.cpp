@@ -1185,7 +1185,8 @@ namespace OpenMS
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
               {
-                if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
+                // check for retention time or scan time entry
+                if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
                   pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
                 }
