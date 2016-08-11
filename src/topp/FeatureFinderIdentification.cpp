@@ -115,7 +115,7 @@ using namespace std;
    @see @ref TOPP_OpenSwathAnalyzer
 
    <B>4. Feature classification</B>
-   
+
    Feature candidates derived from assays with "internal" IDs are classed as "false positives" (candidates without matching internal IDs), "true positives" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a support vector machine (SVM) is trained on the "true positive" and "false positive" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores. After parameter optimization by cross-validation, the resulting SVM is used to classify the "unknown" feature candidates into (presumed) true or false positives.
 
    <B>5. Feature filtering</B>
@@ -913,7 +913,7 @@ protected:
   void filterFeatures_(FeatureMap& features, bool classified)
   {
     if (features.empty()) return;
-    
+
     if (classified)
     {
       // Remove features with class "false_pos." or "ambiguous", keep
@@ -963,7 +963,7 @@ protected:
                                feature_filter_peptides_), features.end());
     }
   }
-  
+
 
   ExitCodes main_(int, const char**)
   {
@@ -999,7 +999,7 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                         msg);
     }
-    
+
     //-------------------------------------------------------------
     // load input
     //-------------------------------------------------------------
@@ -1118,7 +1118,7 @@ protected:
     features.getUnassignedPeptideIdentifications().insert(
       features.getUnassignedPeptideIdentifications().end(),
       peptides_ext.begin(), peptides_ext.end());
-    
+
     features.ensureUniqueId();
     addDataProcessing_(features,
                        getProcessingInfo_(DataProcessing::QUANTITATION));
@@ -1133,7 +1133,7 @@ protected:
 
     filterFeatures_(features, !id_ext.empty());
     LOG_INFO << features.size() << " features left after filtering." << endl;
-    
+
     if (elution_model != "none")
     {
       ElutionModelFitter emf;
@@ -1188,7 +1188,7 @@ protected:
              << n_internal_ids - quantified_internal.size() << " internal, "
              << n_external_ids - n_quant_external << " additional external)\n"
              << endl;
-      
+
     return EXECUTION_OK;
   }
 
