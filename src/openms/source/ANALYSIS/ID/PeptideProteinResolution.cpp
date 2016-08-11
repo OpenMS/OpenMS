@@ -49,7 +49,7 @@ namespace OpenMS
   std::ostream& operator<< (std::ostream& os, const ConnectedComponent& conn_comp)
     {
       os << "Proteins: ";
-      for (std::set<Size>::iterator prot_it = conn_comp.prot_grp_indices.begin();
+      for (std::set<Size>::const_iterator prot_it = conn_comp.prot_grp_indices.begin();
            prot_it != conn_comp.prot_grp_indices.end();
            ++prot_it)
       {
@@ -57,7 +57,7 @@ namespace OpenMS
       }
       os << std::endl;
       os << "Peptides: ";
-      for (std::set<Size>::iterator pep_it = conn_comp.pep_indices.begin();
+      for (std::set<Size>::const_iterator pep_it = conn_comp.pep_indices.begin();
            pep_it != conn_comp.pep_indices.end();
            ++pep_it)
       {
