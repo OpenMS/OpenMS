@@ -97,6 +97,7 @@ public:
 
       @param data Vector of input data (FeatureMap, ConsensusMap, MSExperiment<> or @p vector<PeptideIdentification>) that should be aligned.
       @param transformations Vector of RT transformations that will be computed.
+      @param reference_index Index in @p data of the reference to align to, if any
     */
     template <typename DataType>
     void align(std::vector<DataType>& data,
