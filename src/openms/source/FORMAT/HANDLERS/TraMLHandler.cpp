@@ -674,14 +674,14 @@ namespace OpenMS
                 if (mit->location < 0)
                 {
                   term_spec = ResidueModification::N_TERM;
-                  residue = it->sequence[0];
+                  if (!it->sequence.empty()) residue = it->sequence[0];
                 }
                 else if (Size(mit->location) >= it->sequence.size())
                 {
                   term_spec = ResidueModification::C_TERM;
-                  residue = it->sequence.back();
+                  if (!it->sequence.empty()) residue = it->sequence[it->sequence.size() - 1];
                 }
-                else
+                else if (!it->sequence.empty())
                 {
                   residue = it->sequence[mit->location];
                 }
