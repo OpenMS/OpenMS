@@ -178,7 +178,9 @@ namespace OpenMS
           {
             name = name.substr(0, 17) + "...";
           }
-          formula_to_names[ith->getMetaValue("chemical_formula")].push_back(name);
+          String cf = ith->getMetaValue("chemical_formula");
+          if (cf.empty()) continue; // skip unannotated "null" peaks
+          formula_to_names[cf].push_back(name);
         }
         else
         {
