@@ -79,7 +79,7 @@ namespace OpenMS
     /// Parameters
     Param params_;
 
-  private:  
+  private:
     /// do not allow copy
     TransformationModel( const TransformationModel& );
     /// do not allow assignment

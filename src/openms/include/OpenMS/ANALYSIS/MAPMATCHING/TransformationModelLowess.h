@@ -54,7 +54,7 @@ public:
     /**
       @brief Constructor
 
-      @exception IllegalArgument is thrown if a parameter isn't valid.
+      @exception Exception::IllegalArgument is thrown if too few data points are provided.
     */
     TransformationModelLowess(const DataPoints& data, const Param& params);
 
