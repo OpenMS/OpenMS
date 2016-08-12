@@ -48,6 +48,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -95,9 +96,15 @@ public:
     TransformationModelLinear::getDefaultParameters(model_params);
     params.insert("linear:", model_params);
     params.setSectionDescription("linear", "Parameters for 'linear' model");
+
     TransformationModelBSpline::getDefaultParameters(model_params);
     params.insert("b_spline:", model_params);
     params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
+
+    TransformationModelLowess::getDefaultParameters(model_params);
+    params.insert("lowess:", model_params);
+    params.setSectionDescription("lowess", "Parameters for 'lowess' model");
+
     TransformationModelInterpolated::getDefaultParameters(model_params);
     params.insert("interpolated:", model_params);
     params.setSectionDescription("interpolated",
