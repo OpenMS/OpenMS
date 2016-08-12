@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
@@ -263,8 +264,10 @@ protected:
   TargetedExperiment library_; // accumulated assays for peptides
   bool keep_library_; // keep assay data for output?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
-  String score_metavalues_;
+  String score_metavalues_; // names of scores to use as SVM features
   TransformationDescription trafo_; // RT transformation (to range 0-1)
+  TransformationDescription trafo_external_; // RT transform. for external IDs
+  TransformationDescription trafo_internal_; // RT transform. for internal IDs
   String reference_rt_; // value of "reference_rt" parameter
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
@@ -1052,7 +1055,20 @@ protected:
     // "external" IDs:
     vector<PeptideIdentification> peptides_ext;
     vector<ProteinIdentification> proteins_ext;
-    if (!id_ext.empty()) IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+    if (!id_ext.empty())
+    {
+      IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+      // align internal and external IDs to track RT shifts:
+      MapAlignmentAlgorithmIdentification aligner;
+      aligner.setReference(peptides);
+      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides_ext);
+      vector<TransformationDescription> aligner_trafos;
+      aligner.align(aligner_peptides, aligner_trafos);
+      aligner_trafos[0].fitModel("lowess");
+      trafo_external_ = aligner_trafos[0];
+      aligner_trafos[0].invert();
+      trafo_internal_ = aligner_trafos[0];
+    }
 
     //-------------------------------------------------------------
     // prepare peptide map
