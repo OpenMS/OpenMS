@@ -1055,7 +1055,7 @@ namespace OpenMS
       break;
     }
 
-    // sort spectra in accending order of position
+    // sort spectra in ascending order of position
     for (Size i = 0; i < currentPeakData_()->size(); ++i)
     {
       (*getCurrentLayer_().getPeakData())[i].sortByPosition();
