@@ -266,8 +266,7 @@ protected:
   CVTerm rt_term_; // controlled vocabulary term for reference RT
   String score_metavalues_; // names of scores to use as SVM features
   TransformationDescription trafo_; // RT transformation (to range 0-1)
-  TransformationDescription trafo_external_; // RT transform. for external IDs
-  TransformationDescription trafo_internal_; // RT transform. for internal IDs
+  TransformationDescription trafo_external_; // transform. to external RT scale
   String reference_rt_; // value of "reference_rt" parameter
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
@@ -378,10 +377,10 @@ protected:
   }
 
 
-  void annotateFeatures_(FeatureMap& features,
-                         const pair<RTMap, RTMap>& rt_data)
+  void annotateFeatures_(FeatureMap& features, const RTMap& rt_internal,
+                         const RTMap& rt_external)
   {
-    if (!rt_data.first.empty()) // validate based on internal IDs
+    if (!rt_internal.empty()) // validate based on internal IDs
     {
       // map IDs to features (based on RT):
       map<Size, vector<PeptideIdentification*> > feat_ids;
@@ -399,15 +398,15 @@ protected:
           rt_min -= abs_tol;
           rt_max += abs_tol;
         }
-        RTMap::const_iterator lower = rt_data.first.lower_bound(rt_min);
-        RTMap::const_iterator upper = rt_data.first.upper_bound(rt_max);
+        RTMap::const_iterator lower = rt_internal.lower_bound(rt_min);
+        RTMap::const_iterator upper = rt_internal.upper_bound(rt_max);
         int id_count = 0;
         for (; lower != upper; ++lower)
         {
           feat_ids[i].push_back(lower->second);
           ++id_count;
         }
-        features[i].setMetaValue("n_total_ids", rt_data.first.size());
+        features[i].setMetaValue("n_total_ids", rt_internal.size());
         features[i].setMetaValue("n_matching_ids", id_count);
         if (id_count > 0) // matching IDs -> feature may be correct
         {
@@ -454,8 +453,8 @@ protected:
         }
       }
       // store unassigned IDs:
-      for (RTMap::const_iterator rt_it = rt_data.first.begin();
-           rt_it != rt_data.first.end(); ++rt_it)
+      for (RTMap::const_iterator rt_it = rt_internal.begin();
+           rt_it != rt_internal.end(); ++rt_it)
       {
         if (!assigned_ids.count(rt_it->second))
         {
@@ -473,7 +472,7 @@ protected:
         feat_it->setMetaValue("n_matching_ids", -1);
         feat_it->setMetaValue("feature_class", "unknown");
         // add "dummy" peptide identification:
-        PeptideIdentification id = *(rt_data.second.begin()->second);
+        PeptideIdentification id = *(rt_external.begin()->second);
         id.clearMetaInfo();
         id.setMetaValue("FFId_category", "implied");
         id.setRT(feat_it->getRT());
@@ -483,6 +482,62 @@ protected:
         hit.clearMetaInfo();
         hit.setScore(0.0);
         feat_it->getPeptideIdentifications().push_back(id);
+      }
+    }
+
+    // distance from feature to closest peptide ID:
+    if (!trafo_external_.getDataPoints().empty())
+    {
+      // use external IDs if available, otherwise RT-transformed internal IDs:
+      RTMap transformed_internal;
+      if (rt_external.empty())
+      {
+        for (RTMap::const_iterator it = rt_internal.begin();
+             it != rt_internal.end(); ++it)
+        {
+          double transformed_rt = trafo_external_.apply(it->first);
+          RTMap::value_type pair = make_pair(transformed_rt, it->second);
+          transformed_internal.insert(transformed_internal.end(), pair);
+        }
+      }
+      const RTMap& rt_ref = (rt_external.empty() ? transformed_internal :
+                             rt_external);
+
+      for (FeatureMap::iterator feat_it = features.begin();
+           feat_it != features.end(); ++feat_it)
+      {
+        double rt_min = feat_it->getMetaValue("leftWidth");
+        double rt_max = feat_it->getMetaValue("rightWidth");
+        if (mapping_tolerance_ > 0.0)
+        {
+          double abs_tol = mapping_tolerance_;
+          if (abs_tol < 1.0)
+          {
+            abs_tol *= (rt_max - rt_min);
+          }
+          rt_min -= abs_tol;
+          rt_max += abs_tol;
+        }
+        RTMap::const_iterator lower = rt_ref.lower_bound(rt_min);
+        RTMap::const_iterator upper = rt_ref.upper_bound(rt_max);
+        if (lower != upper) // there's at least one ID within the feature
+        {
+          feat_it->setMetaValue("rt_delta", 0.0);
+        }
+        else // check closest ID
+        {
+          double rt_delta1 = numeric_limits<double>::infinity();
+          if (lower != rt_ref.begin())
+          {
+            rt_delta1 = fabs((--lower)->first - rt_min);
+          }
+          double rt_delta2 = numeric_limits<double>::infinity();
+          if (upper != rt_ref.end())
+          {
+            rt_delta2 = fabs(upper->first - rt_min);
+          }
+          feat_it->setMetaValue("rt_delta", min(rt_delta1, rt_delta2));
+        }
       }
     }
   }
@@ -655,7 +710,8 @@ protected:
             }
           }
           // which features are supported by "internal" IDs?
-          annotateFeatures_(current_features, cm_it->second);
+          annotateFeatures_(current_features, cm_it->second.first,
+                            cm_it->second.second);
 
           features += current_features;
         }
@@ -826,6 +882,10 @@ protected:
     // get predictors for SVM:
     vector<String> predictor_names = 
       ListUtils::create<String>(score_metavalues_);
+    if (!trafo_external_.getDataPoints().empty()) // include RT feature
+    {
+      predictor_names.push_back("rt_delta");
+    }
     // values for all featues per predictor (this way around to simplify scaling
     // of predictors):
     map<String, vector<double> > predictors;
@@ -1058,16 +1118,21 @@ protected:
     if (!id_ext.empty())
     {
       IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
-      // align internal and external IDs to track RT shifts:
+      // align internal and external IDs to estimate RT shifts:
       MapAlignmentAlgorithmIdentification aligner;
-      aligner.setReference(peptides);
-      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides_ext);
+      aligner.setReference(peptides_ext); // go from interal to external scale
+      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
       vector<TransformationDescription> aligner_trafos;
-      aligner.align(aligner_peptides, aligner_trafos);
-      aligner_trafos[0].fitModel("lowess");
-      trafo_external_ = aligner_trafos[0];
-      aligner_trafos[0].invert();
-      trafo_internal_ = aligner_trafos[0];
+      try
+      {
+        aligner.align(aligner_peptides, aligner_trafos);
+        aligner_trafos[0].fitModel("lowess");
+        trafo_external_ = aligner_trafos[0];
+      }
+      catch (Exception::BaseException& e)
+      {
+        LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+      }
     }
 
     //-------------------------------------------------------------
