@@ -1055,32 +1055,27 @@ namespace OpenMS
 
     AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-
     // in TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
     if (std::string::npos == tr_it->FullPeptideName.find("["))
     {
-      if (!aa_sequence.getNTerminalModification().empty())
+      if (aa_sequence.hasNTerminalModification())
       {
-        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-        addModification_(mods, -1, rmod, aa_sequence.getNTerminalModification());
+        const ResidueModification& rmod = *(aa_sequence.getNTerminalModification());
+        addModification_(mods, -1, rmod);
       }
-      if (!aa_sequence.getCTerminalModification().empty())
+      if (aa_sequence.hasCTerminalModification())
       {
-        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-        addModification_(mods, aa_sequence.size(), rmod, aa_sequence.getCTerminalModification());
+        const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
+        addModification_(mods, aa_sequence.size(), rmod);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
         if (aa_sequence[i].isModified())
         {
-          // search the residue in the modification database (if the sequence is valid, we should find it)
-          TargetedExperiment::Peptide::Modification mod;
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
-          addModification_(mods, i, rmod, aa_sequence.getResidue(i).getModification());
+          const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
+          addModification_(mods, i, rmod);
         }
       }
     }
@@ -1140,7 +1135,7 @@ namespace OpenMS
   }
 
   void TransitionTSVReader::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                                             int location, ResidueModification& rmod, const String& name)
+                                             int location, const ResidueModification& rmod)
   {
     TargetedExperiment::Peptide::Modification mod;
     String unimod_str = rmod.getUniModAccession();
@@ -1151,7 +1146,7 @@ namespace OpenMS
     CVTerm unimod_name;
     unimod_name.setCVIdentifierRef("UNIMOD");
     unimod_name.setAccession(unimod_str.toUpper());
-    unimod_name.setName(name);
+    unimod_name.setName(rmod.getId());
     mod.addCVTerm(unimod_name);
     mods.push_back(mod);
   }

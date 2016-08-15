@@ -262,17 +262,17 @@ namespace OpenMS
 
       if (mod_pos == 0) // can (!) be a N-terminal mod
       {
-        ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, "", ResidueModification::N_TERM);
       }
       else if (mod_pos == aa_seq.size())
       {
-        ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::C_TERM);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, "", ResidueModification::C_TERM);
       }
 
       // if not found a terminal mod, try normal one
       if (possible_mass_mods.empty())
       {
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, type);
       }
 
       // cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << "\n";
@@ -302,7 +302,7 @@ namespace OpenMS
       if (possible_mods.empty() && mod_pos == 0)
       {
         vector<String> new_possible_mass_mods;
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(new_possible_mass_mods, type, modified.toDouble(), 0.01);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(new_possible_mass_mods, modified.toDouble(), 0.01, type);
         // now try to find this in the definitions which are set
         for (vector<String>::const_iterator it = new_possible_mass_mods.begin(); it != new_possible_mass_mods.end(); ++it)
         {
@@ -333,7 +333,7 @@ namespace OpenMS
           for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
           {
             String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-            ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+            ResidueModification::TermSpecificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
             if (origin == type && !(term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
             {
               specific_ones.insert(*it);
@@ -355,7 +355,7 @@ namespace OpenMS
               for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
               {
                 String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-                ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+                ResidueModification::TermSpecificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
                 //cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << "\n";
                 if ((origin == "N-term" || origin == "C-term") && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
                 {
@@ -370,7 +370,7 @@ namespace OpenMS
                 for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
                 {
                   String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-                  ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+                  ResidueModification::TermSpecificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
                   if (origin == type && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
                   {
                     //cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << "\n";

@@ -661,7 +661,7 @@ protected:
             9 modmax	-  the max number of modification types
         */
 
-        ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
+        ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
         String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
         if (ts == ResidueModification::ANYWHERE)
         {
@@ -736,7 +736,7 @@ protected:
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
-      ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
         fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it).getOrigin()] = *it;

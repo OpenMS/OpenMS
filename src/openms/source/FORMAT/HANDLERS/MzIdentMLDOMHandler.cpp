@@ -1681,7 +1681,7 @@ namespace OpenMS
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getNTerminalModification());
+          const ResidueModification& mod = *(peps->second.getNTerminalModification());
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
@@ -1697,7 +1697,7 @@ namespace OpenMS
         }
         if (peps->second.hasCTerminalModification())
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getCTerminalModification());
+          const ResidueModification& mod = *(peps->second.getCTerminalModification());
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
@@ -1714,22 +1714,22 @@ namespace OpenMS
         if (peps->second.isModified())
         {
           Size i = 0;
-          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res)
+          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res, ++i)
           {
-            ResidueModification mod = ModificationsDB::getInstance()->getModification(res->getModification());
+            const ResidueModification* mod = res->getModification();
+            if (mod == 0) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
             current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));
-            current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
+            current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod->getOrigin().c_str()));
 
-            current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+            current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
             current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-            current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+            current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
             current_mod->appendChild(current_cv);
             current_pep->appendChild(current_mod);
-            ++i;
           }
         }
         sequenceCollectionElements->appendChild(current_pep);
