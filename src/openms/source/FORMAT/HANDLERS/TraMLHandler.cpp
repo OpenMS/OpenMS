@@ -669,9 +669,25 @@ namespace OpenMS
               if (mit->unimod_id != -1)
               {
                 // Get the name of the modifications from its unimod identifier (using getId)
-                const ResidueModification & rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id));
+                ResidueModification::TermSpecificity term_spec = ResidueModification::ANYWHERE;
+                String residue = "";
+                if (mit->location < 0)
+                {
+                  term_spec = ResidueModification::N_TERM;
+                  if (!it->sequence.empty()) residue = it->sequence[0];
+                }
+                else if (Size(mit->location) >= it->sequence.size())
+                {
+                  term_spec = ResidueModification::C_TERM;
+                  if (!it->sequence.empty()) residue = it->sequence[it->sequence.size() - 1];
+                }
+                else if (!it->sequence.empty())
+                {
+                  residue = it->sequence[mit->location];
+                }
+                const ResidueModification& rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
                 String modname = rmod.getId();
-                os << "           <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id 
+                os << "           <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }
 

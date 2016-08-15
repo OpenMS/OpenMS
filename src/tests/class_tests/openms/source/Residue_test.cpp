@@ -150,7 +150,7 @@ START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 	syn.insert("BLA");
 	e_ptr->setSynonyms(syn);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-END_SECTION 
+END_SECTION
 
 START_SECTION(void addSynonym(const String &synonym))
 	Residue copy(*e_ptr);
@@ -297,7 +297,7 @@ END_SECTION
 START_SECTION(double getAverageWeight(ResidueType res_type=Full) const)
 	TEST_REAL_SIMILAR(e_ptr->getAverageWeight(), 123.4)
 END_SECTION
-    
+
 START_SECTION(void setMonoWeight(double weight))
 	Residue copy(*e_ptr);
 	e_ptr->setMonoWeight(1234.5);
@@ -307,20 +307,27 @@ END_SECTION
 START_SECTION(double getMonoWeight(ResidueType res_type=Full) const)
 	TEST_REAL_SIMILAR(e_ptr->getMonoWeight(), 1234.5)
 END_SECTION
- 
+
 
 START_SECTION(void setModification(const String& name))
-	e_ptr->setOneLetterCode("M"); // we need M for this mod
-	e_ptr->setModification("Oxidation");
-	TEST_EQUAL(e_ptr->getModification(), "Oxidation")
+    e_ptr->setOneLetterCode("M"); // we need M for this mod
+    TEST_EQUAL(e_ptr->getModificationName(), "")
+    TEST_EQUAL(e_ptr->getModification(), 0)
+    e_ptr->setModification("Oxidation");
+    TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
+    TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 
 
-START_SECTION(const String& getModification() const)
-	NOT_TESTABLE
+START_SECTION(const String& getModificationName() const)
+  NOT_TESTABLE // tested above
 END_SECTION
- 
+
+START_SECTION(const ResidueModification* getModification() const)
+  NOT_TESTABLE // tested above
+END_SECTION
+
 START_SECTION(void setLowMassIons(const std::vector< EmpiricalFormula > &low_mass_ions))
 	Residue copy(*e_ptr);
 	vector<EmpiricalFormula> ions;
@@ -347,12 +354,12 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setName("other_name");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setShortName("other_short_name");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	set<String> syns;
@@ -364,17 +371,17 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setThreeLetterCode("new_3lc");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setOneLetterCode("new_1lc");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.addLossFormula(EmpiricalFormula("C1H3"));
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.addLossName("new_loss_name");
@@ -394,8 +401,8 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setMonoWeight(12345.6789);
 	TEST_EQUAL(r == *e_ptr, false)
-				
-	e_ptr->setOneLetterCode("M");
+
+    e_ptr->setOneLetterCode("M");
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setModification("Oxidation");
@@ -428,18 +435,18 @@ START_SECTION(bool operator==(const Residue &residue) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setSideChainBasicity(111.2345);
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setBackboneBasicityLeft(1112.345);
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setBackboneBasicityRight(11123.45);
 	TEST_EQUAL(r == *e_ptr, false)
 END_SECTION
-    
+
 START_SECTION(bool operator!=(const Residue &residue) const)
   Residue r;
   r = *e_ptr;
@@ -531,13 +538,13 @@ START_SECTION(bool operator!=(const Residue &residue) const)
   TEST_EQUAL(r != *e_ptr, false)
   r.setBackboneBasicityRight(11123.45);
   TEST_EQUAL(r != *e_ptr, true)
-				
+
 END_SECTION
 
 START_SECTION(bool operator==(char one_letter_code) const)
 	TEST_EQUAL(*e_ptr == 'B', true)
 END_SECTION
-    
+
 START_SECTION(bool operator!=(char one_letter_code) const)
 	TEST_EQUAL(*e_ptr != 'C', true)
 END_SECTION

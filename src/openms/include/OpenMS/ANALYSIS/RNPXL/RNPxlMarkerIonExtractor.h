@@ -28,62 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
+#ifndef OpenMS_ANALYSIS_RNPXL_RNPxlMarkerIonExtractor
+#define OpenMS_ANALYSIS_RNPXL_RNPxlMarkerIonExtractor
 
-#include <OpenMS/config.h> // is this needed?
+#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/MATH/MISC/BSpline2d.h>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
+  class String;
 
-  /**
-    @brief B-spline (non-linear) model for transformations
-
-    @ingroup MapAlignment
-  */
-  class OPENMS_DLLAPI TransformationModelBSpline :
-    public TransformationModel
+  struct OPENMS_DLLAPI RNPxlMarkerIonExtractor
   {
-public:
-    /**
-      @brief Constructor
-
-      @exception Exception::IllegalArgument is thrown if a parameter is invalid.
-      @exception Exception::UnableToFit is thrown if the B-spline fit fails.
-    */
-    TransformationModelBSpline(const DataPoints& data, const Param& params);
-
-    /// Destructor
-    ~TransformationModelBSpline();
-
-    /// Evaluates the model at the given value
-    virtual double evaluate(double value) const;
-
-    using TransformationModel::getParameters;
-
-    /// Gets the default parameters
-    static void getDefaultParameters(Param& params);
-
-protected:
-    /// Pointer to the actual B-spline
-    BSpline2d* spline_;
-
-    /// Min./max. x value (endpoints of the data range)
-    double xmin_, xmax_;
-
-    /// Method to use for extrapolation (beyond 'xmin_'/'xmax_')
-    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_GLOBAL_LINEAR } extrapolate_;
-
-    /// Parameters for constant or linear extrapolation 
-    double offset_min_, offset_max_, slope_min_, slope_max_;
+    // name to mass-intensity pair
+    typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
+  
+    // extract an annotate RNA marker ions
+    static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);
   };
-} // namespace
+}
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
+#endif
+

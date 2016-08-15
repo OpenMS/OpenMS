@@ -28,62 +28,66 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <OpenMS/config.h> // is this needed?
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/MATH/MISC/BSpline2d.h>
+using namespace std;
 
 namespace OpenMS
 {
 
-  /**
-    @brief B-spline (non-linear) model for transformations
 
-    @ingroup MapAlignment
-  */
-  class OPENMS_DLLAPI TransformationModelBSpline :
-    public TransformationModel
+RNPxlMarkerIonExtractor::MarkerIonsType RNPxlMarkerIonExtractor::extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance)
+{
+  MarkerIonsType marker_ions;
+  marker_ions["A"].push_back(make_pair(136.06231, 0.0));
+  marker_ions["A"].push_back(make_pair(330.06033, 0.0));
+  marker_ions["C"].push_back(make_pair(112.05108, 0.0));
+  marker_ions["C"].push_back(make_pair(306.04910, 0.0));
+  marker_ions["G"].push_back(make_pair(152.05723, 0.0));
+  marker_ions["G"].push_back(make_pair(346.05525, 0.0));
+  marker_ions["U"].push_back(make_pair(113.03509, 0.0));
+  marker_ions["U"].push_back(make_pair(307.03311, 0.0));
+
+  PeakSpectrum spec(s);
+  Normalizer normalizer;
+  normalizer.filterSpectrum(spec);
+  spec.sortByPosition();
+
+  // for each nucleotide with marker ions
+  for (MarkerIonsType::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
   {
-public:
-    /**
-      @brief Constructor
+    // for each marker ion of the current nucleotide
+    for (Size i = 0; i != it->second.size(); ++i)
+    {
+      double mz = it->second[i].first;
+      double max_intensity = 0;
+      for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)
+      {
+        if (sit->getMZ() + marker_tolerance < mz)
+        {
+          continue;
+        }
+        if (mz < sit->getMZ() - marker_tolerance)
+        {
+          break;
+        }
+        if (fabs(mz - sit->getMZ()) < marker_tolerance)
+        {
+          if (max_intensity < sit->getIntensity())
+          {
+            max_intensity = sit->getIntensity();
+          }
+        }
+      }
+      it->second[i].second = max_intensity;
+    }
+  }
+  return marker_ions;
+}
+}
 
-      @exception Exception::IllegalArgument is thrown if a parameter is invalid.
-      @exception Exception::UnableToFit is thrown if the B-spline fit fails.
-    */
-    TransformationModelBSpline(const DataPoints& data, const Param& params);
-
-    /// Destructor
-    ~TransformationModelBSpline();
-
-    /// Evaluates the model at the given value
-    virtual double evaluate(double value) const;
-
-    using TransformationModel::getParameters;
-
-    /// Gets the default parameters
-    static void getDefaultParameters(Param& params);
-
-protected:
-    /// Pointer to the actual B-spline
-    BSpline2d* spline_;
-
-    /// Min./max. x value (endpoints of the data range)
-    double xmin_, xmax_;
-
-    /// Method to use for extrapolation (beyond 'xmin_'/'xmax_')
-    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_GLOBAL_LINEAR } extrapolate_;
-
-    /// Parameters for constant or linear extrapolation 
-    double offset_min_, offset_max_, slope_min_, slope_max_;
-  };
-} // namespace
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H

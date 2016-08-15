@@ -88,7 +88,7 @@ namespace OpenMS
     {
       AASequence aa = AASequence::fromString(protein_hit->getSequence());
       // modify only if the term is accessible
-      if (aa.getNTerminalModification() == "")
+      if (!aa.hasNTerminalModification())
       {
         aa.setNTerminalModification(label);
         protein_hit->setSequence(aa.toString());
@@ -433,7 +433,7 @@ namespace OpenMS
   {
     vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
     AASequence modified_sequence(pep_hits[0].getSequence());
-    if (modified_sequence.getNTerminalModification() == "")
+    if (!modified_sequence.hasNTerminalModification())
     {
       // attach label only if the nterm is accessible
       modified_sequence.setNTerminalModification(modification);
@@ -520,7 +520,7 @@ namespace OpenMS
   String ICPLLabeler::getUnmodifiedAASequence_(const Feature& feature, const String& label) const
   {
     AASequence unmodified = feature.getPeptideIdentifications()[0].getHits()[0].getSequence();
-    if (unmodified.getNTerminalModification() == label)
+    if (unmodified.getNTerminalModificationName() == label)
     {
       unmodified.setNTerminalModification(""); // remove terminal modification, if it is the channel specific one
     }

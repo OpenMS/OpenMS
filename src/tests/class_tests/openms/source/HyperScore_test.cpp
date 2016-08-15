@@ -75,22 +75,24 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
   {
     p.setMZ(i);
     rp.setMZ(i);
+    rp.setMetaValue("IonName", String("y") + String(i));
     exp_spectrum.push_back(p);
     theo_spectrum.push_back(rp);
   }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.609438);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 3.609438);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 7.39693);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 7.39693);
 
   // full match, 10 identical masses, identical intensities (=1)
   for (Size i = 6; i <= 10; ++i)
   {
     p.setMZ(i);
     rp.setMZ(i);
+    rp.setMetaValue("IonName", String("y") + String(i));
     exp_spectrum.push_back(p);
     theo_spectrum.push_back(rp);
   }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 4.302585);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 4.302585);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 18.407);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 18.407);
 
   exp_spectrum.clear(true);
   theo_spectrum.clear(true);
@@ -101,11 +103,12 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
     double mz = pow(10.0, static_cast<int>(i));
     p.setMZ(mz);
     rp.setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
+    rp.setMetaValue("IonName", String("b") + String(i));
     exp_spectrum.push_back(p);
     theo_spectrum.push_back(rp);
   }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.386294);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 4.302585);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 5.5643482);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 18.407);
 }
 END_SECTION
 

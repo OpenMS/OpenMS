@@ -52,8 +52,8 @@ using namespace OpenMS;
 /**
   @page TOPP_IDRipper IDRipper
 
-  @brief IDRipper splits the protein/peptide identification of an idXML file into several idXML files according their annotated file origin.
- 
+  @brief IDRipper splits the protein/peptide identifications of an idXML file into several idXML files according their annotated file origin.
+
   <center>
   <table>
   <tr>
@@ -67,10 +67,10 @@ using namespace OpenMS;
   </tr>
   </table>
   </center>
- 
+
   <B>Example</B>
 
-  <p>Assuming each peptide identification in a given idXML-file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
+  <p>Assuming each peptide identification in a given idXML file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
 
   @p <tt><userParam type="string" name="file_origin" value="IDMerger1_test.idXML"/></tt> or <br />
   @p <tt><userParam type="string" name="file_origin" value="IDMerger2_test.idXML"/></tt>
@@ -78,11 +78,11 @@ using namespace OpenMS;
   <p>Obviously the file contains protein/peptide identifications of IDMerger1_test.idXML and IDMerger2_test.idXML.</p>
 
   <p>Calling IDRipper with an input file (here: @p -in IDRipper_test.idXML) and an output directory (via @p out or @p out_path) will
-  result in two idXML-files stored in the specified directory and named according their file origin.</p>
+  result in two idXML files stored in the specified directory and named according to their file origin.</p>
 
-  <p>In theory, merging files with @p IDMerger and rip the resulting file with @p IDSplitter will result in the original input files.
+  <p>In theory, merging files with @p IDMerger and splitting the resulting file with @p IDRipper will result in the original input files.
 
-  <B>NOTE: The meta value file origin is removed by the <tt>IDSplitter</tt>!!</B>
+  <B>NOTE: The meta value "file_origin" is removed by the <tt>IDSplitter</tt>!</B>
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -100,7 +100,7 @@ class TOPPIDRipper :
 {
 public:
   TOPPIDRipper() :
-    TOPPBase("IDRipper", "Split protein/peptide identification file into several files according annotated file origin.")
+    TOPPBase("IDRipper", "Split protein/peptide identification file into several files according to annotated file origin.")
   {
 
   }
@@ -133,13 +133,15 @@ protected:
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Please specify an output directory! There are two options to do so. Use 'out' to specify the directory and basename of the resulting files, or use 'out_path' to specify a path");
     }
 
-    QString dir = (!out_dir.empty()) ?
-                  QFileInfo(out_dir.toQString()).absolutePath()
-                  : QFileInfo(out_dir_.toQString()).absolutePath();
+    QString dir_path = (!out_dir.empty() ?
+                        QFileInfo(out_dir.toQString()).absolutePath() :
+                        QFileInfo(out_dir_.toQString()).absolutePath());
 
-    if (!QDir(dir).exists())
+    if (!QDir(dir_path).exists())
+    {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Specified path does not exist");
-    output_directory = dir.toStdString();
+    }
+    output_directory = dir_path.toStdString();
 
 
     //-------------------------------------------------------------

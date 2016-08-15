@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <fstream>
@@ -144,10 +145,10 @@ namespace OpenMS
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
   {
-    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.empty())
     {
-      s += "\" value=\"" + value;
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
     }
     s +=  "\"/>";
     return s;
@@ -156,10 +157,10 @@ namespace OpenMS
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const OpenMS::DataValue& value) const
   {
-    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.isEmpty())
     {
-      s += "\" value=\"" + (String)value;
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
     }
     if (value.hasUnit())
     {

@@ -44,7 +44,7 @@
 
 namespace OpenMS
 {
-  
+
   /**
      @brief Class for reading Percolator tab-delimited output files.
 
@@ -54,7 +54,7 @@ namespace OpenMS
   {
 
   public:
-    
+
     /// Types of Percolator scores
     enum ScoreType { QVALUE, POSTERRPROB, SCORE, SIZE_OF_SCORETYPE };
 
@@ -63,12 +63,12 @@ namespace OpenMS
 
     /// Return a score type given its name
     static enum ScoreType getScoreType(String score_type_name);
-    
+
     /// Constructor
     PercolatorOutfile();
 
     /// Loads a Percolator output file
-    void load(const String& filename, ProteinIdentification& proteins, 
+    void load(const String& filename, ProteinIdentification& proteins,
               std::vector<PeptideIdentification>& peptides,
               SpectrumMetaDataLookup& lookup,
               enum ScoreType output_score = QVALUE);
@@ -76,7 +76,20 @@ namespace OpenMS
   private:
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
-    
+
+    /// Extracts allowed modifications from the search results
+    void getSearchModifications_(
+      const std::vector<PeptideIdentification>& peptides,
+      ProteinIdentification::SearchParameters& params) const;
+
+    /// Adds modifications to the search parameters (helper function for getSearchModifications_())
+    void addModsToSearchParams_(
+      const std::map<String, std::set<String> >::const_iterator& map_it,
+      ProteinIdentification::SearchParameters& params) const;
+
+    /// Gets the full name of a modification (incl. residue specificity)
+    String getFullModName_(const String& residue, const String& mod) const;
+
   };
 
 } // namespace OpenMS

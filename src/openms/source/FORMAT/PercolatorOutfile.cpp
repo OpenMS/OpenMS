@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 
@@ -43,7 +45,7 @@
 namespace OpenMS
 {
   using namespace std;
-  
+
   // initialize static variable:
   const std::string PercolatorOutfile::score_type_names[] =
     {"qvalue", "PEP", "score"};
@@ -76,7 +78,7 @@ namespace OpenMS
                                   "Not a valid Percolator score type",
                                   score_type_name);
   }
-  
+
 
   void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
     const
@@ -101,15 +103,112 @@ namespace OpenMS
     peptide = boost::regex_replace(peptide, re, replacement);
     seq = AASequence::fromString(peptide);
   }
-  
-  
+
+
+  String PercolatorOutfile::getFullModName_(const String& residue,
+                                            const String& mod) const
+  {
+    if (residue == "N-term")
+    {
+      try
+      {
+        const ResidueModification& n_term_mod =
+          ModificationsDB::getInstance()->
+          getModification(mod, "", ResidueModification::N_TERM);
+        return n_term_mod.getFullId();
+      }
+      catch (Exception::ElementNotFound) {};
+    }
+    else if (residue == "C-term")
+    {
+      try
+      {
+        const ResidueModification& c_term_mod =
+          ModificationsDB::getInstance()->
+          getModification(mod, "", ResidueModification::C_TERM);
+        return c_term_mod.getFullId();
+      }
+      catch (Exception::ElementNotFound) {};
+    }
+
+    return mod + " (" + residue + ")";
+  }
+
+
+  void PercolatorOutfile::addModsToSearchParams_(
+    const map<String, set<String> >::const_iterator& map_it,
+    ProteinIdentification::SearchParameters& params) const
+  {
+    set<String>::const_iterator set_it = map_it->second.begin();
+
+    // if there's only one mod, it's probably a fixed one:
+    if ((map_it->second.size() == 1) && (!set_it->empty()))
+    {
+      params.fixed_modifications.push_back(getFullModName_(map_it->first,
+                                                           *set_it));
+    }
+    else // variable mod(s)
+    {
+      for (; set_it != map_it->second.end(); ++set_it)
+      {
+        if (!set_it->empty())
+        {
+          params.variable_modifications.push_back(getFullModName_(map_it->first,
+                                                                  *set_it));
+        }
+      }
+    }
+  }
+
+
+  void PercolatorOutfile::getSearchModifications_(
+    const vector<PeptideIdentification>& peptides,
+    ProteinIdentification::SearchParameters& params) const
+  {
+    // amino acid (or terminus) -> set of modifications (incl. no mod.):
+    map<String, set<String> > mod_map;
+
+    for (vector<PeptideIdentification>::const_iterator pep_it =
+           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    {
+      for (vector<PeptideHit>::const_iterator hit_it =
+             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
+           ++hit_it)
+      {
+        const String& n_term_mod =
+          hit_it->getSequence().getNTerminalModificationName();
+        mod_map["N-term"].insert(n_term_mod);
+        const String& c_term_mod =
+          hit_it->getSequence().getCTerminalModificationName();
+        mod_map["C-term"].insert(c_term_mod);
+
+        for (AASequence::ConstIterator seq_it = hit_it->getSequence().begin();
+             seq_it != hit_it->getSequence().end(); ++seq_it)
+        {
+          const String& mod = seq_it->getModificationName();
+          mod_map[seq_it->getOneLetterCode()].insert(mod);
+        }
+      }
+    }
+
+    for (map<String, set<String> >::const_iterator map_it =
+           mod_map.begin(); map_it != mod_map.end(); ++map_it)
+    {
+      addModsToSearchParams_(map_it, params);
+    }
+    sort(params.fixed_modifications.begin(), params.fixed_modifications.end());
+    sort(params.variable_modifications.begin(),
+         params.variable_modifications.end());
+  }
+
+
   void PercolatorOutfile::load(const String& filename,
-                               ProteinIdentification& proteins, 
+                               ProteinIdentification& proteins,
                                vector<PeptideIdentification>& peptides,
                                SpectrumMetaDataLookup& lookup,
                                enum ScoreType output_score)
   {
-    SpectrumMetaDataLookup::MetaDataFlags lookup_flags = 
+    SpectrumMetaDataLookup::MetaDataFlags lookup_flags =
       (SpectrumMetaDataLookup::MDF_RT |
        SpectrumMetaDataLookup::MDF_PRECURSORMZ |
        SpectrumMetaDataLookup::MDF_PRECURSORCHARGE);
@@ -131,8 +230,7 @@ namespace OpenMS
         "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds")
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                  header,
-                                  "Not a valid header for Percolator output");
+                                  header, "Not a valid header for Percolator (PSM level) output");
     }
 
     set<String> accessions;
@@ -154,7 +252,7 @@ namespace OpenMS
           items[0] + "' from row " + String(row);
         LOG_ERROR << msg << endl;
       }
-      
+
       PeptideHit hit;
       if (meta_data.precursor_charge != 0)
       {
@@ -214,7 +312,7 @@ namespace OpenMS
       AASequence seq;
       getPeptideSequence_(items[4], seq);
       hit.setSequence(seq);
-      
+
       for (Size pos = 5; pos < items.size(); ++pos)
       {
         accessions.insert(items[pos]);
@@ -231,7 +329,7 @@ namespace OpenMS
     proteins.setIdentifier("id");
     proteins.setDateTime(DateTime::now());
     proteins.setSearchEngine("Percolator");
-    
+
     for (set<String>::const_iterator it = accessions.begin();
          it != accessions.end(); ++it)
     {
@@ -239,6 +337,11 @@ namespace OpenMS
       hit.setAccession(*it);
       proteins.insertHit(hit);
     }
+
+    // add info about allowed modifications:
+    ProteinIdentification::SearchParameters params;
+    getSearchModifications_(peptides, params);
+    proteins.setSearchParameters(params);
 
     LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
              << "Created " << peptides.size() << " peptide hits (PSMs)."

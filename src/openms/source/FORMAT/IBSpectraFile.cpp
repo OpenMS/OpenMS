@@ -179,16 +179,15 @@ namespace OpenMS
 
   String IBSpectraFile::getModifString_(const AASequence& sequence)
   {
-    String modif = sequence.getNTerminalModification();
+    String modif = sequence.getNTerminalModificationName();
     for (AASequence::ConstIterator aa_it = sequence.begin();
-         aa_it != sequence.end();
-         ++aa_it)
+         aa_it != sequence.end(); ++aa_it)
     {
-      modif += ":" + aa_it->getModification();
+      modif += ":" + aa_it->getModificationName();
     }
-    if (sequence.getCTerminalModification() != "")
+    if (sequence.getCTerminalModificationName() != "")
     {
-      modif += ":" + sequence.getCTerminalModification();
+      modif += ":" + sequence.getCTerminalModificationName();
     }
 
     return modif;

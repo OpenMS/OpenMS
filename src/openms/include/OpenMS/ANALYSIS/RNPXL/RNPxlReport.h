@@ -28,62 +28,62 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT
+#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT
 
-#include <OpenMS/config.h> // is this needed?
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/MATH/MISC/BSpline2d.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 namespace OpenMS
 {
 
-  /**
-    @brief B-spline (non-linear) model for transformations
+// struct to hold a single report line
+struct OPENMS_DLLAPI RNPxlReportRow
+{
+  bool no_id;
+  double rt;
+  double original_mz;
+  String accessions;
+  String RNA;
+  String peptide;
+  double best_localization_score;
+  String localization_scores;
+  String best_localization;
+  Int charge;
+  double score;
+  double peptide_weight;
+  double RNA_weight;
+  double xl_weight;
+  double abs_prec_error;
+  double rel_prec_error;
+  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
+  double m_H;
+  double m_2H;
+  double m_3H;
+  double m_4H;
+  String fragment_annotation_string;  
+  String getString(const String& separator) const;
 
-    @ingroup MapAlignment
-  */
-  class OPENMS_DLLAPI TransformationModelBSpline :
-    public TransformationModel
-  {
-public:
-    /**
-      @brief Constructor
+};
 
-      @exception Exception::IllegalArgument is thrown if a parameter is invalid.
-      @exception Exception::UnableToFit is thrown if the B-spline fit fails.
-    */
-    TransformationModelBSpline(const DataPoints& data, const Param& params);
+// create header line
+struct OPENMS_DLLAPI RNPxlReportRowHeader
+{
+  static String getString(const String& separator);
+};
 
-    /// Destructor
-    ~TransformationModelBSpline();
+// create report
+struct OPENMS_DLLAPI RNPxlReport
+{
+  static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance);
+};
 
-    /// Evaluates the model at the given value
-    virtual double evaluate(double value) const;
+}
 
-    using TransformationModel::getParameters;
+#endif
 
-    /// Gets the default parameters
-    static void getDefaultParameters(Param& params);
-
-protected:
-    /// Pointer to the actual B-spline
-    BSpline2d* spline_;
-
-    /// Min./max. x value (endpoints of the data range)
-    double xmin_, xmax_;
-
-    /// Method to use for extrapolation (beyond 'xmin_'/'xmax_')
-    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_GLOBAL_LINEAR } extrapolate_;
-
-    /// Parameters for constant or linear extrapolation 
-    double offset_min_, offset_max_, slope_min_, slope_max_;
-  };
-} // namespace
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H

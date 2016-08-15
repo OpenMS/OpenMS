@@ -2933,9 +2933,9 @@ namespace OpenMS
     {
       IDMapper im;
       Param p = im.getParameters();
-      p.setValue("rt_tolerance", 5.0);
+      p.setValue("rt_tolerance", 30.0);
       im.setParameters(p);
-      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 5 sec tolerance and no m/z limit to spectra...");
+      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
       im.annotate((*layer.getPeakData()), identifications, true, true);
     }
     else
@@ -3118,7 +3118,7 @@ namespace OpenMS
         }
         if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
         {
-          generator.addAbundantImmoniumIons(rich_spec);
+          generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
         }
       }
       catch (Exception::BaseException& e)

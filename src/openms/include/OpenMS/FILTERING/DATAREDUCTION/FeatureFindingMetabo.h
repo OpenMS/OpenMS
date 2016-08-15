@@ -70,99 +70,29 @@ public:
     FeatureHypothesis& operator=(const FeatureHypothesis& rhs);
 
     // getter & setter
-    Size getSize() const
-    {
-      return iso_pattern_.size();
-    }
+    Size getSize() const;
 
-    String getLabel() const
-    {
-      String label;
+    String getLabel() const;
 
-      if (iso_pattern_.size() > 0)
-      {
-        label = iso_pattern_[0]->getLabel();
-      }
+    std::vector<String> getLabels() const;
 
-      for (Size i = 1; i < iso_pattern_.size(); ++i)
-      {
-        String tmp_str = "_" + iso_pattern_[i]->getLabel();
-        label += tmp_str;
-      }
+    double getScore() const;
 
-      return label;
-    }
+    void setScore(const double& score);
 
-    std::vector<String> getLabels() const
-    {
-      std::vector<String> tmp_labels;
+    SignedSize getCharge() const;
 
-      for (Size i = 0; i < iso_pattern_.size(); ++i)
-      {
-        tmp_labels.push_back(iso_pattern_[i]->getLabel());
-      }
+    void setCharge(const SignedSize& ch);
 
-      return tmp_labels;
-    }
+    std::vector<double> getAllIntensities(bool smoothed = false) const;
 
-    double getScore() const
-    {
-      return feat_score_;
-    }
+    std::vector<double> getIsotopeDistances() const;
 
-    void setScore(const double& score)
-    {
-      feat_score_ = score;
-    }
+    double getCentroidMZ() const;
 
-    SignedSize getCharge() const
-    {
-      return charge_;
-    }
+    double getCentroidRT() const;
 
-    void setCharge(const SignedSize& ch)
-    {
-      charge_ = ch;
-    }
-
-    std::vector<double> getAllIntensities(bool smoothed = false) const
-    {
-      std::vector<double> tmp;
-      for (Size i = 0; i < iso_pattern_.size(); ++i)
-      {
-        tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
-      }
-      return tmp;
-    }
-
-    double getCentroidMZ() const
-    {
-      if (iso_pattern_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
-      }
-      return iso_pattern_[0]->getCentroidMZ();
-    }
-
-    double getCentroidRT() const
-    {
-      if (iso_pattern_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
-      }
-      return iso_pattern_[0]->getCentroidRT();
-    }
-
-    double getFWHM() const
-    {
-      if (iso_pattern_.empty())
-      {
-        return 0.0;
-      }
-      return iso_pattern_[0]->getFWHM();
-    }
+    double getFWHM() const;
 
     /// addMassTrace
     void addMassTrace(const MassTrace&);
@@ -171,6 +101,8 @@ public:
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
+
+
 
 private:
 
@@ -186,7 +118,7 @@ private:
   {
 public:
 
-    bool operator()(MassTrace x, MassTrace y) const
+    bool operator()(const MassTrace& x, const MassTrace& y) const
     {
       return x.getCentroidMZ() < y.getCentroidMZ();
     }
@@ -197,7 +129,7 @@ public:
   {
 public:
 
-    bool operator()(FeatureHypothesis x, FeatureHypothesis y) const
+    bool operator()(const FeatureHypothesis& x, const FeatureHypothesis& y) const
     {
       return x.getScore() > y.getScore();
     }
@@ -241,14 +173,12 @@ public:
     virtual ~FeatureFindingMetabo();
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace>&, FeatureMap&);
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap);
 
 protected:
     virtual void updateMembers_();
 
 private:
-    /// private member functions
-
     /** @brief Computes the cosine similarity between two vectors
      *
      * The cosine similarity (or cosine distance) is the cosine of the angle
@@ -263,10 +193,6 @@ private:
     /// TODO: remove
     double computeOLSCoeff_(const std::vector<double>&, const std::vector<double>&) const;
 
-    /// Only used in debugging output ???  -> seems old model with 7 traces
-    /// TODO: remove
-    bool isLegalIsotopePattern_(const FeatureHypothesis &) const;
-
     /** @brief Compare intensities of feature hypothesis with model 
      *
      * Use a pre-trained SVM model to evaluate the intensity distribution of a
@@ -276,8 +202,10 @@ private:
      *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
+     * @param feat_hypo A feature hypotheses containing mass traces
+     * @return 0 for 'no'; 1 for 'yes'; -1 if only a single mass trace exists
     */
-    bool isLegalIsotopePattern2_(const FeatureHypothesis &) const;
+    int isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const;
 
     void loadIsotopeModel_(const String&);
 
@@ -303,10 +231,6 @@ private:
     */
     double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
 
-    /// Not used any more ???  -> seems to be old model 
-    /// TODO: remove
-    double scoreMZ2_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
-
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
@@ -326,7 +250,7 @@ private:
      * expected for peptides, using the averagine model. Compute the cosine
      * similarity between the two values.
     */
-    double computeAveragineSimScore_(const std::vector<double>& intensities, const double& molecular_weight);
+    double computeAveragineSimScore_(const std::vector<double>& intensities, const double& molecular_weight) const;
 
     /** @brief Identify groupings of mass traces based on a set of reasonable candidates
      *
@@ -336,7 +260,7 @@ private:
      *
      * The resulting possible groupings are appended to output_hypotheses.
     */
-    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypotheses);
+    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
     svm_model* isotope_filt_svm_;
@@ -350,16 +274,15 @@ private:
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    //double mass_error_ppm_;
     double chrom_fwhm_;
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
-    bool disable_isotope_filtering_;
-    String isotope_model_;
-    String metabo_iso_noisemodel_;
+    String isotope_filtering_model_;
     bool use_smoothed_intensities_;
-
+    
+    bool use_mz_scoring_C13_;
+    bool report_convex_hulls_;
   };
 
 }
