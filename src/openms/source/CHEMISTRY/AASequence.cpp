@@ -939,18 +939,42 @@ namespace OpenMS
         residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
     }
     // at beginning of peptide:
-    else if (delta_mass) // N-terminal mod can only be specified by delta mass
+    else 
     {
-      std::vector<String> term_mods;
-      mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
-                                                ResidueModification::N_TERM);
-      if (!term_mods.empty())
+      if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
       {
-        aas.n_term_mod_ = &(mod_db->getModification(
-                              term_mods[0], "", ResidueModification::N_TERM));
-        return mod_end;
+        std::vector<String> term_mods;
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
+                                                  ResidueModification::N_TERM);
+        if (!term_mods.empty())
+        {
+          aas.n_term_mod_ = &(mod_db->getModification(
+                                term_mods[0], "", ResidueModification::N_TERM));
+          return mod_end;
+        }
+        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
-      LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      else // N-terminal mod specified by absolute mass [123.4]
+      {
+        String::const_iterator res_it(str_it);
+        // advance res_it to N-terminal residue
+        while (*res_it != ']' && res_it != str.end()) ++res_it; // 1. advance to end of bracket
+        if (std::distance(res_it, str.end()) >= 2)
+        {
+          ++res_it; // res_it now points on N-terminal residue
+          double mod_mass = mass - Constants::PROTON_MASS_U; // here we need to subtract the N-Term mass
+          std::vector<String> term_mods;
+          mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, "",
+                                                  ResidueModification::N_TERM);
+          if (!term_mods.empty())
+          {
+            aas.n_term_mod_ = &(mod_db->getModification(
+                                  term_mods[0], "", ResidueModification::N_TERM));
+            return mod_end;
+          }
+          LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+        }
+      }
     }
     // create new modification:
     Residue new_res;
@@ -984,6 +1008,10 @@ namespace OpenMS
     for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
     {
+      // handle pepXML style notation of modified termini
+      if (*str_it =='n' && str_it == peptide.begin()) continue; // skip n of N-term modification
+      if (*str_it =='c') continue; // skip c of C-term modfication
+
       const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
       if (r)
       {
