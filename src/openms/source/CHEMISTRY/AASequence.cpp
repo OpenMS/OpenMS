@@ -864,6 +864,7 @@ namespace OpenMS
           mass -= residue->getMonoWeight(Residue::Internal);
           delta_mass = true; // in case we need to create a new residue below
         }
+
         mod_db->searchModificationsByDiffMonoMass(
           res_mods, mass, tolerance, residue->getOneLetterCode(),
           ResidueModification::ANYWHERE);
@@ -962,7 +963,7 @@ namespace OpenMS
         if (std::distance(res_it, str.end()) >= 2)
         {
           ++res_it; // res_it now points on N-terminal residue
-          double mod_mass = mass - Constants::PROTON_MASS_U; // here we need to subtract the N-Term mass
+          double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
           std::vector<String> term_mods;
           mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, "",
                                                   ResidueModification::N_TERM);
