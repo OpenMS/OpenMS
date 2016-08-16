@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar$
 // --------------------------------------------------------------------------
 
