@@ -861,7 +861,7 @@ START_SECTION([EXTRA] Peptide equivalence)
   // Test absolute mass (34 + 1H) leading to a "Dimethyl:2H(4)13C(2)" at the N-term (pepXML format)
   TEST_EQUAL(AASequence::fromString("(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR"), AASequence::fromString("n[35]TGSESSQTGTSTTSSR"))
 
-  // Test absolute mass at the N-term, internal residue and C-terminus (mixing pepXML bracket format and OpenMS round brackets)
+  // Test absolute integer mass at the N-term, internal residue and C-terminus (mixing pepXML bracket format and OpenMS round brackets)
   TEST_EQUAL(AASequence::fromString("n(Acetyl)PEPC(Carbamidomethyl)PEPM(Oxidation)PEPRc(Amidated)"), AASequence::fromString("n[43]PEPC(Carbamidomethyl)PEPM[147]PEPRc[16]"));
 
   // Test float mass tag leading to N-terminal Acetylation

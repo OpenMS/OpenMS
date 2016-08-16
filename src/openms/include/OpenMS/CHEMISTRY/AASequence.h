@@ -530,7 +530,8 @@ protected:
       const String::ConstIterator str_it, const String& str, AASequence& aas);
 
     static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas);
+      const String::ConstIterator str_it, const String& str, AASequence& aas, 
+      const ResidueModification::TermSpecificity& specificity);
 
     static void parseString_(const String& peptide, AASequence& aas,
                              bool permissive = true);
