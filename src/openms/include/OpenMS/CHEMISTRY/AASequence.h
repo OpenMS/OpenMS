@@ -367,7 +367,8 @@ protected:
     /// returns the peptide as string without any modifications
     String toUnmodifiedString() const;
 
-    /// set the modification of the residue at position index
+    /// set the modification of the residue at position index.
+    /// if an empty string is passed replaces the residue with its unmodified version 
     void setModification(Size index, const String& modification);
 
     /// sets the N-terminal modification
