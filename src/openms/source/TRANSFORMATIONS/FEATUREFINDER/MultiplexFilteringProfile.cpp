@@ -95,7 +95,7 @@ namespace OpenMS
         PeakReference reference;
         if (index > 0)
         {
-          reference.index_in_previous_spectrum = findNearest(index - 1, it_mz->getMZ(), 1.0);
+          reference.index_in_previous_spectrum = findNearest_(index - 1, it_mz->getMZ(), 1.0);
         }
         else
         {
@@ -103,7 +103,7 @@ namespace OpenMS
         }
         if (index + 1 < (int) exp_picked_.size())
         {
-          reference.index_in_next_spectrum = findNearest(index + 1, it_mz->getMZ(), 1.0);
+          reference.index_in_next_spectrum = findNearest_(index + 1, it_mz->getMZ(), 1.0);
         }
         else
         {
@@ -199,7 +199,7 @@ namespace OpenMS
           mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
           mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
           
-          int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
+          int peaks_found_in_all_peptides = positionsAndBlacklistFilter_(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
             continue;
@@ -209,7 +209,7 @@ namespace OpenMS
            * Filter (2): blunt intensity filter
            * Are the mono-isotopic peak intensities of all peptides above the cutoff?
            */
-          bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
+          bool bluntVeto = monoIsotopicPeakIntensityFilter_(patterns_[pattern], spectrum, mz_shifts_actual_indices);
           if (bluntVeto)
           {
             continue;
@@ -225,7 +225,7 @@ namespace OpenMS
              * Are the spline interpolated intensities at m/z above the threshold?
              */
             vector<double> intensities_actual; // spline interpolated intensities @ m/z + actual m/z shift
-            int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
+            int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter_(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
             if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
             {
               continue;
@@ -236,7 +236,7 @@ namespace OpenMS
              * There should not be a significant peak to the left of the mono-isotopic
              * (i.e. first) peak.
              */
-            bool zero_peak = zerothPeakFilter(patterns_[pattern], intensities_actual);
+            bool zero_peak = zerothPeakFilter_(patterns_[pattern], intensities_actual);
             if (zero_peak)
             {
               continue;
@@ -246,7 +246,7 @@ namespace OpenMS
              * Filter (5): peptide similarity filter
              * How similar are the isotope patterns of the peptides?
              */
-            bool peptide_similarity = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline);
+            bool peptide_similarity = peptideSimilarityFilter_(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline);
             if (!peptide_similarity)
             {
               continue;
@@ -256,7 +256,7 @@ namespace OpenMS
              * Filter (6): averagine similarity filter
              * Does each individual isotope pattern resemble a peptide?
              */
-            bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
+            bool averagine_similarity = averagineSimilarityFilter_(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
             if (!averagine_similarity)
             {
               continue;
@@ -272,7 +272,7 @@ namespace OpenMS
             // blacklist peaks in the current spectrum and the two neighbouring ones
             if (!blacklisted)
             {
-              blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
+              blacklistPeaks_(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
               blacklisted = true;
             }
 
@@ -312,7 +312,7 @@ namespace OpenMS
     return filter_results;
   }
 
-  int MultiplexFilteringProfile::nonLocalIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
+  int MultiplexFilteringProfile::nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
   {
     // calculate intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -356,7 +356,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  int MultiplexFilteringProfile::findNearest(int spectrum_index, double mz, double scaling) const
+  int MultiplexFilteringProfile::findNearest_(int spectrum_index, double mz, double scaling) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
