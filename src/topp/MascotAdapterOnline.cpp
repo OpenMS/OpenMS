@@ -190,7 +190,13 @@ protected:
     //-------------------------------------------------------------
 
     Param mascot_param = getParam_().copy("Mascot_parameters:", true);
-    mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+
+    // overwrite default search title with filename
+    if (mascot_param.getValue("search_title") == "OpenMS_search")
+    {
+      mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+    }
+
     mascot_param.setValue("internal:HTTP_format", "true");
     MascotGenericFile mgf_file;
     mgf_file.setParameters(mascot_param);
