@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg, Andreas Bertsch $
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 

@@ -490,6 +490,9 @@ START_SECTION(void setModification(Size index, const String &modification))
   AASequence seq1 = AASequence::fromString("ACDEFNK");
   seq1.setModification(5, "Deamidated");
   TEST_STRING_EQUAL(seq1[5].getModificationName(), "Deamidated");
+  // remove modification
+  seq1.setModification(5, "");
+  TEST_STRING_EQUAL(seq1.toString(), "ACDEFNK") 
 END_SECTION
 
 START_SECTION(void setNTerminalModification(const String &modification))

@@ -48,8 +48,24 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         bool isProductChargeStateSet() nogil except +
 
         bool isDetectingTransition() nogil except +
+        void setDetectingTransition(bool val) nogil except +
+
         bool isIdentifyingTransition() nogil except +
+        void setIdentifyingTransition(bool val) nogil except +
+
         bool isQuantifyingTransition() nogil except +
+        void setQuantifyingTransition(bool val) nogil except +
+
+        void getKeys(libcpp_vector[String] & keys)
+        void getKeys(libcpp_vector[unsigned int] & keys)
+        DataValue getMetaValue(unsigned int) nogil except +
+        DataValue getMetaValue(String) nogil except +
+        void setMetaValue(unsigned int, DataValue) nogil except +
+        void setMetaValue(String, DataValue) nogil except +
+        bool metaValueExists(String) nogil except +
+        bool metaValueExists(unsigned int) nogil except +
+        void removeMetaValue(String) nogil except +
+        void removeMetaValue(unsigned int) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespace "OpenMS::ReactionMonitoringTransition":
 

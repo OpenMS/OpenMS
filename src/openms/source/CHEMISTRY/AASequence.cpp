@@ -1121,7 +1121,15 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
     }
-    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], modification);
+
+    if (!modification.empty()) 
+    {
+      peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], modification);
+    }
+    else // remove modification
+    {
+      peptide_[index] = ResidueDB::getInstance()->getResidue(peptide_[index]->getOneLetterCode());
+    }
   }
 
   void AASequence::setNTerminalModification(const String& modification)

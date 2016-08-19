@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Immanuel Luhn $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Immanuel Luhn$
 // --------------------------------------------------------------------------
 

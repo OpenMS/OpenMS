@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 #include <OpenMS/KERNEL/MSExperiment.h>

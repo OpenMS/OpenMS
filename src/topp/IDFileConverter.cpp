@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Katharina Albers, Clemens Groepl, Chris Bielow, Mathias Walzer,
 // Hendrik Weisser
 // --------------------------------------------------------------------------
