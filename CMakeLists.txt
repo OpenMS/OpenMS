@@ -76,6 +76,7 @@ include(Dart)
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
 # ADDRESS_SANITIZER
+# COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -188,6 +189,14 @@ endif()
 option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
 if(ADDRESS_SANITIZER)
   include(cmake/AddressSanitizer.cmake)
+endif()
+
+#------------------------------------------------------------------------------
+# Enable Coverage
+#------------------------------------------------------------------------------
+option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage mode (slower)." OFF)
+if(OPENMS_COVERAGE)
+  include(cmake/Coverage.cmake)
 endif()
 
 #------------------------------------------------------------------------------
