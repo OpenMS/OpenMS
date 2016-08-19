@@ -16,7 +16,7 @@
 		<search_hit hit_rank="1" peptide="ELNKEMAAEKAKAAAG" peptide_prev_aa="R" peptide_next_aa="E" protein="ddb000449223" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1612.8242994942" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="ddb000394137" num_tol_term="2"/>
 		<alternative_protein protein="ddb000015734" num_tol_term="2"/>
-			<modification_info modified_peptide="(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" mod_nterm_mass="129.0425942233">
+			<modification_info modified_peptide="n[-17]ELNKEMAAEKAKAAAG" mod_nterm_mass="-17.0027399681">
 			</modification_info>
 			<analysis_result analysis="peptideprophet">
 			<peptideprophet_result probability="8" all_ntt_prob="(8,8,8)">
@@ -28,7 +28,7 @@
 	<spectrum_query spectrum="test.2.2.2" start_scan="2" end_scan="2" precursor_neutral_mass="1273.7758133814" assumed_charge="2" index="1" retention_time_sec="1.719" >
 	<search_result>
 		<search_hit hit_rank="1" peptide="QLPGVNIKPVVK" peptide_prev_aa="R" peptide_next_aa="V" protein="ddb000014286" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1273.7758133814" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
-			<modification_info modified_peptide="(Gln->pyro-Glu)QLPGVNIKPVVK" mod_nterm_mass="128.0585782552">
+			<modification_info modified_peptide="n[-16]QLPGVNIKPVVK" mod_nterm_mass="-16.0187239681">
 			</modification_info>
 			<analysis_result analysis="peptideprophet">
 			<peptideprophet_result probability="7.7" all_ntt_prob="(7.7,7.7,7.7)">
@@ -78,7 +78,7 @@
 		<search_hit hit_rank="1" peptide="RSHTILNSSQSFAKGCVQCK" peptide_prev_aa="K" peptide_next_aa="H" protein="rev000025591" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2307.1212295002" massdiff="0.0" num_tol_term="2" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
 		<alternative_protein protein="rev000001143" num_tol_term="2"/>
 		<alternative_protein protein="rev000450478" num_tol_term="2"/>
-			<modification_info modified_peptide="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K">
+			<modification_info modified_peptide="RSHTILNSSQSFAKGC[160]VQC[160]K">
 				<mod_aminoacid_mass position="16" mass="160.0306489852"/>
 				<mod_aminoacid_mass position="19" mass="160.0306489852"/>
 			</modification_info>

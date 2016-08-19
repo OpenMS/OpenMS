@@ -399,20 +399,20 @@ namespace OpenMS
         if (seq.isModified())
         {
           f << "\t\t\t<modification_info modified_peptide=\""
-            << seq << "\"";
+            << seq.toBracketString() << "\"";
 
           if (seq.hasNTerminalModification())
           {
             const ResidueModification& mod = *(seq.getNTerminalModification());
-            f << " mod_nterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
+            const double mod_nterm_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
+            f << " mod_nterm_mass=\"" << precisionWrapper(mod_nterm_mass) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = *(seq.getCTerminalModification());
-            f << " mod_cterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
+            const double mod_cterm_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
+            f << " mod_cterm_mass=\"" << precisionWrapper(mod_cterm_mass) << "\"";
           }
 
           f << ">" << "\n";
@@ -1569,3 +1569,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

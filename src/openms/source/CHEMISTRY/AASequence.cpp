@@ -108,6 +108,67 @@ namespace OpenMS
     return tmp;
   }
 
+  String AASequence::toBracketString(const vector<String> & fixed_modifications) const
+  {
+    const AASequence & seq = *this;
+
+    String bs;
+
+    if (seq.empty()) return bs;
+
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getNTerminalModification());
+      const String & nterm_mod_name = mod.getFullId(); // e.g. "Acetyl (N-term)"
+
+      // only add to string if not a fixed modficiation
+      if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
+      {
+        const int nominal_mass = static_cast<int>(Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass());
+        bs += "n[" + String(nominal_mass) + "]";
+      }
+    }
+
+    for (Size i = 0; i != seq.size(); ++i)
+    {
+      const Residue& r = seq[i];
+      const String aa = r.getOneLetterCode() != "" ? r.getOneLetterCode() : "X";
+      if (r.isModified())
+      {
+        const ResidueModification& mod = *(r.getModification());
+
+        const String & mod_name = mod.getFullId();
+        if (std::find(fixed_modifications.begin(), fixed_modifications.end(), mod_name) == fixed_modifications.end())
+        {
+          const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
+          bs += aa + "[" + static_cast<int>(residue_mono_mass) + "]"; 
+        }
+        else
+        {
+          bs += aa; // don't print fixed modification
+        }
+      }
+      else  // amino acid not modified
+      {
+        bs += aa;
+      }
+    }
+
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getCTerminalModification());
+      const String & cterm_mod_name = mod.getFullId();
+
+      // only add to string if not a fixed modficiation
+      if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
+      {
+        const int nominal_mass = static_cast<int>(Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass());
+        bs += "c[" + String(nominal_mass) + "]";
+      }
+    }
+    return bs;
+  }
+
   bool AASequence::operator<(const AASequence& rhs) const
   {
     // check size
@@ -757,7 +818,8 @@ namespace OpenMS
   }
 
   String::ConstIterator AASequence::parseModSquareBrackets_(
-    const String::ConstIterator str_it, const String& str, AASequence& aas)
+    const String::ConstIterator str_it, const String& str, AASequence& aas,
+    const ResidueModification::TermSpecificity& specificity)
   {
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
     String::ConstIterator mod_start = str_it;
@@ -783,9 +845,40 @@ namespace OpenMS
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     const Residue* residue = 0;
-    if (!aas.peptide_.empty())
+
+    // handle N-term modification
+    if (specificity == ResidueModification::N_TERM) 
     {
-      // internal modification (why not potentially C-terminal?):
+      if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
+      {
+        std::vector<String> term_mods;
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
+                                                  ResidueModification::N_TERM);
+        if (!term_mods.empty())
+        {
+          aas.n_term_mod_ = &(mod_db->getModification(
+                                term_mods[0], "", ResidueModification::N_TERM));
+          return mod_end;
+        }
+        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      }
+      else // N-terminal mod specified by absolute mass [123.4]
+      {
+        double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
+        std::vector<String> term_mods;
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, "",
+                                                ResidueModification::N_TERM);
+        if (!term_mods.empty())
+        {
+          aas.n_term_mod_ = &(mod_db->getModification(
+                                term_mods[0], "", ResidueModification::N_TERM));
+          return mod_end;
+        }
+        LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      }
+    }
+    else if (specificity == ResidueModification::ANYWHERE) // internal (not exclusivly terminal) modification
+    {
       residue = aas.peptide_.back();
       if (delta_mass && (residue->getMonoWeight() <= 0.0)) // not allowed
       {
@@ -803,6 +896,7 @@ namespace OpenMS
           mass -= residue->getMonoWeight(Residue::Internal);
           delta_mass = true; // in case we need to create a new residue below
         }
+
         mod_db->searchModificationsByDiffMonoMass(
           res_mods, mass, tolerance, residue->getOneLetterCode(),
           ResidueModification::ANYWHERE);
@@ -877,20 +971,37 @@ namespace OpenMS
       LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
         residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
     }
-    // at beginning of peptide:
-    else if (delta_mass) // N-terminal mod can only be specified by delta mass
+    else if (specificity == ResidueModification::C_TERM)
     {
-      std::vector<String> term_mods;
-      mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
-                                                ResidueModification::N_TERM);
-      if (!term_mods.empty())
+      if (delta_mass) // C-terminal mod specified by delta mass [+123.4]
       {
-        aas.n_term_mod_ = &(mod_db->getModification(
-                              term_mods[0], "", ResidueModification::N_TERM));
-        return mod_end;
+        std::vector<String> term_mods;
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
+                                                  ResidueModification::C_TERM);
+        if (!term_mods.empty())
+        {
+          aas.c_term_mod_ = &(mod_db->getModification(
+                                term_mods[0], "", ResidueModification::C_TERM));
+          return mod_end;
+        }
+        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
       }
-      LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      else // C-terminal mod specified by absolute mass [123.4]
+      {
+        double mod_mass = mass - Residue::getInternalToCTerm().getMonoWeight(); // here we need to subtract the C-Term mass
+        std::vector<String> term_mods;
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, "",
+                                                ResidueModification::C_TERM);
+        if (!term_mods.empty())
+        {
+          aas.c_term_mod_ = &(mod_db->getModification(
+                                term_mods[0], "", ResidueModification::C_TERM));
+          return mod_end;
+        }
+        LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
+      }
     }
+
     // create new modification:
     Residue new_res;
     new_res.setName(mod);
@@ -917,24 +1028,63 @@ namespace OpenMS
     aas.peptide_.clear();
     String peptide(pep);
     peptide.trim();
+
+    // remove optional n and c at start end end of string
+    if (!peptide.empty() && peptide[0] == 'n') 
+    {
+      peptide.erase(0,1);
+    }
+
+    if (!peptide.empty() && peptide[peptide.size()-1] == 'c') 
+    {
+      peptide.erase(peptide.size()-1,1);
+    }
+
     if (peptide.empty()) return;
 
     static ResidueDB* rdb = ResidueDB::getInstance();
+
     for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
     {
+      // 1. default case: add unmodified, standard residue
       const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
       if (r)
       {
         aas.peptide_.push_back(r);
+        continue;
       }
-      else if (*str_it == '(')
+
+      // 2. modification: 
+      //   determine specificity: 
+      //     - at termini we first assume we are dealing with a N- or C-terminal modifications
+      //       and fall back to (internal) modifications if there is none in our DB
+      //     - otherwise we can be sure we are dealing with an internal modification
+      ResidueModification::TermSpecificity specificity = ResidueModification::ANYWHERE;
+
+      //   at the terminus we assume we are dealing with a N- or C-terminal modifications
+
+      // make str_it point on '[' and set specificty if we are dealing with a terminus
+      if (str_it == peptide.begin())
+      {
+        specificity = ResidueModification::N_TERM;
+      }
+      else if (*str_it == 'c')
+      {
+        // note that still c[...] type substring remains as only single c have been erased before
+        // skip 'c', record that we are dealing with a C-terminal
+        ++str_it;
+        specificity = ResidueModification::C_TERM;
+      }
+     
+      if (*str_it == '(')
       {
         str_it = parseModRoundBrackets_(str_it, peptide, aas);
       }
       else if (*str_it == '[')
       {
-        str_it = parseModSquareBrackets_(str_it, peptide, aas);
+
+        str_it = parseModSquareBrackets_(str_it, peptide, aas, specificity);
       }
       else
       {

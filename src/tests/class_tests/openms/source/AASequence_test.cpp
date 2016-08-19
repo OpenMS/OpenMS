@@ -472,6 +472,20 @@ START_SECTION(String toUnmodifiedString() const)
   TEST_STRING_EQUAL(seq3.toUnmodifiedString(), "DFPIANGER")
 END_SECTION
 
+START_SECTION(String toBracketString(const std::vector<String> & fixed_modifications = std::vector<String>()) const)
+  AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
+  TEST_STRING_EQUAL(s.toBracketString(), "PEPC[160]PEPM[147]PEPR");
+  vector<String> fixed_mods;
+  fixed_mods.push_back("Carbamidomethyl (C)");
+  TEST_STRING_EQUAL(s.toBracketString(fixed_mods), "PEPCPEPM[147]PEPR");
+  s.setNTerminalModification("Acetyl (N-term)");
+  s.setCTerminalModification("Amidated (C-term)");
+  TEST_STRING_EQUAL(s.toBracketString(fixed_mods), "n[43]PEPCPEPM[147]PEPRc[16]");
+  fixed_mods.push_back("Acetyl (N-term)");
+  fixed_mods.push_back("Amidated (C-term)");
+  TEST_STRING_EQUAL(s.toBracketString(fixed_mods), "PEPCPEPM[147]PEPR");
+END_SECTION
+
 START_SECTION(void setModification(Size index, const String &modification))
   AASequence seq1 = AASequence::fromString("ACDEFNK");
   seq1.setModification(5, "Deamidated");
@@ -843,6 +857,15 @@ START_SECTION([EXTRA] Peptide equivalence)
 
   // Test float mass tag leading to internal Acetylation
   TEST_EQUAL(AASequence::fromString("PEPTC(Acetyl)IDE"), AASequence::fromString("PEPTC[+42.011]IDE"))
+
+  // Test mass tag leading to a "Dimethyl:2H(4)13C(2)" at the N-term (pepXML format)
+  TEST_EQUAL(AASequence::fromString("(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR"), AASequence::fromString("n[+34]TGSESSQTGTSTTSSR"))
+
+  // Test absolute mass (34 + 1H) leading to a "Dimethyl:2H(4)13C(2)" at the N-term (pepXML format)
+  TEST_EQUAL(AASequence::fromString("(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR"), AASequence::fromString("n[35]TGSESSQTGTSTTSSR"))
+
+  // Test absolute integer mass at the N-term, internal residue and C-terminus (mixing pepXML bracket format and OpenMS round brackets)
+  TEST_EQUAL(AASequence::fromString("n(Acetyl)PEPC(Carbamidomethyl)PEPM(Oxidation)PEPRc(Amidated)"), AASequence::fromString("n[43]PEPC(Carbamidomethyl)PEPM[147]PEPRc[16]"));
 
   // Test float mass tag leading to N-terminal Acetylation
   TEST_EQUAL(AASequence::fromString("(Acetyl)PEPTCIDE"), AASequence::fromString("[+42.011]PEPTCIDE"))
