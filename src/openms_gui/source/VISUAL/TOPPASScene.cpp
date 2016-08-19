@@ -1528,12 +1528,12 @@ namespace OpenMS
     update(sceneRect());
   }
 
-  const QString& TOPPASScene::getOutDir()
+  const QString& TOPPASScene::getOutDir() const
   {
     return out_dir_;
   }
 
-  const QString& TOPPASScene::getTempDir()
+  const QString& TOPPASScene::getTempDir() const
   {
     return tmp_path_;
   }

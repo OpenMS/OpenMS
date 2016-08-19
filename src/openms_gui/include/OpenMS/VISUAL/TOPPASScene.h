@@ -192,9 +192,9 @@ public:
     /// Performs a topological sort of all vertices
     void topoSort();
     /// Returns the name of the directory for output files
-    const QString & getOutDir();
+    const QString & getOutDir() const;
     /// Returns the name of the directory for temporary files
-    const QString & getTempDir();
+    const QString & getTempDir() const;
     /// Sets the name of the directory for output files
     void setOutDir(const QString & dir);
     /// Saves the pipeline if it has been changed since the last save.
