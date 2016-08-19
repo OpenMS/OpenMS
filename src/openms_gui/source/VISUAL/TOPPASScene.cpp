@@ -1150,8 +1150,6 @@ namespace OpenMS
 
   void TOPPASScene::include(TOPPASScene* tmp_scene, QPointF pos)
   {
-    QRectF new_bounding_rect = tmp_scene->itemsBoundingRect();
-    QRectF our_bounding_rect = itemsBoundingRect();
     qreal x_offset, y_offset;
     if (pos == QPointF()) // pasted via Ctrl-V (no mouse position given)
     {
@@ -1160,6 +1158,7 @@ namespace OpenMS
     }
     else
     {
+      QRectF new_bounding_rect = tmp_scene->itemsBoundingRect();
       x_offset = pos.x() - new_bounding_rect.left();
       y_offset = pos.y() - new_bounding_rect.top();
     }

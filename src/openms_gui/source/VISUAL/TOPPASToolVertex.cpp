@@ -908,7 +908,7 @@ namespace OpenMS
         if (has_only_singlefile_output)
         {
           if (it->second.filenames.size() == 1 && 
-              (max_size < 1 || (it->second.edge->getTargetInParamName() == "in") && (use_recycling == 0)))
+             ((max_size < 1 || (it->second.edge->getTargetInParamName() == "in")) && (use_recycling == 0)))
           {
             max_size_index = it->first;
             max_size       = 1;
