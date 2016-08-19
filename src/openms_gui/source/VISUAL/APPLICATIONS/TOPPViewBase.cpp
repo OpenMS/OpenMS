@@ -81,6 +81,7 @@
 
 
 //Qt
+#include <QtCore/QSettings>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
 #include <QtCore/QTime>
@@ -569,6 +570,10 @@ namespace OpenMS
     //update the menu
     updateMenu();
 
+    QSettings settings("OpenMS", "TOPPView");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+
     topp_.process = 0;
 
     //######################### File System Watcher ###########################################
@@ -623,6 +628,9 @@ namespace OpenMS
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
     ws_->closeAllWindows();
+    QSettings settings("OpenMS", "TOPPView");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
     event->accept();
   }
 

@@ -60,6 +60,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QMap>
 #include <QtCore/QSet>
+#include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
@@ -75,7 +76,6 @@
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
 #include <QtGui/QMessageBox>
-#include <QtCore/QSettings>
 #include <QtGui/QSplashScreen>
 #include <QtGui/QStatusBar>
 #include <QtGui/QTextEdit>
