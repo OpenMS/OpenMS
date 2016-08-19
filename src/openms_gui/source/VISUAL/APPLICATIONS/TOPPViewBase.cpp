@@ -1315,7 +1315,7 @@ namespace OpenMS
             filter.field = DataFilters::INTENSITY;
             filter.op = DataFilters::GREATER_EQUAL;
             filter.value = 0.001;
-            QMessageBox::question(this, "Note:", "Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
+            statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
             ///add filter
             DataFilters filters;
             filters.add(filter);
