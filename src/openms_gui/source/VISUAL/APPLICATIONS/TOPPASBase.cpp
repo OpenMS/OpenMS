@@ -75,6 +75,7 @@
 #include <QtGui/QMenu>
 #include <QtGui/QMenuBar>
 #include <QtGui/QMessageBox>
+#include <QtCore/QSettings>
 #include <QtGui/QSplashScreen>
 #include <QtGui/QStatusBar>
 #include <QtGui/QTextEdit>
@@ -271,6 +272,10 @@ namespace OpenMS
 
     // update the menu
     updateMenu(); 
+
+    QSettings settings("OpenMS", "TOPPAS");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
   }
 
 
@@ -898,8 +903,10 @@ namespace OpenMS
     }
     if (close)
     {
-      //ws_->closeAllWindows();
       event->accept();
+      QSettings settings("OpenMS", "TOPPAS");
+      settings.setValue("geometry", saveGeometry());
+      settings.setValue("windowState", saveState());
     }
     else
     {
