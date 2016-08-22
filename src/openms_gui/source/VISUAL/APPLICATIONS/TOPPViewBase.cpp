@@ -81,6 +81,7 @@
 
 
 //Qt
+#include <QtCore/QSettings>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
 #include <QtCore/QTime>
@@ -569,6 +570,10 @@ namespace OpenMS
     //update the menu
     updateMenu();
 
+    QSettings settings("OpenMS", "TOPPView");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+
     topp_.process = 0;
 
     //######################### File System Watcher ###########################################
@@ -623,6 +628,9 @@ namespace OpenMS
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
     ws_->closeAllWindows();
+    QSettings settings("OpenMS", "TOPPView");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
     event->accept();
   }
 
@@ -1315,7 +1323,7 @@ namespace OpenMS
             filter.field = DataFilters::INTENSITY;
             filter.op = DataFilters::GREATER_EQUAL;
             filter.value = 0.001;
-            QMessageBox::question(this, "Note:", "Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
+            statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
             ///add filter
             DataFilters filters;
             filters.add(filter);
