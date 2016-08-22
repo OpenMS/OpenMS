@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow, Stephan Aiche $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Stephan Aiche, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
