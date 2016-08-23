@@ -544,7 +544,7 @@ namespace OpenMS
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
-
+          new_mt.setQuantMethod(mt.getQuantMethod());
           if (pw_filtering_ != "fixed")
           {
             new_mt.estimateFWHM(true);

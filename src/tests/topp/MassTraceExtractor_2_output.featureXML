@@ -37,7 +37,7 @@
 		<feature id="f_17749660155506638460">
 			<position dim="0">2498.3931</position>
 			<position dim="1">1662.19447361598</position>
-			<intensity>72947.9</intensity>
+			<intensity>64655</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.8</overallquality>
@@ -102,7 +102,7 @@
 		<feature id="f_3332699010107892018">
 			<position dim="0">2494.9337</position>
 			<position dim="1">1373.33354496676</position>
-			<intensity>52839.8</intensity>
+			<intensity>46556.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.857143</overallquality>
@@ -177,7 +177,7 @@
 		<feature id="f_15157403601844400700">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1571.4669830935</position>
-			<intensity>53498.4</intensity>
+			<intensity>46614.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.75</overallquality>
@@ -240,7 +240,7 @@
 		<feature id="f_12999979801269632061">
 			<position dim="0">2418.9377</position>
 			<position dim="1">1248.74677006961</position>
-			<intensity>23621.6</intensity>
+			<intensity>14421.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -553,7 +553,7 @@
 		<feature id="f_16250062551099875712">
 			<position dim="0">2264.0944</position>
 			<position dim="1">1307.31385990916</position>
-			<intensity>39031.4</intensity>
+			<intensity>25446.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.833333</overallquality>
@@ -780,7 +780,7 @@
 		<feature id="f_10052793688680741109">
 			<position dim="0">2364.3859</position>
 			<position dim="1">1763.4678193589</position>
-			<intensity>24283.9</intensity>
+			<intensity>21251.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -1379,7 +1379,7 @@
 		<feature id="f_17287849381738438716">
 			<position dim="0">2438.2814</position>
 			<position dim="1">1502.42230097226</position>
-			<intensity>45565</intensity>
+			<intensity>36254.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.8</overallquality>
@@ -1756,7 +1756,7 @@
 		<feature id="f_5805590394902791448">
 			<position dim="0">2150.1436</position>
 			<position dim="1">1600.09784845856</position>
-			<intensity>31698.8</intensity>
+			<intensity>23573.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -1912,7 +1912,7 @@
 		<feature id="f_13641829453453140763">
 			<position dim="0">2175.0676</position>
 			<position dim="1">1367.75574906974</position>
-			<intensity>19253.7</intensity>
+			<intensity>13619.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -2068,7 +2068,7 @@
 		<feature id="f_11422463686885200558">
 			<position dim="0">2036.2596</position>
 			<position dim="1">1444.62693181998</position>
-			<intensity>21076</intensity>
+			<intensity>19037.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>

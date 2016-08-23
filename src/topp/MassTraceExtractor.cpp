@@ -259,7 +259,7 @@ protected:
 
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
-        fcons.setIntensity(m_traces_final[i].computePeakArea());
+        fcons.setIntensity(m_traces_final[i].getIntensity(false));
         consensus_map.push_back(fcons);
       }
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -289,7 +289,7 @@ protected:
         f.setMetaValue(3, m_traces_final[i].getLabel());
         f.setCharge(0);
         f.setMZ(m_traces_final[i].getCentroidMZ());
-        f.setIntensity(m_traces_final[i].computePeakArea());
+        f.setIntensity(m_traces_final[i].getIntensity(false));
         f.setRT(m_traces_final[i].getCentroidRT());
         f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
