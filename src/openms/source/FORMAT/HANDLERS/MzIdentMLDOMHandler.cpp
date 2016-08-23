@@ -977,7 +977,7 @@ namespace OpenMS
               //+- take the numerically greater
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
-                f_tol = max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                f_tol = max(f_tol, it->second.front().getValue().toString().toDouble());
                 sp.fragment_mass_tolerance = f_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
@@ -991,7 +991,7 @@ namespace OpenMS
               //+- take the numerically greater
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
-                p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                p_tol = max(p_tol, it->second.front().getValue().toString().toDouble());
                 sp.precursor_mass_tolerance = p_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
@@ -1188,7 +1188,7 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
+                  pep_id_->back().setRT(cvit->second.front().getValue().toDouble()); // TODO convert if unit is minutes
                 }
                 else
                 {
