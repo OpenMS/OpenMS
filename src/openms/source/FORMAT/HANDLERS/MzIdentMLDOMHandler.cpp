@@ -1188,7 +1188,7 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(cvit->second.front().getValue().toDouble()); // TODO convert if unit is minutes
+                  pep_id_->back().setRT(cvit->second.front().getValue().toString().toDouble()); // TODO convert if unit is minutes
                 }
                 else
                 {
