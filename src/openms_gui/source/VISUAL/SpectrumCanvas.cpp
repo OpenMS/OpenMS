@@ -210,13 +210,13 @@ namespace OpenMS
     AreaType new_area;
     for (int dim = 0; dim < AreaType::DIMENSION; dim++)
     {
-      new_area.min_[dim] = visible_area_.min_[dim] + (1.0 - zoom_factor) * (visible_area_.max_[dim] - visible_area_.min_[dim])
-                           * ((dim == 0) == isMzToXAxis()
-                              ? (PointType::CoordinateType)x / width()
-                              : (PointType::CoordinateType)(height() - y) / height());
-      new_area.max_[dim] = new_area.min_[dim] + zoom_factor * (visible_area_.max_[dim] - visible_area_.min_[dim]);
-      new_area.min_[dim] = max(new_area.min_[dim], overall_data_range_.min_[dim]);
-      new_area.max_[dim] = min(new_area.max_[dim], overall_data_range_.max_[dim]);
+      // don't assign to "new_area.min_"/"max_" immediately, as this can lead to strange crashes at the min/max calls below on some platforms
+      // (GCC 4.6.3; faulty out-of-order execution?):
+      AreaType::CoordinateType coef = ((dim == 0) == isMzToXAxis()) ? (AreaType::CoordinateType(x) / width()) : (AreaType::CoordinateType(height() - y) / height());
+      AreaType::CoordinateType min_pos = visible_area_.min_[dim] + (1.0 - zoom_factor) * (visible_area_.max_[dim] - visible_area_.min_[dim]) * coef;
+      AreaType::CoordinateType max_pos = min_pos + zoom_factor * (visible_area_.max_[dim] - visible_area_.min_[dim]);
+      new_area.min_[dim] = max(min_pos, overall_data_range_.min_[dim]);
+      new_area.max_[dim] = min(max_pos, overall_data_range_.max_[dim]);
     }
     if (new_area != visible_area_)
     {
