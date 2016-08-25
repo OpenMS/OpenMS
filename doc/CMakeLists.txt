@@ -139,7 +139,7 @@ if (DOXYGEN_FOUND)
   #------------------------------------------------------------------------------
   # doc paths (bin path, topp documenter, defaultparamhandler documenter)
   #------------------------------------------------------------------------------
-	## Checkd for Multiconfiguration generators like MSVC or XCode
+	## Checks for Multiconfiguration generators like MSVC or XCode
         if(NOT CMAKE_CONFIGURATION_TYPES)
 		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
 		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
