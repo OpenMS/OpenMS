@@ -644,7 +644,8 @@ namespace OpenMS
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String emz(it->getMZ());
-        String ert = std::isfinite(it->getRT()) ? String(it->getRT()) : "nan";
+        const double rt = it->getRT();
+        String ert = rt == rt ? String(rt) : "nan";
          
         String sid = it->getMetaValue("spectrum_reference");
         if (sid.empty())
