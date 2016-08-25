@@ -831,7 +831,7 @@ foreach ($files_todo as $f)
       elseif (endsWith($f, ".cpp"))
       {
         # $h_file = substr($f, 7,-2).".h";
-        $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
+        $h_file = $src_path."/".str_replace("/source", "/include/OpenMS", $f);
         $h_file = preg_replace("/cpp$/", "h", $h_file);
         if (!file_exists($h_file))
         {
