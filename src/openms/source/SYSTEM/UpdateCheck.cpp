@@ -119,9 +119,9 @@ namespace OpenMS
         new_times.modtime = time(NULL);  // mod time to current time
         utime(version_file_name.c_str(), &new_times);          
 
-        LOG_INFO << "The OpenMS team is collecting use statistics for quality control and funding purposes." << endl;
-        LOG_INFO << "We will never give out your personal data but you may disable this functionality by " << endl;
-        LOG_INFO << "setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS to OFF." << endl;
+        LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
+        LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
+        LOG_INFO << "setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS to ON." << endl;
         
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
         char const * argv2[] = { "dummyname", NULL };
