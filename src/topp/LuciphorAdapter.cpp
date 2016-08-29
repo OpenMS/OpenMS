@@ -132,7 +132,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out", "<file>", "", "Output file", false);
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
