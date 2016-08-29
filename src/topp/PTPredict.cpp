@@ -94,7 +94,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "output file\n", false);
+    registerOutputFile_("out", "<file>", "", "output file\n");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by PTModel)");
     setValidFormats_("svm_model", ListUtils::create<String>("txt"));
