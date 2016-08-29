@@ -396,13 +396,13 @@ namespace OpenMS
       UniqueIdGenerator::setSeed(19991231235959);
     }
 
-
     // enable / disable collection of usage statistics by build variable
 #ifdef ENABLE_USAGE_STATISTICS
     // disable collection of usage statistics if environment variable is present
     char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
-
-    if (!test_mode_ && disable_usage == NULL)
+ 
+    // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
+    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
     {
       UpdateCheck::run(tool_name_, version_);
     }
