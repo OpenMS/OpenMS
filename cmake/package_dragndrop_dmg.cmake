@@ -71,6 +71,8 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
                         GROUP_READ GROUP_EXECUTE
                         WORLD_READ WORLD_EXECUTE
   PATTERN "*.app" EXCLUDE
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
 ########################################################### Share
@@ -83,7 +85,8 @@ install(DIRECTORY share/
   DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_EXECUTE GROUP_READ
                         WORLD_EXECUTE WORLD_READ
-	PATTERN ".svn" EXCLUDE
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
 ########################################################### Documentation Preparation
@@ -110,7 +113,8 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
         DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                               GROUP_EXECUTE GROUP_READ
                               WORLD_EXECUTE WORLD_READ
-        PATTERN ".svn" EXCLUDE
+        REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+        REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
 #------------------------------------------------------------------------------
@@ -147,6 +151,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
 
@@ -160,6 +166,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
 
@@ -173,6 +181,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
 
@@ -186,8 +196,25 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-LuciPHOr2
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+  endif()
+  ## MyriMatch does not exist for MacOSX
 endif()
 
 ########################################################### TOPPShell
