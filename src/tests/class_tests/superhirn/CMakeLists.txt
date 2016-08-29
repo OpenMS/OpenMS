@@ -79,7 +79,9 @@ set(superhirn_tests
 # --------------------------------------------------------------------------
 # add targets for the executables
 foreach(i ${superhirn_tests})
-  add_executable(${i} source/${i}.cpp)
-  target_link_libraries(${i} SuperHirn OpenMS)
-  add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+  string(REPLACE "FeatureFinderAlgorithm" "FFA" i_short ${i})
+  string(REPLACE "Superhirn" "" i_shorter ${i_short})
+  add_executable(${i_shorter} source/${i}.cpp)
+  target_link_libraries(${i_shorter} SuperHirn OpenMS)
+  add_test(${i_shorter} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i_shorter})
 endforeach(i)
