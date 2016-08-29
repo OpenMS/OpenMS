@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT
-#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
+#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
