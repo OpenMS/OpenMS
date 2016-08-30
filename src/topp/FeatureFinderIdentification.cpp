@@ -957,6 +957,7 @@ protected:
 
     SimpleSVM svm;
     Param svm_params = getParam_().copy("svm:", true);
+    svm_params.remove("samples");
     svm_params.remove("unbiased");
     svm_params.remove("xval_out");
     svm.setParameters(svm_params);

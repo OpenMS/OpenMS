@@ -130,13 +130,13 @@ void SimpleSVM::setup(map<String, vector<double> >& predictors,
   {
     if (it->second < n_parts_)
     {
-      String msg = "Not enough observations of class " + String(it->first) +
-        " for " + String(n_parts_) + "-fold cross-validation.";
+      msg = "Not enough observations of class " + String(it->first) + " for " +
+        String(n_parts_) + "-fold cross-validation.";
       throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           __PRETTY_FUNCTION__, msg);
     }
     msg += "\n- '" + String(it->first) + "': " + String(it->second) +
-      "observations";
+      " observations";
   }
   LOG_INFO << msg << endl;
 
@@ -230,7 +230,7 @@ void SimpleSVM::convertData_(const map<String, vector<double> >& predictors)
   Size n_obs = predictors.begin()->second.size();
   nodes_.clear();
   nodes_.resize(n_obs);
-  Size pred_index = 0;
+  int pred_index = 0; // "int" for use by libSVM
   for (map<String, vector<double> >::const_iterator pred_it = 
          predictors.begin(); pred_it != predictors.end(); ++pred_it)
   {
@@ -342,7 +342,7 @@ void SimpleSVM::optimizeParameters_()
   log2_C_ = param_.getValue("log2_C");
   if (svm_params_.kernel_type == RBF)
   {
-    log2_gamma_ = param_.getValue("svm:log2_gamma");
+    log2_gamma_ = param_.getValue("log2_gamma");
   }
   else
   {
