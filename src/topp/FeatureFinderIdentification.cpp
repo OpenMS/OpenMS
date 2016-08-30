@@ -378,7 +378,8 @@ protected:
 
 
   void annotateFeatures_(FeatureMap& features, const RTMap& rt_internal,
-                         const RTMap& rt_external)
+                         const RTMap& rt_external, double rt_region_start,
+                         double rt_region_end)
   {
     if (!rt_internal.empty()) // validate based on internal IDs
     {
@@ -406,6 +407,7 @@ protected:
           feat_ids[i].push_back(lower->second);
           ++id_count;
         }
+        // "total" includes IDs from other RT regions (is that useful?):
         features[i].setMetaValue("n_total_ids", rt_internal.size());
         features[i].setMetaValue("n_matching_ids", id_count);
         if (id_count > 0) // matching IDs -> feature may be correct
@@ -452,11 +454,13 @@ protected:
           }
         }
       }
-      // store unassigned IDs:
+      // store unassigned IDs from the current RT region:
       for (RTMap::const_iterator rt_it = rt_internal.begin();
            rt_it != rt_internal.end(); ++rt_it)
       {
-        if (!assigned_ids.count(rt_it->second))
+        if (!assigned_ids.count(rt_it->second) &&
+            (rt_it->first >= rt_region_start) &&
+            (rt_it->first <= rt_region_end))
         {
           const PeptideIdentification& pep_id = *(rt_it->second);
           features.getUnassignedPeptideIdentifications().push_back(pep_id);
@@ -711,8 +715,8 @@ protected:
           }
           // which features are supported by "internal" IDs?
           annotateFeatures_(current_features, cm_it->second.first,
-                            cm_it->second.second);
-
+                            cm_it->second.second, reg_it->start,
+                            reg_it->end);
           features += current_features;
         }
       }
@@ -1125,6 +1129,7 @@ protected:
       vector<TransformationDescription> aligner_trafos;
       try
       {
+        LOG_INFO << "Realigning internal and external IDs..." << endl;
         aligner.align(aligner_peptides, aligner_trafos);
         aligner_trafos[0].fitModel("lowess");
         trafo_external_ = aligner_trafos[0];
