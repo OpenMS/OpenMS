@@ -753,6 +753,12 @@ foreach ($files_todo as $f)
         $ignore = true;
       }
 
+      // Exclude all VISUAL classes from the tests as these are not tested
+      if (preg_match("/VISUAL/i", $f))
+      {
+        $ignore = true;
+      }
+
       if (!$ignore)
       {
         # check if test exists
