@@ -12,6 +12,7 @@ FeatureDistance.h
 FeatureGroupingAlgorithm.h
 FeatureGroupingAlgorithmIdentification.h
 FeatureGroupingAlgorithmLabeled.h
+FeatureGroupingAlgorithmKD.h
 FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
 LabeledPairFinder.h

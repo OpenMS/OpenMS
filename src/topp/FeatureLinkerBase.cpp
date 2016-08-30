@@ -66,8 +66,8 @@ class TOPPFeatureLinkerBase :
 {
 
 public:
-  TOPPFeatureLinkerBase(String name, String description) :
-    TOPPBase(name, description)
+  TOPPFeatureLinkerBase(String name, String description, bool official = true) :
+    TOPPBase(name, description, official)
   {
   }
 
