@@ -14,6 +14,8 @@ ItraqConstants.cpp
 ItraqEightPlexQuantitationMethod.cpp
 ItraqFourPlexQuantitationMethod.cpp
 ItraqQuantifier.cpp
+KDTreeData.cpp
+KDTreeNode.cpp
 PeptideAndProteinQuant.cpp
 ProteinInference.cpp
 ProteinResolver.cpp

@@ -14,6 +14,8 @@ ItraqConstants.h
 ItraqEightPlexQuantitationMethod.h
 ItraqFourPlexQuantitationMethod.h
 ItraqQuantifier.h
+KDTreeData.h
+KDTreeNode.h
 PeptideAndProteinQuant.h
 ProteinInference.h
 ProteinResolver.h
