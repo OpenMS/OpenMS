@@ -103,6 +103,24 @@ else()
        OUTPUT_STRIP_TRAILING_WHITESPACE
   )
   message(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
+  # check that minor version of Cython (0.xx.yy) is 23 or less
+  execute_process(
+      COMMAND
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) <= 23)"
+      RESULT_VARIABLE _CYTHON_VERSION_OK
+      ERROR_QUIET
+      OUTPUT_QUIET
+  )
+  if(_CYTHON_VERSION_OK)
+      set(CYTHON_VERSION_OK TRUE)
+  else()
+      message(FATAL_ERROR "This Cython version is not compatible with pyOpenMS, please use 0.23 or earlier.")
+  endif()
+endif()
+
+if(AUTOWRAP_MISSING)
+	message(STATUS "Looking for autowrap - not found")
+else()
 endif()
 
 #------------------------------------------------------------------------------
@@ -137,7 +155,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.7.1 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.7.1 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -224,7 +242,7 @@ else()
         message(STATUS "Looking for setuptools - found setuptools ${SETUPTOOLS_VERSION}, version ok")
         set(SETUPTOOLS_VERSION_OK TRUE)
     else()
-        message(STATUS "Found setuptools version ${SETUPTOOLS_VERSION}. The version is to old (>= 12.0 is required)")
+        message(STATUS "Found setuptools version ${SETUPTOOLS_VERSION}. The version is too old (>= 12.0 is required)")
         message(FATAL_ERROR "Please upgrade setuptools or disable pyOpenMS.")
     endif()
 endif()
