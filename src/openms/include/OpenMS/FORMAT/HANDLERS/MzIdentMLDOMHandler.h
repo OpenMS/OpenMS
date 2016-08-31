@@ -191,7 +191,7 @@ private:
         char post;
         bool idec;
       };
-      ///Struct to hold the Information from the DBSequence xml tag
+      ///Struct to hold the information from the DBSequence xml tag
       struct DBSequence
       {
         String sequence;
@@ -199,7 +199,7 @@ private:
         String accession;
         CVTermList cvs;
       };
-      ///Struct to hold the Information from the SpectrumIdentification xml tag
+      ///Struct to hold the information from the SpectrumIdentification xml tag
       struct SpectrumIdentification
       {
         String spectra_data_ref;
@@ -207,7 +207,7 @@ private:
         String spectrum_identification_protocol_ref;
         String spectrum_identification_list_ref;
       };
-      ///Struct to hold the Information from the ModificationParam xml tag
+      ///Struct to hold the information from the ModificationParam xml tag
       struct ModificationParam
       {
         String fixed_mod;
@@ -216,7 +216,7 @@ private:
         CVTermList modification_param_cvs;
         CVTermList specificities;
       };
-      ///Struct to hold the Information from the SpectrumIdentificationProtocol xml tag
+      ///Struct to hold the information from the SpectrumIdentificationProtocol xml tag
       struct SpectrumIdentificationProtocol
       {
         CVTerm searchtype;
@@ -230,7 +230,7 @@ private:
         CVTermList threshold_cvs;
         std::map<String, DataValue> threshold_ups;
       };
-      ///Struct to hold the Information from the DatabaseInput xml tag
+      ///Struct to hold the information from the DatabaseInput xml tag
       struct DatabaseInput
       {
         String name;
