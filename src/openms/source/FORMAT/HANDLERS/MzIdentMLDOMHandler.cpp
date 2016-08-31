@@ -1189,10 +1189,10 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  double rt = boost::lexical_cast<double>(cvit->second.front().getValue());
+                  double rt = cvit->second.front().getValue().toDouble();
                   if (cvit->second.front().getUnit().accession == "UO:0000031")  // minutes
                   {
-                    rt *= 60;
+                    rt *= 60.0;
                   }
                   pep_id_->back().setRT(rt);
                 }
