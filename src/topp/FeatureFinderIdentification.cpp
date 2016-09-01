@@ -155,7 +155,7 @@ public:
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
-    score_metavalues_ = "initialPeakQuality,peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
+    score_metavalues_ = "initialPeakQuality,peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score";
   }
 
 protected:
@@ -209,6 +209,7 @@ protected:
     Param svm_params;
     svm_params.insert("svm:", SimpleSVM().getParameters());
     registerFullParam_(svm_params);
+    registerStringOption_("svm:predictors", "<list>", score_metavalues_, "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)", false, true);
 
     // parameters for model fitting (via ElutionModelFitter):
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
@@ -884,8 +885,9 @@ protected:
   void classifyFeatures_(FeatureMap& features)
   {
     // get predictors for SVM:
-    vector<String> predictor_names = 
-      ListUtils::create<String>(score_metavalues_);
+    vector<String> predictor_names =
+      ListUtils::create<String>(getStringOption_("svm:predictors"));
+      // ListUtils::create<String>(score_metavalues_);
     if (!trafo_external_.getDataPoints().empty()) // include RT feature
     {
       predictor_names.push_back("rt_delta");
@@ -964,6 +966,18 @@ protected:
     svm.setup(predictors, training_labels);
     String xval_out = getStringOption_("svm:xval_out");
     if (!xval_out.empty()) svm.writeXvalResults(xval_out);
+    if ((debug_level_ > 0) && String(svm_params.getValue("kernel")) == "linear")
+    {
+      map<String, double> feature_weights;
+      svm.getFeatureWeights(feature_weights);
+      LOG_DEBUG << "SVM feature weights:" << endl;
+      for (map<String, double>::iterator it = feature_weights.begin();
+           it != feature_weights.end(); ++it)
+      {
+        LOG_DEBUG << "- " << it->first << ": " << it->second << endl;
+      }
+    }
+
     vector<SimpleSVM::Prediction> predictions;
     svm.predict(predictions);
     OPENMS_POSTCONDITION(predictions.size() == features.size(), 
@@ -1130,7 +1144,7 @@ protected:
       vector<TransformationDescription> aligner_trafos;
       try
       {
-        LOG_INFO << "Realigning internal and external IDs..." << endl;
+        LOG_INFO << "Realigning internal and external IDs...";
         aligner.align(aligner_peptides, aligner_trafos);
         aligner_trafos[0].fitModel("lowess");
         trafo_external_ = aligner_trafos[0];
