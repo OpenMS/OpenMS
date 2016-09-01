@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -186,7 +186,7 @@ START_SECTION(void getSearchEngineAndVersion(const String& pepnovo_output_withou
   TEST_EQUAL(protein_identification.getSearchEngineVersion(), "Build 20081230");
   TEST_EQUAL(protein_identification.getSearchParameters().fragment_mass_tolerance, 0.5);
   TEST_REAL_SIMILAR(protein_identification.getSearchParameters().fragment_mass_tolerance, 0.5);
-  TEST_REAL_SIMILAR(protein_identification.getSearchParameters().precursor_tolerance, 2.5);
+  TEST_REAL_SIMILAR(protein_identification.getSearchParameters().precursor_mass_tolerance, 2.5);
   TEST_EQUAL(protein_identification.getSearchParameters().variable_modifications.size(), 2);
   if(protein_identification.getSearchParameters().variable_modifications.size()== 2)
   {

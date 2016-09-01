@@ -64,6 +64,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
         # sets the chromatogram type
         void setChromatogramType(ChromatogramType type) nogil except +
+        ChromatogramType getChromatogramType() nogil except +
 
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":

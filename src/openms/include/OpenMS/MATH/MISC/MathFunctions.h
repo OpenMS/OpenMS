@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -217,6 +217,66 @@ namespace OpenMS
       }
 
       return u3;
+    }
+
+    /*
+      @brief Compute parts-per-million of two (m/z) values.
+
+      The returned ppm value can be either positive (mz_obs > mz_ref) or negative (mz_obs < mz_ref)!
+
+      @param mz_obs Observed (experimental) m/z
+      @param mz_ref Reference (theoretical) m/z
+      @return The ppm value
+    */
+    template <typename T>
+    T getPPM(T mz_obs, T mz_ref)
+    {
+      return (mz_obs - mz_ref) / mz_ref * 1e6;
+    }
+    
+    /*
+      @brief Compute absolute parts-per-million of two (m/z) values.
+      
+      The returned ppm value is always >= 0.
+
+      @param mz_obs Observed (experimental) m/z
+      @param mz_ref Reference (theoretical) m/z
+      @return The absolute ppm value
+    */
+    template <typename T>
+    T getPPMAbs(T mz_obs, T mz_ref)
+    {
+      return std::fabs(getPPM(mz_obs, mz_ref));
+    }
+
+    /*
+      @brief Compute the mass diff in [Th], given a ppm value and a reference point.
+
+      The returned mass diff can be either positive (ppm > 0) or negative (ppm < 0)!
+
+      @param ppm Parts-per-million error
+      @param mz_ref Reference m/z
+      @return The mass diff in [Th]
+    */
+    template <typename T>
+    T ppmToMass(T ppm, T mz_ref)
+    {
+      return (ppm / 1e6) * mz_ref;
+    }
+    
+    /*
+      @brief Compute the absolute mass diff in [Th], given a ppm value and a reference point.
+
+      The returned mass diff is always positive!
+
+      @param ppm Parts-per-million error
+      @param mz_ref Reference m/z
+      @return The absolute mass diff in [Th]
+    */
+    template <typename T>
+    T ppmToMassAbs(T ppm, T mz_ref)
+    {
+      return std::fabs(ppmToMass(ppm, mz_ref));
     }
 
   }   // namespace Math

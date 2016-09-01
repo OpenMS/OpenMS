@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -183,7 +183,14 @@ protected:
   {
     do
     {
-      date_time = date_time.addSecs(1);
+      if (date_time.isValid())
+      {
+        date_time = date_time.addSecs(1);
+      }
+      else
+      {
+        date_time = DateTime::now();
+      }
       new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
     }
     while (used_ids.find(new_id) != used_ids.end());
@@ -191,8 +198,9 @@ protected:
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
                            vector<PeptideIdentification>& peptides,
-                           const String& filename)
+                           String filename)
   {
+    if (test_mode_) filename = File::basename(filename);
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {

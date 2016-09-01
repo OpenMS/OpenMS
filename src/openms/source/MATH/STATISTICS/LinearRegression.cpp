@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl  $
+// $Maintainer: Timo Sachsenberg  $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -112,25 +112,26 @@ namespace OpenMS
       std::vector<double> Y; Y.reserve(N);
       for (unsigned i = 0; i < N; ++i)
       {
-        X.push_back(points.at(i).X());
-        Y.push_back(points.at(i).Y());
+        X.push_back(points[i].X());
+        Y.push_back(points[i].Y());
       }
-      // Variance and Covariances
-      double var_X = Math::variance(X.begin(), X.end());
-      double var_Y = Math::variance(Y.begin(), Y.end());
-      double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
 
       // Mean of abscissa and ordinate values
       double x_mean = Math::mean(X.begin(), X.end());
       double y_mean = Math::mean(Y.begin(), Y.end());
 
+      // Variance and Covariances
+      double var_X = Math::variance(X.begin(), X.end(), x_mean);
+      double var_Y = Math::variance(Y.begin(), Y.end(), y_mean);
+      double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
+
       // S_xx
-      double s_XX = 0;
-      for (unsigned i = 0; i < N; ++i)
+      double s_XX = var_X * (N-1);
+      /*for (unsigned i = 0; i < N; ++i)
       {
         double d = (X[i] - x_mean);
         s_XX += d * d;
-      }
+      }*/
 
       // Compute the squared Pearson coefficient
       r_squared_ = (cov_XY * cov_XY) / (var_X * var_Y);

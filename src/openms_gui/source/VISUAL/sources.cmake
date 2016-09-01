@@ -43,7 +43,6 @@ TOPPASToolVertex.cpp
 TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
-TOPPViewBehaviorInterface.cpp
 TOPPViewIdentificationViewBehavior.cpp
 TOPPViewSpectraViewBehavior.cpp
 )

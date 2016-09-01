@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -73,13 +73,16 @@ namespace OpenMS
       {
         for (size_t i = 0; i < size; ++i)
         {
-          points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
+          points.push_back(Wm5::Vector2d(data[i].first, data[i].second));
         }
         if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
         {
           throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }
       }
+      // update params
+      params_.setValue("slope", slope_);
+      params_.setValue("intercept", intercept_);
     }
   }
 
@@ -95,17 +98,15 @@ namespace OpenMS
   void TransformationModelLinear::invert()
   {
     if (slope_ == 0)
+    {
       throw Exception::DivisionByZero(__FILE__, __LINE__,
                                       __PRETTY_FUNCTION__);
+    }
     intercept_ = -intercept_ / slope_;
     slope_ = 1.0 / slope_;
     // update parameters:
-    if (params_.exists("slope") && (params_.exists("intercept")))
-    {
-      params_.setValue("slope", slope_, params_.getDescription("slope"));
-      params_.setValue("intercept", intercept_,
-                       params_.getDescription("intercept"));
-    }
+    params_.setValue("slope", slope_);
+    params_.setValue("intercept", intercept_);
   }
 
   void TransformationModelLinear::getParameters(double& slope, double& intercept) const

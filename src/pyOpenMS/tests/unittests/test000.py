@@ -178,8 +178,8 @@ def testAASequence():
      AASequence.__add__
      AASequence.__radd__
      AASequence.__iadd__
-     AASequence.getCTerminalModification
-     AASequence.getNTerminalModification
+     AASequence.getCTerminalModificationName
+     AASequence.getNTerminalModificationName
      AASequence.setCTerminalModification
      AASequence.setModification
      AASequence.setNTerminalModification
@@ -193,8 +193,8 @@ def testAASequence():
 
     aas.__doc__
     aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
-    assert aas.getCTerminalModification() == b""
-    assert aas.getNTerminalModification() == b""
+    assert aas.getCTerminalModificationName() == b""
+    assert aas.getNTerminalModificationName() == b""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
     assert aas.toString() == b"DFPIANGER"
@@ -248,16 +248,10 @@ def testResidue():
     pyopenms.Residue.ResidueType.CTerminal
     pyopenms.Residue.ResidueType.AIon
     pyopenms.Residue.ResidueType.BIon
-    pyopenms.Residue.ResidueType.CIonMinusOne
     pyopenms.Residue.ResidueType.CIon
-    pyopenms.Residue.ResidueType.CIonPlusOne
-    pyopenms.Residue.ResidueType.CIonPlusTwo
     pyopenms.Residue.ResidueType.XIon
     pyopenms.Residue.ResidueType.YIon
-    pyopenms.Residue.ResidueType.ZIonMinusOne
     pyopenms.Residue.ResidueType.ZIon
-    pyopenms.Residue.ResidueType.ZIonPlusOne
-    pyopenms.Residue.ResidueType.ZIonPlusTwo
     pyopenms.Residue.ResidueType.SizeOfResidueType
 
 @report
@@ -1725,8 +1719,9 @@ def testInternalCalibration():
     """
     ff = pyopenms.InternalCalibration()
 
-    assert pyopenms.InternalCalibration().calibrateMapSpectrumwise is not None
-    assert pyopenms.InternalCalibration().calibrateMapGlobally is not None
+    assert pyopenms.InternalCalibration().fillCalibrants is not None
+    assert pyopenms.InternalCalibration().getCalibrationPoints is not None
+    assert pyopenms.InternalCalibration().calibrate is not None
 
 @report
 def testTransitionTSVReader():
@@ -3799,11 +3794,13 @@ def testTransformationModels():
      TransformationModelLinear.getParameters
     """
     for clz in [pyopenms.TransformationModelLinear,
+                pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
-        mod = clz()
         p = pyopenms.Param()
+        data = [ [9.0, 8.9], [5.0, 6.0], [8.0, 8.0] ]
+        mod = clz(data, p)
+        mod.evaluate(7.0)
         mod.getDefaultParameters(p)
-
 
 @report
 def testTransformationXMLFile():
@@ -3950,60 +3947,6 @@ def testVersion():
     assert not vd > vd
 
     assert  isinstance(pyopenms.version.version, str)
-
-
-@report
-def testPILISCrossValidation():
-    """
-    @tests:
-     PILISCrossValidation.__init__
-    """
-    inst = pyopenms.PILISCrossValidation()
-
-    assert inst.apply is not None
-    assert inst.setOption is not None
-
-@report
-def testPILIS_Peptide():
-    """
-    @tests:
-     PILIS_Peptide.__init__
-    """
-    inst = pyopenms.PILIS_Peptide()
-
-    assert inst.sequence is not None
-    assert inst.charge is not None
-    assert inst.spec is not None
-    assert inst.hits is not None
-    
-@report
-def testPILIS_Option():
-    """
-    @tests:
-     PILIS_Option.__init__
-    """
-    inst = pyopenms.PILIS_Option()
-
-    assert inst.type is not None
-    assert inst.int_min is not None
-    assert inst.int_max is not None
-    assert inst.int_stepsize is not None
-    assert inst.dbl_min is not None
-    assert inst.dbl_max is not None
-    assert inst.dbl_stepsize is not None
-
-@report
-def testPILIS_Option_Type():
-    """
-    @tests:
-     PILIS_Option_Type.__init__
-    """
-    inst = pyopenms.PILIS_Option.PILIS_Option_Type()
-
-    assert inst.INT is not None
-    assert inst.DOUBLE is not None
-    assert inst.BOOL is not None
-    assert inst.STRINGLIST is not None
 
 @report
 def testInspectInfile():
@@ -4156,9 +4099,12 @@ def testElutionPeakDetection():
 @report
 def testIndexedMzMLDecoder():
     decoder = pyopenms.IndexedMzMLDecoder()
-    pos = decoder.findIndexListOffset(b"abcde", 100)
-    assert isinstance(pos, pyopenms.streampos)
-    assert long(pos) == -1   # not found
+
+    try:
+        pos = decoder.findIndexListOffset(b"abcde", 100)
+        raise Exception("Should raise an error")
+    except RuntimeError:
+        pass
 
 def test_streampos():
     p = long(pyopenms.streampos())

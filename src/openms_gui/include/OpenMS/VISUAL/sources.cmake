@@ -37,7 +37,6 @@ TOPPASToolVertex.h
 TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
-TOPPViewBehaviorInterface.h
 TOPPViewIdentificationViewBehavior.h
 TOPPViewSpectraViewBehavior.h
 )
@@ -94,7 +93,6 @@ TOPPASTabBar.h
 TOPPASTreeView.h
 TOPPASResource.h
 TOPPASResources.h
-TOPPViewBehaviorInterface.h
 TOPPViewIdentificationViewBehavior.h
 TOPPViewSpectraViewBehavior.h
 EnhancedWorkspace.h

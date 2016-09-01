@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE
-#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE
+#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE_H
+#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>

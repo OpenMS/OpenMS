@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -490,7 +490,7 @@ namespace OpenMS
       }
       else if (tag_ == "TOL")
       {
-        search_parameters_.precursor_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.precursor_mass_tolerance = (character_buffer_.trim()).toDouble();
       }
       else if (tag_ == "ITOL")
       {

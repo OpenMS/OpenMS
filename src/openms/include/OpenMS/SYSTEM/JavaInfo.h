@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_SYSTEM_JAVAINFO_H
@@ -48,8 +48,16 @@ namespace OpenMS
   class OPENMS_DLLAPI JavaInfo
   {
 public:
-    /// Returns false if java executable can not be called. true if java executable can be executed.
-    static bool canRun(String java_executable);
+    /**
+      @brief Determine if Java is installed and reachable
+
+      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+
+      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
+      @param verbose On error, should an error message be printed to LOG_ERROR?
+      @return Returns false if Java executable can not be called; true if Java executable can be executed
+    **/
+    static bool canRun(const String& java_executable, bool verbose_on_error = true);
   };
 
 }

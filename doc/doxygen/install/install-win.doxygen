@@ -218,6 +218,7 @@
       <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
       <li>Create a build directory for %OpenMS<br>
           -e.g. $ mkdir OpenMS_Win64
+      @note Due to Windows restrictions concerning the maximum length of a file path (of 260 characters) and the rather deep folder hierarchies created by CMake and Visual Studio, we advise to restrict the length of the base path to your build directory. We suggest less than 40 characters if possible.
       <li>Call CMake to create the BuildSystem there
         \code
         cd <path_to_OpenMS_build>

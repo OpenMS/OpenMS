@@ -39,12 +39,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
-#include <OpenMS/ANALYSIS/ID/PILISScoring.h>
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
-#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
-#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
@@ -382,7 +376,6 @@ int main(int argc, char** argv)
   DOCME(GaussModel);
   DOCME(GoodDiffFilter);
   DOCME(IDMapper);
-  DOCME(InternalCalibration);
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
@@ -407,8 +400,6 @@ int main(int argc, char** argv)
   DOCME(NeutralLossMarker);
   DOCME(Normalizer);
   DOCME(OptimizePeakDeconvolution);
-  DOCME(PILISScoring);
-  DOCME(PILISIdentification);
   DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakPickerCWT);
@@ -444,14 +435,10 @@ int main(int argc, char** argv)
   DOCME(CompNovoIdentification);
   DOCME(CompNovoIdentificationCID);
   DOCME(MassDecompositionAlgorithm);
-  DOCME(PILISModel);
   DOCME(MRMFragmentSelection);
-  DOCME(PILISCrossValidation);
   DOCME(ProtonDistributionModel);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
-  DOCME(PILISNeutralLossModel);
-  DOCME(PILISModelGenerator);
   DOCME(FeatureGroupingAlgorithmIdentification);
   DOCME(OfflinePrecursorIonSelection);
   DOCME(Fitter1D);

@@ -62,7 +62,7 @@ namespace OpenMS
     explicit HasMinPeptideLength(Size length):
       length(length)
     {}
-    
+
     bool operator()(const PeptideHit& hit) const
     {
       return hit.getSequence().size() >= length;
@@ -127,10 +127,9 @@ namespace OpenMS
 
       for (Size i = 0; i < seq.size(); ++i)
       {
-        if (seq.isModified(i))
+        if (seq[i].isModified())
         {
-          String mod_name = seq[i].getModification() + " (" +
-            seq[i].getOneLetterCode() + ")";
+          String mod_name = seq[i].getModification()->getFullId();
           if (mods.count(mod_name) > 0) return true;
         }
       }
@@ -138,20 +137,12 @@ namespace OpenMS
       // terminal modifications:
       if (seq.hasNTerminalModification())
       {
-        String mod_name = seq.getNTerminalModification() + " (N-term)";
-        if (mods.count(mod_name) > 0) return true;
-        // amino acid-specific terminal mod. (e.g. "Ammonia-loss (N-term C"):
-        mod_name[mod_name.size() - 1] = ' ';
-        mod_name += seq[Size(0)].getOneLetterCode() + ")";
+        String mod_name = seq.getNTerminalModification()->getFullId();
         if (mods.count(mod_name) > 0) return true;
       }
       if (seq.hasCTerminalModification())
       {
-        String mod_name = seq.getCTerminalModification() + " (C-term)";
-        if (mods.count(mod_name) > 0) return true;
-        // amino acid-specific terminal mod. (e.g. "Arg-loss (C-term R)"):
-        mod_name[mod_name.size() - 1] = ' ';
-        mod_name += seq[seq.size() - 1].getOneLetterCode() + ")";
+        String mod_name = seq.getCTerminalModification()->getFullId();
         if (mods.count(mod_name) > 0) return true;
       }
 
@@ -504,7 +495,7 @@ namespace OpenMS
       n_initial += pep_it->getHits().size();
       keepMatchingItems(pep_it->getHits(), present_filter);
       n_metavalue += pep_it->getHits().size();
-    
+
       keepMatchingItems(pep_it->getHits(), pvalue_filter);
     }
 
@@ -588,7 +579,7 @@ namespace OpenMS
       n_initial += pep_it->getHits().size();
       keepMatchingItems(pep_it->getHits(), present_filter);
       n_metavalue += pep_it->getHits().size();
-    
+
       keepMatchingItems(pep_it->getHits(), unique_filter);
     }
 
@@ -604,21 +595,36 @@ namespace OpenMS
 
   // @TODO: generalize this to protein hits?
   void IDFilter::removeDuplicatePeptideHits(vector<PeptideIdentification>&
-                                            peptides)
+                                            peptides, bool seq_only)
   {
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
-      // there's no "PeptideHit::operator<" defined, so we can't use a set nor
-      // "sort" + "unique" from the standard library:
       vector<PeptideHit> filtered_hits;
-      for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-           hit_it != pep_it->getHits().end(); ++hit_it)
+      if (seq_only)
       {
-        if (find(filtered_hits.begin(), filtered_hits.end(), *hit_it) == 
-            filtered_hits.end())
+        set<AASequence> seqs;
+        for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+             hit_it != pep_it->getHits().end(); ++hit_it)
         {
-          filtered_hits.push_back(*hit_it);
+          if (seqs.insert(hit_it->getSequence()).second) // new sequence
+          {
+            filtered_hits.push_back(*hit_it);
+          }
+        }
+      }
+      else
+      {
+        // there's no "PeptideHit::operator<" defined, so we can't use a set nor
+        // "sort" + "unique" from the standard library:
+        for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+             hit_it != pep_it->getHits().end(); ++hit_it)
+        {
+          if (find(filtered_hits.begin(), filtered_hits.end(), *hit_it) ==
+              filtered_hits.end())
+          {
+            filtered_hits.push_back(*hit_it);
+          }
         }
       }
       pep_it->getHits().swap(filtered_hits);

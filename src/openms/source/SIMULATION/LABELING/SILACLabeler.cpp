@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Fabian Kriegel, Frederic Lehnert $
 // --------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ namespace OpenMS
     std::set<const ResidueModification*> modifications;
     try
     {
-      ModificationsDB::getInstance()->searchModifications(modifications, aa, modification_id, ResidueModification::ANYWHERE);
+      ModificationsDB::getInstance()->searchModifications(modifications, modification_id, aa);
     }
     catch (Exception::ElementNotFound& ex)
     {
@@ -163,11 +163,11 @@ namespace OpenMS
          residue != feature.getPeptideIdentifications()[0].getHits()[0].getSequence().end();
          ++residue)
     {
-      if (*residue == 'R' && residue->getModification() == arginine_label)
+      if (*residue == 'R' && residue->getModificationName() == arginine_label)
       {
         unmodified_sequence.append("R");
       }
-      else if (*residue == 'K' && residue->getModification() == lysine_label)
+      else if (*residue == 'K' && residue->getModificationName() == lysine_label)
       {
         unmodified_sequence.append("K");
       }

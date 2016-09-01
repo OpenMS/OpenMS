@@ -66,7 +66,7 @@ namespace OpenMS
         }
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-        const ResidueModification::Term_Specificity& term_spec = fixed_it->getTermSpecificity();
+        const ResidueModification::TermSpecificity& term_spec = fixed_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
           peptide.setModification(residue_index, fixed_it->getFullName());
@@ -142,7 +142,7 @@ namespace OpenMS
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM
         // (currently no explicit support in OpenMS for protein C-term and
         // protein N-term)
-        const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
+        const ResidueModification::TermSpecificity& term_spec = variable_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
           map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
@@ -287,7 +287,7 @@ namespace OpenMS
         bool is_compatible = false;
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-        const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
+        const ResidueModification::TermSpecificity& term_spec = variable_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
           is_compatible = true;

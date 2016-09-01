@@ -27,6 +27,7 @@ MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
 MSSimulator
+MultiplexResolver
 MzMLSplitter
 OpenMSInfo
 PeakPickerIterative
@@ -45,6 +46,7 @@ SequenceCoverageCalculator
 SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
+TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
@@ -60,6 +62,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow
+    OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML
     MRMTransitionGroupPicker
   )

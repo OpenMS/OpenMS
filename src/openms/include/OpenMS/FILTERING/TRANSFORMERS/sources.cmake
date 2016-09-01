@@ -12,6 +12,7 @@ IntensityBalanceFilter.h
 IsotopeDiffFilter.h
 IsotopeMarker.h
 LinearResampler.h
+LinearResamplerAlign.h
 MarkerMower.h
 NLargest.h
 NeutralLossDiffFilter.h

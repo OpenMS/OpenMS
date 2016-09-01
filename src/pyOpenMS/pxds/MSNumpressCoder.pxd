@@ -22,7 +22,8 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpre
       NONE,
       LINEAR,
       PIC,
-      SLOF
+      SLOF,
+      SIZE_OF_NUMPRESSCOMPRESSION
 
     cdef cppclass NumpressConfig:
       # wrap-attach:
@@ -35,4 +36,6 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpre
       double numpressErrorTolerance
       NumpressCompression np_compression
       bool estimate_fixed_point
+
+      void setCompression(libcpp_string & compression) nogil except +
 

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ namespace OpenMS
       @brief Representation of a controlled vocabulary.
 
       This representation only contains the information used for parsing and validation.
-      All other lines are stored in the @em unparsed member of the the CVTerm struct.
+      All other lines are stored in the @em unparsed member of the CVTerm struct.
 
   @ingroup Format
   */

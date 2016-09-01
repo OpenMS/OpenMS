@@ -74,10 +74,6 @@ rm -r ${PAYLOAD}/bin/OpenMSInfo
 rm -r ${PAYLOAD}/bin/FuzzyDiff 
 rm -r ${PAYLOAD}/bin/GenericWrapper
 
-rm -r ${PAYLOAD}/bin/PILISIdentification
-rm -r ${PAYLOAD}/bin/PILISModelCV
-rm -r ${PAYLOAD}/bin/PILISModelTrainer
-rm -r ${PAYLOAD}/bin/PILISSpectraGenerator
 rm -r ${PAYLOAD}/bin/SvmTheoreticalSpectrumGeneratorTrainer
 rm -r ${PAYLOAD}/bin/InspectAdapter 
 rm -r ${PAYLOAD}/bin/MascotAdapter

@@ -215,13 +215,16 @@ not build any more.  Thus, find the corresponding file in the @c pyOpenMS/pxds/
 folder and adjust the function declaration accordingly.</p>
 
 <H2 id="wrap-new" style="margin-top:40px; border-top:4px solid grey; text-align:left;">How to wrap new classes</H2>
+
+<H3 id="wrap-simple" style="margin-top:40px; border-top:4px solid grey; text-align:left;">A simple example</H3>
+
 To wrap a new %OpenMS class: Create a new "pxd" file in the folder <code>./pxds</code>. As
 a small example, look at the <code>CVTerm.pxd</code> to get you started. Start with the
 following structure:
 
 @code
 from xxx cimport *
-cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS":
 
     cdef cppclass ClassName(DefaultParamHandler):
         # wrap-inherits:
@@ -246,6 +249,41 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
 - Remember to include a copy constructor (even if none was declared in the C++
   header file) since Cython will need it for certain operations. Otherwise you
   might see error messages like <code>item0.inst = shared_ptr[_ClassName](new _ClassName(deref(it_terms))) Call with wrong number of arguments</code> 
+
+<H3 id="wrap-complicated" style="margin-top:40px; border-top:4px solid grey; text-align:left;">A further example</H3>
+
+A slightly more complicated class could look like this, where we demonstrate how to handle templated classes and static methods:
+
+@code
+from xxx cimport *
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS":
+
+    cdef cppclass ClassName[T](DefaultParamHandler):
+        # wrap-inherits:
+        #    DefaultParamHandler
+        # 
+        # wrap-instances:
+        #   ClassName := ClassName[X]
+        #   ClassNameY := ClassName[Y]
+
+        ClassName() nogil except +
+        ClassName(ClassName[T]) nogil except + # wrap-ignore
+
+        void method_name(int param1, double param2) nogil except +
+        T method_returns_template_param() nogil except +
+
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS::Classname<OpenMS::X>":
+
+    void static_method_name(int param1, double param2) nogil except + # wrap-attach:ClassName
+
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS::Classname<OpenMS::Y>":
+
+    void static_method_name(int param1, double param2) nogil except + # wrap-attach:ClassNameY
+
+@endcode
+
+
+<H3 id="wrap-complicated" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Considerations and limitations</H3>
 
 Further considerations and limitations:
 

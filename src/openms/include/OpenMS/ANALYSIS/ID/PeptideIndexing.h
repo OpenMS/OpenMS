@@ -32,6 +32,9 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Knut Reinert $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
+#define OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
+
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -43,7 +46,7 @@ namespace OpenMS
 {
 
 /**
-    @brief Refreshes the protein references for all peptide hits in a vector of PeptideIdentifications and adds target/decoy information.
+  @brief Refreshes the protein references for all peptide hits in a vector of PeptideIdentifications and adds target/decoy information.
 
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
@@ -155,3 +158,5 @@ protected:
 
   };
 }
+
+#endif // OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H

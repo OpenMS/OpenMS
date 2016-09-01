@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 

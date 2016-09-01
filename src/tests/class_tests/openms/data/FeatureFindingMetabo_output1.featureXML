@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.8" id="fm_16237515440356837086" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_16237515440356837086" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="91">
 		<feature id="f_3525220823171556399">
 			<position dim="0">283.75</position>
@@ -59,6 +59,8 @@
 			<UserParam type="float" name="FWHM" value="3.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="38961.0277099609"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_6399120712684448661">
 			<position dim="0">261.75</position>
@@ -134,6 +136,8 @@
 			<UserParam type="float" name="FWHM" value="7"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32014.2206420898"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_13274758323738176245">
 			<position dim="0">291.25</position>
@@ -257,6 +261,8 @@
 			<UserParam type="float" name="FWHM" value="7.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="165028.236938477"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_3749176663227866731">
 			<position dim="0">291</position>
@@ -430,6 +436,8 @@
 			<UserParam type="float" name="FWHM" value="10.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="529090.522949219"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_17648507968597771516">
 			<position dim="0">234</position>
@@ -693,6 +701,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="1198491.69628906"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="88055.7040405273"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="4813.90489578247"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006049118045, 1.00096002366425]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_3393824606581918541">
 			<position dim="0">247</position>
@@ -907,6 +917,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="265315.241943359"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="16221.690246582"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00010055009034]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_1233230981423630429">
 			<position dim="0">272.25</position>
@@ -1137,6 +1149,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1190234.875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="87993.7280273438"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00005711337434]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_16419438213446853038">
 			<position dim="0">232.5</position>
@@ -1368,6 +1382,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="703520.171875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="62460.037902832"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="6966.43341827393"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006229916289, 1.00096011231622]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_2934336688081369014">
 			<position dim="0">302.75</position>
@@ -1719,6 +1735,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="4763652.83203125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="422857.790527344"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="42477.4180297852"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00005949385724, 1.0009526194423]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_1096306363186424871">
 			<position dim="0">248.25</position>
@@ -2212,6 +2230,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="4450684.859375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="363922.592529297"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="38741.1149291992"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006125192277, 1.00095696966739]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_12315563168554078198">
 			<position dim="0">281.25</position>
@@ -2277,6 +2297,8 @@
 			<UserParam type="float" name="FWHM" value="6.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="36698.9653930664"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_11914004532768579511">
 			<position dim="0">308.25</position>
@@ -2568,6 +2590,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="30210435.71875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="3420227.9921875"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="237733.395996094"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00002560773601, 1.00094764091085]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_18087326716024951394">
 			<position dim="0">316.5</position>
@@ -2845,6 +2869,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="2164408.96777344"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="201042.262207031"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="13909.6817016602"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006313468424, 1.00095261509017]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_1296294151079368601">
 			<position dim="0">284.75</position>
@@ -3236,6 +3262,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="176180631.375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="19339653.15625"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="1657191.89355469"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006031695472, 0.999866030252434]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_786497535322792801">
 			<position dim="0">261.5</position>
@@ -3297,6 +3325,8 @@
 			<UserParam type="float" name="FWHM" value="5.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19156.9463806152"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_5078032111301433689">
 			<position dim="0">238.75</position>
@@ -3662,6 +3692,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="3105067.62304688"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="318290.341308594"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="27590.650390625"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00005132621587, 1.00097434914224]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_5441031069051211757">
 			<position dim="0">284.5</position>
@@ -3854,6 +3886,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1946295.74023438"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="156431.582885742"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.999247937666297]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_4855303058344677492">
 			<position dim="0">319</position>
@@ -4010,6 +4044,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="418416.587402344"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="46038.3464355469"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006294281505]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_2488803413840905623">
 			<position dim="0">267.25</position>
@@ -4785,6 +4821,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="181719781"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="19989520.265625"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="1745349.88183594"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.0000628798239, 1.00097043035211, 0.992813008395927, 1.00144189334605]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="1032537.10205078"/>
 			<UserParam type="float" name="masstrace_intensity_4" value="230955.790283203"/>
 		</feature>
@@ -4986,6 +5024,8 @@
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="986260.217773438"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_15754571732265416845">
 			<position dim="0">231.75</position>
@@ -5148,6 +5188,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="168058.269287109"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="16705.7516937256"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006362116017]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_14287932400598464088">
 			<position dim="0">258.75</position>
@@ -5211,6 +5253,8 @@
 			<UserParam type="float" name="FWHM" value="3.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="36680.7935791016"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_4566459421321501746">
 			<position dim="0">255.5</position>
@@ -5350,6 +5394,8 @@
 			<UserParam type="float" name="FWHM" value="12.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="115129.47052002"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_18356596520196770536">
 			<position dim="0">291.5</position>
@@ -5511,6 +5557,8 @@
 			<UserParam type="float" name="FWHM" value="9.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="709526.831054688"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_2205439982488162092">
 			<position dim="0">256.5</position>
@@ -5644,6 +5692,8 @@
 			<UserParam type="float" name="FWHM" value="11"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="100938.72076416"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_16854092442615782435">
 			<position dim="0">234.25</position>
@@ -5850,6 +5900,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="168718.729492188"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="15076.3125762939"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006283416536]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_10007307242740334043">
 			<position dim="0">231</position>
@@ -6014,6 +6066,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="575242.415039063"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="51385.1544799805"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00007329107336]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_1357389176320956578">
 			<position dim="0">299.25</position>
@@ -6121,6 +6175,8 @@
 			<UserParam type="float" name="FWHM" value="9"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="154523.424804688"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_8849766613366018196">
 			<position dim="0">283.5</position>
@@ -6244,6 +6300,8 @@
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="351264.628173828"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12140363040088978058">
 			<position dim="0">318</position>
@@ -6311,6 +6369,8 @@
 			<UserParam type="float" name="FWHM" value="6.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12126.0638580322"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_14527496877349041651">
 			<position dim="0">299.25</position>
@@ -6372,6 +6432,8 @@
 			<UserParam type="float" name="FWHM" value="5.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12304.2298126221"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_9976655738061632604">
 			<position dim="0">240.5</position>
@@ -6507,6 +6569,8 @@
 			<UserParam type="float" name="FWHM" value="12"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="38001.5506134033"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12139883638283978275">
 			<position dim="0">234.5</position>
@@ -6738,6 +6802,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="5610425.640625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="460015.689453125"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="39807.4176940918"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006070133176, 1.00095290847565]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_6463064246057032747">
 			<position dim="0">314</position>
@@ -6847,6 +6913,8 @@
 			<UserParam type="float" name="FWHM" value="10"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="124462.811584473"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_13017146639186110139">
 			<position dim="0">285</position>
@@ -6960,6 +7028,8 @@
 			<UserParam type="float" name="FWHM" value="10"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="399908.836181641"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_7090053517809447365">
 			<position dim="0">315.25</position>
@@ -7126,6 +7196,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="170395.811401367"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="17229.6696166992"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.9999718845838]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_3689261140477220175">
 			<position dim="0">264</position>
@@ -7273,6 +7345,8 @@
 			<UserParam type="float" name="FWHM" value="10.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8976023.30078125"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_4867232715518835913">
 			<position dim="0">258.25</position>
@@ -7388,6 +7462,8 @@
 			<UserParam type="float" name="FWHM" value="4.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1718543.08007813"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_5830204045439265130">
 			<position dim="0">279.5</position>
@@ -7567,6 +7643,8 @@
 			<UserParam type="float" name="FWHM" value="11"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6583380.9609375"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_18260815667738914815">
 			<position dim="0">259.5</position>
@@ -7734,6 +7812,8 @@
 			<UserParam type="float" name="FWHM" value="11.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2119120.04492188"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_186343499514562290">
 			<position dim="0">254.75</position>
@@ -7948,6 +8028,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="557491.495117188"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="55266.863067627"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00001908517132]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_14452738833205457198">
 			<position dim="0">279.25</position>
@@ -8039,6 +8121,8 @@
 			<UserParam type="float" name="FWHM" value="7.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="506858.762695313"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_9445498515401092467">
 			<position dim="0">259.5</position>
@@ -8104,6 +8188,8 @@
 			<UserParam type="float" name="FWHM" value="6.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="135849.637451172"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_17302145189775431217">
 			<position dim="0">274.5</position>
@@ -8356,6 +8442,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1563150.05175781"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="172983.271240234"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00008484752215]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_16385054960749080843">
 			<position dim="0">302.25</position>
@@ -8441,6 +8529,8 @@
 			<UserParam type="float" name="FWHM" value="8.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="44270.2174072266"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_17821717839519891680">
 			<position dim="0">273.5</position>
@@ -8645,6 +8735,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="604285.42578125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="54150.1049194336"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00003378183314]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_2977862407641390108">
 			<position dim="0">302.75</position>
@@ -8837,6 +8929,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="239858.677246094"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="20756.5061340332"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.000059063637]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_4820763536411289908">
 			<position dim="0">256</position>
@@ -8954,6 +9048,8 @@
 			<UserParam type="float" name="FWHM" value="10.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="65878.340057373"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12978135214886648823">
 			<position dim="0">318</position>
@@ -9021,6 +9117,8 @@
 			<UserParam type="float" name="FWHM" value="6.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10557.3042449951"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_13318104195778538062">
 			<position dim="0">286.5</position>
@@ -9206,6 +9304,8 @@
 			<UserParam type="float" name="FWHM" value="11.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="452530.274902344"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_5821247793124038316">
 			<position dim="0">309</position>
@@ -9379,6 +9479,8 @@
 			<UserParam type="float" name="FWHM" value="10.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="359884.271972656"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_11173610145820618725">
 			<position dim="0">245.75</position>
@@ -9808,6 +9910,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="43934793.0625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="5464965.85546875"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="491781.237548828"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006012280582, 1.00094446094798]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_2109097196062066881">
 			<position dim="0">305.5</position>
@@ -9959,6 +10063,8 @@
 			<UserParam type="float" name="FWHM" value="10.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="308555.855712891"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12009660396631036810">
 			<position dim="0">258</position>
@@ -10040,6 +10146,8 @@
 			<UserParam type="float" name="FWHM" value="6.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="76322.8473510742"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_9946751218450875390">
 			<position dim="0">305.25</position>
@@ -10125,6 +10233,8 @@
 			<UserParam type="float" name="FWHM" value="7"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="27345.6065063477"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_780027561974931583">
 			<position dim="0">230</position>
@@ -10180,6 +10290,8 @@
 			<UserParam type="float" name="FWHM" value="3.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20328.6083374023"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_17689450036681742932">
 			<position dim="0">289.5</position>
@@ -10373,6 +10485,8 @@
 			<UserParam type="float" name="FWHM" value="10.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1001693.98486328"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_1622772445154574932">
 			<position dim="0">269.25</position>
@@ -10539,6 +10653,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="640824.399902344"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="63508.9141235352"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00004926751009]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_6468485500888308239">
 			<position dim="0">260</position>
@@ -10805,6 +10921,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2502574.03710938"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="276648.188720703"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006092077771]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_12262480791455599226">
 			<position dim="0">289.25</position>
@@ -11314,6 +11432,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="567922272.5"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="62777240.5625"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="7800636.546875"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006200477958, 1.00095488451274]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_1689548244641891662">
 			<position dim="0">257</position>
@@ -11439,6 +11559,8 @@
 			<UserParam type="float" name="FWHM" value="8.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="158514.781738281"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_6385792639293407798">
 			<position dim="0">284.75</position>
@@ -11782,6 +11904,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="159814242.75"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="19399929.671875"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="2059420.69726563"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006572151474, 1.00094375138434]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_16708561783842155992">
 			<position dim="0">257</position>
@@ -11839,6 +11963,8 @@
 			<UserParam type="float" name="FWHM" value="5.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13755.0170898438"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_1041328343054656013">
 			<position dim="0">264.25</position>
@@ -12250,6 +12376,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="9281279.890625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1027127.61035156"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="128008.936523438"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00007736916038, 1.0009552381386]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_3095780957324093544">
 			<position dim="0">232.5</position>
@@ -12424,6 +12552,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="163312.258789063"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="18142.2137145996"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006200328698]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_5127159779622715996">
 			<position dim="0">278.25</position>
@@ -12493,6 +12623,8 @@
 			<UserParam type="float" name="FWHM" value="6.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="37797.0207214355"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_14929859954397689983">
 			<position dim="0">242.75</position>
@@ -12624,6 +12756,8 @@
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="37844.4725952148"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_3234152552746739377">
 			<position dim="0">257</position>
@@ -13185,6 +13319,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="13667752.984375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1675394.27929688"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="739199.029296875"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00005776133955, 1.00095847466957, 1.00002933414737]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="80394.1800537109"/>
 		</feature>
 		<feature id="f_11615228266221962187">
@@ -13603,6 +13739,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="39180292.84375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="5031695.3046875"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="458274.019775391"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.0000604068334, 1.00095548421569]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_2090649501315172700">
 			<position dim="0">318</position>
@@ -13776,6 +13914,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="1403792.828125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="170670.994873047"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="21116.9567565918"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006125423377, 1.00095512503523]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_2465523124087750518">
 			<position dim="0">284</position>
@@ -14050,6 +14190,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6090731.5078125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="740593.465820313"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006233857243]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_13070730053885120843">
 			<position dim="0">282.75</position>
@@ -14105,6 +14247,8 @@
 			<UserParam type="float" name="FWHM" value="4"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="34083.2650756836"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_3234757344363654404">
 			<position dim="0">276</position>
@@ -14212,6 +14356,8 @@
 			<UserParam type="float" name="FWHM" value="9.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="143651.299072266"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_836311546943113514">
 			<position dim="0">303</position>
@@ -14586,6 +14732,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="961224.182128906"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="106941.140563965"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00007382702225]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_1656241528015988681">
 			<position dim="0">284.75</position>
@@ -14935,6 +15083,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="18032343.421875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="2200543.74609375"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="239041.924316406"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006024621123, 1.00096436358311]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_14294997508743319537">
 			<position dim="0">303.25</position>
@@ -14990,6 +15140,8 @@
 			<UserParam type="float" name="FWHM" value="5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7060.51300048828"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_8032178914115410322">
 			<position dim="0">296.25</position>
@@ -15055,6 +15207,8 @@
 			<UserParam type="float" name="FWHM" value="4.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14887.2601776123"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_1269538463348692280">
 			<position dim="0">300.25</position>
@@ -15366,6 +15520,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="3927684"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="546900.376953125"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="43179.6359863281"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006012027714, 1.00114859046269]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_7991454687784186734">
 			<position dim="0">308.5</position>
@@ -15700,6 +15856,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1815452.06054688"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="246557.291625977"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006222793706]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_11416859672354594246">
 			<position dim="0">316</position>
@@ -15878,6 +16036,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5084892.6640625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="728510.267089844"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006813695992]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_15657216322412451945">
 			<position dim="0">308.5</position>
@@ -16577,6 +16737,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="7504330.42578125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1020583.87988281"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="417447.391845703"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006333258258, 1.00098187811389, 0.999990761476795]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="49486.5360412598"/>
 		</feature>
 		<feature id="f_6776505626977817358">
@@ -16887,6 +17049,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="7864383.5390625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="960907.399414063"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="134373.188110352"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006052561662, 1.00095581293917, 1.00003621218863]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="10909.5789642334"/>
 		</feature>
 		<feature id="f_2352700004324398218">
@@ -17190,6 +17354,8 @@
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9893513.046875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1208806.6796875"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.0000610581279]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_8549516402849884275">
 			<position dim="0">301</position>
@@ -17265,6 +17431,8 @@
 			<UserParam type="float" name="FWHM" value="7.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="24984.8320922852"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12511772691995177188">
 			<position dim="0">284</position>
@@ -17352,6 +17520,8 @@
 			<UserParam type="float" name="FWHM" value="6.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="110830.602905273"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_13896582253227932873">
 			<position dim="0">270</position>
@@ -17411,6 +17581,8 @@
 			<UserParam type="float" name="FWHM" value="5.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="28075.3842163086"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_101457032213127092">
 			<position dim="0">235</position>
@@ -17716,6 +17888,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="661545.7265625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="78934.5051269531"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="9248.46258544922"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006062634415, 1.00096324061951]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_4040114418401744339">
 			<position dim="0">275</position>
@@ -18069,6 +18243,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="1754618.12597656"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="228933.749633789"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="176013.545654297"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006488573425, 1.00096203128876]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_10770675153070148776">
 			<position dim="0">308</position>
@@ -18452,6 +18628,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="81527727.5"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="11122416.1953125"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="4717390.34375"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006036962688, 1.00095520513679, 1.00003311618988]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="563025.188476563"/>
 		</feature>
 		<feature id="f_6127813626462972040">
@@ -18716,6 +18894,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="1875373.5078125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="230297.778808594"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="34598.9921569824"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006164359502, 1.00095650581562]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
 		<feature id="f_13544601804648356514">
 			<position dim="0">274.75</position>
@@ -19205,6 +19385,8 @@
 			<UserParam type="float" name="masstrace_intensity_0" value="106096979.3125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="11203045.3515625"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="2059411.75976563"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006043012777, 1.00095481113209, 1.00003117887641]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="178497.388671875"/>
 		</feature>
 	</featureList>

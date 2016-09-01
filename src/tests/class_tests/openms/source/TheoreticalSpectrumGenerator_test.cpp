@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -121,13 +121,23 @@ END_SECTION
 
 START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
   RichPeakSpectrum spec;
-  ptr->addAbundantImmoniumIons(spec);
-  TEST_EQUAL(spec.size(), 5)
-  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 86.09698)
-  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 110.0718)
-  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 120.0813)
-  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 136.0762)
-  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 159.0922)
+  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("HFYLWCP"));
+  TEST_EQUAL(spec.size(), 7)
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221)
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 86.09698)
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 110.0718)
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 120.0813)
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 136.0762)
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 159.0922)
+
+  spec.clear(true);
+  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("H"));
+  TEST_EQUAL(spec.size(), 1)
+
+  spec.clear(true);
+  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("A"));
+  TEST_EQUAL(spec.size(), 0)
 END_SECTION
 
 
@@ -339,6 +349,72 @@ START_SECTION(([EXTRA] test monomer extreme case))
   t_gen.setParameters(params);
   t_gen.getSpectrum(tmp, tmp_aa,1);
   TEST_EQUAL(tmp.size(), 3)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] test isotope clusters for all peak types))
+{
+  AASequence tmp_aa = AASequence::fromString("ARRGH");
+  RichPeakSpectrum spec;
+  TheoreticalSpectrumGenerator t_gen;
+  Param params;
+  params.setValue("add_isotopes", "true");
+  params.setValue("max_isotope", 2);
+  t_gen.setParameters(params);
+
+  // isotope cluster for y-ions
+  t_gen.addPeaks(spec, tmp_aa, Residue::YIon, 2);
+  TEST_EQUAL(spec.size(), 8)
+
+  TOLERANCE_ABSOLUTE(0.001)
+  double neutron_shift = Constants::NEUTRON_MASS_U;
+
+  // 4 monoisotopic masses, 4 second peaks with added neutron mass / 2
+  double result[] = {78.54206, 107.05279, 185.10335, 263.15390, 78.54206+(neutron_shift/2), 107.05279+(neutron_shift/2), 185.10335+(neutron_shift/2), 263.15390+(neutron_shift/2)};
+  std::sort(result, result+8);
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+  }
+
+  // isotope cluster for losses
+  spec.clear(true);
+  params.setValue("add_losses", "true");
+  params.setValue("add_b_ions", "false");
+  t_gen.setParameters(params);
+  t_gen.getSpectrum(spec, tmp_aa, 2);
+  TEST_EQUAL(spec.size(), 40)
+
+  double proton_shift = Constants::PROTON_MASS_U;
+  // 10 monoisotopic peaks with charge=1, 10 second peaks, 20 with charge=2
+  double result_losses[] = {156.07675, 213.09821, 325.18569, 327.17753, 352.17278, 369.19932, 481.28680, 483.27864, 508.27389, 525.30044,
+                                           156.07675+neutron_shift, 213.09821+neutron_shift, 325.18569+neutron_shift, 327.17753+neutron_shift, 352.17278+neutron_shift, 369.19932+neutron_shift, 481.28680+neutron_shift, 483.27864+neutron_shift, 508.27389+neutron_shift, 525.30044+neutron_shift,
+                                           (156.07675+proton_shift)/2, (213.09821+proton_shift)/2, (325.18569+proton_shift)/2, (327.17753+proton_shift)/2, (352.17278+proton_shift)/2, (369.19932+proton_shift)/2, (481.28680+proton_shift)/2, (483.27864+proton_shift)/2, (508.27389+proton_shift)/2, (525.30044+proton_shift)/2,
+                                           (156.07675+proton_shift)/2+(neutron_shift/2), (213.09821+proton_shift)/2+(neutron_shift/2), (325.18569+proton_shift)/2+(neutron_shift/2), (327.17753+proton_shift)/2+(neutron_shift/2), (352.17278+proton_shift)/2+(neutron_shift/2),
+                                           (369.19932+proton_shift)/2+(neutron_shift/2), (481.28680+proton_shift)/2+(neutron_shift/2), (483.27864+proton_shift)/2+(neutron_shift/2), (508.27389+proton_shift)/2+(neutron_shift/2), (525.30044+proton_shift)/2+(neutron_shift/2)};
+  std::sort(result_losses, result_losses+40);
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result_losses[i])
+  }
+
+  // isotope cluster for precurser peaks with losses
+  spec.clear(true);
+  params.setValue("add_precursor_peaks", "true");
+  t_gen.setParameters(params);
+  t_gen.addPrecursorPeaks(spec, tmp_aa, 2);
+  TEST_EQUAL(spec.size(), 6)
+
+  // 3 monoisitopic peaks, 3 second peaks
+  double result_precursors[] = {(578.32698+proton_shift)/2, (579.31100+proton_shift)/2, (596.33755+proton_shift)/2,
+                                                  (578.32698+proton_shift)/2+(neutron_shift/2), (579.31100+proton_shift)/2+(neutron_shift/2), (596.33755+proton_shift)/2+(neutron_shift/2)};
+  std::sort(result_precursors, result_precursors+6);
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result_precursors[i])
+  }
+
+
 }
 END_SECTION
 

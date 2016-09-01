@@ -130,7 +130,7 @@ namespace OpenMS
     params.setMinFloat("span", 0.0);
     params.setMaxFloat("span", 1.0);
 
-    params.setValue("num_iterations", 3, "Number of rubstifying iterations for lowess fitting.");
+    params.setValue("num_iterations", 3, "Number of robustifying iterations for lowess fitting.");
     params.setMinInt("num_iterations", 0);
 
     params.setValue("delta", -1.0, "Nonnegative parameter which may be used to save computations (recommended value is 0.01 of the range of the input, e.g. for data ranging from 1000 seconds to 2000 seconds, it could be set to 10). Setting a negative value will automatically do this.");

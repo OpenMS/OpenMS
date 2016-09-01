@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -76,11 +76,23 @@ using namespace std;
   difficult. @ref FeatureFinderMetabo fulfills a further data reduction step by
   assembling compatible mass traces to metabolite features (that is, all mass
   traces originating from one metabolite). To this end, multiple metabolite
-  hypotheses are formulated and scored according to how well differences in RT
-  and m/z or intensity ratios match to those of theoretical isotope patterns.
+  hypotheses are formulated and scored according to how well differences in RT (optional),
+  m/z or intensity ratios match to those of theoretical isotope patterns.
 
   If the raw data scans contain the scan polarity information, it is stored as
   meta value "scan_polarity" in the output file.
+
+  Mass trace clustering can be done using either 13C distances or a linear model (Kenar et al) -- see parameter 'ffm:mz_scoring_13C'.
+  Generally, for lipidomics, use 13C, since lipids contain a lot of 13C.
+  For general metabolites, the linear model is usually more appropriate.
+  To decide what is better, the total number of features can be used as indirect measure
+  - the lower(!) the better (since more mass traces are assembled into single features).
+  Detailed information is stored in the featureXML output: it contains meta-values for each feature about the 
+  mass trace differences (inspectable via TOPPView). If you want this in a tabular format, use TextExporter, i.e.,
+  @code
+     TextExporter.exe -feature:add_metavalues 1 -in <ff_metabo.featureXML> -out <ff_metabo.csv>
+  @endcode
+  By default, the linear model is used.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FeatureFinderMetabo.cli
@@ -96,7 +108,7 @@ class TOPPFeatureFinderMetabo :
 {
 public:
   TOPPFeatureFinderMetabo() :
-    TOPPBase("FeatureFinderMetabo", "Assembles metabolite features from singleton mass traces.")
+    TOPPBase("FeatureFinderMetabo", "Assembles metabolite features from centroided (LC-)MS data using the mass trace approach.")
   {
   }
 

@@ -28,19 +28,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -258,7 +259,7 @@ protected:
 
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
-        fcons.setIntensity(m_traces_final[i].computePeakArea());
+        fcons.setIntensity(m_traces_final[i].getIntensity(false));
         consensus_map.push_back(fcons);
       }
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -288,12 +289,15 @@ protected:
         f.setMetaValue(3, m_traces_final[i].getLabel());
         f.setCharge(0);
         f.setMZ(m_traces_final[i].getCentroidMZ());
-        f.setIntensity(m_traces_final[i].computePeakArea());
+        f.setIntensity(m_traces_final[i].getIntensity(false));
         f.setRT(m_traces_final[i].getCentroidRT());
         f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
         f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
-        f.setMetaValue("SD", m_traces_final[i].getCentroidSD());
+        double sd = m_traces_final[i].getCentroidSD();
+        f.setMetaValue("SD", sd);
+        f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
+        if (m_traces_final[i].fwhm_mz_avg > 0) f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
       }
