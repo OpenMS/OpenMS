@@ -158,6 +158,7 @@ void SimpleSVM::setup(map<String, vector<double> >& predictors,
 
 
 void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
+  const
 {
   if (model_ == 0)
   {
@@ -199,6 +200,39 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
 }
 
 
+void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
+{
+  if (model_ == 0)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                  "SVM model has not been trained (use the "
+                                  "'setup' method)");
+  }
+  Size k = model_->nr_class;
+  if (k > 2)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                  "Output of feature weights is currently only "
+                                  "supported for two-class classification");
+  }
+
+  feature_weights.clear();
+  Size n_sv = model_->l; // number of support vectors
+  for (Size l = 0; l < n_sv; ++l)
+  {
+    double sv_coef = model_->sv_coef[0][l];
+    // LIBSVM uses a sparse representation for data (incl. support vectors):
+    for (Size n = 0; ; ++n)
+    {
+      const struct svm_node& node = model_->SV[l][n];
+      if (node.index == -1) break;
+      const String& predictor_name = predictor_names_[node.index - 1];
+      feature_weights[predictor_name] += sv_coef * node.value;
+    }
+  }
+}
+
+
 void SimpleSVM::scaleData_(map<String, vector<double> >& predictors) const
 {
   for (map<String, vector<double> >::iterator pred_it = predictors.begin();
@@ -230,12 +264,14 @@ void SimpleSVM::convertData_(const map<String, vector<double> >& predictors)
   Size n_obs = predictors.begin()->second.size();
   nodes_.clear();
   nodes_.resize(n_obs);
-  int pred_index = 0; // "int" for use by libSVM
+  predictor_names_.clear();
+  int pred_index = 0; // "int" for use by LIBSVM
   for (map<String, vector<double> >::const_iterator pred_it = 
          predictors.begin(); pred_it != predictors.end(); ++pred_it)
   {
     if (pred_it->second.empty()) continue; // uninformative predictor
     pred_index++; // LIBSVM counts observations from 1
+    predictor_names_.push_back(pred_it->first);
     for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
     {
       double value = pred_it->second[obs_index];

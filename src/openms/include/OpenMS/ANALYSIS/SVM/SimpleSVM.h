@@ -84,6 +84,10 @@ namespace OpenMS
 
        @param predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling.
        @param labels Mapping from observation index to class label in the training set.
+
+       @throw Exception::IllegalArgument if @p predictors is empty
+       @throw Exception::InvalidValue if an invalid index is used in @p labels
+       @throw Exception::MissingInformation if there are fewer than two class labels in @p labels, or if there are not enough observations for cross-validation
     */
     void setup(std::map<String, std::vector<double> >& predictors,
                const std::map<Size, Int>& labels);
@@ -93,9 +97,22 @@ namespace OpenMS
 
        @param predictions Output vector of prediction results (same order as @p indexes).
        @param indexes Vector of observation indexes for which predictions are desired. If empty (default), predictions are made for all observations.
+
+       @throw Exception::Precondition if no model has been trained
+       @throw Exception::InvalidValue if an invalid index is used in @p indexes
     */
     void predict(std::vector<Prediction>& predictions,
-                 std::vector<Size> indexes = std::vector<Size>());
+                 std::vector<Size> indexes = std::vector<Size>()) const;
+
+    /**
+       @brief Get the weights used for features (predictors) in the SVM model
+
+       Currently only supported for two-class classification.
+       If a linear kernel is used, the weights are informative for ranking features.
+
+       @throw Exception::Precondition if no model has been trained, or if the classification involves more than two classes
+    */
+    void getFeatureWeights(std::map<String, double>& feature_weights) const;
 
     /// Write cross-validation (parameter optimization) results to a CSV file
     void writeXvalResults(const String& path) const;
@@ -115,6 +132,9 @@ namespace OpenMS
 
     /// Pointer to SVM model (LIBSVM format)
     struct svm_model* model_;
+
+    /// Names of predictors in the model (excluding uninformative ones)
+    std::vector<String> predictor_names_;
 
     /// Number of partitions for cross-validation
     Size n_parts_;
