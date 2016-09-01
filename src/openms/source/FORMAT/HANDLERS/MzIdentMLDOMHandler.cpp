@@ -1189,7 +1189,7 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  double rt = cvit->second.front().getValue().toDouble();
+                  double rt = cvit->second.front().getValue().toString().toDouble();
                   if (cvit->second.front().getUnit().accession == "UO:0000031")  // minutes
                   {
                     rt *= 60.0;
