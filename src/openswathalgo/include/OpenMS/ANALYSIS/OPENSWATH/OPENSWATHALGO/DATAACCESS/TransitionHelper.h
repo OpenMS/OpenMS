@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
@@ -43,7 +43,7 @@
 namespace OpenSwath
 {
 
-  struct LightPeptide;
+  struct LightCompound;
   struct LightTargetedExperiment;
   struct LightTransition;
 
@@ -52,14 +52,14 @@ namespace OpenSwath
 
     static void convert(LightTargetedExperiment& lte,
                         std::map<std::string,
-                                 std::vector<LightTransition> >& transmap);
+                        std::vector<LightTransition> >& transmap);
 
 
     // TODO : remove and explain German comments
     // spiegel
     static bool findPeptide(const LightTargetedExperiment& lte,
                             const std::string& peptideRef,
-                            LightPeptide& pep);
+                            LightCompound& pep);
   };
 
 } //end namespace

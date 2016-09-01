@@ -132,7 +132,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out", "<file>", "", "Output file", false);
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
@@ -166,9 +166,6 @@ protected:
     registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
     setMinInt_("max_num_perm", 1);
 
-    registerStringOption_("selection_method", "<choice>", score_selection_method_[0], "Score selection method", false);
-    setValidStrings_("selection_method", score_selection_method_);
-
     registerDoubleOption_("modeling_score_threshold", "<value>", 0.95, "Minimum score a PSM needs to be considered for modeling", false);
     setMinFloat_("modeling_score_threshold", 0.0);
     
@@ -183,6 +180,9 @@ protected:
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
     setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
+    
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", true, false, ListUtils::create<String>("skipexists"));
+
   }
   
   String makeModString_(const String& mod_name)
@@ -193,7 +193,8 @@ protected:
     return String(residue +  " " + mod.getDiffMonoMass());    
   }
  
-  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in, const String& out, const vector<String>& target_mods)
+  ExitCodes parseParameters_(map<String, vector<String> >& config_map, const String& id, const String& in,
+    const String& out, const vector<String>& target_mods, String selection_method)
   {
     FileHandler fh;
     
@@ -213,7 +214,7 @@ protected:
     config_map["MAX_CHARGE_STATE"].push_back(getIntOption_("max_charge_state"));
     config_map["MAX_PEP_LEN"].push_back(getIntOption_("max_peptide_length"));
     config_map["MAX_NUM_PERM"].push_back(getIntOption_("max_num_perm"));
-    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<String>(score_selection_method_, getStringOption_("selection_method")));
+    config_map["SELECTION_METHOD"].push_back(ListUtils::getIndex<String>(score_selection_method_, selection_method));    
     config_map["MODELING_SCORE_THRESHOLD"].push_back(getDoubleOption_("modeling_score_threshold"));
     config_map["SCORING_THRESHOLD"].push_back(getDoubleOption_("scoring_threshold"));
     config_map["MIN_NUM_PSMS_MODEL"].push_back(getIntOption_("min_num_psms_model"));
@@ -366,8 +367,8 @@ protected:
     }    
     return "";
     
-    String msg = "Spectrum could not be parsed";
-    throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
+    // String msg = "Spectrum could not be parsed";
+    // throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
   }
   
   // remove all modifications which are LuciPHOr2 target modifications,
@@ -383,11 +384,11 @@ protected:
     // set C-term/N-term modification
     if (original_seq.hasNTerminalModification())
     {
-      seq_converted.setNTerminalModification(original_seq.getNTerminalModification());
+      seq_converted.setNTerminalModification(original_seq.getNTerminalModificationName());
     }
     if (original_seq.hasCTerminalModification())
     {
-      seq_converted.setCTerminalModification(original_seq.getCTerminalModification());
+      seq_converted.setCTerminalModification(original_seq.getCTerminalModificationName());
     }
     
     // set all modifications, which were not changed by LuciPHOr2
@@ -395,7 +396,7 @@ protected:
     {
       if (original_seq.getResidue(i).isModified())
       {
-        String mod = original_seq.getResidue(i).getModification();
+        String mod = original_seq.getResidue(i).getModificationName();
         
         // no target modification, modification can be set
         bool found = false;
@@ -428,7 +429,7 @@ protected:
         {
           if (seq.getResidue(i).isModified())
           {
-            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModification() + ", " + iter->second + ")");
+            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModificationName() + ", " + iter->second + ")");
             return PARSE_ERROR;
           }
           else 
@@ -456,16 +457,37 @@ protected:
     }
   }
   
+  String getSelectionMethod_(const PeptideIdentification& pep_id, String search_engine)
+  {
+    String selection_method = "";
+    if (pep_id.getScoreType() == "Posterior Error Probability" || search_engine == "Percolator")
+    {
+      selection_method = score_selection_method_[0];
+    }
+    else if (search_engine == "Mascot")
+    {
+      selection_method = score_selection_method_[1];
+    }
+    else if (search_engine == "XTandem")
+    {
+      selection_method = score_selection_method_[3];
+    }
+    else
+    {
+      String msg = "SELECTION_METHOD parameter could not be set. Only Mascot, X! Tandem, or Posterior Error Probability score types are supported.";
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+    }
+    return selection_method;
+  }
+  
   ExitCodes main_(int, const char**)
   {
-    vector<PeptideIdentification> pep_ids;
-    vector<ProteinIdentification> prot_ids;
-    
+    String java_executable = getStringOption_("java_executable");
     if (!getFlag_("force"))
     {
-      if (!JavaInfo::canRun("java"))
+      if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run LuciPHOr2. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable. If you are certain java is installed, please set the 'force' flag in order to avoid this error message.");
+        writeLog_("Fatal error: Java is needed to run LuciPHOr2!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -475,14 +497,13 @@ protected:
     }
 
     // create temporary directory
-    String temp_dir, conf_file;
-    temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
+    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
     writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
     QDir d;
     d.mkpath(temp_dir.toQString());
 
     // create a temporary config file for LuciPHOr2 parameters
-    conf_file = temp_dir + "luciphor2_input_template.txt";
+    String conf_file = temp_dir + "luciphor2_input_template.txt";
     
     String id = getStringOption_("id");
     String in = getStringOption_("in");
@@ -491,13 +512,15 @@ protected:
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
     
+    vector<PeptideIdentification> pep_ids;
+    vector<ProteinIdentification> prot_ids;
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(id, prot_ids, pep_ids);
-      IDFilter::keepNBestHits(pep_ids, 1); // Luciphor only calculates the best hit
+      IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
       
-      // create a tempory pepXML file for LuciPHOR2 input
+      // create a temporary pepXML file for LuciPHOR2 input
       String in_file_name = File::removeExtension(File::basename(id));
       id = temp_dir + in_file_name + ".pepXML";
       
@@ -519,7 +542,9 @@ protected:
     
     // initialize map
     map<String, vector<String> > config_map;
-    ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods);
+    String selection_method = getSelectionMethod_(pep_ids[0], prot_ids.begin()->getSearchEngine());
+    
+    ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods, selection_method);
     if (ret != EXECUTION_OK)
     {
       return ret;
@@ -542,7 +567,7 @@ protected:
     process_params << "-jar" << executable << conf_file.toQString();                   
 
     // execute LuciPHOr2    
-    int status = QProcess::execute("java", process_params);
+    int status = QProcess::execute(java_executable.toQString(), process_params);
     if (status != 0)
     {
       writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    static const double COVERAGE_UNKNOWN; // == -1
 
     /// @name Comparators ProteinHit
     //@{

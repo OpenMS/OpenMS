@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -36,12 +36,12 @@
 #ifndef OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
 #define OPENMS_FILTERING_CALIBRATION_TOFCALIBRATION_H
 
-
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/MISC/Spline2d.h>
 
 #include <vector>
@@ -228,7 +228,7 @@ private:
         if (xi < calib_masses[0])
           continue;
         std::cout << exp_masses[p] << "\t"
-                  << (xi - exp_masses[p] - spline(xi)) / exp_masses[p] * 1e6
+                  << Math::getPPM(xi - spline(xi), exp_masses[p])
                   << std::endl;
 
       }

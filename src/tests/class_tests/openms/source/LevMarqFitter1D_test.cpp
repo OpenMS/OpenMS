@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: $
 // --------------------------------------------------------------------------
 

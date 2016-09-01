@@ -32,8 +32,8 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_PROTEINPEPTIDERESOLUTION_H
-#define OPENMS_ANALYSIS_ID_PROTEINPEPTIDERESOLUTION_H
+#ifndef OPENMS_ANALYSIS_ID_PEPTIDEPROTEINRESOLUTION_H
+#define OPENMS_ANALYSIS_ID_PEPTIDEPROTEINRESOLUTION_H
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>

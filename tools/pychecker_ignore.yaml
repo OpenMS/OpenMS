@@ -71,8 +71,6 @@ PyOpenMSChecker:
         - getProductName
     OpenMS::PeakPickerIterative:
         - updateMembers_
-    OpenMS::InternalCalibration:
-        - calibrateMapList
     OpenMS::QTCluster:
         - add
         - getElements
@@ -91,8 +89,6 @@ PyOpenMSChecker:
         - generateRTMapping # it
     OpenMS::ControlledVocabulary:
         - getTerms
-    OpenMS::PILISIdentification:
-        - getIdentifications
     OpenMS::OpenSwathScoring:
         - calculateChromatographicScores
         - calculateLibraryScores
@@ -239,9 +235,6 @@ PyOpenMSChecker:
     OpenMS::DIAScoring:
         - dia_isotope_scores
         - dia_massdiff_score
-    OpenMS::PILISCrossValidation:
-        - setOptions
-        - scoreHits
     OpenMS::ims::IntegerMassDecomposer:
         - getDecomposition
         - getAllDecompositions
@@ -398,6 +391,7 @@ PyOpenMSChecker:
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
         - NamesOfSpecificity
+        - digestUnmodifiedString
     OpenMS::SourceFile:
         - NamesOfChecksumType
     OpenMS::Precursor:
@@ -429,9 +423,6 @@ PyOpenMSChecker:
         - getNextPrecursorsSeq # immutable types by reference
         - getPeptideProteinCounter # not implemented
     OpenMS::PeakShape:
-        - Type
-    OpenMS::PILISCrossValidation::Option:
-        - Option # renamed constructor
         - Type
     OpenMS::LPWrapper:
         - Type
@@ -488,8 +479,6 @@ PyOpenMSChecker:
         # attributes
         - abundances
         - total_abundances
-    OpenMS::PILISCrossValidation::Peptide:
-        - Peptide
     OpenMS::MassTrace:
         - MassTrace
 
@@ -899,6 +888,10 @@ PyOpenMSChecker:
     # renamed classes (they exist but under a different name)
     - OpenMS::PeakShape::Type
     - OpenMS::ResidueModification::Term_Specificity
+    - OpenMS::ControlledVocabulary::CVTerm
+    - OpenMS::MZTrafoModel::MODELTYPE
+    - OpenMS::ControlledVocabulary::CVTerm::XRefType
+    - OpenMS::PeakShape
 
     # rarely used classes
     - OpenMS::WeightWrapper

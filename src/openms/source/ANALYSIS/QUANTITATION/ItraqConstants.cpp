@@ -70,7 +70,7 @@ namespace OpenMS
     {0.27, 7.44, 0.18, 0.00}    //121
   };
 
-  //taken from ThermoFischer Scientific
+  //taken from ThermoFisher Scientific
   // http://www.piercenet.com/coapdfs/CofA-90064-SPECS.pdf
   const double ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX[6][4] =
   {

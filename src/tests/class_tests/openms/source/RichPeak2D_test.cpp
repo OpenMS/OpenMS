@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -79,6 +79,14 @@ START_SECTION((RichPeak2D(const Peak2D &p)))
 	TEST_REAL_SIMILAR(copy_of_p.getIntensity(), 123.456f)
 END_SECTION		
 		
+START_SECTION((explicit RichPeak2D(const PositionType& pos, const IntensityType in)))
+  RichPeak2D p(RichPeak2D::PositionType(21.21, 22.22), 123.456f);
+  RichPeak2D copy_of_p(p);
+  TEST_REAL_SIMILAR(copy_of_p.getIntensity(), 123.456)
+  TEST_REAL_SIMILAR(copy_of_p.getPosition()[0], 21.21)
+  TEST_REAL_SIMILAR(copy_of_p.getPosition()[1], 22.22)
+END_SECTION
+
 START_SECTION((RichPeak2D& operator=(const RichPeak2D &rhs)))
 	RichPeak2D p;
 	p.setIntensity(123.456f);

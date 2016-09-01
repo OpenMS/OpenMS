@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
@@ -36,9 +36,7 @@
 #include <OpenMS/CHEMISTRY/PepIterator.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/FORMAT/FastaIterator.h>
-#include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
 #include <OpenMS/FORMAT/FastaIteratorIntern.h>
-#include <OpenMS/CHEMISTRY/EdwardsLippertIteratorTryptic.h>
 #include <OpenMS/CHEMISTRY/TrypticIterator.h>
 
 namespace OpenMS
@@ -61,8 +59,6 @@ namespace OpenMS
   void PepIterator::registerChildren()
   {
     //register new products here
-    Factory<PepIterator>::registerProduct(EdwardsLippertIterator::getProductName(), &EdwardsLippertIterator::create);
-    Factory<PepIterator>::registerProduct(EdwardsLippertIteratorTryptic::getProductName(), &EdwardsLippertIteratorTryptic::create);
     Factory<PepIterator>::registerProduct(FastaIterator::getProductName(), &FastaIterator::create);
     Factory<PepIterator>::registerProduct(FastaIteratorIntern::getProductName(), &FastaIteratorIntern::create);
     Factory<PepIterator>::registerProduct(TrypticIterator::getProductName(), &TrypticIterator::create);

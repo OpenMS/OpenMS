@@ -71,7 +71,7 @@ include(doxygen/parameters/executables.cmake)
 set(OPENMS_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 
-# check wether OpenMS_GUI is available or not
+# check whether OpenMS_GUI is available or not
 set(_doc_progs_include )
 set(_doc_progs_link_libraries )
 if(WITH_GUI)
@@ -105,7 +105,7 @@ if(WITH_GUI)
 endif()
 
 #------------------------------------------------------------------------------
-# Intialize variables needed for a proper doxygen configuration
+# Initialize variables needed for a proper doxygen configuration
 #------------------------------------------------------------------------------
 set(CF_OPENMS_BIN_PATH ${PROJECT_BINARY_DIR})
 set(CF_OPENMS_SRC_PATH ${OPENMS_HOST_DIRECTORY})
@@ -139,7 +139,8 @@ if (DOXYGEN_FOUND)
   #------------------------------------------------------------------------------
   # doc paths (bin path, topp documenter, defaultparamhandler documenter)
   #------------------------------------------------------------------------------
-	if(NOT MSVC)
+	## Checks for Multiconfiguration generators like MSVC or XCode
+        if(NOT CMAKE_CONFIGURATION_TYPES)
 		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
 		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
 		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
@@ -206,7 +207,7 @@ if (DOXYGEN_FOUND)
   add_custom_target(doc_class_only
                     ${_DOC_HTML_CODE}
                     COMMAND ${CMAKE_COMMAND} -E echo "NOTE: The algorithm/TOPP parameter documentation was not generated/updated."
-                    COMMAND ${CMAKE_COMMAND} -E echo "      You will only see updates to the class documetation/doxygen files."
+                    COMMAND ${CMAKE_COMMAND} -E echo "      You will only see updates to the class documentation/doxygen files."
                     COMMAND ${CMAKE_COMMAND} -E echo "      To build the full documentation execute the doc target."
                     VERBATIM)
 

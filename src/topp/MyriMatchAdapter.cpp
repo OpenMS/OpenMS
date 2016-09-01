@@ -506,7 +506,7 @@ protected:
     search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("MaxMissedCleavages");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
-    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_mass_tolerance_unit") == "ppm" ? true : false;
     protein_identifications[0].setSearchParameters(search_parameters);

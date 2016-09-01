@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -135,6 +135,12 @@ public:
     Peak2D() :
       position_(),
       intensity_(0)
+    {}
+
+    /// Member constructor
+    explicit Peak2D(const PositionType& pos, const IntensityType in) :
+      position_(pos),
+      intensity_(in)
     {}
 
     /// Copy constructor
@@ -355,7 +361,7 @@ public:
 protected:
 
     /// The data point position
-    PositionType    position_;
+    PositionType position_;
     /// The data point intensity
     IntensityType intensity_;
   };

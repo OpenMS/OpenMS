@@ -11,21 +11,16 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         # Cannot get ModificationsDB since its constructor and destructor is private ... 
         # POINTER # ModificationsDB * getInstance() nogil except +
         Size getNumberOfModifications() nogil except +
-        ResidueModification  getModification(Size index) nogil except +
-        # NAMESPACE # # POINTER # void searchTerminalModifications(libcpp_set[ ResidueModification * ] & mods, String & name, ResidueModification::Term_Specificity term_spec) nogil except +
-        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & orgin, String & mod_name, ResidueModification::Term_Specificity term_spec) nogil except +
-        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & mod_name, ResidueModification::Term_Specificity term_spec) nogil except +
-        ResidueModification getTerminalModification(String & name, Term_Specificity term_spec) nogil except +
-        ResidueModification getModification(String & residue_name, String & mod_name, Term_Specificity term_spec) nogil except +
-        ResidueModification getModification(String & modification) nogil except +
+        ResidueModification getModification(Size index) nogil except +
+        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & mod_name, String & residue, ResidueModification::TermSpecificity term_spec) nogil except +
+        ResidueModification getModification(String & mod_name, String & residue, TermSpecificity term_spec) nogil except +
         Size findModificationIndex(String & mod_name) nogil except +
-        void getTerminalModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error, Term_Specificity term_spec) nogil except +
-        void getModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error) nogil except +
-        void getModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, String & residue, double mass, double error) nogil except +
+        void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error, String & residue, TermSpecificity term_spec) nogil except +
         void readFromOBOFile(String & filename) nogil except +
         void readFromUnimodXMLFile(String & filename) nogil except +
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
+        bool has(String modification) nogil except +
 
-        # POINTER # ResidueModification * getBestModificationsByMonoMass(String residue, double mass, double max_error) nogil except +
-        # POINTER # ResidueModification * getBestModificationsByDiffMonoMass(String residue, double mass, double max_error) nogil except +
+        # POINTER # ResidueModification * getBestModificationByMonoMass(double mass, double max_error, String & residue, TermSpecificity term_spec) nogil except +
+        # POINTER # ResidueModification * getBestModificationByDiffMonoMass(double mass, double max_error, String & residue, TermSpecificity term_spec) nogil except +
 

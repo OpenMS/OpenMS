@@ -330,12 +330,14 @@ namespace OpenMS
     // we do not support moving the path while OpenMS is running
     if (path_checked) return path;
 
+    String found_path_from;
     bool from_env(false);
     if (getenv("OPENMS_DATA_PATH") != 0)
     {
       path = getenv("OPENMS_DATA_PATH");
       from_env = true;
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
     }
 
     // probe the install path
@@ -343,6 +345,7 @@ namespace OpenMS
     {
       path = OPENMS_INSTALL_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
     }
 
     // probe the OPENMS_DATA_PATH macro
@@ -350,6 +353,7 @@ namespace OpenMS
     {
       path = OPENMS_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
     }
 
 #if defined(__APPLE__)
@@ -360,6 +364,7 @@ namespace OpenMS
     {
       path = getExecutablePath() + "../../../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "bundle path (run time)";
     }
 
     // #2 the TOPP tool
@@ -367,6 +372,7 @@ namespace OpenMS
     {
       path = getExecutablePath() + "../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "tool path (run time)";
     }
 #endif
 
@@ -378,7 +384,8 @@ namespace OpenMS
       std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
       if (from_env)
       {
-        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << path << "', which is incorrect!\n";
+        String p = getenv("OPENMS_DATA_PATH");
+        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
       }
 #ifdef OPENMS_WINDOWSPLATFORM
       String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
@@ -389,13 +396,18 @@ namespace OpenMS
       std::cerr << "Exiting now.\n";
       exit(1);
     }
+    else
+    {
+      std::cout << "OpenMS data path ('" << path << "') retrieved from " << found_path_from << "." << std::endl;
+    }
 
     return path;
   }
 
   bool File::isOpenMSDataPath_(const String& path)
   {
-    return exists(path + "/CHEMISTRY/Elements.xml");
+    bool found = exists(path + "/CHEMISTRY/Elements.xml");
+    return found;
   }
 
   String File::removeExtension(const OpenMS::String& file)
@@ -462,10 +474,10 @@ namespace OpenMS
     return full_db_name;
   }
 
-  Param File::getSystemParameters()
+  String File::getOpenMSHomePath()
   {
-    // set path where OpenMS.ini is found from environment or use default
     String home_path;
+    // set path where OpenMS.ini is found from environment or use default
     if (getenv("OPENMS_HOME_PATH") != 0)
     {
       home_path = getenv("OPENMS_HOME_PATH");
@@ -474,6 +486,12 @@ namespace OpenMS
     {
       home_path = String(QDir::homePath());
     }
+    return home_path;
+  }
+
+  Param File::getSystemParameters()
+  {
+    String home_path = File::getOpenMSHomePath();
 
     String filename = home_path + "/.OpenMS/OpenMS.ini";
 
@@ -573,5 +591,40 @@ namespace OpenMS
 
     throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, toolName);
   }
+
+  const String& File::getTemporaryFile(const String& alternative_file)
+  {
+    // take no action
+    if (!alternative_file.empty()) return alternative_file;
+
+    // create temporary (and schedule for deletion)
+    return temporary_files_.newFile();
+  }
+
+
+  File::TemporaryFiles_::TemporaryFiles_()
+    : filenames_()
+  {
+  }
+
+  const String& File::TemporaryFiles_::newFile()
+  {
+    String s = getTempDirectory().ensureLastChar('/') + getUniqueName();
+    filenames_.push_back(s);
+    return filenames_.back();
+  }
+
+  File::TemporaryFiles_::~TemporaryFiles_()
+  {
+    for (Size i = 0; i < filenames_.size(); ++i)
+    {
+      if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 
+      {
+        std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
+      }
+    }
+  }
+
+  File::TemporaryFiles_ File::temporary_files_;
 
 } // namespace OpenMS

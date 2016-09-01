@@ -176,13 +176,13 @@ private:
       MzIdentMLDOMHandler(const MzIdentMLDOMHandler& rhs);
       MzIdentMLDOMHandler& operator=(const MzIdentMLDOMHandler& rhs);
 
-
-
+      ///Struct to hold the used analysis software for that file
       struct AnalysisSoftware
       {
         String name;
         String version;
       };
+      ///Struct to hold the PeptideEvidence information
       struct PeptideEvidence
       {
         int start;
@@ -191,6 +191,7 @@ private:
         char post;
         bool idec;
       };
+      ///Struct to hold the information from the DBSequence xml tag
       struct DBSequence
       {
         String sequence;
@@ -198,6 +199,7 @@ private:
         String accession;
         CVTermList cvs;
       };
+      ///Struct to hold the information from the SpectrumIdentification xml tag
       struct SpectrumIdentification
       {
         String spectra_data_ref;
@@ -205,6 +207,7 @@ private:
         String spectrum_identification_protocol_ref;
         String spectrum_identification_list_ref;
       };
+      ///Struct to hold the information from the ModificationParam xml tag
       struct ModificationParam
       {
         String fixed_mod;
@@ -213,6 +216,7 @@ private:
         CVTermList modification_param_cvs;
         CVTermList specificities;
       };
+      ///Struct to hold the information from the SpectrumIdentificationProtocol xml tag
       struct SpectrumIdentificationProtocol
       {
         CVTerm searchtype;
@@ -226,6 +230,7 @@ private:
         CVTermList threshold_cvs;
         std::map<String, DataValue> threshold_ups;
       };
+      ///Struct to hold the information from the DatabaseInput xml tag
       struct DatabaseInput
       {
         String name;
@@ -234,9 +239,9 @@ private:
         DateTime date;
       };
 
-      XMLCh* TAG_root;
-      XMLCh* TAG_CV;
-      XMLCh* ATTR_name;
+      XMLCh* xml_root_tag_ptr_;
+      XMLCh* xml_cvparam_tag_ptr_;
+      XMLCh* xml_name_attr_ptr_;
 
       xercesc::XercesDOMParser mzid_parser_;
 

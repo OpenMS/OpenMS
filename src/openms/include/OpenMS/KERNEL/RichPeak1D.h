@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -65,6 +65,12 @@ public:
     inline RichPeak1D(const RichPeak1D & p) :
       Peak1D(p),
       MetaInfoInterface(p)
+    {}
+
+    /// construct with position and intensity
+    inline explicit RichPeak1D(PositionType a, IntensityType b) :
+      Peak1D(a, b),
+      MetaInfoInterface()
     {}
 
     /// Destructor

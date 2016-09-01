@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -226,41 +226,59 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_SIMILAR(it->getMZ(),25);
 END_SECTION
 
-START_SECTION((template <class Container> void set2DData(const Container& cont)))
+START_SECTION((template <class Container> void set2DData(const Container& cont, const StringList& store_metadata_names = StringList())))
    NOT_TESTABLE // tested below
 END_SECTION
 
-START_SECTION((template <bool add_mass_traces, class Container> void set2DData(const Container& cont)))
+START_SECTION((template <bool add_mass_traces, class Container> void set2DData(const Container& cont, const StringList& store_metadata_names = StringList())))
 	MSExperiment<> exp;
 
 	// create sample data
 	std::vector<Peak2D> input;
 
-	Peak2D p1;
-	p1.setIntensity(1.0f);
-	p1.setRT(2.0);
-	p1.setMZ(3.0);
+	Peak2D p1(Peak2D::PositionType(2.0, 3.0), 1.0);
 	input.push_back(p1);
 
-	Peak2D p2;
-	p2.setIntensity(4.0f);
-	p2.setRT(5.0);
-	p2.setMZ(6.0);
+	Peak2D p2(Peak2D::PositionType(5.0, 6.0), 4.0);
 	input.push_back(p2);
 
-	Peak2D p3;
-	p3.setIntensity(7.5f);
-	p3.setRT(8.5);
-	p3.setMZ(9.5);
+	Peak2D p3(Peak2D::PositionType(8.5, 9.5), 7.5);
 	input.push_back(p3);
 
 	exp.set2DData(input);
 
 	// retrieve data again and check for changes
-	std::vector< Peak2D> output;
+	std::vector<Peak2D> output;
 
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
+  
+  //////////////////////////////////////////////////////////////////////////
+  // test if meta values are added as floatDataArrays in MSSpectra
+  std::vector<RichPeak2D> inputr;
+
+  RichPeak2D pr1(RichPeak2D::PositionType(2.0, 3.0), 1.0);
+  pr1.setMetaValue("meta1", 111.1);
+  inputr.push_back(pr1);
+  RichPeak2D pr2(RichPeak2D::PositionType(5.0, 6.0), 4.0);
+  inputr.push_back(pr2);
+  RichPeak2D pr3(RichPeak2D::PositionType(8.5, 9.5), 7.5);
+  pr3.setMetaValue("meta3", 333.3);
+  inputr.push_back(pr3);
+  
+  // create float data arrays for these two meta values (missing values in data will be set to NaN)
+  exp.set2DData(inputr, ListUtils::create<String>("meta1,meta3"));
+  TEST_EQUAL(exp.getNrSpectra(), 3);
+  // retrieve data again and check for changes
+  std::vector<Peak2D> outputr;
+  exp.get2DData(outputr);
+  TEST_EQUAL(outputr==input, true); // we compare to non-meta output, since floatdata is not converted back to metavalues
+  // check for meta data
+  TEST_EQUAL(exp[0].getFloatDataArrays().size(), 2);
+  TEST_EQUAL(exp[0].getFloatDataArrays()[0][0], 111.1);
+  TEST_EQUAL(exp[1].getFloatDataArrays().size(), 2); // present but all NaN
+  TEST_EQUAL(exp[2].getFloatDataArrays().size(), 2);
+  TEST_EQUAL(exp[2].getFloatDataArrays()[1][0], 333.3);
 
   ///////////////////////////////////////
   // test adding of mass traces

@@ -53,17 +53,14 @@ namespace OpenMS
   /**
     @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
 
-    PeptideIdentification instances are grouped by sequence of the respective best-scoring
-    PeptideHit (provided the score is good enough) and retention time data is collected from the
-    "RT" MetaInfo entries.	ID groups with the same sequence in different maps represent points of
-    correspondence between the maps and form the basis of the alignment.
+    PeptideIdentification instances are grouped by sequence of the respective best-scoring PeptideHit and retention time data is collected (PeptideIdentification::getRT()).
+    ID groups with the same sequence in different maps represent points of correspondence between the maps and form the basis of the alignment.
 
-    Each map is aligned to a reference retention time scale. This time scale can either come from a
-    reference file (@p reference parameter) or be computed as a consensus of the input maps (median
-    retention times over all maps of the ID groups). The maps are then aligned to this scale as
-    follows:\n
-    The median retention time of each ID group in a map is mapped to the reference retention time of
-    this group. Cubic spline smoothing is used to convert this mapping to a smooth function.
+    Each map is aligned to a reference retention time scale.
+    This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
+    The maps are then aligned to this scale as follows:\n
+    The median retention time of each ID group in a map is mapped to the reference retention time of this group.
+    Cubic spline smoothing is used to convert this mapping to a smooth function.
     Retention times in the map are transformed to the consensus scale by applying this function.
 
     @htmlinclude OpenMS_MapAlignmentAlgorithmIdentification.parameters
@@ -71,7 +68,7 @@ namespace OpenMS
     @ingroup MapAlignment
   */
   class OPENMS_DLLAPI MapAlignmentAlgorithmIdentification :
-    public DefaultParamHandler, 
+    public DefaultParamHandler,
     public ProgressLogger
   {
 public:
@@ -102,7 +99,7 @@ public:
       @param transformations Vector of RT transformations that will be computed.
     */
     template <typename DataType>
-    void align(std::vector<DataType>& data, 
+    void align(std::vector<DataType>& data,
                std::vector<TransformationDescription>& transformations,
                Int reference_index = -1)
     {
@@ -117,7 +114,7 @@ public:
         if (reference_index >= data.size())
         {
           throw Exception::IndexOverflow(__FILE__, __LINE__,
-                                         __PRETTY_FUNCTION__, reference_index, 
+                                         __PRETTY_FUNCTION__, reference_index,
                                          data.size());
         }
         setReference(data[reference_index]);
@@ -128,7 +125,7 @@ public:
       bool all_sorted = true;
       for (Size i = 0, j = 0; i < data.size(); ++i)
       {
-        if (reference_index >= 0 && i == (Size)reference_index) 
+        if ((reference_index >= 0) && (i == Size(reference_index)))
         {
           continue; // skip reference map, if any
         }
@@ -153,12 +150,9 @@ protected:
 
     /// Index of input file to use as reference (if any)
     Int reference_index_;
-    
+
     /// Reference retention times (per peptide sequence)
     SeqToValue reference_;
-
-    /// Score threshold for peptide hits
-    double score_threshold_;
 
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
@@ -175,15 +169,12 @@ protected:
     void computeMedians_(SeqToList& rt_data, SeqToValue& medians,
                          bool sorted = false);
 
-    /// Check if peptide ID contains a hit that passes the significance threshold @p score_threshold_ (list of peptide hits will be sorted)
-    bool hasGoodHit_(PeptideIdentification& peptide);
-
     /**
       @brief Collect retention time data ("RT" MetaInfo) from peptide IDs
 
       @param peptides Input peptide IDs (lists of peptide hits will be sorted)
       @param rt_data Lists of RT values for diff. peptide sequences (output)
-      
+
       @return Are the RTs already sorted? (Here: false)
     */
     bool getRetentionTimes_(std::vector<PeptideIdentification>& peptides,
@@ -223,24 +214,25 @@ protected:
           // find the peptide ID closest in RT to the feature centroid:
           String sequence;
           double rt_distance = std::numeric_limits<double>::max();
-          bool any_good_hit = false;
+          bool any_hit = false;
           for (std::vector<PeptideIdentification>::iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {
-            if (hasGoodHit_(*pep_it))
+            if (!pep_it->getHits().empty())
             {
-              any_good_hit = true;
+              any_hit = true;
               double current_distance = abs(pep_it->getRT() - feat_it->getRT());
               if (current_distance < rt_distance)
               {
+                pep_it->sort();
                 sequence = pep_it->getHits()[0].getSequence().toString();
                 rt_distance = current_distance;
               }
             }
           }
 
-          if (any_good_hit) rt_data[sequence].push_back(feat_it->getRT());
+          if (any_hit) rt_data[sequence].push_back(feat_it->getRT());
         }
         else
         {
@@ -248,7 +240,7 @@ protected:
         }
       }
 
-      if (!use_feature_rt && 
+      if (!use_feature_rt &&
           param_.getValue("use_unassigned_peptides").toBool())
       {
         getRetentionTimes_(features.getUnassignedPeptideIdentifications(),

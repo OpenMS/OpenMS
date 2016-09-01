@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -264,9 +264,6 @@ protected:
     TOOLSTATUS status_;
     /// tool initialization status: if C'tor was successful in finding the TOPP tool, this is set to 'true'
     bool tool_ready_;
-
-    /// UID for output files
-    static UInt uid_;
 
     /// Breakpoint set?
     bool breakpoint_set_;

@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -145,16 +146,13 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
+    IndexedMzMLFileLoader loader; 
+
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
-    OnDiscMSExperiment<> exp(in);
-    /*
-    MSExperiment<Peak1D> ms_exp_raw;
-    mz_data_file.load(in, ms_exp_raw);
-    */
+    OnDiscMSExperiment<> exp;
+    loader.load(in, exp);
 
     // We could write out this warning in the constructor if no spectra have come our way ...
     /*
@@ -223,6 +221,8 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
+    MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
     mz_data_file.store(out, ms_exp_peaks);
 
     return EXECUTION_OK;

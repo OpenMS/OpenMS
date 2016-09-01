@@ -62,7 +62,8 @@
 
   <b>Signal Processing and Preprocessing</b>
   - @subpage TOPP_BaselineFilter - Removes the baseline from profile spectra using a top-hat filter.
-  - @subpage TOPP_InternalCalibration - Applies an internal calibration.
+  - @subpage TOPP_InternalCalibration - Applies an internal mass calibration.
+  - @subpage TOPP_ExternalCalibration - Applies an external mass calibration.
   - @subpage TOPP_MapNormalizer - Normalizes peak intensities in an MS run.
   - @subpage TOPP_MassTraceExtractor - Annotates mass traces in centroided LC-MS maps.
   - @subpage TOPP_NoiseFilterGaussian - Removes noise from profile spectra by using different smoothing techniques.
@@ -70,7 +71,7 @@
   - @subpage TOPP_PeakPickerHiRes - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PeakPickerWavelet - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage TOPP_PrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
-  - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans.
+  - @subpage TOPP_HighResPrecursorMassCorrector - Correct the precursor entries of tandem MS scans for high resolution data.
   - @subpage TOPP_Resampler - Transforms an LC-MS map into an equally-spaced (in RT and m/z) map.
   - @subpage TOPP_SpectraFilterBernNorm - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterMarkerMower - Applies a filter to peak spectra.
@@ -82,7 +83,7 @@
   - @subpage TOPP_SpectraFilterThresholdMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraFilterWindowMower - Applies a filter to peak spectra.
   - @subpage TOPP_SpectraMerger - Merges spectra from an LC-MS map, either by precursor or by RT blocks
-  - @subpage TOPP_TOFCalibration - Applies time of flight calibration.
+  - @subpage TOPP_TOFCalibration - Applies time of flight mass calibration.
 
   <b>Quantitation</b>
   - @subpage TOPP_AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples.
@@ -96,6 +97,7 @@
   - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc.) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from a MS experiment.
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
+  - @subpage TOPP_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
@@ -137,12 +139,6 @@
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
   - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
-<!--  %% removed from Docu (still available in TOPP) because of operability
-- @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISModelCV - Perform a cross validation of the PILIS model parameters
-- @subpage TOPP_PILISModelTrainer - Train the PILIS model using a given set of spectra and identifications.
-- @subpage TOPP_PILISSpectraGenerator - Generate spectra given a list of peptides and a PILIS model
--->
 
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.

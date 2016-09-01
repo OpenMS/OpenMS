@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Johannes Junker, Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -52,11 +53,18 @@
 
 #include <iostream>
 
+#if  defined(__APPLE__)
+  #include <QCoreApplication.h> // needed to disable plugin loading on Mac OSX
+#endif
+
 #include <QDir>
 #include <QFile>
-#include <QCoreApplication>
 
 #include <boost/math/special_functions/fpclassify.hpp>
+
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -71,9 +79,10 @@
 #include <cmath>
 
 using namespace std;
-
+  
 namespace OpenMS
 {
+
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
@@ -386,6 +395,18 @@ namespace OpenMS
       // initialize the random generator as early as possible!
       UniqueIdGenerator::setSeed(19991231235959);
     }
+
+    // enable / disable collection of usage statistics by build variable
+#ifdef ENABLE_USAGE_STATISTICS
+    // disable collection of usage statistics if environment variable is present
+    char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
+ 
+    // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
+    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
+    {
+      UpdateCheck::run(tool_name_, version_);
+    }
+#endif
 
     //-------------------------------------------------------------
     // determine and open the real log file
@@ -1139,11 +1160,11 @@ namespace OpenMS
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, default_value, description, required, advanced));
   }
 
-  void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
-    if (required && default_value.size() > 0)
+    if (required && default_value.size() > 0 && !ListUtils::contains(tags, "skipexists"))
       throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced));
+    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced, tags));
   }
 
   void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
@@ -2289,7 +2310,7 @@ namespace OpenMS
       // morph to ctd format
       QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      lines.insert(1, QString("<tool version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
+      lines.insert(1, QString("<tool ctdVersion=\"1.7\" version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
       lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");

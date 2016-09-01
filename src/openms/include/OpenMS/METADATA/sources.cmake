@@ -7,6 +7,7 @@ Acquisition.h
 AcquisitionInfo.h
 CVTerm.h
 CVTermList.h
+CVTermListInterface.h
 ChromatogramSettings.h
 ContactPerson.h
 DataProcessing.h

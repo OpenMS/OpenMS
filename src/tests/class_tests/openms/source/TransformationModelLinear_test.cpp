@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser, Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -92,7 +92,11 @@ START_SECTION((void getParameters(Param & params) const))
   Param p_in;
   p_in.setValue("symmetric_regression", "true");
   TransformationModelLinear lm(data, p_in);
-  TEST_EQUAL(lm.getParameters(), p_in);
+  Param p_out = p_in;
+  p_out.setValue("slope", 0.5);
+  p_out.setValue("intercept", 1.75);
+
+  TEST_EQUAL(lm.getParameters(), p_out);
   p_in.clear();
   p_in.setValue("slope", 12.3);
   p_in.setValue("intercept", -45.6);

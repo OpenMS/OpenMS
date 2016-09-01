@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -46,8 +46,8 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.6"), 
-    XMLFile("/SCHEMAS/ConsensusXML_1_6.xsd", "1.6"), 
+    XMLHandler("", "1.7"), 
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
     ProgressLogger(), 
     consensus_map_(0), 
     act_cons_element_(), 
@@ -360,7 +360,7 @@ namespace OpenMS
       String peak_unit;
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
-      search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      search_param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       String precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
@@ -419,6 +419,14 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
 
       //sequence
       String tmp = "";
@@ -683,7 +691,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("UserParam", os, consensus_map, 1);
@@ -737,7 +745,7 @@ namespace OpenMS
       String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" ";
+         << "precursor_peak_tolerance=\"" << search_param.precursor_mass_tolerance << "\" ";
       os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
       os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
       os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
@@ -777,6 +785,13 @@ namespace OpenMS
 
         os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+        
+        double coverage = current_prot_id.getHits()[j].getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          os << " coverage=\"" << coverage << "\"";
+        }
+        
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);

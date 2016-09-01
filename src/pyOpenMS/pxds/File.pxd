@@ -59,6 +59,8 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Returns the OpenMS data path (environment variable overwrites the default installation path)
     String getOpenMSDataPath() nogil except + # wrap-attach:File
 
+    String getOpenMSHomePath() nogil except + # wrap-attach:File
+
     # The current OpenMS temporary data path (for temporary files)
     String getTempDirectory() nogil except + # wrap-attach:File
 
@@ -76,6 +78,8 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
 
     # Searchs for an executable with the given name.
     String findExecutable(String toolName) nogil except + # wrap-attach:File
+
+    String getTemporaryFile(String & alternative_file) nogil except + # wrap-attach:File
 
     # Resolves a partial file name to a documentation file in the doc-folder.
     String findDoc(String filename) nogil except + # wrap-attach:File

@@ -11,6 +11,8 @@ Freie
 Eberhard
 Karls
 ETH
+Hoenggerberg
+IMSB
 Universitaet
 Lund
 MERCHANTABILITY
@@ -127,6 +129,10 @@ Lennart
 Ralf
 Nicolai
 Ivar
+Ruedi
+Aebersold
+Witold
+Wolski
 # }}}
 
 ###################################
@@ -141,12 +147,6 @@ functors
 MSVC
 Quantitation
 recomputation
-SpectraClustering
-SpectraFilter
-Struct
-Typedefs
-UniMod
-consensusXML
 datapoint
 datastructures
 Hiwi
@@ -159,32 +159,18 @@ DeNovo
 Jacobian
 Namespace
 functor
-idXML
 ifndef
-OpenSWATH
 reimplement
 SignalProcessing
 SpectraPreprocessers
 c'tor
 plex
-SpectrumWidgets
-TOPPView
-Witold
-Wolski
-SpectraComparison
 quantitation
-Hoenggerberg
-IMSB
-Ruedi
-Aebersold
 br
 ns
 STL
 Datastructures
 todo
-Metadata
-FileIO
-Destructors
 Docu
 # }}}
 
@@ -443,6 +429,9 @@ Meinicke
 Scherbart
 Tholey
 Faires
+Fohlman
+Roepstoff
+Gutenbrunner
 # }}}
 
 ###################################
@@ -759,6 +748,14 @@ SequenceCollection
 spectradata
 XSValue
 
+PILIS
+DecoyDatabase
+PeptideIndexer
+RTPredict
+PeptideIndexer
+passesWhitelist
+SavitzkyGolay
+
 # }}}
 
 ###################################
@@ -784,6 +781,8 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+Struct
+Typedefs
 FHWM
 datasets
 Fortran
@@ -1180,10 +1179,31 @@ XTandemXML
 mzIdentML
 MzML
 mzQuantML
+SpectraClustering
+SpectraFilter
+UniMod
+consensusXML
+idXML
+OpenSWATH
+SpectrumWidgets
+TOPPView
+SpectraComparison
+Metadata
+FileIO
+Destructors
 
 Askenazi
 Savitski
 Sweetman
+
+MAAAR
+AAAR
+PEPTLDE
+SNP
+YEHR
+SSK
+CRTP
+VLSEEEIDDNFK
 # }}}
 
 ###################################
@@ -1191,6 +1211,7 @@ Sweetman
 ###################################
 prepended
 thresholding
+vivo
 silico
 combinatoric
 crosscorrelation
@@ -1748,9 +1769,36 @@ tmpnam
 BinaryTreeNode's
 console's
 alphabetMass
+
+Uncharacterized
+lipop
+cspline
+overdesigning
+peptidoforms
+physicochemically
+metabolomics
 # }}}
 
 # {{{ Variable names and abbreviations
+
+refactoring
+plugin
+arctan
+miscleavages
+numerics
+undef
+amax
+ifix
+lstsq
+RATFOR
+ratfor
+refactored
+robustifying
+Templated
+userw
+x's
+Vandermonde
+pushback
 
 vigintile
 cutil
@@ -1762,7 +1810,6 @@ avalue
 bvalue
 lwidth
 rwidth
-egde
 leftside
 rightside
 sufArray

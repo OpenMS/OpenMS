@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
@@ -70,10 +70,10 @@ namespace OpenSwath
 
   bool TransitionHelper::findPeptide(const LightTargetedExperiment& lte,
                                      const std::string& peptideRef,
-                                     LightPeptide& pep)
+                                     LightCompound& pep)
   {
-    std::vector<LightPeptide>::const_iterator beg = lte.peptides.begin();
-    std::vector<LightPeptide>::const_iterator end = lte.peptides.end();
+    std::vector<LightCompound>::const_iterator beg = lte.compounds.begin();
+    std::vector<LightCompound>::const_iterator end = lte.compounds.end();
     for (; beg != end; ++beg)
     {
       //std::cout << beg->id << " " << peptideRef << std::endl;

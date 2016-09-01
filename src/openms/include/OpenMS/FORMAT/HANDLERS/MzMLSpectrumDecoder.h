@@ -154,7 +154,7 @@ namespace OpenMS
     */
     void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr);
 
-    ///sets whether to skip some XML checks and be fast instead
+    ///whether to skip some XML checks and be fast instead
     void setSkipXMLChecks(bool only);
   };
 }
