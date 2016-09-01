@@ -27,6 +27,33 @@ If you feel uncomfortable with this you can disable the update/usage tracking by
 
 Notable changes are:
 
+File formats:
+  - Improved mzIdentML support (experimental)
+  - Improved pepXML support
+  - Improved support for indexed mzML files
+  - Improved TraML support
+
+Tools with major changes:
+  - InternalCalibration:
+    - supports calibration using a table of lock masses and peptide ids.
+    - global or RT-chunked calibration
+    - linear & quadratic models (with intensity weighting)
+    - outlier removal via RANSAC
+    - reoccuring calibrations can be quickly applied to other files using the novel ExternalCalibration tool
+  - OpenSwathWorkflow
+    - support for metabolites / small molecules
+  - MapAlignerIdentification
+    - support for "lowess" transformation model
+  - AccurateMassSearch:
+    - support for multiple databases
+  - FeatureFinderMetabo
+    - 13C-12C isotope spacing model for carbon rich molecules (e.g. lipids)
+  - PeakPickerHiRes:
+    - support for FWHM annotation
+  - MassTraceExtractor:
+    - support for FWHM annotation
+    
+
 Added tools:
   - ExternalCalibration -- Applies an external mass recalibration (TOPP)
   - OpenSwathFileSplitter -- Splits SWATH files into n files, each containing one window (TOPP)
