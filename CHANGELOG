@@ -47,12 +47,9 @@ Tools with major changes:
   - AccurateMassSearch:
     - support for multiple databases
   - FeatureFinderMetabo
-    - 13C-12C isotope spacing model for carbon rich molecules (e.g. lipids)
-  - PeakPickerHiRes:
+    - isotope spacing model for carbon rich molecules (e.g. lipids)
+  - PeakPickerHiRes and MassTraceExtractor:
     - support for FWHM annotation
-  - MassTraceExtractor:
-    - support for FWHM annotation
-    
 
 Added tools:
   - ExternalCalibration -- Applies an external mass recalibration (TOPP)
@@ -68,6 +65,11 @@ Removed tools:
 
 Databases:
   - By default, decoy sequences are now denoted by a prefix 'DECOY_'.
+
+Third-party software:
+  - update for X!Tandem VENGEANCE (2015.12.15)
+  - update for MSGFPlus (20160629)
+  - update for pwiz 3.0.9935
 
 Changed tool parameters:
 
