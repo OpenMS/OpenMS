@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 

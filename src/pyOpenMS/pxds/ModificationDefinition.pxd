@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         ModificationDefinition() nogil except +
         ModificationDefinition(ModificationDefinition) nogil except +
         ModificationDefinition(String &mod) nogil except +
-        # void setTermSpecificity(ResidueModification::Term_Specificity pos) nogil except +
-        # ResidueModification::Term_Specificity getTermSpecificity() nogil except +
+        # void setTermSpecificity(ResidueModification::TermSpecificity pos) nogil except +
+        # ResidueModification::TermSpecificity getTermSpecificity() nogil except +
         void setFixedModification(bool fixed) nogil except +
         bool isFixedModification() nogil except +
         void setMaxOccurences(UInt num) nogil except +
@@ -21,5 +21,5 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         bool operator!=(ModificationDefinition &rhs) nogil except +
         bool operator<(ModificationDefinition &) nogil except +
 
-        void setTermSpecificity(Term_Specificity pos) nogil except +
-        Term_Specificity getTermSpecificity() nogil except +
+        void setTermSpecificity(TermSpecificity pos) nogil except +
+        TermSpecificity getTermSpecificity() nogil except +

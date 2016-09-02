@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
@@ -57,6 +57,9 @@ namespace OpenMS
 
     defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
     defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
+    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
 
     // advanced parameters
     defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
@@ -93,8 +96,8 @@ namespace OpenMS
   }
 
   void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator& begin,
-                               MSExperiment<Peak1D>::ConstAreaIterator& end, std::vector<MassTrace>&
-                               found_masstraces)
+                               MSExperiment<Peak1D>::ConstAreaIterator& end,
+                               std::vector<MassTrace>& found_masstraces)
   {
     MSExperiment<Peak1D> map;
     MSSpectrum<Peak1D> current_spectrum;
@@ -267,7 +270,7 @@ namespace OpenMS
                                 const Size peak_count, 
                                 const MSExperiment<Peak1D>& work_exp, 
                                 const std::vector<Size>& spec_offsets,
-                                std::vector<MassTrace> & found_masstraces)
+                                std::vector<MassTrace>& found_masstraces)
   {
     // Size min_flank_scans(3);
     boost::dynamic_bitset<> peak_visited(peak_count);
@@ -525,6 +528,7 @@ namespace OpenMS
         new_trace.updateWeightedMeanRT();
         new_trace.updateWeightedMeanMZ();
         if (!fwhms_mz.empty()) new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end());
+        new_trace.setQuantMethod(quant_method_);
 
         //new_trace.setCentroidSD(ftl_sd);
         new_trace.updateWeightedMZsd();
@@ -547,7 +551,7 @@ namespace OpenMS
     mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
     noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
     chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
-    // chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
+    quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
 
     trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion");
     trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");

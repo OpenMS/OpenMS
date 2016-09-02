@@ -178,7 +178,9 @@ namespace OpenMS
           {
             name = name.substr(0, 17) + "...";
           }
-          formula_to_names[ith->getMetaValue("chemical_formula")].push_back(name);
+          String cf = ith->getMetaValue("chemical_formula");
+          if (cf.empty()) continue; // skip unannotated "null" peaks
+          formula_to_names[cf].push_back(name);
         }
         else
         {
@@ -537,9 +539,9 @@ namespace OpenMS
           QString aa_ss;
           for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
           {
-            const Residue & r = aa_sequence.getResidue(j);
+            const Residue& r = aa_sequence.getResidue(j);
             aa_ss.append(r.getOneLetterCode().toQString());
-            if (r.getModification() != "")
+            if (r.isModified())
             {
               aa_ss.append("*");
             }

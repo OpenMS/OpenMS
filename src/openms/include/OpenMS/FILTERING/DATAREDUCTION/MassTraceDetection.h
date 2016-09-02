@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
@@ -115,6 +115,7 @@ private:
     double mass_error_ppm_;
     double noise_threshold_int_;
     double chrom_peak_snr_;
+    MassTrace::MT_QUANTMETHOD quant_method_;
 
     String trace_termination_criterion_;
     Size trace_termination_outliers_;

@@ -128,9 +128,6 @@ class OPENMS_DLLAPI SplineSpectrum
 
       private:
         
-        /// hide default Ctor
-        Navigator();
-
         /**
         * @brief list of spline packages to be accessed
         */

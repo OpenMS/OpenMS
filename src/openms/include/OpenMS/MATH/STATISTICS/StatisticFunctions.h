@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
 #ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H

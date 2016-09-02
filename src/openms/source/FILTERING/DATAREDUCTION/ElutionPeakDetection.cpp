@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -544,7 +544,7 @@ namespace OpenMS
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
-
+          new_mt.setQuantMethod(mt.getQuantMethod());
           if (pw_filtering_ != "fixed")
           {
             new_mt.estimateFWHM(true);

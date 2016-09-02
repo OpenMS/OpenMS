@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher, Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 

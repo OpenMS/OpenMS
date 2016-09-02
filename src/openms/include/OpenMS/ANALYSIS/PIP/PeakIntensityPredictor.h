@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Scherbart $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //

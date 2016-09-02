@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz$
-// $Authors: Guillaume Belz$
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>

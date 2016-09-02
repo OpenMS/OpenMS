@@ -111,7 +111,7 @@ namespace OpenMS
       double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
 
       String orig;
-      ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
+      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
         orig = ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();

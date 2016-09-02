@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -61,21 +61,21 @@ START_SECTION(virtual ~ResidueDB())
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((const Residue* getResidue(const String &name) const))
+START_SECTION((const Residue* getResidue(const String& name) const))
   TEST_EQUAL(ptr->getResidue("C")->getOneLetterCode(), "C")
 END_SECTION
 
-START_SECTION((const Residue* getResidue(const unsigned char & one_letter_code) const))
+START_SECTION((const Residue* getResidue(const unsigned char& one_letter_code) const))
   TEST_EQUAL(ptr->getResidue('C')->getOneLetterCode(), "C")
 END_SECTION
 
-START_SECTION((bool hasResidue(const String &name) const))
+START_SECTION((bool hasResidue(const String& name) const))
   TEST_EQUAL(ptr->hasResidue("BLUBB"), false)
 	TEST_EQUAL(ptr->hasResidue("LYS"), true)
 	TEST_EQUAL(ptr->hasResidue("K"), true)
 END_SECTION
 
-START_SECTION(bool hasResidue(const Residue *residue) const)
+START_SECTION(bool hasResidue(const Residue* residue) const)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("BLUBB")), false)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("LYS")), true)
 	TEST_EQUAL(ptr->hasResidue(ptr->getResidue("K")), true)
@@ -85,19 +85,19 @@ START_SECTION(Size getNumberOfResidues() const)
 	TEST_EQUAL(ptr->getNumberOfResidues() >= 20 , true);
 END_SECTION
 
-START_SECTION(const Residue* getModifiedResidue(const String &name))
+START_SECTION(const Residue* getModifiedResidue(const String& name))
 	const Residue* mod_res = ptr->getModifiedResidue("Oxidation (M)"); // ox methionine
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
+	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
 END_SECTION
 
-START_SECTION(const Residue* getModifiedResidue(const Residue *residue, const String &name))
+START_SECTION(const Residue* getModifiedResidue(const Residue* residue, const String& name))
 	const Residue* mod_res = ptr->getModifiedResidue(ptr->getResidue("M"), "Oxidation (M)");
 	TEST_STRING_EQUAL(mod_res->getOneLetterCode(), "M")
-	TEST_STRING_EQUAL(mod_res->getModification(), "Oxidation")
+	TEST_STRING_EQUAL(mod_res->getModificationName(), "Oxidation")
 END_SECTION
 
-START_SECTION((const std::set<const Residue*> getResidues(const String &residue_set="All") const))
+START_SECTION((const std::set<const Residue*> getResidues(const String& residue_set="All") const))
 	set<const Residue*> residues = ptr->getResidues("All");
 	TEST_EQUAL(residues.size() >= 21, true)
 	residues = ptr->getResidues("Natural20");
@@ -115,11 +115,11 @@ START_SECTION((const std::set<String>& getResidueSets() const))
 END_SECTION
 
 
-START_SECTION(void setResidues(const String &filename))
+START_SECTION(void setResidues(const String& filename))
 	NOT_TESTABLE // this method is hard to test, just provided for convenience
 END_SECTION
-    
-START_SECTION(void addResidue(const Residue &residue))
+
+START_SECTION(void addResidue(const Residue& residue))
 	TEST_EQUAL(ptr->hasResidue("UGU"), false)
 	TEST_EQUAL(ptr->hasResidue("$"), false)
 	TEST_EQUAL(ptr->hasResidue("$hortName"), false)
@@ -148,7 +148,7 @@ START_SECTION(ResidueIterator beginResidue())
 
 	TEST_EQUAL(count >= 22, true)
 END_SECTION
-  
+
 START_SECTION(ResidueIterator endResidue())
 	NOT_TESTABLE // tested above
 END_SECTION
@@ -172,9 +172,9 @@ END_SECTION
 START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
 	const Residue* mod_res = 0;
-  const Residue* mod_res_nullPointer = 0;
+    const Residue* mod_res_nullPointer = 0;
 	mod_res = ptr->getModifiedResidue("Carbamidomethyl (C)");
-  TEST_NOT_EQUAL(mod_res, mod_res_nullPointer)
+    TEST_NOT_EQUAL(mod_res, mod_res_nullPointer)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)
 END_SECTION
 

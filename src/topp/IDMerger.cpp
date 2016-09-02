@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -198,8 +198,9 @@ protected:
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
                            vector<PeptideIdentification>& peptides,
-                           const String& filename)
+                           String filename)
   {
+    if (test_mode_) filename = File::basename(filename);
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -324,8 +324,8 @@ private:
       return ion_mode_internal;
     }
     
-    void parseMappingFile_(const String&);
-    void parseStructMappingFile_(const String&);
+    void parseMappingFile_(const StringList&);
+    void parseStructMappingFile_(const StringList&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
@@ -387,8 +387,8 @@ private:
     String pos_adducts_fname_;
     String neg_adducts_fname_;
 
-    String db_mapping_file_;
-    String db_struct_file_;
+    StringList db_mapping_file_;
+    StringList db_struct_file_;
 
     std::vector<AdductInfo> pos_adducts_;
     std::vector<AdductInfo> neg_adducts_;

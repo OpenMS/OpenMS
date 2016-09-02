@@ -88,9 +88,9 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root = XMLString::transcode("MzIdentML");
-      TAG_CV = XMLString::transcode("cvParam");
-      ATTR_name = XMLString::transcode("option_a");
+      xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
+      xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
+      xml_name_attr_ptr_ = XMLString::transcode("option_a");
 
     }
 
@@ -120,9 +120,9 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root = XMLString::transcode("MzIdentML");
-      TAG_CV = XMLString::transcode("cvParam");
-      ATTR_name = XMLString::transcode("name");
+      xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
+      xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
+      xml_name_attr_ptr_ = XMLString::transcode("name");
 
     }
 
@@ -135,9 +135,9 @@ namespace OpenMS
     {
       try
       {
-        XMLString::release(&TAG_root);
-        XMLString::release(&TAG_CV);
-        XMLString::release(&ATTR_name);
+        XMLString::release(&xml_root_tag_ptr_);
+        XMLString::release(&xml_cvparam_tag_ptr_);
+        XMLString::release(&xml_name_attr_ptr_);
 //         if(m_name)   XMLString::release( &m_name ); //releasing you here is releasing you twice, dunno yet why?!
       }
       catch (...)
@@ -489,10 +489,11 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
 
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
-        if (!unitAcc.empty() && unitCvRef.empty() && unitName.empty())
+        if (!unitAcc.empty() && !unitCvRef.empty() && !unitName.empty())
         {
           u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
         }
+        // TODO: warn if only a part of the unit attributes are not empty?
         return CVTerm(accession, name, cvRef, value, u);
       }
       else
@@ -977,7 +978,7 @@ namespace OpenMS
               //+- take the numerically greater
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
-                f_tol = max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                f_tol = max(f_tol, it->second.front().getValue().toString().toDouble());
                 sp.fragment_mass_tolerance = f_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
@@ -991,7 +992,7 @@ namespace OpenMS
               //+- take the numerically greater
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
-                p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                p_tol = max(p_tol, it->second.front().getValue().toString().toDouble());
                 sp.precursor_mass_tolerance = p_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
@@ -1185,9 +1186,15 @@ namespace OpenMS
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
               {
-                if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
+                // check for retention time or scan time entry
+                if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
+                  double rt = cvit->second.front().getValue().toString().toDouble();
+                  if (cvit->second.front().getUnit().accession == "UO:0000031")  // minutes
+                  {
+                    rt *= 60.0;
+                  }
+                  pep_id_->back().setRT(rt);
                 }
                 else
                 {
@@ -1680,7 +1687,7 @@ namespace OpenMS
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getNTerminalModification());
+          const ResidueModification& mod = *(peps->second.getNTerminalModification());
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
@@ -1696,7 +1703,7 @@ namespace OpenMS
         }
         if (peps->second.hasCTerminalModification())
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getCTerminalModification());
+          const ResidueModification& mod = *(peps->second.getCTerminalModification());
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
@@ -1713,22 +1720,22 @@ namespace OpenMS
         if (peps->second.isModified())
         {
           Size i = 0;
-          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res)
+          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res, ++i)
           {
-            ResidueModification mod = ModificationsDB::getInstance()->getModification(res->getModification());
+            const ResidueModification* mod = res->getModification();
+            if (mod == 0) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
             current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));
-            current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
+            current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod->getOrigin().c_str()));
 
-            current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+            current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
             current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-            current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+            current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
             current_mod->appendChild(current_cv);
             current_pep->appendChild(current_mod);
-            ++i;
           }
         }
         sequenceCollectionElements->appendChild(current_pep);

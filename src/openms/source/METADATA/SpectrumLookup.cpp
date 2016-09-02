@@ -56,7 +56,7 @@ namespace OpenMS
   {
     return n_spectra_ == 0;
   }
-  
+
 
   Size SpectrumLookup::findByRT(double rt) const
   {
@@ -124,7 +124,7 @@ namespace OpenMS
     return pos->second;
   }
 
-  
+
   void SpectrumLookup::addReferenceFormat(const String& regexp)
   {
     // does the reg. exp. contain any of the recognized group names?
@@ -157,7 +157,7 @@ namespace OpenMS
     if (match["INDEX0"].matched)
     {
       String value = match["INDEX0"].str();
-      if (!value.empty()) 
+      if (!value.empty())
       {
         Size index = value.toInt();
         return findByIndex(index, false);
@@ -166,7 +166,7 @@ namespace OpenMS
     if (match["INDEX1"].matched)
     {
       String value = match["INDEX1"].str();
-      if (!value.empty()) 
+      if (!value.empty())
       {
         Size index = value.toInt();
         return findByIndex(index, true);
@@ -175,7 +175,7 @@ namespace OpenMS
     if (match["SCAN"].matched)
     {
       String value = match["SCAN"].str();
-      if (!value.empty()) 
+      if (!value.empty())
       {
         Size scan_number = value.toInt();
         return findByScanNumber(scan_number);
@@ -184,7 +184,7 @@ namespace OpenMS
     if (match["ID"].matched)
     {
       String value = match["ID"].str();
-      if (!value.empty()) 
+      if (!value.empty())
       {
         return findByNativeID(value);
       }

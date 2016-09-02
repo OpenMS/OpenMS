@@ -506,7 +506,7 @@ protected:
             AASequence aa = temp_hits[0].getSequence();
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
-              if (aa[ia].isModified()) ++mod_counts[aa[ia].getModification()];
+              if (aa[ia].isModified()) ++mod_counts[aa[ia].getModificationName()];
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
