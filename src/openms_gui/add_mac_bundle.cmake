@@ -41,8 +41,8 @@
 # case that a dmg package should be build
 macro(add_mac_app_bundle _name)
 	# the icon file
-	set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.icns")
-  set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
+	set(ICON_FILE_PATH      "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.icns")
+    set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
 	get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
 	# we also need the icns in the app
@@ -53,30 +53,31 @@ macro(add_mac_app_bundle _name)
 		${ICON_FILE_PATH})
 
 	set_target_properties(${_name} PROPERTIES
-    # we want our own info.plist template
-    MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
+        # we want our own info.plist template
+        MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
+		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2016 The OpenMS Team."
 		MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
 		MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
 		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
 		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright 2014, The OpenMS Team. All Rights Reserved."
+		MACOSX_BUNDLE_COPYRIGHT "Copyright 2016, The OpenMS Team. All Rights Reserved."
 	)
 
 	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-    install(CODE "
-      set(BU_CHMOD_BUNDLE_ITEMS On)
-      include(BundleUtilities)
-      fixup_bundle(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app \"\" \"\")"
-      COMPONENT AApplications)
+        install(CODE "
+		    set(BU_CHMOD_BUNDLE_ITEMS On)
+		    include(BundleUtilities)
+		    fixup_bundle(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app \"\" \"\")
+		    "
+		    COMPONENT AApplications)
 
-    install(TARGETS ${_name} BUNDLE
-      DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
-      COMPONENT Applications)
+	    install(TARGETS ${_name} BUNDLE
+	        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+	        COMPONENT Applications)
 
-  endif("${PACKAGE_TYPE}" STREQUAL "dmg")
+    endif("${PACKAGE_TYPE}" STREQUAL "dmg")
 endmacro()
