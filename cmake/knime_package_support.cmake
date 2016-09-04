@@ -267,7 +267,7 @@ set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our Ope
 
 # check if we have valid search engines
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  message(FATAL_ERROR"Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.)
+  message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
