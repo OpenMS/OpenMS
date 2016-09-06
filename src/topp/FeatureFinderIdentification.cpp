@@ -210,6 +210,8 @@ protected:
     svm_params.insert("svm:", SimpleSVM().getParameters());
     registerFullParam_(svm_params);
     registerStringOption_("svm:predictors", "<list>", score_metavalues_, "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)", false, true);
+    registerFlag_("svm:exclude_rt", "Exclude retention time deviation as an SVM predictor", true);
+    registerDoubleOption_("svm:min_prob", "<value>", 0.5, "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate", false, true);
 
     // parameters for model fitting (via ElutionModelFitter):
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
@@ -958,10 +960,10 @@ protected:
     }
 
     SimpleSVM svm;
-    Param svm_params = getParam_().copy("svm:", true);
-    svm_params.remove("samples");
-    svm_params.remove("unbiased");
-    svm_params.remove("xval_out");
+    // set (only) the relevant parameters:
+    Param svm_params = svm.getParameters();
+    Logger::LogStream no_log; // suppress warnings about additional parameters
+    svm_params.update(getParam_().copy("svm:", true), false, no_log);
     svm.setParameters(svm_params);
     svm.setup(predictors, training_labels);
     String xval_out = getStringOption_("svm:xval_out");
@@ -1004,7 +1006,8 @@ protected:
       // "predicted_probability" (= overall quality). We mark features for
       // removal by setting their overall quality to zero.
       FeatureMap::Iterator best_it = features.begin();
-      double best_quality = 0.0;
+      const double quality_cutoff = getDoubleOption_("svm:min_prob");
+      double best_quality = quality_cutoff;
       String previous_ref = features[0].getMetaValue("PeptideRef");
       for (FeatureMap::Iterator it = features.begin(); it != features.end();
            ++it)
@@ -1015,15 +1018,15 @@ protected:
         if (peptide_ref != previous_ref)
         {
           if (best_quality > 0.0) best_it->setOverallQuality(best_quality);
-          best_quality = 0.0;
+          best_quality = quality_cutoff;
           previous_ref = peptide_ref;
         }
 
         // update qualities:
         const String& feature_class = it->getMetaValue("feature_class");
         if ((feature_class == "unknown") &&
-            (Int(it->getMetaValue("predicted_class")) > 0) &&
-            (it->getOverallQuality() > best_quality))
+            // (Int(it->getMetaValue("predicted_class")) > 0) &&
+            (it->getOverallQuality() >= best_quality))
         {
           best_it = it;
           best_quality = it->getOverallQuality();
@@ -1031,7 +1034,7 @@ protected:
         if (feature_class != "true_positive") it->setOverallQuality(0.0);
       }
       // set of features from the last assay:
-      if (best_quality > 0.0)
+      if (best_quality >= quality_cutoff)
       {
         best_it->setOverallQuality(best_quality);
       }
@@ -1137,21 +1140,24 @@ protected:
     if (!id_ext.empty())
     {
       IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
-      // align internal and external IDs to estimate RT shifts:
-      MapAlignmentAlgorithmIdentification aligner;
-      aligner.setReference(peptides_ext); // go from interal to external scale
-      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
-      vector<TransformationDescription> aligner_trafos;
-      try
+      if (!getFlag_("svm:exclude_rt"))
       {
-        LOG_INFO << "Realigning internal and external IDs...";
-        aligner.align(aligner_peptides, aligner_trafos);
-        aligner_trafos[0].fitModel("lowess");
-        trafo_external_ = aligner_trafos[0];
-      }
-      catch (Exception::BaseException& e)
-      {
-        LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+        // align internal and external IDs to estimate RT shifts:
+        MapAlignmentAlgorithmIdentification aligner;
+        aligner.setReference(peptides_ext); // go from interal to external scale
+        vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
+        vector<TransformationDescription> aligner_trafos;
+        try
+        {
+          LOG_INFO << "Realigning internal and external IDs...";
+          aligner.align(aligner_peptides, aligner_trafos);
+          aligner_trafos[0].fitModel("lowess");
+          trafo_external_ = aligner_trafos[0];
+        }
+        catch (Exception::BaseException& e)
+        {
+          LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+        }
       }
     }
 
