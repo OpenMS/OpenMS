@@ -294,8 +294,7 @@ void SimpleSVM::convertData_(const map<String, vector<double> >& predictors)
 
 void SimpleSVM::writeXvalResults(const String& path) const
 {
-  ofstream outstr(path.c_str());
-  SVOutStream output(outstr);
+  SVOutStream output(path);
   output.modifyStrings(false);
   output << "log2_C" << "log2_gamma" << "performance" << nl;
   for (Size g_index = 0; g_index < log2_gamma_.size(); ++g_index)
