@@ -24,6 +24,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         String getModification() nogil except +
         void setModification(String &modification) nogil except +
 
-        void setTermSpecificity(Term_Specificity pos) nogil except +
-        Term_Specificity getTermSpecificity() nogil except +
+        void setTermSpecificity(TermSpecificity pos) nogil except +
+        TermSpecificity getTermSpecificity() nogil except +
 

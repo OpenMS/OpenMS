@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -50,6 +50,8 @@ namespace OpenMS
     - @p identity: Same as @p none, but intended for reference files (used to indicate that no other model should be fit, because the identity is already optimal).
     - @p linear (TransformationModelLinear): \f$ f(x) = slope * x + intercept \f$
     - @p interpolated (TransformationModelInterpolated): Interpolation between pairs, extrapolation using first and last pair. Supports different interpolation types.
+    - @p b-spline (TransformationModelBSpline): Non-linear smoothing spline, with different options for extrapolation.
+    - @b lowess (TransformationModelLowess): Non-linear smoothing via local regression, with different options for extrapolation.
 
     @remark TransformationDescription stores data points, TransformationModel stores parameters. That way, data can be modeled using different models/parameters, and models can still keep a representation of the data in the format they need (if at all).
 

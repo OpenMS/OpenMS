@@ -28,64 +28,62 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_EDWARDSLIPPERTITERATORTRYPTIC_H
-#define OPENMS_CHEMISTRY_EDWARDSLIPPERTITERATORTRYPTIC_H
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
+#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
 
-#include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 namespace OpenMS
 {
-/**
-@brief EdwardsLippertIterator that only retrieves tryptic sequences
-*/
-  class OPENMS_DLLAPI EdwardsLippertIteratorTryptic :
-    public EdwardsLippertIterator
-  {
-public:
 
-    /// default constructor
-    EdwardsLippertIteratorTryptic();
+// struct to hold a single report line
+struct OPENMS_DLLAPI RNPxlReportRow
+{
+  bool no_id;
+  double rt;
+  double original_mz;
+  String accessions;
+  String RNA;
+  String peptide;
+  double best_localization_score;
+  String localization_scores;
+  String best_localization;
+  Int charge;
+  double score;
+  double peptide_weight;
+  double RNA_weight;
+  double xl_weight;
+  double abs_prec_error;
+  double rel_prec_error;
+  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
+  double m_H;
+  double m_2H;
+  double m_3H;
+  double m_4H;
+  String fragment_annotation_string;  
+  String getString(const String& separator) const;
 
-    /// copy constructor
-    EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic & rhs);
+};
 
-    /// destructor
-    virtual ~EdwardsLippertIteratorTryptic();
+// create header line
+struct OPENMS_DLLAPI RNPxlReportRowHeader
+{
+  static String getString(const String& separator);
+};
 
-    /// assignment operator
-    EdwardsLippertIteratorTryptic & operator=(const EdwardsLippertIteratorTryptic & rhs);
-
-    /**
-    @brief indicates if trypsin will cat between the two amino acids
-    @param aa1 first amino acid
-    @param aa2 second amino acid
-    */
-    virtual bool isDigestingEnd(char aa1, char aa2);
-
-    /**
-    @brief needed by Factory
-    @return const string name of class
-    */
-    static const String getProductName()
-    {
-      return "EdwardsLippertIteratorTryptic";
-    }
-
-    /**
-    @brief needed by Factory
-    @return pointer to new object
-    */
-    static PepIterator * create()
-    {
-      return new EdwardsLippertIteratorTryptic;
-    }
-
-  };
+// create report
+struct OPENMS_DLLAPI RNPxlReport
+{
+  static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance);
+};
 
 }
 
-#endif //OPENMS_CHEMISTRY_EDWARDSLIPPERTITERATORTRYPTIC_H
+#endif
+

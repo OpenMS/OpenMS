@@ -47,7 +47,7 @@ foreach(file ${share_files})
   string(REPLACE "${SOURCE_PATH}/share/" "" trimmed_file ${file})
   
   set(pos -1) 
-  if(trimmed_file MATCHES ".svn/.*") 
+  if(trimmed_file MATCHES ".git/.*") 
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
   endif() 
   

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ namespace OpenMS
     /// Parameters
     Param params_;
 
-  private:  
+  private:
     /// do not allow copy
     TransformationModel( const TransformationModel& );
     /// do not allow assignment

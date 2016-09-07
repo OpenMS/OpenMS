@@ -278,7 +278,7 @@ namespace OpenMS
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
-    ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
+    ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.001, origin);
 
     if (mods.size() == 1)
     {

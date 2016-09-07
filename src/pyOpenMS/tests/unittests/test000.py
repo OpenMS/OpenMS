@@ -182,8 +182,8 @@ def testAASequence():
      AASequence.__add__
      AASequence.__radd__
      AASequence.__iadd__
-     AASequence.getCTerminalModification
-     AASequence.getNTerminalModification
+     AASequence.getCTerminalModificationName
+     AASequence.getNTerminalModificationName
      AASequence.setCTerminalModification
      AASequence.setModification
      AASequence.setNTerminalModification
@@ -197,8 +197,8 @@ def testAASequence():
 
     aas.__doc__
     aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
-    assert aas.getCTerminalModification() == b""
-    assert aas.getNTerminalModification() == b""
+    assert aas.getCTerminalModificationName() == b""
+    assert aas.getNTerminalModificationName() == b""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
     assert aas.toString() == b"DFPIANGER"

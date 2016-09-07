@@ -304,7 +304,7 @@ namespace OpenMS
     // all "K":
     for (Size i = 0; i < seq.size(); ++i)
     {
-      if (seq[i] == 'K' && !seq.isModified(i))
+      if (seq[i] == 'K' && !seq[i].isModified())
         seq.setModification(i, modification);
     }
     result.resize(1);
@@ -318,7 +318,7 @@ namespace OpenMS
 
     for (Size i = 0; i < seq.size(); ++i)
     {
-      if (seq[i] == 'Y' && !seq.isModified(i))
+      if (seq[i] == 'Y' && !seq[i].isModified())
       {
         if (y_labeling_efficiency_ == 1)
         {

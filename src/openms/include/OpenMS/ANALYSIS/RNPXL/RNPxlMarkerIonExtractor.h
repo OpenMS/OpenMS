@@ -28,55 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
-// $Authors: Chris Bauer $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
-#define OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMARKERIONEXTRACTOR_H
+#define OPENMS_ANALYSIS_RNPXL_RNPXLMARKERIONEXTRACTOR_H
 
-#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/CHEMISTRY/WeightWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/OpenMSConfig.h>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
+  class String;
 
-/**
-    @brief Class that uses SEQAN library for a suffix array. It can be used to find peptide Candidates for a MS spectrum
-
-    This class uses SEQAN suffix array. It can just be used for finding peptide Candidates for a given MS Spectrum within a certain mass tolerance. The suffix array can be saved to disc for reused so it has to be build just once.
-
-*/
-
-  class OPENMS_DLLAPI SuffixArrayTrypticSeqan :
-    public SuffixArraySeqan
+  struct OPENMS_DLLAPI RNPxlMarkerIonExtractor
   {
-
-public:
-
-    /** @brief constructor for tryptic seqan array with a specially optimized implementation
-
-            @param st the suffix array string, which is used to build the suffix array
-            @param filename filename of fasta file
-            @param weight_mode if not monoisotopic weight should be used, this parameters can be set to AVERAGE
-            @throw InvalidValue is thrown if string st if invalid
-            @throw FileNotFound is thrown if given file is not found
-    */
-    SuffixArrayTrypticSeqan(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
-
-    /**
-    @brief returns if an enzyme will cut after first character
-    @param aa1 const char as first amino acid
-    @param aa2 const char as second amino acid
-    @return bool describing if it is a digesting site
-    */
-    bool isDigestingEnd(const char aa1, const char aa2) const;
-
-
+    // name to mass-intensity pair
+    typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
+  
+    // extract an annotate RNA marker ions
+    static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);
   };
 }
 
-#endif //OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
+#endif
+
