@@ -69,6 +69,3 @@
     def __repr__(self):
         return self.c_str()
 
-    def __hash__(self):
-        return hash(self.c_str())
-
