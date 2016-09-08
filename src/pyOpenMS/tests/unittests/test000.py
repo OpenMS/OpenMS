@@ -4508,12 +4508,12 @@ def testString():
     # Printing should work ...
     print(cstr)
     print(pystr)
-    print(pystr.toString())
+    print(pystr.toString().encode("utf8"))
 
     assert len(pystr.toString()) == 4
     assert len(pystr.c_str()) == 5 # C does not know about Unicode, so be careful with c_str
     print(pystr) # this prints the C string, due to Py 2/3 compatibility
-    print(pystr.toString()) # this prints the correct String
+    print(pystr.toString().encode("utf8")) # this prints the correct String
 
     pystr1 = pyopenms.String("bläh")
     pystr2 = pyopenms.String("bläh")
