@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
 
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
                                  String mod_name, String residue,
-                                 Term_Specificity term_spec) nogil except +
+                                 TermSpecificity term_spec) nogil except +
 
         ResidueModification getModification(String & mod_name, String & residue, TermSpecificity term_spec) nogil except +
 
@@ -26,11 +26,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error,
                                                String & residue, TermSpecificity term_spec) nogil except +
 
-        ResidueModification* getBestModificationByMonoMass(double mass, double max_error,
+        const ResidueModification* getBestModificationByMonoMass(double mass, double max_error,
                                                            String residue,
                                                            TermSpecificity term_spec) nogil except +
 
-        ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
+        const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
                                                                String residue, TermSpecificity term_spec) nogil except +
 
         void readFromOBOFile(String & filename) nogil except +

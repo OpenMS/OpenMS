@@ -4423,24 +4423,26 @@ def testModificationsDB():
     assert m is not None
 
     mods = set([])
-    mdb.searchModifications(mods, s("T"), s("Phosphorylation"), pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
+    mdb.searchModifications(mods, s("Phosphorylation"), s("T"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert len(mods) == 1 
 
     mods = set([])
-    mdb.searchModifications(mods, s("Phosphorylation"), pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
-    assert len(mods) > 1
+    mdb.searchModifications(mods, s("NIC"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
+    assert len(mods) == 1
 
     mods = set([])
-    mdb.searchTerminalModifications(mods, s("NIC"), pyopenms.ResidueModification.Term_Specificity.N_TERM)
-    assert len(mods) == 1 
+    mdb.searchModifications(mods, s("NIC"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
+    assert len(mods) == 1
 
-    m = mdb.getTerminalModification(s("Acetyl"), pyopenms.ResidueModification.Term_Specificity.N_TERM)
-    assert m.getFullId() == b"Acetyl (N-term)", m.getFullId()
+    mods = set([])
+    mdb.searchModifications(mods, s("Acetyl"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
+    assert len(mods) == 1
+    assert list(mods)[0].getFullId() == b"Acetyl (N-term)"
 
-    m = mdb.getModification(s("Carboxymethyl (C)") )
+    m = mdb.getModification(s("Carboxymethyl (C)"), "", pyopenms.ResidueModification.TermSpecificity.NUMBER_OF_TERM_SPECIFICITY)
     assert m.getFullId() == b"Carboxymethyl (C)"
 
-    m = mdb.getModification(s("S"), s("Phosphorylation"),  pyopenms.ResidueModification.Term_Specificity.ANYWHERE)
+    m = mdb.getModification( s("Phosphorylation"), s("S"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m.getId() == b"Phospho"
 
     mods = []
@@ -4451,29 +4453,29 @@ def testModificationsDB():
     assert b"Sulfo (S)" in mods
     assert not (b"Phospho" in mods)
 
-    m = mdb.getBestModificationsByDiffMonoMass(b"T", 80, 1)
+    m = mdb.getBestModificationByDiffMonoMass( 80.0, 1.0, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"Phospho"
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
-    m = mdb.getBestModificationsByDiffMonoMass(b"T", 80, 100)
+    m = mdb.getBestModificationByDiffMonoMass(80, 100, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"Phospho"
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
-    m = mdb.getBestModificationsByMonoMass(b"T", 80, 20)
+    m = mdb.getBestModificationByMonoMass(80, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"MOD:00439"
 
-    m = mdb.getBestModificationsByMonoMass(b"T", 96, 20)
+    m = mdb.getBestModificationByMonoMass( 96, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"Thr->Pro"
     assert m.getUniModAccession() == b"UniMod:662"
 
     # Test NULL ptr
-    m = mdb.getBestModificationsByMonoMass(b"T", 999999999, 0.20)
+    m = mdb.getBestModificationByMonoMass( 999999999, 0.20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is None
 
 def testString():
