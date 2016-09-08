@@ -145,6 +145,7 @@ protected:
                        "Default parameters input file, defaulting to the ones in the OpenMS/share folder."
                          "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
                        false, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("default_config_file", ListUtils::create<String>("xml"));
     registerFlag_("ignore_adapter_param", "The config given in 'default_config_file' is used exclusively! No matter what other parameters "
                                           "(apart from -in,-out,-database,-xtandem_executable) are saying.");
 
