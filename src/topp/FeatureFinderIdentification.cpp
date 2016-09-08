@@ -117,11 +117,11 @@ using namespace std;
 
    <B>4. Feature classification</B>
 
-   Feature candidates derived from assays with "internal" IDs are classed as "false positives" (candidates without matching internal IDs), "true positives" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a support vector machine (SVM) is trained on the "true positive" and "false positive" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores. After parameter optimization by cross-validation, the resulting SVM is used to classify the "unknown" feature candidates into (presumed) true or false positives.
+   Feature candidates derived from assays with "internal" IDs are classed as "negative" (candidates without matching internal IDs), "positive" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a support vector machine (SVM) is trained on the "positive" and "negative" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores. After parameter optimization by cross-validation, the resulting SVM is used to predict the probability of "unknown" feature candidates being positives.
 
    <B>5. Feature filtering</B>
 
-   Feature candidates are filtered so that at most one feature per assay remains. For assays with internal IDs, only candidates previously classed as "true positive" are kept. For assays based solely on external IDs, out of the feature candidates classified as "true positive" by the SVM, the one with the highest SVM probability is kept.
+   Feature candidates are filtered so that at most one feature per assay remains. For assays with internal IDs, only candidates previously classed as "positive" are kept. For assays based solely on external IDs, the feature candidate with the highest SVM probability is selected and kept if it passes the @p svm:min_prob threshold.
 
    <B>6. Elution model fitting</B>
 
@@ -212,6 +212,8 @@ protected:
     registerStringOption_("svm:predictors", "<list>", score_metavalues_, "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)", false, true);
     registerFlag_("svm:exclude_rt", "Exclude retention time deviation as an SVM predictor", true);
     registerDoubleOption_("svm:min_prob", "<value>", 0.5, "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate", false, true);
+    setMinFloat_("svm:min_prob", 0.0);
+    setMaxFloat_("svm:min_prob", 1.0);
 
     // parameters for model fitting (via ElutionModelFitter):
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
@@ -240,7 +242,7 @@ protected:
   struct RTRegion
   {
     double start, end;
-    set<Int> charges; // charge states for which there are IDs in the region
+    ChargeMap ids; // internal/external peptide IDs (per charge) in this region
   };
 
   // predicate for filtering features by overall quality:
@@ -268,9 +270,10 @@ protected:
   bool keep_library_; // keep assay data for output?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
   String score_metavalues_; // names of scores to use as SVM features
+  // SVM probability -> number of pos./neg. features (for FDR calculation):
+  map<double, pair<Size, Size> > svm_probs_;
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   TransformationDescription trafo_external_; // transform. to external RT scale
-  String reference_rt_; // value of "reference_rt" parameter
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
   bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
@@ -339,50 +342,72 @@ protected:
 
 
 
-  void getRTRegions_(const ChargeMap& peptide_data, 
-                     vector<RTRegion>& rt_regions)
+  void getRTRegions_(ChargeMap& peptide_data, vector<RTRegion>& rt_regions)
   {
-    vector<pair<double, Int> > rts; // RTs and charges
     // use RTs from all charge states here to get a more complete picture:
-    for (ChargeMap::const_iterator cm_it = peptide_data.begin();
+    vector<double> rts;
+    for (ChargeMap::iterator cm_it = peptide_data.begin();
          cm_it != peptide_data.end(); ++cm_it)
     {
       // "internal" IDs:
-      for (RTMap::const_iterator rt_it = cm_it->second.first.begin();
+      for (RTMap::iterator rt_it = cm_it->second.first.begin();
            rt_it != cm_it->second.first.end(); ++rt_it)
       {
-        rts.push_back(make_pair(rt_it->first, cm_it->first));
+        rts.push_back(rt_it->first);
       }
       // "external" IDs:
-      for (RTMap::const_iterator rt_it = cm_it->second.second.begin();
+      for (RTMap::iterator rt_it = cm_it->second.second.begin();
            rt_it != cm_it->second.second.end(); ++rt_it)
       {
-        rts.push_back(make_pair(rt_it->first, cm_it->first));
+        rts.push_back(rt_it->first);
       }
     }
     sort(rts.begin(), rts.end());
     double rt_tolerance = rt_window_ / 2.0;
 
-    for (vector<pair<double, Int> >::iterator rt_it = rts.begin();
-         rt_it != rts.end(); ++rt_it)
+    for (vector<double>::iterator rt_it = rts.begin(); rt_it != rts.end();
+         ++rt_it)
     {
       // create a new region?
-      if (rt_regions.empty() ||
-          (rt_regions.back().end < rt_it->first - rt_tolerance))
+      if (rt_regions.empty() || (rt_regions.back().end < *rt_it - rt_tolerance))
       {
         RTRegion region;
-        region.start = rt_it->first - rt_tolerance;
+        region.start = *rt_it - rt_tolerance;
         rt_regions.push_back(region);
       }
-      rt_regions.back().end = rt_it->first + rt_tolerance;
-      rt_regions.back().charges.insert(rt_it->second);
+      rt_regions.back().end = *rt_it + rt_tolerance;
+    }
+
+    // sort the peptide IDs into the regions:
+    for (ChargeMap::iterator cm_it = peptide_data.begin();
+         cm_it != peptide_data.end(); ++cm_it)
+    {
+      // regions are sorted by RT, as are IDs, so just iterate linearly:
+      vector<RTRegion>::iterator reg_it = rt_regions.begin();
+      // "internal" IDs:
+      for (RTMap::iterator rt_it = cm_it->second.first.begin();
+           rt_it != cm_it->second.first.end(); ++rt_it)
+      {
+        while (rt_it->first > reg_it->end) ++reg_it;
+        reg_it->ids[cm_it->first].first.insert(*rt_it);
+      }
+      reg_it = rt_regions.begin(); // reset to start
+      // "external" IDs:
+      for (RTMap::iterator rt_it = cm_it->second.second.begin();
+           rt_it != cm_it->second.second.end(); ++rt_it)
+      {
+        while (rt_it->first > reg_it->end) ++reg_it;
+        reg_it->ids[cm_it->first].second.insert(*rt_it);
+      }
+      // ID references no longer needed (now stored in the RT regions):
+      cm_it->second.first.clear();
+      cm_it->second.second.clear();
     }
   }
 
 
   void annotateFeatures_(FeatureMap& features, const RTMap& rt_internal,
-                         const RTMap& rt_external, double rt_region_start,
-                         double rt_region_end)
+                         const RTMap& rt_external)
   {
     if (!rt_internal.empty()) // validate based on internal IDs
     {
@@ -410,7 +435,7 @@ protected:
           feat_ids[i].push_back(lower->second);
           ++id_count;
         }
-        // "total" includes IDs from other RT regions (is that useful?):
+        // "total" only includes IDs from this RT region:
         features[i].setMetaValue("n_total_ids", rt_internal.size());
         features[i].setMetaValue("n_matching_ids", id_count);
         if (id_count > 0) // matching IDs -> feature may be correct
@@ -419,7 +444,7 @@ protected:
         }
         else // no matching IDs -> feature is wrong
         {
-          features[i].setMetaValue("feature_class", "false_positive");
+          features[i].setMetaValue("feature_class", "negative");
         }
       }
 
@@ -452,7 +477,7 @@ protected:
             features[best_index].getPeptideIdentifications()[i] = 
               *(feat_ids[best_index][i]);
             // we define the (one) feature with most matching IDs as correct:
-            features[best_index].setMetaValue("feature_class", "true_positive");
+            features[best_index].setMetaValue("feature_class", "positive");
             assigned_ids.insert(feat_ids[best_index][i]);
           }
         }
@@ -461,9 +486,7 @@ protected:
       for (RTMap::const_iterator rt_it = rt_internal.begin();
            rt_it != rt_internal.end(); ++rt_it)
       {
-        if (!assigned_ids.count(rt_it->second) &&
-            (rt_it->first >= rt_region_start) &&
-            (rt_it->first <= rt_region_end))
+        if (!assigned_ids.count(rt_it->second))
         {
           const PeptideIdentification& pep_id = *(rt_it->second);
           features.getUnassignedPeptideIdentifications().push_back(pep_id);
@@ -575,7 +598,7 @@ protected:
   }
 
 
-  void detectFeaturesOnePeptide_(const PeptideMap::value_type& peptide_data,
+  void detectFeaturesOnePeptide_(PeptideMap::value_type& peptide_data,
                                  FeatureMap& features)
   {
     TargetedExperiment library;
@@ -640,7 +663,7 @@ protected:
       for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
            reg_it != rt_regions.end(); ++reg_it)
       {
-        if (reg_it->charges.count(charge))
+        if (reg_it->ids.count(charge))
         {
           LOG_DEBUG << "Region " << counter + 1 << " (RT: "
                     << float(reg_it->start) << "-" << float(reg_it->end)
@@ -717,9 +740,8 @@ protected:
             }
           }
           // which features are supported by "internal" IDs?
-          annotateFeatures_(current_features, cm_it->second.first,
-                            cm_it->second.second, reg_it->start,
-                            reg_it->end);
+          annotateFeatures_(current_features, reg_it->ids[charge].first,
+                            reg_it->ids[charge].second);
           features += current_features;
         }
       }
@@ -925,8 +947,8 @@ protected:
     {
       String feature_class = features[feat_index].getMetaValue("feature_class");
       Int label = -1;
-      if (feature_class == "true_positive") label = 1;
-      else if (feature_class == "false_positive") label = 0;
+      if (feature_class == "positive") label = 1;
+      else if (feature_class == "negative") label = 0;
       if (label != -1)
       {
         ++n_obs[label];
@@ -989,7 +1011,28 @@ protected:
       features[i].setMetaValue("predicted_class", predictions[i].label);
       double prob_positive = predictions[i].probabilities[1];
       features[i].setMetaValue("predicted_probability", prob_positive);
+      // @TODO: store previous (OpenSWATH) overall quality in a meta value?
       features[i].setOverallQuality(prob_positive);
+    }
+  }
+
+
+  void filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
+                                    const double quality_cutoff)
+  {
+    const String& feature_class = best_feature.getMetaValue("feature_class");
+    if (feature_class == "positive") // true positive prediction
+    {
+      svm_probs_[best_quality].first++;
+    }
+    else if (feature_class == "negative") // false positive prediction
+    {
+      svm_probs_[best_quality].second++;
+    }
+    else if ((feature_class == "unknown") &&
+             (best_quality >= quality_cutoff))
+    {
+      best_feature.setOverallQuality(best_quality);
     }
   }
 
@@ -1000,14 +1043,14 @@ protected:
 
     if (classified)
     {
-      // Remove features with class "false_pos." or "ambiguous", keep
-      // "true_pos."; for class "unknown", for every assay (meta value
-      // "PeptideRef"), keep the feature with "predicted_class" 1 and highest
-      // "predicted_probability" (= overall quality). We mark features for
-      // removal by setting their overall quality to zero.
+      // Remove features with class "negative" or "ambiguous", keep "positive".
+      // For class "unknown", for every assay (meta value "PeptideRef"), keep
+      // the feature with highest "predicted_probability" (= overall quality),
+      // subject to the "svm:min_prob" threshold.
+      // We mark features for removal by setting their overall quality to zero.
       FeatureMap::Iterator best_it = features.begin();
       const double quality_cutoff = getDoubleOption_("svm:min_prob");
-      double best_quality = quality_cutoff;
+      double best_quality = 0.0;
       String previous_ref = features[0].getMetaValue("PeptideRef");
       for (FeatureMap::Iterator it = features.begin(); it != features.end();
            ++it)
@@ -1017,27 +1060,28 @@ protected:
         const String& peptide_ref = it->getMetaValue("PeptideRef");
         if (peptide_ref != previous_ref)
         {
-          if (best_quality > 0.0) best_it->setOverallQuality(best_quality);
-          best_quality = quality_cutoff;
+          filterFeaturesFinalizeAssay_(*best_it, best_quality, quality_cutoff);
+          // reset:
+          best_quality = 0.0;
           previous_ref = peptide_ref;
         }
 
         // update qualities:
-        const String& feature_class = it->getMetaValue("feature_class");
-        if ((feature_class == "unknown") &&
-            // (Int(it->getMetaValue("predicted_class")) > 0) &&
-            (it->getOverallQuality() >= best_quality))
+        if ((it->getOverallQuality() > best_quality) ||
+            // break ties by intensity:
+            ((it->getOverallQuality() == best_quality) &&
+             (it->getIntensity() > best_it->getIntensity())))
         {
           best_it = it;
           best_quality = it->getOverallQuality();
         }
-        if (feature_class != "true_positive") it->setOverallQuality(0.0);
+        if (it->getMetaValue("feature_class") != "positive")
+        {
+          it->setOverallQuality(0.0); // gets overwritten for "best" candidate
+        }
       }
       // set of features from the last assay:
-      if (best_quality >= quality_cutoff)
-      {
-        best_it->setOverallQuality(best_quality);
-      }
+      filterFeaturesFinalizeAssay_(*best_it, best_quality, quality_cutoff);
 
       features.erase(remove_if(features.begin(), features.end(),
                                feature_filter_quality_), features.end());
@@ -1046,6 +1090,73 @@ protected:
     {
       features.erase(remove_if(features.begin(), features.end(),
                                feature_filter_peptides_), features.end());
+    }
+  }
+
+
+  void calculateFDR_(FeatureMap& features)
+  {
+    // cumulate the true/false positive counts, in decreasing probability order:
+    Size n_false = 0, n_true = 0;
+    for (map<double, pair<Size, Size> >::reverse_iterator prob_it =
+           svm_probs_.rbegin(); prob_it != svm_probs_.rend(); ++prob_it)
+    {
+      n_true += prob_it->second.first;
+      n_false += prob_it->second.second;
+      prob_it->second.first = n_true;
+      prob_it->second.second = n_false;
+    }
+
+    const double cutoff = getDoubleOption_("svm:min_prob");
+    map<double, pair<Size, Size> >::iterator prob_it =
+      svm_probs_.lower_bound(cutoff);
+    if (prob_it != svm_probs_.end())
+    {
+      float fdr = float(prob_it->second.second) / (prob_it->second.first +
+                                                   prob_it->second.second);
+      LOG_INFO << "Estimated overall FDR of the feature detection: "
+               << fdr * 100.0 << "%" << endl;
+    }
+
+    // calculate q-values:
+    vector<double> qvalues;
+    qvalues.reserve(svm_probs_.size());
+    double min_fdr = 1.0;
+    for (prob_it = svm_probs_.begin(); prob_it != svm_probs_.end(); ++prob_it)
+    {
+      double fdr = double(prob_it->second.second) / (prob_it->second.first +
+                                                     prob_it->second.second);
+      if (fdr < min_fdr) min_fdr = fdr;
+      qvalues.push_back(min_fdr);
+    }
+    // record only probabilities where q-value changes:
+    vector<double> fdr_probs, fdr_qvalues;
+    vector<double>::iterator qv_it = qvalues.begin();
+    double previous_qvalue = -1.0;
+    for (prob_it = svm_probs_.begin(); prob_it != svm_probs_.end();
+         ++prob_it, ++qv_it)
+    {
+      if (*qv_it != previous_qvalue)
+      {
+        fdr_probs.push_back(prob_it->first);
+        fdr_qvalues.push_back(*qv_it);
+        previous_qvalue = *qv_it;
+      }
+    }
+    features.setMetaValue("FDR_probabilities", fdr_probs);
+    features.setMetaValue("FDR_qvalues", fdr_qvalues);
+
+    // assign q-values to features:
+    for (FeatureMap::iterator feat_it = features.begin(); 
+         feat_it != features.end(); ++feat_it)
+    {
+      double prob = feat_it->getOverallQuality();
+      // find the highest FDR prob. that is less-or-equal to the feature prob.:
+      vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
+                                                 fdr_probs.end(), prob);
+      if (pos != fdr_probs.begin()) --pos;
+      Size dist = distance(fdr_probs.begin(), pos);
+      feat_it->setMetaValue("q-value", fdr_qvalues[dist]);
     }
   }
 
@@ -1093,7 +1204,6 @@ protected:
     mzml.setLogType(log_type_);
     mzml.getOptions().addMSLevel(1);
     mzml.load(in, ms_data_);
-    if (reference_rt_ == "intensity") ms_data_.sortSpectra(true);
 
     // RT transformation to range 0-1:
     ms_data_.updateRanges();
@@ -1172,14 +1282,14 @@ protected:
       addPeptideToMap_(*pep_it, peptide_map);
       pep_it->setMetaValue("FFId_category", "internal");
     }
-    Size n_internal_ids = peptide_map.size();
+    Size n_internal_peps = peptide_map.size();
     for (vector<PeptideIdentification>::iterator pep_it = peptides_ext.begin();
          pep_it != peptides_ext.end(); ++pep_it)
     {
       addPeptideToMap_(*pep_it, peptide_map, true);
       pep_it->setMetaValue("FFId_category", "external");
     }
-    Size n_external_ids = peptide_map.size() - n_internal_ids;
+    Size n_external_peps = peptide_map.size() - n_internal_peps;
 
     //-------------------------------------------------------------
     // run feature detection
@@ -1241,6 +1351,8 @@ protected:
     filterFeatures_(features, !id_ext.empty());
     LOG_INFO << features.size() << " features left after filtering." << endl;
 
+    if (!svm_probs_.empty()) calculateFDR_(features);
+
     if (elution_model != "none")
     {
       ElutionModelFitter emf;
@@ -1282,19 +1394,23 @@ protected:
       }
     }
     Size n_quant_external = quantified_all.size() - quantified_internal.size();
+    // If internal and external IDs for a peptide map to different RT regions,
+    // it is possible that there is a quantification from the "external" region,
+    // but not from the "internal" region (no matching feature) - therefore the
+    // number of "missing" external peptides can be negative!
+    Int n_missing_external = Int(n_external_peps) - n_quant_external;
     LOG_INFO << "\nSummary statistics (counting distinct peptides including "
       "PTMs):\n"
              << peptide_map.size() << " peptides identified ("
-             << n_internal_ids << " internal, " << n_external_ids
+             << n_internal_peps << " internal, " << n_external_peps
              << " additional external)\n"
              << quantified_all.size() << " peptides with features ("
              << quantified_internal.size() << " internal, "
-             << n_quant_external << " additional external)\n"
+             << n_quant_external << " external)\n"
              << peptide_map.size() - quantified_all.size()
              << " peptides without features ("
-             << n_internal_ids - quantified_internal.size() << " internal, "
-             << n_external_ids - n_quant_external << " additional external)\n"
-             << endl;
+             << n_internal_peps - quantified_internal.size() << " internal, "
+             << n_missing_external << " external)\n" << endl;
 
     return EXECUTION_OK;
   }
