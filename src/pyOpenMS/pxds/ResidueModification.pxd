@@ -7,8 +7,15 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
     
     cdef cppclass ResidueModification "OpenMS::ResidueModification":
+        # wrap-hash:
+        #   getFullId().c_str()
+
         ResidueModification() nogil except +
         ResidueModification(ResidueModification) nogil except +
+
+        bool operator==(ResidueModification & modification) nogil except +
+        bool operator!=(ResidueModification & modification) nogil except +
+
         void setId(String & id_) nogil except +
         String  getId() nogil except +
         void setFullId(String & full_id) nogil except +
@@ -53,8 +60,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setNeutralLossAverageMass(double average_mass) nogil except +
         double getNeutralLossAverageMass() nogil except +
         bool hasNeutralLoss() nogil except +
-        bool operator==(ResidueModification & modification) nogil except +
-        bool operator!=(ResidueModification & modification) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
     cdef enum TermSpecificity "OpenMS::ResidueModification::TermSpecificity":
