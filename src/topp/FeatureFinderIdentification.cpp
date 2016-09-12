@@ -271,7 +271,11 @@ protected:
   CVTerm rt_term_; // controlled vocabulary term for reference RT
   String score_metavalues_; // names of scores to use as SVM features
   // SVM probability -> number of pos./neg. features (for FDR calculation):
-  map<double, pair<Size, Size> > svm_probs_;
+  map<double, pair<Size, Size> > svm_probs_internal_;
+  // SVM probabilities for "external" features (for FDR calculation):
+  multiset<double> svm_probs_external_;
+  Size n_internal_features_; // internal feature counter (for FDR calculation)
+  Size n_external_features_; // external feature counter (for FDR calculation)
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   TransformationDescription trafo_external_; // transform. to external RT scale
   double rt_window_; // RT window width
@@ -1023,16 +1027,20 @@ protected:
     const String& feature_class = best_feature.getMetaValue("feature_class");
     if (feature_class == "positive") // true positive prediction
     {
-      svm_probs_[best_quality].first++;
+      svm_probs_internal_[best_quality].first++;
     }
     else if (feature_class == "negative") // false positive prediction
     {
-      svm_probs_[best_quality].second++;
+      svm_probs_internal_[best_quality].second++;
     }
-    else if ((feature_class == "unknown") &&
-             (best_quality >= quality_cutoff))
+    else if (feature_class == "unknown")
     {
-      best_feature.setOverallQuality(best_quality);
+      svm_probs_external_.insert(best_quality);
+      if (best_quality >= quality_cutoff) 
+      {
+        best_feature.setOverallQuality(best_quality);
+        ++n_external_features_;
+      }
     }
   }
 
@@ -1048,6 +1056,7 @@ protected:
       // the feature with highest "predicted_probability" (= overall quality),
       // subject to the "svm:min_prob" threshold.
       // We mark features for removal by setting their overall quality to zero.
+      n_internal_features_ = n_external_features_ = 0;
       FeatureMap::Iterator best_it = features.begin();
       const double quality_cutoff = getDoubleOption_("svm:min_prob");
       double best_quality = 0.0;
@@ -1075,7 +1084,11 @@ protected:
           best_it = it;
           best_quality = it->getOverallQuality();
         }
-        if (it->getMetaValue("feature_class") != "positive")
+        if (it->getMetaValue("feature_class") == "positive")
+        {
+          n_internal_features_++;
+        }
+        else
         {
           it->setOverallQuality(0.0); // gets overwritten for "best" candidate
         }
@@ -1099,7 +1112,8 @@ protected:
     // cumulate the true/false positive counts, in decreasing probability order:
     Size n_false = 0, n_true = 0;
     for (map<double, pair<Size, Size> >::reverse_iterator prob_it =
-           svm_probs_.rbegin(); prob_it != svm_probs_.rend(); ++prob_it)
+           svm_probs_internal_.rbegin(); prob_it != svm_probs_internal_.rend();
+         ++prob_it)
     {
       n_true += prob_it->second.first;
       n_false += prob_it->second.second;
@@ -1107,22 +1121,28 @@ protected:
       prob_it->second.second = n_false;
     }
 
+    // print FDR for features that made the cut-off:
     const double cutoff = getDoubleOption_("svm:min_prob");
     map<double, pair<Size, Size> >::iterator prob_it =
-      svm_probs_.lower_bound(cutoff);
-    if (prob_it != svm_probs_.end())
+      svm_probs_internal_.lower_bound(cutoff);
+    if (prob_it != svm_probs_internal_.end())
     {
       float fdr = float(prob_it->second.second) / (prob_it->second.first +
                                                    prob_it->second.second);
-      LOG_INFO << "Estimated overall FDR of the feature detection: "
+      LOG_INFO << "Estimated FDR of features detected based on 'external' IDs: "
                << fdr * 100.0 << "%" << endl;
+      fdr = (fdr * n_external_features_) / (n_external_features_ + 
+                                            n_internal_features_);
+      LOG_INFO << "Estimated FDR of all detected features: " << fdr * 100.0
+               << "%" << endl;
     }
 
     // calculate q-values:
     vector<double> qvalues;
-    qvalues.reserve(svm_probs_.size());
+    qvalues.reserve(svm_probs_internal_.size());
     double min_fdr = 1.0;
-    for (prob_it = svm_probs_.begin(); prob_it != svm_probs_.end(); ++prob_it)
+    for (prob_it = svm_probs_internal_.begin();
+         prob_it != svm_probs_internal_.end(); ++prob_it)
     {
       double fdr = double(prob_it->second.second) / (prob_it->second.first +
                                                      prob_it->second.second);
@@ -1133,8 +1153,8 @@ protected:
     vector<double> fdr_probs, fdr_qvalues;
     vector<double>::iterator qv_it = qvalues.begin();
     double previous_qvalue = -1.0;
-    for (prob_it = svm_probs_.begin(); prob_it != svm_probs_.end();
-         ++prob_it, ++qv_it)
+    for (prob_it = svm_probs_internal_.begin();
+         prob_it != svm_probs_internal_.end(); ++prob_it, ++qv_it)
     {
       if (*qv_it != previous_qvalue)
       {
@@ -1144,19 +1164,45 @@ protected:
       }
     }
     features.setMetaValue("FDR_probabilities", fdr_probs);
-    features.setMetaValue("FDR_qvalues", fdr_qvalues);
+    features.setMetaValue("FDR_qvalues_raw", fdr_qvalues);
 
+    // FDRs are estimated from "internal" features, but apply only to "external"
+    // ones. "Internal" features are considered "correct" by definition.
+    // We need to adjust the q-values to take this into account:
+    multiset<double>::reverse_iterator ext_it = svm_probs_external_.rbegin();
+    Size external_count = 0;
+    for (Int i = fdr_probs.size() - 1; i >= 0; --i)
+    {
+      double cutoff = fdr_probs[i];
+      while ((ext_it != svm_probs_external_.rend()) && (*ext_it >= cutoff))
+      {
+        ++external_count;
+        ++ext_it;
+      }
+      fdr_qvalues[i] = (fdr_qvalues[i] * external_count) /
+        (external_count + n_internal_features_);
+    }
+    features.setMetaValue("FDR_qvalues_corrected", fdr_qvalues);
+
+    // @TODO: should we use "1 - qvalue" as overall quality for features?
     // assign q-values to features:
     for (FeatureMap::iterator feat_it = features.begin(); 
          feat_it != features.end(); ++feat_it)
     {
-      double prob = feat_it->getOverallQuality();
-      // find the highest FDR prob. that is less-or-equal to the feature prob.:
-      vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
-                                                 fdr_probs.end(), prob);
-      if (pos != fdr_probs.begin()) --pos;
-      Size dist = distance(fdr_probs.begin(), pos);
-      feat_it->setMetaValue("q-value", fdr_qvalues[dist]);
+      if (feat_it->getMetaValue("feature_class") == "positive")
+      {
+        feat_it->setMetaValue("q-value", 0.0);
+      }
+      else
+      {
+        double prob = feat_it->getOverallQuality();
+        // find highest FDR prob. that is less-or-equal to the feature prob.:
+        vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
+                                                   fdr_probs.end(), prob);
+        if (pos != fdr_probs.begin()) --pos;
+        Size dist = distance(fdr_probs.begin(), pos);
+        feat_it->setMetaValue("q-value", fdr_qvalues[dist]);
+      }
     }
   }
 
@@ -1351,7 +1397,7 @@ protected:
     filterFeatures_(features, !id_ext.empty());
     LOG_INFO << features.size() << " features left after filtering." << endl;
 
-    if (!svm_probs_.empty()) calculateFDR_(features);
+    if (!svm_probs_internal_.empty()) calculateFDR_(features);
 
     if (elution_model != "none")
     {
