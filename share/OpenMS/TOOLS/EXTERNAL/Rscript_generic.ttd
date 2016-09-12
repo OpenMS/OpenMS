@@ -12,7 +12,7 @@
 					<onfinish>Tool finished successfully.</onfinish>
 				</text>
 			<e_category>Postprocessing</e_category>
-			<cloptions>--vanilla "%1" -in1 "%2" -in2 "%3" -in3 "%4" -in4 "%5" -out1 "%6" -out2 "%7" -out3 "%8" -out4 "%9" -outlist1 "%10" -outlist2 "%11"</cloptions>
+			<cloptions>--vanilla "%1" -in1 "%2" -in2 "%3" -in3 "%4" -in4 "%5" -out1 "%6" -out2 "%7" -out3 "%8" -out4 "%9" -outlist1 %10 -outlist2 %11</cloptions>
 			<path>Rscript</path>
 			<mappings>
 				<mapping id="1" cl="%%file_script" />
