@@ -29,6 +29,12 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         #   *	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
         IsotopeDistribution getIsotopeDistribution(UInt max_depth) nogil except +
 
+        # @brief returns the fragment isotope distribution of this conditioned
+        # on a precursor formula and a list of isolated precursor isotopes.
+        # @param precursor: the empirical formula of the precursor
+        # @param precursor_isotopes: the list of precursor isotopes that were isolated
+        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_vector[ UInt ]& precursor_isotopes) nogil except +
+
         # returns the number of atoms
         Size getNumberOf(Element * element) nogil except +
 

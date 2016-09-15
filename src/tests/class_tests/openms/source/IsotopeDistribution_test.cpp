@@ -378,6 +378,45 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   TEST_EQUAL(iso3 != iso4, false)
 END_SECTION
 
+START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution & comp_fragment_isotope_distribution, const std::vector<UInt>& precursor_isotopes))
+  IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(11)); // fragment
+  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementart fragment
+
+  std::vector<UInt> precursor_isotopes;
+  precursor_isotopes.push_back(0);
+  precursor_isotopes.push_back(1);
+  precursor_isotopes.push_back(2);
+  IsotopeDistribution iso3;
+  iso3.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
+  iso3.renormalize();
+
+  IsotopeDistribution::ConstIterator it1(iso1.begin()), it2(iso3.begin());
+  // By isolating all the precursor isotopes, the fragment isotopic distribution of a fragment molecule
+  // should be the same as if it was the precursor. The probabilities can be slightly different due to
+  // numerical issues.
+  for (; it1 != iso1.end(); ++it1, ++it2)
+  {
+	TEST_EQUAL(it1->first, it2->first)
+	TEST_REAL_SIMILAR(it1->second, it2->second)
+  }
+
+  precursor_isotopes.pop_back();
+  IsotopeDistribution iso4;
+  iso4.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
+  iso4.renormalize();
+
+
+  TEST_EQUAL(iso1.getContainer()[0].first, iso4.getContainer()[0].first)
+  TEST_EQUAL(iso1.getContainer()[1].first, iso4.getContainer()[1].first)
+  // Now that we're not isolating every precursor isotope, the probabilties should NOT be similar.
+  // Since there's no TEST_REAL_NOT_SIMILAR, we test their similiarity to the values they should be
+  TEST_REAL_SIMILAR(iso1.getContainer()[0].second, 0.989300)
+  TEST_REAL_SIMILAR(iso1.getContainer()[1].second, 0.010700)
+
+  TEST_REAL_SIMILAR(iso4.getContainer()[0].second, 0.989524)
+  TEST_REAL_SIMILAR(iso4.getContainer()[1].second, 0.010479)
+END_SECTION
+
 START_SECTION(Iterator begin())
 	NOT_TESTABLE
 END_SECTION

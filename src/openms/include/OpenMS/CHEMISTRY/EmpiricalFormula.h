@@ -133,6 +133,16 @@ public:
     */
     IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
 
+    /**
+      @brief returns the fragment isotope distribution of this given a precursor formula
+      and conditioned on a list of isolated precursor isotopes.
+
+      The max_depth of the isotopic distribution is set to max(precursor_isotopes).
+      @param precursor: the empirical formula of the precursor
+      @param precursor_isotopes: the precursor isotopes that were isolated
+    */
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const;
+
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;
 

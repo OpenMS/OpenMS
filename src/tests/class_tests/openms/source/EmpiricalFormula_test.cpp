@@ -293,6 +293,64 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   }
 END_SECTION
 
+START_SECTION(IsotopeDistribution getFragmentIsotopeDistribution(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const)
+  EmpiricalFormula precursor("C2");
+  EmpiricalFormula fragment("C");
+  std::vector<UInt> precursor_isotopes;
+
+  precursor_isotopes.push_back(0);
+  // isolated precursor isotope is 0
+  IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result[] = { 1.0 };
+  Size i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result[i])
+  }
+
+  precursor_isotopes.pop_back();
+  precursor_isotopes.push_back(1);
+  // isolated precursor isotope is 1
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result2[] = { 0.5, 0.5};
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result2[i])
+  }
+
+  precursor_isotopes.push_back(0);
+  // isolated precursor isotopes are 0 and 1
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result3[] = { 0.98941, 0.01059};
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result3[i])
+  }
+
+  precursor_isotopes.push_back(2);
+  // isolated precursor isotopes are 0, 1, and 2
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result4[] = { 0.9893, 0.0107};
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result4[i])
+  }
+
+  precursor_isotopes.push_back(3);
+  // isolated precursor isotopes are 0, 1, 2, and 3
+  // It's impossible for precursor C2 to have 3 extra neutrons (assuming only natural stable isotopes)
+  // Invalid precursor isotopes are ignored and should give the answer as if they were not there
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result4[4])
+  }
+END_SECTION
+
 START_SECTION(([EXTRA] Check correct charge semantics))
   EmpiricalFormula ef1("H4C+"); // CH4 +1 charge
   const Element * H = db->getElement("H");
