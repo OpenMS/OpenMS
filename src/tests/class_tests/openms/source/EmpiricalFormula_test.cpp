@@ -347,7 +347,7 @@ START_SECTION(IsotopeDistribution getFragmentIsotopeDistribution(const Empirical
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result4[4])
+    TEST_REAL_SIMILAR(it->second, result4[i])
   }
 END_SECTION
 
