@@ -473,13 +473,13 @@ namespace OpenMS
     //
     // normalization is needed to get true conditional probabilities if desired.
     //
-    for (SignedSize i = 0; i < fragment_isotope_dist_l.size(); ++i)
+    for (Size i = 0; i < fragment_isotope_dist_l.size(); ++i)
     {
-      for (const UInt & precursor_isotope : precursor_isotopes)
+      for (std::vector<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
       {
-        if (precursor_isotope-i >= 0 && precursor_isotope-i < comp_fragment_isotope_dist_l.size())
+        if (*precursor_itr >= i && *precursor_itr-i < comp_fragment_isotope_dist_l.size())
         {
-          result[i].second += comp_fragment_isotope_dist_l[precursor_isotope-i].second;
+          result[i].second += comp_fragment_isotope_dist_l[*precursor_itr-i].second;
         }
       }
       result[i].second *= fragment_isotope_dist_l[i].second;
