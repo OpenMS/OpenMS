@@ -157,7 +157,7 @@ public:
         the isotopic distribution of the fragment and complementary fragment
         (as if they were precursors), and which precursor isotopes were isolated.
         Do consider normalising the distribution afterwards to get conditional probabilities.
-        from Rockwood, AL; Kushnir, MA; Nelson, GJ. in
+        Equations come from Rockwood, AL; Kushnir, MA; Nelson, GJ. in
         "Dissociation of Individual Isotopic Peaks: Predicting Isotopic Distributions of Product Ions in MSn"
         @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
@@ -239,10 +239,11 @@ protected:
     /// convolves the distribution @p input with itself and stores the result in @p result
     void convolveSquare_(ContainerType & result, const ContainerType & input) const;
 
-    /** @brief calculates the fragment distribution for a fragment molecule given @p fragment_isotope_distribution,
-        @p comp_fragment_isotope_distribution, and @p isolated_precursor_isotopes, and stores it in @p result
-        @p fragment_isotope_dist is the isotopic distribution of the fragment (as if it was a precursor),
-        @p comp_fragment_isotope_dist is the isotopic distribution of the complementary fragment (as if it was a precursor)
+    /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
+
+        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+        @param precursor_isotopes a list of which precursor isotopes were isolated
      */
     void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
 
