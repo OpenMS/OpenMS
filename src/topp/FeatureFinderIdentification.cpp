@@ -660,10 +660,11 @@ protected:
       peptide.setChargeState(charge);
       peptide.id = peptide.sequence + "/" + String(charge);
 
-      // we want to detect one feature per peptide, charge state and RT region 
-      // (provided there is an ID for that charge in the region) - so there is 
+      // we want to detect one feature per peptide and charge state, so there is
       // always only one peptide in the library!
       Size counter = 0;
+      FeatureMap current_features; // accumulate features over multiple regions
+      RTMap internal_ids, external_ids; // accumulate IDs over multiple regions
       for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
            reg_it != rt_regions.end(); ++reg_it)
       {
@@ -713,7 +714,6 @@ protected:
           }
 
           // find chromatographic peaks:
-          FeatureMap current_features;
           Log_info.remove(cout); // suppress status output from OpenSWATH
           feat_finder_.pickExperiment(chrom_data, current_features, library,
                                       trafo_, ms_data_);
@@ -743,12 +743,15 @@ protected:
                                    iso_dist.getContainer()[index].second);
             }
           }
-          // which features are supported by "internal" IDs?
-          annotateFeatures_(current_features, reg_it->ids[charge].first,
-                            reg_it->ids[charge].second);
-          features += current_features;
+          internal_ids.insert(reg_it->ids[charge].first.begin(),
+                              reg_it->ids[charge].first.end());
+          external_ids.insert(reg_it->ids[charge].second.begin(),
+                              reg_it->ids[charge].second.end());
         }
       }
+      // which features are supported by "internal" IDs?
+      annotateFeatures_(current_features, internal_ids, external_ids);
+      features += current_features;
     }
   }
 
@@ -1061,12 +1064,16 @@ protected:
       const double quality_cutoff = getDoubleOption_("svm:min_prob");
       double best_quality = 0.0;
       String previous_ref = features[0].getMetaValue("PeptideRef");
+      // remove region number, if present (works only for charges <10):
+      previous_ref = previous_ref.substr(0, previous_ref.find('/') + 1);
       for (FeatureMap::Iterator it = features.begin(); it != features.end();
            ++it)
       {
         // features from same assay (same "PeptideRef") appear consecutively;
         // if this is a new assay, finalize the previous one:
-        const String& peptide_ref = it->getMetaValue("PeptideRef");
+        String peptide_ref = it->getMetaValue("PeptideRef");
+        // remove region number, if present (works only for charges <10):
+        peptide_ref = peptide_ref.substr(0, peptide_ref.find('/') + 1);
         if (peptide_ref != previous_ref)
         {
           filterFeaturesFinalizeAssay_(*best_it, best_quality, quality_cutoff);
@@ -1122,9 +1129,9 @@ protected:
     }
 
     // print FDR for features that made the cut-off:
-    const double cutoff = getDoubleOption_("svm:min_prob");
+    const double min_prob = getDoubleOption_("svm:min_prob");
     map<double, pair<Size, Size> >::iterator prob_it =
-      svm_probs_internal_.lower_bound(cutoff);
+      svm_probs_internal_.lower_bound(min_prob);
     if (prob_it != svm_probs_internal_.end())
     {
       float fdr = float(prob_it->second.second) / (prob_it->second.first +
@@ -1309,6 +1316,25 @@ protected:
           aligner.align(aligner_peptides, aligner_trafos);
           aligner_trafos[0].fitModel("lowess");
           trafo_external_ = aligner_trafos[0];
+          // alignment quality:
+          Size percents[] = {100, 99, 95, 90, 75, 50};
+          vector<double> diffs;
+          diffs.reserve(trafo_external_.getDataPoints().size());
+          for (TransformationDescription::DataPoints::const_iterator it =
+                 trafo_external_.getDataPoints().begin(); it !=
+                 trafo_external_.getDataPoints().end(); ++it)
+          {
+            diffs.push_back(abs(it->first - it->second));
+          }
+          sort(diffs.begin(), diffs.end());
+          LOG_INFO << "RT alignment quality:";
+          for (Size i = 0; i < 6; ++i)
+          {
+            Size index = percents[i] / 100.0 * diffs.size() - 1;
+            LOG_INFO << "\n" << percents[i] << "% of data points within +/-"
+                     << diffs[index] << " seconds.";
+          }
+          LOG_INFO << endl;
         }
         catch (Exception::BaseException& e)
         {
