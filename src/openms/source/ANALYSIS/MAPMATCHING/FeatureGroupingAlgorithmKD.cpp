@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -76,6 +77,10 @@ namespace OpenMS
 
     // set up kd-tree
     setUpTree_(maps);
+
+    // run RT alignment
+    MapAlignmentAlgorithmKD aligner(&kd_data_);
+    aligner.run();
 
     // link features
     runClustering_(out);
