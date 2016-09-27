@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/KDTree.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeNode.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 namespace OpenMS
 {
@@ -89,6 +90,18 @@ public:
   /// Number of points in the tree
   Size treeSize() const;
 
+  /// Number of maps
+  Size numMaps() const;
+
+  /// RT tolerance
+  double rtTolerance() const;
+
+  /// mz tolerance
+  double mzTolerance() const;
+
+  /// mz tolerance ppm?
+  bool mzPPM() const;
+
   /// Clear all data
   void clear();
 
@@ -101,6 +114,9 @@ public:
   /// Return window around @p val given tolerance @p tol
   std::pair<double, double> getTolWindow(double val, double tol, bool ppm) const;
 
+  /// Apply RT transformations
+  void applyTransformations(const std::vector<TransformationModelLowess*>& trafos);
+
 protected:
 
   /// Feature data
@@ -109,8 +125,11 @@ protected:
   /// Map indices
   std::vector<Size> map_index_;
 
-  /// Number of maps
-  Size num_maps_;
+  /// (Potentially transformed) retention times
+  std::vector<double> rt_;
+
+  /// Unique map indices
+  std::set<Size> unique_map_indices_;
 
   /// RT tolerance in seconds
   double rt_tol_secs_;
