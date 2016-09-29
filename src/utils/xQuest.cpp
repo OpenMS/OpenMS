@@ -1867,6 +1867,14 @@ protected:
     vector<FASTAFile::FASTAEntry> fasta_db;
     fastaFile.load(in_fasta, fasta_db);
 
+    if (!in_decoy_fasta.empty())
+    {
+      vector<FASTAFile::FASTAEntry> fasta_decoys;
+      fastaFile.load(in_decoy_fasta, fasta_decoys);
+      fasta_db.reserve(fasta_db.size() + fasta_decoys.size());
+      fasta_db.insert(fasta_db.end(), fasta_decoys.begin(), fasta_decoys.end());
+    }
+
     progresslogger.endProgress();
     
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
@@ -2118,92 +2126,92 @@ protected:
     }
 
 
-    // digest and filter decoy database
-    if (!in_decoy_fasta.empty())
-    {
-      vector<FASTAFile::FASTAEntry> fasta_decoys;
-      fastaFile.load(in_decoy_fasta, fasta_decoys);
+//    // digest and filter decoy database
+//    if (!in_decoy_fasta.empty())
+//    {
+//      vector<FASTAFile::FASTAEntry> fasta_decoys;
+//      fastaFile.load(in_decoy_fasta, fasta_decoys);
 
-      for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_decoys.size()); ++fasta_index)
-      {
-//  #ifdef _OPENMP
-//  #pragma omp atomic
-//  #endif
-        ++count_proteins;
+//      for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_decoys.size()); ++fasta_index)
+//      {
+////  #ifdef _OPENMP
+////  #pragma omp atomic
+////  #endif
+//        ++count_proteins;
 
-        IF_MASTERTHREAD
-        {
-          progresslogger.setProgress(static_cast<SignedSize>(fasta_index) * NUMBER_OF_THREADS);
-        }
+//        IF_MASTERTHREAD
+//        {
+//          progresslogger.setProgress(static_cast<SignedSize>(fasta_index) * NUMBER_OF_THREADS);
+//        }
 
-        // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
-        vector<StringView> current_digest;
-        digestor.digestUnmodifiedString(fasta_decoys[fasta_index].sequence, current_digest, min_peptide_length);
+//        // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
+//        vector<StringView> current_digest;
+//        digestor.digestUnmodifiedString(fasta_decoys[fasta_index].sequence, current_digest, min_peptide_length);
 
-        for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
-        {
-          // skip peptides with invalid AAs
-          if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
+//        for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+//        {
+//          // skip peptides with invalid AAs
+//          if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
 
-          // skip if no K
-          if (!cit->getString().has('K')) continue;
+//          // skip if no K
+//          if (!cit->getString().has('K')) continue;
 
-          bool already_processed = false;
-//  #ifdef _OPENMP
-//  #pragma omp critical (processed_peptides_access)
-//  #endif
-          {
-            if (processed_peptides.find(*cit) != processed_peptides.end())
-            {
-              // peptide (and all modified variants) already processed so skip it
-              already_processed = true;
-            }
-          }
+//          bool already_processed = false;
+////  #ifdef _OPENMP
+////  #pragma omp critical (processed_peptides_access)
+////  #endif
+//          {
+//            if (processed_peptides.find(*cit) != processed_peptides.end())
+//            {
+//              // peptide (and all modified variants) already processed so skip it
+//              already_processed = true;
+//            }
+//          }
 
-          if (already_processed)
-          {
-            continue;
-          }
-          if (cit->getString().find('K') >= cit->getString().size()-1)
-          {
-            continue;
-          }
+//          if (already_processed)
+//          {
+//            continue;
+//          }
+//          if (cit->getString().find('K') >= cit->getString().size()-1)
+//          {
+//            continue;
+//          }
 
-//  #ifdef _OPENMP
-//  #pragma omp atomic
-//  #endif
-          ++count_peptides;
+////  #ifdef _OPENMP
+////  #pragma omp atomic
+////  #endif
+//          ++count_peptides;
 
-          vector<AASequence> all_modified_peptides;
+//          vector<AASequence> all_modified_peptides;
 
-          // generate all modified variants of a peptide
-          // Note: no critial section is needed despite ResidueDB not beeing thread sage.
-          //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
-          {
-            AASequence aas = AASequence::fromString(cit->getString());
-            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
-          }
+//          // generate all modified variants of a peptide
+//          // Note: no critial section is needed despite ResidueDB not beeing thread sage.
+//          //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
+//          {
+//            AASequence aas = AASequence::fromString(cit->getString());
+//            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+//            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+//          }
 
-          for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
-          {
-            const AASequence& candidate = all_modified_peptides[mod_pep_idx];
+//          for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
+//          {
+//            const AASequence& candidate = all_modified_peptides[mod_pep_idx];
 
-//  #ifdef _OPENMP
-//  #pragma omp critical (processed_peptides_access)
-//  #endif
-            {
-              processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
-              fasta_db.reserve(fasta_db.size() + fasta_decoys.size());
-              fasta_db.insert(fasta_db.end(), fasta_decoys.begin(), fasta_decoys.end());
+////  #ifdef _OPENMP
+////  #pragma omp critical (processed_peptides_access)
+////  #endif
+//            {
+//              processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+//              fasta_db.reserve(fasta_db.size() + fasta_decoys.size());
+//              fasta_db.insert(fasta_db.end(), fasta_decoys.begin(), fasta_decoys.end());
 
-              // TODO doeas this actually save space or something? or is the object removed automatically, since it is not used after this
-              fasta_decoys.clear();
-            }
-          }
-        }
-      }
-    }
+//              // TODO doeas this actually save space or something? or is the object removed automatically, since it is not used after this
+//              fasta_decoys.clear();
+//            }
+//          }
+//        }
+//      }
+//    }
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -3047,6 +3055,7 @@ protected:
     String d_prefix = decoy_prefix ? "true" : "false";
     indexing_param.setValue("prefix", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    indexing_param.setValue("missing_decoy_action", "warn");
     pep_indexing.setParameters(indexing_param);
 
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
