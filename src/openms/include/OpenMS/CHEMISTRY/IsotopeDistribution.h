@@ -70,6 +70,11 @@ public:
     typedef ContainerType::iterator Iterator;
     typedef ContainerType::const_iterator const_iterator;
     typedef ContainerType::const_iterator ConstIterator;
+
+    typedef ContainerType::reverse_iterator reverse_iterator;
+    typedef ContainerType::reverse_iterator ReverseIterator;
+    typedef ContainerType::const_reverse_iterator const_reverse_iterator;
+    typedef ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
     /// @name Constructors and Destructors
@@ -226,6 +231,14 @@ public:
     inline ConstIterator begin() const { return distribution_.begin(); }
 
     inline ConstIterator end() const { return distribution_.end(); }
+
+    inline ReverseIterator rbegin() { return distribution_.rbegin(); }
+
+    inline ReverseIterator rend()   { return distribution_.rend(); }
+
+    inline ConstReverseIterator rbegin() const { return distribution_.rbegin(); }
+
+    inline ConstReverseIterator rend() const { return distribution_.rend(); }
     //@}
 
 protected:

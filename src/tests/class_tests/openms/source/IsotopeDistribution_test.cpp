@@ -380,7 +380,7 @@ END_SECTION
 
 START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution & comp_fragment_isotope_distribution, const std::vector<UInt>& precursor_isotopes))
   IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(11)); // fragment
-  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementart fragment
+  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementary fragment
 
   std::vector<UInt> precursor_isotopes;
   precursor_isotopes.push_back(0);
@@ -408,8 +408,8 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribut
 
   TEST_EQUAL(iso1.getContainer()[0].first, iso4.getContainer()[0].first)
   TEST_EQUAL(iso1.getContainer()[1].first, iso4.getContainer()[1].first)
-  // Now that we're not isolating every precursor isotope, the probabilties should NOT be similar.
-  // Since there's no TEST_REAL_NOT_SIMILAR, we test their similiarity to the values they should be
+  // Now that we're not isolating every precursor isotope, the probabilities should NOT be similar.
+  // Since there's no TEST_REAL_NOT_SIMILAR, we test their similarity to the values they should be
   TEST_REAL_SIMILAR(iso1.getContainer()[0].second, 0.989300)
   TEST_REAL_SIMILAR(iso1.getContainer()[1].second, 0.010700)
 
@@ -430,6 +430,22 @@ START_SECTION(ConstIterator begin() const)
 END_SECTION
 
 START_SECTION(ConstIterator end() const)
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ReverseIterator rbegin())
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ReverseIterator rend())
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ConstReverseIterator rbegin() const)
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ConstReverseIterator rend() const)
 	NOT_TESTABLE
 END_SECTION
 

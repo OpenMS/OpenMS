@@ -445,13 +445,13 @@ namespace OpenMS
       result[i] = make_pair(fragment_isotope_dist_l[0].first + i, 0);
     }
 
-    // Example: Let the Precursor formula be C2, and assume precursors 0, 1, and 2 were isolated.
+    // Example: Let the Precursor formula be C2, and assume precursors M0, M+1, and M+2 were isolated.
     // Let the fragment formula be C1, and therefore the complementary fragment formula is also C1
     //
     // let fi = fragment formula's isotope, pi = precursor formula's isotope, ci = complementary fragment formula's isotope
     // let P(fi=x) be the probability of the formula existing as isotope x in precursor form (i.e. random sample from the universe)
     //
-    // We want to calculate the probability the fragment will be isotope x given that we isolated precursors 0,1,2
+    // We want to calculate the probability the fragment will be isotope x given that we isolated precursors M0,M+1,M+2
     //
     // P(fi=0|pi=0 or pi=1 or pi=2) = P(fi=0) * P(pi=0 or pi=1 or pi=2|fi=0) / P(pi=0 or pi=1 or pi=2)  // bayes' theorem
     //        = P(fi=0) * (P(pi=0|fi=0) + P(pi=1|fi=0) + P(pi=2|fi=0)) / (P(pi=0) + P(pi=1) + P(pi=2))  // mutually exclusive events
@@ -483,7 +483,8 @@ namespace OpenMS
     {
       for (std::vector<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
       {
-        if (*precursor_itr >= i && *precursor_itr-i < comp_fragment_isotope_dist_l.size())
+        if (*precursor_itr >= i &&
+                (*precursor_itr-i) < comp_fragment_isotope_dist_l.size())
         {
           result[i].second += comp_fragment_isotope_dist_l[*precursor_itr-i].second;
         }
