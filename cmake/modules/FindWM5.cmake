@@ -89,9 +89,7 @@ if(WM5_FOUND)
     if(nrlibs GREATER 1)
       list(GET WM5_Wm5Core_LIBRARY 1 _wm5_opt_core)
     else()
-      list(GET WM5_Wm5Core_LIBRARY 0 _wm5_opt_core)
       message(FATAL_ERROR "Only one WM library found, expected debug and release library. This indicates a potential problem when building the contrib.")
-
     endif()
 
     file(TO_NATIVE_PATH "${_wm5_opt_core}" _native_wm5_opt_core)
