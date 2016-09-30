@@ -40,9 +40,9 @@ using namespace std;
 namespace OpenMS
 {
 
-MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(KDTreeData* kd_data) :
-  kd_data_(kd_data),
-  cc_index_()
+MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps) :
+  fit_data_(num_maps),
+  transformations_(num_maps)
 {
   setLogType(CMD);
 }
@@ -51,52 +51,94 @@ MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 {
 }
 
-void MapAlignmentAlgorithmKD::run()
+void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
 {
-  // compute RT fit data
-  vector<TransformationModel::DataPoints> fit_data;
-  computeRTFitData_(fit_data);
+  Size num_maps = kd_data.numMaps();
+  Size min_cc_size = num_maps / 2; //TODO
 
-  // fit LOWESS transformation model
-  SignedSize model_progress = 0;
-  Size num_maps = kd_data_->numMaps();
-  startProgress(0, num_maps, String("fitting LOWESS transformation models"));
-  vector<TransformationModelLowess*> transformations(num_maps);
-  for (Size i = 0; i < num_maps; ++i)
+  // compute connected components
+  map<Size, vector<Size> > ccs;
+  getCCs_(kd_data, ccs);
+  // keep only conflict-free CCs of sufficient size
+  map<Size, vector<Size> > filtered_ccs;
+  filterCCs_(kd_data, filtered_ccs, ccs, min_cc_size);
+  // save some memory
+  ccs.clear();
+
+  // compute average RTs for all CCs
+  map<Size, double> avg_rts;
+  for (map<Size, vector<Size> >::const_iterator it = filtered_ccs.begin(); it != filtered_ccs.end(); ++it)
   {
-    transformations[i] = new TransformationModelLowess(fit_data[i], Param());
-    setProgress(++model_progress);
+    double avg_rt = 0;
+    Size cc_index = it->first;
+    const vector<Size>& cc = it->second;
+    for (vector<Size>::const_iterator cc_it = cc.begin(); cc_it != cc.end(); ++cc_it)
+    {
+      Size i = *cc_it;
+      avg_rt += kd_data.rt(i);
+    }
+    avg_rt /= cc.size();
+    avg_rts[cc_index] = avg_rt;
   }
-  endProgress();
 
-  // apply transformations to kd_data_
-  startProgress(0, 1, String("applying LOWESS transformations"));
-  kd_data_->applyTransformations(transformations);
-  endProgress();
-
-  // re-optimize kd-tree
-  startProgress(0, 1, String("re-optimizing kd-tree"));
-  kd_data_->optimizeTree();
-  endProgress();
+  // generate fit data for each map, add to fit_data_
+  for (map<Size, vector<Size> >::const_iterator it = filtered_ccs.begin(); it != filtered_ccs.end(); ++it)
+  {
+    Size cc_index = it->first;
+    const vector<Size>& cc = it->second;
+    for (vector<Size>::const_iterator cc_it = cc.begin(); cc_it != cc.end(); ++cc_it)
+    {
+      Size i = *cc_it;
+      double rt = kd_data.rt(i);
+      double avg_rt = avg_rts[cc_index];
+      fit_data_[kd_data.mapIndex(i)].push_back(make_pair(rt, avg_rt));
+    }
+  }
 }
 
-Size MapAlignmentAlgorithmKD::computeCCs_()
+void MapAlignmentAlgorithmKD::fitLOWESS()
+{
+  //SignedSize model_progress = 0;
+  Size num_maps = fit_data_.size();
+  //startProgress(0, num_maps, String("fitting LOWESS transformation models"));
+  for (Size i = 0; i < num_maps; ++i)
+  {
+    transformations_[i] = new TransformationModelLowess(fit_data_[i], Param());
+    //setProgress(++model_progress);
+  }
+  //endProgress();
+}
+
+void MapAlignmentAlgorithmKD::transform(KDTreeData& kd_data) const
+{
+  // apply transformations to kd_data
+  //startProgress(0, 1, String("applying LOWESS transformations"));
+  kd_data.applyTransformations(transformations_);
+  //endProgress();
+
+  // re-optimize kd-tree
+  //startProgress(0, 1, String("re-optimizing kd-tree"));
+  kd_data.optimizeTree();
+  //endProgress();
+}
+
+Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size>& result) const
 {
   //compute CCs by means of repeated BFS (without actually storing the graph (edges) in memory)
 
-  Size num_nodes = kd_data_->size();
-  startProgress(0, num_nodes, String("computing connected components"));
+  Size num_nodes = kd_data.size();
+  //startProgress(0, num_nodes, String("computing connected components"));
 
   //clear CC indices
-  cc_index_.clear();
-  cc_index_.resize(num_nodes, numeric_limits<Size>::max());
+  result.clear();
+  result.resize(num_nodes, numeric_limits<Size>::max());
 
   //set up data structures
   queue<Size> bfs_queue;
   vector<Int> bfs_visited(num_nodes, false);
   Size search_pos = 0;
   Size cc_index = 0;
-  SignedSize cc_progress = 0;
+  //SignedSize cc_progress = 0;
 
   //BFS until every node has been visited
   while (true)
@@ -119,11 +161,11 @@ Size MapAlignmentAlgorithmKD::computeCCs_()
     {
       Size i = bfs_queue.front();
       bfs_queue.pop();
-      cc_index_[i] = cc_index;
-      setProgress(++cc_progress);
+      result[i] = cc_index;
+      //setProgress(++cc_progress);
 
       vector<Size> compatible_features;
-      kd_data_->getNeighborhood(i, compatible_features);
+      kd_data.getNeighborhood(i, compatible_features);
       for (vector<Size>::const_iterator it = compatible_features.begin();
            it != compatible_features.end();
            ++it)
@@ -138,37 +180,34 @@ Size MapAlignmentAlgorithmKD::computeCCs_()
     }
     ++cc_index;
   }
-  endProgress();
+  //endProgress();
 
   return cc_index;
 }
 
-void MapAlignmentAlgorithmKD::getCCs_(map<Size, vector<Size> >& result)
+void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& result) const
 {
-  if (!cc_index_.size())
-  {
-    // CCs haven't been computed yet
-    computeCCs_();
-  }
+  vector<Size> cc_index;
+  computeCCs_(kd_data, cc_index);
 
   result.clear();
-  for (Size i = 0; i < cc_index_.size(); ++i)
+  for (Size i = 0; i < kd_data.size(); ++i)
   {
-    result[cc_index_[i]].push_back(i);
+    result[cc_index[i]].push_back(i);
   }
 }
 
-void MapAlignmentAlgorithmKD::filterCCs_(map<Size, vector<Size> >& filtered_ccs, const map<Size, vector<Size> >& ccs, Size min_size)
+void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& filtered_ccs, const map<Size, vector<Size> >& ccs, Size min_size) const
 {
-  SignedSize filter_progress = 0;
-  startProgress(0, ccs.size(), String("filtering connected components"));
+  //SignedSize filter_progress = 0;
+  //startProgress(0, ccs.size(), String("filtering connected components"));
 
-  Size max_size = kd_data_->numMaps();
+  Size max_size = fit_data_.size();
   filtered_ccs.clear();
 
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
   {
-    setProgress(filter_progress++);
+    //setProgress(filter_progress++);
     const vector<Size>& cc = it->second;
     // size OK?
     if (cc.size() < min_size || cc.size() > max_size)
@@ -181,17 +220,17 @@ void MapAlignmentAlgorithmKD::filterCCs_(map<Size, vector<Size> >& filtered_ccs,
     double rt_high = 0;
     double mz_low = numeric_limits<double>::max();
     double mz_high = 0;
-    double rt_tol = kd_data_->rtTolerance();
+    double rt_tol = kd_data.rtTolerance();
     double mz_tol;
-    if (!kd_data_->mzPPM())
+    if (!kd_data.mzPPM())
     {
-      mz_tol = kd_data_->mzTolerance();
+      mz_tol = kd_data.mzTolerance();
     }
     else
     {
-      pair<double, double> win = kd_data_->getTolWindow(kd_data_->mz(cc[0]),
-                                                        kd_data_->mzTolerance(),
-                                                        true);
+      pair<double, double> win = kd_data.getTolWindow(kd_data.mz(cc[0]),
+                                                      kd_data.mzTolerance(),
+                                                      true);
       mz_tol = (win.second - win.first) / 2.0;
     }
     bool passes = true;
@@ -204,10 +243,10 @@ void MapAlignmentAlgorithmKD::filterCCs_(map<Size, vector<Size> >& filtered_ccs,
         passes = false;
         break;
       }
-      map_indices.insert(kd_data_->mapIndex(i));
+      map_indices.insert(kd_data.mapIndex(i));
 //      // filter out if diameter too large
-//      double rt = kd_data_->rt(i);
-//      double mz = kd_data_->mz(i);
+//      double rt = kd_data.rt(i);
+//      double mz = kd_data.mz(i);
 //      rt_low = min(rt_low, rt);
 //      rt_high = max(rt_high, rt);
 //      mz_low = min(mz_low, mz);
@@ -223,54 +262,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(map<Size, vector<Size> >& filtered_ccs,
       filtered_ccs[it->first] = cc;
     }
   }
-  endProgress();
-}
-
-void MapAlignmentAlgorithmKD::computeRTFitData_(vector<TransformationModel::DataPoints>& fit_data)
-{
-  Size num_maps = kd_data_->numMaps();
-  Size min_cc_size = num_maps / 2; //TODO
-
-  // compute connected components
-  map<Size, vector<Size> > ccs;
-  getCCs_(ccs);
-  // keep only conflict-free CCs of sufficient size
-  map<Size, vector<Size> > filtered_ccs;
-  filterCCs_(filtered_ccs, ccs, min_cc_size);
-  // save some memory
-  ccs.clear();
-
-  //compute average RTs for all CCs
-  map<Size, double> avg_rts;
-  for (map<Size, vector<Size> >::const_iterator it = filtered_ccs.begin(); it != filtered_ccs.end(); ++it)
-  {
-    double avg_rt = 0;
-    Size cc_index = it->first;
-    const vector<Size>& cc = it->second;
-    for (vector<Size>::const_iterator cc_it = cc.begin(); cc_it != cc.end(); ++cc_it)
-    {
-      Size i = *cc_it;
-      avg_rt += kd_data_->rt(i);
-    }
-    avg_rt /= cc.size();
-    avg_rts[cc_index] = avg_rt;
-  }
-
-  //generate fit data for each map
-  fit_data.clear();
-  fit_data.resize(num_maps);
-  for (map<Size, vector<Size> >::const_iterator it = filtered_ccs.begin(); it != filtered_ccs.end(); ++it)
-  {
-    Size cc_index = it->first;
-    const vector<Size>& cc = it->second;
-    for (vector<Size>::const_iterator cc_it = cc.begin(); cc_it != cc.end(); ++cc_it)
-    {
-      Size i = *cc_it;
-      double rt = kd_data_->rt(i);
-      double avg_rt = avg_rts[cc_index];
-      fit_data[kd_data_->mapIndex(i)].push_back(make_pair(rt, avg_rt));
-    }
-  }
+  //endProgress();
 }
 
 }

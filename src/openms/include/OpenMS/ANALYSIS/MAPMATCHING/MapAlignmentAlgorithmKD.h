@@ -69,38 +69,41 @@ class OPENMS_DLLAPI MapAlignmentAlgorithmKD :
 public:
 
   /// Constructor
-  MapAlignmentAlgorithmKD(KDTreeData* kd_data);
+  MapAlignmentAlgorithmKD(Size num_maps);
 
   /// Default destructor
   virtual ~MapAlignmentAlgorithmKD();
 
-  /// Main method of the algorithm
-  void run();
+  /// Compute data points needed for RT transformation in the current @p kd_data, add to fit_data_
+  void addRTFitData(const KDTreeData& kd_data);
+
+  /// Fit LOWESS to fit_data_, store final models in transformations_
+  void fitLOWESS();
+
+  /// Transform RTs for @p kd_data
+  void transform(KDTreeData& kd_data) const;
 
 protected:
 
-  /// kd-tree data
-  KDTreeData* kd_data_;
-
-  /// Connected component indices
-  std::vector<Size> cc_index_;
-
-  /// Compute connected components, store CC indices in member cc_index_. Return number of CCs.
-  Size computeCCs_();
+  /// Compute connected components, store CC indices in member cc_index. Return number of CCs.
+  Size computeCCs_(const KDTreeData& kd_data, std::vector<Size>& cc_index) const;
 
   /// Return connected components
-  void getCCs_(std::map<Size, std::vector<Size> >& result);
+  void getCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& result) const;
 
   /// Filter connected components (return conflict-free CCs of sufficiently large size and small diameter)
-  void filterCCs_(std::map<Size, std::vector<Size> >& filtered_ccs, const std::map<Size, std::vector<Size> >& ccs, Size min_size);
-
-  /// Compute data points needed for RT transformation
-  void computeRTFitData_(std::vector<TransformationModel::DataPoints>& fit_data);
+  void filterCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& filtered_ccs, const std::map<Size, std::vector<Size> >& ccs, Size min_size) const;
 
 private:
 
   /// Default constructor is not supposed to be used.
   MapAlignmentAlgorithmKD();
+
+  /// RT data for fitting the LOWESS
+  std::vector<TransformationModel::DataPoints> fit_data_;
+
+  /// LOWESS transformations
+  std::vector<TransformationModelLowess*> transformations_;
 
 };
 
