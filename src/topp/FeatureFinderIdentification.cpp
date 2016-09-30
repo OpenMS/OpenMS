@@ -180,14 +180,16 @@ protected:
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
 
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
-    StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
-    registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
-    setMinFloat_("extract:rt_window", 0.0);
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
     setMinFloat_("extract:mz_window", 0.0);
-    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.03, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
+    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.05, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
     setMinFloat_("extract:isotope_pmin", 0.0);
     setMaxFloat_("extract:isotope_pmin", 1.0);
+    registerDoubleOption_("extract:rt_quantile", "<value>", 0.99, "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window", false, true);
+    setMinFloat_("extract:rt_quantile", 0.0);
+    setMaxFloat_("extract:rt_quantile", 1.0);
+    registerDoubleOption_("extract:rt_window", "<value>", 0.0, "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.", false, true);
+    setMinFloat_("extract:rt_window", 0.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
     registerDoubleOption_("detect:peak_width", "<value>", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter)", false);
@@ -203,15 +205,14 @@ protected:
     registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
     registerIntOption_("svm:samples", "<number>", 0, "Number of observations to use for training ('0' for all)", false);
     setMinInt_("svm:samples", 0);
-    registerFlag_("svm:unbiased", "Reduce biases by choosing (roughly) the same number of positive and negative observations, with the same intensity distribution, for training. This reduces the number of available samples.");
+    registerFlag_("svm:no_selection", "By default, roughly the same number of positive and negative observations, with the same intensity distribution, are selected for training. This aims to reduce biases, but also reduces the amount of training data. Set this flag to skip this procedure and consider all available observations (subject to 'svm:samples').");
     registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
     Param svm_params;
     svm_params.insert("svm:", SimpleSVM().getParameters());
     registerFullParam_(svm_params);
     registerStringOption_("svm:predictors", "<list>", score_metavalues_, "Names of OpenSWATH scores to use as predictors for the SVM (comma-separated list)", false, true);
-    registerFlag_("svm:exclude_rt", "Exclude retention time deviation as an SVM predictor", true);
-    registerDoubleOption_("svm:min_prob", "<value>", 0.5, "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate", false, true);
+    registerDoubleOption_("svm:min_prob", "<value>", 0.0, "Minimum probability of correctness, as predicted by the SVM, required to retain a feature candidate", false, true);
     setMinFloat_("svm:min_prob", 0.0);
     setMaxFloat_("svm:min_prob", 1.0);
 
@@ -946,7 +947,7 @@ protected:
 
     // get labels for SVM:
     map<Size, Int> training_labels;
-    bool unbiased = getFlag_("svm:unbiased");
+    bool no_selection = getFlag_("svm:no_selection");
     // mapping (for bias correction): intensity -> (index, positive?)
     multimap<double, pair<Size, bool> > valid_obs;
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
@@ -959,7 +960,7 @@ protected:
       if (label != -1)
       {
         ++n_obs[label];
-        if (unbiased)
+        if (!no_selection)
         {
           double intensity = features[feat_index].getIntensity();
           valid_obs.insert(make_pair(intensity, make_pair(feat_index,
@@ -973,7 +974,7 @@ protected:
     }
     checkNumObservations_(n_obs[1], n_obs[0]);
 
-    if (unbiased) getUnbiasedSample_(valid_obs, training_labels);
+    if (!no_selection) getUnbiasedSample_(valid_obs, training_labels);
 
     if (n_samples_ > 0) // limited number of samples for training
     {
@@ -1300,47 +1301,41 @@ protected:
     // "external" IDs:
     vector<PeptideIdentification> peptides_ext;
     vector<ProteinIdentification> proteins_ext;
+    double rt_uncertainty = 0.0;
     if (!id_ext.empty())
     {
       IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
-      if (!getFlag_("svm:exclude_rt"))
+      // align internal and external IDs to estimate RT shifts:
+      MapAlignmentAlgorithmIdentification aligner;
+      aligner.setReference(peptides_ext); // go from interal to external scale
+      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
+      vector<TransformationDescription> aligner_trafos;
+
+      LOG_INFO << "Realigning internal and external IDs...";
+      aligner.align(aligner_peptides, aligner_trafos);
+      vector<double> aligned_diffs;
+      trafo_external_.getDeviations(aligned_diffs);
+      double quantile = getDoubleOption_("extract:rt_quantile");
+      int index = max(0, int(quantile * aligned_diffs.size()) - 1);
+      rt_uncertainty = aligned_diffs[index];
+      try
       {
-        // align internal and external IDs to estimate RT shifts:
-        MapAlignmentAlgorithmIdentification aligner;
-        aligner.setReference(peptides_ext); // go from interal to external scale
-        vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
-        vector<TransformationDescription> aligner_trafos;
-        try
-        {
-          LOG_INFO << "Realigning internal and external IDs...";
-          aligner.align(aligner_peptides, aligner_trafos);
-          aligner_trafos[0].fitModel("lowess");
-          trafo_external_ = aligner_trafos[0];
-          // alignment quality:
-          Size percents[] = {100, 99, 95, 90, 75, 50};
-          vector<double> diffs;
-          diffs.reserve(trafo_external_.getDataPoints().size());
-          for (TransformationDescription::DataPoints::const_iterator it =
-                 trafo_external_.getDataPoints().begin(); it !=
-                 trafo_external_.getDataPoints().end(); ++it)
-          {
-            diffs.push_back(abs(it->first - it->second));
-          }
-          sort(diffs.begin(), diffs.end());
-          LOG_INFO << "RT alignment quality:";
-          for (Size i = 0; i < 6; ++i)
-          {
-            Size index = percents[i] / 100.0 * diffs.size() - 1;
-            LOG_INFO << "\n" << percents[i] << "% of data points within +/-"
-                     << diffs[index] << " seconds.";
-          }
-          LOG_INFO << endl;
-        }
-        catch (Exception::BaseException& e)
-        {
-          LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
-        }
+        aligner_trafos[0].fitModel("lowess");
+        trafo_external_ = aligner_trafos[0];
       }
+      catch (Exception::BaseException& e)
+      {
+        LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+      }
+    }
+    if (rt_window_ == 0.0)
+    {
+      // calculate RT window based on other parameters and alignment quality:
+      double map_tol = mapping_tolerance_;
+      if (map_tol < 1.0) map_tol *= (2 * peak_width); // relative tolerance
+      rt_window_ = (rt_uncertainty + 2 * peak_width + map_tol) * 2;
+      LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
+               << endl;
     }
 
     //-------------------------------------------------------------
