@@ -228,32 +228,26 @@ private:
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
     template <typename MapType>
-    void group_(const std::vector<MapType>& maps, ConsensusMap& out);
-
-    /// Link features
-    void group_(ConsensusMap& out);
+    void group_(const std::vector<MapType>& input_maps, ConsensusMap& out);
 
     /// Set up the kd-tree and related data structures
     template <typename MapType>
-    void setUpTree_(const std::vector<MapType>& maps);
+    void setUpTree_(const std::vector<MapType>& maps, KDTreeData& kd_data);
 
     /// Run the actual clustering algorithm
-    void runClustering_(ConsensusMap& out);
+    void runClustering_(const KDTreeData& kd_data, ConsensusMap& out);
 
     /// Update maximum possible sizes of potential consensus features for indices specified in @p update_these
-    void updateClusterProxies_(std::set<ClusterProxyKD>& potential_clusters, std::vector<ClusterProxyKD>& cluster_for_idx, const std::set<Size>& update_these, const std::vector<Int>& assigned, bool update_progress = false);
+    void updateClusterProxies_(std::set<ClusterProxyKD>& potential_clusters, std::vector<ClusterProxyKD>& cluster_for_idx, const std::set<Size>& update_these, const std::vector<Int>& assigned, const KDTreeData& kd_data, bool update_progress = false);
 
     /// Compute the current best cluster with center index @p i (mutates @p proxy and @p cf_indices)
-    ClusterProxyKD computeBestClusterForCenter(Size i, std::vector<Size>& cf_indices, const std::vector<Int>& assigned) const;
+    ClusterProxyKD computeBestClusterForCenter(Size i, std::vector<Size>& cf_indices, const std::vector<Int>& assigned, const KDTreeData& kd_data) const;
 
     /// Construct consensus feature and add to out map
-    void addConsensusFeature_(const std::vector<Size>& indices, ConsensusMap& out) const;
+    void addConsensusFeature_(const std::vector<Size>& indices, const KDTreeData& kd_data, ConsensusMap& out) const;
 
     /// Distance between two points
     double distance_(double mz_1, double rt_1, double mz_2, double rt_2) const;
-
-    /// kd-tree data
-    KDTreeData kd_data_;
 
     /// Current progress for logging
     SignedSize progress_;

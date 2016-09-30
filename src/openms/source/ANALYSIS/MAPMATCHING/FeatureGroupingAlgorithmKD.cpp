@@ -44,14 +44,17 @@ namespace OpenMS
 {
 
   FeatureGroupingAlgorithmKD::FeatureGroupingAlgorithmKD() :
-    ProgressLogger(),
-    kd_data_()
+    ProgressLogger()
   {
     setName("FeatureGroupingAlgorithmKD");
     defaults_.setValue("rt_tol", 60.0, "width of RT tolerance window (sec)");
     defaults_.setValue("mz_tol", 15.0, "m/z tolerance (in ppm or Da)");
     defaults_.setValue("mz_unit", "ppm", "unit of m/z tolerance");
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValue("warp", "true", "whether or not to (internally) LOWESS-warp feature RTs before linking");
+    defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
+    defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
+    defaults_.setMinInt("nr_partitions", 1);
     defaultsToParam_();
     setLogType(CMD);
   }
@@ -61,7 +64,7 @@ namespace OpenMS
   }
 
   template <typename MapType>
-  void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& maps,
+  void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,
                                           ConsensusMap& out)
   {
     rt_tol_secs_ = (double)(param_.getValue("rt_tol"));
@@ -69,26 +72,144 @@ namespace OpenMS
     mz_ppm_ = param_.getValue("mz_unit").toString() == "ppm";
 
     // check that the number of maps is ok:
-    if (maps.size() < 2)
+    if (input_maps.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                        "At least two maps must be given!");
     }
 
-    // set up kd-tree
-    setUpTree_(maps);
+    out.clear(false);
 
-    // run RT alignment
-    MapAlignmentAlgorithmKD aligner(&kd_data_);
-    aligner.run();
+    double max_mz = 0;
+    vector<double> massrange;
+    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
+         map_it != input_maps.end(); ++map_it)
+    {
+      for (typename MapType::const_iterator feat_it = map_it->begin();
+          feat_it != map_it->end(); feat_it++)
+      {
+        massrange.push_back(feat_it->getMZ());
+        max_mz = max(max_mz, feat_it->getMZ());
+      }
+    }
+    sort(massrange.begin(), massrange.end());
 
-    // link features
-    runClustering_(out);
+    // partition at boundaries -> this should be safe because there cannot be
+    // any cluster reaching across boundaries
+
+    // minimal differences between two m/z values
+    // TODO: adapt massrange_diff within for loop if ppm is used
+    double massrange_diff = mz_ppm_ ? mz_tol_ * max_mz * 1e-6 : mz_tol_;
+    int pts_per_partition = massrange.size() / (int)(param_.getValue("nr_partitions"));
+
+    // compute partition boundaries
+    vector<double> partition_boundaries;
+    partition_boundaries.push_back(massrange.front());
+    for (size_t j = 0; j < massrange.size()-1; j++)
+    {
+      if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
+      {
+        if (j >= (partition_boundaries.size() ) * pts_per_partition  )
+        {
+          partition_boundaries.push_back((massrange[j] + massrange[j+1])/2.0);
+        }
+      }
+    }
+    // add last partition (a bit more since we use "smaller than" below)
+    partition_boundaries.push_back(massrange.back() + 1.0);
+
+    // ------------ compute RT fit data for alignment for all partitions ------------
+
+    MapAlignmentAlgorithmKD aligner(input_maps.size());
+    bool align = param_.getValue("warp").toString() == "true";
+    if (align)
+    {
+      //Size progress = 0;
+      //startProgress(0, partition_boundaries.size(), "linking features");
+
+      for (size_t j = 0; j < partition_boundaries.size()-1; j++)
+      {
+        double partition_start = partition_boundaries[j];
+        double partition_end = partition_boundaries[j+1];
+
+        std::vector<MapType> tmp_input_maps(input_maps.size());
+        for (size_t k = 0; k < input_maps.size(); k++)
+        {
+          // iterate over all features in the current input map and append
+          // matching features (within the current partition) to the temporary
+          // map
+          for (size_t m = 0; m < input_maps[k].size(); m++)
+          {
+            if (input_maps[k][m].getMZ() >= partition_start &&
+                input_maps[k][m].getMZ() < partition_end)
+            {
+              tmp_input_maps[k].push_back(input_maps[k][m]);
+            }
+          }
+          tmp_input_maps[k].updateRanges();
+        }
+
+        // set up kd-tree
+        KDTreeData kd_data;
+        setUpTree_(tmp_input_maps, kd_data);
+        aligner.addRTFitData(kd_data);
+
+        //setProgress(progress++);
+      }
+    }
+
+    // set up aligner: fit LOWESS on RT fit data collected across all partitions
+    if (align)
+    {
+      aligner.fitLOWESS();
+    }
+
+    // ------------ run alignment + feature linking on individual partitions ------------
+    for (size_t j = 0; j < partition_boundaries.size()-1; j++)
+    {
+      double partition_start = partition_boundaries[j];
+      double partition_end = partition_boundaries[j+1];
+
+      std::vector<MapType> tmp_input_maps(input_maps.size());
+      for (size_t k = 0; k < input_maps.size(); k++)
+      {
+        // iterate over all features in the current input map and append
+        // matching features (within the current partition) to the temporary
+        // map
+        for (size_t m = 0; m < input_maps[k].size(); m++)
+        {
+          if (input_maps[k][m].getMZ() >= partition_start &&
+              input_maps[k][m].getMZ() < partition_end)
+          {
+            tmp_input_maps[k].push_back(input_maps[k][m]);
+          }
+        }
+        tmp_input_maps[k].updateRanges();
+      }
+
+      // run algo on current partition
+
+      // set up kd-tree
+      KDTreeData kd_data;
+      setUpTree_(tmp_input_maps, kd_data);
+
+      // alignment
+      if (align)
+      {
+        aligner.transform(kd_data);
+      }
+
+      // link features
+      runClustering_(kd_data, out);
+
+      //setProgress(progress++);
+    }
+    //endProgress();
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later):
-    for (typename vector<MapType>::const_iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it)
+    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
+         map_it != input_maps.end(); ++map_it)
     {
       // add protein identifications to result map:
       out.getProteinIdentifications().insert(
@@ -104,9 +225,11 @@ namespace OpenMS
     }
 
     // canonical ordering for checking the results:
-    startProgress(0, 1, String("sorting results"));
+    startProgress(0, 3, String("sorting results"));
     out.sortByQuality();
+    setProgress(1);
     out.sortByMaps();
+    setProgress(2);
     out.sortBySize();
     endProgress();
     return;
@@ -125,52 +248,49 @@ namespace OpenMS
   }
 
   template <typename MapType>
-  void FeatureGroupingAlgorithmKD::setUpTree_(const std::vector<MapType>& maps)
+  void FeatureGroupingAlgorithmKD::setUpTree_(const std::vector<MapType>& maps, KDTreeData& kd_data)
   {
-    kd_data_.clear();
-    kd_data_.setParameters(param_);
+    kd_data.clear();
+    kd_data.setParameters(param_);
 
-    progress_ = 0;
-    startProgress(0, maps.size(), String("building kd-tree"));
+    //progress_ = 0;
+    //startProgress(0, maps.size(), String("building kd-tree"));
     for (Size i = 0; i < maps.size(); ++i)
     {
       const MapType& m = maps[i];
       for (typename MapType::const_iterator it = m.begin(); it != m.end(); ++it)
       {
-        kd_data_.addFeature(i, &(*it));
+        kd_data.addFeature(i, &(*it));
       }
-      setProgress(++progress_);
+      //setProgress(++progress_);
     }
-    endProgress();
-
-    LOG_INFO << "Added " << kd_data_.size() << " features from " << maps.size() << " maps." << endl;
-
-    startProgress(0, 1, String("optimizing k-d tree"));
-    kd_data_.optimizeTree();
-    endProgress();
+    //endProgress();
+    //startProgress(0, 1, String("optimizing k-d tree"));
+    kd_data.optimizeTree();
+    //endProgress();
   }
 
-  void FeatureGroupingAlgorithmKD::runClustering_(ConsensusMap& out)
+  void FeatureGroupingAlgorithmKD::runClustering_(const KDTreeData& kd_data, ConsensusMap& out)
   {
-    Size n = kd_data_.size();
+    Size n = kd_data.size();
 
     // pass 1: initialize best potential clusters for all possible cluster centers
-    progress_ = 0;
-    startProgress(0, n, String("linking features (pass 1/2)"));
+    //progress_ = 0;
+    //startProgress(0, n, String("linking features (pass 1/2)"));
     set<Size> update_these;
-    for (Size i = 0; i < kd_data_.size(); ++i)
+    for (Size i = 0; i < kd_data.size(); ++i)
     {
       update_these.insert(i);
     }
     set<ClusterProxyKD> potential_clusters;
     vector<ClusterProxyKD> cluster_for_idx(n);
     vector<Int> assigned(n, false);
-    updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, true);
-    endProgress();
+    updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, kd_data, true);
+    //endProgress();
 
     // pass 2: construct consensus features until all points assigned.
-    progress_ = 0;
-    startProgress(0, n, String("linking features (pass 2/2)"));
+    //progress_ = 0;
+    //startProgress(0, n, String("linking features (pass 2/2)"));
     while(!potential_clusters.empty())
     {
       // get index of current best cluster center (as defined by ClusterProxyKD::operator<)
@@ -178,10 +298,10 @@ namespace OpenMS
 
       // compile the actual list of sub feature indices for cluster with center i
       vector<Size> cf_indices;
-      computeBestClusterForCenter(i, cf_indices, assigned);
+      computeBestClusterForCenter(i, cf_indices, assigned, kd_data);
 
       // add consensus feature
-      addConsensusFeature_(cf_indices, out);
+      addConsensusFeature_(cf_indices, kd_data, out);
 
       // mark selected sub features assigned and delete them from potential_clusters
       for (vector<Size>::const_iterator f_it = cf_indices.begin(); f_it != cf_indices.end(); ++f_it)
@@ -195,7 +315,7 @@ namespace OpenMS
       for (vector<Size>::const_iterator f_it = cf_indices.begin(); f_it != cf_indices.end(); ++f_it)
       {
         vector<Size> f_neighbors;
-        kd_data_.getNeighborhood(*f_it, f_neighbors, true);
+        kd_data.getNeighborhood(*f_it, f_neighbors, true);
         for (vector<Size>::const_iterator it = f_neighbors.begin(); it != f_neighbors.end(); ++it)
         {
           if (!assigned[*it])
@@ -206,12 +326,12 @@ namespace OpenMS
       }
 
       // now that the points are marked assigned, update the neighborhoods of their neighbors
-      updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned);
-      progress_ += cf_indices.size();
-      setProgress(progress_);
+      updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, kd_data);
+      //progress_ += cf_indices.size();
+      //setProgress(progress_);
     }
 
-    endProgress();
+    //endProgress();
   }
 
 
@@ -220,6 +340,7 @@ namespace OpenMS
                                                          vector<ClusterProxyKD>& cluster_for_idx,
                                                          const set<Size>& update_these,
                                                          const vector<Int>& assigned,
+                                                         const KDTreeData& kd_data,
                                                          bool update_progress)
   {
     for (set<Size>::const_iterator it = update_these.begin(); it != update_these.end(); ++it)
@@ -227,7 +348,7 @@ namespace OpenMS
       Size i = *it;
       const ClusterProxyKD& old_proxy = cluster_for_idx[i];
       vector<Size> unused;
-      ClusterProxyKD new_proxy = computeBestClusterForCenter(i, unused, assigned);
+      ClusterProxyKD new_proxy = computeBestClusterForCenter(i, unused, assigned, kd_data);
 
       // only need to update if size and/or average distance have changed
       if (new_proxy != old_proxy)
@@ -238,15 +359,15 @@ namespace OpenMS
       }
       if (update_progress)
       {
-        setProgress(++progress_);
+        //setProgress(++progress_);
       }
     }
   }
 
-  ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter(Size i, vector<Size>& cf_indices, const vector<Int>& assigned) const
+  ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeData& kd_data) const
   {
     // for scaling distances relative to tolerance windows below
-    pair<double, double> dummy_mz_win = kd_data_.getTolWindow(1000, mz_tol_, mz_ppm_);
+    pair<double, double> dummy_mz_win = kd_data.getTolWindow(1000, mz_tol_, mz_ppm_);
     double max_rt_dist = rt_tol_secs_;
     double max_mz_dist = (dummy_mz_win.second - dummy_mz_win.first) / 2;
 
@@ -254,17 +375,17 @@ namespace OpenMS
     // map index -> corresponding points
     map<Size, vector<Size> > points_for_map_index;
     vector<Size> neighbors;
-    kd_data_.getNeighborhood(i, neighbors, true);
-    Int charge_i = kd_data_.charge(i);
+    kd_data.getNeighborhood(i, neighbors, true);
+    Int charge_i = kd_data.charge(i);
     for (vector<Size>::const_iterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
-      if (!assigned[*it] && kd_data_.charge(*it) == charge_i)
+      if (!assigned[*it] && kd_data.charge(*it) == charge_i)
       {
-        points_for_map_index[kd_data_.mapIndex(*it)].push_back(*it);
+        points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
       }
     }
     // center i is always part of CF, no other points from i's map can be contained
-    points_for_map_index[kd_data_.mapIndex(i)] = vector<Size>(1, i);
+    points_for_map_index[kd_data.mapIndex(i)] = vector<Size>(1, i);
 
     // compile list of sub feature indices and corresponding average distance
     double avg_distance = 0.0;
@@ -279,10 +400,10 @@ namespace OpenMS
       Size best_index = numeric_limits<double>::max();
       for (vector<Size>::const_iterator c_it = candidates.begin(); c_it != candidates.end(); ++c_it)
       {
-        double dist = distance_(kd_data_.mz(*c_it) / max_mz_dist,
-                                kd_data_.rt(*c_it) / max_rt_dist,
-                                kd_data_.mz(i) / max_mz_dist,
-                                kd_data_.rt(i) / max_rt_dist);
+        double dist = distance_(kd_data.mz(*c_it) / max_mz_dist,
+                                kd_data.rt(*c_it) / max_rt_dist,
+                                kd_data.mz(i) / max_mz_dist,
+                                kd_data.rt(i) / max_rt_dist);
         if (dist < min_dist)
         {
           min_dist = dist;
@@ -297,15 +418,15 @@ namespace OpenMS
     return ClusterProxyKD(cf_indices.size(), avg_distance, i);
   }
 
-  void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, ConsensusMap& out) const
+  void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeData& kd_data, ConsensusMap& out) const
   {
     ConsensusFeature cf;
     float avg_quality = 0;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
-      cf.insert(kd_data_.mapIndex(i), *(kd_data_.feature(i)));
-      avg_quality += kd_data_.feature(i)->getQuality();
+      cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
+      avg_quality += kd_data.feature(i)->getQuality();
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);
