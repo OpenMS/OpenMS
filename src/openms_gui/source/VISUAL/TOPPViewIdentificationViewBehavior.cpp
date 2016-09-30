@@ -470,14 +470,6 @@ namespace OpenMS
   // Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
   void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::FragmentAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
   {
-    //String green_lower = "<font color=\"green\">&#8627; </font>";
-    //String red_lower = "<font color=\"red\">&#8627;</font>";
-    //String green_upper = "<font color=\"green\">&#8624;</font>";
-    //String red_upper = "<font color=\"red\">&#8624;</font>";
-
-    //alpha_string = String(alpha_size, ' ');
-    //beta_string = String(beta_size, ' ');
-
     vector<String> alpha_strings(alpha_size, " ");
     vector<String> beta_strings(beta_size, " ");
     // vectors to keep track of assigned symbols, 0 = nothing, -1 = left, 1 = right, 2 = both
