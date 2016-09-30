@@ -113,6 +113,9 @@ struct CrossLinkSpectrumMatch
 
     static double cumulativeBinomial(Size n, Size k, double p);
 
+    static std::multimap<double, std::pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const std::multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2);
+
+
     static double match_odds_score(const RichPeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1);
 
 //    template <typename SpectrumType1, typename SpectrumType2>
@@ -120,11 +123,71 @@ struct CrossLinkSpectrumMatch
 
     static double weighted_TIC_score(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double intsum, double total_current, bool type_is_cross_link);
 
-    static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
+    // Sum of matched ion intesity, for Intsum score and %TIC score
+//    static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
-    static double total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
+    // Sum of matched ion intesity, for Intsum score and %TIC score
+    template <typename SpectrumType1>
+    static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const SpectrumType1& spectrum_common_peaks, const SpectrumType1& spectrum_xlink_peaks)
+    {
+      double intsum = 0;
+      for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
+      {
+        intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
+      }
+      for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
+      {
+        intsum += spectrum_xlink_peaks[matched_spec_xlinks[j].second].getIntensity();
+      }
+      return intsum;
+    }
 
-    static std::multimap<double, std::pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const std::multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2);
+//    static double total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
+
+    template <typename SpectrumType1>
+    static double total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const SpectrumType1& spectrum_common_peaks, const SpectrumType1& spectrum_xlink_peaks)
+    {
+      // make vectors of matched peak indices
+      double intsum = 0;
+      std::vector< Size > indices_common;
+      std::vector< Size > indices_xlinks;
+      for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
+      {
+        indices_common.push_back(matched_spec_common_alpha[j].second);
+      }
+      for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
+      {
+        indices_common.push_back(matched_spec_common_beta[j].second);
+      }
+      for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
+      {
+        indices_xlinks.push_back(matched_spec_xlinks_alpha[j].second);
+      }
+      for (Size j = 0; j < matched_spec_xlinks_beta.size(); ++j)
+      {
+        indices_xlinks.push_back(matched_spec_xlinks_beta[j].second);
+      }
+
+      // make the indices in the vectors unique
+      sort(indices_common.begin(), indices_common.end());
+      sort(indices_xlinks.begin(), indices_xlinks.end());
+      std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
+      std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
+      indices_common.erase(last_unique_common, indices_common.end());
+      indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
+
+      // sum over intensities under the unique indices
+      for (Size j = 0; j < indices_common.size(); ++j)
+      {
+        intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
+      }
+      for (Size j = 0; j < indices_xlinks.size(); ++j)
+      {
+        intsum += spectrum_xlink_peaks[indices_xlinks[j]].getIntensity();
+      }
+
+      return intsum;
+    }
 
     // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, a constant binsize)
     template <typename SpectrumType1, typename SpectrumType2>
