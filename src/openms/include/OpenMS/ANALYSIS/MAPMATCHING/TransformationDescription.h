@@ -113,6 +113,19 @@ public:
     /// Computes an (approximate) inverse of the transformation
     void invert();
 
+    /**
+       @brief Get the deviations between the data pairs
+
+       @param diffs Output
+       @param do_apply Get deviations after applying the model?
+       @param do_sort Sort @p diffs before returning?
+    */
+    void getDeviations(std::vector<double>& diffs, bool do_apply = false,
+                       bool do_sort = true) const;
+
+    /// Print summary statistics for the transformation
+    void printSummary(std::ostream& os = std::cout) const;
+
 protected:
     /// Data points
     DataPoints data_;
