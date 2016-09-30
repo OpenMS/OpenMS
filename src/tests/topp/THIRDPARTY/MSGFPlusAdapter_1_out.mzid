@@ -123,7 +123,7 @@
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
-        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4587.669"/>
+        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4587.669" unitAccession="UO:0000010" unitName="second"/>
       </SpectrumIdentificationResult>
       <SpectrumIdentificationResult spectrumID="spectrum=2" spectraData_ref="SID_1" id="SIR_3">
         <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="775.38720703125" calculatedMassToCharge="775.3854370117188" peptide_ref="RPGADSDIGGFGGLFDLAQAGFR" rank="1" passThreshold="true" id="SII_3_1">
@@ -135,7 +135,7 @@
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
-        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4923.7773"/>
+        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4923.7773" unitAccession="UO:0000010" unitName="second"/>
       </SpectrumIdentificationResult>
       <SpectrumIdentificationResult spectrumID="spectrum=0" spectraData_ref="SID_1" id="SIR_1">
         <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="520.2628173828125" calculatedMassToCharge="520.2635498046875" peptide_ref="DFASSGGYVLHLHR" rank="1" passThreshold="true" id="SII_1_1">
@@ -147,7 +147,7 @@
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
-        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="2655.0957"/>
+        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="2655.0957" unitAccession="UO:0000010" unitName="second"/>
       </SpectrumIdentificationResult>
     </SpectrumIdentificationList>
   </AnalysisData>
