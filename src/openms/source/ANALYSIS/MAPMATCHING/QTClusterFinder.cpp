@@ -102,10 +102,19 @@ namespace OpenMS
   void QTClusterFinder::run_(const vector<MapType>& input_maps,
                              ConsensusMap& result_map)
   {
-    // update parameters (dummy)
-    setParameters_(1, 1); 
-
     result_map.clear(false);
+
+    // set parameters here, so max_diff_mz_ has the correct
+    // value when computing the partitioning in m/z space
+    double max_intensity = 0.0;
+    double max_mz = 0.0;
+    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
+         map_it != input_maps.end(); ++map_it)
+    {
+      max_intensity = max(max_intensity, map_it->getMaxInt());
+      max_mz = max(max_mz, map_it->getMax().getY());
+    }
+    setParameters_(max_intensity, max_mz);
 
     std::vector< double > massrange; 
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
@@ -197,7 +206,8 @@ namespace OpenMS
                                        "At least two input maps required");
     }
 
-    // set up the distance functor (and set other parameters):
+    // set up the distance functor (and set other parameters)
+    // for the current partition
     double max_intensity = 0.0;
     double max_mz = 0.0;
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
@@ -206,7 +216,6 @@ namespace OpenMS
       max_intensity = max(max_intensity, map_it->getMaxInt());
       max_mz = max(max_mz, map_it->getMax().getY());
     }
-
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
