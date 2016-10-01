@@ -114,6 +114,26 @@ namespace OpenMS
     return result;
   }
 
+  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const
+  {
+    // A fragment's isotopes can only be as high as the largest isolated precursor isotope.
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
+
+    // Treat *this as the fragment molecule
+    EmpiricalFormula complementary_fragment = precursor-*this;
+
+    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(max_depth);
+    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(max_depth);
+
+    IsotopeDistribution result;
+    result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+
+    // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
+    result.renormalize();
+
+    return result;
+  }
+
   SignedSize EmpiricalFormula::getNumberOf(const Element* element) const
   {
     MapType_::const_iterator it  = formula_.find(element);

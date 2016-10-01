@@ -293,6 +293,94 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   }
 END_SECTION
 
+START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const)
+  EmpiricalFormula precursor("C2");
+  EmpiricalFormula fragment("C");
+  std::vector<UInt> precursor_isotopes;
+
+  precursor_isotopes.push_back(0);
+  // isolated precursor isotope is M0
+  IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result[] = { 1.0 };
+  Size i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result[i])
+  }
+
+  precursor_isotopes.pop_back();
+  precursor_isotopes.push_back(1);
+  // isolated precursor isotope is M+1
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result2[] = { 0.5, 0.5};
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result2[i])
+  }
+
+  precursor_isotopes.push_back(0);
+  // isolated precursor isotopes are M0 and M+1
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result3[] = { 0.98941, 0.01059};
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result3[i])
+  }
+
+  precursor_isotopes.push_back(2);
+  // isolated precursor isotopes are M0, M+1, and M+2
+  // This is the example found in the comments of the getConditionalFragmentIsotopeDist function.
+  // Since we're isolating all the possible precursor isotopes, the fragment isotope distribution
+  // should be equivalent to the natural isotope abundances.
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  double result4[] = { 0.9893, 0.0107};
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result4[i])
+  }
+
+  precursor_isotopes.push_back(3);
+  // isolated precursor isotopes are M0, M+1, M+2, and M+3
+  // It's impossible for precursor C2 to have 3 extra neutrons (assuming only natural stable isotopes)
+  // Invalid precursor isotopes are ignored and should give the answer as if they were not there
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->second, result4[i])
+  }
+
+  precursor = EmpiricalFormula("C10H10N10O10S2");
+  EmpiricalFormula big_fragment = EmpiricalFormula("C9H9N9O9S1");
+  EmpiricalFormula small_fragment = EmpiricalFormula("C1H1N1O1S1");
+
+  precursor_isotopes.clear();
+  precursor_isotopes.push_back(1);
+  // isolated precursor isotope is M+1
+  IsotopeDistribution big_iso = big_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+
+  // When we isolate only the M+1 precursor isotope, the big_fragment is more likely to exist as M+1 than M0.
+  TEST_EQUAL(big_iso.getContainer()[0].second < 0.2, true)
+  TEST_EQUAL(big_iso.getContainer()[1].second > 0.8, true)
+
+  // The small_fragment, however, is more likely to exist as M0 than M+1.
+  TEST_EQUAL(small_iso.getContainer()[0].second > 0.8, true)
+  TEST_EQUAL(small_iso.getContainer()[1].second < 0.2, true)
+
+  // Since the two fragments also happen to be complementary, their probabilities are perfectly reversed.
+  IsotopeDistribution::ConstIterator big_it = big_iso.begin();
+  IsotopeDistribution::ConstReverseIterator small_it = small_iso.rbegin();
+  for (; big_it != big_iso.end(); ++big_it, ++small_it)
+  {
+    TEST_REAL_SIMILAR(big_it->second, small_it->second)
+  }
+
+END_SECTION
+
 START_SECTION(([EXTRA] Check correct charge semantics))
   EmpiricalFormula ef1("H4C+"); // CH4 +1 charge
   const Element * H = db->getElement("H");
