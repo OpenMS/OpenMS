@@ -437,6 +437,14 @@ protected:
 int main(int argc, const char** argv)
 {
 
+  // Print usage if used without arguments
+  if (argc == 1)
+  {
+    TOPPTICCalculator tool;
+    tool.main(argc, argv);
+    return 0;
+  }
+
   // Add -test at the end of the arguments in order to avoid calling the OpenMS
   // server for usage statistics (and thus making the benchmark slower)
   char testflag[] = "-test";
