@@ -102,19 +102,10 @@ namespace OpenMS
   void QTClusterFinder::run_(const vector<MapType>& input_maps,
                              ConsensusMap& result_map)
   {
-    result_map.clear(false);
+    // update parameters (dummy)
+    setParameters_(1, 1);
 
-    // set parameters here, so max_diff_mz_ has the correct
-    // value when computing the partitioning in m/z space
-    double max_intensity = 0.0;
-    double max_mz = 0.0;
-    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
-         map_it != input_maps.end(); ++map_it)
-    {
-      max_intensity = max(max_intensity, map_it->getMaxInt());
-      max_mz = max(max_mz, map_it->getMax().getY());
-    }
-    setParameters_(max_intensity, max_mz);
+    result_map.clear(false);
 
     std::vector< double > massrange; 
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
@@ -142,11 +133,20 @@ namespace OpenMS
       double massrange_diff = max_diff_mz_;
       int pts_per_partition = massrange.size() / nr_partitions_;
 
+      // if m/z tolerance is specified in ppm, we adapt massrange_diff
+      // in each iteration below
+      bool mz_ppm = param_.getValue("distance_MZ:unit") == "ppm";
+      double mz_tol = param_.getValue("distance_MZ:max_difference");
+
       // compute partition boundaries
       std::vector< double > partition_boundaries; 
       partition_boundaries.push_back(massrange.front());
       for (size_t j = 0; j < massrange.size()-1; j++)
       {
+        if (mz_ppm)
+        {
+          massrange_diff = mz_tol * 1e-6 * massrange[j+1];
+        }
         if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
         {
           if (j >= (partition_boundaries.size() ) * pts_per_partition  )
