@@ -182,7 +182,9 @@ protected:
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
     setMinFloat_("extract:mz_window", 0.0);
-    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.05, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
+    registerIntOption_("extract:n_isotopes", "<number>", 3, "Number of isotopes to include in each peptide assay.", false);
+    setMinInt_("extract:n_isotopes", 2);
+    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.0, "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.", false, true);
     setMinFloat_("extract:isotope_pmin", 0.0);
     setMaxFloat_("extract:isotope_pmin", 1.0);
     registerDoubleOption_("extract:rt_quantile", "<value>", 0.99, "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window", false, true);
@@ -282,7 +284,8 @@ protected:
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
   bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
-  double isotope_pmin_; // min. isotope probability
+  double isotope_pmin_; // min. isotope probability for peptide assay
+  Size n_isotopes_; // number of isotopes for peptide assay
   double mapping_tolerance_; // RT tolerance for mapping IDs to features
   Size n_parts_; // number of partitions for SVM cross-validation
   Size n_samples_; // number of samples for SVM training
@@ -640,11 +643,15 @@ protected:
     }
 
     // get isotope distribution for peptide:
+    Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
     IsotopeDistribution iso_dist = 
-      seq.getFormula(Residue::Full, 0).getIsotopeDistribution(10);
-    iso_dist.trimLeft(isotope_pmin_);
-    iso_dist.trimRight(isotope_pmin_);
-    iso_dist.renormalize();
+      seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
+    if (isotope_pmin_ > 0.0)
+    {
+      iso_dist.trimLeft(isotope_pmin_);
+      iso_dist.trimRight(isotope_pmin_);
+      iso_dist.renormalize();
+    }
 
     // get regions in which peptide elutes (ideally only one):
     vector<RTRegion> rt_regions;
@@ -1232,6 +1239,7 @@ protected:
     mz_window_ = getDoubleOption_("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
     isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
+    n_isotopes_ = getIntOption_("extract:n_isotopes");
     double peak_width = getDoubleOption_("detect:peak_width");
     double min_peak_width = getDoubleOption_("detect:min_peak_width");
     double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
