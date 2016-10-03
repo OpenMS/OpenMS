@@ -81,7 +81,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_NONE:
-      AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2], canvas_3d_.overall_data_range_.max_[2], grid_intensity_);
+      AxisTickCalculator::calcGridLines(std::max(0.0, canvas_3d_.overall_data_range_.min_[2]), canvas_3d_.overall_data_range_.max_[2], grid_intensity_);
       break;
 
     case SpectrumCanvas::IM_PERCENTAGE:
