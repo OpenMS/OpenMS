@@ -239,12 +239,12 @@ private:
     Each line contains a chemical formula (plus quantor) and a charge (separated by semicolon), e.g.
     M+H;1+ 
     The M can be preceded by a quantor (e.g.2M, 3M), implicitly assumed as 1.
-    The chemical formula can contain multiple segments, separated by + or - operators, e.g. M+H-H20.
-    Brackets are implicit per segment, i.e. M+H-H20 is parsed as M + (H) - (H20).
-    Each segment can also be preceded by a quantor, e.g. M+H-2H20 would parse as
-    M + (H) - 2x(H20).
-    If debug mode is enabled, the masses of each segment are printed for verification. In particular,
-    typing H20 (twenty H) is different from H2O (water).
+    The chemical formula can contain multiple segments, separated by + or - operators, e.g. M+H-H2O;+1 (water loss in positive mode).
+    Brackets are implicit per segment, i.e. M+H-H2O is parsed as M + (H) - (H2O).
+    Each segment can also be preceded by a quantor, e.g. M+H-H2O would parse as
+    M + (H) - 2x(H2O).
+    If debug mode is enabled, the masses of each segment are printed for verification.
+    In particular, typing H20 (twenty H) is different from H2O (water).
 
     Ionization mode of the observed m/z values can be determined automatically if the input map (either FeatureMap or ConsensusMap) is annotated
     with a meta value, as done by @ref TOPP_FeatureFinderMetabo.
