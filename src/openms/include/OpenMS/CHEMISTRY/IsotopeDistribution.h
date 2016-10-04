@@ -36,6 +36,7 @@
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <utility>
 #include <vector>
@@ -154,6 +155,9 @@ public:
 
     */
     void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+
+    void estimateForFragmentFromWeightsAndComp(double precursor_mono_weight, double fragment_mono_weight, double C, double H, double N, double O, double S, double P);
 
     /**
         @brief Calculate isotopic distribution for a fragment molecule

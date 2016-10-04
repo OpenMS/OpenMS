@@ -41,6 +41,7 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -124,6 +125,8 @@ public:
 
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
+
+      void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
     /**
       @brief returns the isotope distribution of the formula

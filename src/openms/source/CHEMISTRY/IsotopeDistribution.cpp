@@ -166,37 +166,9 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
   {
-    const ElementDB * db = ElementDB::getInstance();
-
-    vector<String> names;
-    names.push_back("C");
-    names.push_back("H");
-    names.push_back("N");
-    names.push_back("O");
-    names.push_back("S");
-
-    //Averagine element count divided by averagine weight
-    vector<double> factors;
-    factors.push_back(4.9384 / 111.1254);
-    factors.push_back(7.7583 / 111.1254);
-    factors.push_back(1.3577 / 111.1254);
-    factors.push_back(1.4773 / 111.1254);
-    factors.push_back(0.0417 / 111.1254);
-
-    //initialize distribution
-    distribution_.clear();
-    distribution_.push_back(make_pair(0u, 1.0));
-
-    for (Size i = 0; i != names.size(); ++i)
-    {
-      ContainerType single, conv_dist;
-      //calculate distribution for single element
-      ContainerType dist(db->getElement(names[i])->getIsotopeDistribution().getContainer());
-      convolvePow_(single, dist, (Size) Math::round(average_weight * factors[i]));
-      //convolve it with the existing distributions
-      conv_dist = distribution_;
-      convolve_(distribution_, single, conv_dist);
-    }
+    EmpiricalFormula ef;
+    ef.estimateFromWeightAndComp(average_weight, 4.9384/111.1254, 7.7583/111.1254, 1.3577/111.1254, 1.4773/111.1254, 0.0417/111.1254, 0);
+    distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
   }
 
 
@@ -252,6 +224,11 @@ namespace OpenMS
         conv_dist = distribution_;
         convolve_(distribution_, single, conv_dist);
       }
+  }
+
+  void IsotopeDistribution::estimateForFragmentFromWeightsAndComp(double precursor_mono_weight, double fragment_mono_weight, double C, double H, double N, double O,
+                                                                 double S, double P) {
+
   }
 
   void IsotopeDistribution::calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes)

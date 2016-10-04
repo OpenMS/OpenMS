@@ -100,6 +100,25 @@ namespace OpenMS
     return weight;
   }
 
+    void EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
+    {
+      const ElementDB * db = ElementDB::getInstance();
+
+      formula_.clear();
+
+      formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C*average_weight)));
+      formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N*average_weight)));
+      formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O*average_weight)));
+      formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S*average_weight)));
+      formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P*average_weight)));
+
+      SignedSize adjusted_H = (SignedSize) Math::round((average_weight-getAverageWeight()) / db->getElement("H")->getAverageWeight());
+      formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+      std::cout << getAverageWeight() << std::endl;
+      std::cout << getMonoWeight() << std::endl;
+    }
+
+
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
   {
     IsotopeDistribution result(max_depth);
