@@ -100,24 +100,33 @@ namespace OpenMS
     return weight;
   }
 
-    void EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
-    {
-      const ElementDB * db = ElementDB::getInstance();
+  void EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
+  {
+    const ElementDB * db = ElementDB::getInstance();
 
-      formula_.clear();
+    double avgTotal = (C*db->getElement("C")->getAverageWeight() +
+                        H*db->getElement("H")->getAverageWeight() +
+                        N*db->getElement("N")->getAverageWeight() +
+                        O*db->getElement("O")->getAverageWeight() +
+                        S*db->getElement("S")->getAverageWeight() +
+                        P*db->getElement("P")->getAverageWeight());
 
-      formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C*average_weight)));
-      formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N*average_weight)));
-      formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O*average_weight)));
-      formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S*average_weight)));
-      formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P*average_weight)));
+    double factor = average_weight/avgTotal;
 
-      SignedSize adjusted_H = (SignedSize) Math::round((average_weight-getAverageWeight()) / db->getElement("H")->getAverageWeight());
-      formula_.insert(make_pair(db->getElement("H"), adjusted_H));
-      std::cout << getAverageWeight() << std::endl;
-      std::cout << getMonoWeight() << std::endl;
-    }
+    formula_.clear();
 
+    formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C*factor)));
+    formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N*factor)));
+    formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O*factor)));
+    formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S*factor)));
+    formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P*factor)));
+
+    double remaining_mass = average_weight-getAverageWeight();
+    SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
+    adjusted_H = max(0L, adjusted_H );
+
+    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+  }
 
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
   {

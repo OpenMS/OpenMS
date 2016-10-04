@@ -166,9 +166,7 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
   {
-    EmpiricalFormula ef;
-    ef.estimateFromWeightAndComp(average_weight, 4.9384/111.1254, 7.7583/111.1254, 1.3577/111.1254, 1.4773/111.1254, 0.0417/111.1254, 0);
-    distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
+      estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
 
@@ -185,50 +183,9 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
-      const ElementDB * db = ElementDB::getInstance();
-
-      vector<String> names;
-      names.push_back("C");
-      names.push_back("H");
-      names.push_back("N");
-      names.push_back("O");
-      names.push_back("S");
-      names.push_back("P");
-
-      //Averagine element count divided by averagine weight
-      vector<double> factors;
-      double monoTotal = (C*db->getElement("C")->getMonoWeight() +
-                         H*db->getElement("H")->getMonoWeight() +
-                         N*db->getElement("N")->getMonoWeight() +
-                         O*db->getElement("O")->getMonoWeight() +
-                         S*db->getElement("S")->getMonoWeight() +
-                         P*db->getElement("P")->getMonoWeight());
-      factors.push_back(C / monoTotal);
-      factors.push_back(H / monoTotal);
-      factors.push_back(N / monoTotal);
-      factors.push_back(O / monoTotal);
-      factors.push_back(S / monoTotal);
-      factors.push_back(P / monoTotal);
-
-      //initialize distribution
-      distribution_.clear();
-      distribution_.push_back(make_pair(0u, 1.0));
-
-      for (Size i = 0; i != names.size(); ++i)
-      {
-        ContainerType single, conv_dist;
-        //calculate distribution for single element
-        ContainerType dist(db->getElement(names[i])->getIsotopeDistribution().getContainer());
-        convolvePow_(single, dist, (Size) Math::round(average_weight * factors[i]));
-        //convolve it with the existing distributions
-        conv_dist = distribution_;
-        convolve_(distribution_, single, conv_dist);
-      }
-  }
-
-  void IsotopeDistribution::estimateForFragmentFromWeightsAndComp(double precursor_mono_weight, double fragment_mono_weight, double C, double H, double N, double O,
-                                                                 double S, double P) {
-
+      EmpiricalFormula ef;
+      ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
+      distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
   }
 
   void IsotopeDistribution::calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes)
