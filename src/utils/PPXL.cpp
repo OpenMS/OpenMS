@@ -2991,6 +2991,7 @@ protected:
     indexing_param.setValue("prefix", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     indexing_param.setValue("missing_decoy_action", "warn");
+    indexing_param.setValue("enzyme:name", enzyme_name);
     pep_indexing.setParameters(indexing_param);
 
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
