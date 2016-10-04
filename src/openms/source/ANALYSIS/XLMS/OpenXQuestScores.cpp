@@ -76,10 +76,13 @@ namespace OpenMS
     if (1 - p < 1e-99) return static_cast<double>(k != n); //
     if (k > n)  return 1.0;
 
+    //cout << "TEST cumulBinom, passed if's, p = " << p << endl;
+
     for (Size j = 0; j < k; j++)
     {
       double coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
       p_cumul += coeff * pow(p,  j) * pow((1-p), (n-j));
+      //cout << "TEST coeff: " << coeff << " | first pow: " << pow(p,  j) << " | second pow: " <<  pow((1-p), (n-j)) << " | just added: " << coeff * pow(p,  j) * pow((1-p), (n-j)) << " | new p_cumul: " << p_cumul << endl;
     }
 
     // match-odds score becomes INFINITY for p_cumul >= 1, p_cumul might reach 1 because of insufficient precision, solved by using largest value smaller than 1
@@ -104,7 +107,13 @@ namespace OpenMS
 
     // Compute fragment tolerance for the middle of the range / mean of MZ values, if ppm
     // TODO mean should be used, so sum over MZs and devide by number, if ppm
-    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? (theoretical_spec[theo_size-1].getMZ() + range / 2) * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+    double mean = 0.0;
+    for (Size i = 0; i < theo_size; ++i)
+    {
+      mean += theoretical_spec[i].getMZ();
+    }
+    mean = mean / theo_size;
+    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
 
     // A priori probability of a random match given info about the theoretical spectrum
     //    double a_priori_p = a_priori_probability(tolerance_Th, theo_size, range, 3);
@@ -121,6 +130,9 @@ namespace OpenMS
 
     double match_odds = 0;
     match_odds = -log(1 - cumulativeBinomial(theo_size, matched_size, a_priori_p) + 1e-5);
+
+//     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial(theo_size, matched_size, a_priori_p)
+//              << " | match_odds: " << match_odds << endl;
 
     // score lower than 0 does not make sense, but can happen if cumBinom = 0, -log( 1 + 1e5 ) < 0
     if (match_odds >= 0.0)
@@ -230,64 +242,64 @@ namespace OpenMS
     return wTIC;
   }
 
-  // Sum of matched ion intesity, for Intsum score and %TIC score
-  double OpenXQuestScores::matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
-  {
-    double intsum = 0;
-    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
-    {
-      intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
-    }
-    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
-    {
-      intsum += spectrum_xlink_peaks[matched_spec_xlinks[j].second].getIntensity();
-    }
-    return intsum;
-  }
+//  // Sum of matched ion intesity, for Intsum score and %TIC score
+//  double OpenXQuestScores::matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+//  {
+//    double intsum = 0;
+//    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
+//    {
+//      intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
+//    }
+//    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
+//    {
+//      intsum += spectrum_xlink_peaks[matched_spec_xlinks[j].second].getIntensity();
+//    }
+//    return intsum;
+//  }
 
-  double OpenXQuestScores::total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
-  {
-    // make vectors of matched peak indices
-    double intsum = 0;
-    std::vector< Size > indices_common;
-    std::vector< Size > indices_xlinks;
-    for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
-    {
-      indices_common.push_back(matched_spec_common_alpha[j].second);
-    }
-    for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
-    {
-      indices_common.push_back(matched_spec_common_beta[j].second);
-    }
-    for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
-    {
-      indices_xlinks.push_back(matched_spec_xlinks_alpha[j].second);
-    }
-    for (Size j = 0; j < matched_spec_xlinks_beta.size(); ++j)
-    {
-      indices_xlinks.push_back(matched_spec_xlinks_beta[j].second);
-    }
+//  double OpenXQuestScores::total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+//  {
+//    // make vectors of matched peak indices
+//    double intsum = 0;
+//    std::vector< Size > indices_common;
+//    std::vector< Size > indices_xlinks;
+//    for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
+//    {
+//      indices_common.push_back(matched_spec_common_alpha[j].second);
+//    }
+//    for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
+//    {
+//      indices_common.push_back(matched_spec_common_beta[j].second);
+//    }
+//    for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
+//    {
+//      indices_xlinks.push_back(matched_spec_xlinks_alpha[j].second);
+//    }
+//    for (Size j = 0; j < matched_spec_xlinks_beta.size(); ++j)
+//    {
+//      indices_xlinks.push_back(matched_spec_xlinks_beta[j].second);
+//    }
 
-    // make the indices in the vectors unique
-    sort(indices_common.begin(), indices_common.end());
-    sort(indices_xlinks.begin(), indices_xlinks.end());
-    std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
-    std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
-    indices_common.erase(last_unique_common, indices_common.end());
-    indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
+//    // make the indices in the vectors unique
+//    sort(indices_common.begin(), indices_common.end());
+//    sort(indices_xlinks.begin(), indices_xlinks.end());
+//    std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
+//    std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
+//    indices_common.erase(last_unique_common, indices_common.end());
+//    indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
 
-    // sum over intensities under the unique indices
-    for (Size j = 0; j < indices_common.size(); ++j)
-    {
-      intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
-    }
-    for (Size j = 0; j < indices_xlinks.size(); ++j)
-    {
-      intsum += spectrum_xlink_peaks[indices_xlinks[j]].getIntensity();
-    }
+//    // sum over intensities under the unique indices
+//    for (Size j = 0; j < indices_common.size(); ++j)
+//    {
+//      intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
+//    }
+//    for (Size j = 0; j < indices_xlinks.size(); ++j)
+//    {
+//      intsum += spectrum_xlink_peaks[indices_xlinks[j]].getIntensity();
+//    }
 
-    return intsum;
-  }
+//    return intsum;
+//  }
 
   // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
   // At this point the only difference between mono-links and loop-links is the added cross-link mass

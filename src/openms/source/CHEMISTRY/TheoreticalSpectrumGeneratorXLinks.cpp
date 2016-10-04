@@ -299,7 +299,7 @@ namespace OpenMS
           addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type_A);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type_A);
           }
         }
@@ -330,7 +330,7 @@ namespace OpenMS
           addPeak_(spec_beta, pos, intensity, res_type, i, charge, ion_type_B);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spec_beta, pos, intensity, res_type, i, charge, ion_type_B);
           }
         }
@@ -409,7 +409,7 @@ namespace OpenMS
           addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type_A);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type_A);
           }
         }
@@ -441,7 +441,7 @@ namespace OpenMS
           addPeak_(spec_beta, pos, intensity, res_type, i-1, charge, ion_type_B);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spec_beta, pos, intensity, res_type, i-1, charge, ion_type_B);
           }
         }
@@ -589,7 +589,7 @@ namespace OpenMS
           addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spec_alpha, pos, intensity, res_type, i, charge, ion_type);
           }
         }
@@ -646,7 +646,7 @@ namespace OpenMS
           addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spec_alpha, pos, intensity, res_type, i-1, charge, ion_type);
           }
         }
@@ -892,7 +892,7 @@ namespace OpenMS
           addPeak_(spectrum, pos, intensity, res_type, i, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spectrum, pos, intensity, res_type, i, charge, ion_type);
           }
         }
@@ -947,7 +947,7 @@ namespace OpenMS
           addPeak_(spectrum, pos, intensity, res_type, i-1, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
-            pos += Constants::NEUTRON_MASS_U / charge;
+            pos += Constants::C13C12_MASSDIFF_U / charge;
             addPeak_(spectrum, pos, intensity, res_type, i-1, charge, ion_type);
           }
         }
@@ -1005,7 +1005,7 @@ namespace OpenMS
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double) (mono_pos + (j * Constants::NEUTRON_MASS_U / (double)charge)));
+        p.setMZ((double) (mono_pos + (j * Constants::C13C12_MASSDIFF_U / (double)charge)));
         p.setIntensity(pre_int_ *  it->second);
         spec_alpha.push_back(p);
         if (!cross_link.beta.empty())
@@ -1042,7 +1042,7 @@ namespace OpenMS
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
         p.setIntensity(pre_int_H2O_ *  it->second);
         spec_alpha.push_back(p);
         if (!cross_link.beta.empty())
@@ -1078,7 +1078,7 @@ namespace OpenMS
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
         p.setIntensity(pre_int_NH3_ *  it->second);
         spec_alpha.push_back(p);
         if (!cross_link.beta.empty())
@@ -1142,8 +1142,7 @@ namespace OpenMS
     double j(0.0);
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
     {
-      // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double) (pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+      p.setMZ((double) (pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
       p.setIntensity(intensity * it->second);
       spectrum.push_back(p);
     }
@@ -1241,7 +1240,7 @@ namespace OpenMS
 //        double j(0.0);
 //        for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
 //        {
-//          p.setMZ((double)(loss_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+//          p.setMZ((double)(loss_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
 //          p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
 //          spectrum.push_back(p);
 //        }
@@ -1376,7 +1375,7 @@ namespace OpenMS
         double j(0.0);
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
         {
-          p.setMZ((double)(loss_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+          p.setMZ((double)(loss_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
           p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
           spectrum.push_back(p);
         }
