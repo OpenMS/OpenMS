@@ -47,9 +47,11 @@ namespace OpenMS
       @brief Precursor meta information.
 
       This class contains precursor information:
-  - isolation window
-  - activation
-  - selected ion (m/z, intensity, charge, possible charge states)
+
+        - isolation window
+        - activation
+        - selected ion (m/z, intensity, charge, possible charge states)
+        - ion mobility drift time
 
       @ingroup Metadata
   */
@@ -78,6 +80,7 @@ public:
       PQD,                              ///< Pulsed q dissociation
       SIZE_OF_ACTIVATIONMETHOD
     };
+
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
 
@@ -113,7 +116,7 @@ public:
      *
      * @note This is an offset relative to the target m/z. The start of the
      * mass isolation window should thus be computed as:
-     *  p.getMZ() - p.getIsolationWindowLowerOffset()
+     *   p.getMZ() - p.getIsolationWindowLowerOffset()
      *
      * @return the lower offset from the target m/z
      */
@@ -126,13 +129,18 @@ public:
      *
      * @note This is an offset relative to the target m/z. The end of the mass
      * isolation window should thus be computed as:
-     *  p.getMZ() + p.getIsolationWindowUpperOffset()
+     *   p.getMZ() + p.getIsolationWindowUpperOffset()
      *
      * @return the upper offset from the target m/z
      */
     double getIsolationWindowUpperOffset() const;
     /// sets the upper offset from the target m/z
     void setIsolationWindowUpperOffset(double bound);
+
+    /// gets the ion mobility drift time in milliseconds (-1 means it is not set)
+    double getDriftTime() const;
+    /// sets the ion mobility drift time in milliseconds
+    void setDriftTime(double drift_time);
 
     /// Non-mutable access to the charge
     Int getCharge() const;
@@ -160,6 +168,7 @@ protected:
     double activation_energy_;
     double window_low_;
     double window_up_;
+    double drift_time_;
     Int charge_;
     std::vector<Int> possible_charge_states_;
   };

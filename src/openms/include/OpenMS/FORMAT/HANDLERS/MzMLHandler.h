@@ -2011,8 +2011,21 @@ protected:
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
+        else if (accession == "MS:1002476") //ion mobility drift time
+        {
+          if (in_spectrum_list_)
+          {
+            spec_.getPrecursors().back().setDriftTime(value.toDouble());
+          }
+          else
+          {
+            chromatogram_.getPrecursor().setDriftTime(value.toDouble());
+          }
+        }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- activation ----------------------------
       else if (parent_tag == "activation")
@@ -2309,6 +2322,27 @@ protected:
         {
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
+        }
+        else if (accession == "MS:1002476") //ion mobility drift time
+        {
+          // ensure initialization
+          if (spec_.getPrecursors().empty() )
+          {
+            spec_.getPrecursors().push_back(Precursor());
+          }
+
+          // should actually go into the precursor as the drift time is a
+          // property of the precursor: in the CV, MS:1002476 is listed as
+          // "is_a: MS:1000455" which is an ion selection attribute. All these
+          // terms should go into the selectedIon tag inside a <precursor>
+          if (in_spectrum_list_)
+          {
+            spec_.getPrecursors().back().setDriftTime(value.toDouble());
+          }
+          else
+          {
+            chromatogram_.getPrecursor().setDriftTime(value.toDouble());
+          }
         }
         else if (accession == "MS:1000011") //mass resolution
         {
@@ -3529,7 +3563,9 @@ protected:
         //exp_->setMetaValue(name, data_value);
       }
       else
+      {
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+      }
     }
 
     template <typename MapType>
@@ -3879,6 +3915,10 @@ protected:
       for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
       {
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
+      }
+      if (precursor.getDriftTime() >= 0.0)
+      {
+        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
       }
       //userParam: no extra object for it => no user parameters
       os << "\t\t\t\t\t\t\t</selectedIon>\n";
