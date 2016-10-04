@@ -81,7 +81,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_NONE:
-      AxisTickCalculator::calcGridLines(std::max(0.0, canvas_3d_.overall_data_range_.min_[2]), canvas_3d_.overall_data_range_.max_[2], grid_intensity_);
+      AxisTickCalculator::calcGridLines(canvas_3d_.overall_data_range_.min_[2], canvas_3d_.overall_data_range_.max_[2], grid_intensity_);
       break;
 
     case SpectrumCanvas::IM_PERCENTAGE:
@@ -89,7 +89,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      AxisTickCalculator::calcLogGridLines(log10(std::max(0.0, canvas_3d_.overall_data_range_.min_[2]) + 1), log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_);
+      AxisTickCalculator::calcLogGridLines(log10(canvas_3d_.overall_data_range_.min_[2] + 1), log10(canvas_3d_.overall_data_range_.max_[2] + 1), grid_intensity_);
       break;
     }
 
@@ -1060,7 +1060,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(log10(std::max(0.0, canvas_3d_.overall_data_range_.min_[2]) + 1), log10(canvas_3d_.overall_data_range_.max_[2] + 1), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+      canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(log10(canvas_3d_.overall_data_range_.min_[2] + 1), log10(canvas_3d_.overall_data_range_.max_[2] + 1), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
       break;
     }
   }
