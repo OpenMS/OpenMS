@@ -183,6 +183,9 @@ protected:
     
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", true, false, ListUtils::create<String>("skipexists"));
 
+    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+    registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
+
   }
   
   String makeModString_(const String& mod_name)
@@ -551,6 +554,11 @@ protected:
     }
     
     writeConfigurationFile_(conf_file, config_map);    
+
+    // memory for JVM
+    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    int java_permgen = getIntOption_("java_permgen");
+
     QString executable = getStringOption_("executable").toQString();
     
     // Hack for KNIME. Looks for LUCIPHOR_PATH in the environment which is set in binaries.ini
@@ -564,8 +572,14 @@ protected:
     }
 
     QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << "-jar" << executable << conf_file.toQString();                   
+    process_params << java_memory;
+    
+    if (java_permgen > 0)
+    {
+      process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
+    }
 
+    process_params << "-jar" << executable << conf_file.toQString();                   
     // execute LuciPHOr2    
     int status = QProcess::execute(java_executable.toQString(), process_params);
     if (status != 0)
