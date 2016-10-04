@@ -888,49 +888,45 @@ namespace OpenMS
 
     // look for the input with the most files in round 0 (as this is the maximal number of output files we can produce)
     // we assume the number of files is equal in all rounds...
-    // However, we delay using nodes which use 'recycling' of input, as the names will always be the same.
-    //          Only if a recycling node gives the most input files we use its names
     int max_size_index(-1);
     int max_size(-1);
 
-    for (int use_recycling = 0; use_recycling < 2; ++use_recycling)
+    // iterate over input edges
+    for (RoundPackageConstIt it  = pkg[0].begin();
+          it != pkg[0].end();
+          ++it)
     {
-      for (RoundPackageConstIt it  = pkg[0].begin();
-           it != pkg[0].end();
-           ++it)
-      {
-        if (use_recycling == 0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled()))
-        { // first test all input nodes with disabled recycling
-          continue;
-        }
+      if (it->second.edge->getSourceVertex()->isRecyclingEnabled())
+      { // skip recycling input nodes
+        continue;
+      }
 
-        // we only need to find a good upstream node with a single file -- since we only output single files
-        if (has_only_singlefile_output)
-        {
-          if (it->second.filenames.size() == 1 && 
-             ((max_size < 1 || (it->second.edge->getTargetInParamName() == "in")) && (use_recycling == 0)))
-          {
-            max_size_index = it->first;
-            max_size       = 1;
-          }
-
-        }
-        else if ((it->second.filenames.size() > max_size) ||   // either just larger 
-            // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
-            ((it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in") && (use_recycling == 0)))
+      // we only need to find a good upstream node with a single file -- since we only output single files
+      if (has_only_singlefile_output)
+      { // .. take any non-recycled input edge, preferably from 'in' and/or single inputs
+        if ((max_size < 1 || (it->second.edge->getTargetInParamName() == "in") || it->second.filenames.size() == 1))
         {
           max_size_index = it->first;
-          max_size       = it->second.filenames.size();
+          max_size       = 1;
         }
-      }
 
-      if (max_size_index == -1)
+      }
+      else if ((it->second.filenames.size() > max_size) ||   // either just larger 
+          // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
+          ((it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in")))
       {
-        error_msg = "Did not find upstream nodes with un-recycled names. Something is fishy!\n";
-        LOG_ERROR << error_msg;
-        return false;
+        max_size_index = it->first;
+        max_size       = it->second.filenames.size();
       }
     }
+
+    if (max_size_index == -1)
+    {
+      error_msg = "Did not find upstream nodes with un-recycled names. Something is fishy!\n";
+      LOG_ERROR << error_msg;
+      return false;
+    }
+
 
     // now we construct output filenames for this node
     // use names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
