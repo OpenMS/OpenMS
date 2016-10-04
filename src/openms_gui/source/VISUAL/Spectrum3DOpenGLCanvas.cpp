@@ -89,7 +89,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
+      AxisTickCalculator::calcLogGridLines(log10(std::max(0.0, canvas_3d_.overall_data_range_.min_[2]) + 1), log10(canvas_3d_.overall_data_range_.max_[2]), grid_intensity_);
       break;
     }
 
@@ -317,7 +317,7 @@ namespace OpenMS
       switch (canvas_3d_.intensity_mode_)
       {
       case SpectrumCanvas::IM_LOG:
-        cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
+        //cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
         break;
 
       case SpectrumCanvas::IM_PERCENTAGE:
@@ -507,7 +507,7 @@ namespace OpenMS
               break;
 
             case SpectrumCanvas::IM_LOG:
-              cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
+              //cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
               break;
 
             }
@@ -624,9 +624,17 @@ namespace OpenMS
               break;
 
             case SpectrumCanvas::IM_LOG:
-              cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
-              break;
 
+              qglColor(layer.gradient.precalculatedColorAt(log10(canvas_3d_.overall_data_range_.min_[2] + 1)));
+              glVertex3d(-corner_ + (GLfloat)scaledMZ(it->getMZ()),
+                         -corner_,
+                         -near_ - 2 * corner_ - (GLfloat)scaledRT(it.getRT()));
+              qglColor(layer.gradient.precalculatedColorAt(log10(it->getIntensity() + 1)));
+              glVertex3d(-corner_ + (GLfloat)scaledMZ(it->getMZ()),
+                         -corner_ + (GLfloat)scaledIntensity(it->getIntensity(), i),
+                         -near_ - 2 * corner_ - (GLfloat)scaledRT(it.getRT()));
+
+              break;
             }
             glEnd();
           }
@@ -804,7 +812,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
+      //cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
       break;
 
     }
@@ -865,7 +873,8 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
+      scaledintensity = log10(intensity - canvas_3d_.overall_data_range_.min_[2]);
+      scaledintensity = scaledintensity * 2.0 * corner_ / log10(canvas_3d_.overall_data_range_.max_[2] - canvas_3d_.overall_data_range_.min_[2]);
       break;
     }
     return scaledintensity;
@@ -1051,7 +1060,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      cout << "IM_LOG not implemented in " << __PRETTY_FUNCTION__ << endl;
+      canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(log10(std::max(0.0, canvas_3d_.overall_data_range_.min_[2]) + 1), log10(canvas_3d_.overall_data_range_.max_[2] + 1), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
       break;
     }
   }
