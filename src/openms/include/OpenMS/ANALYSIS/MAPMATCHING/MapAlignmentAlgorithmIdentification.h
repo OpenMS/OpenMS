@@ -222,7 +222,8 @@ protected:
             if (!pep_it->getHits().empty())
             {
               any_hit = true;
-              double current_distance = abs(pep_it->getRT() - feat_it->getRT());
+              double current_distance = fabs(pep_it->getRT() -
+                                             feat_it->getRT());
               if (current_distance < rt_distance)
               {
                 pep_it->sort();
