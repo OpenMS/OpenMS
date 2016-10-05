@@ -40,10 +40,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
+#include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -526,7 +528,7 @@ var_yseries_score   -0.0327896378737766
      *
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
-     * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
@@ -535,7 +537,7 @@ var_yseries_score   -0.0327896378737766
     */
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
         const std::vector<TransitionType> & transitions,
-        OpenSwath::SpectrumAccessPtr swath_map,
+        std::vector<OpenSwath::SwathMap> swath_maps,
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const CompoundType& pep,
@@ -547,14 +549,14 @@ var_yseries_score   -0.0327896378737766
      *
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
-     * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param diascoring DIA Scoring object to use for scoring
      * @param scores The object to store the result
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
         const TransitionType & transition,
-        OpenSwath::SpectrumAccessPtr swath_map,
+        std::vector<OpenSwath::SwathMap> swath_maps,
         OpenMS::DIAScoring & diascoring,
         OpenSwath_Scores & scores);
 

@@ -155,14 +155,20 @@ namespace OpenMS
     boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map = boost::make_shared<MSExperiment<Peak1D> >(swath_map);
 
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
-    OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
 
-    pickExperiment(chromatogram_ptr, output, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+    OpenSwath::SwathMap m;
+    m.sptr = swath_ptr;
+    std::vector<OpenSwath::SwathMap> swath_ptrs;
+    swath_ptrs.push_back(m);
+
+    pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map);
   }
 
   void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
                                                FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
-                                               TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map,
+                                               TransformationDescription trafo, 
+                                               std::vector<OpenSwath::SwathMap> swath_maps,
                                                TransitionGroupMapType& transition_group_map)
   {
     updateMembers_();
@@ -220,8 +226,7 @@ namespace OpenMS
       MRMTransitionGroupPicker trgroup_picker;
       trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
       trgroup_picker.pickTransitionGroup(transition_group);
-      scorePeakgroups(trgroup_it->second, trafo, swath_map, output);
-
+      scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
     }
     endProgress();
 
@@ -282,7 +287,14 @@ namespace OpenMS
     transition_group_identification_decoy = transition_group.subsetDependent(identifying_transitions_decoy);
   }
 
-  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& transition_group_identification, OpenSwathScoring& scorer, const size_t feature_idx, const std::vector<std::string> native_ids_detection, const double sn_win_len_, const unsigned int sn_bin_count_, bool write_log_messages, OpenSwath::SpectrumAccessPtr swath_map)
+  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+                                                                 OpenSwathScoring& scorer,
+                                                                 const size_t feature_idx,
+                                                                 const std::vector<std::string> native_ids_detection,
+                                                                 const double sn_win_len_,
+                                                                 const unsigned int sn_bin_count_,
+                                                                 bool write_log_messages,
+                                                                 std::vector<OpenSwath::SwathMap> swath_maps)
   {
     typedef MRMTransitionGroupType::PeakType PeakT;
     MRMFeature idmrmfeature = transition_group_identification.getFeaturesMuteable()[feature_idx];
@@ -332,7 +344,7 @@ namespace OpenMS
       idscores.ind_num_transitions = native_ids_identification.size();
     }
 
-    bool swath_present = (swath_map->getNrSpectra() > 0);
+    bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     if (swath_present && su_.use_dia_scores_ && native_ids_identification.size() > 0)
     {
       std::stringstream ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score;
@@ -340,7 +352,9 @@ namespace OpenMS
       {
         OpenSwath_Scores tmp_scores;
 
-        scorer.calculateDIAIdScores(idimrmfeature, transition_group_identification.getTransition(native_ids_identification[i]), swath_map, diascoring_, tmp_scores);
+        scorer.calculateDIAIdScores(idimrmfeature,
+            transition_group_identification.getTransition(native_ids_identification[i]),
+            swath_maps, diascoring_, tmp_scores);
 
         if (i != 0)
         {
@@ -363,7 +377,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-                                                TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map,
+                                                TransformationDescription& trafo, 
+                                                std::vector<OpenSwath::SwathMap> swath_maps,
                                                 FeatureMap& output)
   {
     MRMTransitionGroupType transition_group_detection, transition_group_identification, transition_group_identification_decoy;
@@ -443,15 +458,15 @@ namespace OpenMS
 
       double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
       scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
-      if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
+      if (swath_maps.size() > 0 && swath_maps[0].sptr->getNrSpectra() > 0 && su_.use_dia_scores_)
       {
         scorer.calculateDIAScores(imrmfeature, transition_group_detection.getTransitions(),
-                                  swath_map, ms1_map_, diascoring_, *pep, scores);
+                                  swath_maps, ms1_map_, diascoring_, *pep, scores);
       }
 
       if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
       {
-        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
+        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_maps);
 
         mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
         mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
@@ -466,7 +481,7 @@ namespace OpenMS
 
       if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
       {
-        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_map);
+        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages, swath_maps);
 
         mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
         mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
@@ -519,7 +534,7 @@ namespace OpenMS
       }
 
       double xx_lda_prescore = -scores.calculate_lda_prescore(scores);
-      bool swath_present = (swath_map->getNrSpectra() > 0);
+      bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
       if (!swath_present)
       {
         mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);

@@ -68,17 +68,26 @@ namespace OpenMS
     this->su_ = su;
   }
 
-  void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
-      OpenSwath::SpectrumAccessPtr swath_map, OpenSwath::SpectrumAccessPtr ms1_map, OpenMS::DIAScoring & diascoring,
-      const CompoundType& compound, OpenSwath_Scores & scores)
+  void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+                                            const std::vector<TransitionType> & transitions,
+                                            std::vector<OpenSwath::SwathMap> swath_maps,
+                                            OpenSwath::SpectrumAccessPtr ms1_map,
+                                            OpenMS::DIAScoring & diascoring, 
+                                            const CompoundType& compound, OpenSwath_Scores & scores)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
+    OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
+
+    if (swath_maps.size() > 1)
+    {
+      // SONAR todo!
+    }
 
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_maps[0].sptr, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
     // Mass deviation score
@@ -136,12 +145,21 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const TransitionType & transition,
-      OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
-      OpenSwath_Scores & scores)
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, 
+                                              const TransitionType & transition,
+                                              std::vector<OpenSwath::SwathMap> swath_maps,
+                                              OpenMS::DIAScoring & diascoring,
+                                              OpenSwath_Scores & scores)
   {
+    OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
+
+    if (swath_maps.size() > 1)
+    {
+      // SONAR todo!
+    }
+
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_maps[0].sptr, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
     // If no charge is given, we assume it to be 1
