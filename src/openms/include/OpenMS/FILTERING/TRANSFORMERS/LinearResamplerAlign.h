@@ -69,16 +69,22 @@ public:
     }
 
     /**
-        @brief Applies the resampling algorithm to an MSSpectrum.
+        @brief Applies the resampling algorithm to a container (MSSpectrum or MSChromatogram).
+
+        The container will be resampled at equally spaced points between the
+        start and end of the container. The resampling frequency can be
+        controlled by the "spacing" parameter.
+
+        @param container The container to be resampled
     */
     template <template <typename> class SpecT, typename PeakType>
-    void raster(SpecT<PeakType>& spectrum)
+    void raster(SpecT<PeakType>& container)
     {
       //return if nothing to do
-      if (spectrum.empty()) return;
+      if (container.empty()) return;
 
-      typename SpecT<PeakType>::iterator first = spectrum.begin();
-      typename SpecT<PeakType>::iterator last = spectrum.end();
+      typename SpecT<PeakType>::iterator first = container.begin();
+      typename SpecT<PeakType>::iterator last = container.end();
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
@@ -87,37 +93,45 @@ public:
       typename std::vector<PeakType> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
-      raster(spectrum.begin(), spectrum.end(), resampled_peak_container.begin(), resampled_peak_container.end());
+      raster(container.begin(), container.end(), resampled_peak_container.begin(), resampled_peak_container.end());
 
-      spectrum.swap(resampled_peak_container);
+      container.swap(resampled_peak_container);
     }
 
     /**
-        @brief Applies the resampling algorithm to an MSSpectrum but it will be aligned between start_pos and end_pos
+        @brief Applies the resampling algorithm to a container (MSSpectrum or MSChromatogram) with fixed coordinates.
+
+        The container will be resampled at equally spaced points between the
+        supplied start and end positions. The resampling frequency can be
+        controlled by the "spacing" parameter.
 
         This allows the user to specify the grid for alignment explicitly.
         This is especially useful if multiple spectra or chromatograms need to
         be resampled according to the same raster.
+
+        @param container The container to be resampled
+        @param start_pos The start position to be used for resampling
+        @param end_pos The end position to be used for resampling
     */
     template <template <typename> class SpecT, typename PeakType>
-    void raster_align(SpecT<PeakType>& spectrum, double start_pos, double end_pos)
+    void raster_align(SpecT<PeakType>& container, double start_pos, double end_pos)
     {
       //return if nothing to do
-      if (spectrum.empty()) return;
+      if (container.empty()) return;
 
       if (end_pos < start_pos)
       {
         typename std::vector<PeakType> empty;
-        spectrum.swap(empty);
+        container.swap(empty);
         return;
       }
 
-      typename SpecT<PeakType>::iterator first = spectrum.begin();
-      typename SpecT<PeakType>::iterator last = spectrum.end();
+      typename SpecT<PeakType>::iterator first = container.begin();
+      typename SpecT<PeakType>::iterator last = container.end();
 
       // get the iterators just before / after the two points start_pos / end_pos
-      while (first != spectrum.end() && (first)->getMZ() < start_pos) {++first; }
-      while (last != first && (last - 1)->getMZ() > end_pos) {--last; }
+      while (first != container.end() && (first)->getMZ() < start_pos) {++first;}
+      while (last != first && (last - 1)->getMZ() > end_pos) {--last;}
 
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
@@ -126,22 +140,25 @@ public:
 
       raster(first, last, resampled_peak_container.begin(), resampled_peak_container.end());
 
-      spectrum.swap(resampled_peak_container);
+      container.swap(resampled_peak_container);
     }
 
     /**
-        @brief Applies the resampling algorithm to an MSSpectrum.
+        @brief Applies the resampling algorithm.
 
-        The raster is defined by the output spectrum. It is expected that the
-        output spectrum has all m/z positions populated between resample_it and
-        resample_end. The function will add the input spectrum to the given
-        output spectrum (in most cases the output intensities should all be
-        zero). 
+        This will use the raster provided by the output container to resample
+        the data provided in the input container. The intensities will be added
+        to the intensities in the output container (which in most cases will be
+        zero).
 
-        @param raw_it Start of the input (raw) spectrum to be resampled
-        @param raw_end End of the input (raw) spectrum to be resampled
+        The intensities will be distributed between the two closest resampling
+        points, thus conserving the sum of intensity over the whole container. 
+
+        @param raw_it Start of the input container to be resampled (containing the data)
+        @param raw_end End of the input container to be resampled (containing the data)
         @param resample_it Iterator pointing to start of the output spectrum range (m/z need to be populated, intensities should be zero)
         @param resample_it Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
+
     */
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
     void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)
@@ -161,11 +178,11 @@ public:
       while (raw_it != raw_end)
       {
         //advance the resample iterator until our raw point is between two resampled iterators
-        while (resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++; }
-        if (resample_it != resample_start) {resample_it--; }
+        while (resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;}
+        if (resample_it != resample_start) {resample_it--;}
 
         // if we have the last datapoint we break
-        if ((resample_it + 1) == resample_end) {break; }
+        if ((resample_it + 1) == resample_end) {break;}
 
         double dist_left =  fabs(raw_it->getMZ() - resample_it->getMZ());
         double dist_right = fabs(raw_it->getMZ() - (resample_it + 1)->getMZ());
@@ -188,11 +205,13 @@ public:
     /**
         @brief Applies the resampling algorithm using a linear interpolation
 
-        The raster is defined by the output spectrum. It is expected that the
-        output spectrum has all m/z positions populated between resample_it and
-        resample_end. The function will add the input spectrum to the given
-        output spectrum (in most cases the output intensities should all be
-        zero). 
+        This will use the raster provided by the output container to resample
+        the data provided in the input container. The intensities will be added
+        to the intensities in the output container (which in most cases will be
+        zero).
+
+        The intensities at the resampling point is computed by a linear
+        interpolation between the two closest resampling points.
 
         @param raw_it Start of the input (raw) spectrum to be resampled
         @param raw_end End of the input (raw) spectrum to be resampled
@@ -208,16 +227,16 @@ public:
       PeakTypeIterator raw_start = raw_it;
 
       // need to get the resampled iterator between two iterators of the raw data
-      while (resample_it != resampled_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++; }
+      while (resample_it != resampled_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;}
 
       while (resample_it != resampled_end)
       {
         //advance the raw_iterator until our current point we want to interpolate is between them
-        while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ()) {raw_it++; }
-        if (raw_it != raw_start) {raw_it--; }
+        while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ()) {raw_it++;}
+        if (raw_it != raw_start) {raw_it--;}
 
         // if we have the last datapoint we break
-        if ((raw_it + 1) == raw_end) {break; }
+        if ((raw_it + 1) == raw_end) {break;}
 
         // use a linear interpolation between raw_it and raw_it+1
         double m = ((raw_it + 1)->getIntensity() - raw_it->getIntensity()) / ((raw_it + 1)->getMZ() - raw_it->getMZ());
