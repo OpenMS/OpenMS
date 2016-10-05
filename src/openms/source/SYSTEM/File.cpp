@@ -396,10 +396,6 @@ namespace OpenMS
       std::cerr << "Exiting now.\n";
       exit(1);
     }
-    else
-    {
-      std::cout << "OpenMS data path ('" << path << "') retrieved from " << found_path_from << "." << std::endl;
-    }
 
     return path;
   }
