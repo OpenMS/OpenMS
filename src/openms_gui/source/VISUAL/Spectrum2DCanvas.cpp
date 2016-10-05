@@ -106,6 +106,8 @@ namespace OpenMS
     setName("Spectrum2DCanvas");
     setParameters(preferences);
 
+    linear_gradient_.fromString(param_.getValue("dot:gradient"));
+
     projection_mz_.resize(1);
     projection_rt_.resize(1);
 
@@ -1055,7 +1057,7 @@ namespace OpenMS
     }
     else // linear
     {
-      gradient_str = MultiGradient::getDefaultGradientLinearIntensityMode().toString();
+      gradient_str = linear_gradient_.toString();
     }
     for (Size i = 0; i < layers_.size(); ++i)
     {
