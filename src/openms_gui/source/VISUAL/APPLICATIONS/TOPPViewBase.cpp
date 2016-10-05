@@ -1581,21 +1581,6 @@ namespace OpenMS
     if (w)
     {
       intensity_button_group_->button(index)->setChecked(true);
-      Spectrum2DWidget* w2d = dynamic_cast<Spectrum2DWidget*>(w);
-      // 2D widget and intensity mode changed?
-      if (w2d && w2d->canvas()->getIntensityMode() != index)
-      {
-        if (index == OpenMS::SpectrumCanvas::IM_LOG)
-        {
-          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString());
-          w2d->canvas()->recalculateCurrentLayerDotGradient();
-        }
-        else if (index != OpenMS::SpectrumCanvas::IM_LOG)
-        {
-          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLinearIntensityMode().toString());
-          w2d->canvas()->recalculateCurrentLayerDotGradient();
-        }
-      }
       w->setIntensityMode((OpenMS::SpectrumCanvas::IntensityModes)index);
     }
   }

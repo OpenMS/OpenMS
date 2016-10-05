@@ -1048,8 +1048,18 @@ namespace OpenMS
 
   void Spectrum2DCanvas::intensityModeChange_()
   {
+    String gradient_str;
+    if (intensity_mode_ == IM_LOG)
+    {
+      gradient_str = MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString();
+    }
+    else // linear
+    {
+      gradient_str = MultiGradient::getDefaultGradientLinearIntensityMode().toString();
+    }
     for (Size i = 0; i < layers_.size(); ++i)
     {
+      layers_[i].param.setValue("dot:gradient", gradient_str);
       recalculateDotGradient_(i);
     }
     SpectrumCanvas::intensityModeChange_();
