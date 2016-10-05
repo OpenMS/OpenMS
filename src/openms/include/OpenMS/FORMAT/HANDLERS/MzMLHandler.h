@@ -2013,9 +2013,21 @@ protected:
         }
         else if (accession == "MS:1002476") //ion mobility drift time
         {
+          // Drift time may be a property of the precursor (in case we are
+          // acquiring a fragment ion spectrum) which is consistent with the CV
+          // annotation which lists MS:1002476 with the relation "is_a:
+          // MS:1000455" which is an ion selection attribute. Consequently,
+          // this property should thus go into the selectedIon tag inside a
+          // <precursor>
+          //
+          // However, drift time may also be a property of the scan itself
+          // (similar to retention time).
+
+          // This assumes that this is a fragment ion spectrum derived from a precursor with a given drift time
           if (in_spectrum_list_)
           {
             spec_.getPrecursors().back().setDriftTime(value.toDouble());
+            spec_.setDriftTime(value.toDouble());
           }
           else
           {
@@ -2312,7 +2324,9 @@ protected:
           spec_.getAcquisitionInfo().setMethodOfCombination(cv_.getTerm(accession).name);
         }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- scan ----------------------------
       else if (parent_tag == "scan")
@@ -2325,24 +2339,17 @@ protected:
         }
         else if (accession == "MS:1002476") //ion mobility drift time
         {
-          // ensure initialization
-          if (spec_.getPrecursors().empty() )
-          {
-            spec_.getPrecursors().push_back(Precursor());
-          }
 
-          // should actually go into the precursor as the drift time is a
-          // property of the precursor: in the CV, MS:1002476 is listed as
-          // "is_a: MS:1000455" which is an ion selection attribute. All these
-          // terms should go into the selectedIon tag inside a <precursor>
-          if (in_spectrum_list_)
-          {
-            spec_.getPrecursors().back().setDriftTime(value.toDouble());
-          }
-          else
-          {
-            chromatogram_.getPrecursor().setDriftTime(value.toDouble());
-          }
+          // Drift time may be a property of the precursor (in case we are
+          // acquiring a fragment ion spectrum) which is consistent with the CV
+          // annotation which lists MS:1002476 with the relation "is_a:
+          // MS:1000455" which is an ion selection attribute. Consequently,
+          // this property should thus go into the selectedIon tag inside a
+          // <precursor>
+          //
+          // However, drift time may also be a property of the scan itself
+          // (similar to retention time).
+          spec_.setDriftTime(value.toDouble());
         }
         else if (accession == "MS:1000011") //mass resolution
         {
@@ -5183,6 +5190,10 @@ protected:
         if (j == 0)
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+          if (spec.getDriftTime() > 0.0)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
         //scan windows
