@@ -135,4 +135,4 @@ public:
 
   };
 }
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
