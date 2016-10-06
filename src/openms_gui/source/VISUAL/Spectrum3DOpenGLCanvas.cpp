@@ -90,7 +90,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      AxisTickCalculator::calcLogGridLines(0.0, log10(max(0.0, canvas_3d_.overall_data_range_.max_[2]) + 1), grid_intensity_);
+      AxisTickCalculator::calcLogGridLines(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2])), grid_intensity_);
       break;
     }
 
@@ -647,7 +647,7 @@ namespace OpenMS
               glVertex3d(-corner_ + (GLfloat)scaledMZ(it->getMZ()),
                          -corner_,
                          -near_ - 2 * corner_ - (GLfloat)scaledRT(it.getRT()));
-              qglColor(layer.gradient.precalculatedColorAt(log10(it->getIntensity() + 1)));
+              qglColor(layer.gradient.precalculatedColorAt(log10(1 + max(0.0, (double)(it->getIntensity())))));
               glVertex3d(-corner_ + (GLfloat)scaledMZ(it->getMZ()),
                          -corner_ + (GLfloat)scaledIntensity(it->getIntensity(), i),
                          -near_ - 2 * corner_ - (GLfloat)scaledRT(it.getRT()));
@@ -880,25 +880,23 @@ namespace OpenMS
 
   double Spectrum3DOpenGLCanvas::scaledIntensity(float intensity, Size layer_index)
   {
-    double scaledintensity = 0;
+    double scaledintensity = intensity * 2.0 * corner_;
     switch (canvas_3d_.intensity_mode_)
     {
     case SpectrumCanvas::IM_SNAP:
-      scaledintensity = (intensity * 2.0 * corner_) / int_scale_.max_[0];
+      scaledintensity /= int_scale_.max_[0];
       break;
 
     case SpectrumCanvas::IM_NONE:
-      scaledintensity = (intensity * 2.0 * corner_) / canvas_3d_.overall_data_range_.max_[2];
+      scaledintensity /= canvas_3d_.overall_data_range_.max_[2];
       break;
 
     case SpectrumCanvas::IM_PERCENTAGE:
-      scaledintensity = (intensity * 2.0 * corner_) / canvas_3d_.getMaxIntensity(layer_index);
+      scaledintensity /= canvas_3d_.getMaxIntensity(layer_index);
       break;
 
     case SpectrumCanvas::IM_LOG:
-//      scaledintensity = log10(max(0.0, intensity - canvas_3d_.overall_data_range_.min_[2]) + 1);
-//      scaledintensity = scaledintensity * 2.0 * corner_ / log10(max(0.0, canvas_3d_.overall_data_range_.max_[2] - canvas_3d_.overall_data_range_.min_[2]) + 1);
-      scaledintensity = log10(max(0.0, (double)intensity) + 1) * 2.0 * corner_ / log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2]));
+      scaledintensity = log10(1 + max(0.0, (double)intensity)) * 2.0 * corner_ / log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2]));
       break;
     }
     return scaledintensity;
@@ -1084,7 +1082,7 @@ namespace OpenMS
       break;
 
     case SpectrumCanvas::IM_LOG:
-      canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(0.0, log10(max(0.0, canvas_3d_.overall_data_range_.max_[2]) + 1), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+      canvas_3d_.getLayer_(layer).gradient.activatePrecalculationMode(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.max_[2])), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
       break;
     }
   }
