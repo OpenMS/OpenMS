@@ -152,7 +152,11 @@ public:
         zero).
 
         The intensities will be distributed between the two closest resampling
-        points, thus conserving the sum of intensity over the whole container. 
+        points, thus conserving the sum of intensity over the whole container.
+
+        Note that all intensity in the input data container that is in peaks
+        outside the range of the output container will simply be added to the
+        first or last data point.
 
         @param raw_it Start of the input container to be resampled (containing the data)
         @param raw_end End of the input container to be resampled (containing the data)
@@ -163,7 +167,7 @@ public:
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
     void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)
     {
-      OPENMS_PRECONDITION(resample_it != resample_end, "Output iterators cannot be identical") // as we use +1 
+      OPENMS_PRECONDITION(resample_it != resample_end, "Output iterators cannot be identical") // as we use +1
       // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
 
       PeakTypeIterator resample_start = resample_it;
@@ -203,6 +207,84 @@ public:
     }
 
     /**
+        @brief Applies the resampling algorithm.
+
+        This will use the raster provided by the output container to resample
+        the data provided in the input container. The intensities will be added
+        to the intensities in the output container (which in most cases will be
+        zero).
+
+        The intensities will be distributed between the two closest resampling
+        points, thus conserving the sum of intensity over the whole container.
+
+        Note that all intensity in the input data container that is in peaks
+        outside the range of the output container will simply be added to the
+        first or last data point.
+
+        @param mz_raw_it Start of the input container to be resampled (containing the m/z data)
+        @param mz_raw_end End of the input container to be resampled (containing the m/z data)
+        @param int_raw_it Start of the input container to be resampled (containing the intensity data)
+        @param int_raw_end End of the input container to be resampled (containing the intensity data)
+        @param mz_resample_it Iterator pointing to start of the output spectrum range (m/z which need to be populated)
+        @param mz_resample_it Iterator pointing to end of the output spectrum range (m/z which need to be populated)
+        @param int_resample_it Iterator pointing to start of the output spectrum range (intensities)
+        @param int_resample_it Iterator pointing to end of the output spectrum range (intensities)
+
+    */
+    template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
+    void raster(ConstPeakTypeIterator mz_raw_it, ConstPeakTypeIterator mz_raw_end,
+        ConstPeakTypeIterator int_raw_it, ConstPeakTypeIterator int_raw_end,
+        PeakTypeIterator mz_resample_it, PeakTypeIterator mz_resample_end,
+        PeakTypeIterator int_resample_it, PeakTypeIterator int_resample_end
+        )
+    {
+      OPENMS_PRECONDITION(mz_resample_it != mz_resample_end, "Output iterators cannot be identical") // as we use +1
+      OPENMS_PRECONDITION(std::distance(mz_resample_it, mz_resample_end) == std::distance(int_resample_it, int_resample_end),
+          "Resample m/z and intensity iterators need to cover the same distance")
+      OPENMS_PRECONDITION(std::distance(mz_raw_it, mz_raw_end) == std::distance(int_raw_it, int_raw_end),
+          "Raw m/z and intensity iterators need to cover the same distance")
+      // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
+
+      PeakTypeIterator mz_resample_start = mz_resample_it;
+
+      // need to get the raw iterator between two resampled iterators of the raw data
+      while (mz_raw_it != mz_raw_end && (*mz_raw_it) < (*mz_resample_it) )
+      {
+        (*int_resample_it) = *int_resample_it + *int_raw_it;
+        ++mz_raw_it;
+        ++int_raw_it;
+      }
+
+      while (mz_raw_it != mz_raw_end)
+      {
+        //advance the resample iterator until our raw point is between two resampled iterators
+        while (mz_resample_it != mz_resample_end && *mz_resample_it < *mz_raw_it) {++mz_resample_it; ++int_resample_it;}
+        if (mz_resample_it != mz_resample_start) {--mz_resample_it; --int_resample_it;}
+
+        // if we have the last datapoint we break
+        if ((mz_resample_it + 1) == mz_resample_end) {break;}
+
+        double dist_left =  fabs(*mz_raw_it - *mz_resample_it);
+        double dist_right = fabs(*mz_raw_it - *(mz_resample_it + 1));
+
+        // distribute the intensity of the raw point according to the distance to resample_it and resample_it+1
+        *(int_resample_it) = *int_resample_it + (*int_raw_it) * dist_right / (dist_left + dist_right);
+        *(int_resample_it + 1) = *(int_resample_it + 1) + (*int_raw_it) * dist_left / (dist_left + dist_right);
+
+        ++mz_raw_it;
+        ++int_raw_it;
+      }
+
+      // add the final intensity to the right
+      while (mz_raw_it != mz_raw_end)
+      {
+        *int_resample_it = *int_resample_it + (*int_raw_it);
+        ++mz_raw_it;
+        ++int_raw_it;
+      }
+    }
+
+    /**
         @brief Applies the resampling algorithm using a linear interpolation
 
         This will use the raster provided by the output container to resample
@@ -222,7 +304,7 @@ public:
     void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resampled_end)
     {
       // OPENMS_PRECONDITION(resample_it != resampled_end, "Output iterators cannot be identical")
-      OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical") // as we use +1 
+      OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical") // as we use +1
 
       PeakTypeIterator raw_start = raw_it;
 
