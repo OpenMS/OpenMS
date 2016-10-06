@@ -42,7 +42,7 @@ namespace OpenMS
 {
 
   void ChromatogramExtractorAlgorithm::extract_value_tophat(
-      const std::vector<double>::const_iterator& mz_start, 
+      const std::vector<double>::const_iterator& mz_start,
             std::vector<double>::const_iterator& mz_it,
       const std::vector<double>::const_iterator& mz_end,
             std::vector<double>::const_iterator& int_it,
@@ -73,7 +73,7 @@ namespace OpenMS
     // advance the mz / int iterator until we hit the m/z value of the next transition
     while (mz_it != mz_end && (*mz_it) < mz)
     {
-      mz_it++; 
+      mz_it++;
       int_it++;
     }
 
@@ -81,10 +81,11 @@ namespace OpenMS
     mz_walker  = mz_it;
     int_walker = int_it;
 
-    // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
+    // if we moved past the end of the spectrum, we need to try the last peak
+    // of the spectrum (it could still be within the window)
     if (mz_it == mz_end)
     {
-      --mz_walker; 
+      --mz_walker;
       --int_walker;
     }
 
@@ -94,20 +95,33 @@ namespace OpenMS
       integrated_intensity += (*int_walker);
     }
 
-    // walk to the left until we go outside the window, then start walking to the right until we are outside the window
+    // (i) walk to the left until we go outside the window
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_start)
     {
       --mz_walker;
       --int_walker;
+
+      // Special case: target m/z is larger than first data point but the first
+      // data point is inside the window.
+      // Then, mz_it is the second data point, mz_walker now points to the very
+      // first data point. If mz_it was the first data point, we already added
+      // it above. We still need to add this point if it is inside the window
+      // (while loop below will not catch it)
+      if (mz_walker == mz_start && (*mz_walker) > left && (*mz_walker) < right)
+      {
+        integrated_intensity += (*int_walker);
+      }
     }
     while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); 
-      --mz_walker; 
+      integrated_intensity += (*int_walker);
+      --mz_walker;
       --int_walker;
     }
+
+    // (ii) walk to the left until we go outside the window
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_end)
@@ -117,14 +131,14 @@ namespace OpenMS
     }
     while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); 
-      ++mz_walker; 
+      integrated_intensity += (*int_walker);
+      ++mz_walker;
       ++int_walker;
     }
   }
 
   void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
-      std::vector< OpenSwath::ChromatogramPtr >& output, 
+      std::vector< OpenSwath::ChromatogramPtr >& output,
       std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
       bool ppm, String filter)
   {
@@ -142,7 +156,7 @@ namespace OpenMS
 
     int used_filter = getFilterNr_(filter);
     // assert that they are sorted!
-    if (std::adjacent_find(extraction_coordinates.begin(), extraction_coordinates.end(), 
+    if (std::adjacent_find(extraction_coordinates.begin(), extraction_coordinates.end(),
           ExtractionCoordinates::SortExtractionCoordinatesReverseByMZ) != extraction_coordinates.end())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -166,7 +180,9 @@ namespace OpenMS
       std::vector<double>::const_iterator int_it = int_arr->data.begin();
 
       if (sptr->getMZArray()->data.size() == 0)
+      {
         continue;
+      }
 
       // go through all transitions / chromatograms which are sorted by
       // ProductMZ. We can use this to step through the spectrum and at the
@@ -176,8 +192,8 @@ namespace OpenMS
       {
         double integrated_intensity = 0;
         double current_rt = s_meta.RT;
-        if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 && 
-             (current_rt < extraction_coordinates[k].rt_start || 
+        if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 &&
+             (current_rt < extraction_coordinates[k].rt_start ||
               current_rt > extraction_coordinates[k].rt_end) )
         {
           continue;
@@ -185,8 +201,8 @@ namespace OpenMS
 
         if (used_filter == 1)
         {
-          extract_value_tophat( mz_start, mz_it, mz_end, int_it,
-                  extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
+          extract_value_tophat(mz_start, mz_it, mz_end, int_it,
+                               extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
         }
         else if (used_filter == 2)
         {
