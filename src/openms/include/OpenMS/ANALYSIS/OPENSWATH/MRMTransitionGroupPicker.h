@@ -41,19 +41,17 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <numeric>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 // Cross-correlation
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+
+#include <numeric>
 
 //#define DEBUG_TRANSITIONGROUPPICKER
 
@@ -718,22 +716,40 @@ protected:
 
     /// @name Resampling methods
     //@{
-    /// create an empty master peak container that has the correct mz / RT values set
+
+    /**
+      @brief Create an empty master peak container that has the correct mz / RT values set
+
+      The empty master peak container fill be filled with mz / RT values at the
+      positions where the reference chromatogram has values. The container will
+      only be populated between the boundaries given. The output container
+      will contain peaks with mz / RT values but all intensity values will be zero.
+
+      @param ref_chromatogram Reference chromatogram containing mz / RT values (possibly beyond the desired range)
+      @param master_peak_container Output container to be populated
+      @param left_boundary Left boundary of values the container should be populated with
+      @param right_boundary Right boundary of values the container should be populated with
+
+    */
     template <typename SpectrumT>
     void prepareMasterContainer_(const SpectrumT& ref_chromatogram,
-                                 SpectrumT& master_peak_container, double best_left, double best_right)
+                                 SpectrumT& master_peak_container, double left_boundary, double right_boundary)
     {
-      // search for begin / end of the reference chromatogram (and add one more point)
+      OPENMS_PRECONDITION(master_peak_container.empty(), "Master peak container must be empty")
+
+      // get the start / end point of this chromatogram => then add one more
+      // point beyond the two boundaries to make the resampling accurate also
+      // at the edge.
       typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
-      while (begin != ref_chromatogram.end() && begin->getMZ() < best_left) {begin++; }
+      while (begin != ref_chromatogram.end() && begin->getMZ() < left_boundary) {begin++; }
       if (begin != ref_chromatogram.begin()) {begin--; }
 
       typename SpectrumT::const_iterator end = begin;
-      while (end != ref_chromatogram.end() && end->getMZ() < best_right) {end++; }
+      while (end != ref_chromatogram.end() && end->getMZ() < right_boundary) {end++; }
       if (end != ref_chromatogram.end()) {end++; }
 
       // resize the master container and set the m/z values to the ones of the master container
-      master_peak_container.resize(distance(begin, end));
+      master_peak_container.resize(distance(begin, end)); // initialize to zero
       typename SpectrumT::iterator it = master_peak_container.begin();
       for (typename SpectrumT::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
       {
@@ -741,21 +757,30 @@ protected:
       }
     }
 
-    /// use the master container from above to resample a chromatogram at those points stored in the master container
+    /**
+      @brief Resample a container at the positions indicated by the master peak container
+
+      @param chromatogram Container with the input data
+      @param master_peak_container Container with the mz / RT values at which to resample
+      @param left_boundary Left boundary of values the container should be resampled
+      @param right_boundary Right boundary of values the container should be resampled
+
+      @return A container which contains the data from the input chromatogram resampled at the positions of the master container
+    */
     template <typename SpectrumT>
     SpectrumT resampleChromatogram_(const SpectrumT& chromatogram,
-                                    SpectrumT& master_peak_container, double best_left, double best_right)
+                                    const SpectrumT& master_peak_container, double left_boundary, double right_boundary)
     {
-      // get the start / end point of this chromatogram => go one past
-      // best_left / best_right to make the resampling accurate also at the
-      // edge.
+      // get the start / end point of this chromatogram => then add one more
+      // point beyond the two boundaries to make the resampling accurate also
+      // at the edge.
       typename SpectrumT::const_iterator begin = chromatogram.begin();
-      while (begin != chromatogram.end() && begin->getMZ() < best_left) {begin++; }
-      if (begin != chromatogram.begin()) {begin--; }
+      while (begin != chromatogram.end() && begin->getMZ() < left_boundary) {begin++;}
+      if (begin != chromatogram.begin()) {begin--;}
 
       typename SpectrumT::const_iterator end = begin;
-      while (end != chromatogram.end() && end->getMZ() < best_right) {end++; }
-      if (end != chromatogram.end()) {end++; }
+      while (end != chromatogram.end() && end->getMZ() < right_boundary) {end++;}
+      if (end != chromatogram.end()) {end++;}
 
       SpectrumT resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
       LinearResamplerAlign lresampler;
