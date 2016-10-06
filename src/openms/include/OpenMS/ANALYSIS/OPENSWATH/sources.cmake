@@ -18,6 +18,7 @@ set(sources_list_h
   MRMTransitionGroupPicker.h
   OpenSwathHelper.h
   OpenSwathScoring.h
+  SONARScoring.h
   SpectrumAddition.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h

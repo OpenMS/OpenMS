@@ -17,6 +17,7 @@ SpectrumAddition.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
+SONARScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
 ConfidenceScoring.cpp

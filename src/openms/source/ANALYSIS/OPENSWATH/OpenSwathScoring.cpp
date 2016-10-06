@@ -37,10 +37,16 @@
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
 // auxiliary
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
+
+// basic file operations
+#include <iostream>
+#include <fstream>
 
 namespace OpenMS
 {
@@ -72,22 +78,37 @@ namespace OpenMS
                                             const std::vector<TransitionType> & transitions,
                                             std::vector<OpenSwath::SwathMap> swath_maps,
                                             OpenSwath::SpectrumAccessPtr ms1_map,
-                                            OpenMS::DIAScoring & diascoring, 
+                                            OpenMS::DIAScoring & diascoring,
                                             const CompoundType& compound, OpenSwath_Scores & scores)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
-    if (swath_maps.size() > 1)
+    std::vector<OpenSwath::SwathMap> used_swath_maps;
+    if (swath_maps.size() > 1 || transitions.empty())
     {
-      // SONAR todo!
+      double precursor_mz = transitions[0].getPrecursorMZ();
+      for (size_t i = 0; i < swath_maps.size(); ++i)
+      {
+        if (swath_maps[i].ms1) {continue;} // skip MS1
+        if (precursor_mz > swath_maps[i].lower && precursor_mz < swath_maps[i].upper)
+        {
+          used_swath_maps.push_back(swath_maps[i]);
+        }
+      }
+
+      SONARScoring().computeSonarScores(imrmfeature, transitions, swath_maps, scores);
+    }
+    else
+    {
+      used_swath_maps = swath_maps;
     }
 
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_maps[0].sptr, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
     // Mass deviation score
@@ -121,7 +142,7 @@ namespace OpenMS
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
-    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+    if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
       double precursor_mz = transitions[0].precursor_mz;
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
@@ -145,7 +166,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, 
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
                                               std::vector<OpenSwath::SwathMap> swath_maps,
                                               OpenMS::DIAScoring & diascoring,
@@ -153,13 +174,30 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
+    std::vector<OpenSwath::SwathMap> used_swath_maps;
     if (swath_maps.size() > 1)
     {
-      // SONAR todo!
+      // std::cout << " dia scores1 , sonar " << std::endl;
+
+
+      double precursor_mz = transition.getPrecursorMZ();
+      for (size_t i = 0; i < swath_maps.size(); ++i)
+      {
+        if (swath_maps[i].ms1) {continue;} // skip MS1
+        if (precursor_mz > swath_maps[i].lower && precursor_mz < swath_maps[i].upper)
+        {
+          used_swath_maps.push_back(swath_maps[i]);
+          // std::cout << " will use map  sonar " << swath_maps[i].lower << " -  " << swath_maps[i].upper << std::endl;
+        }
+      }
+    }
+    else
+    {
+      used_swath_maps = swath_maps;
     }
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_maps[0].sptr, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
     // If no charge is given, we assume it to be 1
@@ -212,8 +250,8 @@ namespace OpenMS
       scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
     }
 
-    if (su_.use_nr_peaks_score_) 
-    { 
+    if (su_.use_nr_peaks_score_)
+    {
       scores.nr_peaks = boost::numeric_cast<int>(imrmfeature->size());
     }
 
@@ -233,7 +271,7 @@ namespace OpenMS
         const std::vector<std::string>& native_ids_detection,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & idscores)
-  { 
+  {
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
 
@@ -270,8 +308,8 @@ namespace OpenMS
 
     if (su_.use_library_score_)
     {
-      mrmscore_.calcLibraryScore(imrmfeature, transitions, 
-          scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan, 
+      mrmscore_.calcLibraryScore(imrmfeature, transitions,
+          scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan,
           scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
     }
 
@@ -292,23 +330,43 @@ namespace OpenMS
       std::vector<double>& normalized_library_intensity)
   {
     normalized_library_intensity.clear();
-    for (Size i = 0; i < transitions.size(); i++) 
+    for (Size i = 0; i < transitions.size(); i++)
     {
       normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());
     }
-    for (Size i = 0; i < normalized_library_intensity.size(); i++) 
-    { 
+    for (Size i = 0; i < normalized_library_intensity.size(); i++)
+    {
       // the library intensity should never be below zero
-      if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
-    } 
+      if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; }
+    }
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
-      double RT, int nr_spectra_to_add)
+  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(std::vector<OpenSwath::SwathMap> swath_maps,
+                                                            double RT, int nr_spectra_to_add)
+  {
+    if (swath_maps.size() == 1)
+    {
+      return getAddedSpectra_(swath_maps[0].sptr, RT, nr_spectra_to_add);
+    }
+    else
+    {
+      std::vector<OpenSwath::SpectrumPtr> all_spectra;
+      for (size_t i = 0; i < swath_maps.size(); ++i)
+      {
+        OpenSwath::SpectrumPtr spec = getAddedSpectra_(swath_maps[i].sptr, RT, nr_spectra_to_add);
+        all_spectra.push_back(spec);
+      }
+      OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+      return spectrum_;
+    }
+  }
+
+  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
+                                                            double RT, int nr_spectra_to_add)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-    if (indices.empty() ) 
+    if (indices.empty() )
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
       return sptr;
@@ -333,11 +391,11 @@ namespace OpenMS
       all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
       for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
       {
-        if (closest_idx - i >= 0) 
+        if (closest_idx - i >= 0)
         {
           all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
         }
-        if (closest_idx + i < (int)swath_map->getNrSpectra()) 
+        if (closest_idx + i < (int)swath_map->getNrSpectra())
         {
           all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
         }
