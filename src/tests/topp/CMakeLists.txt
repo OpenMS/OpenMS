@@ -137,7 +137,7 @@ endforeach()
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper PhosphoScoring)
+list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
 endforeach()
