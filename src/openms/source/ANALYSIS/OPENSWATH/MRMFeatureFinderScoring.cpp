@@ -127,6 +127,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_correlation", "false", "Use the correlation scores with the MS1 elution profiles", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_sonar_scores", "false", "Use the scores for SONAR scans (scanning swath)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_sonar_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_fullscan", "false", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for peptidoform identification ", ListUtils::create<String>("advanced"));
@@ -535,6 +537,7 @@ namespace OpenMS
 
       double xx_lda_prescore = -scores.calculate_lda_prescore(scores);
       bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
+      bool sonar_present = (swath_maps.size() > 1);
       if (!swath_present)
       {
         mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
@@ -571,6 +574,16 @@ namespace OpenMS
         double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
         mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
         mrmfeature->setOverallQuality(xx_swath_prescore);
+      }
+
+      if (sonar_present && su_.use_sonar_scores)
+      {
+        mrmfeature->addScore("var_sonar_lag", scores.sonar_lag);
+        mrmfeature->addScore("var_sonar_shape", scores.sonar_shape);
+        mrmfeature->addScore("var_sonar_sn", scores.sonar_sn);
+        mrmfeature->addScore("var_sonar_diff", scores.sonar_diff);
+        mrmfeature->addScore("var_sonar_trend", scores.sonar_trend);
+        mrmfeature->addScore("var_sonar_rsq", scores.sonar_rsq);
       }
 
       ///////////////////////////////////////////////////////////////////////////
@@ -678,6 +691,7 @@ namespace OpenMS
     su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
+    su_.use_sonar_scores         = param_.getValue("Scores:use_sonar_scores").toBool();
     su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
     su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
     su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
