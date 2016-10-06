@@ -525,7 +525,7 @@ namespace OpenMS
               break;
 
             case SpectrumCanvas::IM_LOG:
-              qglColor(layer.gradient.precalculatedColorAt(it->getIntensity()));
+              qglColor(layer.gradient.precalculatedColorAt(log10(1 + max(0.0, (double)(it->getIntensity())))));
               break;
 
             }
