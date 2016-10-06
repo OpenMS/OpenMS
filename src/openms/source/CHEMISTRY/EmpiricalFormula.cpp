@@ -105,11 +105,11 @@ namespace OpenMS
     const ElementDB * db = ElementDB::getInstance();
 
     double avgTotal = (C*db->getElement("C")->getAverageWeight() +
-                        H*db->getElement("H")->getAverageWeight() +
-                        N*db->getElement("N")->getAverageWeight() +
-                        O*db->getElement("O")->getAverageWeight() +
-                        S*db->getElement("S")->getAverageWeight() +
-                        P*db->getElement("P")->getAverageWeight());
+                       H*db->getElement("H")->getAverageWeight() +
+                       N*db->getElement("N")->getAverageWeight() +
+                       O*db->getElement("O")->getAverageWeight() +
+                       S*db->getElement("S")->getAverageWeight() +
+                       P*db->getElement("P")->getAverageWeight());
 
     double factor = average_weight/avgTotal;
 
@@ -123,9 +123,12 @@ namespace OpenMS
 
     double remaining_mass = average_weight-getAverageWeight();
     SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
-    adjusted_H = max(0L, adjusted_H );
 
-    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    // It's possible for a very small mass to get a negative value here.
+    if (adjusted_H > 0)
+    {
+      formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    }
   }
 
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const

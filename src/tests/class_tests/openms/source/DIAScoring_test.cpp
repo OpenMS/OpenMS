@@ -222,7 +222,7 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   // >> pearsonr(exp, theo)
   // (0.99536128611183172, 0.00037899006151919545)
   //
-  TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832)
+  TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0)
 }
 END_SECTION
@@ -249,7 +249,7 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   // >> from scipy.stats.stats import pearsonr
   // >> pearsonr(exp, theo)
   // (0.959570883150479, 0.0096989307464742554)
-  TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479)
+  TEST_REAL_SIMILAR(isotope_corr, 0.959692139694113)
   TEST_REAL_SIMILAR(isotope_overlap, 1.0)
 }
 END_SECTION
@@ -272,7 +272,7 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
   // see above for the two individual numbers (forward and backward)
-  TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832 * 0.7 + 0.959570883150479 * 0.3)
+  TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618 * 0.7 + 0.959692139694113 * 0.3)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0 * 0.7 + 1.0 * 0.3)
 
 }
@@ -295,7 +295,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
 
     // see above for the two individual numbers (forward and backward)
-    TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479)
+    TEST_REAL_SIMILAR(isotope_corr, 0.959692139694113)
     TEST_REAL_SIMILAR(isotope_overlap, 240/74.0)
   }
 
@@ -311,7 +311,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     // >>> exp = [74, 0, 39, 0, 15]
     // >>> pearsonr(exp, theo)
     // (0.68135233883093205, 0.20528953804781694)
-    TEST_REAL_SIMILAR(isotope_corr, 0.681352338830933)
+    TEST_REAL_SIMILAR(isotope_corr, 0.680028918385546)
     TEST_REAL_SIMILAR(isotope_overlap, 240/74.0)
   }
 
@@ -459,8 +459,8 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
-  TEST_REAL_SIMILAR (dotprod, 0.729377020214466);
-  TEST_REAL_SIMILAR (manhattan, 0.645047527406156);
+  TEST_REAL_SIMILAR (dotprod, 0.730836983200467);
+  TEST_REAL_SIMILAR (manhattan, 0.643072639809147);
 }
 END_SECTION
 

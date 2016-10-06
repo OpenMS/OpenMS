@@ -89,7 +89,7 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 
   double mass1[] = { 100, 101.00048, 102.00096, 103.00144 };
   double int1[] =
-      { 0.9512718332, 0.04579662689, 0.002828078664, 0.0001016459634 };
+      { 0.9496341, 0.0473560, 0.0029034, 0.0001064 };
 
   double * mm = &mass1[0];
   double * ii = &int1[0];
@@ -104,7 +104,7 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
   tmp.clear();
   OpenMS::DIAHelpers::getAveragineIsotopeDistribution(30., tmp);
   double mass2[] = { 30, 31.0005, 32.001, 33.0014 };
-  double int2[] = { 0.989072, 0.010925, 2.4738e-06, 1.41508e-10 };
+  double int2[] = { 0.987254, 0.012721, 2.41038e-05, 2.28364e-08 };
   mm = &mass2[0];
   ii = &int2[0];
   for (unsigned int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
