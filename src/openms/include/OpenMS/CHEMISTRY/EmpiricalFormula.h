@@ -135,7 +135,7 @@ public:
       @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
       @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
       @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
-      @param P: The approximate relative stoichiometry of Phosphorus' to other elements in this molecule
+      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
     */
     void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 

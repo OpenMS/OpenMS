@@ -166,19 +166,20 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
   {
-      estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    // Element counts are from Senko's Averagine model
+    estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
 
   void IsotopeDistribution::estimateFromRNAWeight(double average_weight)
   {
-      estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 7, 0, 1);
+    estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 7, 0, 1);
   }
 
 
   void IsotopeDistribution::estimateFromDNAWeight(double average_weight)
   {
-      estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 6, 0, 1);
+    estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
   void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
