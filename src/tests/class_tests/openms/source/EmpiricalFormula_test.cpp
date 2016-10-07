@@ -226,11 +226,12 @@ START_SECTION(double getAverageWeight() const)
   TEST_REAL_SIMILAR(ef.getAverageWeight(), e->getAverageWeight() * 2)
 END_SECTION
 
-START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
+START_SECTION(Int estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
     // Same stoichiometry as the averagine model
     EmpiricalFormula ef("C494H776N136O148S4");
     EmpiricalFormula ef_approx;
-    ef_approx.estimateFromWeightAndComp(ef.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    Int return_flag;
+    return_flag = ef_approx.estimateFromWeightAndComp(ef.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
     // average mass should be the same when using the same stoichiometry
     TOLERANCE_ABSOLUTE(1);
     TEST_REAL_SIMILAR(ef.getAverageWeight(), ef_approx.getAverageWeight());
@@ -239,10 +240,11 @@ START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, do
     {
       TEST_EQUAL(itr->second, ef_approx.getNumberOf(itr->first));
     }
+    TEST_EQUAL(return_flag, 0);
 
     // Very different stoichiometry than the averagine model
     EmpiricalFormula ef2("C100H100N100O100S100P100");
-    ef_approx.estimateFromWeightAndComp(ef2.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    return_flag = ef_approx.estimateFromWeightAndComp(ef2.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
     // average mass should be the same when using a different stoichiometry
     TEST_REAL_SIMILAR(ef2.getAverageWeight(), ef_approx.getAverageWeight());
     // # of elements should be different when using a very different stoichiometry
@@ -250,13 +252,16 @@ START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, do
     {
       TEST_NOT_EQUAL(itr->second, ef_approx.getNumberOf(itr->first));
     }
+    TEST_EQUAL(return_flag, 0);
 
     // Small mass that the model can't fit without using a negative # of hydrogens
-    ef_approx.estimateFromWeightAndComp(50, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    return_flag = ef_approx.estimateFromWeightAndComp(50, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
     // The same mass can't be achieved because the # hydrogens needed to compensate is negative
     TEST_EQUAL(ef_approx.getAverageWeight() - 50 > 1, true);
     // Don't allow the EmpiricalFormula to have a negative # of hydrogens
     TEST_EQUAL(ef_approx.getNumberOf(db->getElement("H")) >= 0, true);
+    // The return flag should now indicate that the estimated formula would have need a negative # of hydrogens to match the mass
+    TEST_EQUAL(return_flag, 1);
 
 END_SECTION
 

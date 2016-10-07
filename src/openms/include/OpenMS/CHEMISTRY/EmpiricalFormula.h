@@ -127,7 +127,9 @@ public:
     double getAverageWeight() const;
 
     /**
-      @brief returns an approximate EmpiricalFormula for a given average weight and approximate elemental stoichiometry
+      @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
+
+      @return integer return flag describing result of the approximation. 0 = no problems, 1 = negative hydrogens requested.
 
       @param average_weight: Average weight to estimate an EmpiricalFormula for
       @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
@@ -137,7 +139,7 @@ public:
       @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
       @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
     */
-    void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+    Int estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
     /**
       @brief returns the isotope distribution of the formula

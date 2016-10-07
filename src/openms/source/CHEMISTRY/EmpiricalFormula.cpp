@@ -100,7 +100,7 @@ namespace OpenMS
     return weight;
   }
 
-  void EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
+  Int EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
     const ElementDB * db = ElementDB::getInstance();
 
@@ -125,10 +125,15 @@ namespace OpenMS
     SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
 
     // It's possible for a very small mass to get a negative value here.
-    if (adjusted_H > 0)
+    // The approximation can still be useful, but we set the return flag to 1 to explicitly notify the programmer
+    if (adjusted_H < 0)
     {
-      formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+      return 1;
     }
+
+    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    // The approximation had no issues.
+    return 0;
   }
 
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
