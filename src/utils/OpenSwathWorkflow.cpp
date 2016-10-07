@@ -100,15 +100,21 @@ namespace OpenMS
     String input_filename_;
     bool doWrite_;
     bool use_ms1_traces_;
+    bool sonar_;
     bool enable_uis_scoring_;
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool uis_scores = false) :
+    OpenSwathTSVWriter(String output_filename, 
+                       String input_filename = "inputfile",
+                       bool ms1_scores = false, 
+                       bool sonar = false, 
+                       bool uis_scores = false) :
       ofs(output_filename.c_str()),
       input_filename_(input_filename),
       doWrite_(!output_filename.empty()),
       use_ms1_traces_(ms1_scores),
+      sonar_(sonar),
       enable_uis_scoring_(uis_scores)
       {}
 
@@ -134,6 +140,10 @@ namespace OpenMS
         ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
       }
       ofs << "\txx_lda_prelim_score\txx_swath_prelim_score";
+      if (sonar_)
+      {
+        ofs << "\tvar_sonar_sn\tvar_sonar_diff\tvar_sonar_trend";
+      }
       if (use_ms1_traces_)
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
@@ -303,6 +313,13 @@ namespace OpenMS
 
             line += "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score");
+            if (sonar_)
+            {
+              line += "\t" + (String)feature_it->getMetaValue("var_sonar_sn")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_diff")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_trend");
+
+            }
             if (use_ms1_traces_)
             {
               line += "\t" + aggr_prec_Peak_Area + "\t" + aggr_prec_Peak_Apex + "\t" + aggr_prec_Fragment_Annotation;
@@ -2398,7 +2415,7 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, enable_uis_scoring);
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
     OpenSwathWorkflow wf(use_ms1_traces);
     wf.setLogType(log_type_);
 
