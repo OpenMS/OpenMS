@@ -36,7 +36,6 @@
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <utility>
 #include <vector>

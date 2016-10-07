@@ -240,7 +240,7 @@ START_SECTION(Int estimateFromWeightAndComp(double average_weight, double C, dou
     {
       TEST_EQUAL(itr->second, ef_approx.getNumberOf(itr->first));
     }
-    TEST_EQUAL(return_flag, 0);
+    TEST_EQUAL(return_flag, true);
 
     // Very different stoichiometry than the averagine model
     EmpiricalFormula ef2("C100H100N100O100S100P100");
@@ -252,7 +252,7 @@ START_SECTION(Int estimateFromWeightAndComp(double average_weight, double C, dou
     {
       TEST_NOT_EQUAL(itr->second, ef_approx.getNumberOf(itr->first));
     }
-    TEST_EQUAL(return_flag, 0);
+    TEST_EQUAL(return_flag, true);
 
     // Small mass that the model can't fit without using a negative # of hydrogens
     return_flag = ef_approx.estimateFromWeightAndComp(50, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
@@ -260,8 +260,8 @@ START_SECTION(Int estimateFromWeightAndComp(double average_weight, double C, dou
     TEST_EQUAL(ef_approx.getAverageWeight() - 50 > 1, true);
     // Don't allow the EmpiricalFormula to have a negative # of hydrogens
     TEST_EQUAL(ef_approx.getNumberOf(db->getElement("H")) >= 0, true);
-    // The return flag should now indicate that the estimated formula would have need a negative # of hydrogens to match the mass
-    TEST_EQUAL(return_flag, 1);
+    // The return flag should now indicate that the estimated formula did not succeed without requesting a negative # of hydrogens
+    TEST_EQUAL(return_flag, false);
 
 END_SECTION
 

@@ -41,7 +41,6 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -129,8 +128,6 @@ public:
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
 
-      @return integer return flag describing result of the approximation. 0 = no problems, 1 = negative hydrogens requested.
-
       @param average_weight: Average weight to estimate an EmpiricalFormula for
       @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
       @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
@@ -138,8 +135,10 @@ public:
       @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
       @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
       @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+      @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
     */
-    Int estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+    bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
     /**
       @brief returns the isotope distribution of the formula

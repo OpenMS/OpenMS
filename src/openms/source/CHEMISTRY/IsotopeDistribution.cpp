@@ -39,9 +39,7 @@
 #include <limits>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace std;
 
