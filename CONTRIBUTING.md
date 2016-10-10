@@ -18,7 +18,7 @@ If you found a bug, e.g. an OpenMS tool crashes during data processing, it is es
   - relevant tool output (e.g., error messages)
   - data to repoduce the bug (If possible as a github gist. Other platforms like dropbox, google drive links also work. If you can't share the data publicly please indicate this and we will contact you in private.)
 
-Optionally:
+If you are an official OpenMS team meber:
   - label your issue using github labels (e.g. as: question, defect) that indicated the type of issue and which components of OpenMS (blue labels) are affected. The severity is usually assigned by OpenMS maintainers and used internally to e.g. indicate if a bug is a blocker for a new release.
 
 #Opening a Pull Request
