@@ -36,7 +36,7 @@ There you will find information on:
  - testing
  - additional documentation for developers. 
  
-The section on "Development model" will give details on how to incorporate your contributions into the OpenMS code base. A core developer will review your changes and approve them (or ask for modifications).
+The section on "Development model" will give details on how to incorporate your contributions into the OpenMS code base. A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
 
 Also consider getting in contact with the core developers early. They might provide additional guidance and valuable information on how your specific aim is achieved. This might give you a head start in, for example, developing novel tools or algorithms. 
 
