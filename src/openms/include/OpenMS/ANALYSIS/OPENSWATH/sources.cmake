@@ -19,6 +19,7 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
+  OpenSwathWorkflow.h
   SONARScoring.h
   SpectrumAddition.h
   SwathMapMassCorrection.h
