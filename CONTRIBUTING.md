@@ -1,21 +1,15 @@
 Help us to make OpenMS better and become part of the OpenMS open source community.
 
-#General remarks:
+This document is displayed because you either opened an issue or you want to provide a your code as a pull request for inclusion into OpenMS. Please take a look at the appropriate secion below to find some details on how we handle this process.
 
-There are many ways how you can contribute without needing to program. For instance, you can:
-  - report issues like bugs
+#Reporting an Issue:
+
+You most likely came here to:
+  - report bugs or annoyances
   - pose questions
   - point out missing documentation
   - request new features
-  - write/update documentation
 
-If you are a programmer you can open a Pull Request to:
-  - implement new algorithms, features or tools
-  - fix bugs and resolve issues
-
-we are happy to review your contributions and point out potential ways on how to improve them.
-
-#Reporting an issue:
 If you found a bug, e.g. an OpenMS tool crashes during data processing, it is essential to provide some basic information:
   - the OpenMS version you are running
   - the platform you are running OpenMS on (Windows 10, ...)
@@ -28,6 +22,12 @@ Optionally:
   - label your issue using github labels (e.g. as: question, defect) that indicated the type of issue and which components of OpenMS (blue labels) are affected. The severity is usually assigned by OpenMS maintainers and used internally to e.g. indicate if a bug is a blocker for a new release.
 
 #Opening a Pull Request
+
+You probably came here to open a pull request that:
+  - implements new features and tools or
+  - because you fixed a nasty bug. 
+  
+We are happy to review your contributions and point out potential ways on how to improve them.
 
 Before getting started we recommend taking a look at our GitHub-Wiki: https://github.com/OpenMS/OpenMS/wiki#-for-developers
 
