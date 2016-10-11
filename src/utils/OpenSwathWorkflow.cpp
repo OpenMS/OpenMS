@@ -445,6 +445,8 @@ protected:
 
     registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
     setValidStrings_("mz_correction_function", ListUtils::create<String>("none,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
+    registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction (in Thomson, use ppm use -ppm flag)", false, true);
+    registerFlag_("ppm_irtwindow", "iRT m/z extraction_window is in ppm", true);
 
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
@@ -660,6 +662,7 @@ protected:
 
     String out_chrom = getStringOption_("out_chrom");
     bool ppm = getFlag_("ppm");
+    bool irt_ppm = getFlag_("ppm_irtwindow");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
@@ -669,6 +672,7 @@ protected:
     bool enable_uis_scoring = getFlag_("enable_uis_scoring");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
+    double irt_mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
     double rt_extraction_window = getDoubleOption_("rt_extraction_window");
     double extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
     String extraction_function = getStringOption_("extraction_function");
@@ -730,6 +734,8 @@ protected:
 
     ChromExtractParams cp_irt = cp;
     cp_irt.rt_extraction_window = -1; // extract the whole RT range
+    cp_irt.mz_extraction_window = irt_mz_extraction_window;
+    cp_irt.ppm                  = irt_ppm;
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
     if (use_emg_score)

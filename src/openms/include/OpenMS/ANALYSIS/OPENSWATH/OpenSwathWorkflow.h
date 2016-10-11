@@ -161,7 +161,7 @@ namespace OpenMS
       // perform RT and m/z correction on the data
       TransformationDescription tr = RTNormalization(irt_transitions,
           irt_chromatograms, min_rsq, min_coverage, feature_finder_param,
-          irt_detection_param, swath_maps, mz_correction_function);
+          irt_detection_param, swath_maps, mz_correction_function, cp_irt.mz_extraction_window, cp_irt.ppm);
       return tr;
     }
 
@@ -189,7 +189,8 @@ namespace OpenMS
                                               const Param& default_ffparam,
                                               const Param& irt_detection_param,
                                               std::vector< OpenSwath::SwathMap > & swath_maps,
-                                              const String & mz_correction_function)
+                                              const String & mz_correction_function, 
+                                              double mz_extraction_window, bool ppm)
     {
       LOG_DEBUG << "Start of RTNormalization method" << std::endl;
       this->startProgress(0, 1, "Retention time normalization");
@@ -264,7 +265,7 @@ namespace OpenMS
       }
 
       // 4. Correct m/z deviations using SwathMapMassCorrection
-      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, mz_correction_function);
+      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, mz_correction_function, mz_extraction_window, ppm);
 
       // 5. Perform the outlier detection
       std::vector<std::pair<double, double> > pairs_corrected;
@@ -310,6 +311,11 @@ namespace OpenMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "There were not enough bins with the minimal number of peptides");
         }
+      }
+      if (pairs_corrected.size() < 2)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
       }
 
       // store transformation, using a linear model as default

@@ -51,9 +51,10 @@ namespace OpenMS
   void SwathMapMassCorrection::correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
                                          std::vector< OpenSwath::SwathMap > & swath_maps,
                                          std::string corr_type,
-                                         double mz_extr_window)
+                                         double mz_extr_window, 
+                                         bool ppm)
   {
-    LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << std::endl;
+    LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
     bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm" || 
                        corr_type == "weighted_quadratic_regression_delta_ppm");
@@ -125,6 +126,12 @@ namespace OpenMS
         double left = tr->product_mz - mz_extr_window / 2.0;
         double right = tr->product_mz + mz_extr_window / 2.0;
         bool centroided = false;
+
+        if (ppm)
+        {
+          left = tr->product_mz - mz_extr_window / 2.0  * tr->product_mz * 1e-6;
+          right = tr->product_mz + mz_extr_window / 2.0 * tr->product_mz * 1e-6;
+        }
 
         // integrate spectrum at the position of the theoretical mass
         OpenSwath::integrateWindow(sp, left, right, mz, intensity, centroided);
