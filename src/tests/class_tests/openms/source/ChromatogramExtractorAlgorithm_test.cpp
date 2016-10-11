@@ -182,7 +182,7 @@ static const double mz_arr[] = {
   500.0,
 };
 static const double int_arr[] = {
-  0.0  , 
+  8.0  , 
   100.0,
   200.0,
   300.0,
@@ -211,7 +211,7 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
-  // conver the data into a spectrum
+  // convert the data into a spectrum
   MSSpectrum<Peak1D> spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
@@ -231,20 +231,27 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
 
   // If we use monotonically increasing m/z values then everything should work fine
   ChromatogramExtractorAlgorithm extractor;
+
+  // test the very first value
+  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.905, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 8.0); // test very first data point
+
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.91, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0);
+  TEST_REAL_SIMILAR(integrated_intensity, 108.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0, integrated_intensity, extract_window, false);
-  // print(sum([0 + i*100.0 for i in range(10)]) )
-  TEST_REAL_SIMILAR( integrated_intensity,4500.0);
+  // print(sum([0 + i*100.0 for i in range(10)] + 8) )
+  TEST_REAL_SIMILAR( integrated_intensity, 4508.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05,  integrated_intensity, extract_window, false);
   //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)])  )
-  TEST_REAL_SIMILAR( integrated_intensity,8400.0);
+  TEST_REAL_SIMILAR( integrated_intensity, 8400.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, false);
   //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(10)])  )
-  TEST_REAL_SIMILAR( integrated_intensity,9000.0);
-  TEST_EQUAL((int)integrated_intensity,9000);
+  TEST_REAL_SIMILAR( integrated_intensity, 9000.0);
+  TEST_EQUAL((int)integrated_intensity, 9000);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.28, integrated_intensity, extract_window, false);
   TEST_REAL_SIMILAR( integrated_intensity,100.0);
+
+  // test the very last value
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 500.0, integrated_intensity, extract_window, false);
   TEST_REAL_SIMILAR( integrated_intensity, 10.0);
 
@@ -261,12 +268,14 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   integrated_intensity = 0;
   extract_window = 500; // 500 ppm == 0.2 Da @ 400 m/z
 
+  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.89, integrated_intensity, extract_window, true);
+  TEST_REAL_SIMILAR( integrated_intensity, 0.0);  // below 400, 500ppm is below 0.2 Da...
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.91, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,0.0);  // below 400, 500ppm is below 0.2 Da...
+  TEST_REAL_SIMILAR( integrated_intensity, 8.0);  // very first value
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.92, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0); 
+  TEST_REAL_SIMILAR( integrated_intensity,108.0); 
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,4500.0);
+  TEST_REAL_SIMILAR( integrated_intensity,4508.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,8400.0);
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, true);
