@@ -11,6 +11,7 @@ TransitionTSVReader.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp
+OpenSwathTSVWriter.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
