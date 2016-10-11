@@ -152,14 +152,15 @@ namespace OpenMS
         }
         catch (OpenMS::Exception::BaseException& /*e*/)
         {
-          LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+          LOG_DEBUG << "Error writing to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
         }
       }
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
-      // get RT normalization from data
+      // perform RT and m/z correction on the data
       TransformationDescription tr = RTNormalization(irt_transitions,
-              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, irt_detection_param, swath_maps, mz_correction_function);
+          irt_chromatograms, min_rsq, min_coverage, feature_finder_param,
+          irt_detection_param, swath_maps, mz_correction_function);
       return tr;
     }
 
@@ -318,6 +319,13 @@ namespace OpenMS
       String model_type = "linear";
       trafo_out.fitModel(model_type, model_params);
 
+      LOG_DEBUG << "Final RT mapping:" << std::endl;
+      for (Size i = 0; i < pairs_corrected.size(); i++)
+      {
+        LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
+      }
+      LOG_DEBUG << "End of RTNormalization method" << std::endl;
+
       this->endProgress();
       return trafo_out;
     }
@@ -325,8 +333,9 @@ namespace OpenMS
 
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     static void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
-      const OpenMS::TargetedExperiment & irt_transitions,
-      std::vector< OpenMS::MSChromatogram<> > & chromatograms, const ChromExtractParams & cp)
+                                           const OpenMS::TargetedExperiment & irt_transitions,
+                                           std::vector< OpenMS::MSChromatogram<> > & chromatograms,
+                                           const ChromExtractParams & cp)
     {
 #ifdef _OPENMP
 #pragma omp parallel for
