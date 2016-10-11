@@ -95,14 +95,75 @@ namespace OpenMS
     double extra_rt_extract;
   };
 
-  /** @brief some useful tools to compute binning and compute RT normalization (and m/z normalization)
+  /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on * a set of known peptides
    *
   */
-  class RTNormHelper :
+  class OpenSwathRetentionTimeNormalization :
     public ProgressLogger
   {
-    
-    protected:
+
+  public:
+
+    /** @brief Perform RT and m/z correction of the input data using RT-normalization peptides.
+     *
+     * This function extracts the RT normalization chromatograms and then uses
+     * the chromatograms to find features (in RTNormalization).  If desired,
+     * also m/z correction is performed using the lock masses of the given
+     * peptides. Therefore, swath_maps may be changed in this function.
+     *
+     * @param irt_transitions A set of transitions used for the RT normalization peptides
+     * @param swath_maps The raw data (swath maps)
+     * @param min_rsq Minimal R^2 value that is expected for the RT regression
+     * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
+     * @param cp_irt Parameter set for the chromatogram extraction
+     * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
+     * @param mz_correction_function If correction in m/z is desired, which function should be used
+     * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+     *
+    */
+    TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions, 
+                                                     std::vector< OpenSwath::SwathMap > & swath_maps,
+                                                     double min_rsq,
+                                                     double min_coverage, 
+                                                     const Param & feature_finder_param,
+                                                     const ChromExtractParams & cp_irt,
+                                                     const Param & irt_detection_param, 
+                                                     const String & mz_correction_function,
+                                                     Size debug_level)
+    {
+      LOG_DEBUG << "performRTNormalization method starting" << std::endl;
+      std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
+      simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
+      // TODO: sonar!!!
+
+      // debug output of the iRT chromatograms
+      if (debug_level > 1)
+      {
+        try
+        {
+          MSExperiment<> exp;
+          exp.setChromatograms(irt_chromatograms);
+          MzMLFile().store("debug_irts.mzML", exp);
+        }
+        catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
+        {
+          LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        }
+        catch (OpenMS::Exception::BaseException& /*e*/)
+        {
+          LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        }
+      }
+      LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
+
+      // get RT normalization from data
+      TransformationDescription tr = RTNormalization(irt_transitions,
+              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, irt_detection_param, swath_maps, mz_correction_function);
+      return tr;
+    }
+
+  private:
 
     /** @brief Perform RT and m/z correction using the MRMFeatureFinderScoring
      *
@@ -260,16 +321,7 @@ namespace OpenMS
       this->endProgress();
       return trafo_out;
     }
-  };
 
-  /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on * a set of known peptides
-   *
-  */
-  class OpenSwathWorkflowRTNorm :
-    public RTNormHelper
-  {
-
-  public:
 
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     static void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -338,67 +390,14 @@ namespace OpenMS
     }
 
 
-    /** @brief Compute the alignment against a set of RT-normalization peptides
-     *
-     * This function extracts the RT normalization chromatograms
-     * (simpleExtractChromatograms) and then uses the chromatograms to find
-     * features (in RTNormalization).
-     *
-     * @param irt_transitions A set of transitions used for the RT normalization peptides
-     * @param swath_maps The raw data (swath maps)
-     * @param min_rsq Minimal R^2 value that is expected for the RT regression
-     * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param cp_irt Parameter set for the chromatogram extraction
-     * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param mz_correction_function If correction in m/z is desired, which function should be used
-     * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-     *
-    */
-    TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
-            std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param & feature_finder_param, const ChromExtractParams & cp_irt, const Param& irt_detection_param,
-            const String & mz_correction_function, Size debug_level)
-    {
-      LOG_DEBUG << "performRTNormalization method starting" << std::endl;
-      std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
-      OpenSwathWorkflowRTNorm::simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
-      // TODO: sonar!!!
-
-      // debug output of the iRT chromatograms
-      if (debug_level > 1)
-      {
-        try
-        {
-          MSExperiment<> exp;
-          exp.setChromatograms(irt_chromatograms);
-          MzMLFile().store("debug_irts.mzML", exp);
-        }
-        catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
-        {
-          LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
-        }
-        catch (OpenMS::Exception::BaseException& /*e*/)
-        {
-          LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
-        }
-      }
-      LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
-
-      // get RT normalization from data
-      TransformationDescription tr = RTNormalization(irt_transitions,
-              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, irt_detection_param, swath_maps, mz_correction_function);
-      return tr;
-    }
-
   };
 
   /**
    * @brief Class to execute an OpenSwath Workflow
    *
-   * performExtraction will perform the OpenSWATH analysis. Optionally, an RT
+   * The workflow will perform a complete OpenSWATH analysis. Optionally, an RT
    * transformation (mapping peptides to normalized space) can be obtained
-   * beforehand using performRTNormalization.
+   * beforehand using the OpenSwathRetentionTimeNormalization class.
    *
    */
   class OpenSwathWorkflow :
@@ -409,15 +408,16 @@ namespace OpenMS
 
     explicit OpenSwathWorkflow(bool use_ms1_traces) :
       use_ms1_traces_(use_ms1_traces)
-    {}
+    {
+    }
 
     /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
      *
      * Executes the following operations on the given input:
      *
-     * 1. OpenSwathHelper::selectSwathTransitions
-     * 2. ChromatogramExtractor prepare, extract
-     * 3. scoreAllChromatograms
+     * 1. Selecting the appropriate transitions for each SWATH window (using OpenSwathHelper::selectSwathTransitions)
+     * 2. Extract the chromatograms from the SWATH maps (MS1 and MS2) using (ChromatogramExtractor)
+     * 3. Pick peaks in the chromatograms and perform peak scoring (inside scoreAllChromatograms function)
      * 4. Write out chromatograms and found features
      *
      * @param swath_maps The raw data (swath maps)
@@ -433,12 +433,15 @@ namespace OpenMS
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
-      const TransformationDescription trafo,
-      const ChromExtractParams & cp, const Param & feature_finder_param,
-      const OpenSwath::LightTargetedExperiment& transition_exp,
-      FeatureMap& out_featureFile, bool store_features,
-      OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
-      int batchSize, bool load_into_memory)
+                           const TransformationDescription trafo, 
+                           const ChromExtractParams & cp,
+                           const Param & feature_finder_param, 
+                           const OpenSwath::LightTargetedExperiment& transition_exp, 
+                           FeatureMap& out_featureFile, bool store_features, 
+                           OpenSwathTSVWriter & tsv_writer,
+                           Interfaces::IMSDataConsumer<> * chromConsumer, 
+                           int batchSize,
+                           bool load_into_memory)
     {
       tsv_writer.writeHeader();
 
@@ -616,73 +619,10 @@ namespace OpenMS
 
   protected:
 
-
-    /** @brief Select which compounds to analyze in the next batch (and copy to output)
-     *
-     * This function will select which compounds to analyze in the next batch j
-     * and will copy the the corresponding compounds and transitions into the
-     * output structure. The output will contain batch_size compounds.
-     *
-     * @param transition_exp_used_all input (all transitions for this swath)
-     * @param transition_exp_used output (will contain only transitions for the next batch)
-     * @param batch_size how many compounds per batch
-     * @param j batch number (peptides from j*batch_size to j*batch_size+batch_size will be copied)
-     *
-     * @note The proteins will be copied completely without checking for a match
-     *
-    */
-    void selectCompoundsForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
-      OpenSwath::LightTargetedExperiment& transition_exp_used, int batch_size, size_t j)
-    {
-      // compute batch start/end
-      size_t start = j * batch_size;
-      size_t end = j * batch_size + batch_size;
-      if (end > transition_exp_used_all.compounds.size())
-      {
-        end = transition_exp_used_all.compounds.size();
-      }
-
-      // Create the new, batch-size transition experiment
-      transition_exp_used.proteins = transition_exp_used_all.proteins;
-      transition_exp_used.compounds.insert(transition_exp_used.compounds.end(),
-          transition_exp_used_all.compounds.begin() + start, transition_exp_used_all.compounds.begin() + end);
-      copyBatchTransitions_(transition_exp_used.compounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
-    }
-
-    /** @brief Copy the required transitions to output
-     *
-     * Copy all transitions matching to one of the compounds in the selected
-     * peptide vector from all_transitions to the output.
-     *
-     * @param used_compounds Which peptides or metabolites to be used
-     * @param all_transitions Transitions vector from which to select transitions
-     * @param output Output vector containing matching transitions (taken from all_transitions)
-     *
-    */
-    void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
-      const std::vector<OpenSwath::LightTransition>& all_transitions,
-      std::vector<OpenSwath::LightTransition>& output)
-    {
-      std::set<std::string> selected_compounds;
-      for (Size i = 0; i < used_compounds.size(); i++)
-      {
-        selected_compounds.insert(used_compounds[i].id);
-      }
-
-      for (Size i = 0; i < all_transitions.size(); i++)
-      {
-        if (selected_compounds.find(all_transitions[i].peptide_ref) != selected_compounds.end())
-        {
-          output.push_back(all_transitions[i]);
-        }
-      }
-    }
-
     /** @brief Perform scoring on a set of chromatograms
      *
-     *
      *  Will iterate over all assays contained in transition_exp and for each
-     *  assay fetch the corresponding chromatograms and find peakgroups.
+     *  assay fetch the corresponding chromatograms and find peak groups.
      *
      * @param input Input chromatograms (MS2 level)
      * @param ms1_chromatograms Input chromatograms for MS1-level
@@ -832,6 +772,68 @@ namespace OpenMS
 #endif
         {
           tsv_writer.writeLines(to_output);
+        }
+      }
+    }
+
+
+    /** @brief Select which compounds to analyze in the next batch (and copy to output)
+     *
+     * This function will select which compounds to analyze in the next batch j
+     * and will copy the corresponding compounds and transitions into the
+     * output structure. The output will contain batch_size compounds.
+     *
+     * @param transition_exp_used_all input (all transitions for this swath)
+     * @param transition_exp_used output (will contain only transitions for the next batch)
+     * @param batch_size how many compounds per batch
+     * @param j batch number (peptides from j*batch_size to j*batch_size+batch_size will be copied)
+     *
+     * @note The proteins will be copied completely without checking for a match
+     *
+    */
+    void selectCompoundsForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
+      OpenSwath::LightTargetedExperiment& transition_exp_used, int batch_size, size_t j)
+    {
+      // compute batch start/end
+      size_t start = j * batch_size;
+      size_t end = j * batch_size + batch_size;
+      if (end > transition_exp_used_all.compounds.size())
+      {
+        end = transition_exp_used_all.compounds.size();
+      }
+
+      // Create the new, batch-size transition experiment
+      transition_exp_used.proteins = transition_exp_used_all.proteins;
+      transition_exp_used.compounds.insert(transition_exp_used.compounds.end(),
+          transition_exp_used_all.compounds.begin() + start, transition_exp_used_all.compounds.begin() + end);
+      copyBatchTransitions_(transition_exp_used.compounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
+    }
+
+    /** @brief Copy the required transitions to output
+     *
+     * Copy all transitions matching to one of the compounds in the selected
+     * peptide vector from all_transitions to the output.
+     *
+     * @param used_compounds Which peptides or metabolites to be used
+     * @param all_transitions Transitions vector from which to select transitions
+     * @param output Output vector containing matching transitions (taken from all_transitions)
+     *
+    */
+    void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
+      const std::vector<OpenSwath::LightTransition>& all_transitions,
+      std::vector<OpenSwath::LightTransition>& output)
+    {
+      std::set<std::string> selected_compounds;
+      for (Size i = 0; i < used_compounds.size(); i++)
+      {
+        selected_compounds.insert(used_compounds[i].id);
+      }
+
+      for (Size i = 0; i < all_transitions.size(); i++)
+      {
+        if (selected_compounds.find(all_transitions[i].peptide_ref) != selected_compounds.end())
+        {
+          output.push_back(all_transitions[i]);
         }
       }
     }
