@@ -48,12 +48,20 @@
 namespace OpenMS
 {
 
-  void SwathMapMassCorrection::correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & 
-        transition_group_map, std::vector< OpenSwath::SwathMap > &
-        swath_maps, std::string corr_type, double mz_extr_window)
+  void SwathMapMassCorrection::correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+                                         std::vector< OpenSwath::SwathMap > & swath_maps,
+                                         std::string corr_type,
+                                         double mz_extr_window)
   {
+    LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << std::endl;
+
     bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm" || 
                        corr_type == "weighted_quadratic_regression_delta_ppm");
+
+    if (corr_type == "none")
+    {
+      return;
+    }
 
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
     std::cout.precision(16);
@@ -90,26 +98,25 @@ namespace OpenMS
         }
       }
 
-      // Get the corresponding SWATH map
-      SignedSize res = -1;
+      // Get the corresponding SWATH map(s), for SONAR there will be more than one map
+      std::vector<OpenSwath::SwathMap> used_maps;
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
         if (swath_maps[i].lower < transition_group->getTransitions()[0].precursor_mz && 
             swath_maps[i].upper >= transition_group->getTransitions()[0].precursor_mz)
         {
-          res = i;
-          break; // we found it, we are done
+          used_maps.push_back(swath_maps[i]);
         }
       }
 
-      if (res == -1)
+      if (used_maps.empty())
       {
         continue;
       }
 
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(swath_maps[res].sptr, bestRT, 1);
+      OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(used_maps, bestRT, 1);
       for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator 
           tr = transition_group->getTransitions().begin(); 
           tr != transition_group->getTransitions().end(); ++tr)
@@ -143,6 +150,8 @@ namespace OpenMS
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
         os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
 #endif
+        LOG_DEBUG << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
+
       }
     }
 
@@ -217,6 +226,9 @@ namespace OpenMS
            regression_params[1],
            regression_params[2]);
 
+    LOG_DEBUG << "# mz regression parameters: Y = " << regression_params[0] << " + " << 
+      regression_params[1] << " X + " << regression_params[2] << " X^2" << std::endl;
+
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
     os.close();
     double s_ppm_before = 0;
@@ -245,6 +257,7 @@ namespace OpenMS
           regression_params[0], regression_params[1], regression_params[2], is_ppm));
     }
 
+    LOG_DEBUG << "SwathMapMassCorrection::correctMZ done." << std::endl;
   }
 
 /* display debug output in R
@@ -312,3 +325,4 @@ OpenSwathWorkflow took 21.07 s (wall), 20.90 s (CPU), 0.00 s (system), 20.90 s (
 */
 
 }
+
