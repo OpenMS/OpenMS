@@ -54,7 +54,7 @@ namespace OpenMS
    * These lines can also be directly written to a file using writeLines
    *
    */
-  class OpenSwathTSVWriter
+  class OPENMS_DLLAPI OpenSwathTSVWriter
   {
     std::ofstream ofs;
     String input_filename_;
