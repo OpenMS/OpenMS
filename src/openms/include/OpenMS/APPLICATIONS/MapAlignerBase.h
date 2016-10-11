@@ -85,7 +85,7 @@ public:
     Param params;
     params.setValue("type", default_model, "Type of model");
     // TODO: avoid referring to each TransformationModel subclass explicitly
-    StringList model_types = ListUtils::create<String>("linear,b_spline,interpolated");
+    StringList model_types = ListUtils::create<String>("linear,b_spline,lowess,interpolated");
     if (!ListUtils::contains(model_types, default_model))
     {
       model_types.insert(model_types.begin(), default_model);
