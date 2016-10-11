@@ -138,10 +138,10 @@ namespace OpenMS
       std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, bool use_chauvenet, std::string method)
   {
-    if (pairs.size() < 2)
+    if (pairs.size() < 3)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Need at least 2 points for the regression.");
+        "Need at least 3 data points to remove outliers for the regression.");
     }
 
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
