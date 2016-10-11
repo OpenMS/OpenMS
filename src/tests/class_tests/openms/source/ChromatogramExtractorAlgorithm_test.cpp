@@ -232,9 +232,9 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   // If we use monotonically increasing m/z values then everything should work fine
   ChromatogramExtractorAlgorithm extractor;
 
-  // test the very first value
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.905, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR(integrated_intensity, 8.0); // test very first data point
+  // test the zero first value
+  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.805, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 0.0); // test very first data point
 
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.91, integrated_intensity, extract_window, false);
   TEST_REAL_SIMILAR(integrated_intensity, 108.0);
@@ -281,6 +281,41 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,9000.0);
 
+}
+END_SECTION
+
+START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, const double &mz_extraction_window, bool ppm))
+{ 
+  std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
+  std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
+
+  // convert the data into a spectrum
+  MSSpectrum<Peak1D> spectrum;
+  for(Size i=0; i<mz.size(); ++i)
+  {
+    Peak1D peak;
+    peak.setMZ(mz[i]);
+    peak.setIntensity(intensities[i]);
+    spectrum.push_back(peak);
+  }
+
+  std::vector<double>::const_iterator mz_start = mz.begin();
+  std::vector<double>::const_iterator mz_it_end = mz.end();
+  std::vector<double>::const_iterator mz_it = mz.begin();
+  std::vector<double>::const_iterator int_it = intensities.begin();
+
+  double integrated_intensity = 0;
+  double extract_window = 0.2; // +/- 0.1
+
+  // If we use monotonically increasing m/z values then everything should work fine
+  ChromatogramExtractorAlgorithm extractor;
+
+  // test the zero first value
+  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.805, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 0.0); // test very first data point
+
+  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0001, integrated_intensity, 0.001, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 8.0);
 }
 END_SECTION
 
