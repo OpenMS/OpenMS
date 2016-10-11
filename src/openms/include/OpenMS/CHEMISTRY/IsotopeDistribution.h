@@ -70,6 +70,11 @@ public:
     typedef ContainerType::iterator Iterator;
     typedef ContainerType::const_iterator const_iterator;
     typedef ContainerType::const_iterator ConstIterator;
+
+    typedef ContainerType::reverse_iterator reverse_iterator;
+    typedef ContainerType::reverse_iterator ReverseIterator;
+    typedef ContainerType::const_reverse_iterator const_reverse_iterator;
+    typedef ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
     /// @name Constructors and Destructors
@@ -150,6 +155,21 @@ public:
     */
     void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
+    /**
+        @brief Calculate isotopic distribution for a fragment molecule
+
+        This calculates the isotopic distribution for a fragment molecule given
+        the isotopic distribution of the fragment and complementary fragment
+        (as if they were precursors), and which precursor isotopes were isolated.
+        Do consider normalising the distribution afterwards to get conditional probabilities.
+        Equations come from Rockwood, AL; Kushnir, MA; Nelson, GJ. in
+        "Dissociation of Individual Isotopic Peaks: Predicting Isotopic Distributions of Product Ions in MSn"
+        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+        @param precursor_isotopes a list of which precursor isotopes were isolated
+    */
+    void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
+
     /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
 
             The re-normalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
@@ -211,6 +231,14 @@ public:
     inline ConstIterator begin() const { return distribution_.begin(); }
 
     inline ConstIterator end() const { return distribution_.end(); }
+
+    inline ReverseIterator rbegin() { return distribution_.rbegin(); }
+
+    inline ReverseIterator rend()   { return distribution_.rend(); }
+
+    inline ConstReverseIterator rbegin() const { return distribution_.rbegin(); }
+
+    inline ConstReverseIterator rend() const { return distribution_.rend(); }
     //@}
 
 protected:
@@ -223,6 +251,14 @@ protected:
 
     /// convolves the distribution @p input with itself and stores the result in @p result
     void convolveSquare_(ContainerType & result, const ContainerType & input) const;
+
+    /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
+
+        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+        @param precursor_isotopes a list of which precursor isotopes were isolated
+     */
+    void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
 
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
     ContainerType fillGaps_(const ContainerType& id) const;

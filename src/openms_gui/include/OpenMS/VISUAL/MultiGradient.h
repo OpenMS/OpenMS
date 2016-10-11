@@ -71,7 +71,7 @@ public:
     /// Returns the default gradient for linear intensity mode
     static MultiGradient getDefaultGradientLinearIntensityMode();
 
-    /// Returns the default gradient for linear intensity mode
+    /// Returns the default gradient for logarithmic intensity mode
     static MultiGradient getDefaultGradientLogarithmicIntensityMode();
 
     /// Interpolation mode.

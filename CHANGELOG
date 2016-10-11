@@ -23,12 +23,152 @@ We will keep this information as confidential as possible and only provide summa
 statistics to e.g. our funding agencies.
 If you feel uncomfortable with this you can disable the update/usage tracking by:
 1. disabling it in the build script (switch ENABLE_USAGE_STATISTICS to "OFF" ), or
-2. setting the environment variable (OPENMS_DISABLE_USAGE_STATISTICS)
+2. setting the environment variable (OPENMS_DISABLE_USAGE_STATISTICS to "ON")
 
 Notable changes are:
 
+File formats:
+  - Improved mzIdentML support (experimental)
+  - Improved pepXML support
+  - Improved support for indexed mzML files
+  - Improved TraML support
+
+Tools with major changes:
+  - InternalCalibration:
+    - supports calibration using a table of lock masses and peptide ids.
+    - global or RT-chunked calibration
+    - linear & quadratic models (with intensity weighting)
+    - outlier removal via RANSAC
+    - reoccuring calibrations can be quickly applied to other files using the novel ExternalCalibration tool
+  - OpenSwathWorkflow
+    - support for metabolites / small molecules
+  - MapAlignerIdentification
+    - support for "lowess" transformation model
+  - AccurateMassSearch:
+    - support for multiple databases
+  - FeatureFinderMetabo
+    - isotope spacing model for carbon rich molecules (e.g. lipids)
+  - PeakPickerHiRes and MassTraceExtractor:
+    - support for FWHM annotation
+
+Added tools:
+  - ExternalCalibration -- Applies an external mass recalibration (TOPP)
+  - OpenSwathFileSplitter -- Splits SWATH files into n files, each containing one window (TOPP)
+  - MultiplexResolver -- Completes peptide multiplets and resolves conflicts within them (UTIL)
+  - TICCalculator -- Calculates the TIC from a mass spectrometric raw file (useful for benchmarking) (UTIL)
+
+Removed tools:
+  - PILISIdentification -- performs a peptide/protein identification with the PILIS engine (TOPP)
+  - PILISModelCV -- Perform a cross validation of the PILIS model parameters (TOPP)
+  - PILISModelTrainer -- Train the PILIS model with a given set of spectra and identifications (TOPP)
+  - PILISSpectraGenerator -- Generate spectra given a list of peptides and a PILIS model (TOPP)
+
 Databases:
   - By default, decoy sequences are now denoted by a prefix 'DECOY_'.
+
+Third-party software:
+  - update for X!Tandem VENGEANCE (2015.12.15)
+  - update for MS-GF+ Release (v2016.09.07) (9/07/2016)
+  - update for pwiz 3.0.9935
+
+Changed tool parameters:
+
+Tool name	Added/removed	Parameter name	Type	Default value	Restrictions	Supported formats
+AccurateMassSearch	+	db:mapping	input-file			*.tsv
+AccurateMassSearch	+	db:struct	input-file			*.tsv
+AccurateMassSearch	-	db:mapping	input-file	CHEMISTRY/HMDBMappingFile.tsv		*.tsv
+AccurateMassSearch	-	db:struct	input-file	CHEMISTRY/HMDB2StructMapping.tsv		*.tsv
+DecoyDatabase	+	append	string	true	true,false	
+DecoyDatabase	+	decoy_string	string	DECOY_		
+DecoyDatabase	+	decoy_string_position	string	prefix	prefix,suffix	
+DecoyDatabase	+	method	string	reverse	reverse,shuffle	
+DecoyDatabase	-	append	string	false	true,false	
+DecoyDatabase	-	decoy_string	string	_rev		
+DecoyDatabase	-	decoy_string_position	string	suffix	prefix,suffix	
+DecoyDatabase	-	shuffle	string	false	true,false	
+FeatureFinderMetabo	+	algorithm:ffm:isotope_filtering_model	string	metabolites (5% RMS)	metabolites (2% RMS),metabolites (5% RMS),peptides,none	
+FeatureFinderMetabo	+	algorithm:ffm:mz_scoring_13C	string	false	false,true	
+FeatureFinderMetabo	+	algorithm:ffm:report_convex_hulls	string	false	false,true	
+FeatureFinderMetabo	+	algorithm:mtd:quant_method	string	area	area,median	
+FeatureFinderMetabo	-	algorithm:ffm:disable_isotope_filtering	string	false	false,true	
+FeatureFinderMetabo	-	algorithm:ffm:isotope_model	string	metabolites	metabolites,peptides	
+FeatureFinderMetabo	-	algorithm:ffm:isotope_noisemodel	string	5%RMS	5%RMS,2%RMS	
+FeatureFinderMetabo	-	algorithm:ffm:quant_method	string	area	area,median	
+FeatureFinderMultiplex	+	labels:Leu3	double	3.01883	0:	
+FileConverter	+	in	input-file			*.mzData,*.mzXML,*.mzML,*.cachedMzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.ms2,*.fid,*.tsv,*.peplist,*.kroenik,*.edta
+FileConverter	+	in_type	string		mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta	
+FileConverter	+	out	output-file			*.mzData,*.mzXML,*.mzML,*.cachedMzML,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.edta,*.csv
+FileConverter	+	out_type	string		mzData,mzXML,mzML,cachedMzML,dta2d,mgf,featureXML,consensusXML,edta,csv	
+FileConverter	-	in	input-file			*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.ms2,*.fid,*.tsv,*.peplist,*.kroenik,*.edta
+FileConverter	-	in_type	string		mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta	
+FileConverter	-	out	output-file			*.mzData,*.mzXML,*.mzML,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.edta,*.csv
+FileConverter	-	out_type	string		mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta,csv	
+InternalCalibration	+	RANSAC:enabled	string	false	true,false	
+InternalCalibration	+	RANSAC:iter	int	70		
+InternalCalibration	+	RANSAC:pc_inliers	int	30	1:99	
+InternalCalibration	+	RANSAC:threshold	double	10		
+InternalCalibration	+	RT_chunking	double	300		
+InternalCalibration	+	cal:id_in	input-file			*.idXML,*.featureXML
+InternalCalibration	+	cal:lock_fail_out	output-file			*.mzML
+InternalCalibration	+	cal:lock_in	input-file			*.csv
+InternalCalibration	+	cal:lock_out	output-file			*.mzML
+InternalCalibration	+	cal:lock_require_iso	string	false	true,false	
+InternalCalibration	+	cal:lock_require_mono	string	false	true,false	
+InternalCalibration	+	cal:model_type	string	linear_weighted	linear,linear_weighted,quadratic,quadratic_weighted	
+InternalCalibration	+	goodness:MAD	double	1		
+InternalCalibration	+	goodness:median	double	4		
+InternalCalibration	+	in	input-file			*.mzML
+InternalCalibration	+	ms_level	int			
+InternalCalibration	+	out	output-file			*.mzML
+InternalCalibration	+	ppm_match_tolerance	double	25		
+InternalCalibration	+	quality_control:models	output-file			*.csv
+InternalCalibration	+	quality_control:models_plot	output-file			*.png
+InternalCalibration	+	quality_control:residuals	output-file			*.csv
+InternalCalibration	+	quality_control:residuals_plot	output-file			*.png
+InternalCalibration	-	algorithm:mz_tolerance	double	1	0:	
+InternalCalibration	-	algorithm:mz_tolerance_unit	string	Da	Da,ppm	
+InternalCalibration	-	algorithm:rt_tolerance	int	10		
+InternalCalibration	-	in	input-file			*.mzML,*.featureXML
+InternalCalibration	-	out	output-file			*.mzML,*.featureXML
+InternalCalibration	-	ref_peaks	input-file			*.csv,*.idXML
+InternalCalibration	-	trafo	output-file			*.trafoXML
+InternalCalibration	-	type	string	spectrumwise	spectrumwise,global	
+LowMemPeakPickerHiRes	+	algorithm:report_FWHM	string	false	true,false	
+LowMemPeakPickerHiRes	+	algorithm:report_FWHM_unit	string	relative(ppm)	absolute,relative(ppm)	
+LowMemPeakPickerHiRes_RandomAccess	+	algorithm:report_FWHM	string	false	true,false	
+LowMemPeakPickerHiRes_RandomAccess	+	algorithm:report_FWHM_unit	string	relative(ppm)	absolute,relative(ppm)	
+LuciphorAdapter	+	java_executable	input-file	java		
+LuciphorAdapter	-	selection_method	string	Peptide Prophet probability	Peptide Prophet probability,Mascot Ion Score,-log(E-value),X!Tandem Hyperscore,Sequest Xcorr	
+MSGFPlusAdapter	+	java_executable	input-file	java		
+MapAlignerIdentification	+	model:lowess:delta	double	-1		
+MapAlignerIdentification	+	model:lowess:extrapolation_type	string	four-point-linear	two-point-linear,four-point-linear,global-linear	
+MapAlignerIdentification	+	model:lowess:interpolation_type	string	cspline	linear,cspline,akima	
+MapAlignerIdentification	+	model:lowess:num_iterations	int	3	0:	
+MapAlignerIdentification	+	model:lowess:span	double	0.666666666666667	0:1	
+MapAlignerIdentification	-	algorithm:peptide_score_threshold	double	0		
+MapAlignerSpectrum	+	model:lowess:delta	double	-1		
+MapAlignerSpectrum	+	model:lowess:extrapolation_type	string	four-point-linear	two-point-linear,four-point-linear,global-linear	
+MapAlignerSpectrum	+	model:lowess:interpolation_type	string	cspline	linear,cspline,akima	
+MapAlignerSpectrum	+	model:lowess:num_iterations	int	3	0:	
+MapAlignerSpectrum	+	model:lowess:span	double	0.666666666666667	0:1	
+MapRTTransformer	+	model:lowess:delta	double	-1		
+MapRTTransformer	+	model:lowess:extrapolation_type	string	four-point-linear	two-point-linear,four-point-linear,global-linear	
+MapRTTransformer	+	model:lowess:interpolation_type	string	cspline	linear,cspline,akima	
+MapRTTransformer	+	model:lowess:num_iterations	int	3	0:	
+MapRTTransformer	+	model:lowess:span	double	0.666666666666667	0:1	
+MascotAdapterOnline	+	Mascot_server:export_params	string	_ignoreionsscorebelow=0&amp;_sigthreshold=0.99&amp;_showsubsets=1&amp;show_same_sets=1&amp;report=0&amp;percolate=0&amp;query_master=0		
+MascotAdapterOnline	-	Mascot_server:export_params	string	_sigthreshold=0.99&amp;_showsubsets=1&amp;show_same_sets=1&amp;report=0&amp;percolate=0&amp;query_master=0		
+MassTraceExtractor	+	algorithm:mtd:quant_method	string	area	area,median	
+MetaProSIP	+	labeling_element	string	C	C,N,H,O	
+MetaProSIP	+	pattern_18O_TIC_threshold	double	0.95		
+MetaProSIP	-	labeling_element	string	C	C,N,H	
+OpenSwathAssayGenerator	+	enable_identification_ms2_precursors	string	false	true,false	
+PeakPickerHiRes	+	algorithm:report_FWHM	string	false	true,false	
+PeakPickerHiRes	+	algorithm:report_FWHM_unit	string	relative(ppm)	absolute,relative(ppm)	
+PeptideIndexer	+	decoy_string	string	DECOY_		
+PeptideIndexer	+	decoy_string_position	string	prefix	prefix,suffix	
+PeptideIndexer	-	decoy_string	string	_rev		
+PeptideIndexer	-	prefix	string	false	true,false	
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.0.1                                      ----
