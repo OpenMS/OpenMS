@@ -152,7 +152,9 @@ public:
      * @param transition_group_map Output mapping of transition groups
      *
     */
-    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
+    void pickExperiment(OpenSwath::SpectrumAccessPtr input,
+                        FeatureMap& output,
+                        OpenSwath::LightTargetedExperiment& transition_exp,
                         TransformationDescription trafo,
                         std::vector<OpenSwath::SwathMap> swath_maps,
                         TransitionGroupMapType& transition_group_map);

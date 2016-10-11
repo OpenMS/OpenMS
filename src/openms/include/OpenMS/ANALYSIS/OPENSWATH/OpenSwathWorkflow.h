@@ -95,7 +95,9 @@ namespace OpenMS
     double extra_rt_extract;
   };
 
-  /// some useful tools to compute binning and compute RT normalization (and m/z normalization)
+  /** @brief some useful tools to compute binning and compute RT normalization (and m/z normalization)
+   *
+  */
   class RTNormHelper :
     public ProgressLogger
   {
@@ -114,12 +116,17 @@ namespace OpenMS
      * @param mz_correction_function If correction in m/z is desired, which function should be used
      *
      * @note: feature_finder_param are copied because they are changed here.
+     * @note: This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
-    TransformationDescription RTNormalization(TargetedExperiment transition_exp_,
-            std::vector< OpenMS::MSChromatogram<> > chromatograms, double min_rsq, double min_coverage,
-            Param feature_finder_param, const Param& irt_detection_param,
-            std::vector< OpenSwath::SwathMap > & swath_maps, const String & mz_correction_function)
+    TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
+                                              const std::vector< OpenMS::MSChromatogram<> >& chromatograms,
+                                              double min_rsq,
+                                              double min_coverage,
+                                              const Param& default_ffparam,
+                                              const Param& irt_detection_param,
+                                              std::vector< OpenSwath::SwathMap > & swath_maps,
+                                              const String & mz_correction_function)
     {
       LOG_DEBUG << "Start of RTNormalization method" << std::endl;
       this->startProgress(0, 1, "Retention time normalization");
@@ -133,7 +140,7 @@ namespace OpenMS
         LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
       }
 
-      // 1. Estimate the retention time range of the whole experiment
+      // 1. Estimate the retention time range of the iRT peptides over all assays
       std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
       LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
 
@@ -154,6 +161,7 @@ namespace OpenMS
       //  - no peak quality (use all peaks)
       //  - if best peptides should be used, use peak quality
       MRMFeatureFinderScoring featureFinder;
+      Param feature_finder_param(default_ffparam);
       feature_finder_param.setValue("Scores:use_rt_score", "false");
       feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("rt_extraction_window", -1.0);
@@ -192,7 +200,7 @@ namespace OpenMS
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
 
-      // 4. Correct mz deviations using SwathMapMassCorrection
+      // 4. Correct m/z deviations using SwathMapMassCorrection
       SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, mz_correction_function);
 
       // 5. Perform the outlier detection
@@ -254,6 +262,9 @@ namespace OpenMS
     }
   };
 
+  /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on * a set of known peptides
+   *
+  */
   class OpenSwathWorkflowRTNorm :
     public RTNormHelper
   {
@@ -687,10 +698,11 @@ namespace OpenMS
     void scoreAllChromatograms(
         const OpenSwath::SpectrumAccessPtr input,
         const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
-        const std::vector< OpenSwath::SwathMap > swath_maps, // todo cosnt!!
+        const std::vector< OpenSwath::SwathMap > swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
-        TransformationDescription trafo, const double rt_extraction_window,
+        TransformationDescription trafo, 
+        const double rt_extraction_window,
         FeatureMap& output, OpenSwathTSVWriter & tsv_writer)
     {
       typedef OpenSwath::LightTransition TransitionType;
