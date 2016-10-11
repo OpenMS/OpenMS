@@ -102,42 +102,6 @@ namespace OpenMS
     
     protected:
 
-    /// Function to compute the coverage of the iRT peptides across the gradient
-    ///   Cmp with RTNormalizer
-    bool computeBinnedCoverage(const std::pair<double,double> & rtRange,
-        const std::vector<std::pair<double, double> > & pairs, int nrBins,
-        int minPeptidesPerBin, int minBinsFilled)
-    {
-      std::vector<int> binCounter(nrBins, 0);
-      for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
-      {
-        double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
-        normRT *= nrBins;
-        int bin = (int)normRT;
-        if (bin >= nrBins)
-        {
-          // this should never happen, but just to make sure
-          std::cerr << "OpenSwathWorkflow::countPeptidesInBins : computed bin was too large (" <<
-            bin << "), setting it to the maximum of " << nrBins << std::endl;
-          bin = nrBins - 1;
-        }
-        binCounter[ bin ]++;
-      }
-
-      int binsFilled = 0;
-      for (Size i = 0; i < binCounter.size(); i++)
-      {
-        LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() <<
-          " we have " << binCounter[i] << " peptides " << std::endl;
-        if (binCounter[i] >= minPeptidesPerBin)
-        {
-          binsFilled++;
-        }
-      }
-
-      return (binsFilled >= minBinsFilled);
-    }
-
     /** @brief Perform RT and m/z correction using the MRMFeatureFinderScoring
      *
      * @param transition_exp_ The transitions for the normalization peptides
@@ -265,7 +229,7 @@ namespace OpenMS
       // set by the user.
       if (estimateBestPeptides)
       {
-        bool enoughPeptides = computeBinnedCoverage(RTRange, pairs_corrected,
+        bool enoughPeptides = MRMRTNormalizer::computeBinnedCoverage(RTRange, pairs_corrected,
           irt_detection_param.getValue("NrRTBins"),
           irt_detection_param.getValue("MinPeptidesPerBin"),
           irt_detection_param.getValue("MinBinsFilled") );
