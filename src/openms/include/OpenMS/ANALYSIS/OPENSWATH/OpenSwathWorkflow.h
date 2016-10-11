@@ -62,6 +62,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
 #include <assert.h>
 #include <limits>
@@ -130,12 +131,12 @@ namespace OpenMS
                                                      const ChromExtractParams & cp_irt,
                                                      const Param & irt_detection_param, 
                                                      const String & mz_correction_function,
-                                                     Size debug_level)
+                                                     Size debug_level, 
+                                                     bool sonar = false)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
-      simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
-      // TODO: sonar!!!
+      simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar);
 
       // debug output of the iRT chromatograms
       if (debug_level > 1)
@@ -335,7 +336,7 @@ namespace OpenMS
     static void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                            const OpenMS::TargetedExperiment & irt_transitions,
                                            std::vector< OpenMS::MSChromatogram<> > & chromatograms,
-                                           const ChromExtractParams & cp)
+                                           const ChromExtractParams & cp, bool sonar)
     {
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -365,7 +366,7 @@ namespace OpenMS
 #pragma omp critical (featureFinder)
 #endif
             {
-              LOG_DEBUG << "Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
+              LOG_DEBUG << "[simple] Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
                 map_idx << " with m/z " << swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
               for (Size chrom_idx = 0; chrom_idx < tmp_chromatograms.size(); chrom_idx++)
               {
@@ -396,6 +397,45 @@ namespace OpenMS
           }
         }
       }
+
+      if (sonar)
+      {
+
+        LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms before SONAR addition " << std::endl;
+
+        // for SONAR: group chromatograms together and then add them up (we will have one chromatogram for every single map)
+        std::vector< OpenMS::MSChromatogram<> > chromatograms_new;
+        std::map<std::string, std::vector<int> > chr_map;
+        for (Size i = 0; i < chromatograms.size(); i++)
+        {
+          chr_map[ chromatograms[i].getNativeID() ].push_back(i);
+        }
+
+        for (std::map<std::string, std::vector<int> >::iterator it = chr_map.begin(); it != chr_map.end(); it++)
+        {
+          MSChromatogram<> chrom_acc; // accumulator
+          for (Size i = 0; i < it->second.size(); i++)
+          {
+            addChromatograms(chrom_acc, chromatograms[ it->second[i] ] );
+          }
+          chromatograms_new.push_back(chrom_acc);
+        }
+        chromatograms = chromatograms_new; // switch
+
+        LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms after SONAR addition " << std::endl;
+      }
+      
+    }
+
+    static void addChromatograms(MSChromatogram<>& base_chrom, const MSChromatogram<>& newchrom)
+    {
+      if (base_chrom.empty())
+      {
+        base_chrom = newchrom;
+      }
+
+      LinearResamplerAlign ls;
+      ls.raster(newchrom.begin(), newchrom.end(), base_chrom.begin(), base_chrom.end());
     }
 
 

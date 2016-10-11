@@ -596,7 +596,7 @@ protected:
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level)
+    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -621,7 +621,7 @@ protected:
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level);
+          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar);
     }
     return trafo_rtnorm;
   }
@@ -820,8 +820,10 @@ protected:
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
-    TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file,
-        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level);
+    TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
+        irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
+        cp_irt, irt_detection_param, mz_correction_function, debug_level,
+        sonar);
 
     ///////////////////////////////////
     // Load the transitions
