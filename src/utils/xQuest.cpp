@@ -317,7 +317,7 @@ protected:
     registerStringList_("cross_linker:names", "<list of strings>", ListUtils::create<String>("Xlink:DSS, Xlink:DSS!Hydrolyzed, Xlink:DSS!Amidated"), "Names of the searched cross-links, first the cross-link and then the mono-links in the same order as their masses", false);
 
     registerTOPPSubsection_("algorithm", "Algorithm Options");
-    registerStringOption_("algorithm:candidate_search", "<param>", "index", "Mode used to generate candidate peptides.", false, false);
+    registerStringOption_("algorithm:candidate_search", "<param>", "enumeration", "Mode used to generate candidate peptides.", false, false);
     StringList candidate_search_modes_strings;
     candidate_search_modes_strings.push_back("index");
     candidate_search_modes_strings.push_back("enumeration");
@@ -2299,12 +2299,20 @@ protected:
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     vector< vector< CrossLinkSpectrumMatch > > all_top_csms;
 
+    Size spectrum_counter = 0;
+
 // TODO check if parallel code works fine
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
     for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
     {
+
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+      spectrum_counter++;
+      cout << "Processing spectrum pair" << spectrum_counter << " / " << spectrum_pairs.size() << endl;
 
       // If this spectra pair has less than 15 common peaks, then ignore it.
       //TODO is a xquest.def parameter in perl xQuest, set to 25 usually
