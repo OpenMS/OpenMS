@@ -2996,7 +2996,8 @@ namespace OpenMS
     QString fname = QFileDialog::getOpenFileName(this,
                                                 "Select protein/AMT identification data",
                                                 current_path_.toQString(),
-                                                "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
+                                                "idXML files (*.idXML); mzIdentML files (*.mzid,*.mzIdentML); featureXML files (*.featureXML); all files (*.*)");
+
     if (fname.isEmpty()) return;
 
     FileTypes::Type type = FileHandler::getType(fname);
