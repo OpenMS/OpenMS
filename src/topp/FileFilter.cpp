@@ -326,6 +326,10 @@ protected:
     registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Maps to be extracted from a consensus", false);
     registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map')");
 
+    // reannoate the original mzML file (Note: other file formats should not be supported in order to properly trace evidences to the output format)
+    registerInputFileList_("consensus:reannotate_spectrafiles", "<file>", StringList(), "mzML file names annotated to the consensus maps meta information.\n", false, false);
+    setValidFormats_("consensus:reannotate_spectrafiles", ListUtils::create<String>("mzML"));
+
     // black and white listing
     registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features");
     registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
@@ -345,6 +349,7 @@ protected:
 
     setMinFloat_("consensus:blackorwhitelist:rt", 0);
     setMinFloat_("consensus:blackorwhitelist:mz", 0);
+
 
     addEmptyLine_();
     registerTOPPSubsection_("f_and_c", "Feature & Consensus data options");
@@ -908,6 +913,13 @@ protected:
         ConsensusMap consensus_map_filtered = consensus_map;
         //.. but delete feature information
         consensus_map_filtered.resize(0);
+
+        // reannotate spectra files if specified by the user
+        StringList spectrafiles = getStringList_("consensus:reannotate_spectrafiles");
+        if (!spectrafiles.empty())
+        {
+          consensus_map_filtered.setPrimaryMSRunPath(spectrafiles);
+        }
 
         for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
         {
