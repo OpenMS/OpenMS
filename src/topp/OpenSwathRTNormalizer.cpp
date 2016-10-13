@@ -261,10 +261,11 @@ protected:
       featureFinder.setParameters(scoring_params);
       featureFinder.setStrictFlag(false);
       
-      OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+      std::vector< OpenSwath::SwathMap > swath_maps(1);
+      swath_maps[0].sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      featureFinder.pickExperiment(chromatogram_ptr, featureFile, targeted_exp, trafo, swath_ptr, transition_group_map);
+      featureFinder.pickExperiment(chromatogram_ptr, featureFile, targeted_exp, trafo, swath_maps, transition_group_map);
 
       // add all the chromatograms to the output
       for (Size k = 0; k < xic_map->getChromatograms().size(); k++)
