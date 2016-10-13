@@ -2309,10 +2309,12 @@ protected:
     {
 
 #ifdef _OPENMP
-#pragma omp atomic
+#pragma omp critical
 #endif
-      spectrum_counter++;
-      cout << "Processing spectrum pair" << spectrum_counter << " / " << spectrum_pairs.size() << endl;
+      {
+        spectrum_counter++;
+        cout << "Processing spectrum pair" << spectrum_counter << " / " << spectrum_pairs.size() << endl;
+      }
 
       // If this spectra pair has less than 15 common peaks, then ignore it.
       //TODO is a xquest.def parameter in perl xQuest, set to 25 usually

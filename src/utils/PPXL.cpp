@@ -2286,10 +2286,12 @@ protected:
         //LOG_DEBUG << "Scan index: " << scan_index << "\tSpectrum native ID: " << spectrum.getNativeID()  << endl;
 
 #ifdef _OPENMP
-#pragma omp atomic
+#pragma omp critical
 #endif
-        spectrum_counter++;
-        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << endl;
+        {
+          spectrum_counter++;
+          cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << endl;
+        }
 
         const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
         const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
