@@ -40,6 +40,8 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/MultiGradient.h>
+
 
 class QPainter;
 class QGLWidget;
@@ -105,6 +107,7 @@ public:
     virtual void saveCurrentLayer(bool visible);
 
 signals:
+
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
 
@@ -114,8 +117,11 @@ public slots:
     void activateLayer(Size layer_index);
     // Docu in base class
     void removeLayer(Size layer_index);
-    //docu in base class
+    // Docu in base class
     virtual void updateLayer(Size i);
+    // Docu in base class
+    virtual void intensityModeChange_();
+
 protected slots:
 
     /// Reacts on changed layer parameters
@@ -131,6 +137,9 @@ protected:
 
     ///whether the legend is shown or not
     bool legend_shown_;
+
+    ///stores the linear color gradient for non-log modes
+    MultiGradient linear_gradient_;
 
     //docu in base class
     virtual void translateLeft_(Qt::KeyboardModifiers m);

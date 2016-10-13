@@ -42,11 +42,15 @@
 namespace OpenMS
 {
 
-  Annotation1DCaret::Annotation1DCaret(const Annotation1DCaret::PositionsType& caret_positions, const QString& text, const QColor& colour) :
+  Annotation1DCaret::Annotation1DCaret(const Annotation1DCaret::PositionsType& caret_positions, 
+                                       const QString& text,
+                                       const QColor& colour,
+                                       const QColor& connection_line_color) :
     Annotation1DItem(text),
     caret_positions_(caret_positions),
     position_(caret_positions[0]),
-    color_(colour)
+    color_(colour),
+    connection_line_color_(connection_line_color)
   {
     st_.setText(text);
   }
@@ -57,6 +61,7 @@ namespace OpenMS
     caret_positions_ = rhs.caret_positions_;
     position_ = rhs.position_;
     color_ = rhs.color_;
+    connection_line_color_ = rhs.connection_line_color_;
     st_ = rhs.st_;
   }
 
@@ -188,7 +193,9 @@ namespace OpenMS
       }
 
       painter.save();
-      painter.setPen(Qt::DashLine);
+      QPen qp(Qt::DashLine);
+      qp.setColor(connection_line_color_);
+      painter.setPen(qp);
       if (!found_intersection) // no intersection with bounding box of text -> normal drawing
       {
         painter.drawLine(caret_position_widget, position_widget);

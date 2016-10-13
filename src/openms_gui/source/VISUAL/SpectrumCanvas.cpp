@@ -551,6 +551,11 @@ namespace OpenMS
 
     // add 4% margin (2% left, 2% right) to RT, m/z and intensity
     overall_data_range_.extend(1.04);
+
+    // set minimum intensity to 0
+    DRange<3>::PositionType new_min = overall_data_range_.minPosition();
+    new_min[it_dim] = 0;
+    overall_data_range_.setMin(new_min);
   }
 
   double SpectrumCanvas::getSnapFactor()

@@ -624,7 +624,6 @@ namespace OpenMS
 
     //update range area
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
@@ -1077,7 +1076,6 @@ namespace OpenMS
 
     // update ranges
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
@@ -1561,7 +1559,6 @@ namespace OpenMS
 
     //update ranges
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);

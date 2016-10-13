@@ -74,6 +74,7 @@ namespace OpenMS
     defaultsToParam_();
     setParameters(preferences);
 
+    linear_gradient_.fromString(param_.getValue("dot:gradient"));
     openglcanvas_ = new Spectrum3DOpenGLCanvas(this, *this);
     setFocusProxy(openglcanvas_);
     connect(this, SIGNAL(actionModeChange()), openglcanvas_, SLOT(actionModeChange()));
@@ -377,6 +378,25 @@ namespace OpenMS
     openglwidget()->recalculateDotGradient_(i);
     intensityModeChange_();
     modificationStatus_(i, false);
+  }
+
+  void Spectrum3DCanvas::intensityModeChange_()
+  {
+    String gradient_str;
+    if (intensity_mode_ == IM_LOG)
+    {
+      gradient_str = MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString();
+    }
+    else // linear
+    {
+      gradient_str = linear_gradient_.toString();
+    }
+    for (Size i = 0; i < layers_.size(); ++i)
+    {
+      layers_[i].param.setValue("dot:gradient", gradient_str);
+      openglwidget()->recalculateDotGradient_(i);
+    }
+    SpectrumCanvas::intensityModeChange_();
   }
 
   void Spectrum3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)

@@ -38,6 +38,7 @@
 #include <iosfwd>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -125,6 +126,21 @@ public:
     double getAverageWeight() const;
 
     /**
+      @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
+
+      @param average_weight: Average weight to estimate an EmpiricalFormula for
+      @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
+      @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+      @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+      @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
+      @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+      @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
+    */
+    bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
       @brief returns the isotope distribution of the formula
       The details of the calculation of the isotope distribution
       are described in the doc to the IsotopeDistribution class.
@@ -132,6 +148,17 @@ public:
       @param max_depth: the maximum isotope which is considered, if 0 all are reported
     */
     IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
+
+    /**
+      @brief returns the fragment isotope distribution of this given a precursor formula
+      and conditioned on a list of isolated precursor isotopes.
+
+      The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+      @param precursor: the empirical formula of the precursor
+      @param precursor_isotopes: the precursor isotopes that were isolated
+      @return the conditional IsotopeDistribution of the fragment
+    */
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;

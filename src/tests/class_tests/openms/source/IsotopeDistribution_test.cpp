@@ -120,10 +120,10 @@ END_SECTION
 START_SECTION(void setMaxIsotope(Size max_isotope))
 	IsotopeDistribution iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
-	TEST_EQUAL(iso->getMaxIsotope(), 0)
-	TEST_EQUAL(iso2.getContainer().size(), 275)
-	iso->setMaxIsotope(117);
-	TEST_EQUAL(iso->getMaxIsotope(), 117)
+	TEST_EQUAL(iso2.getMaxIsotope(), 0)
+	TEST_EQUAL(iso2.getContainer().size(), 317)
+	iso2.setMaxIsotope(117);
+	TEST_EQUAL(iso2.getMaxIsotope(), 117)
 END_SECTION
 
 START_SECTION(Size getMaxIsotope() const)
@@ -257,28 +257,26 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	// hard to test as this is an rough estimate
 	IsotopeDistribution iso(3);
 	iso.estimateFromPeptideWeight(100.0);
-	iso.renormalize();
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.95137)
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.949735)
 
 	iso.estimateFromPeptideWeight(1000.0);
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.572779)
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.586906)
 
 	iso.estimateFromPeptideWeight(10000.0);
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.046495)
 END_SECTION
 
 START_SECTION(void estimateFromRNAWeight(double average_weight))
     // hard to test as this is an rough estimate
     IsotopeDistribution iso(3);
     iso.estimateFromRNAWeight(100.0);
-    iso.renormalize();
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.959704)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.958166)
 
     iso.estimateFromRNAWeight(1000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.653857)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.668538)
 
     iso.estimateFromRNAWeight(10000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.014696)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.080505)
 END_SECTION
 
 
@@ -286,14 +284,13 @@ START_SECTION(void estimateFromDNAWeight(double average_weight))
     // hard to test as this is an rough estimate
     IsotopeDistribution iso(3);
     iso.estimateFromDNAWeight(100.0);
-    iso.renormalize();
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.959704)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.958166)
 
     iso.estimateFromDNAWeight(1000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.644479)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.657083)
 
     iso.estimateFromDNAWeight(10000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.012738)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.075138)
 END_SECTION
 
 START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
@@ -378,6 +375,45 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   TEST_EQUAL(iso3 != iso4, false)
 END_SECTION
 
+START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution & comp_fragment_isotope_distribution, const std::vector<UInt>& precursor_isotopes))
+  IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(11)); // fragment
+  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementary fragment
+
+  std::vector<UInt> precursor_isotopes;
+  precursor_isotopes.push_back(0);
+  precursor_isotopes.push_back(1);
+  precursor_isotopes.push_back(2);
+  IsotopeDistribution iso3;
+  iso3.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
+  iso3.renormalize();
+
+  IsotopeDistribution::ConstIterator it1(iso1.begin()), it2(iso3.begin());
+  // By isolating all the precursor isotopes, the fragment isotopic distribution of a fragment molecule
+  // should be the same as if it was the precursor. The probabilities can be slightly different due to
+  // numerical issues.
+  for (; it1 != iso1.end(); ++it1, ++it2)
+  {
+	TEST_EQUAL(it1->first, it2->first)
+	TEST_REAL_SIMILAR(it1->second, it2->second)
+  }
+
+  precursor_isotopes.pop_back();
+  IsotopeDistribution iso4;
+  iso4.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
+  iso4.renormalize();
+
+
+  TEST_EQUAL(iso1.getContainer()[0].first, iso4.getContainer()[0].first)
+  TEST_EQUAL(iso1.getContainer()[1].first, iso4.getContainer()[1].first)
+  // Now that we're not isolating every precursor isotope, the probabilities should NOT be similar.
+  // Since there's no TEST_REAL_NOT_SIMILAR, we test their similarity to the values they should be
+  TEST_REAL_SIMILAR(iso1.getContainer()[0].second, 0.989300)
+  TEST_REAL_SIMILAR(iso1.getContainer()[1].second, 0.010700)
+
+  TEST_REAL_SIMILAR(iso4.getContainer()[0].second, 0.989524)
+  TEST_REAL_SIMILAR(iso4.getContainer()[1].second, 0.010479)
+END_SECTION
+
 START_SECTION(Iterator begin())
 	NOT_TESTABLE
 END_SECTION
@@ -391,6 +427,22 @@ START_SECTION(ConstIterator begin() const)
 END_SECTION
 
 START_SECTION(ConstIterator end() const)
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ReverseIterator rbegin())
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ReverseIterator rend())
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ConstReverseIterator rbegin() const)
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION(ConstReverseIterator rend() const)
 	NOT_TESTABLE
 END_SECTION
 

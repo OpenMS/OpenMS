@@ -61,7 +61,7 @@ namespace OpenMS
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
-    defaults_.setValue("nr_partitions", 1, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
+    defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
     defaults_.setMinInt("nr_partitions", 1);
 
 
@@ -103,7 +103,7 @@ namespace OpenMS
                              ConsensusMap& result_map)
   {
     // update parameters (dummy)
-    setParameters_(1, 1); 
+    setParameters_(1, 1);
 
     result_map.clear(false);
 
@@ -133,11 +133,20 @@ namespace OpenMS
       double massrange_diff = max_diff_mz_;
       int pts_per_partition = massrange.size() / nr_partitions_;
 
+      // if m/z tolerance is specified in ppm, we adapt massrange_diff
+      // in each iteration below
+      bool mz_ppm = param_.getValue("distance_MZ:unit") == "ppm";
+      double mz_tol = param_.getValue("distance_MZ:max_difference");
+
       // compute partition boundaries
       std::vector< double > partition_boundaries; 
       partition_boundaries.push_back(massrange.front());
       for (size_t j = 0; j < massrange.size()-1; j++)
       {
+        if (mz_ppm)
+        {
+          massrange_diff = mz_tol * 1e-6 * massrange[j+1];
+        }
         if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
         {
           if (j >= (partition_boundaries.size() ) * pts_per_partition  )
@@ -197,7 +206,8 @@ namespace OpenMS
                                        "At least two input maps required");
     }
 
-    // set up the distance functor (and set other parameters):
+    // set up the distance functor (and set other parameters)
+    // for the current partition
     double max_intensity = 0.0;
     double max_mz = 0.0;
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
@@ -206,7 +216,6 @@ namespace OpenMS
       max_intensity = max(max_intensity, map_it->getMaxInt());
       max_mz = max(max_mz, map_it->getMax().getY());
     }
-
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
