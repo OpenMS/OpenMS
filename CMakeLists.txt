@@ -194,7 +194,9 @@ endif()
 #------------------------------------------------------------------------------
 # Enable Coverage
 #------------------------------------------------------------------------------
-option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage mode (slower)." OFF)
+option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing. Requires the Debug build type,
+ is slower and uses a lot of disk space (>40GB). Enables the target OpenMS_coverage to generate
+ a coverage report in html format." OFF)
 if(OPENMS_COVERAGE)
   include(cmake/Coverage.cmake)
 endif()
