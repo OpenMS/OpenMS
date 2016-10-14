@@ -34,7 +34,7 @@
 
 set(CPACK_GENERATOR "DragNDrop")
 
-## drag'n'drop installaltion configuration
+## drag'n'drop installation configuration
 ## Note: We have certain dependencies between the individual components!!!
 ##       To ensure that the components are executed in the correct order
 ##       we use the fact that cmake executes them in alphabetical order
@@ -44,7 +44,7 @@ set(CPACK_GENERATOR "DragNDrop")
 ##       intefer with other namings/components.
 ##
 ## Note: That the mac app bundles (TOPPView) take care of them selfes
-##       when installed as dmg
+##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
 
 ## Fix OpenMS dependencies for all executables
 ########################################################### Fix Dependencies
@@ -71,6 +71,8 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
                         GROUP_READ GROUP_EXECUTE
                         WORLD_READ WORLD_EXECUTE
   PATTERN "*.app" EXCLUDE
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
 ########################################################### Share
@@ -83,13 +85,42 @@ install(DIRECTORY share/
   DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_EXECUTE GROUP_READ
                         WORLD_EXECUTE WORLD_READ
-	PATTERN ".svn" EXCLUDE
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
 ########################################################### Documentation Preparation
-# we build the doc target in ALL but not the tutorials
-install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc_tutorials)"
-        COMPONENT AAA-Documentation-Preparation)
+#------------------------------------------------------------------------------
+# install tutorials only if requested, note that we assume here that pdflatex
+# etc. is available
+# TODO: improve checks (only way to check at install time, is through another
+# install(CODE ...) or install (SCRIPT ...) command
+if (ENABLE_TUTORIALS)
+
+  # we only build the doc target in ALL but not the tutorials
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc_tutorials)"
+          COMPONENT AAA-Documentation-Preparation
+          OPTIONAL
+  )
+
+  install(FILES       ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
+          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+          COMPONENT doc
+          PERMISSIONS OWNER_WRITE OWNER_READ
+                      GROUP_READ
+                      WORLD_READ
+
+  )
+
+  install(FILES     ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
+          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+          COMPONENT doc
+          PERMISSIONS OWNER_WRITE OWNER_READ
+                      GROUP_READ
+                      WORLD_READ
+  )
+endif ()
+
 
 ########################################################### Documentation
 install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
@@ -110,30 +141,11 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
         DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                               GROUP_EXECUTE GROUP_READ
                               WORLD_EXECUTE WORLD_READ
-        PATTERN ".svn" EXCLUDE
+        REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+        REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
-#------------------------------------------------------------------------------
-# install tutorials only if requested, note that we assume here that pdflatex
-# etc. is available
-# TODO: improve checks
-if (ENABLE_TUTORIALS)
-  install(FILES 		  ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
-          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
-          COMPONENT doc
-          PERMISSIONS OWNER_WRITE OWNER_READ
-                      GROUP_READ
-                      WORLD_READ
-  )
 
-  install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
-          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
-          COMPONENT doc
-          PERMISSIONS OWNER_WRITE OWNER_READ
-                      GROUP_READ
-                      WORLD_READ
-  )
-endif ()
 
 ########################################################### SEARCHENGINES
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
@@ -147,6 +159,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
 
@@ -160,6 +174,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
 
@@ -173,6 +189,8 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
 
@@ -186,8 +204,25 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-LuciPHOr2
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+  endif()
+  ## MyriMatch does not exist for MacOSX
 endif()
 
 ########################################################### TOPPShell

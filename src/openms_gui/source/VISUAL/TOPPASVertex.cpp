@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -208,7 +208,7 @@ namespace OpenMS
     // all incoming edges should have the same number of rounds!
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex* tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv_upstream = (*it)->getSourceVertex();
 
       // fill files for each round
       int param_index_src_out = (*it)->getSourceOutParam();
@@ -218,16 +218,16 @@ namespace OpenMS
         VertexRoundPackage rpg;
         rpg.edge = *it;
         int upstream_round = round;
-        if (tv->allow_output_recycling_ && upstream_round >= tv->round_total_)
+        if (tv_upstream->allow_output_recycling_ && upstream_round >= tv_upstream->round_total_)
         {
-          upstream_round %= tv->round_total_;
+          upstream_round %= tv_upstream->round_total_;
         }
-        rpg.filenames = tv->getFileNames(param_index_src_out, upstream_round);
+        rpg.filenames = tv_upstream->getFileNames(param_index_src_out, upstream_round);
 
         // hack for merger vertices, as they have multiple incoming edges with -1 as index
         while (pkg[round].count(param_index_tgt_in))
         {
-          --param_index_tgt_in;
+          --param_index_tgt_in; // find free slot, i.e. -2, -3 ....
         }
 
         pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number

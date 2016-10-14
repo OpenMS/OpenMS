@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -235,7 +235,16 @@ private:
     only the absolute value is used since many FeatureFinders will only report positive charges even in negative ion mode.
     Entities with charge=0 are treated as "unknown charge" and are tested with all potential adducts and subsequently matched against the database.
 
-    A list of potential adducts can be given for each mode separately.
+    A file with a list of potential adducts can be given for each mode separately. 
+    Each line contains a chemical formula (plus quantor) and a charge (separated by semicolon), e.g.
+    M+H;1+ 
+    The M can be preceded by a quantor (e.g.2M, 3M), implicitly assumed as 1.
+    The chemical formula can contain multiple segments, separated by + or - operators, e.g. M+H-H2O;+1 (water loss in positive mode).
+    Brackets are implicit per segment, i.e. M+H-H2O is parsed as M + (H) - (H2O).
+    Each segment can also be preceded by a quantor, e.g. M+H-H2O would parse as
+    M + (H) - 2x(H2O).
+    If debug mode is enabled, the masses of each segment are printed for verification.
+    In particular, typing H20 (twenty H) is different from H2O (water).
 
     Ionization mode of the observed m/z values can be determined automatically if the input map (either FeatureMap or ConsensusMap) is annotated
     with a meta value, as done by @ref TOPP_FeatureFinderMetabo.
@@ -324,8 +333,8 @@ private:
       return ion_mode_internal;
     }
     
-    void parseMappingFile_(const String&);
-    void parseStructMappingFile_(const String&);
+    void parseMappingFile_(const StringList&);
+    void parseStructMappingFile_(const StringList&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
@@ -387,8 +396,8 @@ private:
     String pos_adducts_fname_;
     String neg_adducts_fname_;
 
-    String db_mapping_file_;
-    String db_struct_file_;
+    StringList db_mapping_file_;
+    StringList db_struct_file_;
 
     std::vector<AdductInfo> pos_adducts_;
     std::vector<AdductInfo> neg_adducts_;

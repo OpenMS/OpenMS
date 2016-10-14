@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
@@ -153,8 +153,8 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
     + String("AGEGEN"))
 
   TEST_EQUAL(aa.isModified(), true)
-  String expectedModification = ModificationsDB::getInstance()->getTerminalModification("ICPL:13C(6)",ResidueModification::N_TERM).getId();
-  TEST_EQUAL(aa.getNTerminalModification(), expectedModification)
+  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", ResidueModification::N_TERM).getId();
+  TEST_EQUAL(aa.getNTerminalModificationName(), expectedModification)
 
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "test")

@@ -243,12 +243,17 @@ namespace OpenMS
     if (e->button() == Qt::LeftButton)
     {
       // selection/deselection of annotation items
-      Annotation1DItem * item = getCurrentLayer_().getCurrentAnnotations().getItemAt(last_mouse_pos_);
+      Annotation1DItem* item = getCurrentLayer_().getCurrentAnnotations().getItemAt(last_mouse_pos_);
       if (item)
       {
         if (!(e->modifiers() & Qt::ControlModifier))
         {
-          if (!item->isSelected())
+          // edit via double-click
+          if (e->type() == QEvent::MouseButtonDblClick)
+          {
+            item->editText();
+          }
+          else if (!item->isSelected())
           {
             // the item becomes the only selected item
             getCurrentLayer_().getCurrentAnnotations().deselectAll();
@@ -484,8 +489,8 @@ namespace OpenMS
           double distance = end_mz - start_mz;
           PointType start_p(start_mz, p.getY());
           PointType end_p(end_mz, p.getY());
-
-          Annotation1DItem * item = new Annotation1DDistanceItem(QString::number(distance, 'f', 3), start_p, end_p);
+          // draw line for measured distance between two peaks and annotate with distance in m/z -- use 4 digits to resolve 13C distances between isotopes
+          Annotation1DItem * item = new Annotation1DDistanceItem(QString::number(distance, 'f', 4), start_p, end_p);
           getCurrentLayer_().getCurrentAnnotations().push_front(item);
         }
       }
@@ -619,7 +624,6 @@ namespace OpenMS
 
     //update range area
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
@@ -798,7 +802,7 @@ namespace OpenMS
           throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         }
 
-        //draw all annotation items
+        // draw all annotation items
         drawAnnotations(i, *painter);
 
         // draw a legend
@@ -851,7 +855,11 @@ namespace OpenMS
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       QPoint measurement_end_point(last_mouse_pos_.x(), measurement_start_point_.y());
-      painter->drawLine(measurement_start_point_, measurement_end_point);
+      // draw a complete temporary Annotation1DDistanceItem which includes the distance;
+      // as an alternative to a simple line: painter->drawLine(measurement_start_point_, measurement_end_point);
+      Annotation1DDistanceItem::PointType ps(widgetToData(measurement_start_point_, true));
+      Annotation1DDistanceItem::PointType pe(widgetToData(measurement_end_point, true));
+      Annotation1DDistanceItem(QString::number(pe.getX() - ps.getX(), 'f', 4), ps, pe).draw(this, *painter, false);
     }
     // draw highlighted measurement start peak and selected peak
     bool with_elongation = (action_mode_ == AM_MEASURE);
@@ -1055,7 +1063,7 @@ namespace OpenMS
       break;
     }
 
-    // sort spectra in accending order of position
+    // sort spectra in ascending order of position
     for (Size i = 0; i < currentPeakData_()->size(); ++i)
     {
       (*getCurrentLayer_().getPeakData())[i].sortByPosition();
@@ -1063,19 +1071,18 @@ namespace OpenMS
 
     getCurrentLayer_().annotations_1d.resize(currentPeakData_()->size());
 
-    //update nearest peak
+    // update nearest peak
     selected_peak_.clear();
 
-    //update ranges
+    // update ranges
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
     resetZoom(false);     //no repaint as this is done in intensityModeChange_() anyway
 
-    //Warn if negative intensities are contained
+    // warn if negative intensities are contained
     if (getMinIntensity(current_layer_) < 0.0)
     {
       QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
@@ -1282,14 +1289,7 @@ namespace OpenMS
         }
         else if (result->text() == "Edit")
         {
-          const String & old_text = annot_item->getText();
-
-          bool ok;
-          QString text = QInputDialog::getText(this, "Edit text", "Enter text:", QLineEdit::Normal, old_text.toQString(), &ok);
-          if (ok && !text.isEmpty())
-          {
-            annot_item->setText(text);
-          }
+          annot_item->editText();
         }
         update_(__PRETTY_FUNCTION__);
       }
@@ -1559,7 +1559,6 @@ namespace OpenMS
 
     //update ranges
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);

@@ -236,7 +236,7 @@ private:
     void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
 
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                          int location, ResidueModification& rmod, const String& name);
+                          int location, const ResidueModification& rmod);
     //@}
 
 

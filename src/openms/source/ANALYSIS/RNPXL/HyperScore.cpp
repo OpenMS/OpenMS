@@ -68,6 +68,12 @@ namespace OpenMS
 
     for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
     {
+      if (!theo_peak_it->metaValueExists("IonName"))
+      {
+        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
+        return 0.0;
+      }
+
       const double& theo_mz = theo_peak_it->getMZ();
       const double& theo_intensity = theo_peak_it->getIntensity();
 
@@ -94,7 +100,7 @@ namespace OpenMS
             std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++b_ion_count;
-        }
+        }       
       }
     }
 

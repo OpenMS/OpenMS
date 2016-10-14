@@ -4,8 +4,6 @@ set(directory source/CHEMISTRY)
 ### list all filenames of the directory here
 set(sources_list
 AASequence.cpp
-EdwardsLippertIterator.cpp
-EdwardsLippertIteratorTryptic.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp

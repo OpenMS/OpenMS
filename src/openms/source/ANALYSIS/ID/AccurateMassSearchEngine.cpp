@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -237,9 +237,8 @@ namespace OpenMS
         formula_str = formula_str.substr(idx, formula_str.size());
       }
 
-      // std::cout << stoichio_factor << "*" << formula_str << " ";
       EmpiricalFormula ef_part(formula_str);
-      // std::cout << part_formula.getMonoWeight() << std::endl;
+      LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
 
       if (op_plus)
       {
@@ -529,10 +528,10 @@ namespace OpenMS
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
     defaults_.setValidStrings("isotopic_similarity", ListUtils::create<String>(("false,true")));
 
-    defaults_.setValue("db:mapping", "CHEMISTRY/HMDBMappingFile.tsv", "Database input file, containing three tab-separated columns of mass, formula, identifier. "
+    defaults_.setValue("db:mapping", ListUtils::create<String>("CHEMISTRY/HMDBMappingFile.tsv"), "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
-    defaults_.setValue("db:struct", "CHEMISTRY/HMDB2StructMapping.tsv", "Database input file, containing four tab-separated columns of identifier, name, SMILES, INCHI."
+    defaults_.setValue("db:struct", ListUtils::create<String>("CHEMISTRY/HMDB2StructMapping.tsv"), "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
                                                                         "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts_file", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
@@ -667,7 +666,7 @@ namespace OpenMS
       ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
       ams_result.setFoundAdduct("null");
-      ams_result.setEmpiricalFormula("null");
+      ams_result.setEmpiricalFormula("");
       ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
       results.push_back(ams_result);
     }
@@ -1264,10 +1263,10 @@ namespace OpenMS
     iso_similarity_ = param_.getValue("isotopic_similarity").toBool();
 
     // use defaults if empty for all .tsv files
-    db_mapping_file_ = (String)param_.getValue("db:mapping");
-    if (db_mapping_file_.trim().empty()) db_mapping_file_ = (String)defaults_.getValue("db:mapping");
-    db_struct_file_ = (String)param_.getValue("db:struct");
-    if (db_struct_file_.trim().empty()) db_struct_file_ = (String)defaults_.getValue("db:struct");
+    db_mapping_file_ = param_.getValue("db:mapping").toStringList();
+    if (db_mapping_file_.empty()) db_mapping_file_ = defaults_.getValue("db:mapping").toStringList();
+    db_struct_file_ = param_.getValue("db:struct").toStringList();
+    if (db_struct_file_.empty()) db_struct_file_ = defaults_.getValue("db:struct").toStringList();
 
     pos_adducts_fname_ = (String)param_.getValue("positive_adducts_file");
     if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts_file");
@@ -1281,102 +1280,106 @@ namespace OpenMS
 
 /// private methods
 
-  void AccurateMassSearchEngine::parseMappingFile_(const String& db_mapping_file)
+  void AccurateMassSearchEngine::parseMappingFile_(const StringList& db_mapping_file)
   {
     mass_mappings_.clear();
 
     // load map_fname mapping file
-    String filename = db_mapping_file;
-
-    // load map_fname mapping file
-    if (!File::readable(filename))
+    for (StringList::const_iterator it_f = db_mapping_file.begin(); it_f != db_mapping_file.end(); ++it_f)
     {
-      // throws Exception::FileNotFound if not found
-      filename = File::find(filename);
-    }
-
-    String line;
-    Size line_count(0);
-    std::stringstream str_buf;
-    std::istream_iterator<String> eol;
-
-    // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
-
-    std::ifstream ifs(filename.c_str());
-    while (getline(ifs, line))
-    {
-      ++line_count;
-      line.trim();
-      // std::cout << line << std::endl;
-      if (line_count == 1)
+      String filename = *it_f;
+      // load map_fname mapping file
+      if (!File::readable(filename))
       {
-        std::vector<String> fields;
-        line.trim().split('\t', fields);
-        if (fields[0] == "database_name")
-        {
-          database_name_ = fields[1];
-          continue;
-        }
-        else
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
-        }
-      }
-      else if (line_count == 2)
-      {
-        std::vector<String> fields;
-        line.trim().split('\t', fields);
-        if (fields[0] == "database_version")
-        {
-          database_version_ = fields[1];
-          continue;
-        }
-        else
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
-        }
+        // throws Exception::FileNotFound if not found
+        filename = File::find(filename);
       }
 
-      str_buf.clear();
-      str_buf << line;
-      std::istream_iterator<String> istr_it(str_buf);
+      String line;
+      Size line_count(0);
+      std::stringstream str_buf;
+      std::istream_iterator<String> eol;
 
-      Size word_count(0);
-      MappingEntry_ entry;
+      // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
-      while (istr_it != eol)
+      std::ifstream ifs(filename.c_str());
+      while (getline(ifs, line))
       {
-        // LOG_DEBUG << *istr_it << " ";
-        if (word_count == 0)
+        line.trim();
+        // skip empty lines
+        if (line.empty()) continue;
+        ++line_count;
+
+        // std::cout << line << std::endl;
+        if (line_count == 1)
         {
-          entry.mass = istr_it->toDouble();
-        }
-        else if (word_count == 1)
-        {
-          entry.formula = *istr_it;
-          if (entry.mass == 0)
-          { // recompute mass from formula
-            entry.mass = EmpiricalFormula(entry.formula).getMonoWeight();
-            //std::cerr << "mass of " << entry.formula << " is " << entry.mass << "\n";
+          std::vector<String> fields;
+          line.trim().split('\t', fields);
+          if (fields[0] == "database_name")
+          {
+            database_name_ = fields[1];
+            continue;
+          }
+          else
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
           }
         }
-        else // one or more IDs can follow
+        else if (line_count == 2)
         {
-          entry.massIDs.push_back(*istr_it);
+          std::vector<String> fields;
+          line.trim().split('\t', fields);
+          if (fields[0] == "database_version")
+          {
+            database_version_ = fields[1];
+            continue;
+          }
+          else
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
+          }
         }
 
-        ++word_count;
-        ++istr_it;
-      }
-      // LOG_DEBUG << std::endl;
+        str_buf.clear();
+        str_buf << line;
+        std::istream_iterator<String> istr_it(str_buf);
 
-      if (entry.massIDs.empty())
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + db_mapping_file + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
+        Size word_count(0);
+        MappingEntry_ entry;
+
+        while (istr_it != eol)
+        {
+          // LOG_DEBUG << *istr_it << " ";
+          if (word_count == 0)
+          {
+            entry.mass = istr_it->toDouble();
+          }
+          else if (word_count == 1)
+          {
+            entry.formula = *istr_it;
+            if (entry.mass == 0)
+            { // recompute mass from formula
+              entry.mass = EmpiricalFormula(entry.formula).getMonoWeight();
+              //std::cerr << "mass of " << entry.formula << " is " << entry.mass << "\n";
+            }
+          }
+          else // one or more IDs can follow
+          {
+            entry.massIDs.push_back(*istr_it);
+          }
+
+          ++word_count;
+          ++istr_it;
+        }
+        // LOG_DEBUG << std::endl;
+
+        if (entry.massIDs.empty())
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
+        }
+        mass_mappings_.push_back(entry);
       }
-      mass_mappings_.push_back(entry);
     }
-
     std::sort(mass_mappings_.begin(), mass_mappings_.end(), CompareEntryAndMass_());
 
     LOG_INFO << "Read " << mass_mappings_.size() << " entries from mapping file!" << std::endl;
@@ -1384,44 +1387,47 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::parseStructMappingFile_(const String& db_struct_file)
+  void AccurateMassSearchEngine::parseStructMappingFile_(const StringList& db_struct_file)
   {
     hmdb_properties_mapping_.clear();
 
-    String filename = db_struct_file;
-
-    // load map_fname mapping file
-    if (!File::readable(filename))
+    for (StringList::const_iterator it_f = db_struct_file.begin(); it_f != db_struct_file.end(); ++it_f)
     {
-      // throws Exception::FileNotFound if not found
-      filename = File::find(filename);
-    }
+      String filename = *it_f;
 
-    std::ifstream ifs(filename.c_str());
-    String line;
-    // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
-
-    std::vector<String> parts;
-    while (getline(ifs, line))
-    {
-      line.trim();
-      line.split("\t", parts);
-
-      if (parts.size() == 4)
+      // load map_fname mapping file
+      if (!File::readable(filename))
       {
-        String hmdb_id_key(parts[0]);
+        // throws Exception::FileNotFound if not found
+        filename = File::find(filename);
+      }
 
-        if (hmdb_properties_mapping_.count(hmdb_id_key))
+      std::ifstream ifs(filename.c_str());
+      String line;
+      // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
+
+      std::vector<String> parts;
+      while (getline(ifs, line))
+      {
+        line.trim();
+        line.split("\t", parts);
+
+        if (parts.size() == 4)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + db_struct_file + "' in line '" + line + "' cannot be parsed. The HMDB ID entry was already used (see above)!");
-        }
-        std::copy(parts.begin() + 1, parts.end(), std::back_inserter(hmdb_properties_mapping_[hmdb_id_key]));
-      }
-      else
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + db_struct_file + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
-      }
+          String hmdb_id_key(parts[0]);
 
+          if (hmdb_properties_mapping_.count(hmdb_id_key))
+          {
+            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
+          }
+          std::copy(parts.begin() + 1, parts.end(), std::back_inserter(hmdb_properties_mapping_[hmdb_id_key]));
+        }
+        else
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
+        }
+
+      }
     }
 
     // add a null entry, so mzTab annotation does not discard 'not-found' features

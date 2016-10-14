@@ -106,6 +106,8 @@ namespace OpenMS
     setName("Spectrum2DCanvas");
     setParameters(preferences);
 
+    linear_gradient_.fromString(param_.getValue("dot:gradient"));
+
     projection_mz_.resize(1);
     projection_rt_.resize(1);
 
@@ -156,7 +158,7 @@ namespace OpenMS
       //TODO IDENT
     }
 
-    //paint highlighed peak
+    // paint highlighted peak
     painter.save();
     painter.setPen(QPen(Qt::red, 2));
 
@@ -1048,8 +1050,18 @@ namespace OpenMS
 
   void Spectrum2DCanvas::intensityModeChange_()
   {
+    String gradient_str;
+    if (intensity_mode_ == IM_LOG)
+    {
+      gradient_str = MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString();
+    }
+    else // linear
+    {
+      gradient_str = linear_gradient_.toString();
+    }
     for (Size i = 0; i < layers_.size(); ++i)
     {
+      layers_[i].param.setValue("dot:gradient", gradient_str);
       recalculateDotGradient_(i);
     }
     SpectrumCanvas::intensityModeChange_();
@@ -1060,12 +1072,11 @@ namespace OpenMS
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
     {
-      double min_intensity = getMinIntensity(layer);
-      getLayer_(layer).gradient.activatePrecalculationMode(std::log(min_intensity + 1), std::log(overall_data_range_.maxPosition()[2]) + 1, param_.getValue("interpolation_steps"));
+      getLayer_(layer).gradient.activatePrecalculationMode(0.0, std::log(overall_data_range_.maxPosition()[2] + 1), param_.getValue("interpolation_steps"));
     }
     else
     {
-      getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
+      getLayer_(layer).gradient.activatePrecalculationMode(0.0, overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
     }
   }
 
@@ -1629,7 +1640,7 @@ namespace OpenMS
       painter.setPen(Qt::black);
 
       QPoint line_begin, line_end;
-
+      // start of line
       if (selected_peak_.isValid())
       {
         if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1654,6 +1665,7 @@ namespace OpenMS
         line_begin = last_mouse_pos_;
       }
 
+      // end of line
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
       {
         dataToWidget_(measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getMZ(), measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getRT(), line_end);
@@ -1675,7 +1687,7 @@ namespace OpenMS
       highlightPeak_(painter, measurement_start_);
     }
 
-    //draw convex hulls or consensus feature elements
+    // draw convex hulls or consensus feature elements
     if (selected_peak_.isValid())
     {
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1698,7 +1710,7 @@ namespace OpenMS
       highlightPeak_(painter, selected_peak_);
     }
 
-    //draw delta for measuring
+    // draw delta for measuring
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       drawDeltas_(painter, measurement_start_, selected_peak_);

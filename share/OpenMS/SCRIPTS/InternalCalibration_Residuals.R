@@ -31,17 +31,12 @@ png(filename = file.plot.out, width=1920)
 
 pl = ggplot(dpm2[grep("ppm", dpm2$variable),]) + 
        geom_hline(yintercept = 0, colour="grey") +
-       geom_hline(yintercept = c(-1,1), colour="grey", linetype = "dotdash")
-if (length(unique(d$mz.ref)) < 16) {
-  extra = facet_wrap(~ masstrace) #, scales = "free_y")
-}  else {
-  extra = NULL
-} 
-pl = pl + geom_point(aes(x = RT, y=value, color=variable)) +
-  guides(color=guide_legend(title=NULL)) +
-  ggtitle("Calibrant's ppm error over time") +
-  xlab("RT [sec]") +
-  extra
+       geom_hline(yintercept = c(-1,1), colour="grey", linetype = "dotdash") +
+       facet_wrap(~ masstrace) + 
+       geom_point(aes(x = RT, y=value, color=variable)) +
+       guides(color=guide_legend(title=NULL)) +
+       ggtitle("Calibrant's ppm error over time") +
+       xlab("RT [sec]")
 print(pl)
 
 dev.off()

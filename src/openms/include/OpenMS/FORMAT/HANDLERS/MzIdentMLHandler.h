@@ -149,8 +149,8 @@ protected:
       /// Helper method that writes the Enzymes
       void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
 
-      /// Helper method that writes the modification search params
-      void writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;
+      /// Helper method that writes the modification search params (fixed or variable)
+      void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
 
 private:
       MzIdentMLHandler();

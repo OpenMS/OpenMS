@@ -132,7 +132,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   QTClusterFinder finder;
 	Param param = finder.getDefaults();
 	param.setValue("distance_RT:max_difference", 5.1);
-	param.setValue("distance_MZ:max_difference", 0.1);
+  param.setValue("distance_MZ:max_difference", 0.1);
+  param.setValue("nr_partitions", 1);
 	finder.setParameters(param);
 	ConsensusMap result;
 	finder.run(input, result);

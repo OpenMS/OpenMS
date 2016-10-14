@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -71,7 +71,7 @@ namespace OpenMS
     return 0;
   }
 
-  const Residue * ResidueDB::getResidue(const unsigned char & one_letter_code) const
+  const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
     return residue_by_one_letter_code_[one_letter_code];
   }
@@ -126,7 +126,6 @@ namespace OpenMS
       names.push_back(*it);
     }
 
-
     if (!r->isModified())
     {
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
@@ -144,12 +143,12 @@ namespace OpenMS
 
       // get all modification names
       vector<String> mod_names;
-      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(r->getOneLetterCode(), r->getModification(), ResidueModification::ANYWHERE);
+      const ResidueModification* mod = r->getModification();
 
-      mod_names.push_back(mod.getId());
-      mod_names.push_back(mod.getFullName());
-      set<String> mod_synonyms = mod.getSynonyms();
-      for (set<String>::iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
+      mod_names.push_back(mod->getId());
+      mod_names.push_back(mod->getFullName());
+      const set<String>& mod_synonyms = mod->getSynonyms();
+      for (set<String>::const_iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
       {
         mod_names.push_back(*it);
       }
@@ -451,31 +450,33 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
-    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification);
+    // terminal mods. don't apply to residue (side chain), so don't consider them:
+    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
     return getModifiedResidue(getResidue(mod.getOrigin()), mod.getFullId());
   }
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
     // search if the mod already exists
-    String res_name(residue->getName());
+    String res_name = residue->getName();
 
     if (residue_names_.find(res_name) == residue_names_.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Residue with name "
-                                                                                       + res_name + " was not registered in residue DB, register first!").c_str());
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
     }
 
-    String id = ModificationsDB::getInstance()->getModification(res_name, modification, ResidueModification::ANYWHERE).getId();
+    // terminal mods. don't apply to residue (side chain), so don't consider them:
+    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+    String id = mod.getId();
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {
       return residue_mod_names_[res_name][id];
     }
 
-
     Residue* res = new Residue(*residue_names_[res_name]);
-    res->setModification(id);
+    res->setModification_(mod);
     //res->setLossFormulas(vector<EmpiricalFormula>());
     //res->setLossNames(vector<String>());
 
