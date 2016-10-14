@@ -119,6 +119,7 @@ make_doxygen_path(CF_STRIP_PATH OPENMS_DOCUMENTATION_DIRECTORIES)
 # find the necessary packages
 find_package(Doxygen)
 find_package(LATEX)
+find_package(LATEX COMPONENTS PDFLATEX)
 
 #------------------------------------------------------------------------------
 # the doc targets
@@ -308,7 +309,8 @@ endif()
 #------------------------------------------------------------------------------
 # PDF Tutorials
 #------------------------------------------------------------------------------
-if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
+# DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
+if (PDFLATEX_COMPILER)
 
   if (ENABLE_TUTORIALS)
     set(DOC_TUTORIALS_ACTIVE TRUE)
@@ -338,10 +340,10 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
                       COMMAND ${CMAKE_COMMAND} -E remove_directory OpenMS_tutorial/latex_output
                       COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
                       COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  makeindex refman.idx
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  pdflatex refman.tex
+                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
+                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
                       COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
@@ -353,10 +355,10 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
                       COMMAND ${CMAKE_COMMAND} -E remove_directory TOPP_tutorial/latex_output
                       COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
                       COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  makeindex refman.idx
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  pdflatex refman.tex
+                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
+                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
                       COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
@@ -384,7 +386,7 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
   endif()
 else()
   set(DOC_TUTORIALS_ACTIVE FALSE)
-  message(STATUS "Doxygen or Latex missing. Disabling 'doc_tutorials' target!")
+  message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
 endif()
 
 #------------------------------------------------------------------------------

@@ -1,5 +1,9 @@
 \documentclass[a4paper]{article}
-\usepackage{a4wide}
+\usepackage{geometry}
+\geometry{
+  includeheadfoot,
+  margin=2.54cm
+}
 \usepackage{makeidx}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
@@ -7,7 +11,7 @@
 \usepackage{float}
 \usepackage{textcomp}
 \usepackage{alltt}
-\usepackage{times}
+\usepackage{newtxtext, newtxmath}
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,
