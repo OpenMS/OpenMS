@@ -119,7 +119,6 @@ make_doxygen_path(CF_STRIP_PATH OPENMS_DOCUMENTATION_DIRECTORIES)
 # find the necessary packages
 find_package(Doxygen)
 find_package(LATEX)
-find_package(LATEX COMPONENTS PDFLATEX)
 
 #------------------------------------------------------------------------------
 # the doc targets
