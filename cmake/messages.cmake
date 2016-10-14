@@ -60,6 +60,7 @@ else()
 	set(coverage_target
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "    (Disabled) OpenMS_coverage reporting target is not enabled (to enable use -D OPENMS_COVERAGE=ON)."
+										COMMAND ${CMAKE_COMMAND} -E echo "               Caution: Building with debug and coverage info uses a lot of disk space (>40GB)"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
     )
 endif()
@@ -89,7 +90,7 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_class_only  builds only the doxygen and class documentation"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    (faster then doc and very useful when writing"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    documentation)."
-										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the pdf tutorials"
+										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the PDF tutorials"
 										${pyopenms_targets}
 										${coverage_target}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -114,11 +115,11 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "                    make sure they are built using the 'all' target"
 										COMMAND ${CMAKE_COMMAND} -E echo "    Tutorials_build builds the code snippets of the tutorials in source/EXAMPLES"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc             builds the doxygen and class documentation, parameters"
-										COMMAND ${CMAKE_COMMAND} -E echo "                    documentation, and tutorial pdfs"
+										COMMAND ${CMAKE_COMMAND} -E echo "                    documentation, and tutorial PDFs"
 										COMMAND ${CMAKE_COMMAND} -E echo "    doc_class_only  builds only the doxygen and class documentation"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    (faster then doc and very useful when writing"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    documentation)."
-										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the pdf tutorials"
+										COMMAND ${CMAKE_COMMAND} -E echo "    doc_tutorials   builds the PDF tutorials"
 										COMMAND ${CMAKE_COMMAND} -E echo "    help            list all available targets (very verbose)"
 										${pyopenms_targets}
 										${coverage_target}
