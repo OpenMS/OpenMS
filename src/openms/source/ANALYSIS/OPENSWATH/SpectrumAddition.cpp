@@ -45,7 +45,7 @@ namespace OpenMS
   OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
       double sampling_rate, double filter_zeros)
   {
-    if (all_spectra.size() == 0)
+    if (all_spectra.empty())
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
       return sptr;
@@ -54,11 +54,22 @@ namespace OpenMS
     typedef MSSpectrum<Peak1D> SpectrumT;
     LinearResamplerAlign lresampler;
 
+    if (all_spectra[0]->getMZArray()->data.empty() )
+    {
+      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+      return sptr;
+    }
+
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0]->getMZArray()->data[0];
     double max = all_spectra[0]->getMZArray()->data.back();
     for (Size i = 0; i < all_spectra.size(); i++)
     {
+      if (all_spectra[i]->getMZArray()->data.empty() )
+      {
+        continue;
+      }
+
       if (all_spectra[i]->getMZArray()->data[0] < min)
       {
         min = all_spectra[i]->getMZArray()->data[0];
