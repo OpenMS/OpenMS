@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/Users/timosachsenberg/oms210/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="MS:1001211" value=""/>
 				<UserParam type="string" name="MS:1001256" value=""/>
+				<UserParam type="string" name="ChargeCarrierMass" value="1.00727649"/>
 				<UserParam type="string" name="FragmentMethod" value="As written in the spectrum or CID if no info"/>
 				<UserParam type="string" name="Instrument" value="HighRes"/>
 				<UserParam type="string" name="MaxCharge" value="3"/>
@@ -19,7 +20,7 @@
 				<UserParam type="string" name="Protocol" value="Standard"/>
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
 	</SearchParameters>
-	<IdentificationRun date="2016-08-11T09:50:19" search_engine="MS-GF+" search_engine_version="Release (v2016.06.29)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2016-10-18T08:03:17" search_engine="MS-GF+" search_engine_version="Release (v2016.10.14)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="BSA3" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
@@ -30,7 +31,7 @@
 			<ProteinHit id="PH_2" accession="" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/timosachsenberg/oms210/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.669" spectrum_reference="spectrum=1" >
 			<PeptideHit score="163" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" protein_refs="PH_1" >
