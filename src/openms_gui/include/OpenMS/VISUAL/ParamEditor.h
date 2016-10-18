@@ -41,10 +41,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>
-#include <QtGui/QLineEdit>
 
-#include <QtGui/QItemDelegate>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QTreeWidget>
 
 class QModelIndex;
 class QStyleOptionViewItem;

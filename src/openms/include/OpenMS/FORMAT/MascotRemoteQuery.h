@@ -38,7 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
 #include <QtCore/QString>
-#include <QtNetwork/QHttpRequestHeader>
+#include <QtNetwork/QNetworkAccessManager>
 #include <QTimer>
 
 

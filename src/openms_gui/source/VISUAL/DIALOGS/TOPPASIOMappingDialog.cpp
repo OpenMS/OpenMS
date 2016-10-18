@@ -43,7 +43,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 #include <sstream>

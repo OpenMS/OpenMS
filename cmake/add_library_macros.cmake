@@ -135,7 +135,7 @@ function(openms_add_library)
   # merge into global exported includes
   set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
-      CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
+  CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
   # Include directories

@@ -36,8 +36,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoDescriptionVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QTextEdit>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
 
 using namespace std;
 

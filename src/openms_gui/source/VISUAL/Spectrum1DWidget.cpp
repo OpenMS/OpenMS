@@ -36,11 +36,11 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QScrollBar>
-#include <QtGui/QFileDialog>
-#include <QtGui/QPainter>
-#include <QtGui/QPaintEvent>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QFileDialog>
+#include <QPainter>
+#include <QPaintEvent>
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgGenerator>
 

@@ -56,7 +56,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 namespace OpenMS
 {

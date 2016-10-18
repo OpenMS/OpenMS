@@ -37,11 +37,11 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 //QT
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QValidator>
-#include <QtGui/QPushButton>
-#include <QtGui/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QValidator>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QGridLayout>
 
 //STL
 #include <iostream>

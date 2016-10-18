@@ -33,12 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMenu>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {

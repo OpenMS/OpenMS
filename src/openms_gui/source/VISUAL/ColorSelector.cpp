@@ -37,10 +37,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 //qt includes
-#include <QtGui/QPainter>
-#include <QtGui/QColorDialog>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QMouseEvent>
+#include <QPainter>
+#include <QtWidgets/QColorDialog>
+#include <QPaintEvent>
+#include <QMouseEvent>
 
 using namespace std;
 

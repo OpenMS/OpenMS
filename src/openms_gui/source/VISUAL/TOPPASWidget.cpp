@@ -41,9 +41,9 @@
 
 
 // Qt
-#include <QtGui/QDragEnterEvent>
-#include <QtGui/QDragMoveEvent>
-#include <QtGui/QDropEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 #include <QtCore/QMimeData>
 #include <QUrl>
 

@@ -34,10 +34,10 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/TaggingVisualizer.h>
 
-#include <QtGui/QComboBox>
-#include <QtGui/QTextEdit>
-#include <QtGui/QLineEdit>
-#include <QtGui/QValidator>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLineEdit>
+#include <QValidator>
 
 #include <iostream>
 

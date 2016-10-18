@@ -38,11 +38,12 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 #include <QApplication>
 #include <QClipboard>
 #include <QKeyEvent>
 #include <QUrl>
+#include <QMimeData>
 
 #include <iostream>
 

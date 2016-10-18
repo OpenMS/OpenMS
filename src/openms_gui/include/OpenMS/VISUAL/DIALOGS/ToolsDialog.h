@@ -44,7 +44,7 @@ class QPushButton;
 class QRadioButton;
 class QString;
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/LayerData.h>
 

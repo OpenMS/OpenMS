@@ -43,8 +43,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 //QT
-#include <QtGui/QDialog>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QTreeWidget>
 class QTreeWidgetItem;
 class QPushButton;
 class QStackedWidget;
@@ -109,7 +109,7 @@ namespace OpenMS
 public:
 
     /// Constructor with flag for edit mode
-    MetaDataBrowser(bool editable = FALSE, QWidget * parent = 0, bool modal = FALSE);
+    MetaDataBrowser(bool editable = false, QWidget * parent = 0, bool modal = false);
 
     /// Adds a peak map
     template <class PeakType>

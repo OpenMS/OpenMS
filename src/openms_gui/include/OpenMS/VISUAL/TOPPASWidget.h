@@ -42,7 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
-#include <QtGui/QGraphicsView>
+#include <QtWidgets/QGraphicsView>
 
 namespace OpenMS
 {

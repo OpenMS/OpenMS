@@ -37,10 +37,10 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
-#include <QtGui/QCompleter>
-#include <QtGui/QDirModel>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 

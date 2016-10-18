@@ -34,9 +34,9 @@
 
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <QtCore/QMimeData>
-#include <QtGui/QDragEnterEvent>
-#include <QtGui/QDragMoveEvent>
-#include <QtGui/QDropEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 
 #include <QtCore/QStringList>
 

@@ -35,9 +35,9 @@
 #include <OpenMS/VISUAL/VISUALIZER/PrecursorVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QListWidget>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QListWidget>
 
 //STL
 #include <iostream>

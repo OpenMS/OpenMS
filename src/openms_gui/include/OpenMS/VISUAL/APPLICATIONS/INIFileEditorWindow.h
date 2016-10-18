@@ -41,7 +41,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMdiArea>
 
 class QToolBar;
 class QAction;

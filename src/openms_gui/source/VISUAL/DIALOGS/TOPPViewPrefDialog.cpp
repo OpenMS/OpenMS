@@ -34,7 +34,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 
 using namespace std;
 

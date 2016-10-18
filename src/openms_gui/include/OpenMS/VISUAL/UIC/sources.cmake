@@ -13,7 +13,7 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### Apply UIC compiler
-QT4_WRAP_UI_OWN(uiced_sources ${sources})
+QT5_WRAP_UI_OWN(uiced_sources ${sources})
 
 ### pass source file list to the upper instance
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${uiced_sources})

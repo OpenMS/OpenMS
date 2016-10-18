@@ -36,7 +36,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QLineEdit>
 
 using namespace std;
 

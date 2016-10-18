@@ -37,9 +37,9 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QTextEdit>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QComboBox>
 
 //STL
 #include <iostream>

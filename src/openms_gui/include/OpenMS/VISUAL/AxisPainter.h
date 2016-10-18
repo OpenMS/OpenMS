@@ -38,12 +38,13 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QPainter>
-
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <QtGui/QPaintEvent>
+
+#include <QPaintEvent>
+#include <QPainter>
+
 
 namespace OpenMS
 {

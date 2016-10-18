@@ -42,7 +42,7 @@
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 // Qt
-#include <QtGui/QStyleFactory>
+#include <QtWidgets/QStyleFactory>
 #include <QTextCodec>
 
 

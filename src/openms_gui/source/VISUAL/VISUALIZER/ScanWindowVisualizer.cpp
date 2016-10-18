@@ -35,8 +35,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/ScanWindowVisualizer.h>
 
 //QT
-#include <QtGui/QTextEdit>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLineEdit>
 
 #include <iostream>
 

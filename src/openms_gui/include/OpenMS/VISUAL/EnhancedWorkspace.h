@@ -38,7 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QWorkspace>
+#include <QtWidgets/QMdiArea>
 
 class QMimeData;
 class QDragEnterEvent;

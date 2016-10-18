@@ -66,19 +66,19 @@
 #include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/ScanWindowVisualizer.h>
 
-#include <QtGui/QLabel>
-#include <QtGui/QStackedWidget>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QMessageBox>
-#include <QtGui/QSplitter>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QSplitter>
 
 class QLayoutItem;
 
 using namespace std;
 
 
-//class QtGui/QLayoutItem;
+//class QtWidgets/QLayoutItem;
 
 namespace OpenMS
 {

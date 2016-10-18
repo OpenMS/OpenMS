@@ -37,8 +37,8 @@
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 
-#include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 using std::cout;
 using std::endl;
@@ -54,7 +54,7 @@ namespace OpenMS
     canvas_3d.rubber_band_.setParent(this);
 
     //Set focus policy and mouse tracking in order to get keyboard events
-    setMouseTracking(TRUE);
+    setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
     corner_ = 100.0;

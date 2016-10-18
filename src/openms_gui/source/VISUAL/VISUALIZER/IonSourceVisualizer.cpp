@@ -35,8 +35,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/IonSourceVisualizer.h>
 
 //QT
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 
 //STL
 #include <iostream>

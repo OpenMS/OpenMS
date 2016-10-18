@@ -39,15 +39,15 @@
 #include <OpenMS/VISUAL/ListEditor.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QShortcut>
-#include <QtGui/QMenu>
-#include <QtGui/QItemSelection>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QShortcut>
+#include <QtWidgets/QMenu>
+#include <QItemSelection>
 #include <QtCore/QStringList>
-#include <QtGui/QLabel>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QFileDialog>
 
 #include <stack>
 #include <limits>

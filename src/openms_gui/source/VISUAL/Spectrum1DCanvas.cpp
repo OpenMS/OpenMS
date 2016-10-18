@@ -33,15 +33,15 @@
 // --------------------------------------------------------------------------
 
 // Qt
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPainterPath>
-#include <QtGui/QPainter>
+#include <QMouseEvent>
+#include <QtWidgets/QMessageBox>
+#include <QPainterPath>
+#include <QPainter>
 #include <QtCore/QTime>
-#include <QtGui/QMenu>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QInputDialog>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QInputDialog>
 #include <QtSvg/QSvgGenerator>
 
 // OpenMS

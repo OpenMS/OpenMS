@@ -33,29 +33,39 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # Find Qt
 #------------------------------------------------------------------------------
-# QtPhonon hack
-# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
-if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
-  set(phonon_extra QtPhonon)
-  message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
-else()
-  set(phonon_extra)
-  message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
-endif()
+find_package(Qt5 COMPONENTS Widgets Network Svg OpenGL WebEngine REQUIRED)
 
-find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
-if (NOT QT4_FOUND)
-  message(STATUS "Qt4 not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
+IF (NOT Qt5Widgets_FOUND)
+  message(STATUS "QT5Widgets not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+ENDIF()
+
+# The Qt5Widgets_INCLUDES also includes the include directories for
+# dependencies QtCore and QtGui
+include_directories(${Qt5Widgets_INCLUDE_DIRS})
+include_directories(${Qt5Svg_INCLUDE_DIRS})
+include_directories(${Qt5OpenGL_INCLUDE_DIRS})
+include_directories(${Qt5Network_INCLUDE_DIRS})
+include_directories(${Qt5WebEngine_INCLUDE_DIRS})
+
+# We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
+add_definitions(${Qt5Widgets_DEFINITIONS})
+add_definitions(${Qt5Svg_DEFINITIONS})
+add_definitions(${Qt5OpenGL_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+add_definitions(${Qt5WebEngine_DEFINITIONS})
+
+# Executables fail to build with Qt 5 in the default configuration
+# without -fPIE. We add that here.
+set(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+
 # required to indicate we use qtopengl
 set(QT_USE_QTOPENGL TRUE)
-include(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
@@ -76,7 +86,12 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # --------------------------------------------------------------------------
 # collect link dependencies
 set(OpenMS_GUI_DEP_LIBRARIES OpenMS
-                             ${QT_LIBRARIES})
+                             ${Qt5Widgets_LIBRARIES}
+                             ${Qt5Svg_LIBRARIES}
+                             ${Qt5OpenGL_LIBRARIES}
+                             ${Qt5Network_LIBRARIES}
+                             ${Qt5WebEngine_LIBRARIES}
+   )
 
 # --------------------------------------------------------------------------
 # handle OpenGL on macosx systems

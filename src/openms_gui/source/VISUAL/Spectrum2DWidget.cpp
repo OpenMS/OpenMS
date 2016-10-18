@@ -39,11 +39,11 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
-#include <QtGui/QPushButton>
-#include <QtGui/QGridLayout>
-#include <QtGui/QGroupBox>
-#include <QtGui/QMessageBox>
-#include <QtGui/QCheckBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QCheckBox>
 #include <QtCore/QTimer>
 
 using namespace std;

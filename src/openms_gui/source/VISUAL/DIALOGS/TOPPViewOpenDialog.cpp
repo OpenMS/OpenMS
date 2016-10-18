@@ -39,7 +39,7 @@
 
 
 // QT includes
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QButtonGroup>
 
 // STL includes
 #include <iostream>

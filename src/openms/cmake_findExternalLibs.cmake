@@ -142,16 +142,24 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.6.0")
+SET(QT_MIN_VERSION "5.0.0")
 
 # find qt
-find_package(Qt4 REQUIRED QtCore QtNetwork)
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
-IF (NOT QT4_FOUND)
-  message(STATUS "QT4 not found!")
+IF (NOT Qt5Core_FOUND)
+  message(STATUS "QT5Core not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 ENDIF()
-include(${QT_USE_FILE})
-include(UseQt4)
+
+include_directories(${Qt5Core_INCLUDE_DIRS})
+include_directories(${Qt5Network_INCLUDE_DIRS})
+
+add_definitions(${Qt5Core_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+
+set(CMAKE_CXX_FLAGS "${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+
 
 #------------------------------------------------------------------------------

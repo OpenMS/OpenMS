@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <QtGui/QApplication>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+
+#include <QApplication>
 
 using namespace OpenMS;
 using namespace std;

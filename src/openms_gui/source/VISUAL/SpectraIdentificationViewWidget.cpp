@@ -37,14 +37,14 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMenu>
-#include <QtGui/QPushButton>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QFileDialog>
 #include <QtCore/QTextStream>
 
 

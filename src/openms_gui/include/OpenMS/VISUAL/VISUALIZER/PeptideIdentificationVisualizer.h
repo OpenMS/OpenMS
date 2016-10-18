@@ -60,7 +60,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    PeptideIdentificationVisualizer(bool editable = FALSE, QWidget * parent = 0, MetaDataBrowser * caller = 0);
+    PeptideIdentificationVisualizer(bool editable = false, QWidget * parent = 0, MetaDataBrowser * caller = 0);
 
     /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
     void load(PeptideIdentification & s, int tree_item_id);

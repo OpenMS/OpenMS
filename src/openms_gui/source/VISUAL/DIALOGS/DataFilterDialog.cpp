@@ -36,9 +36,9 @@
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 
 //Qt includes
-#include <QtGui/QDoubleValidator>
-#include <QtGui/QIntValidator>
-#include <QtGui/QMessageBox>
+#include <QDoubleValidator>
+#include <QIntValidator>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 

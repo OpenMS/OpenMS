@@ -35,9 +35,9 @@
 #include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
 
 //QT
-#include <QtGui/QValidator>
-#include <QtGui/QLineEdit>
-#include <QtGui/QTextEdit>
+#include <QValidator>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
 
 //STL
 #include <iostream>

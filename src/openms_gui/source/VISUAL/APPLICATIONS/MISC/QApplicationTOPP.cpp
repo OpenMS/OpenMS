@@ -43,8 +43,8 @@
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 //Qt
-#include <QtGui/QApplication>
-#include <QtGui/QStyleFactory>
+#include <QApplication>
+#include <QtWidgets/QStyleFactory>
 #include <QMessageBox>
 #include <QFile>
 #include <QFileOpenEvent>

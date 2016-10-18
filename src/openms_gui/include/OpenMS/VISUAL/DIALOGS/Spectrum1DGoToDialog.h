@@ -38,7 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DGoToDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
 

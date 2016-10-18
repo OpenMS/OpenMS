@@ -41,7 +41,7 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 
 //QT
-#include <QtGui/QGridLayout>
+#include <QtWidgets/QGridLayout>
 
 using namespace std;
 

@@ -37,7 +37,7 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 
 // QT includes
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QButtonGroup>
 
 #include <vector>
 

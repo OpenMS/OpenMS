@@ -35,7 +35,7 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
 
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QLineEdit>
 
 using namespace std;
 

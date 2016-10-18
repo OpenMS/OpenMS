@@ -40,14 +40,14 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QStringList>
-#include <QtGui/QPushButton>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QMessageBox>
-#include <QtGui/QRadioButton>
-#include <QtGui/QFileDialog>
-#include <QtGui/QCheckBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCheckBox>
 #include <QProcess>
 
 using namespace std;

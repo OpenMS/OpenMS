@@ -42,10 +42,10 @@
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 
 #include <Qt>
-#include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
-#include <QtGui/QMessageBox>
-#include <QtGui/QMenu>
+#include <QPainter>
+#include <QPainterPath>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QMenu>
 
 
 namespace OpenMS

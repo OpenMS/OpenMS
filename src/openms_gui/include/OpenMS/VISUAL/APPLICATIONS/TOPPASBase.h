@@ -43,12 +43,12 @@
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QWorkspace>
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QButtonGroup>
 #include <QtCore/QProcess>
-#include <QtGui/QSplashScreen>
-#include <QNetworkReply>
+#include <QtWidgets/QSplashScreen>
+#include <QtNetwork/QNetworkReply>
 
 class QToolBar;
 class QListWidget;

@@ -54,9 +54,9 @@
 #include <map>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QActionGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 

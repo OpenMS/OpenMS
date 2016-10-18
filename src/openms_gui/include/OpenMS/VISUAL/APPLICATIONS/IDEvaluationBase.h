@@ -43,11 +43,11 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QWorkspace>
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QButtonGroup>
 #include <QtCore/QProcess>
-#include <QtGui/QSplashScreen>
+#include <QtWidgets/QSplashScreen>
 
 class QToolBar;
 class QListWidget;

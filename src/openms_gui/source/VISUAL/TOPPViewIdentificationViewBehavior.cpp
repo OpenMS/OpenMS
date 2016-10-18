@@ -47,7 +47,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
 
 using namespace OpenMS;

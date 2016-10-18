@@ -170,7 +170,7 @@ END_SECTION
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
+  TEST_EQUAL(d.mkpath(dirname.toQString()), true);
   TextFile tf;
   tf.store(dirname + "test.txt");
   TEST_EQUAL(File::removeDirRecursively(dirname), true)
@@ -187,7 +187,7 @@ START_SECTION(static String getUserDirectory())
   // create OpenMS ini in path set by evironmental variable
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
-  TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
+  TEST_EQUAL(d.mkpath(dirname.toQString()), true);
 #ifdef OPENMS_WINDOWSPLATFORM
   _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
 #else

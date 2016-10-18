@@ -35,10 +35,10 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QCompleter>
-#include <QtGui/QDirModel>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
 #include <QtCore/QFileInfo>
 
 #include <iostream>

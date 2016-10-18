@@ -36,9 +36,9 @@
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QTextEdit>
-#include <QtGui/QValidator>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
+#include <QValidator>
 #include <iostream>
 
 using namespace std;

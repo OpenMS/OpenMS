@@ -55,6 +55,12 @@ endforeach(i)
 
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
+  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL WebEngine REQUIRED)
+  if (NOT Qt5Widgets_FOUND)
+    message(STATUS "QtWidgets module not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+  endif()
+
   ## some regular TOPP tools need the GUI lib
   include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
   foreach(i ${TOPP_executables_with_GUIlib})

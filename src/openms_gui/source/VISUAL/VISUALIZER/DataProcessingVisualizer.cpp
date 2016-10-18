@@ -35,8 +35,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/DataProcessingVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QListWidget>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QListWidget>
 
 //STL
 #include <iostream>

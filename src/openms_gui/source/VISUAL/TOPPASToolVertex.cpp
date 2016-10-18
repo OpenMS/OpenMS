@@ -43,8 +43,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>

@@ -37,7 +37,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 //QT
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QLineEdit>
 
 using namespace std;
 

@@ -36,8 +36,8 @@
 
 #include <iostream>
 
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QMenu>
+#include <QContextMenuEvent>
+#include <QtWidgets/QMenu>
 #include <QAction>
 
 using namespace std;

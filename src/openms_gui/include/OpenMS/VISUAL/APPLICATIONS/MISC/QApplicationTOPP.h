@@ -39,7 +39,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //Qt
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 
 namespace OpenMS
 {

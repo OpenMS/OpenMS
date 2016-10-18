@@ -41,7 +41,7 @@
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
-#include <QtGui/QPushButton>
+#include <QtWidgets/QPushButton>
 
 #include <utility>
 #include <map>

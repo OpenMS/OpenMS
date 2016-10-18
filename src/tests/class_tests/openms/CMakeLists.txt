@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
@@ -137,6 +137,14 @@ add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
 # SIMULATION
 add_custom_target(SIMULATION_TEST)
 add_dependencies(SIMULATION_TEST ${simulation_executables_list})
+
+#------------------------------------------------------------------------------
+# QT dependencies
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
+if (NOT Qt5Network_FOUND)
+  message(STATUS "QtNetwork module not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
 
 #------------------------------------------------------------------------------
 # Add the actual tests

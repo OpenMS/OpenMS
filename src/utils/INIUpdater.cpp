@@ -40,7 +40,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QFileInfo>
 #include <QFile>
 #include <QDir>
