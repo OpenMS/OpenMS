@@ -140,14 +140,14 @@ if (DOXYGEN_FOUND)
   # doc paths (bin path, topp documenter, defaultparamhandler documenter)
   #------------------------------------------------------------------------------
 	## Checks for Multiconfiguration generators like MSVC or XCode
-        if(NOT CMAKE_CONFIGURATION_TYPES)
+  if(NOT CMAKE_CONFIGURATION_TYPES)
 		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
 		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
 		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
 	else()
 		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/TOPPDocumenter")
 		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/DefaultParamHandlerDocumenter")
-		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)")
+		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}")
 	endif()
 
 	file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
