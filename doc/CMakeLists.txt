@@ -87,7 +87,7 @@ add_definitions(/DBOOST_ALL_NO_LIB)
 
 # build doc executables
 foreach(i ${OpenMS_doc_executables})
-	add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
+  add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
   target_link_libraries(${i} ${_doc_progs_link_libraries})
 
   # let the doc progs decide how to handle a missing OpenMS_GUI library
@@ -139,20 +139,20 @@ if (DOXYGEN_FOUND)
   #------------------------------------------------------------------------------
   # doc paths (bin path, topp documenter, defaultparamhandler documenter)
   #------------------------------------------------------------------------------
-	## Checks for Multiconfiguration generators like MSVC or XCode
-        if(NOT CMAKE_CONFIGURATION_TYPES)
-		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
-		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
-		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
-	else()
-		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/TOPPDocumenter")
-		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/DefaultParamHandlerDocumenter")
-		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)")
-	endif()
+  ## Checks for Multiconfiguration generators like MSVC or XCode
+  if(NOT CMAKE_CONFIGURATION_TYPES)
+    set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
+    set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
+    set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
+  else()
+    set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/TOPPDocumenter")
+    set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/DefaultParamHandlerDocumenter")
+    set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}")
+  endif()
 
-	file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
-	file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
-	file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
+  file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
+  file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
+  file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
 
   #------------------------------------------------------------------------------
   # doc_param_internal targets
@@ -176,7 +176,7 @@ if (DOXYGEN_FOUND)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMENT "Build the parameters documentation"
                     VERBATIM)
-	add_dependencies(doc_param_internal doc_progs)
+  add_dependencies(doc_param_internal doc_progs)
 
   #------------------------------------------------------------------------------
   # doc(_html) generation code reused in two independent targets
