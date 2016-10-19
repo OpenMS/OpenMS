@@ -9,9 +9,9 @@
 \usepackage{graphicx}
 \usepackage{multicol}
 \usepackage{float}
-\usepackage{textcomp}
 \usepackage{alltt}
 \usepackage{newtxtext, newtxmath}
+%\usepackage{textcomp} Is included through the above newtxtext. Comment to avoid option clashes.
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,
