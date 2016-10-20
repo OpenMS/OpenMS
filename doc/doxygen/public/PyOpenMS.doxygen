@@ -53,11 +53,7 @@ PyOpenMS offers Python bindings to a large part of the %OpenMS API.
 
 We offer pre-built packages on <a href="https://pypi.python.org/pypi/pyopenms">PyPI (pyopenms package)</a>,
 which does not require compilation. If you want to use pyOpenMS in production,
-we recommend to follow the instruction from the linked website and install pyOpenMS through easy_install: 
-
-@code
-$ easy_install pyopenms
-@endcode
+we recommend to follow the binary installation instructions specific for your platform on <a href="https://pypi.python.org/pypi/pyopenms">PyPI</a>.
 
 <H1 id="build" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Build Instructions</H1>
 
