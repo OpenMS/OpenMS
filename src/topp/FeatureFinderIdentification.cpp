@@ -468,9 +468,9 @@ protected:
           Size current_index = fi_it->first;
           Size current_count = fi_it->second.size();
           if ((current_count > best_count) ||
-              ((current_count == best_count) && // break ties by feature quality
-               (features[current_index].getOverallQuality() >
-                features[best_index].getOverallQuality())))
+              ((current_count == best_count) && // break ties by intensity
+               (features[current_index].getIntensity() >
+                features[best_index].getIntensity())))
           {
             best_count = current_count;
             best_index = current_index;
@@ -1295,7 +1295,7 @@ protected:
     params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
                     signal_to_noise);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+    // params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
     feat_finder_.setParameters(params);
