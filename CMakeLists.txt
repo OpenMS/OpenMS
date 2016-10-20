@@ -72,11 +72,11 @@ include(Dart)
 # - do NOT hardcode them here!
 # - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
 #------------------------------------------------------------------------------
-# CMAKE_FIND_ROOT_PATH
+# CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
 # ADDRESS_SANITIZER
-# COVERAGE
+# OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -194,7 +194,7 @@ endif()
 #------------------------------------------------------------------------------
 # Enable Coverage
 #------------------------------------------------------------------------------
-option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing. Requires the Debug build type,
+option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
  is slower and uses a lot of disk space (>40GB). Enables the target OpenMS_coverage to generate
  a coverage report in html format." OFF)
 if(OPENMS_COVERAGE)
