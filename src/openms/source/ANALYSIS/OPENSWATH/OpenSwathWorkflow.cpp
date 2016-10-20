@@ -860,17 +860,18 @@ namespace OpenMS
 namespace OpenMS
 {
 
-    void OpenSwathWorkflowSonar::performExtractionSonar(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                const TransformationDescription trafo, 
-                                const ChromExtractParams & cp,
-                                const Param & feature_finder_param, 
-                                const OpenSwath::LightTargetedExperiment& transition_exp, 
-                                FeatureMap& out_featureFile,
-                                bool store_features, 
-                                OpenSwathTSVWriter & tsv_writer,
-                                Interfaces::IMSDataConsumer<> * chromConsumer, 
-                                int batchSize,
-                                bool load_into_memory)
+    void OpenSwathWorkflowSonar::performExtractionSonar(
+           const std::vector< OpenSwath::SwathMap > & swath_maps,
+           const TransformationDescription trafo, 
+           const ChromExtractParams & cp,
+           const Param & feature_finder_param, 
+           const OpenSwath::LightTargetedExperiment& transition_exp, 
+           FeatureMap& out_featureFile,
+           bool store_features, 
+           OpenSwathTSVWriter & tsv_writer,
+           Interfaces::IMSDataConsumer<> * chromConsumer, 
+           int batchSize,
+           bool load_into_memory)
     {
       tsv_writer.writeHeader();
 
@@ -884,10 +885,6 @@ namespace OpenMS
           String("No swath maps provided"));
       }
 
-      std::cout << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
-      int progress = 0;
-      this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
-
       // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
       std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
       MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
@@ -899,8 +896,19 @@ namespace OpenMS
       int sonar_total_win;
       computeSonarWindows_(swath_maps, sonar_winsize, sonar_start, sonar_end, sonar_total_win);
 
+      std::cout << "Will analyze " << transition_exp.transitions.size() << " transitions in total." << std::endl;
+      int progress = 0;
+      this->startProgress(0, sonar_total_win, "Extracting and scoring transitions");
+
       ///////////////////////////////////////////////////////////////////////////
       // Iterate through all SONAR windows
+      // We set dynamic scheduling such that the SONAR windows are worked on in
+      // the order in which they were given to the program / acquired. This
+      // gives much better load balancing than static allocation.
+      // TODO: this means that there is possibly some overlap between threads accessing sptr ... !! 
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1)
+#endif
       for (int sonar_idx = 0; sonar_idx < sonar_total_win; sonar_idx++)
       {
 
@@ -941,9 +949,29 @@ namespace OpenMS
             // This creates an InMemory object that keeps all data in memory
             for (Size i = 0; i < used_maps.size(); i++)
             {
-              used_maps[i].sptr = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*used_maps[i].sptr) );
+
+#ifdef _OPENMP
+#pragma omp critical (loadMemory)
+#endif
+              {
+                // loading the maps into memory is not threadsafe iff they
+                // overlap (e.g. multiple threads could access the same maps)
+                // which often happens in SONAR
+                used_maps[i].sptr = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*used_maps[i].sptr) );
+              }
             }
           }
+#ifdef _OPENMP
+          else
+          {
+            // Create threadsafe access
+            for (Size i = 0; i < used_maps.size(); i++)
+            {
+              used_maps[i].sptr = used_maps[i].sptr->lightClone();
+            }
+          }
+#endif
+
 
           int batch_size;
           if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
@@ -1001,10 +1029,13 @@ namespace OpenMS
 #endif
             {
               writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-              this->setProgress(progress++);
             }
           }
         }
+#ifdef _OPENMP
+#pragma omp critical (progress)
+#endif
+        this->setProgress(progress++);
       }
       this->endProgress();
     }
@@ -1160,5 +1191,4 @@ namespace OpenMS
 
 
 }
-
 
