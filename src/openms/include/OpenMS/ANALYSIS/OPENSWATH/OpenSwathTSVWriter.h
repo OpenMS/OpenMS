@@ -87,7 +87,7 @@ namespace OpenMS
     {
       ofs << "transition_group_id\tpeptide_group_label\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName" <<
         "\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth" <<
-        "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier" <<
+        "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\tinitialPeakQuality" <<
         "\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score" <<
         "\tvar_intensity_score\tvar_isotope_correlation_score\tvar_isotope_overlap_score" <<
         "\tvar_library_corr\tvar_library_dotprod\tvar_library_manhattan\tvar_library_rmsd" <<
@@ -235,6 +235,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("nr_peaks")
             + "\t" + (String)feature_it->getMetaValue("peak_apices_sum")
             + "\t" + (String)feature_it->getMetaValue("potentialOutlier")
+            + "\t" + (String)feature_it->getMetaValue("initialPeakQuality")
             + "\t" + (String)feature_it->getMetaValue("rightWidth")
             + "\t" + (String)feature_it->getMetaValue("rt_score")
             + "\t" + (String)feature_it->getMetaValue("sn_ratio")
