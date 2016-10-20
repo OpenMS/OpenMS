@@ -63,7 +63,7 @@ namespace OpenMS
     // TODO
   }
 
-  void SONARScoring::computeXCorr(std::vector<std::vector<double> >& sonar_profiles,
+  void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
                      double& xcorr_coelution_score, double& xcorr_shape_score)
   {
     /// Cross Correlation array
@@ -125,7 +125,7 @@ namespace OpenMS
 
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
                                         const std::vector<OpenSwath::LightTransition> & transitions,
-                                        std::vector<OpenSwath::SwathMap> swath_maps,
+                                        std::vector<OpenSwath::SwathMap>& swath_maps,
                                         OpenSwath_Scores & scores)
   {
     if (transitions.empty()) {return;}
@@ -342,7 +342,7 @@ namespace OpenMS
     }
 
     double xcorr_coelution_score, xcorr_shape_score;
-    computeXCorr(sonar_profiles, xcorr_coelution_score, xcorr_shape_score);
+    computeXCorr_(sonar_profiles, xcorr_coelution_score, xcorr_shape_score);
 
     double sn_av = std::accumulate(sn_score.begin(), sn_score.end(), 0.0) / sn_score.size();
     double diff_av = std::accumulate(diff_score.begin(), diff_score.end(), 0.0) / diff_score.size();

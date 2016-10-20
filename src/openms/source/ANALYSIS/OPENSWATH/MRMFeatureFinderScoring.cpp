@@ -123,7 +123,7 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_total_xic_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
-    scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores", ListUtils::create<String>("advanced"));
+    scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores. If turned off, will not use fragment ion spectra for scoring.", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_correlation", "false", "Use the correlation scores with the MS1 elution profiles", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
@@ -346,6 +346,7 @@ namespace OpenMS
       idscores.ind_num_transitions = native_ids_identification.size();
     }
 
+    // Compute DIA scores only on the identification transitions
     bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     if (swath_present && su_.use_dia_scores_ && native_ids_identification.size() > 0)
     {
@@ -464,6 +465,10 @@ namespace OpenMS
       {
         scorer.calculateDIAScores(imrmfeature, transition_group_detection.getTransitions(),
                                   swath_maps, ms1_map_, diascoring_, *pep, scores);
+      }
+      if (swath_maps.size() > 0 && swath_maps[0].sptr->getNrSpectra() > 0 && su_.use_sonar_scores)
+      {
+        SONARScoring().computeSonarScores(imrmfeature, transition_group_detection.getTransitions(), swath_maps, scores);
       }
 
       if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
