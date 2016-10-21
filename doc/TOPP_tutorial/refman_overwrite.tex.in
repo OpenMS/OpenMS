@@ -11,9 +11,7 @@
 \usepackage{float}
 \usepackage{alltt}
 \usepackage{newtxtext, newtxmath}
-\@ifpackageloaded{textcomp} % newtxtext loads textcomp only in newer versions
-  {} % do nothing if loaded by the previous package to avoid option clashes
-  {\usepackage{textcomp}} % otherwise load the package
+\usepackage[full]{textcomp} %Careful: newtxttext also loads textcomp. Option full needs to match.
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,
