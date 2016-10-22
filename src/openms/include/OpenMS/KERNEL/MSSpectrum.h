@@ -354,7 +354,7 @@ public:
       }
       else
       {
-        //sort index list
+        // sort index list
         std::vector<std::pair<typename PeakType::IntensityType, Size> > sorted_indices;
         sorted_indices.reserve(ContainerType::size());
         for (Size i = 0; i < ContainerType::size(); ++i)
@@ -371,43 +371,14 @@ public:
           std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
         }
 
-        //apply sorting to ContainerType and to meta data arrays
-        ContainerType tmp;
+        // extract list of indices
+        std::vector<Size> select_indices;
+        select_indices.reserve(sorted_indices.size());
         for (Size i = 0; i < sorted_indices.size(); ++i)
         {
-          tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
+          select_indices.push_back(sorted_indices[i].second);
         }
-        ContainerType::swap(tmp);
-
-        for (Size i = 0; i < float_data_arrays_.size(); ++i)
-        {
-          std::vector<float> mda_tmp;
-          for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          float_data_arrays_[i].swap(mda_tmp);
-        }
-
-        for (Size i = 0; i < string_data_arrays_.size(); ++i)
-        {
-          std::vector<String> mda_tmp;
-          for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          string_data_arrays_[i].swap(mda_tmp);
-        }
-
-        for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-        {
-          std::vector<Int> mda_tmp;
-          for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          integer_data_arrays_[i].swap(mda_tmp);
-        }
+        select(select_indices);
       }
     }
 
@@ -433,47 +404,14 @@ public:
         }
         std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
 
-        //apply sorting to ContainerType and to metadataarrays
-        ContainerType tmp;
-        tmp.reserve(sorted_indices.size());
+        // extract list of indices
+        std::vector<Size> select_indices;
+        select_indices.reserve(sorted_indices.size());
         for (Size i = 0; i < sorted_indices.size(); ++i)
         {
-          tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
+          select_indices.push_back(sorted_indices[i].second);
         }
-        ContainerType::swap(tmp);
-
-        for (Size i = 0; i < float_data_arrays_.size(); ++i)
-        {
-          std::vector<float> mda_tmp;
-          mda_tmp.reserve(float_data_arrays_[i].size());
-          for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(float_data_arrays_[i], mda_tmp);
-        }
-
-        for (Size i = 0; i < string_data_arrays_.size(); ++i)
-        {
-          std::vector<String> mda_tmp;
-          mda_tmp.reserve(string_data_arrays_[i].size());
-          for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(string_data_arrays_[i], mda_tmp);
-        }
-
-        for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-        {
-          std::vector<Int> mda_tmp;
-          mda_tmp.reserve(integer_data_arrays_[i].size());
-          for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(integer_data_arrays_[i], mda_tmp);
-        }
+        select(select_indices);
       }
     }
 
@@ -730,6 +668,61 @@ public:
         string_data_arrays_.clear();
         integer_data_arrays_.clear();
       }
+    }
+
+
+    /*
+      @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
+
+      @param indices Vector of indices to keep
+      @return Reference to this MSSpectrum
+
+    */
+    MSSpectrum& select(const std::vector<Size>& indices)
+    { 
+      Size snew = indices.size();
+      ContainerType tmp;
+      tmp.reserve(indices.size());
+      for (Size i = 0; i < snew; ++i)
+      {
+        tmp.push_back(*(ContainerType::begin() + indices[i]));
+      }
+      ContainerType::swap(tmp);
+
+      for (Size i = 0; i < float_data_arrays_.size(); ++i)
+      {
+        std::vector<float> mda_tmp;
+        mda_tmp.reserve(float_data_arrays_[i].size());
+        for (Size j = 0; j < snew; ++j)
+        {
+          mda_tmp.push_back(*(float_data_arrays_[i].begin() + indices[j]));
+        }
+        std::swap(float_data_arrays_[i], mda_tmp);
+      }
+
+      for (Size i = 0; i < string_data_arrays_.size(); ++i)
+      {
+        std::vector<String> mda_tmp;
+        mda_tmp.reserve(string_data_arrays_[i].size());
+        for (Size j = 0; j < snew; ++j)
+        {
+          mda_tmp.push_back(*(string_data_arrays_[i].begin() + indices[j]));
+        }
+        std::swap(string_data_arrays_[i], mda_tmp);
+      }
+
+      for (Size i = 0; i < integer_data_arrays_.size(); ++i)
+      {
+        std::vector<Int> mda_tmp;
+        mda_tmp.reserve(integer_data_arrays_[i].size());
+        for (Size j = 0; j < snew; ++j)
+        {
+          mda_tmp.push_back(*(integer_data_arrays_[i].begin() + indices[j]));
+        }
+        std::swap(integer_data_arrays_[i], mda_tmp);
+      }
+
+      return *this;
     }
 
 protected:
