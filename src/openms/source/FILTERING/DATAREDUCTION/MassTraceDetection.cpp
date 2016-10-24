@@ -287,7 +287,7 @@ namespace OpenMS
         ++fwhm_meta_count;
       }
     }    
-    if (fwhm_meta_count != work_exp.size())
+    if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size())
     {
       throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                     String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
