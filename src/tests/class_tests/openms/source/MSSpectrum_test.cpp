@@ -153,6 +153,83 @@ START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
   TEST_EQUAL(s.getIntegerDataArrays().size(),2)
 END_SECTION
 
+START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
+  MSSpectrum<> s;
+  s.push_back(p1);
+  s.push_back(p2);
+  s.push_back(p3);
+  s.push_back(p3);
+  s.push_back(p2);
+
+  int air[] = {1, 2, 3, 4, 5};
+  float afr[] = {1.0, 2.0, 3.0, 4.0, 5.0};
+  String asr[] = {"1", "2" , "3", "4", "5"};
+  std::vector<int> ai(&air[0], &air[5]);
+  MSSpectrum<>::IntegerDataArray aia;
+  swap(aia, ai);
+  std::vector<float> af(&afr[0], &afr[5]);
+  MSSpectrum<>::FloatDataArray afa;
+  swap(afa, af);
+  std::vector<String> as(&asr[0], &asr[5]);
+  MSSpectrum<>::StringDataArray asa;
+  swap(asa, as);
+  //MSSpectrum<>::IntegerDataArray
+  s.getFloatDataArrays().push_back(afa);
+  s.getIntegerDataArrays().push_back(aia);
+  s.getStringDataArrays().push_back(asa);
+  s.getFloatDataArrays().push_back(afa);
+  s.getIntegerDataArrays().push_back(aia);
+  s.getStringDataArrays().push_back(asa);
+
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 1.0)
+  TEST_REAL_SIMILAR(s[4].getIntensity(), 2.0)
+  TEST_EQUAL(s.getFloatDataArrays().size(), 2)
+  TEST_EQUAL(s.getFloatDataArrays()[0].size(), 5)
+  TEST_EQUAL(s.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(s.getIntegerDataArrays()[0].size(), 5)
+  TEST_EQUAL(s.getStringDataArrays().size(), 2)
+  TEST_EQUAL(s.getStringDataArrays()[0].size(), 5)
+
+  // re-order
+  MSSpectrum<> s2 = s;
+  Size order[] = {4, 2, 3, 1, 0};
+  s2.select(std::vector<Size>(&order[0], &order[5]));
+  TEST_REAL_SIMILAR(s2[0].getIntensity(), 2.0)
+  TEST_REAL_SIMILAR(s2[4].getIntensity(), 1.0)
+  TEST_EQUAL(s2.getFloatDataArrays().size(), 2)
+  TEST_EQUAL(s2.getFloatDataArrays()[0].size(), 5)
+  TEST_EQUAL(s2.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0].size(), 5)
+  TEST_EQUAL(s2.getStringDataArrays().size(), 2)
+  TEST_EQUAL(s2.getStringDataArrays()[0].size(), 5)
+  
+  TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
+  TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
+
+  // subset
+  s2 = s;
+  Size subset[] = {4, 2, 3};
+  // --> new values in Meta arrays are: 
+  //     5, 3, 4
+  s2.select(std::vector<Size>(&subset[0], &subset[3]));
+  TEST_REAL_SIMILAR(s2[0].getIntensity(), 2.0)
+  TEST_REAL_SIMILAR(s2[1].getIntensity(), 3.0)
+  TEST_REAL_SIMILAR(s2[2].getIntensity(), 3.0)
+  TEST_EQUAL(s2.getFloatDataArrays().size(), 2)
+  TEST_EQUAL(s2.getFloatDataArrays()[0].size(), 3)
+  TEST_EQUAL(s2.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0].size(), 3)
+  TEST_EQUAL(s2.getStringDataArrays().size(), 2)
+  TEST_EQUAL(s2.getStringDataArrays()[0].size(), 3)
+
+  TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
+  TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
+
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // RangeManager
 
