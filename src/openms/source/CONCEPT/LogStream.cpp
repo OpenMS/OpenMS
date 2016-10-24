@@ -270,8 +270,8 @@ namespace OpenMS
 
                 // assemble the string to be written
                 // (consider leftovers of the last buffer from incomplete_line_)
-                std::string outstring = incomplete_line_;
-                incomplete_line_ = "";
+                std::string outstring;
+                std::swap(outstring, incomplete_line_); // init outstring, while resetting incomplete_line_ 
                 outstring += &(buf[0]);
 
                 // avoid adding empty lines to the cache
