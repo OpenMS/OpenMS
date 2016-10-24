@@ -110,7 +110,15 @@ namespace OpenMS
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     set<const ResidueModification*> mods;
-    searchModifications(mods, mod_name, residue, term_spec);
+    // if residue is specified, try residue-specific search first to avoid
+    // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
+    if (!residue.empty() &&
+        (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY))
+    {
+      searchModifications(mods, mod_name, residue,
+                          ResidueModification::ANYWHERE);
+    }
+    if (mods.empty()) searchModifications(mods, mod_name, residue, term_spec);
 
     if (mods.empty())
     {

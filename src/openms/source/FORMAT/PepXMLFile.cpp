@@ -69,7 +69,7 @@ namespace OpenMS
     hydrogen_ = *db->getElement("Hydrogen");
   }
 
-  const double PepXMLFile::mod_tol_ = 0.0001;
+  const double PepXMLFile::mod_tol_ = 0.001;
   const double PepXMLFile::xtandem_artificial_mod_tol_ = 0.0005; // according to cpp in some old version of xtandem somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
 
   PepXMLFile::~PepXMLFile()
@@ -1201,24 +1201,11 @@ namespace OpenMS
       {
         try
         {
-          desc = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec).getName();
-          if (!desc.empty())
-          {
-            if (is_variable == "Y")
-            {
-              variable_modifications_.push_back(aa_mod);
-              params_.variable_modifications.push_back(desc);
-            }
-            else
-            {
-              fixed_modifications_.push_back(aa_mod);
-              params_.fixed_modifications.push_back(desc);
-            }
-          }
+          desc = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec).getFullId();
         }
-        catch (Exception::ElementNotFound)
+        catch (Exception::BaseException)
         {
-          error(LOAD, "Modification '" + String(aa_mod.description) + "' is not uniquely defined by the given data. Trying by modification mass.");
+          error(LOAD, "Modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be matched. Trying by modification mass.");
         }
       }
       else
