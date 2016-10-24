@@ -11,7 +11,7 @@
 \usepackage{float}
 \usepackage{alltt}
 \usepackage{newtxtext, newtxmath}
-%\usepackage{textcomp} Is included through the above newtxtext. Comment to avoid option clashes.
+\usepackage[full]{textcomp} %Careful: newtxttext also loads textcomp. Option full needs to match.
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,
