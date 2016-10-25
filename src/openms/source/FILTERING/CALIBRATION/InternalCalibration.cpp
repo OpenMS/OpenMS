@@ -355,8 +355,18 @@ namespace OpenMS
     }
     endProgress();
 
+    // check if Rscript is available
+    if (!file_models_plot.empty() || !file_residuals_plot.empty())
+    {
+      if (!RWrapper::findR(true))
+      {
+        LOG_ERROR << "The R interpreter is required to create PNG plot files. To avoid the error, either do not request 'quality_control:*_plot' (not recommended) or fix your R installation." << std::endl;
+        return false;
+      }
+    }
+
     //
-    // show the model parameters
+    // write the model parameters to file and/or plot them
     //
     if (!file_models.empty() || !file_models_plot.empty())
     {
@@ -381,6 +391,7 @@ namespace OpenMS
       {
         if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString()))
         {
+          LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:models_plot' (not recommended) or fix your R installation." << std::endl;
           return false;
         }
       }
@@ -437,6 +448,7 @@ namespace OpenMS
     {
       if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString()))
       {
+        LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:residuals_plot' (not recommended) or fix your R installation." << std::endl;
         return false;
       }
     }
