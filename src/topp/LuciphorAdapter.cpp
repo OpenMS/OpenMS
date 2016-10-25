@@ -185,7 +185,6 @@ protected:
 
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
-
   }
   
   String makeModString_(const String& mod_name)
