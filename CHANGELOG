@@ -68,7 +68,7 @@ Databases:
 
 Third-party software:
   - update for 64-bit X!Tandem VENGEANCE (2015.12.15) NOTE: 32-bit version kept at SLEDGEHAMMER (2013.09.01)
-  - update for MS-GF+ Release (v2016.09.07) (9/07/2016)
+  - update for MS-GF+ Release v2016.10.14, released October 14, 2016
   - update for pwiz 3.0.9935
 
 Changed tool parameters:
