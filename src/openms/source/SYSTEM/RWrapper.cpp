@@ -127,7 +127,7 @@ namespace OpenMS
       if (verbose)
       {
         LOG_INFO << " failed" << std::endl;
-        LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ") << "'\n"
+        LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "'\n"
                   << "Output was:\n------>\n"
                   << QString(p.readAllStandardOutput()).toStdString()
                   << "\n<------\n"
