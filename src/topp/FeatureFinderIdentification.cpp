@@ -187,7 +187,7 @@ protected:
     registerDoubleOption_("extract:isotope_pmin", "<value>", 0.0, "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.", false, true);
     setMinFloat_("extract:isotope_pmin", 0.0);
     setMaxFloat_("extract:isotope_pmin", 1.0);
-    registerDoubleOption_("extract:rt_quantile", "<value>", 0.99, "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window", false, true);
+    registerDoubleOption_("extract:rt_quantile", "<value>", 0.95, "Quantile of the RT deviations between aligned internal and external IDs to use for scaling the RT extraction window", false, true);
     setMinFloat_("extract:rt_quantile", 0.0);
     setMaxFloat_("extract:rt_quantile", 1.0);
     registerDoubleOption_("extract:rt_window", "<value>", 0.0, "RT window size (in sec.) for chromatogram extraction. If set, this parameter takes precedence over 'extract:rt_quantile'.", false, true);
@@ -1320,6 +1320,7 @@ protected:
 
       LOG_INFO << "Realigning internal and external IDs...";
       aligner.align(aligner_peptides, aligner_trafos);
+      trafo_external_ = aligner_trafos[0];
       vector<double> aligned_diffs;
       trafo_external_.getDeviations(aligned_diffs);
       double quantile = getDoubleOption_("extract:rt_quantile");
