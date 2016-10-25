@@ -273,7 +273,7 @@ namespace OpenMS
 
     // check presence of FWHM meta data
     int fwhm_meta_idx(-1);
-    int fwhm_meta_count(0);
+    Size fwhm_meta_count(0);
     for (Size i = 0; i < work_exp.size(); ++i)
     {
       if (work_exp[i].getFloatDataArrays().size() > 0 && 
