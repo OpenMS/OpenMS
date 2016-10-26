@@ -169,6 +169,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
+    registerInputFile_("executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false);
         
     addEmptyLine_();
 
@@ -234,7 +235,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     String in = getStringOption_("in");
-    String out = getStringOption_("out"); 
+    String out = getStringOption_("out");
+    String executable = getStringOption_("executable"); 
     String cal_id = getStringOption_("cal:id_in");
     String cal_lock = getStringOption_("cal:lock_in");
     String file_cal_lock_out = getStringOption_("cal:lock_out");
@@ -351,7 +353,8 @@ protected:
                       getStringOption_("quality_control:models"),
                       getStringOption_("quality_control:models_plot"),
                       getStringOption_("quality_control:residuals"),
-                      getStringOption_("quality_control:residuals_plot")))
+                      getStringOption_("quality_control:residuals_plot"),
+                      getStringOption_("executable").toQString()))
     {
       LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;

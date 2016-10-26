@@ -37,6 +37,8 @@
 
 #include <OpenMS/config.h>
 
+#include <QString>
+
 class QStringList;
 
 namespace OpenMS
@@ -74,12 +76,12 @@ public:
     static String findScript(const String& script_file, bool verbose = true);
 
     /**
-      @brief Check for presence of 'Rscript' in system path.
+      @brief Check for presence of 'Rscript'.
 
       @param verbose Print failure information?
       @return Success status
     */
-    static bool findR(bool verbose = true);
+    static bool findR(const QString& executable = QString("Rscript"), bool verbose = true);
 
 
     /**
@@ -102,7 +104,7 @@ public:
       @return Success status
 
     */
-    static bool runScript(const String& script_file, const QStringList& cmd_args, bool find_R = false, bool verbose = true);
+    static bool runScript(const String& script_file, const QStringList& cmd_args, const QString& executable = QString("Rscript"), bool find_R = false, bool verbose = true);
 
   };
 

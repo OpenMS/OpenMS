@@ -186,6 +186,7 @@ namespace OpenMS
       @param file_models_plot Output PNG image model parameters (pass empty string to skip)
       @param file_residuals Output CSV filename, where ppm errors of calibrants before and after model fitting parameters are written to (pass empty string to skip)
       @param file_residuals_plot Output PNG image of the ppm errors of calibrants (pass empty string to skip)
+      @param rscript_executable Full path to the Rscript executable
       @return true upon successful calibration
 
     */
@@ -199,7 +200,8 @@ namespace OpenMS
                    const String& file_models = "",
                    const String& file_models_plot = "",
                    const String& file_residuals = "",
-                   const String& file_residuals_plot = "");
+                   const String& file_residuals_plot = "",
+                   const QString& rscript_executable = "Rscript");
 
     /*
       @brief Transform a spectrum (data+precursor)

@@ -46,9 +46,9 @@
 namespace OpenMS
 {
 
-  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, bool find_R /*= false */, bool verbose /*= true */)
+  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, const QString& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
   {
-    if (find_R && !findR(verbose))
+    if (find_R && !findR(executable, verbose))
     {
       return false;
     }
@@ -70,7 +70,7 @@ namespace OpenMS
     args.append(cmd_args);
 
     QProcess p;
-    p.start("Rscript", args);
+    p.start(executable, args);
     p.waitForFinished(-1);
 
     if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
@@ -91,14 +91,14 @@ namespace OpenMS
     return true;
   }
 
-  bool RWrapper::findR( bool verbose /*= true*/ )
+  bool RWrapper::findR( const QString& executable /*= "Rscript"*/, bool verbose /*= true*/ )
   {
     if (verbose) LOG_INFO << "Finding R interpreter 'Rscript' ...";
 
     QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
     QProcess p;
     p.setProcessChannelMode(QProcess::MergedChannels); // stdout receives all messages (stderr is empty)
-    p.start("Rscript", args);
+    p.start(executable, args);
     p.waitForFinished(-1);
 
     if (p.error() == QProcess::FailedToStart)
@@ -107,7 +107,7 @@ namespace OpenMS
       {
         LOG_INFO << " failed" << std::endl;
         String out = QString(p.readAllStandardOutput()).toStdString();
-        LOG_ERROR << "Error: Could not find or run 'Rscript' executable (FailedToStart).\n";
+        LOG_ERROR << "Error: Could not find or run '" + executable.toStdString() + "' executable (FailedToStart).\n";
         if (!out.empty())
         {
           LOG_ERROR << "Output was:\n------>\n"
