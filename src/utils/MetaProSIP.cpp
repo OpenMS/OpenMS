@@ -2066,7 +2066,7 @@ protected:
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
 
-    registerInputFile_("executable", "<file>", "R", "Path to the R executable (default: 'R')", false);
+    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false);
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
@@ -2922,7 +2922,7 @@ protected:
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
-    QString executable = getStringOption_("executable").toQString();
+    QString executable = getStringOption_("r_executable").toQString();
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double rt_tolerance_s = getDoubleOption_("rt_tolerance_s");
 
