@@ -43,6 +43,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -1105,6 +1106,39 @@ namespace OpenMS
       {
         vector<ProteinIdentification> proteins; // not needed later
         IdXMLFile().load(abs_filename, proteins, peptides);
+        if (peptides.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+        }
+        // check if RT (and sequence) information is present:
+        vector<PeptideIdentification> peptides_with_rt;
+        for (vector<PeptideIdentification>::const_iterator it =
+               peptides.begin(); it != peptides.end(); ++it)
+        {
+          if (!it->getHits().empty() && it->hasRT())
+          {
+            peptides_with_rt.push_back(*it);
+          }
+        }
+        Size diff = peptides.size() - peptides_with_rt.size();
+        if (diff)
+        {
+          String msg = String(diff) + " peptide identification(s) without"
+                                      " sequence and/or retention time information were removed.\n" +
+                       peptides_with_rt.size() + " peptide identification(s) remaining.";
+          showLogMessage_(LS_WARNING, "While loading file:", msg);
+        }
+        if (peptides_with_rt.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+        }
+        peptides.swap(peptides_with_rt);
+        data_type = LayerData::DT_IDENT;
+      }
+      else if (file_type == FileTypes::MZIDENTML)
+      {
+        vector<ProteinIdentification> proteins; // not needed later
+        MzIdentMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
@@ -2962,7 +2996,8 @@ namespace OpenMS
     QString fname = QFileDialog::getOpenFileName(this,
                                                 "Select protein/AMT identification data",
                                                 current_path_.toQString(),
-                                                "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
+                                                "idXML files (*.idXML); mzIdentML files (*.mzid,*.mzIdentML); featureXML files (*.featureXML); all files (*.*)");
+
     if (fname.isEmpty()) return;
 
     FileTypes::Type type = FileHandler::getType(fname);
@@ -3026,7 +3061,42 @@ namespace OpenMS
         mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
       }
     }
-    else // file type other than idXML or featureXML
+    else if (type == FileTypes::MZIDENTML)
+    {
+      vector<PeptideIdentification> identifications;
+      vector<ProteinIdentification> protein_identifications;
+
+      try
+      {
+        MzIdentMLFile().load(fname, protein_identifications, identifications);
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
+        return;
+      }
+
+      IDMapper mapper;
+      if (layer.type == LayerData::DT_PEAK)
+      {
+        Param p = mapper.getDefaults();
+        p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+        p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+        p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+        mapper.setParameters(p);
+        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications, true);
+        views_tabwidget_->setTabEnabled(1, true); // enable identification view
+      }
+      else if (layer.type == LayerData::DT_FEATURE)
+      {
+        mapper.annotate(*layer.getFeatureMap(), identifications, protein_identifications);
+      }
+      else
+      {
+        mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
+      }
+    }
+    else // file type other than mzIdentML, idXML or featureXML
     {
       QMessageBox::warning(this, "Error", QString("Unknown file type. No annotation performed."));
       return;
