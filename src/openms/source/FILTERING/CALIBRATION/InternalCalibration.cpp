@@ -259,7 +259,8 @@ namespace OpenMS
                                       const String& file_models,
                                       const String& file_models_plot,
                                       const String& file_residuals,
-                                      const String& file_residuals_plot)
+                                      const String& file_residuals_plot,
+                                      const QString& rscript_executable)
   {
     // ensure sorting; required for finding RT ranges and lock masses
     if (!exp.isSorted(true))
@@ -358,7 +359,7 @@ namespace OpenMS
     // check if Rscript is available
     if (!file_models_plot.empty() || !file_residuals_plot.empty())
     {
-      if (!RWrapper::findR(true))
+      if (!RWrapper::findR(rscript_executable, true))
       {
         LOG_ERROR << "The R interpreter is required to create PNG plot files. To avoid the error, either do not request 'quality_control:*_plot' (not recommended) or fix your R installation." << std::endl;
         return false;
@@ -389,7 +390,7 @@ namespace OpenMS
       // plot it
       if (!file_models_plot.empty())
       {
-        if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString()))
+        if (!RWrapper::runScript("InternalCalibration_Models.R", QStringList() << out_table.toQString() << file_models_plot.toQString(), rscript_executable))
         {
           LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:models_plot' (not recommended) or fix your R installation." << std::endl;
           return false;
@@ -446,7 +447,7 @@ namespace OpenMS
     // plot it
     if (!file_residuals_plot.empty())
     {
-      if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString()))
+      if (!RWrapper::runScript("InternalCalibration_Residuals.R", QStringList() << out_table_residuals.toQString() << file_residuals_plot.toQString(), rscript_executable))
       {
         LOG_ERROR << "R script failed. To avoid the error, either disable the creation of 'quality_control:residuals_plot' (not recommended) or fix your R installation." << std::endl;
         return false;
