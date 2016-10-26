@@ -107,7 +107,7 @@ namespace OpenMS
       {
         LOG_INFO << " failed" << std::endl;
         String out = QString(p.readAllStandardOutput()).toStdString();
-        LOG_ERROR << "Error: Could not find or run '" + executable.toStdString() + "' executable (FailedToStart).\n";
+        LOG_ERROR << "Error: Could not find or run '" << executable.toStdString() << "' executable (FailedToStart).\n";
         if (!out.empty())
         {
           LOG_ERROR << "Output was:\n------>\n"
