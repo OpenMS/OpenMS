@@ -121,10 +121,12 @@ namespace OpenMS
 
   void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
                                       const std::vector<double>& normalized_library_intensity,
-                                      double& ppm_score, double& ppm_score_weighted)
+                                      double& ppm_score, double& ppm_score_weighted, double& massdiff_t1, double& massdiff_diff_t1_t2)
   {
     ppm_score = 0;
     ppm_score_weighted = 0;
+    massdiff_t1 = 0;
+    massdiff_diff_t1_t2 = 0;
     double mz, intensity;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
@@ -141,7 +143,18 @@ namespace OpenMS
         continue;
       }
 
-      double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000 / transition->getProductMZ();
+      double diff_ppm = (mz - transition->getProductMZ()) * 1e6 / transition->getProductMZ();
+      if (k == 0)
+      {
+        // signed mass difference between ref. and first transition:
+        massdiff_t1 = diff_ppm;
+      }
+      else if (k == 1)
+      {
+        // absolute difference of differences for first/second transition:
+        massdiff_diff_t1_t2 = std::fabs(massdiff_t1 - diff_ppm);
+      }
+      diff_ppm = std::fabs(diff_ppm);
       ppm_score += diff_ppm;
       ppm_score_weighted += diff_ppm * normalized_library_intensity[k];
 #ifdef MRMSCORING_TESTING

@@ -120,6 +120,9 @@ namespace OpenMS
     std::string ind_transition_names;
     std::string ind_log_intensity;
 
+    double massdiff_t1;
+    double massdiff_diff_t1_t2;
+
     double weighted_coelution_score;
     double weighted_xcorr_shape;
     double weighted_massdev_score;

@@ -83,7 +83,8 @@ namespace OpenMS
 
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
-        scores.massdev_score, scores.weighted_massdev_score);
+                                  scores.massdev_score, scores.weighted_massdev_score,
+                                  scores.massdiff_t1, scores.massdiff_diff_t1_t2);
 
     // DIA dotproduct and manhattan score based on library intensity
     diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
