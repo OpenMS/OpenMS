@@ -32,6 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
+set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY On)
 set(CPACK_GENERATOR "DragNDrop")
 
 ## drag'n'drop installation configuration
@@ -48,9 +49,9 @@ set(CPACK_GENERATOR "DragNDrop")
 
 ## Fix OpenMS dependencies for all executables
 ########################################################### Fix Dependencies
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b ${PROJECT_BINARY_DIR}/bin/ -l ${PROJECT_BINARY_DIR}/lib/ -v)"
-  COMPONENT Fixing-dependencies
-)
+#install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b ${PROJECT_BINARY_DIR}/bin/ -l ${PROJECT_BINARY_DIR}/lib/ -v)"
+#  COMPONENT Fixing-dependencies
+#)
 
 ########################################################### Libraries
 # Libraries hack, avoid cmake interferring with our own lib fixes
@@ -91,18 +92,10 @@ install(DIRECTORY share/
 
 ########################################################### Documentation Preparation
 #------------------------------------------------------------------------------
-# install tutorials only if requested, note that we assume here that pdflatex
-# etc. is available
-# TODO: improve checks (only way to check at install time, is through another
-# install(CODE ...) or install (SCRIPT ...) command
+# Since doc_tutorial is built with ALL when ENABLE_TUTORIALS is ON, we can assume these
+# PDFs are present. The ALL target is executed automatically with "make package"
+
 if (ENABLE_TUTORIALS)
-
-  # we only build the doc target in ALL but not the tutorials
-  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc_tutorials)"
-          COMPONENT AAA-Documentation-Preparation
-          OPTIONAL
-  )
-
   install(FILES       ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
           DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
           COMPONENT doc
@@ -257,16 +250,12 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png
                     WORLD_READ
         COMPONENT share)
 
+set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent2.png) ## For configuration of the script
+configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
+set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
+#Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
+#set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
+set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+
 include(CPack)
 
-########################################################### Create dmg with background image
-add_custom_target(final_package
-  COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
-  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-  COMMENT "Finalizing dmg image"
-  DEPENDS dmg)
-
-add_custom_target(dmg
-  COMMAND cpack -G DragNDrop
-  COMMENT "Building intermediate dmg package"
-)
