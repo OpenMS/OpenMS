@@ -202,12 +202,11 @@ namespace OpenMS
                    const String& file_residuals_plot = "");
 
     /*
-      @brief Transform a spectrum (data+precursor)
+      @brief Transform a precursor's m/z
 
-      All peaks are calibrated in m/z.
-      Precursor m/z remains untouched (if present).
+      Calibrate m/z of precursors.
 
-      @param spec Uncalibrated MSSpectrum
+      @param pcs Uncalibrated Precursors
       @param trafo The calibration function to apply
     */
     static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo);
@@ -215,13 +214,13 @@ namespace OpenMS
     /*
       @brief Transform a spectrum (data+precursor)
 
-      All peaks are calibrated in m/z.
-      Precursor m/z remains untouched (if present).
+      See applyTransformation(MSExperiment, ...) for details.
 
       @param spec Uncalibrated MSSpectrum
+      @param target_mslvl List (can be unsorted) of MS levels to calibrate
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo);
+    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo);
 
     /*
       @brief Transform spectra from a whole map (data+precursor)
@@ -229,7 +228,7 @@ namespace OpenMS
       All data peaks and precursor information (if present) are calibrated in m/z.
 
       Only spectra whose MS-level is contained in 'target_mslvl' are calibrated.
-      If a fragmentation spectrum's precursor information originates from an MS level in 'target_mslvl',
+      In addition, if a fragmentation spectrum's precursor information originates from an MS level in 'target_mslvl',
       the precursor (not the spectrum itself) is also subjected to calibration.
       E.g., If we only have MS and MS/MS spectra: for 'target_mslvl' = {1} then all MS1 spectra and MS2 precursors are calibrated.
       If 'target_mslvl' = {2}, only MS2 spectra (not their precursors) are calibrated.
@@ -259,6 +258,13 @@ namespace OpenMS
 
     */
     void fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm );
+
+    /*
+     @brief Calibrate m/z of a spectrum, ignoring precursors!
+
+     This method is not exposed as public, because its easy to be misused on spectra while forgetting about the precursors of high-level spectra.
+    */
+    static void applyTransformation_(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo);
 
   private:
     CalibrationData cal_data_;
