@@ -250,7 +250,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png
                     WORLD_READ
         COMPONENT share)
 
-set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent2.png) ## For configuration of the script
+set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## For configuration of the script
 configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
 set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
 #Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
