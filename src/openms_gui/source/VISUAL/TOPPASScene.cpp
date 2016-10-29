@@ -1695,7 +1695,7 @@ namespace OpenMS
   void TOPPASScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   {
     QPointF scene_pos = event->scenePos();
-    QGraphicsItem* clicked_item = itemAt(scene_pos);
+    QGraphicsItem* clicked_item = itemAt(scene_pos, QTransform());
     QMenu menu;
 
     if (clicked_item == 0)

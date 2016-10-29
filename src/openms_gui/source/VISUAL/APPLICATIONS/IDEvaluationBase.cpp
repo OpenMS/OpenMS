@@ -135,7 +135,7 @@ namespace OpenMS
     setCentralWidget(dummy);
     QVBoxLayout* box_layout = new QVBoxLayout(dummy);
 
-    ws_ = new QWorkspace(dummy);
+    ws_ = new QMdiArea(dummy);
     //connect(ws_,SIGNAL(windowActivated(QWidget*)),this,SLOT(updateMenu()));
 
     box_layout->addWidget(ws_);

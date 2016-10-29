@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow$
+// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H
@@ -40,6 +40,7 @@
 #include <QtCore/QString>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QTimer>
+#include <QNetworkReply>
 
 
 namespace OpenMS
@@ -99,34 +100,19 @@ private slots:
 
     OPENMS_DLLAPI void timedOut();
 
-    OPENMS_DLLAPI void readyReadSlot(const QHttpResponseHeader& resp);
+    OPENMS_DLLAPI void readyRead();
 
-    /** slot connected to signal requestFinished of QHttp: "This signal is emitted
-          when processing the request identified by id has finished. error is true
-            if an error occurred during the processing; otherwise error is false"
-    */
-    OPENMS_DLLAPI void httpRequestFinished(int request_id, bool error);
+    /// called after the login finished
+    OPENMS_DLLAPI void loginFinished(QNetworkReply* reply);
 
-    /// slot connected to signal dataReadProgress of QHttp
-    OPENMS_DLLAPI void httpDataReadProgress(int bytes_read, int bytes_total);
+    /// called after the query finished
+    OPENMS_DLLAPI void queryFinished(QNetworkReply* reply);
+
+    /// slot connected to signal downloadProgress
+    OPENMS_DLLAPI void downloadProgress(int bytes_read, int bytes_total);
 
     /// slot connected to signal dataSendProgress of QHttp
     OPENMS_DLLAPI void httpDataSendProgress(int bytes_sent, int bytes_total);
-
-    /// slot connected to signal requestStarted of QHttp, which indicates that the processing of request request_id has been started
-    OPENMS_DLLAPI void httpRequestStarted(int request_id);
-
-    /** slot connected to signal stateChanged of QHttp, which is emitted if
-            the http state changed. See 'enum QHttp::State' of Qt docu for more
-            info.
-    */
-    OPENMS_DLLAPI void httpStateChanged(int state);
-
-    /// slot connected to signal done of QHttp
-    OPENMS_DLLAPI void httpDone(bool error);
-
-    /// slot connect to responseHeaderRecieved, which indicates that a new response header is available
-    OPENMS_DLLAPI void readResponseHeader(const QHttpResponseHeader& response_header);
 
     OPENMS_DLLAPI void login();
 
@@ -134,13 +120,11 @@ private slots:
 
     OPENMS_DLLAPI void getResults(QString results_path);
 
-    OPENMS_DLLAPI void followRedirect(const QHttpResponseHeader& resp);
+    OPENMS_DLLAPI void followRedirect(QNetworkReply * reply);
 
 signals:
 
-    OPENMS_DLLAPI void done();
-
-    OPENMS_DLLAPI void gotRedirect(const QHttpResponseHeader& resp);
+    OPENMS_DLLAPI void gotRedirect(QNetworkReply * reply);
 
 private:
     /// assignment operator
@@ -151,8 +135,7 @@ private:
     OPENMS_DLLAPI void endRun_();
 
     /// Write HTTP header to error stream (for debugging)
-    OPENMS_DLLAPI void logHeader_(const QHttpHeader& header, 
-                                  const String& what);
+    OPENMS_DLLAPI void logHeader_(const QList<QNetworkReply::RawHeaderPair> header , const String& what);
     /**
       @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
 
@@ -162,9 +145,13 @@ private:
 
     OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path) const;
 
+    /// parse new response header
+    OPENMS_DLLAPI void readResponseHeader(const QNetworkReply* reply);
+
+    QNetworkAccessManager* manager_;
+    QNetworkReply* reply_;
     String query_spectra_;
     QByteArray mascot_xml_;
-    QHttp* http_;
     QString cookie_;
     String error_message_;
     QTimer timeout_;

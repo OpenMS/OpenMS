@@ -53,7 +53,7 @@
 class QToolBar;
 class QListWidget;
 class QTextEdit;
-class QWorkspace;
+class QMdiArea;
 class QLabel;
 class QWidget;
 class QTreeWidget;
@@ -217,7 +217,7 @@ protected:
     //@}
 
     /// Main workspace
-    QWorkspace* ws_;
+    QMdiArea* ws_;
 
     /// OpenMS homepage workflow browser
     QWebView* webview_;
@@ -259,7 +259,7 @@ protected:
     static qreal z_value_;
 
     ///returns a pointer to the active TOPPASWidget (0 if none is active)
-    TOPPASWidget* activeWindow_() const;
+    TOPPASWidget* activeSubWindow_() const;
 
     ///@name reimplemented Qt events
     //@{

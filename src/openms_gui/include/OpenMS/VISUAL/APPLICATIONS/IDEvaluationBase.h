@@ -52,7 +52,7 @@
 class QToolBar;
 class QListWidget;
 class QTextEdit;
-class QWorkspace;
+class QMdiArea;
 class QLabel;
 class QWidget;
 class QTreeWidget;
@@ -163,7 +163,7 @@ protected:
     QTextEdit * desc_;
 
     /// Main workspace
-    QWorkspace * ws_;
+    QMdiArea * ws_;
 
     Spectrum1DWidget * spec_1d_;
 

@@ -345,7 +345,7 @@ namespace OpenMS
 
   void SpectrumWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), event->source(), window_id_);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), window_id_);
     event->acceptProposedAction();
   }
 

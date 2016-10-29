@@ -139,9 +139,6 @@ namespace OpenMS
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
 
-    // ensure correct encoding of paths
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
     //prevents errors caused by too small width, height values
     setMinimumSize(400, 400);
 
@@ -637,7 +634,7 @@ namespace OpenMS
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
-    ws_->closeAllWindows();
+    ws_->closeAllSubWindows();
     QSettings settings("OpenMS", "TOPPView");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
@@ -1022,8 +1019,8 @@ namespace OpenMS
   {
     set<String> filename_set;
     // iterate over all windows
-    QWidgetList wl = ws_->windowList();
-    for (int i = 0; i != ws_->windowList().count(); ++i)
+    QList<QMdiSubWindow *> wl = ws_->subWindowList();
+    for (int i = 0; i != ws_->subWindowList().count(); ++i)
     {
       QWidget* w = wl[i];
       // iterate over all widgets
@@ -1428,7 +1425,7 @@ namespace OpenMS
   EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
   {
     // return window with window_id == id
-    QList<QWidget*> windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
 
     for (int i = 0; i < windows.size(); ++i)
     {
@@ -1492,7 +1489,7 @@ namespace OpenMS
 
   void TOPPViewBase::closeFile()
   {
-    ws_->activeWindow()->close();
+    ws_->activeSubWindow()->close();
     updateMenu();
   }
 
@@ -2174,7 +2171,7 @@ namespace OpenMS
   void TOPPViewBase::tileVertical()
   {
     // primitive horizontal tiling
-    QWidgetList windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
       return;
 
@@ -2206,7 +2203,7 @@ namespace OpenMS
   void TOPPViewBase::tileHorizontal()
   {
     // primitive horizontal tiling
-    QWidgetList windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
       return;
 
@@ -2257,7 +2254,7 @@ namespace OpenMS
 
   void TOPPViewBase::layerZoomChanged()
   {
-    QWidgetList windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
       return;
 
@@ -2389,7 +2386,7 @@ namespace OpenMS
 
   void TOPPViewBase::showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption)
   {
-    ws_->addWindow(sw);
+    ws_->addSubWindow(sw);
     connect(sw->canvas(), SIGNAL(preferencesChange()), this, SLOT(updateLayerBar()));
     connect(sw->canvas(), SIGNAL(layerActivated(QWidget*)), this, SLOT(layerActivated()));
     connect(sw->canvas(), SIGNAL(layerModficationChange(Size, bool)), this, SLOT(updateLayerBar()));
@@ -2442,7 +2439,7 @@ namespace OpenMS
     tab_bar_->setCurrentId(sw->getWindowId());
 
     //show first window maximized (only visible windows are in the list)
-    if (ws_->windowList().count() == 0)
+    if (ws_->subWindowList().count() == 0)
     {
       sw->showMaximized();
     }
@@ -2469,16 +2466,16 @@ namespace OpenMS
 
   SpectrumWidget* TOPPViewBase::getActiveSpectrumWidget() const
   {
-    if (!ws_->activeWindow())
+    if (!ws_->activeSubWindow())
     {
       return 0;
     }
-    return qobject_cast<SpectrumWidget*>(ws_->activeWindow());
+    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeWindow());
+    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeSubWindow());
     if (sw == 0)
     {
       return 0;
@@ -3791,13 +3788,13 @@ namespace OpenMS
       return;
     }
 
-    QWidgetList wl = ws_->windowList();
+    QList<QMdiSubWindow *> wl = ws_->subWindowList();
 
     // iterate over all windows and determine which need an update
     std::vector<std::pair<const SpectrumWidget*, Size> > needs_update;
-    for (int i = 0; i != ws_->windowList().count(); ++i)
+    for (int i = 0; i != ws_->subWindowList().count(); ++i)
     {
-      //std::cout << "Number of windows: " << ws_->windowList().count() << std::endl;
+      //std::cout << "Number of windows: " << ws_->subWindowList().count() << std::endl;
       QWidget* w = wl[i];
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
       if (sw != 0)

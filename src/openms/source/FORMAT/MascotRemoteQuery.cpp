@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
+// $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QTextDocument>
+#include <QNetworkReply>
+#include <QNetworkProxy>
 #include <iostream>
 
 // #define MASCOTREMOTEQUERY_DEBUG
@@ -50,8 +52,6 @@ namespace OpenMS
     QObject(parent),
     DefaultParamHandler("MascotRemoteQuery")
   {
-    http_ = new QHttp();
-
     // server specifications
     defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'");
     defaults_.setValue("host_port", 80, "Port where the Mascot server listens, 80 should be a good guess");
@@ -89,25 +89,26 @@ namespace OpenMS
 
   MascotRemoteQuery::~MascotRemoteQuery()
   {
-    if (http_->state() != QHttp::Unconnected)
+    if (reply_->isRunning())
     {
 #ifdef MASCOTREMOTEQUERY_DEBUG
       std::cerr << "Aborting open connection!\n";
 #endif
-      http_->abort(); // hardcore close connection (otherwise server might have too many dangling requests)
+      reply_->abort(); // abort connection (otherwise server might have too many dangling requests)
     }
-    delete http_;
+    delete reply_;
+    delete manager_;
   }
 
   void MascotRemoteQuery::timedOut()
   {
     LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
-    http_->abort(); // one might try to resend the job here instead...
+    reply_->abort(); // one might try to resend the job here instead...
   }
 
   void MascotRemoteQuery::run()
   {
-    // Due to the asynchronous nature of QHttp::request (and the resulting use
+    // Due to the asynchronous nature of Qt network requests (and the resulting use
     // of signals and slots), the information flow in this class is not very
     // clear. After the initial call to "run", the steps are roughly as follows:
     // 1. optional: log into Mascot server (function "login")
@@ -122,20 +123,35 @@ namespace OpenMS
     // 9. read results, which should now contain the XML (function "httpDone")
 
     updateMembers_();
-    connect(http_, SIGNAL(requestFinished(int, bool)), this, SLOT(httpRequestFinished(int, bool)));
-    connect(http_, SIGNAL(requestStarted(int)), this, SLOT(httpRequestStarted(int)));
-    connect(http_, SIGNAL(done(bool)), this, SLOT(httpDone(bool)));
-    connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
-    connect(http_, SIGNAL(readyRead(const QHttpResponseHeader &)), this, SLOT(readyReadSlot(const QHttpResponseHeader &)));
-    connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
-    connect(this, SIGNAL(gotRedirect(const QHttpResponseHeader &)), this, SLOT(followRedirect(const QHttpResponseHeader &)));
+
+    manager_ = new QNetworkAccessManager(this);
+
+    if (use_ssl_)
+    {
+      manager_->connectToHost(host_name_.c_str(), (UInt)param_.getValue("host_port"));
+    }
+    else
+    {
+      manager_->connectToHostEncrypted(host_name_.c_str(), (UInt)param_.getValue("host_port"));
+    }
+
+    connect(this, SIGNAL(gotRedirect(QNetworkReply *)), this, SLOT(followRedirect(NetworkReply *)));
     connect(&timeout_, SIGNAL(timeout()), this, SLOT(timedOut()));
+    connect(reply_, SIGNAL(downloadProgress(int, int)), this, SLOT(downloadProgress(int, int)));
+    connect(reply_, SIGNAL(readyRead()), this, SLOT(readyRead()));
 
-    // get progress information
-    connect(http_, SIGNAL(dataReadProgress(int, int)), this, SLOT(httpDataReadProgress(int, int)));
+//    connect(manager_, SIGNAL(done(bool)), this, SLOT(httpDone(bool)));
+//    connect(manager_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
+//    connect(manager_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
 
-    if (param_.getValue("login").toBool()) login();
-    else execQuery();
+    if (param_.getValue("login").toBool()) 
+    {
+      login();
+    }
+    else 
+    {
+      execQuery();
+    }
   }
 
   void MascotRemoteQuery::login()
@@ -144,14 +160,16 @@ namespace OpenMS
     cerr << "void MascotRemoteQuery::login()" << "\n";
 #endif
 
-    // header
-    QHttpRequestHeader header;
+    QUrl url((server_path_ + "/cgi/login.pl").c_str());
+    QNetworkRequest request(url);
+
     QString boundary = boundary_.toQString();
-    header.setRequest("POST", (server_path_ + "/cgi/login.pl").c_str());
-    header.setValue("Host", host_name_.c_str());
-    header.setValue("Content-Type", "multipart/form-data, boundary=" + boundary);
-    header.setValue("Cache-Control", "no-cache");
-    header.setValue("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
+
+    // header
+    request.setRawHeader("Host", host_name_.c_str());
+    request.setRawHeader("Cache-Control", "no-cache");
+    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
 
     // content
     QByteArray loginbytes;
@@ -206,12 +224,12 @@ namespace OpenMS
     loginbytes.append("--" + boundary + "--\r\n");
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    logHeader_(header, "send");
+    logHeader_(request, "send");
 #endif
 
-    header.setContentLength(loginbytes.length());
-    http_->request(header, loginbytes);
-
+    request.setHeader(QNetworkRequest::ContentLengthHeader, loginbytes.length());
+    connect(manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginFinished(QNetworkReply*)));
+    manager_->post(request, loginbytes);
   }
 
   void MascotRemoteQuery::getResults(QString results_path)
@@ -220,56 +238,57 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::getResults()" << "\n";
 #endif
+    QNetworkRequest request(results_path);
 
-    QHttpRequestHeader header;
-    header.setRequest("GET", results_path);
-    header.setValue("Host", host_name_.toQString());
-    header.setValue("Accept", "text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-    header.setValue("Keep-Alive", "300");
-    header.setValue("Connection", "keep-alive");
+    // header
+    request.setRawHeader("Host", host_name_.c_str());
+    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    request.setRawHeader("Keep-Alive", "300");
+    request.setRawHeader("Connection", "keep-alive");
     if (cookie_ != "")
     {
-      header.setValue("Cookie", cookie_);
+      request.setHeader(QNetworkRequest::CookieHeader, cookie_);
     }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    logHeader_(header, "request results");
+    logHeader_(request, "request results");
 #endif
 
-    http_->request(header);
+    manager_->get(request);
   }
 
-  void MascotRemoteQuery::followRedirect(const QHttpResponseHeader& resp)
+  void MascotRemoteQuery::followRedirect(QNetworkReply * r)
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "void MascotRemoteQuery::followRedirect(const QHttpResponseHeader &)" << "\n";
+    cerr << "void MascotRemoteQuery::followRedirect(QNetworkReply *)" << "\n";
     cerr << "Header containing redirect: \n";
-    cerr << resp.toString().toStdString();
+    cerr << r.toString().toStdString();
     cerr << "END HEADER" << "\n";
-    cerr << "Location header: " << resp.value("Location").toStdString() << "\n";
+    cerr << "Location header: " << r->header(QNetworkRequest::LocationHeader).toStdString() << "\n";
 #endif
     // parse the location mascot wants us to go
-    QString location = resp.value("Location");
+    QString location = r->header(QNetworkRequest::LocationHeader).toString();
     removeHostName_(location);
 
-    QHttpRequestHeader header;
-    header.setRequest("GET", location);
-    header.setValue("Host", host_name_.toQString());
-    header.setValue("Accept", "text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-    header.setValue("Keep-Alive", "300");
-    header.setValue("Connection", "keep-alive");
+    QNetworkRequest request(location);
+
+    // header
+    request.setRawHeader("Host", host_name_.c_str());
+    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    request.setRawHeader("Keep-Alive", "300");
+    request.setRawHeader("Connection", "keep-alive");
     if (cookie_ != "")
     {
-      header.setValue("Cookie", cookie_);
+      request.setHeader(QNetworkRequest::CookieHeader, cookie_);
     }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << ">>> Header to follow redirect: " << "\n";
-    cerr << header.toString().toStdString() << "\n";
+    cerr << request.toString().toStdString() << "\n";
     cerr << "ended: " << "\n";
 #endif
 
-    http_->request(header);
+    manager_->get(request);
   }
 
   void MascotRemoteQuery::execQuery()
@@ -278,18 +297,22 @@ namespace OpenMS
     cerr << "void MascotRemoteQuery::execQuery()" << "\n";
 #endif
 
-    QHttpRequestHeader header;
-    QString boundary(boundary_.toQString());
+    QUrl url((server_path_ + "/cgi/nph-mascot.exe?1").c_str());
+    QNetworkRequest request(url);
 
-    header.setRequest("POST", (server_path_ + "/cgi/nph-mascot.exe?1").c_str());
-    header.setValue("Host", host_name_.toQString());
-    header.setValue("Content-Type", ("multipart/form-data, boundary=" + boundary));
-    header.setValue("Cache-Control", "no-cache");
+    QString boundary = boundary_.toQString();
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
+
+    // header
+    request.setRawHeader("Host", host_name_.c_str());
+    request.setRawHeader("Cache-Control", "no-cache");
+    request.setRawHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    request.setRawHeader("Accept", "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*");
+
     if (cookie_ != "")
     {
-      header.setValue("Cookie", cookie_);
+      request.setHeader(QNetworkRequest::CookieHeader, cookie_);
     }
-    header.setValue("Accept", "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*");
 
     QByteArray querybytes;
     querybytes.append("--" + boundary + "--\n");
@@ -301,41 +324,42 @@ namespace OpenMS
 
     querybytes.replace("\n", "\r\n");
 
-    header.setContentLength(querybytes.length());
-
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    logHeader_(header, "request");
+    logHeader_(request, "request");
     cerr << ">>>> Query (begin):" << "\n"
          << querybytes.constData() << "\n"
          << "<<<< Query (end)." << endl;
 #endif
 
     if (to_ > 0)
+    {
       timeout_.start();
-    http_->request(header, querybytes);
+    }
+
+    request.setHeader(QNetworkRequest::ContentLengthHeader, querybytes.length());
+    connect(manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(queryFinished(QNetworkReply*)));
+    manager_->post(request, querybytes);
   }
 
-  void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
+  void MascotRemoteQuery::loginFinished(QNetworkReply* r)
   {
-    if (error)
+    if (r->error())
     {
-      cerr << "MascotRemoteQuery: An error occurred (requestId=" << requestId << "): " << http_->errorString().toStdString() << " (QT Error Code: " << int(http_->error()) << ")\n";
+      cerr << "MascotRemoteQuery: An error occurred: " << r->errorString().toStdString() << " (QT Error Code: " << int(r->error()) << ")\n";
     }
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "Request Finished Id: " << requestId << "\n";
-    cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << "\n";
+    cerr << "Error: " << error << "(" << r->errorString().toStdString() << ")" << "\n";
 #endif
-
   }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-  void MascotRemoteQuery::httpDataReadProgress(int bytes_read, int bytes_total)
+  void MascotRemoteQuery::downloadProgress(int bytes_read, int bytes_total)
 #else
-  void MascotRemoteQuery::httpDataReadProgress(int /*bytes_read*/, int /*bytes_total*/)
+  void MascotRemoteQuery::downloadProgress(int /*bytes_read*/, int /*bytes_total*/)
 #endif
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << "\n";
+    cerr << "void MascotRemoteQuery::downloadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << "\n";
     /*
     if (http_->state() == QHttp::Reading)
     {
@@ -358,82 +382,31 @@ namespace OpenMS
 #endif
   }
 
-  void MascotRemoteQuery::httpRequestStarted(int
-#ifdef MASCOTREMOTEQUERY_DEBUG
-                                             requestId
-#endif
-                                             )
+  void MascotRemoteQuery::readyRead()
   {
-#ifdef MASCOTREMOTEQUERY_DEBUG
-    cout << "Request started: " << requestId << "\n";
-#endif
-  }
-
-  void MascotRemoteQuery::httpStateChanged(int
-#ifdef MASCOTREMOTEQUERY_DEBUG
-                                           state
-#endif
-                                           )
-  {
-#ifdef MASCOTREMOTEQUERY_DEBUG
-    switch (state)
-    {
-    case QHttp::Closing:
-      cout << "State change to QHttp::Closing\n";
-      break;
-
-    case QHttp::Unconnected:
-      cout << "State change to QHttp::Unconnected\n";
-      break;
-
-    case QHttp::HostLookup:
-      cout << "State change to QHttp::HostLookup\n";
-      break;
-
-    case QHttp::Sending:
-      cout << "State change to QHttp::Sending\n";
-      break;
-
-    case QHttp::Reading:
-      cout << "State change to QHttp::Reading\n";
-      break;
-
-    case QHttp::Connected:
-      cout << "State change to QHttp::Connected\n";
-      break;
-
-    case QHttp::Connecting:
-      cout << "State change to QHttp::Connecting\n";
-      break;
-    }
-#endif
-  }
-
-  void MascotRemoteQuery::readyReadSlot(const QHttpResponseHeader& /* resp */)
-  {
-    //if (http_->bytesAvailable() < 1000) std::cerr << "new bytes: " << http_->bytesAvailable() << " from " << resp.toString() << " with code " <<  resp.statusCode() << " and httpstat: " << http_->state() << "\n";
     if (to_ > 0)
       timeout_.start(); // reset timeout
   }
 
-  void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header)
+  void MascotRemoteQuery::readResponseHeader(const QNetworkReply* reply)
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << "\n";
-    logHeader_(response_header, "read");
+    cerr << "void MascotRemoteQuery::readResponseHeader(const QNetworkReply* reply)" << "\n";
+    logHeader_(reply, "read");
 #endif
 
-    if (response_header.statusCode() >= 400)
+    int status = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
+
+    if (status >= 400)
     {
-      error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + response_header.statusCode() + "': " + response_header.reasonPhrase() + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
+      error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + status + "': " + reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toString() + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       endRun_();
     }
 
-
     //Get session and username and so on...
-    if (response_header.hasKey("Set-Cookie"))
+    if (reply->header(QNetworkRequest::SetCookieHeader).isValid())
     {
-      QString response = response_header.toString();
+      QString response = reply->header(QNetworkRequest::SetCookieHeader).toString();
 
       QRegExp rx("MASCOT_SESSION=(\\w+);\\spath");
       rx.indexIn(response);
@@ -463,21 +436,23 @@ namespace OpenMS
 
   void MascotRemoteQuery::endRun_()
   {
+/* not sure if needed
     if (http_->state() != QHttp::Unconnected)
     {
       http_->clearPendingRequests();
       http_->close();
     }
     emit done();
+*/
   }
 
-  void MascotRemoteQuery::httpDone(bool error)
+  void MascotRemoteQuery::queryFinished(QNetworkReply* reply)
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "void MascotRemoteQuery::httpDone(bool error): ";
-    if (error)
+    cerr << "void MascotRemoteQuery::httpDone(const QNetworkReply* reply): ";
+    if (reply->error)
     {
-      cerr << "'" << http_->errorString().toStdString() << "'" << "\n";
+      cerr << "'" << reply->errorString().toStdString() << "'" << "\n";
     }
     else
     {
@@ -487,14 +462,14 @@ namespace OpenMS
 
     timeout_.stop();
 
-    if (error)
+    if (reply->error())
     {
-      error_message_ = String("Mascot Server replied: '") + String(http_->errorString().toStdString()) + "'";
+      error_message_ = String("Mascot Server replied: '") + String(reply->errorString().toStdString()) + "'";
       endRun_();
       return;
     }
 
-    QByteArray new_bytes = http_->readAll();
+    QByteArray new_bytes = reply->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "Response of query: " << "\n";
     QTextDocument doc;
@@ -502,7 +477,10 @@ namespace OpenMS
     cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 
-    if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
+    int status = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
+
+    // was: if (QString(new_bytes).trimmed().size() == 0 && !(reply->lastResponse().isValid() && status == 303))
+    if (QString(new_bytes).trimmed().size() == 0 && status != 303) // status != 303: no redirect
     {
       error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
       endRun_();
@@ -564,12 +542,12 @@ namespace OpenMS
       //Finished search, fire off results retrieval
       getResults(results_path);
     }
-    else if (http_->lastResponse().statusCode() == 303)
+    else if (status == 303)
     {
 #ifdef MASCOTREMOTEQUERY_DEBUG
       cerr << "Retrieved redirect \n";
 #endif
-      emit gotRedirect(http_->lastResponse());
+      emit gotRedirect(reply);
     }
     // mascot 2.4 export page done
     else if (new_bytes.contains("Finished after") &&  new_bytes.contains("<a id=\"continuation-link\""))
@@ -658,12 +636,6 @@ namespace OpenMS
     host_name_ = param_.getValue("hostname");
     use_ssl_ = param_.getValue("use_ssl").toBool();
 
-    // clear all content from this class
-    delete http_;
-    http_ = new QHttp(this);
-    http_->setHost(host_name_.c_str(),
-                   (use_ssl_ ? QHttp::ConnectionModeHttps : QHttp::ConnectionModeHttp),
-                   (UInt)param_.getValue("host_port"));
 
     boundary_ = param_.getValue("boundary");
     cookie_ = "";
@@ -676,19 +648,25 @@ namespace OpenMS
     bool use_proxy(param_.getValue("use_proxy").toBool());
     if (use_proxy)
     {
+      QNetworkProxy proxy;
+      proxy.setType(QNetworkProxy::Socks5Proxy);
       String proxy_host(param_.getValue("proxy_host"));
+      proxy.setHostName(proxy_host.toQString());
       String proxy_port(param_.getValue("proxy_port"));
-      String proxy_username(param_.getValue("proxy_username"));
+      proxy.setPort(proxy_port.toInt());
+
       String proxy_password(param_.getValue("proxy_password"));
+      proxy.setPassword(proxy_password.toQString());
+
+      String proxy_username(param_.getValue("proxy_username"));
       if (proxy_username != "")
       {
-        http_->setProxy(proxy_host.c_str(), proxy_port.toInt(), proxy_username.c_str(), proxy_password.c_str());
+        proxy.setUser(proxy_username.toQString());
       }
-      else
-      {
-        http_->setProxy(proxy_host.c_str(), proxy_port.toInt());
-      }
+
+      QNetworkProxy::setApplicationProxy(proxy);
     }
+ 
 
     return;
   }
@@ -712,12 +690,16 @@ namespace OpenMS
     if (url[0] != '/') url.prepend('/');
   }
 
-  void MascotRemoteQuery::logHeader_(const QHttpHeader& header,
+  void MascotRemoteQuery::logHeader_(const QList<QNetworkReply::RawHeaderPair> header,
                                      const String& what)
   {
-    cerr << ">>>> Header to " << what << " (begin):\n"
-         << header.toString().toStdString()
-         << "<<<< Header to " << what << " (end)." << endl;
+    cerr << ">>>> Header to " << what << " (begin):\n";
+
+    foreach(QNetworkReply::RawHeaderPair head, header) 
+    {
+      cerr << head.first.toStdString() << ":" << head.second.toStdString() << endl;
+    }
+    cerr << "<<<< Header to " << what << " (end)." << endl;
   }
 
   Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path) const

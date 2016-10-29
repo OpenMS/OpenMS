@@ -46,6 +46,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
+#include <QtConcurrent/QtConcurrent>
 
 #include <QCoreApplication>
 

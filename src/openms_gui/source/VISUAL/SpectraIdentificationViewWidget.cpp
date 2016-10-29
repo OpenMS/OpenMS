@@ -155,7 +155,7 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    table_widget_->horizontalHeader()->setMovable(true);
+    table_widget_->horizontalHeader()->setSectionsMovable(true);
 
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);

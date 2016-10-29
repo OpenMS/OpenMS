@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #------------------------------------------------------------------------------
-find_package(Qt5 COMPONENTS Widgets Network Svg OpenGL WebEngine REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network Svg OpenGL Concurrent WebEngine REQUIRED)
 
 IF (NOT Qt5Widgets_FOUND)
   message(STATUS "QT5Widgets not found!")
@@ -52,6 +52,7 @@ include_directories(${Qt5Svg_INCLUDE_DIRS})
 include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 include_directories(${Qt5Network_INCLUDE_DIRS})
 include_directories(${Qt5WebEngine_INCLUDE_DIRS})
+include_directories(${Qt5Concurrent_INCLUDE_DIRS})
 
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 add_definitions(${Qt5Widgets_DEFINITIONS})
@@ -59,6 +60,7 @@ add_definitions(${Qt5Svg_DEFINITIONS})
 add_definitions(${Qt5OpenGL_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
 add_definitions(${Qt5WebEngine_DEFINITIONS})
+add_definitions(${Qt5Concurrent_DEFINITIONS})
 
 # Executables fail to build with Qt 5 in the default configuration
 # without -fPIE. We add that here.

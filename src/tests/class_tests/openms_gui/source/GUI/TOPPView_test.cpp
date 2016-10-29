@@ -32,18 +32,14 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <QtGui>
 #include <QtTest/QtTest>
-
+#include <QtGui>
 #include <QTimer>
 #include <QQueue>
 
-// see https://bugreports.qt-project.org/browse/QTBUG-22829
-#ifndef Q_MOC_RUN
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
-#endif
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Factory.h>
@@ -184,8 +180,8 @@ void TestTOPPView::simulateClick_()
 				QTimer::singleShot(100, this, SLOT(simulateClick_()));
 				return;
 			}
-			QTest::keyClicks(0,entry.keys,Qt::NoModifier,20);
-			QTest::keyClick(0,Qt::Key_Return,Qt::NoModifier,20);
+			QTest::keyClicks(dialog,entry.keys,Qt::NoModifier,20);
+			QTest::keyClick(dialog,static_cast<Qt::Key>(Qt::Key_Return),Qt::NoModifier,20);
 			QApplication::processEvents();
 
 			// remove from queue
@@ -237,5 +233,5 @@ void TestTOPPView::testGui()
 using namespace OpenMS; // this is required to avoid linker errors on Windows
 
 QTEST_MAIN(TestTOPPView)		 // expands to a simple main() method that runs all the test functions
-#include <source/GUI/moc_TOPPView_test.cxx> // for Qt's introspection
+#include <source/GUI/moc_TOPPView_test.cpp> // for Qt's introspection
 

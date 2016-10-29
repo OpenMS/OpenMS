@@ -42,6 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <QtWidgets/QMdiArea>
+#include <QtWidgets/QMainWindow>
 
 class QToolBar;
 class QAction;

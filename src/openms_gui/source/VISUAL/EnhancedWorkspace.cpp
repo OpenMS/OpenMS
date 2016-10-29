@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
@@ -44,7 +44,7 @@ namespace OpenMS
 {
 
   EnhancedWorkspace::EnhancedWorkspace(QWidget * parent) :
-    QWorkspace(parent)
+    QMdiArea(parent)
   {
     setAcceptDrops(true);
   }
@@ -71,7 +71,7 @@ namespace OpenMS
 
   void EnhancedWorkspace::dropEvent(QDropEvent * event)
   {
-    emit dropReceived(event->mimeData(), event->source(), -1);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), -1);
     event->acceptProposedAction();
   }
 
