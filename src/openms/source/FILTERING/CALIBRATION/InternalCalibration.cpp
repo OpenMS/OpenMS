@@ -65,7 +65,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo)
+  void InternalCalibration::applyTransformation_(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo)
   {
     typedef MSExperiment<>::SpectrumType::Iterator SpecIt;
 
@@ -76,20 +76,25 @@ namespace OpenMS
     }
   }
 
+  void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo)
+  {
+    // calibrate the peaks?
+    if (ListUtils::contains(target_mslvl, spec.getMSLevel()))
+    {
+      applyTransformation_(spec, trafo);
+    }
+    // apply PC correction (only if target is MS1, and current spec is MS2; or target is MS2 and cs is MS3,...)
+    if (ListUtils::contains(target_mslvl, spec.getMSLevel() - 1))
+    {
+      applyTransformation(spec.getPrecursors(), trafo);
+    }     
+  }
+
   void InternalCalibration::applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
   {
     for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      // calibrate the peaks?
-      if (ListUtils::contains(target_mslvl, it->getMSLevel()))
-      {
-        applyTransformation(*it, trafo);
-      }
-      // apply PC correction (only if target is MS1, and current spec is MS2; or target is MS2 and cs is MS3,...)
-      if (ListUtils::contains(target_mslvl, it->getMSLevel() - 1))
-      {
-        applyTransformation(it->getPrecursors(), trafo);
-      }     
+      applyTransformation(*it, target_mslvl, trafo);
     }
   }
 
@@ -294,7 +299,11 @@ namespace OpenMS
         setProgress(i);
 
         // skip this MS level?
-        if (!ListUtils::contains(target_mslvl, it->getMSLevel())) continue;
+        if (!(ListUtils::contains(target_mslvl, it->getMSLevel()) ||     // scan m/z needs correction
+              ListUtils::contains(target_mslvl, it->getMSLevel() - 1)))  // precursor m/z needs correction
+        {
+          continue;
+        }
 
         //
         // build model
@@ -307,7 +316,7 @@ namespace OpenMS
         }
         else
         {
-          applyTransformation(*it, tms.back());
+          applyTransformation(*it, target_mslvl, tms.back());
         }
         ++i_mslvl;
       } // MSExp::iter
@@ -346,7 +355,7 @@ namespace OpenMS
           {
             model_index = p + dist_right;
           }
-          applyTransformation(exp[it->second], tms[model_index]);
+          applyTransformation(exp[it->second], target_mslvl, tms[model_index]);
           tms_new[p].setCoefficients(tms[model_index]); // overwrite invalid model
         }
         tms_new.swap(tms);

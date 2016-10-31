@@ -133,6 +133,8 @@ using namespace std;
   Usually, peptide ID's provide calibration points for MS1 precursors, i.e. are suitable for MS1. They are applicable for MS2 only if
   the same mass analyzer was used (e.g. Q-Exactive). In other words, MS/MS spectra acquired using the ion trap analyzer of a Velos cannot be calibrated using
   peptide ID's.
+  Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration, 
+  e.g. precursor information within MS2 spectra is calibrated if target ms-level is set to 1.
   Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
 
 
