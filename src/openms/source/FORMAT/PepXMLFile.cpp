@@ -112,15 +112,15 @@ namespace OpenMS
     String raw_data;
     String base_name;
     SpectrumMetaDataLookup lookup;
-    
+
     // The mz-File (if given)
     if (!mz_file.empty())
     {
       base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
-      
+
       MSExperiment<> experiment;
-      FileHandler fh;      
+      FileHandler fh;
       fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
     }
@@ -138,7 +138,7 @@ namespace OpenMS
     {
       replace(base_name.begin(), base_name.end(), '.', '_');
     }
-    
+
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
@@ -284,35 +284,35 @@ namespace OpenMS
 
         int scan_index = count;
         int scan_nr = 0;
-        
+
         if (lookup.empty())
         {
           if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
           {
-            scan_index = it->getMetaValue("RT_index");            
+            scan_index = it->getMetaValue("RT_index");
           }
-          scan_nr = scan_index + 1;          
+          scan_nr = scan_index + 1;
         }
         else
         {
           scan_index = lookup.findByRT(it->getRT());
-          
+
           SpectrumMetaDataLookup::SpectrumMetaData meta;
           lookup.getSpectrumMetaData(scan_index, meta);
-          scan_nr = meta.scan_number;          
+          scan_nr = meta.scan_number;
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
         //  - see also the parser code if iProphet at http://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/trans_proteomic_pipeline/src/Validation/InterProphet/InterProphetParser/InterProphetParser.cxx#l180
         //  strictly required attributes:
         //    - spectrum
         //    - assumed_charge
-        //  optional attributes 
+        //  optional attributes
         //    - retention_time_sec
         //    - swath_assay
         //    - experiment_label
 
         String spectrum_name = base_name + "." + scan_nr + "." + scan_nr + ".";
-        if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_) 
+        if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_)
         {
           spectrum_name = it->getMetaValue("pepxml_spectrum_name");
         }
@@ -486,7 +486,7 @@ namespace OpenMS
               f << "\t\t\t\t\t</search_score_summary>" << "\n";
             }
             f << "\t\t\t\t</" << tagname << ">" << "\n";
-            
+
             f << "\t\t\t</analysis_result>" << "\n";
           }
         }
@@ -496,7 +496,7 @@ namespace OpenMS
         // peptide prophet results above through AnalysisResults
         if (peptideprophet_analyzed && !peptideprophet_written)
         {
-          // if (!h.getAnalysisResults().empty()) { WARNING / } 
+          // if (!h.getAnalysisResults().empty()) { WARNING / }
           f << "\t\t\t<analysis_result analysis=\"peptideprophet\">" << "\n";
           f << "\t\t\t<peptideprophet_result probability=\"" << h.getScore()
             << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
@@ -940,7 +940,7 @@ namespace OpenMS
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
-    { 
+    {
       // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
@@ -955,7 +955,7 @@ namespace OpenMS
       current_peptide_.setIdentifier(identifier);
 
       // set optional attributes
-      if (!native_spectrum_name_.empty() && keep_native_name_) 
+      if (!native_spectrum_name_.empty() && keep_native_name_)
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
@@ -968,11 +968,11 @@ namespace OpenMS
       {
         current_peptide_.setExperimentLabel(experiment_label_);
       }
-      if (!swath_assay_.empty()) 
+      if (!swath_assay_.empty())
       {
         current_peptide_.setMetaValue("swath_assay", swath_assay_);
       }
-      if (!status_.empty()) 
+      if (!status_.empty())
       {
         current_peptide_.setMetaValue("status", status_);
       }
@@ -980,8 +980,10 @@ namespace OpenMS
     else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
       // sample:
-      // <spectrum_query spectrum="foobar.02552.02552.2" start_scan="2552" end_scan="2552" precursor_neutral_mass="1168.6176" assumed_charge="2" 
-      //    index="10" retention_time_sec="488.652" experiment_label="urine" swath_assay="EIVLTQSPGTL2:9" status="target">
+      // <spectrum_query spectrum="foobar.02552.02552.2" start_scan="2552"
+      // end_scan="2552" precursor_neutral_mass="1168.6176" assumed_charge="2"
+      // index="10" retention_time_sec="488.652" experiment_label="urine"
+      // swath_assay="EIVLTQSPGTL2:9" status="target">
 
       readRTMZCharge_(attributes); // sets "rt_", "mz_", "charge_"
 
@@ -998,7 +1000,7 @@ namespace OpenMS
 
 
     }
-    else if (element == "analysis_result") // parent: "search_hit" 
+    else if (element == "analysis_result") // parent: "search_hit"
     {
       current_analysis_result_ = PeptideHit::PepXMLAnalysisResult();
       current_analysis_result_.score_type = attributeAsString_(attributes, "analysis");
@@ -1007,7 +1009,7 @@ namespace OpenMS
     {
       search_score_summary_ = true;
     }
-    else if (element == "parameter") // parent: "search_score_summary" 
+    else if (element == "parameter") // parent: "search_score_summary"
     {
       // If we are within a search_score_summary, add the read in values to the current AnalysisResult
       if (search_score_summary_)
