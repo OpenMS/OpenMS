@@ -744,7 +744,7 @@ namespace OpenMS
               if (jt->getMetaValue("xl_chain") == "MS:1002509")
               {
                 ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
-                calc_ppxl_mass += (double) search_params.getMetaValue("cross_link:mass");
+                calc_ppxl_mass += String(search_params.getMetaValue("cross_link:mass")).toDouble();
               }
             }
           }
@@ -1080,7 +1080,7 @@ namespace OpenMS
               sii_tmp = sii_tmp.substitute("value=\"" + ert, "value=\"" + String(jt->getMetaValue("spec_heavy_RT")));
 
               ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
-              double iso_shift = (double) search_params.getMetaValue("cross_link:mass_isoshift");
+              double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift")).toDouble();
               double cmz_heavy = atof(cmz.c_str()) + (iso_shift / jt->getCharge());
 
               sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),
