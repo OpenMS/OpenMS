@@ -1657,6 +1657,10 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
         ph_alpha.setMetaValue("xl_mass",DataValue(xl_mass_map_.at(peptides[alpha[0]])));
       }
+      else if( xl_mod_map_.find(peptides[alpha[0]]) != xl_mod_map_.end() )
+      {
+        ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
+      }
 
       phs.push_back(ph_alpha);
 
@@ -2211,7 +2215,11 @@ namespace OpenMS
                 {
                   CVTerm cv = parseCvParam_(cvp);
                   String cvname = cv.getName();
-                  if (cvname.hasPrefix("Xlink"))
+                  if (cvname.hasSubstring("unknown mono-link"))
+                  {
+                    xl_mod_map_.insert(make_pair(pep_id, cvname));
+                  }
+                  if (cvname.hasPrefix("Xlink") || cv.getAccession().hasPrefix("XLMOD"))
                   {
                     xlink_mod_found = true;
                   }
