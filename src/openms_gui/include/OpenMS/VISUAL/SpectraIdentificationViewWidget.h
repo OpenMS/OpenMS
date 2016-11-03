@@ -83,6 +83,8 @@ private:
     void addTextItemToBottomRow_(const QString& text, Size column_index, const QColor& c);
     void addIntItemToBottomRow_(const Int i, Size column_index, const QColor& c);
     void addDoubleItemToBottomRow_(const double d, Size column_index, const QColor& c);
+    void addCheckboxItemToBottomRow_(bool selected,  Size column_index, const QColor& c);
+
     LayerData* layer_;
     QCheckBox* hide_no_identification_;
     QCheckBox* create_rows_for_commmon_metavalue_;
