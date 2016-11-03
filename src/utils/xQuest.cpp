@@ -313,8 +313,8 @@ protected:
     registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false);
     registerDoubleOption_("cross_linker:mass_light", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false);
     registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false);
-    registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.0786442, 155.0964278"), "Possible masses of the linker, when attached to only one peptide", false);
-    registerStringList_("cross_linker:names", "<list of strings>", ListUtils::create<String>("Xlink:DSS, Xlink:DSS!Hydrolyzed, Xlink:DSS!Amidated"), "Names of the searched cross-links, first the cross-link and then the mono-links in the same order as their masses", false);
+    registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide", false);
+    registerStringOption_("cross_linker:name", "<string>", "DSS" ,  "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)", false);
 
     registerTOPPSubsection_("algorithm", "Algorithm Options");
     registerStringOption_("algorithm:candidate_search", "<param>", "enumeration", "Mode used to generate candidate peptides.", false, false);
@@ -1545,7 +1545,7 @@ protected:
       double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
       double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
 
-      StringList cross_link_names = getStringList_("cross_linker:names");
+      String cross_link_name = getStringOption_("cross_linker:name");
       double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
       DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
       String mono_masses;
@@ -1579,7 +1579,7 @@ protected:
              "\" author=\"Eugen Netz, Timo Sachsenberg\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
              "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
              "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
-             "\" crosslinkername=\"" << cross_link_names[0] << "\" xlinkermw=\"" << cross_link_mass_light <<
+             "\" crosslinkername=\"" << cross_link_name << "\" xlinkermw=\"" << cross_link_mass_light <<
              "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
              "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
              "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
@@ -1810,7 +1810,7 @@ protected:
     double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
     double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
     DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
-    StringList cross_link_names = getStringList_("cross_linker:names");
+    String cross_link_name = getStringOption_("cross_linker:name");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
     set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
@@ -2554,7 +2554,7 @@ protected:
               if (link_pos_second[y] != -1)
               {
                 cross_link_candidate.cross_linker_mass = cross_link_mass_light;
-                cross_link_candidate.cross_linker_name = cross_link_names[0];
+                cross_link_candidate.cross_linker_name = cross_link_name;
                 cross_link_candidates.push_back(cross_link_candidate);
               }
               else
@@ -2565,7 +2565,7 @@ protected:
                   if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
                   {
                     cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
-                    cross_link_candidate.cross_linker_name = cross_link_names[k+1];
+                    cross_link_candidate.cross_linker_name = cross_link_name;
                     cross_link_candidates.push_back(cross_link_candidate);
                   }
                 }
@@ -2947,26 +2947,40 @@ protected:
                 //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
                 vector< String > mods;
                 const String residue = seq_alpha[alpha_pos].getOneLetterCode();
-                ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.01);
-                LOG_DEBUG << "number of modifications fitting the mono-link: " << mods.size() << "\t" << mods << endl;
-                if (mods.size() > 0)
+                ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001);
+
+                LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << "\t" << mods << endl;
+                bool mod_set = false;
+                if (mods.size() > 0) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
                 {
-                  // TODO only valid if there are no alternatives, but we know we searched for a cross-linking reagent
-                  LOG_DEBUG << "applied modification: " << mods[0] << endl;
-                  seq_alpha.setModification(alpha_pos, mods[0]);
+                  for (Size s = 0; s < mods.size(); ++s)
+                  {
+                    if (mods[s].hasSubstring(cross_link_name))
+                    {
+                      LOG_DEBUG << "applied modification: " << mods[s] << endl;
+                      seq_alpha.setModification(alpha_pos, mods[s]);
+                      mod_set = true;
+                      break;
+                    }
+                  }
                 }
-                else
+                if ( (mods.size() > 0) && (!mod_set) ) // If resolving by name did not work, use any with matching diff mass
                 {
-//                  // TODO hardcoded for DSS, Xlink:DSS-NH2  not found by mass
-//                  LOG_DEBUG << "applied modification: " << "Xlink:DSS-NH2" << endl;
-//                  ph_alpha.setMetaValue("xl_mod",  "Xlink:DSS-NH2");
+                  seq_alpha.setModification(alpha_pos, mods[0]);
+                  mod_set = true;
+                }
+                if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
+                {
+                  String mod_name = String("unknown mono-link " + cross_link_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
+                  //seq_alpha.setModification(alpha_pos, mod_name);
+                  LOG_DEBUG << "unknown mono-link" << endl;
+                  ph_alpha.setMetaValue("xl_mod", mod_name);
                 }
               }
               else
               {
-                // TODO hardcoded for DSS, make this an input parameter or something, NO UNIMOD ACCESSION AVAILBALE, for now name and mass
-              ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
-              ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+                ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+                ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
               }
 
 
