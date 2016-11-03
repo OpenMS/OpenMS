@@ -112,6 +112,8 @@ if (ENABLE_TUTORIALS)
                       GROUP_READ
                       WORLD_READ
   )
+else()
+  message("Warning: Configuring for packaging without tutorials. If you want to build a full package make sure that configuration with -DENABLE_TUTORIALS=On succeeds.")
 endif ()
 
 
@@ -250,12 +252,27 @@ install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png
                     WORLD_READ
         COMPONENT share)
 
-set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## For configuration of the script
-configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
-set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
-#Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
-#set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
-set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+########################################################### Create dmg with background image
+if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
+  set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## For configuration of the script
+  configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
+  set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macos_bundle_setup/setup_applescript.scpt)
+  #Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
+  #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
+  set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+else()
+  ## Use custom scripts and targets (just 'make package' creates a very simple dmg).
+  add_custom_target(final_package
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMENT "Finalizing dmg image"
+    DEPENDS dmg)
+
+  add_custom_target(dmg
+    COMMAND cpack -G DragNDrop
+    COMMENT "Building intermediate dmg package"
+  )
+endif()
 
 include(CPack)
 
