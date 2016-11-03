@@ -32,7 +32,10 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY On)
+## Very useful for debugging purposes: Disables the dependency on the "make install" target.
+## In our case e.g. "make install" always builds the documentation. 
+#set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY On)
+
 set(CPACK_GENERATOR "DragNDrop")
 
 ## drag'n'drop installation configuration
@@ -49,9 +52,9 @@ set(CPACK_GENERATOR "DragNDrop")
 
 ## Fix OpenMS dependencies for all executables
 ########################################################### Fix Dependencies
-#install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b ${PROJECT_BINARY_DIR}/bin/ -l ${PROJECT_BINARY_DIR}/lib/ -v)"
-#  COMPONENT Fixing-dependencies
-#)
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b ${PROJECT_BINARY_DIR}/bin/ -l ${PROJECT_BINARY_DIR}/lib/ -v)"
+  COMPONENT Fixing-dependencies
+)
 
 ########################################################### Libraries
 # Libraries hack, avoid cmake interferring with our own lib fixes
