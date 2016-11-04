@@ -55,13 +55,27 @@ class OPENMS_DLLAPI KDTreeData
 public:
 
   /// Constructor
-  KDTreeData();
+  template <typename MapType>
+  KDTreeData(const std::vector<MapType>& maps, const Param& param) :
+    rt_tol_secs_((double)(param.getValue("rt_tol"))),
+    mz_tol_((double)(param.getValue("mz_tol"))),
+    mz_ppm_(param.getValue("mz_unit").toString() == "ppm")
+  {
+    for (Size i = 0; i < maps.size(); ++i)
+    {
+      const MapType& m = maps[i];
+      for (typename MapType::const_iterator it = m.begin(); it != m.end(); ++it)
+      {
+        addFeature(i, &(*it));
+      }
+    }
+    optimizeTree();
+  }
 
   /// Destructor
-  virtual ~KDTreeData();
-
-  /// Set parameters
-  void setParameters(const Param& param);
+  ~KDTreeData()
+  {
+  }
 
   /// Add feature
   void addFeature(Size mt_map_index, const BaseFeature* feature);

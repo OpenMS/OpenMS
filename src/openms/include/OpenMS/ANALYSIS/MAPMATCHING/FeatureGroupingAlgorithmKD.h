@@ -230,10 +230,6 @@ private:
     template <typename MapType>
     void group_(const std::vector<MapType>& input_maps, ConsensusMap& out);
 
-    /// Set up the kd-tree and related data structures
-    template <typename MapType>
-    void setUpTree_(const std::vector<MapType>& maps, KDTreeData& kd_data);
-
     /// Run the actual clustering algorithm
     void runClustering_(const KDTreeData& kd_data, ConsensusMap& out);
 

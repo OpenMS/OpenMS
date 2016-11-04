@@ -207,32 +207,15 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, ve
 
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
   {
-    //setProgress(filter_progress++);
+    // setProgress(filter_progress++);
     const vector<Size>& cc = it->second;
     // size OK?
     if (cc.size() < min_size || cc.size() > max_size)
     {
       continue;
     }
-    // map indices unique and diameter within user-specified tolerances?
+    // map indices unique?
     set<Size> map_indices;
-    double rt_low = numeric_limits<double>::max();
-    double rt_high = 0;
-    double mz_low = numeric_limits<double>::max();
-    double mz_high = 0;
-    double rt_tol = kd_data.rtTolerance();
-    double mz_tol;
-    if (!kd_data.mzPPM())
-    {
-      mz_tol = kd_data.mzTolerance();
-    }
-    else
-    {
-      pair<double, double> win = kd_data.getTolWindow(kd_data.mz(cc[0]),
-                                                      kd_data.mzTolerance(),
-                                                      true);
-      mz_tol = (win.second - win.first) / 2.0;
-    }
     bool passes = true;
     for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
     {
@@ -244,18 +227,6 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, ve
         break;
       }
       map_indices.insert(kd_data.mapIndex(i));
-//      // filter out if diameter too large
-//      double rt = kd_data.rt(i);
-//      double mz = kd_data.mz(i);
-//      rt_low = min(rt_low, rt);
-//      rt_high = max(rt_high, rt);
-//      mz_low = min(mz_low, mz);
-//      mz_high = max(mz_high, mz);
-//      if (rt_high - rt_low > rt_tol || mz_high - mz_low > mz_tol)
-//      {
-//        passes = false;
-//        break;
-//      }
     }
     if (passes)
     {
