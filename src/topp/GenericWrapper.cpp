@@ -376,8 +376,8 @@ protected:
           switch (it->value.valueType())
           {
             case DataValue::STRING_VALUE:
-              ifs.push_back(it->value);
-          	  break;
+              ifs.push_back(it->value); 
+              break;
             case DataValue::STRING_LIST:
               ifs = it->value;
               break;
