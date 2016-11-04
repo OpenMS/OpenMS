@@ -13,7 +13,9 @@
 		  // currently disregarded by TOPPAS, but might become useful
 		  <e_category>FileConversion</e_category>
 		  // command line options of your external tool (use placeholders ,e.g. %1 to insert dynamic content)
-		  <cloptions>-o "%1" --mzML %2</cloptions>
+      // You should quote placeholders which hold single files, but avoid quotes for lists (ITEMLIST in ini_param section), since they are quoted by GenericWrapper
+      // automatically
+		  <cloptions>-o "%1" --mzML "%2"</cloptions>
 		  // the actual executable (usually it should be in your PATH, to avoid having to specify a full path to it)
 		  <path>msconvert</path>
       // sets the working directory to this path before calling the external tool. Some tools write to the current working directory

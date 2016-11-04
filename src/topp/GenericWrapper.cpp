@@ -364,17 +364,34 @@ protected:
     {
       if ((it->tags).count("required") > 0)
       {
-        if (it->value.toString().trim().empty())    // any required parameter should have a value
+        String in = it->value.toString().trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
+        if (in.empty() || in == "[]") // any required parameter should have a value
         {
-          LOG_ERROR << "The INI-parameter '" + it->name + "' is required, but was not given! Aborting ...";
+          LOG_ERROR << "The INI-parameter '" << it->name << "' is required, but was not given! Aborting ...";
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
         else if ((it->tags).count("input file") > 0) // any required input file should exist
         {
-          if (!File::exists(it->value))
+          StringList ifs;
+          switch (it->value.valueType())
           {
-            LOG_ERROR << "Input file '" + String(it->value) + "' does not exist! Aborting ...";
-            return wrapExit(INPUT_FILE_NOT_FOUND);
+            case DataValue::STRING_VALUE:
+              ifs.push_back(it->value); 
+              break;
+            case DataValue::STRING_LIST:
+              ifs = it->value;
+              break;
+            default:
+              LOG_ERROR << "The INI-parameter '" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
+              return wrapExit(ILLEGAL_PARAMETERS);
+          }
+          for (StringList::const_iterator itf = ifs.begin(); itf != ifs.end(); ++itf)
+          {
+            if (!File::exists(*itf))
+            {
+              LOG_ERROR << "Input file '" << *itf << "' does not exist! Aborting ...";
+              return wrapExit(INPUT_FILE_NOT_FOUND);
+            }
           }
         }
       }
@@ -397,7 +414,7 @@ protected:
     // check for double spaces and warn
     if (command_args.hasSubstring("  "))
     {
-      LOG_WARN << "Commandline contains double spaces, which is not allowed. Condensing...\n";
+      LOG_WARN << "Command line contains double spaces, which is not allowed. Condensing...\n";
       while (command_args.hasSubstring("  "))
       {
         command_args.substitute("  ", " ");
