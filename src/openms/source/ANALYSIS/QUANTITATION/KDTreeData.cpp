@@ -41,21 +41,6 @@ using namespace std;
 namespace OpenMS
 {
 
-KDTreeData::KDTreeData()
-{
-}
-
-KDTreeData::~KDTreeData()
-{
-}
-
-void KDTreeData::setParameters(const Param& param)
-{
-  rt_tol_secs_ = (double)(param.getValue("rt_tol"));
-  mz_tol_ = (double)(param.getValue("mz_tol"));
-  mz_ppm_ = param.getValue("mz_unit").toString() == "ppm";
-}
-
 void KDTreeData::addFeature(Size mt_map_index, const BaseFeature* feature)
 {
   map_index_.push_back(mt_map_index);
@@ -179,7 +164,7 @@ pair<double, double> KDTreeData::getTolWindow(double val, double tol, bool ppm) 
   else
   {
     left = val - tol;
-    right = 2.0 * val - left;
+    right = val + tol;
   }
 
   return make_pair(left, right);

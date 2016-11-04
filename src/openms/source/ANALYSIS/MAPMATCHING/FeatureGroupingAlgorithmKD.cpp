@@ -80,7 +80,6 @@ namespace OpenMS
 
     out.clear(false);
 
-    double max_mz = 0;
     vector<double> massrange;
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
          map_it != input_maps.end(); ++map_it)
@@ -89,7 +88,6 @@ namespace OpenMS
           feat_it != map_it->end(); feat_it++)
       {
         massrange.push_back(feat_it->getMZ());
-        max_mz = max(max_mz, feat_it->getMZ());
       }
     }
     sort(massrange.begin(), massrange.end());
@@ -97,9 +95,6 @@ namespace OpenMS
     // partition at boundaries -> this should be safe because there cannot be
     // any cluster reaching across boundaries
 
-    // minimal differences between two m/z values
-    // TODO: adapt massrange_diff within for loop if ppm is used
-    double massrange_diff = mz_ppm_ ? mz_tol_ * max_mz * 1e-6 : mz_tol_;
     int pts_per_partition = massrange.size() / (int)(param_.getValue("nr_partitions"));
 
     // compute partition boundaries
@@ -107,6 +102,9 @@ namespace OpenMS
     partition_boundaries.push_back(massrange.front());
     for (size_t j = 0; j < massrange.size()-1; j++)
     {
+      // minimal differences between two m/z values
+      double massrange_diff = mz_ppm_ ? mz_tol_ * 1e-6 * massrange[j+1] : mz_tol_;
+
       if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
       {
         if (j >= (partition_boundaries.size() ) * pts_per_partition  )
@@ -126,7 +124,6 @@ namespace OpenMS
     {
       //Size progress = 0;
       //startProgress(0, partition_boundaries.size(), "linking features");
-
       for (size_t j = 0; j < partition_boundaries.size()-1; j++)
       {
         double partition_start = partition_boundaries[j];
@@ -150,13 +147,12 @@ namespace OpenMS
         }
 
         // set up kd-tree
-        KDTreeData kd_data;
-        setUpTree_(tmp_input_maps, kd_data);
+        KDTreeData kd_data(tmp_input_maps, param_);
         aligner.addRTFitData(kd_data);
-
         //setProgress(progress++);
       }
     }
+
 
     // set up aligner: fit LOWESS on RT fit data collected across all partitions
     if (align)
@@ -190,8 +186,7 @@ namespace OpenMS
       // run algo on current partition
 
       // set up kd-tree
-      KDTreeData kd_data;
-      setUpTree_(tmp_input_maps, kd_data);
+      KDTreeData kd_data(tmp_input_maps, param_);
 
       // alignment
       if (align)
@@ -245,29 +240,6 @@ namespace OpenMS
                                          ConsensusMap& out)
   {
     group_(maps, out);
-  }
-
-  template <typename MapType>
-  void FeatureGroupingAlgorithmKD::setUpTree_(const std::vector<MapType>& maps, KDTreeData& kd_data)
-  {
-    kd_data.clear();
-    kd_data.setParameters(param_);
-
-    //progress_ = 0;
-    //startProgress(0, maps.size(), String("building kd-tree"));
-    for (Size i = 0; i < maps.size(); ++i)
-    {
-      const MapType& m = maps[i];
-      for (typename MapType::const_iterator it = m.begin(); it != m.end(); ++it)
-      {
-        kd_data.addFeature(i, &(*it));
-      }
-      //setProgress(++progress_);
-    }
-    //endProgress();
-    //startProgress(0, 1, String("optimizing k-d tree"));
-    kd_data.optimizeTree();
-    //endProgress();
   }
 
   void FeatureGroupingAlgorithmKD::runClustering_(const KDTreeData& kd_data, ConsensusMap& out)
