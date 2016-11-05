@@ -44,7 +44,6 @@ namespace OpenMS
 void KDTreeData::addFeature(Size mt_map_index, const BaseFeature* feature)
 {
   map_index_.push_back(mt_map_index);
-  unique_map_indices_.insert(mt_map_index);
   features_.push_back(feature);
   rt_.push_back(feature->getRT());
 
@@ -94,7 +93,7 @@ Size KDTreeData::treeSize() const
 
 Size KDTreeData::numMaps() const
 {
-  return unique_map_indices_.size();
+  return num_maps_;
 }
 
 double KDTreeData::rtTolerance() const

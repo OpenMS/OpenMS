@@ -59,7 +59,8 @@ public:
   KDTreeData(const std::vector<MapType>& maps, const Param& param) :
     rt_tol_secs_((double)(param.getValue("rt_tol"))),
     mz_tol_((double)(param.getValue("mz_tol"))),
-    mz_ppm_(param.getValue("mz_unit").toString() == "ppm")
+    mz_ppm_(param.getValue("mz_unit").toString() == "ppm"),
+    num_maps_(maps.size())
   {
     for (Size i = 0; i < maps.size(); ++i)
     {
@@ -142,8 +143,8 @@ protected:
   /// (Potentially transformed) retention times
   std::vector<double> rt_;
 
-  /// Unique map indices
-  std::set<Size> unique_map_indices_;
+  /// Number of maps
+  Size num_maps_;
 
   /// RT tolerance in seconds
   double rt_tol_secs_;

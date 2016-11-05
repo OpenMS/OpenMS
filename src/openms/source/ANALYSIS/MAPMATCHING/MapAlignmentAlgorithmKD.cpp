@@ -59,6 +59,7 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
   // compute connected components
   map<Size, vector<Size> > ccs;
   getCCs_(kd_data, ccs);
+
   // keep only conflict-free CCs of sufficient size
   map<Size, vector<Size> > filtered_ccs;
   filterCCs_(kd_data, filtered_ccs, ccs, min_cc_size);
@@ -202,7 +203,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, ve
   //SignedSize filter_progress = 0;
   //startProgress(0, ccs.size(), String("filtering connected components"));
 
-  Size max_size = fit_data_.size();
+  Size max_size = kd_data.numMaps();
   filtered_ccs.clear();
 
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
@@ -220,13 +221,13 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, ve
     for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
     {
       // filter out if reoccuring index found
-      Size i = *idx_it;
-      if (map_indices.find(i) != map_indices.end())
+      Size map_idx = kd_data.mapIndex(*idx_it);
+      if (map_indices.find(map_idx) != map_indices.end())
       {
         passes = false;
         break;
       }
-      map_indices.insert(kd_data.mapIndex(i));
+      map_indices.insert(map_idx);
     }
     if (passes)
     {
