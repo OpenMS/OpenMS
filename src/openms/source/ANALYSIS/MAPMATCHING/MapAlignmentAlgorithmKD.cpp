@@ -40,9 +40,10 @@ using namespace std;
 namespace OpenMS
 {
 
-MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps) :
+MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, Size min_cc_size) :
   fit_data_(num_maps),
-  transformations_(num_maps)
+  transformations_(num_maps),
+  min_cc_size_(min_cc_size)
 {
 }
 
@@ -53,7 +54,6 @@ MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
 {
   Size num_maps = kd_data.numMaps();
-  Size min_cc_size = num_maps / 2; //TODO
 
   // compute connected components
   map<Size, vector<Size> > ccs;
@@ -61,7 +61,7 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
 
   // keep only conflict-free CCs of sufficient size
   map<Size, vector<Size> > filtered_ccs;
-  filterCCs_(kd_data, filtered_ccs, ccs, min_cc_size);
+  filterCCs_(kd_data, filtered_ccs, ccs);
   // save some memory
   ccs.clear();
 
@@ -185,8 +185,9 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vecto
   }
 }
 
-void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& filtered_ccs, const map<Size, vector<Size> >& ccs, Size min_size) const
+void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& filtered_ccs, const map<Size, vector<Size> >& ccs) const
 {
+  Size min_size = min_cc_size_;
   Size max_size = kd_data.numMaps();
   filtered_ccs.clear();
 

@@ -67,7 +67,7 @@ class OPENMS_DLLAPI MapAlignmentAlgorithmKD
 public:
 
   /// Constructor
-  MapAlignmentAlgorithmKD(Size num_maps);
+  MapAlignmentAlgorithmKD(Size num_maps, Size min_cc_size);
 
   /// Default destructor
   virtual ~MapAlignmentAlgorithmKD();
@@ -90,7 +90,7 @@ protected:
   void getCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& result) const;
 
   /// Filter connected components (return conflict-free CCs of sufficiently large size and small diameter)
-  void filterCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& filtered_ccs, const std::map<Size, std::vector<Size> >& ccs, Size min_size) const;
+  void filterCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& filtered_ccs, const std::map<Size, std::vector<Size> >& ccs) const;
 
 private:
 
@@ -102,6 +102,9 @@ private:
 
   /// LOWESS transformations
   std::vector<TransformationModelLowess*> transformations_;
+
+  /// Minimum size for a connected component to be used for alignment
+  double min_cc_size_;
 
 };
 

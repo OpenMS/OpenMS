@@ -53,6 +53,9 @@ namespace OpenMS
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
     defaults_.setValue("warp", "true", "whether or not to (internally) LOWESS-warp feature RTs before linking");
     defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
+    defaults_.setValue("warp_min_occur", 0.5, "only features found in at least warp_min_occur * number_of_input_maps are used to compute the warping function");
+    defaults_.setMinFloat("warp_min_occur", 0.0);
+    defaults_.setMaxFloat("warp_min_occur", 1.0);
     defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
     defaultsToParam_();
@@ -118,7 +121,8 @@ namespace OpenMS
 
     // ------------ compute RT transformation models ------------
 
-    MapAlignmentAlgorithmKD aligner(input_maps.size());
+    Size min_cc_size = (double)(param_.getValue("warp_min_occur")) * (double)(input_maps.size());
+    MapAlignmentAlgorithmKD aligner(input_maps.size(), min_cc_size);
     bool align = param_.getValue("warp").toString() == "true";
     if (align)
     {
