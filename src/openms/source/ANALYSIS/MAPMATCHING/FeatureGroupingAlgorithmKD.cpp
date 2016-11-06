@@ -116,14 +116,14 @@ namespace OpenMS
     // add last partition (a bit more since we use "smaller than" below)
     partition_boundaries.push_back(massrange.back() + 1.0);
 
-    // ------------ compute RT fit data for alignment for all partitions ------------
+    // ------------ compute RT transformation models ------------
 
     MapAlignmentAlgorithmKD aligner(input_maps.size());
     bool align = param_.getValue("warp").toString() == "true";
     if (align)
     {
-      //Size progress = 0;
-      //startProgress(0, partition_boundaries.size(), "linking features");
+      Size progress = 0;
+      startProgress(0, partition_boundaries.size(), "computing RT transformations");
       for (size_t j = 0; j < partition_boundaries.size()-1; j++)
       {
         double partition_start = partition_boundaries[j];
@@ -149,18 +149,17 @@ namespace OpenMS
         // set up kd-tree
         KDTreeData kd_data(tmp_input_maps, param_);
         aligner.addRTFitData(kd_data);
-        //setProgress(progress++);
+        setProgress(progress++);
       }
-    }
 
-
-    // set up aligner: fit LOWESS on RT fit data collected across all partitions
-    if (align)
-    {
+      // fit LOWESS on RT fit data collected across all partitions
       aligner.fitLOWESS();
+      endProgress();
     }
 
     // ------------ run alignment + feature linking on individual partitions ------------
+    Size progress = 0;
+    startProgress(0, partition_boundaries.size(), "linking features");
     for (size_t j = 0; j < partition_boundaries.size()-1; j++)
     {
       double partition_start = partition_boundaries[j];
@@ -183,8 +182,6 @@ namespace OpenMS
         tmp_input_maps[k].updateRanges();
       }
 
-      // run algo on current partition
-
       // set up kd-tree
       KDTreeData kd_data(tmp_input_maps, param_);
 
@@ -196,10 +193,9 @@ namespace OpenMS
 
       // link features
       runClustering_(kd_data, out);
-
-      //setProgress(progress++);
+      setProgress(progress++);
     }
-    //endProgress();
+    endProgress();
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later):
@@ -247,8 +243,6 @@ namespace OpenMS
     Size n = kd_data.size();
 
     // pass 1: initialize best potential clusters for all possible cluster centers
-    //progress_ = 0;
-    //startProgress(0, n, String("linking features (pass 1/2)"));
     set<Size> update_these;
     for (Size i = 0; i < kd_data.size(); ++i)
     {
@@ -257,12 +251,9 @@ namespace OpenMS
     set<ClusterProxyKD> potential_clusters;
     vector<ClusterProxyKD> cluster_for_idx(n);
     vector<Int> assigned(n, false);
-    updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, kd_data, true);
-    //endProgress();
+    updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, kd_data);
 
     // pass 2: construct consensus features until all points assigned.
-    //progress_ = 0;
-    //startProgress(0, n, String("linking features (pass 2/2)"));
     while(!potential_clusters.empty())
     {
       // get index of current best cluster center (as defined by ClusterProxyKD::operator<)
@@ -299,11 +290,7 @@ namespace OpenMS
 
       // now that the points are marked assigned, update the neighborhoods of their neighbors
       updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, kd_data);
-      //progress_ += cf_indices.size();
-      //setProgress(progress_);
     }
-
-    //endProgress();
   }
 
 
@@ -312,8 +299,7 @@ namespace OpenMS
                                                          vector<ClusterProxyKD>& cluster_for_idx,
                                                          const set<Size>& update_these,
                                                          const vector<Int>& assigned,
-                                                         const KDTreeData& kd_data,
-                                                         bool update_progress)
+                                                         const KDTreeData& kd_data)
   {
     for (set<Size>::const_iterator it = update_these.begin(); it != update_these.end(); ++it)
     {
@@ -328,10 +314,6 @@ namespace OpenMS
         potential_clusters.erase(old_proxy);
         cluster_for_idx[i] = new_proxy;
         potential_clusters.insert(new_proxy);
-      }
-      if (update_progress)
-      {
-        //setProgress(++progress_);
       }
     }
   }

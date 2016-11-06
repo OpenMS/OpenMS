@@ -37,7 +37,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeData.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
@@ -63,8 +62,7 @@ namespace OpenMS
     @ingroup MapAlignment
 */
 
-class OPENMS_DLLAPI MapAlignmentAlgorithmKD :
-    public ProgressLogger
+class OPENMS_DLLAPI MapAlignmentAlgorithmKD
 {
 public:
 

@@ -44,7 +44,6 @@ MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps) :
   fit_data_(num_maps),
   transformations_(num_maps)
 {
-  setLogType(CMD);
 }
 
 MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
@@ -99,28 +98,20 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
 
 void MapAlignmentAlgorithmKD::fitLOWESS()
 {
-  //SignedSize model_progress = 0;
   Size num_maps = fit_data_.size();
-  //startProgress(0, num_maps, String("fitting LOWESS transformation models"));
   for (Size i = 0; i < num_maps; ++i)
   {
     transformations_[i] = new TransformationModelLowess(fit_data_[i], Param());
-    //setProgress(++model_progress);
   }
-  //endProgress();
 }
 
 void MapAlignmentAlgorithmKD::transform(KDTreeData& kd_data) const
 {
   // apply transformations to kd_data
-  //startProgress(0, 1, String("applying LOWESS transformations"));
   kd_data.applyTransformations(transformations_);
-  //endProgress();
 
   // re-optimize kd-tree
-  //startProgress(0, 1, String("re-optimizing kd-tree"));
   kd_data.optimizeTree();
-  //endProgress();
 }
 
 Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size>& result) const
@@ -128,7 +119,6 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size
   //compute CCs by means of repeated BFS (without actually storing the graph (edges) in memory)
 
   Size num_nodes = kd_data.size();
-  //startProgress(0, num_nodes, String("computing connected components"));
 
   //clear CC indices
   result.clear();
@@ -139,7 +129,6 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size
   vector<Int> bfs_visited(num_nodes, false);
   Size search_pos = 0;
   Size cc_index = 0;
-  //SignedSize cc_progress = 0;
 
   //BFS until every node has been visited
   while (true)
@@ -163,7 +152,6 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size
       Size i = bfs_queue.front();
       bfs_queue.pop();
       result[i] = cc_index;
-      //setProgress(++cc_progress);
 
       vector<Size> compatible_features;
       kd_data.getNeighborhood(i, compatible_features);
@@ -181,7 +169,6 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size
     }
     ++cc_index;
   }
-  //endProgress();
 
   return cc_index;
 }
@@ -200,15 +187,11 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vecto
 
 void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& filtered_ccs, const map<Size, vector<Size> >& ccs, Size min_size) const
 {
-  //SignedSize filter_progress = 0;
-  //startProgress(0, ccs.size(), String("filtering connected components"));
-
   Size max_size = kd_data.numMaps();
   filtered_ccs.clear();
 
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
   {
-    // setProgress(filter_progress++);
     const vector<Size>& cc = it->second;
     // size OK?
     if (cc.size() < min_size || cc.size() > max_size)
@@ -234,7 +217,6 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, ve
       filtered_ccs[it->first] = cc;
     }
   }
-  //endProgress();
 }
 
 }
