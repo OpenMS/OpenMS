@@ -53,15 +53,13 @@ MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 
 void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
 {
-  Size num_maps = kd_data.numMaps();
-
   // compute connected components
   map<Size, vector<Size> > ccs;
   getCCs_(kd_data, ccs);
 
   // keep only conflict-free CCs of sufficient size
   map<Size, vector<Size> > filtered_ccs;
-  filterCCs_(kd_data, filtered_ccs, ccs);
+  filterCCs_(kd_data, ccs, filtered_ccs);
   // save some memory
   ccs.clear();
 
@@ -185,7 +183,7 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vecto
   }
 }
 
-void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& filtered_ccs, const map<Size, vector<Size> >& ccs) const
+void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, const map<Size, vector<Size> >& ccs, map<Size, vector<Size> >& filtered_ccs) const
 {
   Size min_size = min_cc_size_;
   Size max_size = kd_data.numMaps();

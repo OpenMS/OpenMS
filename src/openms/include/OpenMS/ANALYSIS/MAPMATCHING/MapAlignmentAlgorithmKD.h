@@ -90,7 +90,7 @@ protected:
   void getCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& result) const;
 
   /// Filter connected components (return conflict-free CCs of sufficiently large size and small diameter)
-  void filterCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& filtered_ccs, const std::map<Size, std::vector<Size> >& ccs) const;
+  void filterCCs_(const KDTreeData& kd_data, const std::map<Size, std::vector<Size> >& ccs, std::map<Size, std::vector<Size> >& filtered_ccs) const;
 
 private:
 

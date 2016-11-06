@@ -143,9 +143,6 @@ protected:
   /// (Potentially transformed) retention times
   std::vector<double> rt_;
 
-  /// Number of maps
-  Size num_maps_;
-
   /// RT tolerance in seconds
   double rt_tol_secs_;
 
@@ -154,6 +151,9 @@ protected:
 
   /// m/z tolerance unit ppm?
   bool mz_ppm_;
+
+  /// Number of maps
+  Size num_maps_;
 
   /// 2D tree on features from all input maps.
   FeatureKDTree kd_tree_;
