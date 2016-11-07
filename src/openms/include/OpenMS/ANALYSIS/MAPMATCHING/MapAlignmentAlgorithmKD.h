@@ -67,7 +67,7 @@ class OPENMS_DLLAPI MapAlignmentAlgorithmKD
 public:
 
   /// Constructor
-  MapAlignmentAlgorithmKD(Size num_maps, Size min_cc_size);
+  MapAlignmentAlgorithmKD(Size num_maps, const Param& param);
 
   /// Default destructor
   virtual ~MapAlignmentAlgorithmKD();
@@ -103,8 +103,8 @@ private:
   /// LOWESS transformations
   std::vector<TransformationModelLowess*> transformations_;
 
-  /// Minimum size for a connected component to be used for alignment
-  double min_cc_size_;
+  /// Parameters
+  Param param_;
 
 };
 

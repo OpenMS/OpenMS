@@ -40,10 +40,10 @@ using namespace std;
 namespace OpenMS
 {
 
-MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, Size min_cc_size) :
+MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, const Param& param) :
   fit_data_(num_maps),
   transformations_(num_maps),
-  min_cc_size_(min_cc_size)
+  param_(param)
 {
 }
 
@@ -185,31 +185,43 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vecto
 
 void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, const map<Size, vector<Size> >& ccs, map<Size, vector<Size> >& filtered_ccs) const
 {
-  Size min_size = min_cc_size_;
-  Size max_size = kd_data.numMaps();
+  Size num_maps = fit_data_.size();
+  Size min_size = (double)(param_.getValue("min_rel_cc_size")) * (double)num_maps;
+  int max_nr_conflicts = (int)param_.getValue("max_nr_conflicts");
   filtered_ccs.clear();
 
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
   {
     const vector<Size>& cc = it->second;
     // size OK?
-    if (cc.size() < min_size || cc.size() > max_size)
+    if (cc.size() < min_size)
     {
+      // nope
       continue;
     }
-    // map indices unique?
-    set<Size> map_indices;
+    // check for conflicts
     bool passes = true;
-    for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
+    if (max_nr_conflicts != -1)
     {
-      // filter out if reoccuring index found
-      Size map_idx = kd_data.mapIndex(*idx_it);
-      if (map_indices.find(map_idx) != map_indices.end())
+      set<Size> map_indices;
+      int nr_conflicts = 0;
+      for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
       {
-        passes = false;
-        break;
+        // filter out if too many features from same map
+        Size map_idx = kd_data.mapIndex(*idx_it);
+        if (map_indices.find(map_idx) != map_indices.end())
+        {
+          if (++nr_conflicts > max_nr_conflicts)
+          {
+            passes = false;
+            break;
+          }
+        }
+        else
+        {
+          map_indices.insert(map_idx);
+        }
       }
-      map_indices.insert(map_idx);
     }
     if (passes)
     {
