@@ -51,11 +51,13 @@ namespace OpenMS
     defaults_.setValue("mz_tol", 15.0, "m/z tolerance (in ppm or Da)");
     defaults_.setValue("mz_unit", "ppm", "unit of m/z tolerance");
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
-    defaults_.setValue("warp", "true", "whether or not to (internally) LOWESS-warp feature RTs before linking");
+    defaults_.setValue("warp", "true", "whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
     defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
-    defaults_.setValue("warp_min_occur", 0.5, "only features found in at least warp_min_occur * number_of_input_maps are used to compute the warping function");
-    defaults_.setMinFloat("warp_min_occur", 0.0);
-    defaults_.setMaxFloat("warp_min_occur", 1.0);
+    defaults_.setValue("min_rel_cc_size", 0.5, "only relevant during RT transformation: only connected components containing at least (warp_min_occur * number_of_input_maps) features are considered for computing the warping function");
+    defaults_.setMinFloat("min_rel_cc_size", 0.0);
+    defaults_.setMaxFloat("min_rel_cc_size", 1.0);
+    defaults_.setValue("max_nr_conflicts", 0, "only relevant during RT transformation: allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)");
+    defaults_.setMinInt("max_nr_conflicts", -1);
     defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
     defaultsToParam_();
@@ -121,8 +123,7 @@ namespace OpenMS
 
     // ------------ compute RT transformation models ------------
 
-    Size min_cc_size = (double)(param_.getValue("warp_min_occur")) * (double)(input_maps.size());
-    MapAlignmentAlgorithmKD aligner(input_maps.size(), min_cc_size);
+    MapAlignmentAlgorithmKD aligner(input_maps.size(), param_);
     bool align = param_.getValue("warp").toString() == "true";
     if (align)
     {
