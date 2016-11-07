@@ -158,7 +158,16 @@ namespace OpenMS
       }
 
       // fit LOWESS on RT fit data collected across all partitions
-      aligner.fitLOWESS();
+      try
+      {
+        aligner.fitLOWESS();
+      }
+      catch (Exception::BaseException e)
+      {
+        LOG_ERROR << "Error: " << e.what() << endl;
+        return;
+      }
+
       endProgress();
     }
 
