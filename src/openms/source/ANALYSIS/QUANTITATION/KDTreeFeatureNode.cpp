@@ -32,59 +32,56 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
-#define OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
-
-#include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 
 namespace OpenMS
 {
 
-class KDTreeData;
-
-/// A node of the kD-tree with pointer to corresponding data and index
-class OPENMS_DLLAPI KDTreeNode
+KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
+  data_(data),
+  idx_(idx)
 {
-
-public:
-
-  /// Constructor
-  KDTreeNode(KDTreeData* data, Size idx);
-
-  /// Copy constructor - copy the pointer, use same data object
-  KDTreeNode(const KDTreeNode& rhs);
-
-  /// Assignment operator - copy the pointer, use same data object
-  KDTreeNode& operator=(KDTreeNode const& rhs);
-
-  /// Destructor
-  virtual ~KDTreeNode();
-
-  /// libkdtree++ needs this typedef
-  typedef double value_type;
-
-  /// Needed for 2D range queries using libkdtree++. [0] returns RT, [1] m/z.
-  value_type operator[](Size i) const;
-
-  /// Return index of corresponding feature in data_
-  Size getIndex() const;
-
-protected:
-
-  /// Pointer to the actual data
-  KDTreeData* data_;
-
-  /// Index of this feature
-  Size idx_;
-
-private:
-
-  /// Default constructor is not supposed to be called
-  KDTreeNode();
-
-};
-
 }
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
+KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
+  data_(rhs.data_),
+  idx_(rhs.idx_)
+{
+}
+
+KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
+{
+  data_ = rhs.data_;
+  idx_ = rhs.idx_;
+
+  return *this;
+}
+
+KDTreeFeatureNode::~KDTreeFeatureNode()
+{
+}
+
+Size KDTreeFeatureNode::getIndex() const
+{
+  return idx_;
+}
+
+KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
+{
+  if (i == 0)
+  {
+    return data_->rt(idx_);
+  }
+  else if (i == 1)
+  {
+    return data_->mz(idx_);
+  }
+  else
+  {
+    const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
+    throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, err_msg);
+  }
+}
+
+}

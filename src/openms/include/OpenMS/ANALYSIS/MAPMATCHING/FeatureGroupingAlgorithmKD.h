@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMKD_H
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeData.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
@@ -231,16 +231,16 @@ private:
     void group_(const std::vector<MapType>& input_maps, ConsensusMap& out);
 
     /// Run the actual clustering algorithm
-    void runClustering_(const KDTreeData& kd_data, ConsensusMap& out);
+    void runClustering_(const KDTreeFeatureMaps& kd_data, ConsensusMap& out);
 
     /// Update maximum possible sizes of potential consensus features for indices specified in @p update_these
-    void updateClusterProxies_(std::set<ClusterProxyKD>& potential_clusters, std::vector<ClusterProxyKD>& cluster_for_idx, const std::set<Size>& update_these, const std::vector<Int>& assigned, const KDTreeData& kd_data);
+    void updateClusterProxies_(std::set<ClusterProxyKD>& potential_clusters, std::vector<ClusterProxyKD>& cluster_for_idx, const std::set<Size>& update_these, const std::vector<Int>& assigned, const KDTreeFeatureMaps& kd_data);
 
     /// Compute the current best cluster with center index @p i (mutates @p proxy and @p cf_indices)
-    ClusterProxyKD computeBestClusterForCenter(Size i, std::vector<Size>& cf_indices, const std::vector<Int>& assigned, const KDTreeData& kd_data) const;
+    ClusterProxyKD computeBestClusterForCenter(Size i, std::vector<Size>& cf_indices, const std::vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const;
 
     /// Construct consensus feature and add to out map
-    void addConsensusFeature_(const std::vector<Size>& indices, const KDTreeData& kd_data, ConsensusMap& out) const;
+    void addConsensusFeature_(const std::vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const;
 
     /// Distance between two points
     double distance_(double mz_1, double rt_1, double mz_2, double rt_2) const;
