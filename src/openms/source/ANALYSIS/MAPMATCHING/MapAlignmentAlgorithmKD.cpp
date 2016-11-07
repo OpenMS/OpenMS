@@ -99,6 +99,11 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
   Size num_maps = fit_data_.size();
   for (Size i = 0; i < num_maps; ++i)
   {
+    Size n = fit_data_[i].size();
+    if (n < 50)
+    {
+      LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT and m/z tolerance, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
+    }
     transformations_[i] = new TransformationModelLowess(fit_data_[i], Param());
   }
 }
