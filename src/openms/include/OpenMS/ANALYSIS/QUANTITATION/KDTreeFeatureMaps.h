@@ -39,24 +39,24 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/DATASTRUCTURES/KDTree.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeNode.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 namespace OpenMS
 {
 
-/// 2D tree on features
-typedef KDTree::KDTree<2,KDTreeNode> FeatureKDTree;
-
 /// Stores a set of features, together with a 2D tree for fast search
-class OPENMS_DLLAPI KDTreeData
+class OPENMS_DLLAPI KDTreeFeatureMaps
 {
 
 public:
 
+  /// 2D tree on features
+  typedef KDTree::KDTree<2,KDTreeFeatureNode> FeatureKDTree;
+
   /// Constructor
   template <typename MapType>
-  KDTreeData(const std::vector<MapType>& maps, const Param& param) :
+  KDTreeFeatureMaps(const std::vector<MapType>& maps, const Param& param) :
     rt_tol_secs_((double)(param.getValue("rt_tol"))),
     mz_tol_((double)(param.getValue("mz_tol"))),
     mz_ppm_(param.getValue("mz_unit").toString() == "ppm"),
@@ -74,7 +74,7 @@ public:
   }
 
   /// Destructor
-  ~KDTreeData()
+  ~KDTreeFeatureMaps()
   {
   }
 
@@ -125,9 +125,6 @@ public:
 
   /// Fill @p result with indices of all features compatible (wrt. RT, m/z, map index) to the feature with @p index
   void getNeighborhood(Size index, std::vector<Size>& result_indices, bool ignore_map_index = false) const;
-
-  /// Return window around @p val given tolerance @p tol
-  std::pair<double, double> getTolWindow(double val, double tol, bool ppm) const;
 
   /// Apply RT transformations
   void applyTransformations(const std::vector<TransformationModelLowess*>& trafos);

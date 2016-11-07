@@ -32,56 +32,59 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeNode.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeData.h>
+#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
+#define OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
+
+#include <OpenMS/config.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
 
-KDTreeNode::KDTreeNode(KDTreeData* data, Size idx) :
-  data_(data),
-  idx_(idx)
+class KDTreeFeatureMaps;
+
+/// A node of the kD-tree with pointer to corresponding data and index
+class OPENMS_DLLAPI KDTreeFeatureNode
 {
-}
 
-KDTreeNode::KDTreeNode(const KDTreeNode& rhs) :
-  data_(rhs.data_),
-  idx_(rhs.idx_)
-{
-}
+public:
 
-KDTreeNode& KDTreeNode::operator=(KDTreeNode const& rhs)
-{
-  data_ = rhs.data_;
-  idx_ = rhs.idx_;
+  /// Constructor
+  KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx);
 
-  return *this;
-}
+  /// Copy constructor - copy the pointer, use same data object
+  KDTreeFeatureNode(const KDTreeFeatureNode& rhs);
 
-KDTreeNode::~KDTreeNode()
-{
-}
+  /// Assignment operator - copy the pointer, use same data object
+  KDTreeFeatureNode& operator=(KDTreeFeatureNode const& rhs);
 
-Size KDTreeNode::getIndex() const
-{
-  return idx_;
-}
+  /// Destructor
+  virtual ~KDTreeFeatureNode();
 
-KDTreeNode::value_type KDTreeNode::operator[](Size i) const
-{
-  if (i == 0)
-  {
-    return data_->rt(idx_);
-  }
-  else if (i == 1)
-  {
-    return data_->mz(idx_);
-  }
-  else
-  {
-    const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
-    throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, err_msg);
-  }
-}
+  /// libkdtree++ needs this typedef
+  typedef double value_type;
+
+  /// Needed for 2D range queries using libkdtree++. [0] returns RT, [1] m/z.
+  value_type operator[](Size i) const;
+
+  /// Return index of corresponding feature in data_
+  Size getIndex() const;
+
+protected:
+
+  /// Pointer to the actual data
+  KDTreeFeatureMaps* data_;
+
+  /// Index of this feature
+  Size idx_;
+
+private:
+
+  /// Default constructor is not supposed to be called
+  KDTreeFeatureNode();
+
+};
 
 }
+
+#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H

@@ -32,7 +32,8 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeData.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <boost/container/vector.hpp>
 #include <queue>
 
@@ -41,92 +42,92 @@ using namespace std;
 namespace OpenMS
 {
 
-void KDTreeData::addFeature(Size mt_map_index, const BaseFeature* feature)
+void KDTreeFeatureMaps::addFeature(Size mt_map_index, const BaseFeature* feature)
 {
   map_index_.push_back(mt_map_index);
   features_.push_back(feature);
   rt_.push_back(feature->getRT());
 
-  KDTreeNode mt_node(this, size() - 1);
+  KDTreeFeatureNode mt_node(this, size() - 1);
   kd_tree_.insert(mt_node);
 }
 
-const BaseFeature* KDTreeData::feature(Size i) const
+const BaseFeature* KDTreeFeatureMaps::feature(Size i) const
 {
   return features_[i];
 }
 
-double KDTreeData::rt(Size i) const
+double KDTreeFeatureMaps::rt(Size i) const
 {
   return rt_[i];
 }
 
-double KDTreeData::mz(Size i) const
+double KDTreeFeatureMaps::mz(Size i) const
 {
   return features_[i]->getMZ();
 }
 
-float KDTreeData::intensity(Size i) const
+float KDTreeFeatureMaps::intensity(Size i) const
 {
   return features_[i]->getIntensity();
 }
 
-Int KDTreeData::charge(Size i) const
+Int KDTreeFeatureMaps::charge(Size i) const
 {
   return features_[i]->getCharge();
 }
 
-Size KDTreeData::mapIndex(Size i) const
+Size KDTreeFeatureMaps::mapIndex(Size i) const
 {
   return map_index_[i];
 }
 
-Size KDTreeData::size() const
+Size KDTreeFeatureMaps::size() const
 {
   return features_.size();
 }
 
-Size KDTreeData::treeSize() const
+Size KDTreeFeatureMaps::treeSize() const
 {
   return kd_tree_.size();
 }
 
-Size KDTreeData::numMaps() const
+Size KDTreeFeatureMaps::numMaps() const
 {
   return num_maps_;
 }
 
-double KDTreeData::rtTolerance() const
+double KDTreeFeatureMaps::rtTolerance() const
 {
   return rt_tol_secs_;
 }
 
-double KDTreeData::mzTolerance() const
+double KDTreeFeatureMaps::mzTolerance() const
 {
   return mz_tol_;
 }
 
-bool KDTreeData::mzPPM() const
+bool KDTreeFeatureMaps::mzPPM() const
 {
   return mz_ppm_;
 }
 
-void KDTreeData::clear()
+void KDTreeFeatureMaps::clear()
 {
   features_.clear();
   map_index_.clear();
   kd_tree_.clear();
 }
 
-void KDTreeData::optimizeTree()
+void KDTreeFeatureMaps::optimizeTree()
 {
   kd_tree_.optimize();
 }
 
-void KDTreeData::getNeighborhood(Size index, vector<Size>& result_indices, bool ignore_map_index) const
+void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices, bool ignore_map_index) const
 {
-  pair<double, double> rt_win = getTolWindow(rt(index), rt_tol_secs_, false);
-  pair<double, double> mz_win = getTolWindow(mz(index), mz_tol_, mz_ppm_);
+  pair<double, double> rt_win = Math::getTolWindow(rt(index), rt_tol_secs_, false);
+  pair<double, double> mz_win = Math::getTolWindow(mz(index), mz_tol_, mz_ppm_);
 
   // set up tolerance window as region for the 2D tree
   FeatureKDTree::_Region_ region;
@@ -136,12 +137,12 @@ void KDTreeData::getNeighborhood(Size index, vector<Size>& result_indices, bool 
   region._M_high_bounds[1] = mz_win.second;
 
   // range-query tolerance window
-  vector<KDTreeNode> tmp_result;
-  kd_tree_.find_within_range(region, back_insert_iterator<vector<KDTreeNode> >(tmp_result));
+  vector<KDTreeFeatureNode> tmp_result;
+  kd_tree_.find_within_range(region, back_insert_iterator<vector<KDTreeFeatureNode> >(tmp_result));
 
   // unless ignore_map_index: add only compatible MTs from *other* maps to final result
   result_indices.clear();
-  for (vector<KDTreeNode>::const_iterator it = tmp_result.begin(); it != tmp_result.end(); ++it)
+  for (vector<KDTreeFeatureNode>::const_iterator it = tmp_result.begin(); it != tmp_result.end(); ++it)
   {
     Size found_index = it->getIndex();
     if (ignore_map_index || map_index_[found_index] != map_index_[index])
@@ -151,25 +152,7 @@ void KDTreeData::getNeighborhood(Size index, vector<Size>& result_indices, bool 
   }
 }
 
-pair<double, double> KDTreeData::getTolWindow(double val, double tol, bool ppm) const
-{
-  double left, right;
-
-  if (ppm)
-  {
-    left = val - val * tol * 1.0e-6;
-    right = val / (1.0 - tol * 1.0e-6);
-  }
-  else
-  {
-    left = val - tol;
-    right = val + tol;
-  }
-
-  return make_pair(left, right);
-}
-
-void KDTreeData::applyTransformations(const vector<TransformationModelLowess*>& trafos)
+void KDTreeFeatureMaps::applyTransformations(const vector<TransformationModelLowess*>& trafos)
 {
   for (Size i = 0; i < size(); ++i)
   {

@@ -35,7 +35,7 @@
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMKD_H
 #define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMKD_H
 
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeData.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 namespace OpenMS
@@ -73,24 +73,24 @@ public:
   virtual ~MapAlignmentAlgorithmKD();
 
   /// Compute data points needed for RT transformation in the current @p kd_data, add to fit_data_
-  void addRTFitData(const KDTreeData& kd_data);
+  void addRTFitData(const KDTreeFeatureMaps& kd_data);
 
   /// Fit LOWESS to fit_data_, store final models in transformations_
   void fitLOWESS();
 
   /// Transform RTs for @p kd_data
-  void transform(KDTreeData& kd_data) const;
+  void transform(KDTreeFeatureMaps& kd_data) const;
 
 protected:
 
   /// Compute connected components, store CC indices in member cc_index. Return number of CCs.
-  Size computeCCs_(const KDTreeData& kd_data, std::vector<Size>& cc_index) const;
+  Size computeCCs_(const KDTreeFeatureMaps& kd_data, std::vector<Size>& cc_index) const;
 
   /// Return connected components
-  void getCCs_(const KDTreeData& kd_data, std::map<Size, std::vector<Size> >& result) const;
+  void getCCs_(const KDTreeFeatureMaps& kd_data, std::map<Size, std::vector<Size> >& result) const;
 
   /// Filter connected components (return conflict-free CCs of sufficiently large size and small diameter)
-  void filterCCs_(const KDTreeData& kd_data, const std::map<Size, std::vector<Size> >& ccs, std::map<Size, std::vector<Size> >& filtered_ccs) const;
+  void filterCCs_(const KDTreeFeatureMaps& kd_data, const std::map<Size, std::vector<Size> >& ccs, std::map<Size, std::vector<Size> >& filtered_ccs) const;
 
 private:
 

@@ -51,7 +51,7 @@ MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 {
 }
 
-void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeData& kd_data)
+void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
 {
   // compute connected components
   map<Size, vector<Size> > ccs;
@@ -108,7 +108,7 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
   }
 }
 
-void MapAlignmentAlgorithmKD::transform(KDTreeData& kd_data) const
+void MapAlignmentAlgorithmKD::transform(KDTreeFeatureMaps& kd_data) const
 {
   // apply transformations to kd_data
   kd_data.applyTransformations(transformations_);
@@ -117,7 +117,7 @@ void MapAlignmentAlgorithmKD::transform(KDTreeData& kd_data) const
   kd_data.optimizeTree();
 }
 
-Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size>& result) const
+Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeFeatureMaps& kd_data, vector<Size>& result) const
 {
   //compute CCs by means of repeated BFS (without actually storing the graph (edges) in memory)
 
@@ -176,7 +176,7 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeData& kd_data, vector<Size
   return cc_index;
 }
 
-void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vector<Size> >& result) const
+void MapAlignmentAlgorithmKD::getCCs_(const KDTreeFeatureMaps& kd_data, map<Size, vector<Size> >& result) const
 {
   vector<Size> cc_index;
   computeCCs_(kd_data, cc_index);
@@ -188,7 +188,7 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeData& kd_data, map<Size, vecto
   }
 }
 
-void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeData& kd_data, const map<Size, vector<Size> >& ccs, map<Size, vector<Size> >& filtered_ccs) const
+void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const map<Size, vector<Size> >& ccs, map<Size, vector<Size> >& filtered_ccs) const
 {
   Size num_maps = fit_data_.size();
   Size min_size = (double)(param_.getValue("min_rel_cc_size")) * (double)num_maps;

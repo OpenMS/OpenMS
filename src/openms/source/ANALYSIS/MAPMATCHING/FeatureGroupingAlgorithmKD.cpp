@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
 
@@ -152,7 +153,7 @@ namespace OpenMS
         }
 
         // set up kd-tree
-        KDTreeData kd_data(tmp_input_maps, param_);
+        KDTreeFeatureMaps kd_data(tmp_input_maps, param_);
         aligner.addRTFitData(kd_data);
         setProgress(progress++);
       }
@@ -197,7 +198,7 @@ namespace OpenMS
       }
 
       // set up kd-tree
-      KDTreeData kd_data(tmp_input_maps, param_);
+      KDTreeFeatureMaps kd_data(tmp_input_maps, param_);
 
       // alignment
       if (align)
@@ -252,7 +253,7 @@ namespace OpenMS
     group_(maps, out);
   }
 
-  void FeatureGroupingAlgorithmKD::runClustering_(const KDTreeData& kd_data, ConsensusMap& out)
+  void FeatureGroupingAlgorithmKD::runClustering_(const KDTreeFeatureMaps& kd_data, ConsensusMap& out)
   {
     Size n = kd_data.size();
 
@@ -313,7 +314,7 @@ namespace OpenMS
                                                          vector<ClusterProxyKD>& cluster_for_idx,
                                                          const set<Size>& update_these,
                                                          const vector<Int>& assigned,
-                                                         const KDTreeData& kd_data)
+                                                         const KDTreeFeatureMaps& kd_data)
   {
     for (set<Size>::const_iterator it = update_these.begin(); it != update_these.end(); ++it)
     {
@@ -332,10 +333,10 @@ namespace OpenMS
     }
   }
 
-  ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeData& kd_data) const
+  ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const
   {
     // for scaling distances relative to tolerance windows below
-    pair<double, double> dummy_mz_win = kd_data.getTolWindow(1000, mz_tol_, mz_ppm_);
+    pair<double, double> dummy_mz_win = Math::getTolWindow(1000, mz_tol_, mz_ppm_);
     double max_rt_dist = rt_tol_secs_;
     double max_mz_dist = (dummy_mz_win.second - dummy_mz_win.first) / 2;
 
@@ -386,7 +387,7 @@ namespace OpenMS
     return ClusterProxyKD(cf_indices.size(), avg_distance, i);
   }
 
-  void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeData& kd_data, ConsensusMap& out) const
+  void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const
   {
     ConsensusFeature cf;
     float avg_quality = 0;
