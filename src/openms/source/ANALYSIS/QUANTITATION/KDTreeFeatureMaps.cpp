@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <boost/container/vector.hpp>
-#include <queue>
 
 using namespace std;
 
