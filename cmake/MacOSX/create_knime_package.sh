@@ -69,7 +69,6 @@ rm -r ${PAYLOAD}/bin/TOPPView.app
 rm -r ${PAYLOAD}/bin/INIFileEditor.app
 rm -r ${PAYLOAD}/bin/TOPPAS.app
 
-rm -r ${PAYLOAD}/bin/PhosphoScoring 
 rm -r ${PAYLOAD}/bin/OpenMSInfo 
 rm -r ${PAYLOAD}/bin/FuzzyDiff 
 rm -r ${PAYLOAD}/bin/GenericWrapper

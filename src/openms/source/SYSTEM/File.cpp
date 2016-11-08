@@ -330,12 +330,14 @@ namespace OpenMS
     // we do not support moving the path while OpenMS is running
     if (path_checked) return path;
 
+    String found_path_from;
     bool from_env(false);
     if (getenv("OPENMS_DATA_PATH") != 0)
     {
       path = getenv("OPENMS_DATA_PATH");
       from_env = true;
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
     }
 
     // probe the install path
@@ -343,6 +345,7 @@ namespace OpenMS
     {
       path = OPENMS_INSTALL_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
     }
 
     // probe the OPENMS_DATA_PATH macro
@@ -350,6 +353,7 @@ namespace OpenMS
     {
       path = OPENMS_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
     }
 
 #if defined(__APPLE__)
@@ -360,6 +364,7 @@ namespace OpenMS
     {
       path = getExecutablePath() + "../../../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "bundle path (run time)";
     }
 
     // #2 the TOPP tool
@@ -367,6 +372,7 @@ namespace OpenMS
     {
       path = getExecutablePath() + "../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
+      if (path_checked) found_path_from = "tool path (run time)";
     }
 #endif
 
@@ -378,7 +384,8 @@ namespace OpenMS
       std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
       if (from_env)
       {
-        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << path << "', which is incorrect!\n";
+        String p = getenv("OPENMS_DATA_PATH");
+        std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << p << "', which is incorrect!\n";
       }
 #ifdef OPENMS_WINDOWSPLATFORM
       String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
@@ -395,7 +402,8 @@ namespace OpenMS
 
   bool File::isOpenMSDataPath_(const String& path)
   {
-    return exists(path + "/CHEMISTRY/Elements.xml");
+    bool found = exists(path + "/CHEMISTRY/Elements.xml");
+    return found;
   }
 
   String File::removeExtension(const OpenMS::String& file)

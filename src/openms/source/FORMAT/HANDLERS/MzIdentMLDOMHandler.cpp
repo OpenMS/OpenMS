@@ -88,9 +88,9 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root = XMLString::transcode("MzIdentML");
-      TAG_CV = XMLString::transcode("cvParam");
-      ATTR_name = XMLString::transcode("option_a");
+      xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
+      xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
+      xml_name_attr_ptr_ = XMLString::transcode("option_a");
 
     }
 
@@ -120,9 +120,9 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root = XMLString::transcode("MzIdentML");
-      TAG_CV = XMLString::transcode("cvParam");
-      ATTR_name = XMLString::transcode("name");
+      xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
+      xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
+      xml_name_attr_ptr_ = XMLString::transcode("name");
 
     }
 
@@ -135,9 +135,9 @@ namespace OpenMS
     {
       try
       {
-        XMLString::release(&TAG_root);
-        XMLString::release(&TAG_CV);
-        XMLString::release(&ATTR_name);
+        XMLString::release(&xml_root_tag_ptr_);
+        XMLString::release(&xml_cvparam_tag_ptr_);
+        XMLString::release(&xml_name_attr_ptr_);
 //         if(m_name)   XMLString::release( &m_name ); //releasing you here is releasing you twice, dunno yet why?!
       }
       catch (...)
@@ -173,8 +173,9 @@ namespace OpenMS
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         else if (errno == ENOTDIR)
           throw (runtime_error("A component of the path is not a directory."));
-        else if (errno == ELOOP)
-          throw (runtime_error("Too many symbolic links encountered while traversing the path."));
+        // On MSVC 2008, the ELOOP constant is not declared and thus introduces a compile error
+        //else if (errno == ELOOP)
+        //  throw (runtime_error("Too many symbolic links encountered while traversing the path."));
         else if (errno == EACCES)
           throw (runtime_error("Permission denied."));
         else if (errno == ENAMETOOLONG)
@@ -489,10 +490,11 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
 
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
-        if (!unitAcc.empty() && unitCvRef.empty() && unitName.empty())
+        if (!unitAcc.empty() && !unitCvRef.empty() && !unitName.empty())
         {
           u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
         }
+        // TODO: warn if only a part of the unit attributes are not empty?
         return CVTerm(accession, name, cvRef, value, u);
       }
       else
@@ -1188,7 +1190,12 @@ namespace OpenMS
                 // check for retention time or scan time entry
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(cvit->second.front().getValue().toString().toDouble()); // TODO convert if unit is minutes
+                  double rt = cvit->second.front().getValue().toString().toDouble();
+                  if (cvit->second.front().getUnit().accession == "UO:0000031")  // minutes
+                  {
+                    rt *= 60.0;
+                  }
+                  pep_id_->back().setRT(rt);
                 }
                 else
                 {

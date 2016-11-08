@@ -216,8 +216,9 @@ namespace OpenMS
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                          QString(),
-                                                          cols[i]);
+                                                         QString(),
+                                                         cols[i],
+                                                         current_layer.param.getValue("peak_color").toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -327,14 +328,14 @@ namespace OpenMS
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
         Annotation1DDistanceItem * item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
-        // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
+        // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
         ticks.push_back(it->getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
 
         temporary_annotations_.push_back(item); // for removal (no ownership)
-        current_layer.getCurrentAnnotations().push_front(item); // for visualisation (ownership)
+        current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
       }
     }
     else if (current_layer.type == LayerData::DT_CHROMATOGRAM)

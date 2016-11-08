@@ -46,62 +46,97 @@
 namespace OpenMS
 {
 
-  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args )
+  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, bool find_R /*= false */, bool verbose /*= true */)
   {
+    if (find_R && !findR(verbose))
+    {
+      return false;
+    }
+    
     String fullscript;
     try
     {
-      fullscript = findScript(script_file);
+      fullscript = findScript(script_file, verbose);
     }
     catch (...)
     {
       return false;
     }
 
-    LOG_INFO << "Running R script '" << fullscript << "' ..." << std::flush;
-    if (!findR())
-    {
-      return false;
-    }
-
-    QProcess p;
-    p.setProcessChannelMode(QProcess::MergedChannels);
+    if (verbose) LOG_INFO << "Running R script '" << fullscript << "' ...";
 
     QStringList args;
     args << "--vanilla" << "--quiet" << fullscript.toQString();
     args.append(cmd_args);
 
+    QProcess p;
     p.start("Rscript", args);
     p.waitForFinished(-1);
 
     if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
     {
-      LOG_INFO << " failed" << std::endl;
-      LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
-      LOG_ERROR << QString(p.readAllStandardError()).toStdString() << std::endl;
-      LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
-      LOG_ERROR << QString(p.readAllStandardOutput()).toStdString() << std::endl;
-      LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+      if (verbose)
+      {
+        LOG_INFO << " failed" << std::endl;
+        LOG_ERROR << "\n--- ERROR MESSAGES ---\n";
+        LOG_ERROR << QString(p.readAllStandardError()).toStdString();
+        LOG_ERROR << "\n--- OTHER MESSAGES ---\n";
+        LOG_ERROR << QString(p.readAllStandardOutput()).toStdString();
+        LOG_ERROR << "\n\nScript failed. See above for an error description. " << std::endl;
+      }
       return false;
     }
-    LOG_INFO << " success" << std::endl;
+    if (verbose) LOG_INFO << " success" << std::endl;
 
     return true;
   }
 
   bool RWrapper::findR( bool verbose /*= true*/ )
   {
-    QStringList args;
-    args << "--vanilla" << "-e" << "sessionInfo()";
+    if (verbose) LOG_INFO << "Finding R interpreter 'Rscript' ...";
+
+    QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
     QProcess p;
+    p.setProcessChannelMode(QProcess::MergedChannels); // stdout receives all messages (stderr is empty)
     p.start("Rscript", args);
     p.waitForFinished(-1);
 
-    if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+    if (p.error() == QProcess::FailedToStart)
     {
-      if (verbose) LOG_ERROR << " Could not find 'Rscript' executable. Make sure it's in your system path and try again." << std::endl;
+      if (verbose)
+      {
+        LOG_INFO << " failed" << std::endl;
+        String out = QString(p.readAllStandardOutput()).toStdString();
+        LOG_ERROR << "Error: Could not find or run 'Rscript' executable (FailedToStart).\n";
+        if (!out.empty())
+        {
+          LOG_ERROR << "Output was:\n------>\n"
+                    << out
+                    << "\n<------\n";
+        }
+        LOG_ERROR << "Please install 'Rscript', make sure it's in PATH and is flagged as executable." << std::endl;
+      }
+
       return false;
     }
+    if (verbose) LOG_INFO << " success" << std::endl;
+
+    if (verbose) LOG_INFO << "Trying to invoke 'Rscript' ...";
+    if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
+    {
+      if (verbose)
+      {
+        LOG_INFO << " failed" << std::endl;
+        LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
+                  << "Output was:\n------>\n"
+                  << QString(p.readAllStandardOutput()).toStdString()
+                  << "\n<------\n"
+                  << "Make sure 'Rscript' is installed properly." << std::endl;
+      }
+      return false;
+    }
+    if (verbose) LOG_INFO << " success" << std::endl;
+
     return true;
   }
 

@@ -184,4 +184,68 @@ namespace OpenMS
     }
   }
 
+  void TransformationDescription::getDeviations(vector<double>& diffs, 
+                                                bool do_apply,
+                                                bool do_sort) const
+  {
+    diffs.clear();
+    diffs.reserve(data_.size());
+    for (DataPoints::const_iterator it = data_.begin(); it != data_.end(); ++it)
+    {
+      double x = it->first;
+      if (do_apply) x = apply(x);
+      diffs.push_back(abs(x - it->second));
+    }
+    if (do_sort) sort(diffs.begin(), diffs.end());
+  }
+
+  void TransformationDescription::printSummary(ostream& os) const
+  {
+    os << "Number of data points (x/y pairs): " << data_.size() << "\n";
+    if (data_.empty()) return;
+    // x/y data ranges:
+    double xmin, xmax, ymin, ymax;
+    xmin = xmax = data_[0].first;
+    ymin = ymax = data_[0].second;
+    for (DataPoints::const_iterator it = ++data_.begin(); it != data_.end();
+         ++it)
+    {
+      if (xmin > it->first) xmin = it->first;
+      if (xmax < it->first) xmax = it->first;
+      if (ymin > it->second) ymin = it->second;
+      if (ymax < it->second) ymax = it->second;
+    }
+    os << "Data range (x): " << xmin << " to " << xmax
+       << "\nData range (y): " << ymin << " to " << ymax << "\n";
+    // deviations:
+    vector<double> diffs;
+    getDeviations(diffs);
+    bool no_model = (model_type_ == "none") || (model_type_ == "identity");
+    os << String("Summary of x/y deviations") +
+      (no_model ? "" : " before transformation") + ":\n";
+    Size percents[] = {100, 99, 95, 90, 75, 50, 25};
+    for (Size i = 0; i < 7; ++i)
+    {
+      Size index = percents[i] / 100.0 * diffs.size() - 1;
+      os << "- " << setw(3) << percents[i] << "% of data points within (+/-)"
+         << diffs[index] << "\n";
+    }
+    if (no_model)
+    {
+      os << endl;
+      return;
+    }
+    // else:
+    getDeviations(diffs, true);
+    os << "Summary of x/y deviations after applying '" << model_type_ 
+       << "' transformation:\n";
+    for (Size i = 0; i < 7; ++i)
+    {
+      Size index = percents[i] / 100.0 * diffs.size() - 1;
+      os << "- " << setw(3) << percents[i] << "% of data points within (+/-)"
+         << diffs[index] << "\n";
+    }
+    os << endl;
+  }
+
 } // end of namespace OpenMS

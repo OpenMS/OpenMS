@@ -132,7 +132,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out", "<file>", "", "Output file", false);
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
@@ -181,8 +181,10 @@ protected:
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
     setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
     
-    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
 
+    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+    registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
   
   String makeModString_(const String& mod_name)
@@ -551,6 +553,11 @@ protected:
     }
     
     writeConfigurationFile_(conf_file, config_map);    
+
+    // memory for JVM
+    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+    int java_permgen = getIntOption_("java_permgen");
+
     QString executable = getStringOption_("executable").toQString();
     
     // Hack for KNIME. Looks for LUCIPHOR_PATH in the environment which is set in binaries.ini
@@ -564,8 +571,14 @@ protected:
     }
 
     QStringList process_params; // the actual process is Java, not LuciPHOr2!
-    process_params << "-jar" << executable << conf_file.toQString();                   
+    process_params << java_memory;
+    
+    if (java_permgen > 0)
+    {
+      process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
+    }
 
+    process_params << "-jar" << executable << conf_file.toQString();                   
     // execute LuciPHOr2    
     int status = QProcess::execute(java_executable.toQString(), process_params);
     if (status != 0)

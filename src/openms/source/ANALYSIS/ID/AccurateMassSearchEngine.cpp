@@ -237,9 +237,8 @@ namespace OpenMS
         formula_str = formula_str.substr(idx, formula_str.size());
       }
 
-      // std::cout << stoichio_factor << "*" << formula_str << " ";
       EmpiricalFormula ef_part(formula_str);
-      // std::cout << part_formula.getMonoWeight() << std::endl;
+      LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
 
       if (op_plus)
       {

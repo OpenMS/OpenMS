@@ -72,10 +72,11 @@ include(Dart)
 # - do NOT hardcode them here!
 # - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
 #------------------------------------------------------------------------------
-# CMAKE_FIND_ROOT_PATH
+# CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
 # ADDRESS_SANITIZER
+# OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -97,8 +98,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "0")
-set(OPENMS_PACKAGE_VERSION_PATCH "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "1")
+set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
@@ -188,6 +189,16 @@ endif()
 option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
 if(ADDRESS_SANITIZER)
   include(cmake/AddressSanitizer.cmake)
+endif()
+
+#------------------------------------------------------------------------------
+# Enable Coverage
+#------------------------------------------------------------------------------
+option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
+ is slower and uses a lot of disk space (>40GB). Enables the target OpenMS_coverage to generate
+ a coverage report in html format." OFF)
+if(OPENMS_COVERAGE)
+  include(cmake/Coverage.cmake)
 endif()
 
 #------------------------------------------------------------------------------

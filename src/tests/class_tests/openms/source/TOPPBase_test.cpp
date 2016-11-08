@@ -394,6 +394,7 @@ const char* a18 ="-intlist";
 const char* a19 ="-doublelist";
 const char* a20 ="0.411";
 const char* a21 = "-write_ini";
+const char* test = "-test";
 
 START_SECTION(([EXTRA]String const& getIniLocation_() const))
 	//default
@@ -727,15 +728,15 @@ END_SECTION
 START_SECTION(([EXTRA] misc options on command line))
 {
   // misc text option
-	const char* string_cl[2] = {a1, a12}; //command line: "TOPPBaseTest commandline"
-	TOPPBaseCmdParseTest tmp1;
-  TOPPBase::ExitCodes ec1 = tmp1.run(2,string_cl);
+  const char* string_cl[3] = {a1, a12, test}; //command line: "TOPPBaseTest commandline"
+  TOPPBaseCmdParseTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(3,string_cl);
   TEST_EQUAL(ec1, TOPPBase::ILLEGAL_PARAMETERS)
 
   // unknown option
   TOPPBaseCmdParseTest tmp2;
-	const char* string_cl_2[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
-  TOPPBase::ExitCodes ec2 = tmp1.run(3,string_cl_2);
+  const char* string_cl_2[4] = {a1, a10, a12, test}; //command line: "TOPPBaseTest -stringoption commandline"
+  TOPPBase::ExitCodes ec2 = tmp1.run(4,string_cl_2);
   TEST_EQUAL(ec2, TOPPBase::ILLEGAL_PARAMETERS)
 }
 END_SECTION
@@ -753,9 +754,9 @@ const char* a30 = temp_a30.c_str();
 
 START_SECTION(([EXTRA] test subsection parameters))
 {
-  const char* string_cl_1[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
-	TOPPBaseCmdParseSubsectionsTest tmp1;
-  TOPPBase::ExitCodes ec1 = tmp1.run(3, string_cl_1);
+  const char* string_cl_1[4] = {a1, a10, a12, test}; //command line: "TOPPBaseTest -stringoption commandline"
+  TOPPBaseCmdParseSubsectionsTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(4, string_cl_1);
   TEST_EQUAL(ec1, TOPPBase::EXECUTION_OK)
   TEST_EQUAL(tmp1.getStringOption("stringoption"), "commandline");
   TEST_EQUAL(tmp1.getParam().getValue("algorithm:param1"), "param1_value");
@@ -764,9 +765,9 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp1.getParam().getValue("other:param4"), "param4_value");
 
   // overwrite from cmd
-  const char* string_cl_2[11] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
-	TOPPBaseCmdParseSubsectionsTest tmp2;
-  TOPPBase::ExitCodes ec2 = tmp2.run(11, string_cl_2);
+  const char* string_cl_2[12] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29, test}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
+  TOPPBaseCmdParseSubsectionsTest tmp2;
+  TOPPBase::ExitCodes ec2 = tmp2.run(12, string_cl_2);
   TEST_EQUAL(ec2, TOPPBase::EXECUTION_OK)
   TEST_EQUAL(tmp2.getStringOption("stringoption"), "commandline");
   TEST_EQUAL(tmp2.getParam().getValue("algorithm:param1"), "val1");
@@ -775,9 +776,9 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp2.getParam().getValue("other:param4"), "val4");
 
   // overwrite ini values from cmd
-  const char* string_cl_3[9] = {a1, a3, a30, a22, a26, a25, a29, a10, a12 }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini -algorithm:param1 val1 -algorithm:param4 val4"
-	TOPPBaseCmdParseSubsectionsTest tmp3;
-  TOPPBase::ExitCodes ec3 = tmp3.run(9, string_cl_3);
+  const char* string_cl_3[10] = {a1, a3, a30, a22, a26, a25, a29, a10, a12, test }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini -algorithm:param1 val1 -algorithm:param4 val4"
+  TOPPBaseCmdParseSubsectionsTest tmp3;
+  TOPPBase::ExitCodes ec3 = tmp3.run(10, string_cl_3);
   TEST_EQUAL(ec3, TOPPBase::EXECUTION_OK)
   TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
   TEST_EQUAL(tmp3.getParam().getValue("algorithm:param1"), "val1");
