@@ -198,12 +198,30 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
   {
     const vector<Size>& cc = it->second;
+
     // size OK?
     if (cc.size() < min_size)
     {
       // nope
       continue;
     }
+
+    // charges compatible?
+    set<int> charges;
+    for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
+    {
+      int z = kd_data.charge(*idx_it);
+      if (z != 0)
+      {
+        charges.insert(z);
+      }
+      if (charges.size() > 1)
+      {
+        // nope
+        continue;
+      }
+    }
+
     // check for conflicts
     bool passes = true;
     if (max_nr_conflicts != -1)
@@ -228,6 +246,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
         }
       }
     }
+
     if (passes)
     {
       filtered_ccs[it->first] = cc;
