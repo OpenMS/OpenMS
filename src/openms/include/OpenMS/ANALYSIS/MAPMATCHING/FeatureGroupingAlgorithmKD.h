@@ -168,7 +168,8 @@ private:
   /**
       @brief A feature grouping algorithm for unlabeled data.
 
-      The algorithm takes a number of feature or consensus maps and searches for corresponding (consensus) features across different maps.
+      The algorithm takes a number of feature or consensus maps and searches
+      for corresponding (consensus) features across different maps.
 
       @htmlinclude OpenMS_FeatureGroupingAlgorithmKD.parameters
 

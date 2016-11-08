@@ -47,15 +47,12 @@ namespace OpenMS
     This algorithm uses a kd-tree to efficiently compute conflict-free connected components (CCC)
     in a compatibility graph on feature data. This graph is comprised of nodes corresponding
     to features and edges connecting features f and f' iff both are within each other's tolerance
-    windows (wrt. RT and m/z difference). CCCs are those CCs (i) that do not contain multiple features
-    from the same input map, (ii) whose total diameter does not violate the user-specified m/z and RT
-    tolerance (since CCs are contiguity clusters, they can suffer from chaining and easily exceed
-    these thresholds, as these are defined only on pairs of features and not on clusters) and (iii)
-    whose features all have the same charge state.
+    windows (wrt. RT and m/z difference). CCCs are those CCs that do not contain multiple features
+    from the same input map, and whose features all have the same charge state.
 
     All CCCs above a user-specified minimum size are considered true sets of corresponding features
     and based on these, LOWESS transformations are computed for each input map such that the average
-    deviation from the mean retention time within each CCC is minimized.
+    deviation from the mean retention time within all CCCs is minimized.
 
     @htmlinclude OpenMS_MapAignmentAlgorithmKD.parameters
 

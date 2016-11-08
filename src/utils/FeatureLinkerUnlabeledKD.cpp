@@ -56,12 +56,32 @@ using namespace std;
 
  @brief Group corresponding features across labelfree experiments.
 
- Group corresponding features across labelfree experiments. This algorithm
- uses a kd-tree for fast 2D region queries in m/z - RT space and a sorted
- binary search tree to choose the best cluster among the remaining ones in
- O(1). Insertion and searching in this tree have O(log n) runtime. KD-tree
- insertion and search have O(log n) runtime. The overall complexity of the
- algorithm is O(n log(n)) time and O(n) space.
+ Group corresponding features across labelfree experiments. This tool
+ produces results similar to those of FeatureLinkerUnlabeledQT, since it
+ optimizes a similar objective. However, this algorithm is more efficient
+ than FLQT as it uses a kd-tree for fast 2D region queries in m/z - RT space
+ and a sorted binary search tree to choose the best cluster among the remaining
+ ones in O(1). Insertion and searching in this tree have O(log n) runtime.
+ KD-tree insertion and search have O(log n) runtime. The overall complexity of
+ the algorithm is O(n log(n)) time and O(n) space.
+
+ In practice, the runtime of FeatureLinkerUnlabeledQT is often not
+ significantly worse than that of FeatureLinkerUnlabeledKD if the datasets
+ are relatively small and/or the value of the -nr_partitions parameter is
+ chosen large enough. If, however, the datasets are very large, and especially
+ if they are so dense that a partitioning with respect to the specified RT and
+ m/z tolerances is not possible anymore, then this algorithm becomes orders of
+ magnitudes faster than FLQT.
+
+ Notably, this algorithm can be used to align featureXML files containing
+ unassembled mass traces (as produced by MassTraceExtractor), which is often
+ impossible for reasonably large datasets using other aligners, as these
+ datasets tend to be too dense and hence cannot be partitioned.
+
+ Prior to feature linking, this tool performs an (optional) retention time
+ transformation on the features using LOWESS regression in order to minimize
+ retention time differences between corresponding features across different
+ maps.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureLinkerUnlabeledKD.cli
