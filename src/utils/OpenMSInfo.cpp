@@ -190,7 +190,7 @@ namespace OpenMS
     */
     OpenMS_Architecture getBinaryArchitecture()
     {
-      size_t bytes = (sizeof size_t);
+      size_t bytes = sizeof(size_t);
       switch (bytes)
       {
         case 4:
