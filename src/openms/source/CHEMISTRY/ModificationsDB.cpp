@@ -54,6 +54,7 @@ namespace OpenMS
   {
     readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
     readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
+    readFromOBOFile("CHEMISTRY/XLMOD.obo");
   }
 
   ModificationsDB::~ModificationsDB()
@@ -454,7 +455,13 @@ namespace OpenMS
       }
       else if (line_wo_spaces.hasPrefix("name:"))
       {
-        mod.setFullName(line.substr(line.find(':') + 1).trim());
+        String name = line.substr(line.find(':') + 1).trim();
+        mod.setFullName(name);
+        if (mod.getId().hasSubstring("XLMOD"))
+        {
+          mod.setName(name);
+          mod.setId(name);
+        }
       }
       else if (line_wo_spaces.hasPrefix("is_a:"))
       {
@@ -548,6 +555,15 @@ namespace OpenMS
         else if (val.hasPrefix("TermSpec:"))
         {
           mod.setTermSpecificity(val_split[1]);
+        }
+        // XLMOD
+        else if (val.hasPrefix("monoisotopicMass:"))
+        {
+          mod.setDiffMonoMass(val_split[1].toDouble());
+        }
+        else if(val.hasPrefix("specificities:"))
+        {
+          mod.setOrigin(val_split[1][1]);
         }
       }
     }

@@ -321,7 +321,7 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "selected";
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
@@ -350,6 +350,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(11, 45);
     table_widget_->setColumnWidth(12, 45);
     table_widget_->setColumnWidth(13, 45);
+    table_widget_->setColumnWidth(14, 45);
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
@@ -432,10 +433,13 @@ namespace OpenMS
         // peptide identification index
         addTextItemToBottomRow_("-", 13, c);
 
+        // peptide identification index
+        addTextItemToBottomRow_("-", 14, c);
+
         // add additional meta value columns
         if (create_rows_for_commmon_metavalue_->isChecked())
         {
-          Int current_col = 14;
+          Int current_col = 15;
           for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
           {
             item = table_widget_->itemPrototype()->clone();
@@ -552,10 +556,17 @@ namespace OpenMS
             // peptide identification index
             addIntItemToBottomRow_(static_cast<Int>(ph_idx), 13, c);
 
+            bool selected(false);
+            if (ph.metaValueExists("selected"))
+            {
+               selected = ph.getMetaValue("selected").toBool();
+            }
+            addCheckboxItemToBottomRow_(selected, 14, c);
+
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 14;
+              Int current_col = 15;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = ph.getMetaValue(*sit);
@@ -767,6 +778,21 @@ namespace OpenMS
   {
     QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
     item->setData(Qt::DisplayRole, d);
+    item->setBackgroundColor(c);
+    table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
+  }
+
+  void SpectraIdentificationViewWidget::addCheckboxItemToBottomRow_(bool selected,  Size column_index, const QColor& c)
+  {
+    QTableWidgetItem * item = table_widget_->itemPrototype()->clone();
+    if (selected)
+    {
+      item->setCheckState(Qt::Checked);
+    }
+    else
+    {
+      item->setCheckState(Qt::Unchecked);
+    }
     item->setBackgroundColor(c);
     table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
   }

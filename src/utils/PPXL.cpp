@@ -248,8 +248,8 @@ protected:
     registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false);
     registerDoubleOption_("cross_linker:mass", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false);
     //registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false);
-    registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.0786442, 155.0964278"), "Possible masses of the linker, when attached to only one peptide", false);
-    registerStringList_("cross_linker:names", "<list of strings>", ListUtils::create<String>("Xlink:DSS, Xlink:DSS!Hydrolyzed, Xlink:DSS!Amidated"), "Names of the searched cross-links, first the cross-link and then the mono-links in the same order as their masses", false);
+    registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide", false);
+    registerStringOption_("cross_linker:name", "<string>", "DSS" ,  "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)", false);
 
     registerTOPPSubsection_("algorithm", "Algorithm Options");
     registerStringOption_("algorithm:candidate_search", "<param>", "index", "Mode used to generate candidate peptides.", false, false);
@@ -786,94 +786,6 @@ protected:
     double bucket_size_;
   };
 
-//  // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
-//  // At this point the only difference between mono-links and loop-links is the added cross-link mass
-//  static multimap<double, pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
-//  {
-//    multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
-//    Size countA = 0;
-
-//    vector<const StringView*> peptide_SVs;
-//    vector<const AASequence*> peptide_AASeqs;
-//    // preparing vectors compatible with openmp multi-threading, TODO this should only be a temporary fix (too much overhead?)
-//    for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a)
-//    {
-//      peptide_SVs.push_back(&(a->first));
-//      peptide_AASeqs.push_back(&(a->second));
-//    }
-
-//    //for (map<StringView, AASequence>::const_iterator a = peptides.begin(); a != peptides.end(); ++a) // old loop version
-
-//#ifdef _OPENMP
-//#pragma omp parallel for schedule(guided)
-//#endif
-//    for (Size p1 = 0; p1 < peptide_AASeqs.size(); ++p1)
-//    {
-//      String seq_first = peptide_AASeqs[p1]->toUnmodifiedString();
-
-//      countA += 1;
-//      if (countA % 50 == 0)
-//      {
-//        LOG_DEBUG << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
-//      }
-
-//      // generate mono-links
-//      for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
-//      {
-//        double cross_linked_pair_mass = peptide_AASeqs[p1]->getMonoWeight() + cross_link_mass_mono_link[i];
-//        // Make sure it is clear this is a monolink, (is a NULL pointer a good idea?)
-//#ifdef _OPENMP
-//#pragma omp critical
-//#endif
-//        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(peptide_AASeqs[p1], NULL)));
-//      }
-
-//      // generate loop-links
-//      bool first_res = false;
-//      bool second_res = false;
-//      for (Size k = 0; k < seq_first.size()-1; ++k)
-//      {
-//        for (Size i = 0; i < cross_link_residue1.size(); ++i)
-//        {
-//          if (seq_first.substr(k, 1) == cross_link_residue1[i])
-//          {
-//            first_res = true;
-//          }
-//        }
-//        for (Size i = 0; i < cross_link_residue2.size(); ++i)
-//        {
-//          if (seq_first.substr(k, 1) == cross_link_residue2[i])
-//          {
-//            second_res = true;
-//          }
-//        }
-//      }
-//      // If both sides of a homo- or heterobifunctional cross-linker can link to this peptide, generate the loop-link
-//      if (first_res && second_res)
-//      {
-//        double cross_linked_pair_mass = peptide_AASeqs[p1]->getMonoWeight() + cross_link_mass;
-//#ifdef _OPENMP
-//#pragma omp critical
-//#endif
-//        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(peptide_AASeqs[p1], NULL)));
-//      }
-
-//      // Generate cross-link between two peptides
-//      //for (map<StringView, AASequence>::const_iterator b = a; b != peptides.end(); ++b)
-//      for (Size p2 = p1; p2 < peptide_AASeqs.size(); ++p2)
-//      {
-//        // mass peptide1 + mass peptide2 + cross linker mass - cross link loss
-//        double cross_linked_pair_mass = peptide_AASeqs[p1]->getMonoWeight() + peptide_AASeqs[p2]->getMonoWeight() + cross_link_mass;
-//#ifdef _OPENMP
-//#pragma omp critical
-//#endif
-//        mass_to_candidates.insert(make_pair(cross_linked_pair_mass, make_pair<const AASequence*, const AASequence*>(peptide_AASeqs[p1], peptide_AASeqs[p2])));
-//      }
-//    }
-
-//    return mass_to_candidates;
-//  }
-
   // Transform a PeakSpectrum into a RichPeakSpectrum
 //  RichPeakSpectrum makeRichPeakSpectrum(PeakSpectrum spectrum, bool is_common_or_xlink_spectrum)
 //  {
@@ -896,169 +808,6 @@ protected:
 //    }
 //    return rich_spectrum;
 //  }
-
-    // Deisotopes and single charges spectrum, may be more useful with higher resolution data
-    // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-//    PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false)
-//    {
-
-//      // Input Spectrum originally called "in"
-//      //PeakSpectrum old_spectrum = in;
-//      PeakSpectrum out;
-//      vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
-//      if (old_spectrum.empty())
-//      {
-//        return out;
-//      }
-
-//      // determine charge seeds and extend them
-//      vector<Int> features(old_spectrum.size(), -1);
-//      Int feature_number = 0;
-
-//      for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-//      {
-//        double current_mz = old_spectrum[current_peak].getMZ();
-
-//        for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
-//        {
-//          // try to extend isotopes from mono-isotopic peak
-//          // if extension larger then min_isopeaks possible:
-//          //   - save charge q in mono_isotopic_peak[]
-//          //   - annotate all isotopic peaks with feature number
-//          if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
-//          {
-//            bool has_min_isopeaks = true;
-//            vector<Size> extensions;
-//            for (Size i = 0; i < max_isopeaks; ++i)
-//            {
-//              double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
-//              Size p = old_spectrum.findNearest(expected_mz);
-//              double tolerance_dalton = fragment_tolerance_unit_ppm ? fragment_tolerance * old_spectrum[p].getMZ() * 1e-6 : fragment_tolerance;
-//              if (fabs(old_spectrum[p].getMZ() - expected_mz) > tolerance_dalton)   // test for missing peak
-//              {
-//                if (i < min_isopeaks)
-//                {
-//                  has_min_isopeaks = false;
-//                }
-//                break;
-//              }
-//              else
-//              {
-//                // TODO: include proper averagine model filtering. assuming the intensity gets lower for heavier peaks does not work for the high masses of cross-linked peptides
-////                Size n_extensions = extensions.size();
-////                if (n_extensions != 0)
-////                {
-////                  if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
-////                  {
-////                    if (i < min_isopeaks)
-////                    {
-////                      has_min_isopeaks = false;
-////                    }
-////                    break;
-////                  }
-////                }
-
-//                // averagine check passed
-//                extensions.push_back(p);
-//              }
-//            }
-
-//            if (has_min_isopeaks)
-//            {
-//              //LOG_DEBUG << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
-//              mono_isotopic_peak[current_peak] = q;
-//              for (Size i = 0; i != extensions.size(); ++i)
-//              {
-//                features[extensions[i]] = feature_number;
-//              }
-//              feature_number++;
-//            }
-//          }
-//        }
-//      }
-
-
-//      // creating RichPeakSpectrum containing charges
-//      //out.clear(false);
-
-//      for (Size i = 0; i != old_spectrum.size(); ++i)
-//      {
-//        Int z = mono_isotopic_peak[i];
-//        if (keep_only_deisotoped)
-//        {
-//          if (z == 0)
-//          {
-//            continue;
-//          }
-
-//          // if already single charged or no decharging selected keep peak as it is
-//          if (!make_single_charged)
-//          {
-//            Peak1D p;
-//            p.setMZ(old_spectrum[i].getMZ());
-//            p.setIntensity(old_spectrum[i].getIntensity());
-//            //p.setMetaValue("z", z);
-//            out.push_back(p);
-//          }
-//          else
-//          {
-//            Peak1D p;
-//            p.setIntensity(old_spectrum[i].getIntensity());
-//            p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-//            //p.setMetaValue("z", 1);
-//            out.push_back(p);
-//          }
-//        }
-//        else
-//        {
-//          // keep all unassigned peaks
-//          if (features[i] < 0)
-//          {
-//            Peak1D p;
-//            p.setMZ(old_spectrum[i].getMZ());
-//            p.setIntensity(old_spectrum[i].getIntensity());
-//            //p.setMetaValue("z", 0);
-//            out.push_back(p);
-//            continue;
-//          }
-
-//          // convert mono-isotopic peak with charge assigned by deisotoping
-//          if (z != 0)
-//          {
-//            if (!make_single_charged)
-//            {
-//              Peak1D p;
-//              p.setMZ(old_spectrum[i].getMZ());
-//              p.setIntensity(old_spectrum[i].getIntensity());
-//              //p.setMetaValue("z", z);
-//              out.push_back(p);
-//            }
-//            else
-//            {
-//              Peak1D p;
-//              p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-//              p.setIntensity(old_spectrum[i].getIntensity());
-//              //p.setMetaValue("z", z);
-//              out.push_back(p);
-//            }
-//          }
-//        }
-//      }
-//      out.setPrecursors(old_spectrum.getPrecursors());
-//      out.setRT(old_spectrum.getRT());
-
-//      out.setNativeID(old_spectrum.getNativeID());
-//      out.setInstrumentSettings(old_spectrum.getInstrumentSettings());
-//      out.setAcquisitionInfo(old_spectrum.getAcquisitionInfo());
-//      out.setSourceFile(old_spectrum.getSourceFile());
-//      out.setDataProcessing(old_spectrum.getDataProcessing());
-//      out.setType(old_spectrum.getType());
-//      out.setMSLevel(old_spectrum.getMSLevel());
-//      out.setName(old_spectrum.getName());
-
-//      out.sortByPosition();
-//      return out;
-//    }
 
     RichPeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false)
     {
@@ -1473,13 +1222,6 @@ protected:
 
       s1.sortByIntensity(true);
 
-      //TODO s1 spectrum must be prepared more thoroughly for high resolution ms2. Perl code uses deconvolution / deisotoping / single charging, then adding additional peaks
-      // add 4 new peaks for each peak in s1: - C13, -2*C13, + C13, + 2 * C13 with C13shift = 1.0033548378
-      // Deisotoping not working on lower res data, like the 26S
-      // After that look at matching algorithm in bin/compare_peaks3.pl, line 767
-
-
-
       for (Size i = 0; i != s1.size(); ++i)
       {
         const double& s1_mz = s1[i].getMZ();
@@ -1543,7 +1285,7 @@ protected:
       double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
       double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
 
-      StringList cross_link_names = getStringList_("cross_linker:names");
+      String cross_link_name = getStringOption_("cross_linker:name");
       double cross_link_mass = getDoubleOption_("cross_linker:mass");
       DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
       String mono_masses;
@@ -1577,7 +1319,7 @@ protected:
              "\" author=\"Eugen Netz, Timo Sachsenberg\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
              "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
              "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
-             "\" crosslinkername=\"" << cross_link_names[0] << "\" xlinkermw=\"" << cross_link_mass <<
+             "\" crosslinkername=\"" << cross_link_name << "\" xlinkermw=\"" << cross_link_mass <<
              "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
              "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << 0 <<
              "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
@@ -1799,7 +1541,7 @@ protected:
     double cross_link_mass = getDoubleOption_("cross_linker:mass");
     //double cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
     DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
-    StringList cross_link_names = getStringList_("cross_linker:names");
+    String cross_link_name = getStringOption_("cross_linker:name");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
     set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
@@ -1923,12 +1665,6 @@ protected:
     p.setValue("mz_reference", "precursor");
     p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
-
-    // create common peak / shifted peak spectra for all pairs
-//    progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
-//    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass, cross_link_mass_heavy);
-    //PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
-//    progresslogger.endProgress();
 
     Size count_proteins = 0;
     Size count_peptides = 0;
@@ -2082,96 +1818,6 @@ protected:
 
     progresslogger.endProgress();
 
-//    // digest and filter decoy database
-//    if (!in_decoy_fasta.empty())
-//    {
-//      vector<FASTAFile::FASTAEntry> fasta_decoys;
-//      fastaFile.load(in_decoy_fasta, fasta_decoys);
-
-////#ifdef _OPENMP
-////#pragma omp parallel for
-////#endif
-//      for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_decoys.size()); ++fasta_index)
-//      {
-////  #ifdef _OPENMP
-////  #pragma omp atomic
-////  #endif
-//        ++count_proteins;
-
-//        IF_MASTERTHREAD
-//        {
-//          progresslogger.setProgress(static_cast<SignedSize>(fasta_index) * NUMBER_OF_THREADS);
-//        }
-
-//        // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
-//        vector<StringView> current_digest;
-//        digestor.digestUnmodifiedString(fasta_decoys[fasta_index].sequence, current_digest, min_peptide_length);
-
-//        for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
-//        {
-//          // skip peptides with invalid AAs
-//          if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
-
-//          // skip if no K
-//          if (!cit->getString().has('K')) continue;
-
-//          bool already_processed = false;
-////  #ifdef _OPENMP
-////  #pragma omp critical (processed_peptides_access)
-////  #endif
-//          {
-//            if (processed_peptides.find(*cit) != processed_peptides.end())
-//            {
-//              // peptide (and all modified variants) already processed so skip it
-//              already_processed = true;
-//            }
-//          }
-
-//          if (already_processed)
-//          {
-//            continue;
-//          }
-//          if (cit->getString().find('K') >= cit->getString().size()-1)
-//          {
-//            continue;
-//          }
-
-////  #ifdef _OPENMP
-////  #pragma omp atomic
-////  #endif
-//          ++count_peptides;
-
-//          vector<AASequence> all_modified_peptides;
-
-//          // generate all modified variants of a peptide
-//          // Note: no critial section is needed despite ResidueDB not beeing thread sage.
-//          //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
-//          {
-//            AASequence aas = AASequence::fromString(cit->getString());
-//            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-//            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
-//          }
-
-//          for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
-//          {
-//            const AASequence& candidate = all_modified_peptides[mod_pep_idx];
-
-////  #ifdef _OPENMP
-////  #pragma omp critical (processed_peptides_access)
-////  #endif
-//            {
-//              processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
-//              fasta_db.reserve(fasta_db.size() + fasta_decoys.size());
-//              fasta_db.insert(fasta_db.end(), fasta_decoys.begin(), fasta_decoys.end());
-
-//              // TODO doeas this actually save space or something? or is the object removed automatically, since it is not used after this
-//              //fasta_decoys.clear();
-//            }
-//          }
-//        }
-//      }
-//    }
-
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
 
@@ -2268,15 +1914,6 @@ protected:
     for (Size scan_index = 0; scan_index < spectra.size(); ++scan_index)
     {
 
-      // If this spectra pair has less than 15 common peaks, then ignore it.
-      //TODO is a xquest.def parameter in perl xQuest, set to 25 usually
-//      if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() < 15)
-//      {
-//        continue;
-//      }
-
-      //Size scan_index = spectrum_pairs[pair_index].first;
-      //Size scan_index_heavy = spectrum_pairs[pair_index].second;
       const RichPeakSpectrum& spectrum = spectra[scan_index];
 
       // TODO probably not necessary, if this is appropriately done in preprocessing
@@ -2286,10 +1923,12 @@ protected:
         //LOG_DEBUG << "Scan index: " << scan_index << "\tSpectrum native ID: " << spectrum.getNativeID()  << endl;
 
 #ifdef _OPENMP
-#pragma omp atomic
+#pragma omp critical
 #endif
-        spectrum_counter++;
-        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << endl;
+        {
+          spectrum_counter++;
+          cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << endl;
+        }
 
         const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
         const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
@@ -2519,7 +2158,7 @@ protected:
               if (link_pos_second[y] != -1)
               {
                 cross_link_candidate.cross_linker_mass = cross_link_mass;
-                cross_link_candidate.cross_linker_name = cross_link_names[0];
+                cross_link_candidate.cross_linker_name = cross_link_name;
                 cross_link_candidates.push_back(cross_link_candidate);
               }
               else
@@ -2530,7 +2169,7 @@ protected:
                   if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
                   {
                     cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
-                    cross_link_candidate.cross_linker_name = cross_link_names[k+1];
+                    cross_link_candidate.cross_linker_name = cross_link_name;
                     cross_link_candidates.push_back(cross_link_candidate);
                   }
                 }
@@ -2871,26 +2510,40 @@ protected:
                 //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
                 vector< String > mods;
                 const String residue = seq_alpha[alpha_pos].getOneLetterCode();
-                ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.01);
-                LOG_DEBUG << "number of modifications fitting the mono-link: " << mods.size() << "\t" << mods << endl;
-                if (mods.size() > 0)
+                ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001);
+
+                LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << "\t" << mods << endl;
+                bool mod_set = false;
+                if (mods.size() > 0) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
                 {
-                  // TODO only valid if there are no alternatives, but we know we searched for a cross-linking reagent
-                  LOG_DEBUG << "applied modification: " << mods[0] << endl;
-                  seq_alpha.setModification(alpha_pos, mods[0]);
+                  for (Size s = 0; s < mods.size(); ++s)
+                  {
+                    if (mods[s].hasSubstring(cross_link_name))
+                    {
+                      LOG_DEBUG << "applied modification: " << mods[s] << endl;
+                      seq_alpha.setModification(alpha_pos, mods[s]);
+                      mod_set = true;
+                      break;
+                    }
+                  }
                 }
-                else
+                if ( (mods.size() > 0) && (!mod_set) ) // If resolving by name did not work, use any with matching diff mass
                 {
-//                  // TODO hardcoded for DSS, Xlink:DSS-NH2  not found by mass
-//                  LOG_DEBUG << "applied modification: " << "Xlink:DSS-NH2" << endl;
-//                  ph_alpha.setMetaValue("xl_mod",  "Xlink:DSS-NH2");
+                  seq_alpha.setModification(alpha_pos, mods[0]);
+                  mod_set = true;
+                }
+                if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
+                {
+                  String mod_name = String("unknown mono-link " + cross_link_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
+                  //seq_alpha.setModification(alpha_pos, mod_name);
+                  LOG_DEBUG << "unknown mono-link" << endl;
+                  ph_alpha.setMetaValue("xl_mod", mod_name);
                 }
               }
               else
               {
-                // TODO hardcoded for DSS, make this an input parameter or something, NO UNIMOD ACCESSION AVAILBALE, for now name and mass
-              ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
-              ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+                ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+                ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
               }
 
 
@@ -2950,10 +2603,7 @@ protected:
               peptide_id.setMZ(precursor_mz);
               String specIDs = spectra[scan_index].getNativeID();
               peptide_id.setMetaValue("spectrum_reference", specIDs);
-//              peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-//              peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
 //              peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-//              peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
 //              peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
 //              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
