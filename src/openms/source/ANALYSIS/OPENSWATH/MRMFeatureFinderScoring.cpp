@@ -541,10 +541,6 @@ namespace OpenMS
         mrmfeature->addScore("var_yseries_score", scores.yseries_score);
         mrmfeature->addScore("var_dotprod_score", scores.dotprod_score_dia);
         mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
-
-        mrmfeature->setMetaValue("massdiff_t1", scores.massdiff_t1);
-        mrmfeature->setMetaValue("massdiff_diff_t1_t2", scores.massdiff_diff_t1_t2);
-
         if (su_.use_ms1_correlation)
         {
           mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
