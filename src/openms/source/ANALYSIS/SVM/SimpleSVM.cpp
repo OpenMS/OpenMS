@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,6 +154,8 @@ void SimpleSVM::setup(map<String, vector<double> >& predictors,
   // in case "setup" was called before:
   if (model_ != 0) svm_free_model_content(model_);
   model_ = svm_train(&data_, &svm_params_);
+  LOG_INFO << "Number of support vectors in the final model: " << model_->l
+           << endl;
 }
 
 
