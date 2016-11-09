@@ -164,20 +164,22 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("id", "<file>", "", "Input file: peptide identifications derived directly from 'in'");
+    registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerInputFile_("id_ext", "<file>", "", "Input file: 'external' peptide identifications (e.g. from aligned runs)", false);
+    registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
     setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Output file: features");
+    registerOutputFile_("out", "<file>", "", "Output file: Features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library", false);
+    registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms", false);
+    registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
     registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    registerOutputFile_("candidates_out", "<file>", "", "Output file: feature candidates (before filtering and model fitting)", false);
+    registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
+    registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false);
+    setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
 
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
@@ -923,11 +925,12 @@ protected:
 
   void classifyFeatures_(FeatureMap& features)
   {
+    if (features.empty()) return;
+
     // get predictors for SVM:
     vector<String> predictor_names =
       ListUtils::create<String>(getStringOption_("svm:predictors"));
-      // ListUtils::create<String>(score_metavalues_);
-    if (!trafo_external_.getDataPoints().empty()) // include RT feature
+    if (features[0].metaValueExists("rt_delta")) // include RT feature
     {
       predictor_names.push_back("rt_delta");
     }
@@ -1040,7 +1043,8 @@ protected:
     {
       svm_probs_internal_[best_quality].first++;
     }
-    else if (feature_class == "negative") // false positive prediction
+    else if ((feature_class == "negative")  || // false positive prediction
+             (feature_class == "ambiguous")) // let's be strict about this
     {
       svm_probs_internal_[best_quality].second++;
     }
@@ -1224,206 +1228,258 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
+    FeatureMap features;
+    PeptideMap peptide_map;
+    Size n_internal_peps = 0, n_external_peps = 0;
+
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String id = getStringOption_("id");
-    String id_ext = getStringOption_("id_ext");
     String out = getStringOption_("out");
-    String lib_out = getStringOption_("lib_out");
-    String chrom_out = getStringOption_("chrom_out");
-    String trafo_out = getStringOption_("trafo_out");
     String candidates_out = getStringOption_("candidates_out");
-    rt_window_ = getDoubleOption_("extract:rt_window");
-    mz_window_ = getDoubleOption_("extract:mz_window");
-    mz_window_ppm_ = mz_window_ >= 1;
-    isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
-    n_isotopes_ = getIntOption_("extract:n_isotopes");
-    double peak_width = getDoubleOption_("detect:peak_width");
-    double min_peak_width = getDoubleOption_("detect:min_peak_width");
-    double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
-    mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
     n_parts_ = getIntOption_("svm:xval");
     n_samples_ = getIntOption_("svm:samples");
     String elution_model = getStringOption_("model:type");
+    bool with_external_ids = false;
     prog_log_.setLogType(log_type_);
 
-    if ((n_samples_ > 0) && (n_samples_ < 2 * n_parts_))
+    String candidates_in = getStringOption_("candidates_in");
+    if (candidates_in.empty())
     {
-      String msg = "Sample size of " + String(n_samples_) +
-        " (parameter 'svm:samples') is not enough for " + String(n_parts_) +
-        "-fold cross-validation (parameter 'svm:xval').";
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                        msg);
-    }
+      String in = getStringOption_("in");
+      String id = getStringOption_("id");
+      String id_ext = getStringOption_("id_ext");
+      String lib_out = getStringOption_("lib_out");
+      String chrom_out = getStringOption_("chrom_out");
+      String trafo_out = getStringOption_("trafo_out");
+      rt_window_ = getDoubleOption_("extract:rt_window");
+      mz_window_ = getDoubleOption_("extract:mz_window");
+      mz_window_ppm_ = mz_window_ >= 1;
+      isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
+      n_isotopes_ = getIntOption_("extract:n_isotopes");
+      double peak_width = getDoubleOption_("detect:peak_width");
+      double min_peak_width = getDoubleOption_("detect:min_peak_width");
+      double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
+      mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
 
-    //-------------------------------------------------------------
-    // load input
-    //-------------------------------------------------------------
-    LOG_INFO << "Loading input data..." << endl;
-    MzMLFile mzml;
-    mzml.setLogType(log_type_);
-    mzml.getOptions().addMSLevel(1);
-    mzml.load(in, ms_data_);
-
-    // RT transformation to range 0-1:
-    ms_data_.updateRanges();
-    double min_rt = ms_data_.getMinRT(), max_rt = ms_data_.getMaxRT();
-    TransformationDescription::DataPoints points;
-    points.push_back(make_pair(min_rt, 0.0));
-    points.push_back(make_pair(max_rt, 1.0));
-    trafo_.setDataPoints(points);
-    trafo_.fitModel("linear");
-    if (!trafo_out.empty())
-    {
-      TransformationXMLFile().store(trafo_out, trafo_);
-    }
-
-    // initialize algorithm classes needed later:
-    extractor_.setLogType(ProgressLogger::NONE);
-    Param params = feat_finder_.getParameters();
-    params.setValue("stop_report_after_feature", -1); // return all features
-    params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    if (elution_model != "none") params.setValue("write_convex_hull", "true");
-    if (min_peak_width < 1.0) min_peak_width *= peak_width;
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
-                    peak_width);
-    params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
-    // disabling the signal-to-noise threshold (setting the parameter to zero)
-    // totally breaks the OpenSWATH feature detection (no features found)!
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
-                    signal_to_noise);
-    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
-    feat_finder_.setParameters(params);
-    feat_finder_.setLogType(ProgressLogger::NONE);
-    feat_finder_.setStrictFlag(false);
-
-    // "internal" IDs:
-    vector<PeptideIdentification> peptides;
-    vector<ProteinIdentification> proteins;
-    IdXMLFile().load(id, proteins, peptides);
-    // "external" IDs:
-    vector<PeptideIdentification> peptides_ext;
-    vector<ProteinIdentification> proteins_ext;
-    double rt_uncertainty = 0.0;
-    if (!id_ext.empty())
-    {
-      IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
-      // align internal and external IDs to estimate RT shifts:
-      MapAlignmentAlgorithmIdentification aligner;
-      aligner.setReference(peptides_ext); // go from interal to external scale
-      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
-      vector<TransformationDescription> aligner_trafos;
-
-      LOG_INFO << "Realigning internal and external IDs...";
-      aligner.align(aligner_peptides, aligner_trafos);
-      trafo_external_ = aligner_trafos[0];
-      vector<double> aligned_diffs;
-      trafo_external_.getDeviations(aligned_diffs);
-      double quantile = getDoubleOption_("extract:rt_quantile");
-      int index = max(0, int(quantile * aligned_diffs.size()) - 1);
-      rt_uncertainty = aligned_diffs[index];
-      try
+      if ((n_samples_ > 0) && (n_samples_ < 2 * n_parts_))
       {
-        aligner_trafos[0].fitModel("lowess");
+        String msg = "Sample size of " + String(n_samples_) +
+          " (parameter 'svm:samples') is not enough for " + String(n_parts_) +
+          "-fold cross-validation (parameter 'svm:xval').";
+        throw Exception::InvalidParameter(__FILE__, __LINE__,
+                                          __PRETTY_FUNCTION__, msg);
+      }
+
+      //-------------------------------------------------------------
+      // load input
+      //-------------------------------------------------------------
+      LOG_INFO << "Loading input data..." << endl;
+      MzMLFile mzml;
+      mzml.setLogType(log_type_);
+      mzml.getOptions().addMSLevel(1);
+      mzml.load(in, ms_data_);
+
+      // RT transformation to range 0-1:
+      ms_data_.updateRanges();
+      double min_rt = ms_data_.getMinRT(), max_rt = ms_data_.getMaxRT();
+      TransformationDescription::DataPoints points;
+      points.push_back(make_pair(min_rt, 0.0));
+      points.push_back(make_pair(max_rt, 1.0));
+      trafo_.setDataPoints(points);
+      trafo_.fitModel("linear");
+      if (!trafo_out.empty())
+      {
+        TransformationXMLFile().store(trafo_out, trafo_);
+      }
+
+      // initialize algorithm classes needed later:
+      extractor_.setLogType(ProgressLogger::NONE);
+      Param params = feat_finder_.getParameters();
+      params.setValue("stop_report_after_feature", -1); // return all features
+      params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
+      if (elution_model != "none") params.setValue("write_convex_hull", "true");
+      if (min_peak_width < 1.0) min_peak_width *= peak_width;
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
+                      peak_width);
+      params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
+      // disabling the signal-to-noise threshold (setting the parameter to zero)
+      // totally breaks the OpenSWATH feature detection (no features found)!
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
+                      signal_to_noise);
+      params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
+                      "corrected");
+      feat_finder_.setParameters(params);
+      feat_finder_.setLogType(ProgressLogger::NONE);
+      feat_finder_.setStrictFlag(false);
+
+      // "internal" IDs:
+      vector<PeptideIdentification> peptides;
+      vector<ProteinIdentification> proteins;
+      IdXMLFile().load(id, proteins, peptides);
+      // "external" IDs:
+      vector<PeptideIdentification> peptides_ext;
+      vector<ProteinIdentification> proteins_ext;
+      double rt_uncertainty = 0.0;
+      if (!id_ext.empty())
+      {
+        with_external_ids = true;
+        IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+        // align internal and external IDs to estimate RT shifts:
+        MapAlignmentAlgorithmIdentification aligner;
+        aligner.setReference(peptides_ext); // go from interal to external scale
+        vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
+        vector<TransformationDescription> aligner_trafos;
+
+        LOG_INFO << "Realigning internal and external IDs...";
+        aligner.align(aligner_peptides, aligner_trafos);
         trafo_external_ = aligner_trafos[0];
+        vector<double> aligned_diffs;
+        trafo_external_.getDeviations(aligned_diffs);
+        double quantile = getDoubleOption_("extract:rt_quantile");
+        int index = max(0, int(quantile * aligned_diffs.size()) - 1);
+        rt_uncertainty = aligned_diffs[index];
+        try
+        {
+          aligner_trafos[0].fitModel("lowess");
+          trafo_external_ = aligner_trafos[0];
+        }
+        catch (Exception::BaseException& e)
+        {
+          LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+        }
       }
-      catch (Exception::BaseException& e)
+      if (rt_window_ == 0.0)
       {
-        LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
+        // calculate RT window based on other parameters and alignment quality:
+        double map_tol = mapping_tolerance_;
+        if (map_tol < 1.0) map_tol *= (2 * peak_width); // relative tolerance
+        rt_window_ = (rt_uncertainty + 2 * peak_width + map_tol) * 2;
+        LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
+                 << endl;
       }
-    }
-    if (rt_window_ == 0.0)
-    {
-      // calculate RT window based on other parameters and alignment quality:
-      double map_tol = mapping_tolerance_;
-      if (map_tol < 1.0) map_tol *= (2 * peak_width); // relative tolerance
-      rt_window_ = (rt_uncertainty + 2 * peak_width + map_tol) * 2;
-      LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
+
+      //-------------------------------------------------------------
+      // prepare peptide map
+      //-------------------------------------------------------------
+      LOG_INFO << "Preparing mapping of peptide data..." << endl;
+      for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+           pep_it != peptides.end(); ++pep_it)
+      {
+        addPeptideToMap_(*pep_it, peptide_map);
+        pep_it->setMetaValue("FFId_category", "internal");
+      }
+      n_internal_peps = peptide_map.size();
+      for (vector<PeptideIdentification>::iterator pep_it =
+             peptides_ext.begin(); pep_it != peptides_ext.end(); ++pep_it)
+      {
+        addPeptideToMap_(*pep_it, peptide_map, true);
+        pep_it->setMetaValue("FFId_category", "external");
+      }
+      n_external_peps = peptide_map.size() - n_internal_peps;
+
+      //-------------------------------------------------------------
+      // run feature detection
+      //-------------------------------------------------------------
+      LOG_INFO << "Running feature detection..." << endl;
+      keep_library_ = !lib_out.empty();
+      keep_chromatograms_ = !chrom_out.empty();
+      Size prog_counter = 0;
+      prog_log_.startProgress(0, peptide_map.size(),
+                              "running feature detection");
+      for (PeptideMap::iterator pm_it = peptide_map.begin();
+           pm_it != peptide_map.end(); ++pm_it)
+      {
+        FeatureMap current_features;
+        detectFeaturesOnePeptide_(*pm_it, current_features);
+        features += current_features;
+        prog_log_.setProgress(++prog_counter);
+      }
+      prog_log_.endProgress();
+      LOG_INFO << "Found " << features.size() << " feature candidates in total."
                << endl;
-    }
+      ms_data_.reset(); // not needed anymore, free up the memory
 
-    //-------------------------------------------------------------
-    // prepare peptide map
-    //-------------------------------------------------------------
-    LOG_INFO << "Preparing mapping of peptide data..." << endl;
-    PeptideMap peptide_map;
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
-    {
-      addPeptideToMap_(*pep_it, peptide_map);
-      pep_it->setMetaValue("FFId_category", "internal");
-    }
-    Size n_internal_peps = peptide_map.size();
-    for (vector<PeptideIdentification>::iterator pep_it = peptides_ext.begin();
-         pep_it != peptides_ext.end(); ++pep_it)
-    {
-      addPeptideToMap_(*pep_it, peptide_map, true);
-      pep_it->setMetaValue("FFId_category", "external");
-    }
-    Size n_external_peps = peptide_map.size() - n_internal_peps;
+      // write auxiliary output:
+      if (keep_library_)
+      {
+        removeDuplicateProteins_(library_);
+        TraMLFile().store(lib_out, library_);
+      }
+      if (keep_chromatograms_)
+      {
+        addDataProcessing_(chrom_data_,
+                           getProcessingInfo_(DataProcessing::FILTERING));
+        MzMLFile().store(chrom_out, chrom_data_);
+        chrom_data_.clear(true);
+      }
 
-    //-------------------------------------------------------------
-    // run feature detection
-    //-------------------------------------------------------------
-    LOG_INFO << "Running feature detection..." << endl;
-    FeatureMap features;
-    keep_library_ = !lib_out.empty();
-    keep_chromatograms_ = !chrom_out.empty();
-    Size prog_counter = 0;
-    prog_log_.startProgress(0, peptide_map.size(), "running feature detection");
-    for (PeptideMap::iterator pm_it = peptide_map.begin();
-         pm_it != peptide_map.end(); ++pm_it)
-    {
-      FeatureMap current_features;
-      detectFeaturesOnePeptide_(*pm_it, current_features);
-      features += current_features;
-      prog_log_.setProgress(++prog_counter);
-    }
-    prog_log_.endProgress();
-    LOG_DEBUG << "Found " << features.size() << " feature candidates in total."
-              << endl;
-    ms_data_.reset(); // not needed anymore, free up the memory
+      features.setProteinIdentifications(proteins);
+      // add external IDs (if any):
+      features.getProteinIdentifications().insert(
+        features.getProteinIdentifications().end(), proteins_ext.begin(),
+        proteins_ext.end());
+      features.getUnassignedPeptideIdentifications().insert(
+        features.getUnassignedPeptideIdentifications().end(),
+        peptides_ext.begin(), peptides_ext.end());
 
-    // write auxiliary output:
-    if (keep_library_)
-    {
-      removeDuplicateProteins_(library_);
-      TraMLFile().store(lib_out, library_);
+      features.ensureUniqueId();
+      addDataProcessing_(features,
+                         getProcessingInfo_(DataProcessing::QUANTITATION));
     }
-    if (keep_chromatograms_)
+    else
     {
-      addDataProcessing_(chrom_data_,
-                         getProcessingInfo_(DataProcessing::FILTERING));
-      MzMLFile().store(chrom_out, chrom_data_);
-      chrom_data_.clear(true);
+      //-------------------------------------------------------------
+      // load feature candidates
+      //-------------------------------------------------------------
+      LOG_INFO << "Reading feature candidates from a previous run..." << endl;
+      FeatureXMLFile().load(candidates_in, features);
+      LOG_INFO << "Found " << features.size() << " feature candidates in total."
+               << endl;
+      with_external_ids = (!features.empty() && 
+                           features[0].metaValueExists("predicted_class"));
+      
+      // extract ID information for statistics:
+      set<AASequence> internal_seqs;
+      for (vector<PeptideIdentification>::iterator pep_it =
+             features.getUnassignedPeptideIdentifications().begin(); pep_it !=
+             features.getUnassignedPeptideIdentifications().end(); ++pep_it)
+      {
+        const AASequence& seq = pep_it->getHits()[0].getSequence();
+        if (pep_it->getMetaValue("FFId_category") == "internal")
+        {
+          internal_seqs.insert(seq);
+        }
+        peptide_map[seq];
+      }
+      for (FeatureMap::Iterator feat_it = features.begin();
+           feat_it != features.end(); ++feat_it)
+      {
+        if (feat_it->getPeptideIdentifications().empty()) continue;
+        const PeptideIdentification& pep_id =
+          feat_it->getPeptideIdentifications()[0];
+        const AASequence& seq = pep_id.getHits()[0].getSequence();
+        if (pep_id.getMetaValue("FFId_category") == "internal")
+        {
+          internal_seqs.insert(seq);
+        }
+        peptide_map[seq];
+      }
+      n_internal_peps = internal_seqs.size();
+      n_external_peps = peptide_map.size() - internal_seqs.size();
     }
-
-    features.setProteinIdentifications(proteins);
-    // add external IDs (if any):
-    features.getProteinIdentifications().insert(
-      features.getProteinIdentifications().end(), proteins_ext.begin(),
-      proteins_ext.end());
-    features.getUnassignedPeptideIdentifications().insert(
-      features.getUnassignedPeptideIdentifications().end(),
-      peptides_ext.begin(), peptides_ext.end());
-
-    features.ensureUniqueId();
-    addDataProcessing_(features,
-                       getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // don't do SVM stuff unless we have external data to apply the model to:
-    if (!id_ext.empty()) classifyFeatures_(features);
-
+    if (with_external_ids) classifyFeatures_(features);
+    
     if (!candidates_out.empty()) // store feature candidates
     {
       FeatureXMLFile().store(candidates_out, features);
     }
 
-    filterFeatures_(features, !id_ext.empty());
+    filterFeatures_(features, with_external_ids);
     LOG_INFO << features.size() << " features left after filtering." << endl;
 
     if (!svm_probs_internal_.empty()) calculateFDR_(features);
