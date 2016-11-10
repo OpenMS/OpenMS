@@ -60,9 +60,13 @@
 #cmakedefine OPENMS_COMPILER_GXX
 
 // __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
+// disable reserved id macro warning on newer clang compilers
+#pragma clang diagnostic push 
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
 #if ! defined(OPENMS_COMPILER_GXX) && ! defined(__PRETTY_FUNCTION__) 
 #define __PRETTY_FUNCTION__ "<unknown>"
 #endif
+#pragma clang diagnostic pop
 
 
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
