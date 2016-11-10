@@ -91,7 +91,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
   }
 

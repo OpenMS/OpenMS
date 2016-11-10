@@ -426,7 +426,7 @@ private:
       for (; it != ret.end(); ++it, ++lit, ++rit)
       {
         double t = std::floor(*lit / *rit);
-        if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         *it = static_cast<Int64>(t);
       }
       return ret;

@@ -402,7 +402,7 @@ protected:
       if (!hit_it->metaValueExists("MS:1002052"))
       {
         String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
       
       hit_it->setScore(hit_it->getMetaValue("MS:1002052"));

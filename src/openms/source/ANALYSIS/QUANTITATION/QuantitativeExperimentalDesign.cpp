@@ -307,13 +307,13 @@ namespace OpenMS
     if (expCol == invalid || fileCol == invalid)
     {
       if (expCol == invalid && fileCol == invalid)
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Both identifier (experimental design and file name) are not correct");
       if (expCol == invalid)
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Identifier for experimental design is not correct");
       if (fileCol == invalid)
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Identifier for the file name is not correct");
     }
   }

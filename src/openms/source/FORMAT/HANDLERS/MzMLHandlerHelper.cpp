@@ -63,7 +63,7 @@ namespace OpenMS
       //
       // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
       //
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
     }
 
     if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)

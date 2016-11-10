@@ -148,7 +148,7 @@ namespace OpenMS
       String msg = "Conflicting charge states found for peptide '" +
         peptide.toString() + "': " + String(recorded_charge) + ", " + 
         String(new_charge);
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                     msg, String(new_charge));
     }
   }

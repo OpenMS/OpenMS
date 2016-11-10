@@ -155,7 +155,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GammaDistributionFitter", "Could not fit the gamma distribution to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GammaDistributionFitter", "Could not fit the gamma distribution to the data");
       }
 
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE

@@ -444,7 +444,7 @@ public:
     Size findNearest(CoordinateType mz) const
     {
       // no peak => no search
-      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one peak to determine the nearest peak!");
+      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
 
       // search for position for inserting
       ConstIterator it = MZBegin(mz);

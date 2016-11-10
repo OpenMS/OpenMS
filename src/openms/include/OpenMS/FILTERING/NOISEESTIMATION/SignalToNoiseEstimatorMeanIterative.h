@@ -193,7 +193,7 @@ protected:
           String s = auto_max_percentile_;
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!",
                                         s);
         }
@@ -243,7 +243,7 @@ protected:
           String s = max_intensity_;
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!",
                                         s);
         }
