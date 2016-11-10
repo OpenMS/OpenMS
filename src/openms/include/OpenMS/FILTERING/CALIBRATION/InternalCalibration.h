@@ -201,7 +201,7 @@ namespace OpenMS
                    const String& file_models_plot = "",
                    const String& file_residuals = "",
                    const String& file_residuals_plot = "",
-                   const QString& rscript_executable = "Rscript");
+                   const String& rscript_executable = "Rscript");
 
     /*
       @brief Transform a precursor's m/z

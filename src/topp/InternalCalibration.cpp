@@ -356,7 +356,7 @@ protected:
                       getStringOption_("quality_control:models_plot"),
                       getStringOption_("quality_control:residuals"),
                       getStringOption_("quality_control:residuals_plot"),
-                      rscript_executable.toQString()))
+                      rscript_executable))
     {
       LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;
