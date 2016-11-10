@@ -231,7 +231,7 @@ public:
       }
       catch (boost::bad_lexical_cast&)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + *it + "'");
       }
     }
 

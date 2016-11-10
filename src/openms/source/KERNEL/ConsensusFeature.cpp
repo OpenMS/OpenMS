@@ -100,7 +100,7 @@ namespace OpenMS
     if (!(handles_.insert(handle).second))
     {
       String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The set already contained an element with this key.", key);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
 
@@ -282,7 +282,7 @@ namespace OpenMS
       double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, fm.size());
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, fm.size());
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
       {
         adduct_mass = (double) fm[index].getMetaValue("dc_charge_adduct_mass");

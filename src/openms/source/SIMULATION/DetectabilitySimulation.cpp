@@ -120,7 +120,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation got invalid parameter. 'dt_model_file' " + dt_model_file_ + " is not readable");
     }
 
     // load additional parameters
@@ -129,7 +129,7 @@ namespace OpenMS
       String add_paramfile = dt_model_file_ + "_additional_parameters";
       if (!File::readable(add_paramfile))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: SVM parameter file " + add_paramfile + " is not readable");
       }
 
       Param additional_parameters;
@@ -139,20 +139,20 @@ namespace OpenMS
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No border length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: No sigma defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No sigma defined in additional parameters file.");
       }
 
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
@@ -175,7 +175,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: SVM sample file " + sample_file + " is not readable");
     }
 
 

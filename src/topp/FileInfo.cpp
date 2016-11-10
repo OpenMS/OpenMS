@@ -39,18 +39,18 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
@@ -140,9 +140,9 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
+    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
@@ -264,6 +264,11 @@ protected:
         os << " against XML schema version " << PepXMLFile().getVersion() << "\n";
         valid = PepXMLFile().isValid(in, os);
         break;
+
+      case FileTypes::TRANSFORMATIONXML:
+        os << " against XML schema version " << TransformationXMLFile().getVersion() << "\n";
+        valid = TransformationXMLFile().isValid(in, os);
+        break;        
 
       default:
         os << "\n" << "Aborted: Validation of this file type is not supported!" << "\n";
@@ -551,6 +556,13 @@ protected:
     else if (in_type == FileTypes::PEPXML)
     {
       os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << "\n";
+    }
+    else if (in_type == FileTypes::TRANSFORMATIONXML)
+    {
+      TransformationDescription trafo;
+      TransformationXMLFile().load(in, trafo);
+      os << "\nTransformation model: " << trafo.getModelType() << "\n";
+      trafo.printSummary(os);
     }
     else //peaks
     {

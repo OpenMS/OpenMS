@@ -201,7 +201,7 @@ namespace OpenMS
     }
     if (reference_.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No reference RT information left after filtering");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No reference RT information left after filtering");
     }
 
     double max_rt_shift = param_.getValue("max_rt_shift");

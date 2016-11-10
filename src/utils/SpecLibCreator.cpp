@@ -118,11 +118,11 @@ protected:
     String spec = getStringOption_("spec");
     if (info == String::EMPTY)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "info");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "info");
     }
     if (spec == String::EMPTY)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "spec");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spec");
     }
 
 
@@ -179,15 +179,15 @@ protected:
     }
     if (retention_time  == -1)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unclear which parameter is retention time");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unclear which parameter is retention time");
     }
     if (peptide  == -1)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unclear which parameter is peptide");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unclear which parameter is peptide");
     }
     if (measured_weight  == -1)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unclear which parameter is measured weight");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unclear which parameter is measured weight");
     }
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(spec);
@@ -209,7 +209,7 @@ protected:
     }
     if (msexperiment.getMinRT() == 0)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "EMPTY??");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "EMPTY??");
     }
     RichPeakMap library;
 

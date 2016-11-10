@@ -87,7 +87,7 @@ namespace OpenMS
   Int LPWrapper::addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String& name) // return index
   {
     if (row_indices.size() != row_values.size())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Indices and values vectors differ in size");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
 
     if (solver_ == SOLVER_GLPK)
     {
@@ -110,7 +110,7 @@ namespace OpenMS
 #endif
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
     }
   }
 
@@ -127,13 +127,13 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   Int LPWrapper::addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String& name)
   {
     if (column_indices.size() != column_values.size())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Indices and values vectors differ in size");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
     if (solver_ == SOLVER_GLPK)
     {
       Int index = glp_add_cols(lp_problem_, 1);
@@ -154,7 +154,7 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   Int LPWrapper::addRow(std::vector<Int>& row_indices, std::vector<double>& row_values, const String& name, double lower_bound,
@@ -242,7 +242,7 @@ namespace OpenMS
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid index given", String("invalid column_index or row_index"));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given", String("invalid column_index or row_index"));
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
@@ -291,7 +291,7 @@ namespace OpenMS
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid index given", String("invalid column_index or row_index"));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid index given", String("invalid column_index or row_index"));
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
@@ -314,7 +314,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   void LPWrapper::setColumnName(Int index, const String& name)
@@ -435,7 +435,7 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   void LPWrapper::setObjective(Int index, double obj_value)
@@ -474,7 +474,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   Int LPWrapper::getNumberOfRows()
@@ -488,7 +488,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   String LPWrapper::getColumnName(Int index)
@@ -502,7 +502,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   String LPWrapper::getRowName(Int index)
@@ -516,7 +516,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   Int LPWrapper::getRowIndex(const String& name)
@@ -532,7 +532,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   Int LPWrapper::getColumnIndex(const String& name)
@@ -548,7 +548,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   void LPWrapper::setSolver(const SOLVER s)
@@ -579,7 +579,7 @@ namespace OpenMS
         glp_read_prob(lp_problem_, 0, filename.c_str());
       }
       else
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid LP format, allowed are LP, MPS, GLPK");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid LP format, allowed are LP, MPS, GLPK");
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR && format == "MPS")
@@ -588,7 +588,7 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
   void LPWrapper::writeProblem(const String& filename, const WriteFormat format) const
@@ -608,7 +608,7 @@ namespace OpenMS
         glp_write_prob(lp_problem_, 0, filename.c_str());
       }
       else
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid LP format, allowed are LP, MPS, GLPK");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format, allowed are LP, MPS, GLPK");
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
@@ -618,7 +618,7 @@ namespace OpenMS
         model_->writeMps(filename.c_str());
       }
       else
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid LP format, allowed is MPS");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format, allowed is MPS");
     }
 #endif
   }
@@ -734,7 +734,7 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   LPWrapper::SolverStatus LPWrapper::getStatus()
@@ -763,7 +763,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getObjectiveValue()
@@ -784,7 +784,7 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getColumnValue(Int index)
@@ -799,7 +799,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getColumnUpperBound(Int index)
@@ -813,7 +813,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getColumnLowerBound(Int index)
@@ -827,7 +827,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getRowUpperBound(Int index)
@@ -841,7 +841,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getRowLowerBound(Int index)
@@ -855,7 +855,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   double LPWrapper::getObjective(Int index)
@@ -869,7 +869,7 @@ namespace OpenMS
 
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   LPWrapper::Sense LPWrapper::getObjectiveSense()
@@ -891,7 +891,7 @@ namespace OpenMS
     }
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   Int LPWrapper::getNumberOfNonZeroEntriesInRow(Int idx)
@@ -905,10 +905,10 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
   void LPWrapper::getMatrixRow(Int idx, std::vector<Int>& indexes)
@@ -927,10 +927,10 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 #endif
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
   }
 
 } // namespace

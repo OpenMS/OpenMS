@@ -527,7 +527,7 @@ namespace OpenMS
     if (finished_)
     {
       LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 
@@ -622,7 +622,7 @@ namespace OpenMS
           {
             if (file_list.size() > 1)
             {
-              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             }
             param_tmp.setValue(param_name, String(file_list[0]));
           }
@@ -664,7 +664,7 @@ namespace OpenMS
           }
           else
           {
-            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             param_tmp.setValue(param_name, String(output_files[0]));
           }
         }
@@ -759,7 +759,7 @@ namespace OpenMS
         if (finished_)
         {
           LOG_ERROR << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning..." << std::endl;
-          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         if (!ts->isDryRun())
         {

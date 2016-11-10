@@ -207,7 +207,7 @@ public:
     {
       if (!consuming_possible_)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "FullSwathFileConsumer cannot consume any more spectra after retrieveSwathMaps has been called already");
       }
 
@@ -219,7 +219,7 @@ public:
       {
         if (s.getPrecursors().empty())
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Swath scan does not provide a precursor.");
         }
 
@@ -232,7 +232,7 @@ public:
         // Check if enough information is present to infer the swath
         if (center <= 0.0)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Swath scan does not provide any precursor isolation information.");
         }
 
@@ -251,7 +251,7 @@ public:
         {
           if (use_external_boundaries_)
           {
-            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               String("Encountered SWATH scan with boundary ") + center + " m/z which was not present in the provided windows.");
           }
           else

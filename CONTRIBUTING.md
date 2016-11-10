@@ -1,6 +1,6 @@
-Help us to make OpenMS better and become part of the OpenMS open source community.
+Help us to make OpenMS better and become part of the OpenMS open-source community.
 
-This document is displayed because you either opened an issue or you want to provide a your code as a pull request for inclusion into OpenMS. Please take a look at the appropriate secion below to find some details on how we handle this process.
+This document is displayed because you either opened an issue or you want to provide your code as a pull request for inclusion into OpenMS. Please take a look at the appropriate section below to find some details on how we handle this process.
 
 #Reporting an Issue:
 
@@ -16,10 +16,10 @@ If you found a bug, e.g. an OpenMS tool crashes during data processing, it is es
   - how you installed OpenMS (e.g., from within KNIME, binary installers, self compiled)
   - a description on how to reproduce the bug
   - relevant tool output (e.g., error messages)
-  - data to repoduce the bug (If possible as a github gist. Other platforms like dropbox, google drive links also work. If you can't share the data publicly please indicate this and we will contact you in private.)
+  - data to repoduce the bug (If possible as a GitHub gist. Other platforms like Dropbox, Google Drive links also work. If you can't share the data publicly please indicate this and we will contact you in private.)
 
 If you are an official OpenMS team meber:
-  - label your issue using github labels (e.g. as: question, defect) that indicated the type of issue and which components of OpenMS (blue labels) are affected. The severity is usually assigned by OpenMS maintainers and used internally to e.g. indicate if a bug is a blocker for a new release.
+  - label your issue using github labels (e.g. as: question, defect) that indicate the type of issue and which components of OpenMS (blue labels) are affected. The severity is usually assigned by OpenMS maintainers and used internally to e.g. indicate if a bug is a blocker for a new release.
 
 #Opening a Pull Request
 
