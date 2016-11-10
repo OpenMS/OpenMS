@@ -1,6 +1,6 @@
 /**
 
-  @page install_linux Building OpenMS on GNU/Linux
+  @page install_linux Building %OpenMS on GNU/Linux
 
   This document describes how to build %OpenMS on a GNU/Linux system from source.
   If you encounter errors during configuring/compiling our software,
@@ -14,7 +14,7 @@
 
   We are working on adding %OpenMS to the <a href=http://pkgs.org/search/openms>repositories</a> of the most popular distributions,
   but for many platforms the toolkit needs to be manually compiled on your system.
-  The same applies if you want to use the most recent source files from our Git repository.
+  The same applies if you want to use the most recent source files from our git repository.
 
   @section checkout_and_build Checkout OpenMS
 
@@ -30,7 +30,7 @@
 
   From here on, the instructions assume you have either an extracted tar.gz of a release and are inside its root, or checked out the development (git) version.
 
-  Next, we will care for the dependencies upon which building OpenMS from source relies.
+  Next, we will care for the dependencies upon which building %OpenMS from source relies.
 
   @section bin_dep Dependencies obtainable in binary form
 
