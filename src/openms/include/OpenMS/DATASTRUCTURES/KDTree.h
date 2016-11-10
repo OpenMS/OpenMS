@@ -34,9 +34,7 @@
 
 /* Note: This file contains a concatenation of the 6 header files comprising
  *       libkdtree++ (node.hpp, function.hpp, allocator.hpp, iterator.hpp,
- *       region.hpp, kdtree.hpp). Nothing has been changed, except that
- *       the #includes of the mentioned header files were removed and
- *       whitespaces have been reformatted.
+ *       region.hpp, kdtree.hpp).
  *
  *       Johannes Veit (2016)
  */
@@ -964,8 +962,8 @@ struct _Region
   }
 
   subvalue_type _M_low_bounds[__K], _M_high_bounds[__K];
-  _Acc _M_acc;
   _Cmp _M_cmp;
+  _Acc _M_acc;
 };
 
 } // namespace KDTree
