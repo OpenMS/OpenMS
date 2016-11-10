@@ -1108,7 +1108,7 @@ namespace OpenMS
         IdXMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
         }
         // check if RT (and sequence) information is present:
         vector<PeptideIdentification> peptides_with_rt;
@@ -1130,7 +1130,7 @@ namespace OpenMS
         }
         if (peptides_with_rt.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
@@ -1141,7 +1141,7 @@ namespace OpenMS
         MzIdentMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
         }
         // check if RT (and sequence) information is present:
         vector<PeptideIdentification> peptides_with_rt;
@@ -1163,7 +1163,7 @@ namespace OpenMS
         }
         if (peptides_with_rt.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
@@ -1750,7 +1750,7 @@ namespace OpenMS
       }
       else
       {
-        showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__, "Button for intensity mode does not exist");
+        showLogMessage_(LS_ERROR, OPENMS_PRETTY_FUNCTION, "Button for intensity mode does not exist");
       }
     }
 
@@ -1954,7 +1954,7 @@ namespace OpenMS
     else
     {
       cerr << "Error: tab_index " << tab_index << endl;
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     updateViewBar();

@@ -82,11 +82,11 @@ namespace OpenMS
   {
     if (!File::exists(filename))
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     if (!File::readable(filename))
     {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     exp.reset();
@@ -265,7 +265,7 @@ namespace OpenMS
             RichPeak1D peak;
             if (split.size() != 3)
             {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
             }
             peak.setMZ(split[0].toFloat());
             peak.setIntensity(split[1].toFloat());
@@ -312,7 +312,7 @@ namespace OpenMS
   {
     if (!File::writable(filename))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     ofstream out(filename.c_str());

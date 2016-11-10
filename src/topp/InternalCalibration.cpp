@@ -297,7 +297,7 @@ protected:
         iter->split(",", vec);
         if (vec.size() != 3)
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
         }
         ref_masses.push_back(InternalCalibration::LockMass(vec[0].toDouble(), vec[1].toInt(), vec[2].toInt()));
       }

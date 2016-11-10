@@ -327,7 +327,7 @@ private:
 
       if (ion_mode_detect_msg.size() > 0)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
       }
 
       return ion_mode_internal;

@@ -883,7 +883,7 @@ protected:
 
         This method is reimplemented in the 3D view to update the OpenGL widget.
 
-        @param caller_name Name of the calling function (use __PRETTY_FUNCTION__).
+        @param caller_name Name of the calling function (use OPENMS_PRETTY_FUNCTION).
     */
     virtual void update_(const char * caller_name);
 

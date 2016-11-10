@@ -84,7 +84,7 @@ public:
       std::ifstream is(filename.c_str());
       if (!is)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       // delete old spectrum
@@ -116,7 +116,7 @@ public:
       line.split(delimiter, strings);
       if (strings.size() != 2)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
       }
       Precursor precursor;
       double mh_mass;
@@ -129,7 +129,7 @@ public:
       }
       catch (...)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\": not a float number.", filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\": not a float number.", filename);
       }
       if (charge != 0)
       {
@@ -162,7 +162,7 @@ public:
         line.split(delimiter, strings);
         if (strings.size() != 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
         }
         try
         {
@@ -172,7 +172,7 @@ public:
         }
         catch (Exception::BaseException & /*e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\": not a float number.", filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\": not a float number.", filename);
         }
         spectrum.push_back(p);
       }
@@ -195,7 +195,7 @@ public:
       std::ofstream os(filename.c_str());
       if (!os)
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
       os.precision(writtenDigits<double>(0.0));
 

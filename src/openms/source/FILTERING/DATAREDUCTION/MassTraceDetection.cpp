@@ -246,7 +246,7 @@ namespace OpenMS
 
     if (spectra_count < 3)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     "Input map consists of too few MS1 spectra (less than 3!). Aborting...", String(spectra_count));
     }
 
@@ -281,7 +281,7 @@ namespace OpenMS
       {
         if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size()) 
         { // float data should always have the same size as the corresponding array
-          throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, work_exp[i].size());
+          throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
         }
         fwhm_meta_idx = 0;
         ++fwhm_meta_count;
@@ -289,7 +289,7 @@ namespace OpenMS
     }    
     if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
     }
      

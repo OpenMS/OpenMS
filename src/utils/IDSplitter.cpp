@@ -121,7 +121,7 @@ protected:
     if (out.empty() && id_out.empty())
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
+                                                 OPENMS_PRETTY_FUNCTION,
                                                  "out/id_out");
     }
 
