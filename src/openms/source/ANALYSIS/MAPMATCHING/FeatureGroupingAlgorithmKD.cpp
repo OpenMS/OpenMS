@@ -163,7 +163,7 @@ namespace OpenMS
       {
         aligner.fitLOWESS();
       }
-      catch (Exception::BaseException e)
+      catch (Exception::BaseException& e)
       {
         LOG_ERROR << "Error: " << e.what() << endl;
         return;
@@ -269,7 +269,7 @@ namespace OpenMS
     updateClusterProxies_(potential_clusters, cluster_for_idx, update_these, assigned, kd_data);
 
     // pass 2: construct consensus features until all points assigned.
-    while(!potential_clusters.empty())
+    while (!potential_clusters.empty())
     {
       // get index of current best cluster center (as defined by ClusterProxyKD::operator<)
       Size i = potential_clusters.begin()->getCenterIndex();
