@@ -880,7 +880,7 @@ struct _Region
   typedef std::pair<_Region,_SubVal> _CenterPt;
 
   _Region(_Acc const& __acc=_Acc(), const _Cmp& __cmp=_Cmp())
-    : _M_cmp(__cmp), _M_acc(__acc) {}
+    : _M_acc(__acc), _M_cmp(__cmp) {}
 
   template <typename Val>
   _Region(Val const& __V,
@@ -962,8 +962,8 @@ struct _Region
   }
 
   subvalue_type _M_low_bounds[__K], _M_high_bounds[__K];
-  _Cmp _M_cmp;
   _Acc _M_acc;
+  _Cmp _M_cmp;
 };
 
 } // namespace KDTree
