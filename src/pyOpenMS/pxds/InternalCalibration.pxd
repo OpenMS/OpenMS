@@ -39,7 +39,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                        String file_models,
                        String file_models_plot,
                        String file_residuals,
-                       String file_residuals_plot) nogil except +
+                       String file_residuals_plot,
+                       String rscript_executable) nogil except +
 
 
 

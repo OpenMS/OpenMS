@@ -265,8 +265,10 @@ namespace OpenMS
                                       const String& file_models_plot,
                                       const String& file_residuals,
                                       const String& file_residuals_plot,
-                                      const QString& rscript_executable)
+                                      const String& rscript_executable_)
   {
+    QString rscript_executable = rscript_executable_.toQString();
+
     // ensure sorting; required for finding RT ranges and lock masses
     if (!exp.isSorted(true))
     {
