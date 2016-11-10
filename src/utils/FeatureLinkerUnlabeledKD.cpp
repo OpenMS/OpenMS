@@ -69,8 +69,8 @@ using namespace std;
  significantly worse than that of FeatureLinkerUnlabeledKD if the datasets
  are relatively small and/or the value of the -nr_partitions parameter is
  chosen large enough. If, however, the datasets are very large, and especially
- if they are so dense that a partitioning with respect to the specified RT and
- m/z tolerances is not possible anymore, then this algorithm becomes orders of
+ if they are so dense that a partitioning based on the specified m/z
+ tolerance is not possible anymore, then this algorithm becomes orders of
  magnitudes faster than FLQT.
 
  Notably, this algorithm can be used to align featureXML files containing
@@ -81,7 +81,8 @@ using namespace std;
  Prior to feature linking, this tool performs an (optional) retention time
  transformation on the features using LOWESS regression in order to minimize
  retention time differences between corresponding features across different
- maps.
+ maps. These transformed RTs are used only internally. In the results, original
+ RTs will be reported.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureLinkerUnlabeledKD.cli
