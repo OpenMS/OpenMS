@@ -413,11 +413,10 @@ protected:
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
 
-      os << "\n" << "Peptide identifications in features:\n";
-      os << "Size distribution:" << "\n";
+      os << "\n" << "Distribution of peptide identifications (IDs) per feature:\n";
       for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
       {
-        os << "  size " << it->first << ": " << it->second << "\n";
+        os << " IDs " << it->first << ": " << it->second << "\n";
       }
 
       os << "\n" << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";

@@ -15,11 +15,10 @@ Charge distribution:
   charge 2: 4
   charge 3: 6
 
-Peptide identifications in features:
-Size distribution:
-  size 0: 7
-  size 1: 2
-  size 8: 1
+Distribution of peptide identifications (IDs) per feature:
+  IDs 0: 7
+  IDs 1: 2
+  IDs 8: 1
 
 Unassigned peptide identifications: 2
 
