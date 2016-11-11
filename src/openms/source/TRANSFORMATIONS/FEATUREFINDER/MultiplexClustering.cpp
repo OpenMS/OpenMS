@@ -64,7 +64,7 @@ namespace OpenMS
   {
     if (exp_picked.size() != boundaries.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
     
     // ranges of the experiment

@@ -75,7 +75,7 @@ namespace OpenMS
 
   void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // resetMembers_();
   }
 

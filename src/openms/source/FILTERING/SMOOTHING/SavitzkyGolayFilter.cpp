@@ -70,7 +70,7 @@ namespace OpenMS
     }
     if (frame_size_ <= order_)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The degree of the polynomial has to be less than the frame length.", String(order_));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The degree of the polynomial has to be less than the frame length.", String(order_));
     }
     coeffs_.resize(frame_size_ * (frame_size_ / 2 + 1));
 

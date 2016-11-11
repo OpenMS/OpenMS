@@ -150,7 +150,7 @@ namespace OpenMS
     catch (...)
     {
       if (verbose) LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, script_file);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, script_file);
     }
     return s;
   }

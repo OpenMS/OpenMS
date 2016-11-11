@@ -37,9 +37,10 @@ set(KNIME_PLUGIN_DIRECTORY ${PROJECT_BINARY_DIR}/ctds CACHE PATH "Directory cont
 set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
 
 # path were the executables can be found
-set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
-if(WIN32)
-  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/$(ConfigurationName))
+if(${CMAKE_CONFIGURATION_TYPES})
+  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+else()
+  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 endif()
 
 # payload paths
@@ -66,16 +67,6 @@ elseif(WIN32)
 else()
   set(PLATFORM "lnx")
 endif()
-
-##
-function(remove_parameter_from_ctd toolname param)
-  set(FILE_CONTENT "")
-  file(READ ${CTD_PATH}/${toolname}.ctd FILE_CONTENT)
-  foreach(LINE ${FILE_CONTENT})
-    message(STATUS ${FILE})
-  endforeach()
-endfunction()
-
 
 # create the target directory
 file(MAKE_DIRECTORY ${KNIME_PLUGIN_DIRECTORY})

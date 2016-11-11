@@ -225,7 +225,7 @@ protected:
           "IDPosteriorErrorProbability with the 'prob_correct' option.";
         LOG_ERROR << msg << endl;
         throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            __PRETTY_FUNCTION__, msg);
+                                            OPENMS_PRETTY_FUNCTION, msg);
       }
       
       // Remove modifications before writing to input graph file
@@ -271,7 +271,7 @@ protected:
           "option to accomplish this.";
         LOG_ERROR << msg << endl;
         throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            __PRETTY_FUNCTION__, msg);
+                                            OPENMS_PRETTY_FUNCTION, msg);
       }
     }
     
@@ -281,7 +281,7 @@ protected:
         "and decoys.";
       LOG_ERROR << msg << endl;
       throw Exception::MissingInformation(__FILE__, __LINE__,
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
     }
     if (decoys.empty())
     {
@@ -289,7 +289,7 @@ protected:
         "and decoys.";
       LOG_ERROR << msg << endl;
       throw Exception::MissingInformation(__FILE__, __LINE__,
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
     }
     
     // write sets to file:

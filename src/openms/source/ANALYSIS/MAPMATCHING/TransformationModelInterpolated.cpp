@@ -202,7 +202,7 @@ private:
     // ensure that we have enough points for an interpolation
     if (x_.size() < 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Cubic spline model needs at least 3 data points (with unique x values)");
     }
   }
@@ -233,7 +233,7 @@ private:
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "unknown/unsupported interpolation type '" + interpolation_type + "'");
     }
 
@@ -273,7 +273,7 @@ private:
         delete interp_;
       }
 
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
     }
   }

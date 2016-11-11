@@ -77,11 +77,11 @@ namespace OpenMS
   void LabeledPairFinder::run(const vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
     if (input_maps.size() != 1)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "exactly one input map required");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly one input map required");
     if (result_map.getFileDescriptions().size() != 2)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "two file descriptions required");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "two file descriptions required");
     if (result_map.getFileDescriptions().begin()->second.filename != result_map.getFileDescriptions().rbegin()->second.filename)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the two file descriptions have to contain the same file name");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the two file descriptions have to contain the same file name");
     checkIds_(input_maps);
 
     //look up the light and heavy index
@@ -102,7 +102,7 @@ namespace OpenMS
     }
     if (light_index == numeric_limits<Size>::max() || heavy_index == numeric_limits<Size>::max())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the input maps have to be labeled 'light' and 'heavy'");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the input maps have to be labeled 'light' and 'heavy'");
     }
 
     result_map.clear(false);

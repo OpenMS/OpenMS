@@ -462,7 +462,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeakDeconvolution", "Could not fit the curve to the data: Error " + String(status));
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-OptimizePeakDeconvolution", "Could not fit the curve to the data: Error " + String(status));
       }
       double chi = lmSolver.fnorm;
       if ((chargeState == firstChargeState) || (chi < min))

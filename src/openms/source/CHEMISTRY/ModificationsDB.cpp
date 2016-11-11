@@ -77,7 +77,7 @@ namespace OpenMS
   {
     if (index >= mods_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, mods_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, mods_.size());
     }
     return *mods_[index];
   }
@@ -89,7 +89,7 @@ namespace OpenMS
 
     if (!modification_names_.has(mod_name))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        mod_name);
     }
 
@@ -110,11 +110,19 @@ namespace OpenMS
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     set<const ResidueModification*> mods;
-    searchModifications(mods, mod_name, residue, term_spec);
+    // if residue is specified, try residue-specific search first to avoid
+    // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
+    if (!residue.empty() &&
+        (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY))
+    {
+      searchModifications(mods, mod_name, residue,
+                          ResidueModification::ANYWHERE);
+    }
+    if (mods.empty()) searchModifications(mods, mod_name, residue, term_spec);
 
     if (mods.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
     }
     if (mods.size() > 1)
     {
@@ -143,12 +151,12 @@ namespace OpenMS
     {
       if (modification_names_[mod_name].size() > 1)
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "more than one element of name '" + mod_name + "' found!");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "more than one element of name '" + mod_name + "' found!");
       }
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
     }
 
     const ResidueModification* mod = *modification_names_[mod_name].begin();
@@ -353,7 +361,7 @@ namespace OpenMS
         line.split('"', val_split);
         if (val_split.size() < 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "missing \" characters to enclose argument!");
         }
         mod.addSynonym(val_split[1]);
 
@@ -376,7 +384,7 @@ namespace OpenMS
         val.split('"', val_split);
         if (val_split.size() != 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "missing \" characters to enclose argument!");
         }
         if (val.hasPrefix("DiffAvg:"))
         {

@@ -290,7 +290,7 @@ public:
           double background = 0;
           if (background_subtraction_ == "smoothed")
           {
-            throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
             /*
              * Currently we do not have access to the smoothed chromatogram any more
             if (smoothed_chroms_.size() <= k)

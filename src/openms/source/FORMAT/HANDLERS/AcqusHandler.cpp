@@ -51,7 +51,7 @@ namespace OpenMS
       std::ifstream is(filename.c_str());
       if (!is)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       //temporary variables

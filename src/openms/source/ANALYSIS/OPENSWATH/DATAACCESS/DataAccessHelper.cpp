@@ -146,7 +146,7 @@ namespace OpenMS
       else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
           transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
       }
       else

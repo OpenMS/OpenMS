@@ -127,7 +127,7 @@ protected:
         String msg = "Meta value '" + new_score_ + "' not found for " + 
           describeHit_(*hit_it);
         throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            __PRETTY_FUNCTION__, msg);
+                                            OPENMS_PRETTY_FUNCTION, msg);
       }
 
       String old_score_meta = (old_score_.empty() ? id.getScoreType() : 
@@ -140,7 +140,7 @@ protected:
         {
           String msg = "Meta value '" + old_score_meta + "' already exists "
             "with a conflicting value for " + describeHit_(*hit_it);
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         msg, dv.toString());
         } // else: values match, nothing to do
       }

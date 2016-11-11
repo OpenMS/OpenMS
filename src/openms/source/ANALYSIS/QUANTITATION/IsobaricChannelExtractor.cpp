@@ -429,7 +429,7 @@ namespace OpenMS
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.\n";
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Experiment has no scans!");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Experiment has no scans!");
     }
 
     // clear the output map
@@ -469,7 +469,7 @@ namespace OpenMS
         // check if precursor is available
         if (it->getPrecursors().empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
         }
 
         // check precursor constraints

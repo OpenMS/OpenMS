@@ -294,7 +294,7 @@ protected:
         break;
 
       default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       return gradient.precalculatedColorIndex(gradientPos);
     }

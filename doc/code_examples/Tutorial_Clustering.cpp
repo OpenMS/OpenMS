@@ -50,7 +50,7 @@ public:
     y = max(first, second);
     if ((y - x) > 1)
     {
-      throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     return 1 - (y - x);
   }

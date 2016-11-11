@@ -370,7 +370,7 @@ protected:
     return "";
     
     // String msg = "Spectrum could not be parsed";
-    // throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, spec_id, msg);
+    // throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec_id, msg);
   }
   
   // remove all modifications which are LuciPHOr2 target modifications,
@@ -477,7 +477,7 @@ protected:
     else
     {
       String msg = "SELECTION_METHOD parameter could not be set. Only Mascot, X! Tandem, or Posterior Error Probability score types are supported.";
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, msg);
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
     return selection_method;
   }
