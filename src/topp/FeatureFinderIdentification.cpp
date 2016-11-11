@@ -1075,22 +1075,26 @@ protected:
       FeatureMap::Iterator best_it = features.begin();
       const double quality_cutoff = getDoubleOption_("svm:min_prob");
       double best_quality = 0.0;
-      String previous_ref = features[0].getMetaValue("PeptideRef");
-      // remove region number, if present (works only for charges <10):
-      previous_ref = previous_ref.substr(0, previous_ref.find('/') + 1);
+      String previous_ref;
       for (FeatureMap::Iterator it = features.begin(); it != features.end();
            ++it)
       {
         // features from same assay (same "PeptideRef") appear consecutively;
         // if this is a new assay, finalize the previous one:
         String peptide_ref = it->getMetaValue("PeptideRef");
-        // remove region number, if present (works only for charges <10):
-        peptide_ref = peptide_ref.substr(0, peptide_ref.find('/') + 1);
+        // remove region number, if present:
+        Size pos_slash = peptide_ref.rfind('/');
+        Size pos_colon = peptide_ref.find(':', pos_slash + 2);
+        peptide_ref = peptide_ref.substr(0, pos_colon);
+
         if (peptide_ref != previous_ref)
         {
-          filterFeaturesFinalizeAssay_(*best_it, best_quality, quality_cutoff);
-          // reset:
-          best_quality = 0.0;
+          if (!previous_ref.empty())
+          {
+            filterFeaturesFinalizeAssay_(*best_it, best_quality,
+                                         quality_cutoff);
+            best_quality = 0.0;
+          }
           previous_ref = peptide_ref;
         }
 
