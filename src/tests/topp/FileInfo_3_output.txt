@@ -11,14 +11,15 @@ Ranges:
   intensity:      1376.00 .. 6712.00
 
 Total ion current in features: 36739
+
 Charge distribution:
   charge 2: 4
   charge 3: 6
 
 Distribution of peptide identifications (IDs) per feature:
-  IDs 0: 7
-  IDs 1: 2
-  IDs 8: 1
+  0 IDs: 7
+  1 IDs: 2
+  8 IDs: 1
 
 Unassigned peptide identifications: 2
 

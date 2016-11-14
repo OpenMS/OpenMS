@@ -407,7 +407,7 @@ protected:
       }
 
       os << "Total ion current in features: " << tic << "\n";
-      os << "Charge distribution:" << "\n";
+      os << "\n" << "Charge distribution:" << "\n";
       for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
@@ -416,7 +416,7 @@ protected:
       os << "\n" << "Distribution of peptide identifications (IDs) per feature:\n";
       for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
       {
-        os << " IDs " << it->first << ": " << it->second << "\n";
+        os << "  " << it->first << " IDs: " << it->second << "\n";
       }
 
       os << "\n" << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
