@@ -60,7 +60,7 @@ class TOPPBaseTest
     {
       char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -72,7 +72,7 @@ class TOPPBaseTest
     {
       char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -196,7 +196,7 @@ class TOPPBaseTestNOP
     {
       char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -208,7 +208,7 @@ class TOPPBaseTestNOP
     {
       char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -270,7 +270,7 @@ class TOPPBaseTestParam: public TOPPBase
     {
       static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -314,7 +314,7 @@ public:
   {
     static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -325,7 +325,7 @@ public:
   {
     static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
@@ -370,7 +370,7 @@ public:
   {
     static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
-      putenv_(var);
+      _putenv(var);
 #else
       putenv(var);
 #endif
