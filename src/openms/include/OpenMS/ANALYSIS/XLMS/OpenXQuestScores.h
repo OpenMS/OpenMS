@@ -108,12 +108,38 @@ struct CrossLinkSpectrumMatch
 
   struct OPENMS_DLLAPI OpenXQuestScores
   {
+
+    struct XLPrecursor
+    {
+      double precursor_mass;
+      Size alpha_index;
+      Size beta_index;
+
+      bool operator<(const XLPrecursor& other) const
+      {
+        return precursor_mass < other.precursor_mass;
+      }
+
+      bool operator<(const double other) const
+      {
+        return precursor_mass < other;
+      }
+
+//      bool operator==(const XLPrecursor& other) const
+//      {
+//        return precursor_mass == other.precursor_mass &&
+//           alpha_index == alpha_index &&
+//           beta_index == other.beta_index;
+//      }
+  };
+    //bool operator< (const double other, const XLPrecursor& pre) {return other < pre.precursor_mass;}
+
     static float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta);
     static float preScore(Size matchedAlpha, Size ionsAlpha);
 
     static double cumulativeBinomial(Size n, Size k, double p);
 
-    static std::multimap<double, std::pair<const AASequence*, const AASequence*> > enumerateCrossLinksAndMasses_(const std::multimap<StringView, AASequence>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2);
+    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<AASequence>&  peptide_AASeqs, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, int charge_min, int charge_max);
 
 
     static double match_odds_score(const RichPeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1);
@@ -259,6 +285,8 @@ struct CrossLinkSpectrumMatch
     }
 
   };
+
+  bool operator< (const double other, const OpenXQuestScores::XLPrecursor& pre) {return other < pre.precursor_mass;}
 
 }
 
