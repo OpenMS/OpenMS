@@ -77,9 +77,9 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>","Input FASTA file, containing a database.");
+    registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
-    registerInputFileList_("accession", "<file>", ListUtils::create<String>(""), "Input IdXML file, containing the identfied peptides.", true);
+    registerInputFile_("accession", "<file>", "", "Input IdXML file, containing the identfied peptides.", true);
     setValidFormats_("accession", ListUtils::create<String>("idXML"));
     registerStringOption_("method", "<type>", "whitelist", "Switch between white/blacklisting", false);
     setValidStrings_("method", ListUtils::create<String>("whitelist,blacklist"));
@@ -104,8 +104,9 @@ protected:
     vector<FASTAFile::FASTAEntry> db;
     FASTAFile ().load(in, db);
 
+    vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
-    IdXMLFile ().load(ids, peptide_identifications);
+    IdXMLFile().load(ids, protein_identifications, peptide_identifications);
 
     LOG_INFO << "Identifications: " << ids.size() << endl;
 
