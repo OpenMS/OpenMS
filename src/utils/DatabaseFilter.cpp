@@ -49,7 +49,9 @@ using namespace std;
 
     @brief Tool to create a reduced database from a standard FASTA database.
 
-    A database serves as input and will filter for a given reference vector and transfer the entries to the new reduced database.
+    A FASTA database serves as input and will be filtered depending on a give reverence vector.
+
+    Given entries are pasted to the new reduced database.
 
     Filter whitelist: Input whitelist as reverence; Output database with entries on whitelist.
 
