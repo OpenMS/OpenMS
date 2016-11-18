@@ -32,8 +32,11 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -47,15 +50,13 @@ using namespace std;
 /**
     @page UTILS_DatabaseFilter DatabaseFilter
 
-    @brief Tool to create a reduced database from a standard FASTA database.
+    @brief The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria.
 
-    A FASTA database serves as input and will be filtered depending on a give reverence vector.
+    The resulting database is written as output. Depending on the reporting method (method="whitelist" or "blacklist") only entries are retained that passed all filters ("whitelist) or failed at least one filter ("blacklist").
 
-    Given entries are pasted to the new reduced database.
+    Implemented filter criteria:
 
-    Filter whitelist: Input whitelist as reverence; Output database with entries on whitelist.
-
-    Filter blacklist: Input blacklist as reverence; Output database without entries on blacklist.
+        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIDentML)
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DatabaseFilter.cli
@@ -71,9 +72,8 @@ class TOPPDatabaseFilter :
 {
 public:
   TOPPDatabaseFilter() :
-    TOPPBase("DatabaseFilter", "Tool to create a reduced database.", false)
+    TOPPBase("DatabaseFilter", "The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria", false)
   {
-
   }
 
 protected:
@@ -82,7 +82,7 @@ protected:
     registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerInputFile_("accession", "<file>", "", "Input IdXML file, containing the identfied peptides.", true);
-    setValidFormats_("accession", ListUtils::create<String>("idXML"));
+    setValidFormats_("accession", ListUtils::create<String>("idXML,mzid"));
     registerStringOption_("method", "<type>", "whitelist", "Switch between white/blacklisting", false);
     setValidStrings_("method", ListUtils::create<String>("whitelist,blacklist"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the reduced database will be written to.");
@@ -103,12 +103,29 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
+
     vector<FASTAFile::FASTAEntry> db;
     FASTAFile ().load(in, db);
 
+    FileHandler fh;
+    FileTypes::Type ids_type = fh.getType(ids);
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
-    IdXMLFile().load(ids, protein_identifications, peptide_identifications);
+
+    if(ids_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(ids, protein_identifications, peptide_identifications);
+    }
+    else if(ids_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(ids, protein_identifications, peptide_identifications);
+    }
+    else
+    {
+      writeLog_("Error: Unknown input file type given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
 
     LOG_INFO << "Identifications: " << ids.size() << endl;
 
@@ -140,7 +157,7 @@ protected:
     {
       const String& fasta_accession = db[i].identifier;
       const bool found = id_accessions.find(fasta_accession) != id_accessions.end();
-      if ( (found && whitelist) || (!found && !whitelist) )
+      if ( (found && whitelist) || (!found && !whitelist) ) //either found in the whitelist or not found in the blacklist
       {
         db_new.push_back(db[i]);
       }
