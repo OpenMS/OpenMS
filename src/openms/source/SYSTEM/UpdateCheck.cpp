@@ -61,7 +61,7 @@ using namespace std;
   
 namespace OpenMS
 {
-  void UpdateCheck::run(const String& tool_name, const String& version)
+  void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
   {
     String architecture = QSysInfo::WordSize == 32 ? "32" : "64";
 
@@ -119,10 +119,13 @@ namespace OpenMS
         new_times.modtime = time(NULL);  // mod time to current time
         utime(version_file_name.c_str(), &new_times);          
 
-        LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
-        LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
-        LOG_INFO << "setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS to ON." << endl;
-        
+        if (debug_level > 0)
+        {
+          LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
+          LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
+          LOG_INFO << "setting the environmental variable OPENMS_DISABLE_USAGE_STATISTICS to ON." << endl;
+        }
+      
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
         char const * argv2[] = { "dummyname", NULL };
         int argc = 1;
@@ -136,7 +139,11 @@ namespace OpenMS
 
         if (!query->hasError())
         {
-          LOG_INFO << "Connecting to REST server successful. " << endl;
+          if (debug_level > 0)
+          {
+            LOG_INFO << "Connecting to REST server successful. " << endl;
+          }
+
           QString response = query->getResponse();
           VersionInfo::VersionDetails server_version = VersionInfo::VersionDetails::create(response);
           if (server_version != VersionInfo::VersionDetails::EMPTY)
@@ -149,8 +156,11 @@ namespace OpenMS
         }
         else
         {
-          LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-          LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+          if (debug_level > 0)
+          {
+            LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
+            LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+          }
         }
         delete query;
       }
