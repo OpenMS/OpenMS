@@ -56,7 +56,7 @@ using namespace std;
 
     Implemented filter criteria:
 
-        ID: Filter database according to the set of proteinIDs contained in an identification file (idXML, mzIdentML)
+        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DatabaseFilter.cli
@@ -83,13 +83,13 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerInputFile_("id", "<file>", "", "Input file containing identified peptides and proteins.");
     setValidFormats_("id", ListUtils::create<String>("idXML,mzid"));
-    registerStringOption_("method", "<choice>", "whitelist", "Switch between white-/blacklisting of protein IDs", false);
+    registerStringOption_("method", "<choice>", "whitelist", "Switch between white-/blacklisting", false);
     setValidStrings_("method", ListUtils::create<String>("whitelist,blacklist"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the reduced database will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
   }
 
-  void filterByProteinIDs_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
+  void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
   {
     set<String> id_accessions;
     for (Size i = 0; i != peptide_identifications.size(); ++i)
@@ -107,7 +107,7 @@ protected:
       }
     }
 
-    LOG_INFO << "Protein IDs: " << id_accessions.size() << endl;
+    LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
 
     for (Size i = 0; i != db.size() ; ++i)
     {
@@ -147,7 +147,7 @@ protected:
 
     vector<FASTAFile::FASTAEntry> db_new;
 
-    if (!ids.empty()) // filter by protein IDs
+    if (!ids.empty()) // filter by protein accessions in id files
     {
       FileHandler fh;
       FileTypes::Type ids_type = fh.getType(ids);
@@ -172,7 +172,7 @@ protected:
       LOG_INFO << "Identifications: " << ids.size() << endl;
 
       // run filter
-      filterByProteinIDs_(db, peptide_identifications, whitelist, db_new);
+      filterByProteinAccessions_(db, peptide_identifications, whitelist, db_new);
     }
 
     //-------------------------------------------------------------
