@@ -58,7 +58,7 @@ class TOPPBaseTest
     TOPPBaseTest()
       : TOPPBase("TOPPBaseTest", "A test class", false)
     {
-      char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -70,7 +70,7 @@ class TOPPBaseTest
     TOPPBaseTest(int argc ,const char** argv)
       : TOPPBase("TOPPBaseTest", "A test class", false)
     {
-      char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -194,7 +194,7 @@ class TOPPBaseTestNOP
     TOPPBaseTestNOP()
       : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
-      char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -206,7 +206,7 @@ class TOPPBaseTestNOP
     TOPPBaseTestNOP(int argc , const char** argv)
       : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
-      char* var = (char*)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -268,7 +268,7 @@ class TOPPBaseTestParam: public TOPPBase
     TOPPBaseTestParam(const Param& param):
 			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false), test_param_(param)
     {
-      static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+      static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -312,7 +312,7 @@ public:
 
   ExitCodes run(int argc , const char** argv)
   {
-    static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -323,7 +323,7 @@ public:
 
   virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
   {
-    static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else
@@ -368,7 +368,7 @@ public:
 
   ExitCodes run(int argc , const char** argv)
   {
-    static char* var = (char *)("OPENMS_DISABLE_USAGE_STATISTICS=ON");
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
       _putenv(var);
 #else

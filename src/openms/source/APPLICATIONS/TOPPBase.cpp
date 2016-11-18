@@ -399,7 +399,7 @@ namespace OpenMS
     // enable / disable collection of usage statistics by build variable
 #ifdef ENABLE_USAGE_STATISTICS
     // disable collection of usage statistics if environment variable is present
-    char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
+    char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
     if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
