@@ -56,7 +56,7 @@ using namespace std;
 
     Implemented filter criteria:
 
-        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIDentML)
+        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DatabaseFilter.cli
@@ -89,52 +89,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("fasta"));
   }
 
-  ExitCodes main_(int, const char **)
+  void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
   {
-    //-------------------------------------------------------------
-    // parsing parameters
-    //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String ids(getStringOption_("accession"));
-    String method(getStringOption_("method"));
-    bool whitelist = (method == "whitelist");
-    String out(getStringOption_("out"));
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-
-    vector<FASTAFile::FASTAEntry> db;
-    FASTAFile ().load(in, db);
-
-    FileHandler fh;
-    FileTypes::Type ids_type = fh.getType(ids);
-    vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> peptide_identifications;
-
-    if(ids_type == FileTypes::IDXML)
-    {
-      IdXMLFile().load(ids, protein_identifications, peptide_identifications);
-    }
-    else if(ids_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(ids, protein_identifications, peptide_identifications);
-    }
-    else
-    {
-      writeLog_("Error: Unknown input file type given. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
-    LOG_INFO << "Identifications: " << ids.size() << endl;
-
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-
-    vector<FASTAFile::FASTAEntry> db_new;
-
     set<String> id_accessions;
     for (Size i = 0; i != peptide_identifications.size(); ++i)
     {
@@ -161,6 +117,62 @@ protected:
       {
         db_new.push_back(db[i]);
       }
+    }
+  }
+
+  ExitCodes main_(int, const char **)
+  {
+    //-------------------------------------------------------------
+    // parsing parameters
+    //-------------------------------------------------------------
+    String in(getStringOption_("in"));
+    String ids(getStringOption_("accession"));
+    String method(getStringOption_("method"));
+    bool whitelist = (method == "whitelist");
+    String out(getStringOption_("out"));
+
+    //-------------------------------------------------------------
+    // reading input
+    //-------------------------------------------------------------
+
+    vector<FASTAFile::FASTAEntry> db;
+    FASTAFile ().load(in, db);
+
+    // Check if no filter criteria was given
+    // If you add a new filter please check if it was set here as well
+    if (ids.empty())
+    {
+      FASTAFile().store(out, db);
+    }
+
+    vector<FASTAFile::FASTAEntry> db_new;
+
+    if (!ids.empty()) // filter by protein accessions in id files
+    {
+      FileHandler fh;
+      FileTypes::Type ids_type = fh.getType(ids);
+      vector<ProteinIdentification> protein_identifications;
+      vector<PeptideIdentification> peptide_identifications;
+
+      if (ids_type == FileTypes::IDXML)
+      {
+        IdXMLFile().load(ids, protein_identifications, peptide_identifications);
+      }
+      else if (ids_type == FileTypes::MZIDENTML)
+      {
+        MzIdentMLFile().load(ids, protein_identifications, peptide_identifications);
+      }
+      else
+      {
+        writeLog_("Error: Unknown input file type given. Aborting!");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+
+      LOG_INFO << "Identifications: " << ids.size() << endl;
+
+      // run filter
+      filterByProteinAccessions_(db, peptide_identifications, whitelist, db_new);
     }
 
     //-------------------------------------------------------------
