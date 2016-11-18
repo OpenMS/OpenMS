@@ -56,7 +56,7 @@ using namespace std;
 
     Implemented filter criteria:
 
-        accession: Filter database according to the set of protein accessions contained in an identification file (idXML, mzIdentML)
+        ID: Filter database according to the set of proteinIDs contained in an identification file (idXML, mzIdentML)
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DatabaseFilter.cli
@@ -72,7 +72,7 @@ class TOPPDatabaseFilter :
 {
 public:
   TOPPDatabaseFilter() :
-    TOPPBase("DatabaseFilter", "The DatabaseFilter tool filters a protein database in fasta format according to one or multiple filtering criteria", false)
+    TOPPBase("DatabaseFilter", "Filters a protein database (FASTA format) based on identified proteins", false)
   {
   }
 
@@ -81,15 +81,15 @@ protected:
   {
     registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
-    registerInputFile_("accession", "<file>", "", "Input IdXML file, containing the identfied peptides.", true);
-    setValidFormats_("accession", ListUtils::create<String>("idXML,mzid"));
-    registerStringOption_("method", "<type>", "whitelist", "Switch between white/blacklisting", false);
+    registerInputFile_("id", "<file>", "", "Input file containing identified peptides and proteins.");
+    setValidFormats_("id", ListUtils::create<String>("idXML,mzid"));
+    registerStringOption_("method", "<choice>", "whitelist", "Switch between white-/blacklisting of protein IDs", false);
     setValidStrings_("method", ListUtils::create<String>("whitelist,blacklist"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the reduced database will be written to.");
     setValidFormats_("out", ListUtils::create<String>("fasta"));
   }
 
-  void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
+  void filterByProteinIDs_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
   {
     set<String> id_accessions;
     for (Size i = 0; i != peptide_identifications.size(); ++i)
@@ -99,7 +99,7 @@ protected:
       for (Size k = 0; k != hits.size(); ++k)
       {
         const vector<PeptideEvidence>& evidences = hits[k].getPeptideEvidences();
-        for (Size m = 0; m != hits.size(); ++m)
+        for (Size m = 0; m != evidences.size(); ++m)
         {
           const String& id_accession = evidences[m].getProteinAccession();
           id_accessions.insert(id_accession);
@@ -107,13 +107,13 @@ protected:
       }
     }
 
-    LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
+    LOG_INFO << "Protein IDs: " << id_accessions.size() << endl;
 
     for (Size i = 0; i != db.size() ; ++i)
     {
       const String& fasta_accession = db[i].identifier;
       const bool found = id_accessions.find(fasta_accession) != id_accessions.end();
-      if ( (found && whitelist) || (!found && !whitelist) ) //either found in the whitelist or not found in the blacklist
+      if ((found && whitelist) || (!found && !whitelist)) //either found in the whitelist or not found in the blacklist
       {
         db_new.push_back(db[i]);
       }
@@ -126,7 +126,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
     String in(getStringOption_("in"));
-    String ids(getStringOption_("accession"));
+    String ids(getStringOption_("id"));
     String method(getStringOption_("method"));
     bool whitelist = (method == "whitelist");
     String out(getStringOption_("out"));
@@ -136,7 +136,7 @@ protected:
     //-------------------------------------------------------------
 
     vector<FASTAFile::FASTAEntry> db;
-    FASTAFile ().load(in, db);
+    FASTAFile().load(in, db);
 
     // Check if no filter criteria was given
     // If you add a new filter please check if it was set here as well
@@ -147,7 +147,7 @@ protected:
 
     vector<FASTAFile::FASTAEntry> db_new;
 
-    if (!ids.empty()) // filter by protein accessions in id files
+    if (!ids.empty()) // filter by protein IDs
     {
       FileHandler fh;
       FileTypes::Type ids_type = fh.getType(ids);
@@ -172,7 +172,7 @@ protected:
       LOG_INFO << "Identifications: " << ids.size() << endl;
 
       // run filter
-      filterByProteinAccessions_(db, peptide_identifications, whitelist, db_new);
+      filterByProteinIDs_(db, peptide_identifications, whitelist, db_new);
     }
 
     //-------------------------------------------------------------
