@@ -244,7 +244,7 @@ protected:
       //std::cerr << "IN: " << s_new << "(" << allowed_percent << "\n";
       fragment.substitute("%%" + *it, s_new);
     }
-    if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
+    if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
 
     // mapping replace> e.g.: %2
     // do it reverse, since %10 should precede %1
@@ -310,8 +310,8 @@ protected:
 
     SignedSize diff = (fragment.length() - String(fragment).substitute("%", "").length()) - allowed_percent;
     //std::cerr << "allowed: " << allowed_percent << "\n" << "diff: " << diff << " in: " << fragment << "\n";
-    if (diff > 0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
-    else if (diff < 0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: '%' from a filename where accidentally considered command tags! "
+    if (diff > 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
+    else if (diff < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: '%' from a filename where accidentally considered command tags! "
                                                                                               "This is a bug! Remove '%' from input filesnames to fix, but please report this as well!", fragment);
 
     //std::cout << fragment << "'\n";
@@ -433,7 +433,7 @@ protected:
       // find target param:
       Param p = tool_param.copy("ETool:", true);
       String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
       String tmp_location = fm.location;
       // fragment's placeholder evaluation:
 
@@ -509,7 +509,7 @@ protected:
       createFragment_(source, p, mappings);
       // check if target already exists:
       String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
       String target_file = (String)p.getValue(target);
 
       if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)

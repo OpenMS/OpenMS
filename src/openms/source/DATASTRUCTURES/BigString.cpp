@@ -104,7 +104,7 @@ namespace OpenMS
     Size index_start = getIndex_(start);
     if (index_start != getIndex_(start + length))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entries", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "desired peptide is part of 2 fasta entries", "");
     }
     entry.first = FASTA_header_[index_start];
     entry.second = big_string_.substr(start, length);

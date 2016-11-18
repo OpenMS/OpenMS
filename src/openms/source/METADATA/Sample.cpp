@@ -244,7 +244,7 @@ namespace OpenMS
   {
     if (before_position > Int(treatments_.size()))
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, before_position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, before_position, treatments_.size());
     }
     list<SampleTreatment *>::iterator it;
     if (before_position >= 0)
@@ -267,7 +267,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -281,7 +281,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -295,7 +295,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)

@@ -90,7 +90,7 @@ namespace OpenMS
   {
     if (!residues_by_set_.has(residue_set))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Residue set cannot be found: '" + residue_set + "'");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
     }
 
     return residues_by_set_[residue_set];
@@ -194,7 +194,7 @@ namespace OpenMS
 
     if (!param.begin().getName().hasPrefix("Residues"))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "");
     }
 
     try
@@ -232,7 +232,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, e.what(), "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
     }
   }
 
@@ -462,7 +462,7 @@ namespace OpenMS
 
     if (residue_names_.find(res_name) == residue_names_.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
     }
 

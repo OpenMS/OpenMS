@@ -89,7 +89,7 @@ public:
     void store(const String& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for KroenikFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
   };

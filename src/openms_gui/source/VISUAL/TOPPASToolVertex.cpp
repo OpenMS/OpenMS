@@ -527,7 +527,7 @@ namespace OpenMS
     if (finished_)
     {
       LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
 
@@ -622,7 +622,7 @@ namespace OpenMS
           {
             if (file_list.size() > 1)
             {
-              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             }
             param_tmp.setValue(param_name, String(file_list[0]));
           }
@@ -664,7 +664,7 @@ namespace OpenMS
           }
           else
           {
-            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             param_tmp.setValue(param_name, String(output_files[0]));
           }
         }
@@ -759,7 +759,7 @@ namespace OpenMS
         if (finished_)
         {
           LOG_ERROR << "SOMETHING is very fishy. The vertex is already set to finished, yet there was still a thread spawning..." << std::endl;
-          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         if (!ts->isDryRun())
         {
@@ -888,49 +888,45 @@ namespace OpenMS
 
     // look for the input with the most files in round 0 (as this is the maximal number of output files we can produce)
     // we assume the number of files is equal in all rounds...
-    // However, we delay using nodes which use 'recycling' of input, as the names will always be the same.
-    //          Only if a recycling node gives the most input files we use its names
     int max_size_index(-1);
     int max_size(-1);
 
-    for (int use_recycling = 0; use_recycling < 2; ++use_recycling)
+    // iterate over input edges
+    for (RoundPackageConstIt it  = pkg[0].begin();
+          it != pkg[0].end();
+          ++it)
     {
-      for (RoundPackageConstIt it  = pkg[0].begin();
-           it != pkg[0].end();
-           ++it)
-      {
-        if (use_recycling == 0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled()))
-        { // first test all input nodes with disabled recycling
-          continue;
-        }
+      if (it->second.edge->getSourceVertex()->isRecyclingEnabled())
+      { // skip recycling input nodes
+        continue;
+      }
 
-        // we only need to find a good upstream node with a single file -- since we only output single files
-        if (has_only_singlefile_output)
-        {
-          if (it->second.filenames.size() == 1 && 
-             ((max_size < 1 || (it->second.edge->getTargetInParamName() == "in")) && (use_recycling == 0)))
-          {
-            max_size_index = it->first;
-            max_size       = 1;
-          }
-
-        }
-        else if ((it->second.filenames.size() > max_size) ||   // either just larger 
-            // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
-            ((it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in") && (use_recycling == 0)))
+      // we only need to find a good upstream node with a single file -- since we only output single files
+      if (has_only_singlefile_output)
+      { // .. take any non-recycled input edge, preferably from 'in' and/or single inputs
+        if ((max_size < 1 || (it->second.edge->getTargetInParamName() == "in") || it->second.filenames.size() == 1))
         {
           max_size_index = it->first;
-          max_size       = it->second.filenames.size();
+          max_size       = 1;
         }
-      }
 
-      if (max_size_index == -1)
+      }
+      else if ((it->second.filenames.size() > max_size) ||   // either just larger 
+          // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
+          ((it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in")))
       {
-        error_msg = "Did not find upstream nodes with un-recycled names. Something is fishy!\n";
-        LOG_ERROR << error_msg;
-        return false;
+        max_size_index = it->first;
+        max_size       = it->second.filenames.size();
       }
     }
+
+    if (max_size_index == -1)
+    {
+      error_msg = "Did not find upstream nodes with un-recycled names. Something is fishy!\n";
+      LOG_ERROR << error_msg;
+      return false;
+    }
+
 
     // now we construct output filenames for this node
     // use names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)

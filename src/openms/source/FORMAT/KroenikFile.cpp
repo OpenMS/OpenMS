@@ -81,7 +81,7 @@ namespace OpenMS
 
       if (parts.size() != 14)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                     String("Failed parsing in line ")
                                     + String((it - input.begin()) + 1)
                                     + ": missing 14 tab-separated entries (got "

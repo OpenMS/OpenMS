@@ -42,7 +42,7 @@ namespace OpenMS
 
     if (A.rows() != b.rows())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "NNSL::solve() #rows of A does not match #rows of b !");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NNSL::solve() #rows of A does not match #rows of b !");
     }
 
     // translate A to array a (column major order)
@@ -115,7 +115,7 @@ namespace OpenMS
       return SOLVED;
     else if (mode == 2) // this should not happen (dimensions are bad)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
     }
     else     /*if (mode==3)*/
       return ITERATION_EXCEEDED;

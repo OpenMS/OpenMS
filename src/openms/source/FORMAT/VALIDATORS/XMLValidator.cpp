@@ -60,7 +60,7 @@ namespace OpenMS
     //try to open file
     if (!File::exists(filename))
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     // initialize parser
@@ -70,7 +70,7 @@ namespace OpenMS
     }
     catch (const XMLException & toCatch)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()));
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()));
     }
 
     SAX2XMLReader * parser = XMLReaderFactory::createXMLReader();

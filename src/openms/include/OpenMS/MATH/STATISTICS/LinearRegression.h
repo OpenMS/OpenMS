@@ -274,7 +274,7 @@ private:
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
       }
     }
 
@@ -328,7 +328,7 @@ private:
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
 

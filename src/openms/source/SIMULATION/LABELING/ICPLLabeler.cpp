@@ -101,7 +101,7 @@ namespace OpenMS
     // channel check
     if (features.size() < 2 || features.size() > 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "We currently support only 2- or 3-channel ICPL");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "We currently support only 2- or 3-channel ICPL");
     }
 
     if (param_.getValue("label_proteins") == "true") // loop for protein-labeling (pre-digest-labeling)

@@ -120,10 +120,10 @@ END_SECTION
 START_SECTION(void setMaxIsotope(Size max_isotope))
 	IsotopeDistribution iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
-	TEST_EQUAL(iso->getMaxIsotope(), 0)
-	TEST_EQUAL(iso2.getContainer().size(), 275)
-	iso->setMaxIsotope(117);
-	TEST_EQUAL(iso->getMaxIsotope(), 117)
+	TEST_EQUAL(iso2.getMaxIsotope(), 0)
+	TEST_EQUAL(iso2.getContainer().size(), 317)
+	iso2.setMaxIsotope(117);
+	TEST_EQUAL(iso2.getMaxIsotope(), 117)
 END_SECTION
 
 START_SECTION(Size getMaxIsotope() const)
@@ -257,28 +257,26 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	// hard to test as this is an rough estimate
 	IsotopeDistribution iso(3);
 	iso.estimateFromPeptideWeight(100.0);
-	iso.renormalize();
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.95137)
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.949735)
 
 	iso.estimateFromPeptideWeight(1000.0);
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.572779)
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.586906)
 
 	iso.estimateFromPeptideWeight(10000.0);
-	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.046495)
 END_SECTION
 
 START_SECTION(void estimateFromRNAWeight(double average_weight))
     // hard to test as this is an rough estimate
     IsotopeDistribution iso(3);
     iso.estimateFromRNAWeight(100.0);
-    iso.renormalize();
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.959704)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.958166)
 
     iso.estimateFromRNAWeight(1000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.653857)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.668538)
 
     iso.estimateFromRNAWeight(10000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.014696)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.080505)
 END_SECTION
 
 
@@ -286,14 +284,13 @@ START_SECTION(void estimateFromDNAWeight(double average_weight))
     // hard to test as this is an rough estimate
     IsotopeDistribution iso(3);
     iso.estimateFromDNAWeight(100.0);
-    iso.renormalize();
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.959704)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.958166)
 
     iso.estimateFromDNAWeight(1000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.644479)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.657083)
 
     iso.estimateFromDNAWeight(10000.0);
-    TEST_REAL_SIMILAR(iso.begin()->second, 0.012738)
+    TEST_REAL_SIMILAR(iso.begin()->second, 0.075138)
 END_SECTION
 
 START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))

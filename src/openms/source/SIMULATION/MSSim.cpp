@@ -157,7 +157,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
       }
     }
 
@@ -309,7 +309,7 @@ namespace OpenMS
     peak_map_.sortSpectra();
     if (experiment_.size() != peak_map_.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, peak_map_.size() - experiment_.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, peak_map_.size() - experiment_.size());
     }
     for (SimTypes::MSSimExperiment::Iterator it_e = experiment_.begin(), it_ep = peak_map_.begin(); it_e != experiment_.end(); ++it_e, ++it_ep)
     {

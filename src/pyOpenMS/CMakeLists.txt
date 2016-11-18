@@ -102,7 +102,7 @@ else()
        OUTPUT_VARIABLE CYTHON_VERSION
        OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  message(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
+  message(STATUS "Looking for cython - found version ${CYTHON_VERSION} (should be 0.23 or higher)")
 endif()
 
 #------------------------------------------------------------------------------

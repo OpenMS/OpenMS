@@ -86,7 +86,7 @@ namespace OpenMS
   {
     if (index >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
     return *peptide_[index];
   }
@@ -444,7 +444,7 @@ namespace OpenMS
   {
     if (index >= size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
     return *peptide_[index];
   }
@@ -473,7 +473,7 @@ namespace OpenMS
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "given residue");
     }
     AASequence seq = *this;
     seq += residue;
@@ -484,7 +484,7 @@ namespace OpenMS
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "given residue");
     }
     peptide_.push_back(residue);
     return *this;
@@ -499,7 +499,7 @@ namespace OpenMS
   {
     if (index > size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
     if (index == size())
     {
@@ -516,7 +516,7 @@ namespace OpenMS
   {
     if (index > size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
 
     if (index == size())
@@ -534,11 +534,11 @@ namespace OpenMS
   {
     if (index >= size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
     if (index + num > size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index + num, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index + num, size());
     }
 
     AASequence seq;
@@ -786,7 +786,7 @@ namespace OpenMS
     std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
           "Cannot convert string to peptide modification: missing ')'");
     }
     ModificationsDB* mod_db = ModificationsDB::getInstance();
@@ -828,7 +828,7 @@ namespace OpenMS
     std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
           "Cannot convert string to peptide modification: missing ']'");
     }
 
@@ -882,7 +882,7 @@ namespace OpenMS
       residue = aas.peptide_.back();
       if (delta_mass && (residue->getMonoWeight() <= 0.0)) // not allowed
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
             "Using a mass difference to specify a modification on a residue of unknown mass is not supported in '" + \
             residue->getOneLetterCode() + "[" + mod +  "]'");
       }
@@ -1098,7 +1098,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide,
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, peptide,
               "Cannot convert string to amino acid sequence: unexpected character '" + String(*str_it) + "'");
         }
       }
@@ -1119,7 +1119,7 @@ namespace OpenMS
   {
     if (index >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
 
     if (!modification.empty()) 

@@ -117,7 +117,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "Given ConsensusMap does not hold any isobaric quantification data.");
     }
 
@@ -138,7 +138,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "Could not guess isobaric quantification data from ConsensusMap due to non-matching number of input maps.");
     }
   }

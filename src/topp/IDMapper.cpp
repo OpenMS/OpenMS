@@ -185,7 +185,7 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       __PRETTY_FUNCTION__,
+                                       OPENMS_PRETTY_FUNCTION,
                                        "wrong id fileformat");
     }
 

@@ -229,7 +229,7 @@ namespace OpenMS
 
     // empty string cannot be found, so throw Exception.
     // The code below would return success on empty string, since a path is prepended and thus the location exists
-    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
 
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
@@ -260,7 +260,7 @@ namespace OpenMS
     }
 
     //if the file was not found, throw an exception
-    throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
   }
 
   bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
@@ -395,10 +395,6 @@ namespace OpenMS
       std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
       std::cerr << "Exiting now.\n";
       exit(1);
-    }
-    else
-    {
-      std::cout << "OpenMS data path ('" << path << "') retrieved from " << found_path_from << "." << std::endl;
     }
 
     return path;
@@ -589,7 +585,7 @@ namespace OpenMS
 #endif
     // TODO(aiche): probe in PATH
 
-    throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, toolName);
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, toolName);
   }
 
   const String& File::getTemporaryFile(const String& alternative_file)

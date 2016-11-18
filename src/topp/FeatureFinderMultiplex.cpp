@@ -452,7 +452,7 @@ public:
     {
       if (all_intensities[i].size() != count)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The profile intensity vectors for each peptide are not of the same size.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The profile intensity vectors for each peptide are not of the same size.");
       }
     }
 
