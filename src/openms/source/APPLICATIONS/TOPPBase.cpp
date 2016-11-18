@@ -397,7 +397,7 @@ namespace OpenMS
     }
 
     // enable / disable collection of usage statistics by build variable
-#ifdef ENABLE_USAGE_STATISTICS
+#ifdef ENABLE_UPDATE_CHECK
     // disable collection of usage statistics if environment variable is present
     char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
