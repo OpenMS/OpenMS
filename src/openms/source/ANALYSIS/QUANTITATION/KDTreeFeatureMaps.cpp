@@ -122,28 +122,34 @@ void KDTreeFeatureMaps::optimizeTree()
   kd_tree_.optimize();
 }
 
-void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices, bool ignore_map_index) const
+void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices, bool include_features_from_same_map) const
 {
   pair<double, double> rt_win = Math::getTolWindow(rt(index), rt_tol_secs_, false);
   pair<double, double> mz_win = Math::getTolWindow(mz(index), mz_tol_, mz_ppm_);
 
+  Size ignored_map_index = include_features_from_same_map ? numeric_limits<Size>::max() : map_index_[index];
+  queryRegion(rt_win.first, rt_win.second, mz_win.first, mz_win.second, result_indices, ignored_map_index);
+}
+
+void KDTreeFeatureMaps::queryRegion(double rt_low, double rt_high, double mz_low, double mz_high, vector<Size>& result_indices, Size ignored_map_index) const
+{
   // set up tolerance window as region for the 2D tree
   FeatureKDTree::_Region_ region;
-  region._M_low_bounds[0] = rt_win.first;
-  region._M_high_bounds[0] = rt_win.second;
-  region._M_low_bounds[1] = mz_win.first;
-  region._M_high_bounds[1] = mz_win.second;
+  region._M_low_bounds[0] = rt_low;
+  region._M_high_bounds[0] = rt_high;
+  region._M_low_bounds[1] = mz_low;
+  region._M_high_bounds[1] = mz_high;
 
   // range-query tolerance window
   vector<KDTreeFeatureNode> tmp_result;
   kd_tree_.find_within_range(region, back_insert_iterator<vector<KDTreeFeatureNode> >(tmp_result));
 
-  // unless ignore_map_index: add only compatible MTs from *other* maps to final result
+  // add indices to result
   result_indices.clear();
   for (vector<KDTreeFeatureNode>::const_iterator it = tmp_result.begin(); it != tmp_result.end(); ++it)
   {
     Size found_index = it->getIndex();
-    if (ignore_map_index || map_index_[found_index] != map_index_[index])
+    if (ignored_map_index == numeric_limits<Size>::max() || map_index_[found_index] != ignored_map_index)
     {
       result_indices.push_back(found_index);
     }
