@@ -38,15 +38,16 @@
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 #include <OpenMS/DATASTRUCTURES/KDTree.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 namespace OpenMS
 {
 
 /// Stores a set of features, together with a 2D tree for fast search
-class OPENMS_DLLAPI KDTreeFeatureMaps
+class OPENMS_DLLAPI KDTreeFeatureMaps : public DefaultParamHandler
 {
 
 public:
@@ -54,15 +55,35 @@ public:
   /// 2D tree on features
   typedef KDTree::KDTree<2,KDTreeFeatureNode> FeatureKDTree;
 
+  /// Default constructor
+  KDTreeFeatureMaps() :
+    DefaultParamHandler("KDTreeFeatureMaps")
+  {
+    check_defaults_ = false;
+  }
+
   /// Constructor
   template <typename MapType>
   KDTreeFeatureMaps(const std::vector<MapType>& maps, const Param& param) :
-    rt_tol_secs_((double)(param.getValue("rt_tol"))),
-    mz_tol_((double)(param.getValue("mz_tol"))),
-    mz_ppm_(param.getValue("mz_unit").toString() == "ppm"),
-    num_maps_(maps.size())
+    DefaultParamHandler("KDTreeFeatureMaps")
   {
-    for (Size i = 0; i < maps.size(); ++i)
+    check_defaults_ = false;
+    setParameters(param);
+    addMaps(maps);
+  }
+
+  /// Destructor
+  ~KDTreeFeatureMaps()
+  {
+  }
+
+  /// Add @p maps and balance kd-tree
+  template <typename MapType>
+  void addMaps(const std::vector<MapType>& maps)
+  {
+    num_maps_ = maps.size();
+
+    for (Size i = 0; i < num_maps_; ++i)
     {
       const MapType& m = maps[i];
       for (typename MapType::const_iterator it = m.begin(); it != m.end(); ++it)
@@ -71,11 +92,6 @@ public:
       }
     }
     optimizeTree();
-  }
-
-  /// Destructor
-  ~KDTreeFeatureMaps()
-  {
   }
 
   /// Add feature
@@ -133,6 +149,8 @@ public:
   void applyTransformations(const std::vector<TransformationModelLowess*>& trafos);
 
 protected:
+
+  virtual void updateMembers_();
 
   /// Feature data
   std::vector<const BaseFeature*> features_;
