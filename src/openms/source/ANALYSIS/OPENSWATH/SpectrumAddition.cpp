@@ -43,7 +43,7 @@ namespace OpenMS
 {
 
   OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
-      double sampling_rate, double filter_zeros)
+      double sampling_rate, bool filter_zeros)
   {
     if (all_spectra.empty())
     {
@@ -63,12 +63,14 @@ namespace OpenMS
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0]->getMZArray()->data[0];
     double max = all_spectra[0]->getMZArray()->data.back();
+    bool all_empty = true;
     for (Size i = 0; i < all_spectra.size(); i++)
     {
       if (all_spectra[i]->getMZArray()->data.empty() )
       {
         continue;
       }
+      all_empty = false;
 
       if (all_spectra[i]->getMZArray()->data[0] < min)
       {
@@ -78,6 +80,12 @@ namespace OpenMS
       {
         max = all_spectra[i]->getMZArray()->data.back();
       }
+    }
+
+    if (all_empty)
+    {
+      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+      return sptr;
     }
 
     // generate the resampled peaks at positions origin+i*spacing_
@@ -127,6 +135,118 @@ namespace OpenMS
       }
       OpenSwath::SpectrumPtr sptr = OpenSwathDataAccessHelper::convertToSpectrumPtr(master_spectrum_filtered);
       return sptr;
+    }
+  }
+
+
+  OpenMS::MSSpectrum<> SpectrumAddition::addUpSpectra(std::vector<OpenMS::MSSpectrum<> > all_spectra, double sampling_rate, bool filter_zeros)
+  {
+    if (all_spectra.size() == 1)
+    {
+      return all_spectra[0];
+    }
+
+    bool all_empty = true;
+    for (Size i = 0; i < all_spectra.size(); i++)
+    {
+      if (all_spectra[i].empty())
+      {
+        continue;
+      }
+      all_empty = false;
+    }
+    if (all_spectra.empty() || all_empty)
+    {
+      return MSSpectrum<>();
+    }
+    if (all_spectra[0].empty() )
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "First spectrum cannot be empty");
+    }
+
+    // find global min and max -> use as start/endpoints for resampling
+    double min = all_spectra[0][0].getMZ();
+    double max = all_spectra[0][all_spectra[0].size()-1].getMZ();
+    double min_spacing = max - min;
+    for (Size i = 0; i < all_spectra.size(); i++)
+    {
+      if (all_spectra[i].empty())
+      {
+        continue;
+      }
+
+      for (Size k = 0; k < all_spectra[i].size() && sampling_rate < 0; k++)
+      {
+        if (k > 0)
+        {
+          if (min_spacing > all_spectra[i][k].getMZ() - all_spectra[i][k-1].getMZ() )
+          {
+            min_spacing = all_spectra[i][k].getMZ() - all_spectra[i][k-1].getMZ();
+          }
+        }
+
+        if (all_spectra[i][k].getMZ() < min) min = all_spectra[i][k].getMZ();
+        if (all_spectra[i][k].getMZ() > max) max = all_spectra[i][k].getMZ();
+      }
+
+      if (all_spectra[i][0].getMZ() < min) min = all_spectra[i][0].getMZ();
+      if (all_spectra[i][ all_spectra[i].size() -1].getMZ() > max) max = all_spectra[i][ all_spectra[i].size() -1].getMZ();
+    }
+
+    if (all_empty)
+    {
+      return MSSpectrum<>();
+    }
+
+    typedef MSSpectrum<Peak1D> SpectrumT;
+    LinearResamplerAlign lresampler;
+
+    // in case we are asked to estimate the resampling rate
+    if (sampling_rate < 0) sampling_rate = min_spacing;
+
+    // generate the resampled peaks at positions origin+i*spacing_
+    int number_resampled_points = (max - min) / sampling_rate + 1;
+    SpectrumT resampled_peak_container;
+    resampled_peak_container.resize(number_resampled_points);
+    SpectrumT::iterator it = resampled_peak_container.begin();
+    for (int i = 0; i < number_resampled_points; ++i)
+    {
+      it->setMZ(min + i * sampling_rate);
+      it->setIntensity(0);
+      ++it;
+    }
+
+    // resample all spectra and add to master spectrum
+    SpectrumT master_spectrum = resampled_peak_container;
+    for (Size curr_sp = 0; curr_sp < all_spectra.size(); curr_sp++)
+    {
+      SpectrumT input_spectrum;
+      SpectrumT output_spectrum = resampled_peak_container;
+
+      lresampler.raster(all_spectra[curr_sp].begin(), all_spectra[curr_sp].end(), output_spectrum.begin(), output_spectrum.end());
+
+      // add to master spectrum
+      for (Size i = 0; i < output_spectrum.size(); ++i)
+      {
+        master_spectrum[i].setIntensity(master_spectrum[i].getIntensity() + output_spectrum[i].getIntensity());
+      }
+    }
+
+    if (!filter_zeros)
+    {
+      return master_spectrum;
+    }
+    else
+    {
+      SpectrumT master_spectrum_filtered;
+      for (Size i = 0; i < master_spectrum.size(); ++i)
+      {
+        if (master_spectrum[i].getIntensity() > 0)
+        {
+          master_spectrum_filtered.push_back(master_spectrum[i]);
+        }
+      }
+      return master_spectrum_filtered;
     }
   }
 
