@@ -164,4 +164,11 @@ void KDTreeFeatureMaps::applyTransformations(const vector<TransformationModelLow
   }
 }
 
+void KDTreeFeatureMaps::updateMembers_()
+{
+  rt_tol_secs_ = (double)(param_.getValue("rt_tol"));
+  mz_tol_ = (double)(param_.getValue("mz_tol"));
+  mz_ppm_ = (param_.getValue("mz_unit").toString() == "ppm");
+}
+
 }
