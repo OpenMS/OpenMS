@@ -102,7 +102,7 @@ namespace OpenMS
       ofs << "\txx_lda_prelim_score\txx_swath_prelim_score";
       if (sonar_)
       {
-        ofs << "\tvar_sonar_sn\tvar_sonar_diff\tvar_sonar_trend";
+        ofs << "\tvar_sonar_lag\tvar_sonar_shape\tvar_sonar_log_sn\tvar_sonar_log_diff\tvar_sonar_log_trend\tvar_sonar_rsq";
       }
       if (use_ms1_traces_)
       {
@@ -276,9 +276,12 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score");
             if (sonar_)
             {
-              line += "\t" + (String)feature_it->getMetaValue("var_sonar_sn")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_diff")
-              + "\t" + (String)feature_it->getMetaValue("var_sonar_trend");
+              line += "\t" + (String)feature_it->getMetaValue("var_sonar_lag")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_shape")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_log_sn")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_log_diff")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_log_trend")
+              + "\t" + (String)feature_it->getMetaValue("var_sonar_rsq");
 
             }
             if (use_ms1_traces_)
