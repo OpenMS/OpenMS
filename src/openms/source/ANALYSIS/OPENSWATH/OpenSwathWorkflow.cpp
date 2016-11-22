@@ -80,7 +80,7 @@ namespace OpenMS
         irt_detection_param, swath_maps, mz_correction_function, cp_irt.mz_extraction_window, cp_irt.ppm);
     return tr;
   }
-  
+
   TransformationDescription OpenSwathRetentionTimeNormalization::RTNormalization(
     const TargetedExperiment& transition_exp_,
     const std::vector< OpenMS::MSChromatogram<> >& chromatograms,
@@ -944,34 +944,26 @@ namespace OpenMS
 
           }
 
-          if (load_into_memory)
+          for (Size i = 0; i < used_maps.size(); i++)
           {
-            // This creates an InMemory object that keeps all data in memory
-            for (Size i = 0; i < used_maps.size(); i++)
-            {
-
 #ifdef _OPENMP
 #pragma omp critical (loadMemory)
 #endif
+            {
+              // Loading the maps is not threadsafe iff they overlap (e.g.
+              // multiple threads could access the same maps) which often
+              // happens in SONAR. Thus we eitehr create a threadsafe light
+              // clone or load them into memory if requested.
+              if (load_into_memory)
               {
-                // loading the maps into memory is not threadsafe iff they
-                // overlap (e.g. multiple threads could access the same maps)
-                // which often happens in SONAR
                 used_maps[i].sptr = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*used_maps[i].sptr) );
+              }
+              else
+              {
+                used_maps[i].sptr = used_maps[i].sptr->lightClone();
               }
             }
           }
-#ifdef _OPENMP
-          else
-          {
-            // Create threadsafe access
-            for (Size i = 0; i < used_maps.size(); i++)
-            {
-              used_maps[i].sptr = used_maps[i].sptr->lightClone();
-            }
-          }
-#endif
-
 
           int batch_size;
           if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
