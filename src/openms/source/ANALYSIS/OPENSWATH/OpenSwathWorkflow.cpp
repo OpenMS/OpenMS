@@ -1024,7 +1024,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical (progress)
 #endif
-        this->setProgress(progress++);
+        this->setProgress(++progress);
       }
       this->endProgress();
     }
