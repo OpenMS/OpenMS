@@ -290,7 +290,7 @@ namespace OpenMS
       {
         // this should never happen, but just to make sure
         std::cerr << "MRMRTNormalizer::computeBinnedCoverage : computed bin was too large (" << 
-          bin << "), setting it to the maximum of " << nrBins << std::endl;
+          bin << "), setting it to the maximum of " << nrBins - 1 << std::endl;
         bin = nrBins - 1;
       }
       binCounter[ bin ]++;
