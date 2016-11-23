@@ -45,15 +45,13 @@ namespace OpenMS
   OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
       double sampling_rate, bool filter_zeros)
   {
+    if (all_spectra.size() == 1) return all_spectra[0];
     if (all_spectra.empty())
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
       return sptr;
     }
-
-    typedef MSSpectrum<Peak1D> SpectrumT;
-    LinearResamplerAlign lresampler;
-
+    // ensure first one is not empty
     if (all_spectra[0]->getMZArray()->data.empty() )
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
@@ -63,14 +61,12 @@ namespace OpenMS
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0]->getMZArray()->data[0];
     double max = all_spectra[0]->getMZArray()->data.back();
-    bool all_empty = true;
     for (Size i = 0; i < all_spectra.size(); i++)
     {
       if (all_spectra[i]->getMZArray()->data.empty() )
       {
         continue;
       }
-      all_empty = false;
 
       if (all_spectra[i]->getMZArray()->data[0] < min)
       {
@@ -82,87 +78,60 @@ namespace OpenMS
       }
     }
 
-    if (all_empty)
-    {
-      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-      return sptr;
-    }
-
     // generate the resampled peaks at positions origin+i*spacing_
     int number_resampled_points = (max - min) / sampling_rate + 1;
-    SpectrumT resampled_peak_container;
-    resampled_peak_container.resize(number_resampled_points);
-    SpectrumT::iterator it = resampled_peak_container.begin();
-    for (int i = 0; i < number_resampled_points; ++i)
+    OpenSwath::SpectrumPtr resampled_peak_container(new OpenSwath::Spectrum);
+    resampled_peak_container->getMZArray()->data.resize(number_resampled_points);
+    resampled_peak_container->getIntensityArray()->data.resize(number_resampled_points);
+    std::vector<double>::iterator it = resampled_peak_container->getMZArray()->data.begin();
+    int cnt = 0;
+    while (it != resampled_peak_container->getMZArray()->data.end())
     {
-      it->setMZ(min + i * sampling_rate);
-      it->setIntensity(0);
+      *it = min + cnt * sampling_rate; // set mz (intensity is zero already)
       ++it;
+      ++cnt;
     }
 
+    LinearResamplerAlign lresampler;
     // resample all spectra and add to master spectrum
-    SpectrumT master_spectrum = resampled_peak_container;
     for (Size curr_sp = 0; curr_sp < all_spectra.size(); curr_sp++)
     {
-      SpectrumT input_spectrum;
-      SpectrumT output_spectrum = resampled_peak_container;
-
-      // convert input spectrum to OpenMS, then resample
-      OpenSwathDataAccessHelper::convertToOpenMSSpectrum(all_spectra[curr_sp], input_spectrum);
-      lresampler.raster(input_spectrum.begin(), input_spectrum.end(), output_spectrum.begin(), output_spectrum.end());
-
-      // add to master spectrum
-      for (Size i = 0; i < output_spectrum.size(); ++i)
-      {
-        master_spectrum[i].setIntensity(master_spectrum[i].getIntensity() + output_spectrum[i].getIntensity());
-      }
+      lresampler.raster(all_spectra[curr_sp]->getMZArray()->data.begin(),
+                        all_spectra[curr_sp]->getMZArray()->data.end(),
+                        all_spectra[curr_sp]->getIntensityArray()->data.begin(),
+                        all_spectra[curr_sp]->getIntensityArray()->data.end(),
+                        resampled_peak_container->getMZArray()->data.begin(),
+                        resampled_peak_container->getMZArray()->data.end(),
+                        resampled_peak_container->getIntensityArray()->data.begin(),
+                        resampled_peak_container->getIntensityArray()->data.end()
+      );
     }
 
     if (!filter_zeros)
     {
-      OpenSwath::SpectrumPtr sptr = OpenSwathDataAccessHelper::convertToSpectrumPtr(master_spectrum);
-      return sptr;
+      return resampled_peak_container;
     }
     else
     {
-      SpectrumT master_spectrum_filtered;
-      for (Size i = 0; i < master_spectrum.size(); ++i)
+      OpenSwath::SpectrumPtr master_spectrum_filtered(new OpenSwath::Spectrum);
+      for (Size i = 0; i < resampled_peak_container->getIntensityArray()->data.size(); ++i)
       {
-        if (master_spectrum[i].getIntensity() > 0)
+        if (resampled_peak_container->getIntensityArray()->data[i] > 0)
         {
-          master_spectrum_filtered.push_back(master_spectrum[i]);
+          master_spectrum_filtered->getIntensityArray()->data.push_back(resampled_peak_container->getIntensityArray()->data[i]);
+          master_spectrum_filtered->getMZArray()->data.push_back(resampled_peak_container->getMZArray()->data[i]);
         }
       }
-      OpenSwath::SpectrumPtr sptr = OpenSwathDataAccessHelper::convertToSpectrumPtr(master_spectrum_filtered);
-      return sptr;
+      return master_spectrum_filtered;
     }
   }
 
-
   OpenMS::MSSpectrum<> SpectrumAddition::addUpSpectra(std::vector<OpenMS::MSSpectrum<> > all_spectra, double sampling_rate, bool filter_zeros)
   {
-    if (all_spectra.size() == 1)
-    {
-      return all_spectra[0];
-    }
-
-    bool all_empty = true;
-    for (Size i = 0; i < all_spectra.size(); i++)
-    {
-      if (all_spectra[i].empty())
-      {
-        continue;
-      }
-      all_empty = false;
-    }
-    if (all_spectra.empty() || all_empty)
-    {
-      return MSSpectrum<>();
-    }
-    if (all_spectra[0].empty() )
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "First spectrum cannot be empty");
-    }
+    if (all_spectra.size() == 1) return all_spectra[0];
+    if (all_spectra.empty()) return MSSpectrum<>();
+    // ensure first one is not empty
+    if (all_spectra[0].empty() ) return MSSpectrum<>();
 
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0][0].getMZ();
@@ -193,22 +162,14 @@ namespace OpenMS
       if (all_spectra[i][ all_spectra[i].size() -1].getMZ() > max) max = all_spectra[i][ all_spectra[i].size() -1].getMZ();
     }
 
-    if (all_empty)
-    {
-      return MSSpectrum<>();
-    }
-
-    typedef MSSpectrum<Peak1D> SpectrumT;
-    LinearResamplerAlign lresampler;
-
     // in case we are asked to estimate the resampling rate
     if (sampling_rate < 0) sampling_rate = min_spacing;
 
     // generate the resampled peaks at positions origin+i*spacing_
     int number_resampled_points = (max - min) / sampling_rate + 1;
-    SpectrumT resampled_peak_container;
+    MSSpectrum<> resampled_peak_container;
     resampled_peak_container.resize(number_resampled_points);
-    SpectrumT::iterator it = resampled_peak_container.begin();
+    MSSpectrum<>::iterator it = resampled_peak_container.begin();
     for (int i = 0; i < number_resampled_points; ++i)
     {
       it->setMZ(min + i * sampling_rate);
@@ -217,11 +178,12 @@ namespace OpenMS
     }
 
     // resample all spectra and add to master spectrum
-    SpectrumT master_spectrum = resampled_peak_container;
+    LinearResamplerAlign lresampler;
+    MSSpectrum<> master_spectrum = resampled_peak_container;
     for (Size curr_sp = 0; curr_sp < all_spectra.size(); curr_sp++)
     {
-      SpectrumT input_spectrum;
-      SpectrumT output_spectrum = resampled_peak_container;
+      MSSpectrum<> input_spectrum;
+      MSSpectrum<> output_spectrum = resampled_peak_container;
 
       lresampler.raster(all_spectra[curr_sp].begin(), all_spectra[curr_sp].end(), output_spectrum.begin(), output_spectrum.end());
 
@@ -238,7 +200,7 @@ namespace OpenMS
     }
     else
     {
-      SpectrumT master_spectrum_filtered;
+      MSSpectrum<> master_spectrum_filtered;
       for (Size i = 0; i < master_spectrum.size(); ++i)
       {
         if (master_spectrum[i].getIntensity() > 0)
