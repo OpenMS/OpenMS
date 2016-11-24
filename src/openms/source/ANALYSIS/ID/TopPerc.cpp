@@ -470,7 +470,7 @@ namespace OpenMS
         all_sp.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
         all_sp.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
         all_sp.setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
-        all_sp.setMetaValue(SE+":precursor_tolerance",sp.precursor_tolerance);
+        all_sp.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
         all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
         all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
         

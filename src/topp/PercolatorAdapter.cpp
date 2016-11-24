@@ -609,7 +609,7 @@ protected:
         {
           LOG_WARN << "Warning: differing FragTol between input files" << endl;
         }
-        if (search_parameters.precursor_tolerance     != all_search_parameters.precursor_tolerance     )
+        if (search_parameters.precursor_mass_tolerance     != all_search_parameters.precursor_mass_tolerance     )
         {
           LOG_WARN << "Warning: differing PrecTol between input files" << endl;
         }
