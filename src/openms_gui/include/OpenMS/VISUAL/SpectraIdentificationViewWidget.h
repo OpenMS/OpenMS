@@ -100,6 +100,9 @@ private slots:
     /// Saves the (potentially filtered) idXML
     void saveIdXML_();
 
+    /// Saves the (potentially filtered) mzIdentML
+    void saveMzIdentML_();
+
     /// Display header context menu
     void headerContextMenu_(const QPoint&);
 
