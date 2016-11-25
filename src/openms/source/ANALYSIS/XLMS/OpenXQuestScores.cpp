@@ -317,7 +317,7 @@ namespace OpenMS
       }
 
       // use candidate mass and current charge to compute m/z
-      double cross_link_mz = (precursor.precursor_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / charge;
+      double cross_link_mz = (precursor.precursor_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
 
       vector< double >::const_iterator low_it;
       vector< double >::const_iterator up_it;

@@ -71,6 +71,12 @@ struct CrossLinkSpectrumMatch
     Size matched_common_beta;
     Size matched_xlink_alpha;
     Size matched_xlink_beta;
+    double HyperCommon;
+    double HyperXlink;
+    double HyperBoth;
+    double PScoreCommon;
+    double PScoreXlink;
+    double PScoreBoth;
 
     std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
 
