@@ -1541,6 +1541,7 @@ protected:
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     multimap<StringView, AASequence> processed_peptides;
+    vector<OpenXQuestScores::PeptideMass> peptide_masses;
 
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
@@ -1657,6 +1658,15 @@ protected:
           continue;
         }
 
+        OpenXQuestScores::PeptidePosition position = OpenXQuestScores::INTERNAL;
+        if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
+        {
+          position = OpenXQuestScores::C_TERM;
+        } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        {
+          position = OpenXQuestScores::N_TERM;
+        }
+
         vector<AASequence> all_modified_peptides;
 
         // generate all modified variants of a peptide
@@ -1671,17 +1681,22 @@ protected:
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
+          OpenXQuestScores::PeptideMass pep_mass;
+          pep_mass.peptide_mass = candidate.getMonoWeight();
+          pep_mass.peptide_seq = candidate;
+          pep_mass.position = position;
 
 //#ifdef _OPENMP
 //#pragma omp critical (processed_peptides_access)
 //#endif
           {
             processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+            peptide_masses.push_back(pep_mass);
           }
         }
       }
     }
-
+    processed_peptides.clear();
     progresslogger.endProgress();
 
     // create spectrum generator
@@ -1728,24 +1743,46 @@ protected:
     vector< double > spectrum_precursors;
     for (Size i = 0; i < spectra.size(); i++)
     {
-      spectrum_precursors.push_back(spectra[i].getPrecursors()[0].getMZ());
+      double current_precursor_mz = spectra[i].getPrecursors()[0].getMZ();
+      double current_precursor_charge = spectra[i].getPrecursors()[0].getCharge();
+      double current_precursor_mass = (current_precursor_mz * current_precursor_charge) - (current_precursor_charge * Constants::PROTON_MASS_U);
+      spectrum_precursors.push_back(current_precursor_mass);
     }
     sort(spectrum_precursors.begin(), spectrum_precursors.end());
     cout << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 
-    // Collect all processed peptides into a simple vector to iterate over
-    vector< AASequence > peptides;
-    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    sort(peptide_masses.begin(), peptide_masses.end());
+    // The largest peptides given a fixed maximal precursor mass are possible with loop links
+    // Filter peptides using maximal loop link mass first
+    double max_precursor_mass = spectrum_precursors[spectrum_precursors.size()-1];
+
+    // compute absolute tolerance from relative, if necessary
+    double allowed_error = 0;
+    if (precursor_mass_tolerance_unit_ppm) // ppm
     {
-      peptides.push_back(a->second);
+      allowed_error = max_precursor_mass * precursor_mass_tolerance * 1e-6;
     }
-    processed_peptides.clear();
+    else // Dalton
+    {
+      allowed_error = precursor_mass_tolerance;
+    }
+
+    double max_peptide_mass = max_precursor_mass - cross_link_mass + allowed_error;
+
+    for (vector<OpenXQuestScores::PeptideMass>::iterator a = peptide_masses.begin(); a != peptide_masses.end(); ++a)
+    {
+      if ( a->peptide_mass > max_peptide_mass )
+      {
+        peptide_masses.erase(a);
+      }
+    }
+
 
     if (!ion_index_mode)
     {
       progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
-                                                                                                                                                    spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, min_precursor_charge, max_precursor_charge);
+      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+                                                                                                                                                    spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
       progresslogger.endProgress();
       cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
       sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end());
@@ -1864,11 +1901,11 @@ protected:
           OpenXQuestScores::XLPrecursor candidate = candidates[i];
           vector <SignedSize> link_pos_first;
           vector <SignedSize> link_pos_second;
-          AASequence peptide_first = peptides[candidate.alpha_index];
+          AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
           AASequence peptide_second;
           if (candidate.beta_index)
           {
-            peptide_second = peptides[candidate.beta_index];
+            peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
           }
           String seq_first = peptide_first.toUnmodifiedString();
           String seq_second =  peptide_second.toUnmodifiedString();
@@ -1960,7 +1997,7 @@ protected:
               {
                 for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
                 {
-                  // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
+                  // only use the correct mono-links (at this point we know it is a mono-link, but not which one, so loop over all and compare precursors)
                   if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
                   {
                     cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];

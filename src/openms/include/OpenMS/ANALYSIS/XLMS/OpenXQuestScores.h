@@ -130,14 +130,34 @@ struct CrossLinkSpectrumMatch
       {
         return precursor_mass < other;
       }
+  } __attribute__((packed));
 
-//      bool operator==(const XLPrecursor& other) const
-//      {
-//        return precursor_mass == other.precursor_mass &&
-//           alpha_index == alpha_index &&
-//           beta_index == other.beta_index;
-//      }
+  enum PeptidePosition
+  {
+    INTERNAL = 0,
+    C_TERM = 1,
+    N_TERM = 2,
+    NUMBER_OF_TERM_SPECIFICITY
   };
+
+  struct PeptideMass
+  {
+    double peptide_mass;
+    AASequence peptide_seq;
+    PeptidePosition position;
+
+    bool operator<(const PeptideMass& other) const
+    {
+      return peptide_mass < other.peptide_mass;
+    }
+
+    bool operator<(const double other) const
+    {
+      return peptide_mass < other;
+    }
+  } __attribute__((packed));
+
+
     //bool operator< (const double other, const XLPrecursor& pre) {return other < pre.precursor_mass;}
 
     static float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta);
@@ -145,7 +165,7 @@ struct CrossLinkSpectrumMatch
 
     static double cumulativeBinomial(Size n, Size k, double p);
 
-    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<AASequence>&  peptide_AASeqs, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, int charge_min, int charge_max);
+    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenXQuestScores::PeptideMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
 
     static double match_odds_score(const RichPeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1);
@@ -293,6 +313,7 @@ struct CrossLinkSpectrumMatch
   };
 
   bool operator< (const double other, const OpenXQuestScores::XLPrecursor& pre) {return other < pre.precursor_mass;}
+  bool operator< (const double other, const OpenXQuestScores::PeptideMass& pre) {return other < pre.peptide_mass;}
 
 }
 
