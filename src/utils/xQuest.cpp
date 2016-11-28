@@ -1219,6 +1219,7 @@ protected:
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     multimap<StringView, AASequence> processed_peptides;
+    vector<OpenXQuestScores::PeptideMass> peptide_masses;
     
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
@@ -1294,8 +1295,15 @@ protected:
                 const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
                 const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
                 spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
-                spectrum_precursors.push_back(spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getMZ());
-                spectrum_precursors.push_back(spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getMZ());
+                double current_precursor_mz0 = spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getMZ();
+                double current_precursor_mz1 = spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getMZ();
+                double current_precursor_charge0 = spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getCharge();
+                double current_precursor_charge1 = spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getCharge();
+
+                double current_precursor_mass0 = (current_precursor_mz0 * current_precursor_charge0) - (current_precursor_charge0 * Constants::PROTON_MASS_U);
+                double current_precursor_mass1 = (current_precursor_mz1 * current_precursor_charge1) - (current_precursor_charge1 * Constants::PROTON_MASS_U);
+                spectrum_precursors.push_back(current_precursor_mass0);
+                spectrum_precursors.push_back(current_precursor_mass1);
               }
             }
           }
@@ -1436,6 +1444,15 @@ protected:
         {
           continue;
         }
+
+        OpenXQuestScores::PeptidePosition position = OpenXQuestScores::INTERNAL;
+        if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
+        {
+          position = OpenXQuestScores::C_TERM;
+        } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        {
+          position = OpenXQuestScores::N_TERM;
+        }
             
 //#ifdef _OPENMP
 //#pragma omp atomic
@@ -1456,16 +1473,22 @@ protected:
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
+          OpenXQuestScores::PeptideMass pep_mass;
+          pep_mass.peptide_mass = candidate.getMonoWeight();
+          pep_mass.peptide_seq = candidate;
+          pep_mass.position = position;
 
 //#ifdef _OPENMP
 //#pragma omp critical (processed_peptides_access)
 //#endif
           {
             processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+            peptide_masses.push_back(pep_mass);
           }
         }
       }
     }
+    processed_peptides.clear();
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -1502,19 +1525,37 @@ protected:
 
     cout << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 
-    // Collect all processed peptides into a simple vector to iterate over
-    vector< AASequence > peptides;
-    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    sort(peptide_masses.begin(), peptide_masses.end());
+    // The largest peptides given a fixed maximal precursor mass are possible with loop links
+    // Filter peptides using maximal loop link mass first
+    double max_precursor_mass = spectrum_precursors[spectrum_precursors.size()-1];
+
+    // compute absolute tolerance from relative, if necessary
+    double allowed_error = 0;
+    if (precursor_mass_tolerance_unit_ppm) // ppm
     {
-      peptides.push_back(a->second);
+      allowed_error = max_precursor_mass * precursor_mass_tolerance * 1e-6;
     }
-    processed_peptides.clear();
+    else // Dalton
+    {
+      allowed_error = precursor_mass_tolerance;
+    }
+
+    double max_peptide_mass = max_precursor_mass - cross_link_mass_light + allowed_error;
+
+    for (vector<OpenXQuestScores::PeptideMass>::iterator a = peptide_masses.begin(); a != peptide_masses.end(); ++a)
+    {
+      if ( a->peptide_mass > max_peptide_mass )
+      {
+        peptide_masses.erase(a);
+      }
+    }
 
     if (!ion_index_mode)
     {
       progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(peptides, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
-                                                                                                                                                    spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, min_precursor_charge, max_precursor_charge);
+      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(peptide_masses, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+                                                                                                                                                    spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
       progresslogger.endProgress();
       cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
       sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end());
@@ -1524,6 +1565,8 @@ protected:
     {
       // TODO refactor to remove ion_index mode completely
     }
+
+    cout << "TEST TYPE: " << sizeof(OpenXQuestScores::XLPrecursor) << " | OBJECT: " << sizeof enumerated_cross_link_masses[0] << " | " << sizeof enumerated_cross_link_masses[500] << endl;
 
     // TODO test variables, can be removed, or set to be used in debug mode?
     double pScoreMax = 0;
@@ -1635,11 +1678,11 @@ protected:
           OpenXQuestScores::XLPrecursor candidate = candidates[i];
           vector <SignedSize> link_pos_first;
           vector <SignedSize> link_pos_second;
-          AASequence peptide_first = peptides[candidate.alpha_index];
+          AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
           AASequence peptide_second;
           if (candidate.beta_index)
           {
-            peptide_second = peptides[candidate.beta_index];
+            peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
           }
           String seq_first = peptide_first.toUnmodifiedString();
           String seq_second =  peptide_second.toUnmodifiedString();
@@ -2055,7 +2098,7 @@ protected:
                 }
                 LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 
-                // make annotations unique (otherwise )
+                // make annotations unique
                 sort(frag_annotations.begin(), frag_annotations.end());
                 vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
                 if (last_unique_anno != frag_annotations.end())
@@ -2286,7 +2329,6 @@ protected:
     PeptideIndexing pep_indexing;
     Param indexing_param = pep_indexing.getParameters();
 
-    // TODO update additional parameters of PeptideIndexing (enzyme etc.)
     String d_prefix = decoy_prefix ? "true" : "false";
     indexing_param.setValue("prefix", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");

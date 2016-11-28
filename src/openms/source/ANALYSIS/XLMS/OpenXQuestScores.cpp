@@ -303,47 +303,40 @@ namespace OpenMS
 
 
   // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data
-  void filter_and_add_candidate (vector<OpenXQuestScores::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, int charge_min, int charge_max, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OpenXQuestScores::XLPrecursor precursor)
+  void filter_and_add_candidate (vector<OpenXQuestScores::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OpenXQuestScores::XLPrecursor precursor)
   {
     bool found_matching_precursors = false;
     // loop over all considered ion charges;
     // TODO: maybe precompute uncharged masses from precursor m/z values instead? don't forget to filter by charge then
-    for (int charge = charge_min; charge <= charge_max; ++charge)
+
+    // use candidate mass and current charge to compute m/z
+    //double cross_link_mz = (precursor.precursor_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
+
+    vector< double >::const_iterator low_it;
+    vector< double >::const_iterator up_it;
+
+    // compute absolute tolerance from relative, if necessary
+    double allowed_error = 0;
+    if (precursor_mass_tolerance_unit_ppm) // ppm
     {
-      // if a precursor with the previous charge was found, there is no need to continue searching, stop loop
-      if (found_matching_precursors)
-      {
-        break;
-      }
-
-      // use candidate mass and current charge to compute m/z
-      double cross_link_mz = (precursor.precursor_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
-
-      vector< double >::const_iterator low_it;
-      vector< double >::const_iterator up_it;
-
-      // compute absolute tolerance from relative, if necessary
-      double allowed_error = 0;
-      if (precursor_mass_tolerance_unit_ppm) // ppm
-      {
-        allowed_error = cross_link_mz * precursor_mass_tolerance * 1e-6;
-      }
-      else // Dalton
-      {
-        allowed_error = precursor_mass_tolerance;
-      }
-
-      // find precursor with m/z >= low end of range
-      low_it = lower_bound(spectrum_precursors.begin(), spectrum_precursors.end(), cross_link_mz - allowed_error);
-      // find precursor with m/z > (not equal to) high end of range
-      up_it =  upper_bound(spectrum_precursors.begin(), spectrum_precursors.end(), cross_link_mz + allowed_error);
-      // if these two are equal, there is no precursor within the range
-
-      if (low_it != up_it) // if they are not equal, there are matching precursors in the data
-      {
-        found_matching_precursors = true;
-      }
+      allowed_error = precursor.precursor_mass * precursor_mass_tolerance * 1e-6;
     }
+    else // Dalton
+    {
+      allowed_error = precursor_mass_tolerance;
+    }
+
+    // find precursor with m/z >= low end of range
+    low_it = lower_bound(spectrum_precursors.begin(), spectrum_precursors.end(), precursor.precursor_mass - allowed_error);
+    // find precursor with m/z > (not equal to) high end of range
+    up_it =  upper_bound(spectrum_precursors.begin(), spectrum_precursors.end(), precursor.precursor_mass + allowed_error);
+    // if these two are equal, there is no precursor within the range
+
+    if (low_it != up_it) // if they are not equal, there are matching precursors in the data
+    {
+      found_matching_precursors = true;
+    }
+
 
     // if precursors were found in the above for-loop, add candidate to results vector
     if (found_matching_precursors)
@@ -358,35 +351,62 @@ namespace OpenMS
 
 
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
-  vector<OpenXQuestScores::XLPrecursor> OpenXQuestScores::enumerateCrossLinksAndMasses_(const vector<AASequence>&  peptide_AASeqs, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, int charge_min, int charge_max)
+  vector<OpenXQuestScores::XLPrecursor> OpenXQuestScores::enumerateCrossLinksAndMasses_(const vector<OpenXQuestScores::PeptideMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
     vector<OpenXQuestScores::XLPrecursor> mass_to_candidates;
     // initialize progress counter
     Size countA = 0;
 
+//    // The largest peptides given a fixed maximal precursor mass are possible with loop links
+//    // Filter peptides using maximal loop link mass first
+//    double max_precursor = spectrum_precursors[spectrum_precursors.size()-1];
+
+//    // compute absolute tolerance from relative, if necessary
+//    double allowed_error = 0;
+//    if (precursor_mass_tolerance_unit_ppm) // ppm
+//    {
+//      allowed_error = max_precursor * precursor_mass_tolerance * 1e-6;
+//    }
+//    else // Dalton
+//    {
+//      allowed_error = precursor_mass_tolerance;
+//    }
+
+//    double max_peptide_mass = max_precursor - cross_link_mass + allowed_error;
+
+//    for (vector<OpenXQuestScores::PeptideMass>::iterator a = peptides.begin(); a != peptides.end(); ++a)
+//    {
+//      if ( a.peptide_mass > max_peptide_mass )
+//      {
+//        peptides.erase(a);
+//      }
+//    }
+
+    double min_precursor = spectrum_precursors[0];
+
 // Multithreading options: schedule: static, dynamic, guided
 // use OpenMP to run this for-loop on multiple CPU cores
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (Size p1 = 0; p1 < peptide_AASeqs.size(); ++p1)
+    for (Size p1 = 0; p1 < peptides.size(); ++p1)
     {
       // get the amino acid sequence of this peptide as a character string
-      String seq_first = peptide_AASeqs[p1].toUnmodifiedString();
+      String seq_first = peptides[p1].peptide_seq.toUnmodifiedString();
 
       // every 500 peptides print current progress to console
       countA += 1;
       if (countA % 500 == 0)
       {
-        cout << "Enumerating pairs with sequence " << countA << " of " << peptide_AASeqs.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
+        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
       }
 
       // generate mono-links: one cross-linker with one peptide attached to one side
       for (Size i = 0; i < cross_link_mass_mono_link.size(); i++)
       {
         // Monoisotopic weight of the peptide + cross-linker
-        double cross_linked_pair_mass = peptide_AASeqs[p1].getMonoWeight() + cross_link_mass_mono_link[i];
+        double cross_linked_pair_mass = peptides[p1].peptide_mass + cross_link_mass_mono_link[i];
 
         // Make sure it is clear only one peptide is considered here. Use NULL value for the second peptide.
         // to check: if(precursor.beta_index) returns "false" for NULL, "true" for any other value
@@ -397,11 +417,12 @@ namespace OpenMS
 
         // call function to compare with spectrum precursor masses
         // will only add this candidate, if the mass is within the given tolerance to any precursor in the spectra data
-        filter_and_add_candidate(mass_to_candidates, spectrum_precursors, charge_min, charge_max, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
+        filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
       }
 
-      // test if this peptide could have loop-links: one cross-link with both sides attached to the same peptide
-      // TODO check for distance between the two linked residues
+
+       // test if this peptide could have loop-links: one cross-link with both sides attached to the same peptide
+       // TODO check for distance between the two linked residues
       bool first_res = false; // is there a residue the first side of the linker can attach to?
       bool second_res = false; // is there a residue the second side of the linker can attach to?
       for (Size k = 0; k < seq_first.size()-1; ++k)
@@ -426,7 +447,7 @@ namespace OpenMS
       if (first_res && second_res)
       {
         // Monoisotopic weight of the peptide + cross-linker
-        double cross_linked_pair_mass = peptide_AASeqs[p1].getMonoWeight() + cross_link_mass;
+        double cross_linked_pair_mass = peptides[p1].peptide_mass + cross_link_mass;
 
         // also only one peptide
         XLPrecursor precursor;
@@ -435,15 +456,33 @@ namespace OpenMS
         precursor.beta_index = NULL;
 
         // call function to compare with spectrum precursor masses
-        filter_and_add_candidate(mass_to_candidates, spectrum_precursors, charge_min, charge_max, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
+        filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
       }
+
+      // check for minimal mass of second peptide, jump farther than current peptide if possible
+      double allowed_error = 0;
+      if (precursor_mass_tolerance_unit_ppm) // ppm
+      {
+        allowed_error = min_precursor * precursor_mass_tolerance * 1e-6;
+      }
+      else // Dalton
+      {
+        allowed_error = precursor_mass_tolerance;
+      }
+      double min_second_peptide_mass = min_precursor - cross_link_mass - peptides[p1].peptide_mass - allowed_error;
 
       // Generate cross-links: one cross-linker linking two separate peptides, the most important case
       // Loop over all p2 peptide candidates, that come after p1 in the list
-      for (Size p2 = p1; p2 < peptide_AASeqs.size(); ++p2)
+      for (Size p2 = p1; p2 < peptides.size(); ++p2)
       {
+        // skip peptides, that are too small in any case
+        if (peptides[p2].peptide_mass < min_second_peptide_mass)
+        {
+          continue;
+        }
+
         // Monoisotopic weight of the first peptide + the second peptide + cross-linker
-        double cross_linked_pair_mass = peptide_AASeqs[p1].getMonoWeight() + peptide_AASeqs[p2].getMonoWeight() + cross_link_mass;
+        double cross_linked_pair_mass = peptides[p1].peptide_mass + peptides[p2].peptide_mass + cross_link_mass;
 
         // this time both peptides have valid indices
         XLPrecursor precursor;
@@ -452,7 +491,7 @@ namespace OpenMS
         precursor.beta_index = p2;
 
         // call function to compare with spectrum precursor masses
-        filter_and_add_candidate(mass_to_candidates, spectrum_precursors, charge_min, charge_max, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
+        filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
       }
     }
     return mass_to_candidates;
