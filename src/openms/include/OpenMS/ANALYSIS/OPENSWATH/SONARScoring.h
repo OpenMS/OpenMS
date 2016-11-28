@@ -86,6 +86,9 @@ private:
     /// Synchronize members with param class
     void updateMembers_();
 
+    double dia_extract_window_;
+    bool dia_centroided_;
+
   };
 }
 

@@ -468,7 +468,7 @@ namespace OpenMS
       }
       if (swath_maps.size() > 0 && swath_maps[0].sptr->getNrSpectra() > 0 && su_.use_sonar_scores)
       {
-        SONARScoring().computeSonarScores(imrmfeature, transition_group_detection.getTransitions(), swath_maps, scores);
+        sonarscoring_.computeSonarScores(imrmfeature, transition_group_detection.getTransitions(), swath_maps, scores);
       }
 
       if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
@@ -682,6 +682,12 @@ namespace OpenMS
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
+
+    // set SONAR values
+    Param p = sonarscoring_.getDefaults();
+    p.setValue("dia_extraction_window", param_.getValue("DIAScoring:dia_extraction_window"));
+    p.setValue("dia_centroided", param_.getValue("DIAScoring:dia_centroided"));
+    sonarscoring_.setParameters(p);
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
     emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));

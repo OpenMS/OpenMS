@@ -53,6 +53,8 @@ namespace OpenMS
 
     defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
+    defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
+    defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -60,7 +62,8 @@ namespace OpenMS
 
   void SONARScoring::updateMembers_()
   {
-    // TODO
+    dia_extract_window_ = (double)param_.getValue("dia_extraction_window");
+    dia_centroided_ = param_.getValue("dia_centroided").toBool();
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
@@ -131,10 +134,6 @@ namespace OpenMS
     if (transitions.empty()) {return;}
 
     double precursor_mz = transitions[0].getPrecursorMZ();
-
-    //double dia_extract_window_ = 0.1;
-    double dia_extract_window_ = 1.0;
-    bool dia_centroided_ = false;
 
 #ifdef DEBUG_SONAR
     std::ofstream debug_file;
