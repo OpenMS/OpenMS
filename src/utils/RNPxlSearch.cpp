@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
@@ -134,7 +135,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out_tsv", "<file>", "", "tsv output file");
+    registerOutputFile_("out_tsv", "<file>", "", "tsv output file", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
@@ -269,12 +270,12 @@ protected:
       if (modification.hasSubstring(" (N-term)"))
       {
         modification.substitute(" (N-term)", "");
-        rm = ModificationsDB::getInstance()->getTerminalModification(modification, ResidueModification::N_TERM);
+        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
       }
       else if (modification.hasSubstring(" (C-term)"))
       {
         modification.substitute(" (C-term)", "");
-        rm = ModificationsDB::getInstance()->getTerminalModification(modification, ResidueModification::C_TERM);
+        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
       }
       else
       {
@@ -989,7 +990,7 @@ private:
             }
 
             // generate all possible shifted ion a,b,y ion peaks by putting the RNA adduct on them
-            double shift = ModificationsDB::getInstance()->getTerminalModification(fragment_shift_name, ResidueModification::N_TERM).getDiffMonoMass();
+            double shift = ModificationsDB::getInstance()->getModification(fragment_shift_name, "", ResidueModification::N_TERM).getDiffMonoMass();
  
             RichPeakSpectrum shifted_series_peaks;
 
@@ -1996,33 +1997,51 @@ private:
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
+
+    // Reindex ids
+    PeptideIndexing indexer;
+    Param param_pi = indexer.getParameters();
+    param_pi.setValue("decoy_string_position", "prefix");
+    param_pi.setValue("enzyme:specificity", "none");
+    param_pi.setValue("missing_decoy_action", "warn");
+    param_pi.setValue("log", getStringOption_("log"));
+    indexer.setParameters(param_pi);
+
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
+
+    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    {
+      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+      {
+        return INPUT_FILE_EMPTY;       
+      }
+      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+      {
+        return UNEXPECTED_RESULT;
+      }
+      else
+      {
+        return UNKNOWN_ERROR;
+      }
+    } 
+
     // write ProteinIdentifications and PeptideIdentifications to IdXML
     IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
-    QStringList qparam;
-    qparam << "-in" << out_idxml.toQString() << "-out" << out_idxml.toQString() << "-fasta" << in_db.toQString() << "-prefix" << "-enzyme:specificity" << "none" << "-missing_decoy_action" << "warn";
-    Int status;
-
-    status = QProcess::execute("PeptideIndexer", qparam);
-
-    if (status != 0)
-    {
-      writeLog_("Error: Calling PeptideIndexer resulted in an error.");
-      return EXTERNAL_PROGRAM_ERROR;
-    }
-
-    IdXMLFile().load(out_idxml, protein_ids, peptide_ids);
-    csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
-
     // save report
-    TextFile csv_file;
-    csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
-    for (Size i = 0; i != csv_rows.size(); ++i)
+    if (!out_csv.empty())
     {
-      csv_file.addLine(csv_rows[i].getString("\t"));
-    }
-    csv_file.store(out_csv);
-    
+      csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+      TextFile csv_file;
+      csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
+      for (Size i = 0; i != csv_rows.size(); ++i)
+      {
+        csv_file.addLine(csv_rows[i].getString("\t"));
+      }
+      csv_file.store(out_csv);
+    } 
+   
     return EXECUTION_OK;
   }
 

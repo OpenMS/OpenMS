@@ -52,14 +52,14 @@ namespace OpenMS
     {
       if (fixed_it->getOrigin() == "N-term")
       {
-        if (peptide.getNTerminalModification().empty())
+        if (!peptide.hasNTerminalModification())
         {
           peptide.setNTerminalModification(fixed_it->getFullName());
         }
       }
       else if (fixed_it->getOrigin() == "C-term")
       {
-        if (peptide.getCTerminalModification().empty())
+        if (!peptide.hasCTerminalModification())
         {
           peptide.setCTerminalModification(fixed_it->getFullName());
         }
@@ -112,14 +112,14 @@ namespace OpenMS
     {
       if (fixed_it->getOrigin() == "N-term")
       {
-        if (!peptide.getNTerminalModification().empty())
+        if (peptide.hasNTerminalModification())
         {
           modified_peptide.push_back(std::make_pair(N_TERM_MODIFICATION_INDEX, *fixed_it));
         }
       }
       else if (fixed_it->getOrigin() == "C-term")
       {
-        if (!peptide.getCTerminalModification().empty())
+        if (peptide.hasCTerminalModification())
         {
           modified_peptide.push_back(std::make_pair(C_TERM_MODIFICATION_INDEX, *fixed_it));
         }
@@ -145,7 +145,7 @@ namespace OpenMS
         }
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-        const ResidueModification::Term_Specificity& term_spec = fixed_it->getTermSpecificity();
+        const ResidueModification::TermSpecificity& term_spec = fixed_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
           modified_peptide.push_back(std::make_pair(residue_index, *fixed_it));
@@ -205,14 +205,14 @@ namespace OpenMS
     {
       if (variable_it->getOrigin() == "N-term")
       {
-        if (peptide.getNTerminalModification().empty())
+        if (!peptide.hasNTerminalModification())
         {
           map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
       }
       else if (variable_it->getOrigin() == "C-term")
       {
-        if (peptide.getCTerminalModification().empty())
+        if (!peptide.hasCTerminalModification())
         {
           map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
@@ -355,14 +355,14 @@ namespace OpenMS
     {
       if (variable_it->getOrigin() == "N-term")
       {
-        if (peptide.getNTerminalModification().empty())
+        if (!peptide.hasNTerminalModification())
         {
           map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
       }
       else if (variable_it->getOrigin() == "C-term")
       {
-        if (peptide.getCTerminalModification().empty())
+        if (!peptide.hasCTerminalModification())
         {
           map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
@@ -391,7 +391,7 @@ namespace OpenMS
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM
         // (currently no explicit support in OpenMS for protein C-term and
         // protein N-term)
-        const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
+        const ResidueModification::TermSpecificity& term_spec = variable_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
           map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
@@ -618,7 +618,7 @@ namespace OpenMS
         bool is_compatible = false;
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-        const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
+        const ResidueModification::TermSpecificity& term_spec = variable_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
           is_compatible = true;
