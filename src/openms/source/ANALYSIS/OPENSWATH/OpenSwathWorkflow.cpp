@@ -157,18 +157,21 @@ namespace OpenMS
     // Note that the quality threshold will only be applied if
     // estimateBestPeptides is true
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
-    std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
+    std::map<std::string, double> best_features = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
       estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
 
-    for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); ++it)
+    // Create pairs vector and store peaks
+    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType trgrmap_allpeaks; // store all peaks above cutoff
+    for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
+      if (transition_group_map.find(it->first) != transition_group_map.end())
+      {
+        trgrmap_allpeaks[ it->first ]  = transition_group_map[ it->first];
+      }
     }
 
-    // 4. Correct m/z deviations using SwathMapMassCorrection
-    SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, mz_correction_function, mz_extraction_window, ppm);
-
-    // 5. Perform the outlier detection
+    // 4. Perform the outlier detection
     std::vector<std::pair<double, double> > pairs_corrected;
     String outlier_method = irt_detection_param.getValue("outlierMethod");
     if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
@@ -195,7 +198,8 @@ namespace OpenMS
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
+        String("Illegal argument '") + outlier_method +
+        "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
     // 5. Check whether the found peptides fulfill the binned coverage criteria
@@ -219,7 +223,34 @@ namespace OpenMS
         "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
     }
 
-    // store transformation, using a linear model as default
+    // Only use the "correct" peaks for m/z correction (e.g. remove those not
+    // part of the linear regression)
+    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType trgrmap_final;
+    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator it = trgrmap_allpeaks.begin();
+        it != trgrmap_allpeaks.end(); ++it)
+    {
+      if (it->second.getFeatures().empty() ) {continue;}
+      const MRMFeature& feat = it->second.getBestFeature();
+
+      // Check if the current feature is in the list of pairs used for the
+      // linear RT regression (using other features may result in wrong
+      // calibration values).
+      // Matching only by RT is not perfect but should work for most cases.
+      for (Size pit = 0; pit < pairs_corrected.size(); pit++)
+      {
+        if (fabs(feat.getRT() - pairs_corrected[pit].first ) < 1e-2)
+        {
+          trgrmap_final[ it->first ] = it->second;
+          break;
+        }
+      }
+    }
+
+    // 6. Correct m/z deviations using SwathMapMassCorrection
+    SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
+        mz_correction_function, mz_extraction_window, ppm);
+
+    // 7. store transformation, using a linear model as default
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
