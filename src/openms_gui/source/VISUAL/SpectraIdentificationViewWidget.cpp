@@ -876,6 +876,7 @@ namespace OpenMS
 
         // update "selected" value
         vector<PeptideHit> hits = pep_id[num_id].getHits();
+        // update both PeptideHits, since they belong to the same cross-link (XL-MS specific)
         hits[0].setMetaValue("selected", "true");
         if (hits.size() >= 2)
         {
@@ -883,6 +884,7 @@ namespace OpenMS
         }
         pep_id[num_id].setHits(hits);
       }
+      (*layer_->getPeakData())[spectrum_index].setPeptideIdentifications(pep_id);
 
       // update "selected" value
 //      pep_id[num_id].getHits()[num_ph].setMetaValue("selected", sel);
