@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <iostream>
 
 using namespace xercesc;
 using namespace std;
@@ -79,49 +81,31 @@ namespace OpenMS
     PeptideIdentification().metaRegistry().registerName("spectrum_id", "the id of the spectrum counting from 1");
     for (map<UInt, vector<PeptideHit> >::const_iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
     {
-      // reduce the hits with the same sequence to one PeptideHit
-      map<String, vector<PeptideHit> > seq_to_hits;
-      for (vector<PeptideHit>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
-      {
-        seq_to_hits[it1->getSequence().toString()].push_back(*it1);
-      }
-
+      const vector<PeptideHit>& peptide_hits = it->second;
       PeptideIdentification id;
-      // if (descriptions_.find(it->first) != descriptions_.end())
-      // {
-      // id.setMetaValue("Description", descriptions_[it->first]);
-      // }
-      for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
-      {
-        const vector<PeptideHit>& peptide_hits = it->second;
-        if (!peptide_hits.empty())
-        {
-          // store all peptide hits that identify the same sequence in a single peptide hit
-          PeptideHit hit = peptide_hits[0];
-          vector<PeptideEvidence> peptide_evidences;
-          for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
-          {
-            const vector<PeptideEvidence> evidences = it2->getPeptideEvidences();
-            for (vector<PeptideEvidence>::const_iterator e_it = evidences.begin(); e_it != evidences.end(); ++e_it)
-            {
-              // only rewrite accession and keep AABefore/AAAfter, start, stop information from peptide evidence
-              PeptideEvidence pe = *e_it;
-              String new_acc = protein_hits_[pe.getProteinAccession()].getAccession();
-              pe.setProteinAccession(new_acc);
-              peptide_evidences.push_back(pe);
-            }
-          }
-          hit.setPeptideEvidences(peptide_evidences);
-          id.insertHit(hit);
-        }
-      }
-
       id.setScoreType("XTandem");
       id.setHigherScoreBetter(true);
       id.setIdentifier(identifier);
-      id.assignRanks();
       id.setMetaValue("spectrum_id", it->first);
 
+      for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
+      {
+        vector<PeptideEvidence> peptide_evidences;
+        const vector<PeptideEvidence> evidences = it2->getPeptideEvidences();
+        for (vector<PeptideEvidence>::const_iterator e_it = evidences.begin(); e_it != evidences.end(); ++e_it)
+        {
+          // only rewrite accession and keep AABefore/AAAfter, start, stop information from peptide evidence
+          PeptideEvidence pe = *e_it;
+          String new_acc = protein_hits_[pe.getProteinAccession()].getAccession();
+          pe.setProteinAccession(new_acc);
+          peptide_evidences.push_back(pe);
+        }
+        PeptideHit hit = *it2;
+        hit.setPeptideEvidences(peptide_evidences);
+        id.insertHit(hit);
+      }
+
+      id.assignRanks();
       peptide_ids.push_back(id);
     }
 
@@ -262,17 +246,17 @@ namespace OpenMS
 
       if (mod_pos == 0) // can (!) be a N-terminal mod
       {
-        ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, "", ResidueModification::N_TERM);
       }
       else if (mod_pos == aa_seq.size())
       {
-        ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::C_TERM);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, "", ResidueModification::C_TERM);
       }
 
       // if not found a terminal mod, try normal one
       if (possible_mass_mods.empty())
       {
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, type);
       }
 
       // cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << "\n";
@@ -302,7 +286,7 @@ namespace OpenMS
       if (possible_mods.empty() && mod_pos == 0)
       {
         vector<String> new_possible_mass_mods;
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(new_possible_mass_mods, type, modified.toDouble(), 0.01);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(new_possible_mass_mods, modified.toDouble(), 0.01, type);
         // now try to find this in the definitions which are set
         for (vector<String>::const_iterator it = new_possible_mass_mods.begin(); it != new_possible_mass_mods.end(); ++it)
         {
@@ -333,7 +317,7 @@ namespace OpenMS
           for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
           {
             String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-            ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+            ResidueModification::TermSpecificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
             if (origin == type && !(term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
             {
               specific_ones.insert(*it);
@@ -355,7 +339,7 @@ namespace OpenMS
               for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
               {
                 String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-                ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+                ResidueModification::TermSpecificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
                 //cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << "\n";
                 if ((origin == "N-term" || origin == "C-term") && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
                 {
@@ -370,7 +354,7 @@ namespace OpenMS
                 for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
                 {
                   String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-                  ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+                  ResidueModification::TermSpecificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
                   if (origin == type && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
                   {
                     //cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << "\n";

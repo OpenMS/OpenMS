@@ -1068,7 +1068,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     os.precision(writtenDigits<double>(0.0));

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ protected:
 
     if (!use_epd)
     {
-      m_traces_final = m_traces;
+      swap(m_traces_final, m_traces);
     }
     else
     {
@@ -213,6 +213,7 @@ protected:
       ep_det.setParameters(epd_param);
 
       std::vector<MassTrace> split_mtraces;
+      // note: this step will destroy any meta data annotation (e.g. FWHM_mz_avg)
       ep_det.detectPeaks(m_traces, split_mtraces);
 
       if (ep_det.getParameters().getValue("width_filtering") == "auto")
@@ -220,12 +221,13 @@ protected:
         m_traces_final.clear();
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() <<
-        " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
+        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
+                 << " of total " << split_mtraces.size() 
+                 << " were dropped because of too low peak width." << std::endl;
       }
       else
       {
-        m_traces_final = split_mtraces;
+        swap(m_traces_final, split_mtraces);
       }
     }
 
@@ -259,7 +261,7 @@ protected:
 
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
-        fcons.setIntensity(m_traces_final[i].computePeakArea());
+        fcons.setIntensity(m_traces_final[i].getIntensity(false));
         consensus_map.push_back(fcons);
       }
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -289,7 +291,7 @@ protected:
         f.setMetaValue(3, m_traces_final[i].getLabel());
         f.setCharge(0);
         f.setMZ(m_traces_final[i].getCentroidMZ());
-        f.setIntensity(m_traces_final[i].computePeakArea());
+        f.setIntensity(m_traces_final[i].getIntensity(false));
         f.setRT(m_traces_final[i].getCentroidRT());
         f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));

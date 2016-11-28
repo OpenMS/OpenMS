@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2015-10-28T15:49:28" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2016-08-11T17:13:55" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -698,7 +698,7 @@
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
-					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="string" name="chemical_formula" value=""/>
 					<UserParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -1170,7 +1170,7 @@
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
-					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="string" name="chemical_formula" value=""/>
 					<UserParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -1370,7 +1370,7 @@
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
-					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="string" name="chemical_formula" value=""/>
 					<UserParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -1535,7 +1535,7 @@
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
-					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="string" name="chemical_formula" value=""/>
 					<UserParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -2318,7 +2318,7 @@
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
-					<UserParam type="string" name="chemical_formula" value="null"/>
+					<UserParam type="string" name="chemical_formula" value=""/>
 					<UserParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>

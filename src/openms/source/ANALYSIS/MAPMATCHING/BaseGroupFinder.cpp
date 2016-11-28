@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ namespace OpenMS
       {
         if (used_ids.find(it->first) != used_ids.end())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "file ids have to be unique");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "file ids have to be unique");
         }
         else
         {

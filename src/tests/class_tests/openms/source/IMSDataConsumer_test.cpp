@@ -1,4 +1,3 @@
-Error: No XML file found for class 'IMSDataConsumer'. Aborting!
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------

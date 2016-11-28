@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Florian Zeller $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Lukas Mueller, Markus Mueller, Peter Kunszt $
 // --------------------------------------------------------------------------
 //

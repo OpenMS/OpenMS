@@ -55,8 +55,8 @@ public:
     /**
       @brief Constructor
 
-      @exception IllegalArgument is thrown if a parameter isn't valid.
-      @exception UnableToFit is thrown if the B-spline fit fails.
+      @exception Exception::IllegalArgument is thrown if a parameter is invalid.
+      @exception Exception::UnableToFit is thrown if the B-spline fit fails.
     */
     TransformationModelBSpline(const DataPoints& data, const Param& params);
 

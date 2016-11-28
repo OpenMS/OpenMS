@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
@@ -190,7 +190,7 @@ namespace OpenMS
   {
     ofstream ofs(filename.c_str());
     if (!ofs)
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     stringstream file_content;
 
     float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
@@ -758,11 +758,11 @@ namespace OpenMS
           {
             if (!File::exists(modifications_filename))
             {
-              throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
+              throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, modifications_filename);
             }
             if (!File::readable(modifications_filename))
             {
-              throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, modifications_filename);
+              throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, modifications_filename);
             }
 
             // getting all available modifications from a file
@@ -808,7 +808,7 @@ namespace OpenMS
           catch (Exception::ParseError & /*pe*/)
           {
             PTMname_residues_mass_type_.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with this modification. Aborting!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's something wrong with this modification. Aborting!");
           }
         }
 
@@ -819,7 +819,7 @@ namespace OpenMS
           if (mod_parts.empty())
           {
             PTMname_residues_mass_type_.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "No residues for modification given. Aborting!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "No residues for modification given. Aborting!");
           }
 
           // get the residues
@@ -845,7 +845,7 @@ namespace OpenMS
         if (mod_parts.size() > 1)
         {
           PTMname_residues_mass_type_.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with the type of this modification. Aborting!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's something wrong with the type of this modification. Aborting!");
         }
 
         // get the name
@@ -869,7 +869,7 @@ namespace OpenMS
         else
         {
           PTMname_residues_mass_type_.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's already a modification with this name. Aborting!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's already a modification with this name. Aborting!");
         }
       }
     }

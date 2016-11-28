@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Florian Zeller $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ namespace OpenMS
     if (start_idx == native_id.length())
     {
       std::cout << "Native id could not be determined: " << native_id;
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot convert native id to unsigned integer");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot convert native id to unsigned integer");
     }
 
     Size end_idx = start_idx;

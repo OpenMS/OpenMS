@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Rene Hussong$
 // --------------------------------------------------------------------------
 

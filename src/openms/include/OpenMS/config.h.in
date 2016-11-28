@@ -51,6 +51,8 @@
 // include OPENMS_DLLAPI macros
 #include <OpenMS/OpenMSConfig.h>
 
+#include <boost/current_function.hpp>
+
 // Here are some global configuration flags for OpenMS
 
 // Define compiler specifics (used in VERY few places only)
@@ -59,11 +61,8 @@
 // GNU g++
 #cmakedefine OPENMS_COMPILER_GXX
 
-// __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
-#if ! defined(OPENMS_COMPILER_GXX) && ! defined(__PRETTY_FUNCTION__) 
-#define __PRETTY_FUNCTION__ "<unknown>"
-#endif
-
+// __PRETTY_FUNCTION__ is a GNU G++ extension so we use the alternative in boost
+#define OPENMS_PRETTY_FUNCTION BOOST_CURRENT_FUNCTION
 
 // OPENMS_ASSERTIONS enables some debugging methods within some OpenMS classes
 #ifdef OPENMS_COMPILER_MSVC
@@ -120,7 +119,7 @@
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
 
-#cmakedefine ENABLE_USAGE_STATISTICS
+#cmakedefine ENABLE_UPDATE_CHECK
 
 // is libc++ or has stream bug
 #cmakedefine OPENMS_HAS_STREAM_EXTRACTION_BUG

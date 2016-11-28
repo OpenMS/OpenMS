@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Christian Ehrlich $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 

@@ -178,7 +178,9 @@ namespace OpenMS
           {
             name = name.substr(0, 17) + "...";
           }
-          formula_to_names[ith->getMetaValue("chemical_formula")].push_back(name);
+          String cf = ith->getMetaValue("chemical_formula");
+          if (cf.empty()) continue; // skip unannotated "null" peaks
+          formula_to_names[cf].push_back(name);
         }
         else
         {
@@ -214,8 +216,9 @@ namespace OpenMS
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                          QString(),
-                                                          cols[i]);
+                                                         QString(),
+                                                         cols[i],
+                                                         current_layer.param.getValue("peak_color").toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -325,14 +328,14 @@ namespace OpenMS
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
         Annotation1DDistanceItem * item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
-        // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
+        // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
         ticks.push_back(it->getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
 
         temporary_annotations_.push_back(item); // for removal (no ownership)
-        current_layer.getCurrentAnnotations().push_front(item); // for visualisation (ownership)
+        current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
       }
     }
     else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -537,9 +540,9 @@ namespace OpenMS
           QString aa_ss;
           for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
           {
-            const Residue & r = aa_sequence.getResidue(j);
+            const Residue& r = aa_sequence.getResidue(j);
             aa_ss.append(r.getOneLetterCode().toQString());
-            if (r.getModification() != "")
+            if (r.isModified())
             {
               aa_ss.append("*");
             }

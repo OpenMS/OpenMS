@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ namespace OpenMS
     // TODO remove parameter 
     if (param_.getValue("is_relative_tolerance").toBool() )
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)

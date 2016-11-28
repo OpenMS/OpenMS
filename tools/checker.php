@@ -393,8 +393,8 @@ $sourcePaths = array("src/openms/source",
                      "src/topp",
                      "src/utils");
 
-exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\"", $files);
+exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\" ! -name \"MSNumpress*.h\"", $files);
+exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\" ! -name \"MSNumpress*.cpp\"", $files);
 
 //look up Maintainer in first 40 lines of files
 $GLOBALS["maintainer_info"]  = array();
@@ -831,7 +831,7 @@ foreach ($files_todo as $f)
       elseif (endsWith($f, ".cpp"))
       {
         # $h_file = substr($f, 7,-2).".h";
-        $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
+        $h_file = $src_path."/".str_replace("/source", "/include/OpenMS", $f);
         $h_file = preg_replace("/cpp$/", "h", $h_file);
         if (!file_exists($h_file))
         {

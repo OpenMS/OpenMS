@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ namespace OpenMS
     // check that the number of maps is ok
     if (maps.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "At least two maps must be given!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "At least two maps must be given!");
     }
 
     // get the params

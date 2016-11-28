@@ -65,7 +65,7 @@ namespace OpenMS
     ifstream is(filename.c_str(), ios_base::in | ios_base::binary);
     if (!is)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     buffer_.clear();
@@ -123,7 +123,7 @@ namespace OpenMS
 
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     for (Iterator it = buffer_.begin(); it != buffer_.end(); ++it)

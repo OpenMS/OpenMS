@@ -209,7 +209,7 @@ namespace OpenMS
 
     void ToolDescriptionHandler::writeTo(std::ostream & /*os*/)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     void ToolDescriptionHandler::setToolDescriptions(const std::vector<ToolDescription> & tds)

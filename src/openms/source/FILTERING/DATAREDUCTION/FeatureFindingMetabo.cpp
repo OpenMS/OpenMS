@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ namespace OpenMS
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "FeatureHypothesis is empty, no traces contained!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getIntensity(smoothed);
@@ -210,7 +210,7 @@ namespace OpenMS
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidMZ();
@@ -220,7 +220,7 @@ namespace OpenMS
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidRT();
@@ -243,8 +243,6 @@ namespace OpenMS
   FeatureFindingMetabo::FeatureFindingMetabo() :
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
-    defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
-    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced")); // 5.0
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
@@ -338,7 +336,7 @@ namespace OpenMS
 
     if (svm_feat_centers_.empty() || svm_feat_scales_.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Isotope filtering invoked, but no model loaded. Internal error. Please report this!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Isotope filtering invoked, but no model loaded. Internal error. Please report this!");
     }
 
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
@@ -416,7 +414,7 @@ namespace OpenMS
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
     if (isotope_filt_svm_ == NULL)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);
     }
 
@@ -446,7 +444,7 @@ namespace OpenMS
 
     if (svm_feat_centers_.size() != svm_feat_scales_.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Numbers of centers and scales from file " + scale_filename + " are different!",
           String(svm_feat_centers_.size()) + " and " + String(svm_feat_scales_.size()));
     }
@@ -723,18 +721,7 @@ namespace OpenMS
     this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
 
     // *********************************************************** //
-    // Step 1 configure quantification method
-    // *********************************************************** //
-    MassTrace::MT_QUANTMETHOD method = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
-    for (std::vector<MassTrace>::iterator it = input_mtraces.begin();
-      it != input_mtraces.end();
-      ++it)
-    {
-      it->setQuantMethod(method);
-    }
-
-    // *********************************************************** //
-    // Step 2 initialize SVM model for isotope ratio filtering
+    // Step 1 initialize SVM model for isotope ratio filtering
     // *********************************************************** //
     if (isotope_filtering_model_ == "metabolites (2% RMS)")
     {
@@ -754,7 +741,7 @@ namespace OpenMS
     }
 
     // *********************************************************** //
-    // Step 3 Iterate through all mass traces to find likely matches 
+    // Step 2 Iterate through all mass traces to find likely matches 
     // and generate isotopic / charge hypotheses
     // *********************************************************** //
     std::vector<FeatureHypothesis> feat_hypos;
@@ -808,7 +795,7 @@ namespace OpenMS
 #endif
 
     // *********************************************************** //
-    // Step 4 Iterate through all hypotheses, starting with the highest 
+    // Step 3 Iterate through all hypotheses, starting with the highest 
     // scoring one. Accept them if they do not contain traces that have 
     // already been used by a higher scoring hypothesis.
     // *********************************************************** //

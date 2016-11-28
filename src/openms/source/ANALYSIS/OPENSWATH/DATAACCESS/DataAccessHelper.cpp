@@ -146,7 +146,7 @@ namespace OpenMS
       else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
           transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
       }
       else
@@ -173,7 +173,6 @@ namespace OpenMS
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
     OpenSwath::LightModification m;
-    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
 
     p.id = pep.id;
     if (!pep.rts.empty())
@@ -201,34 +200,33 @@ namespace OpenMS
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
+      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() );
     }
 
     // Mapping of peptide modifications (don't do this for metabolites...)
-    if (p.isPeptide()) 
+    if (p.isPeptide())
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
-      if ( !aa_sequence.getNTerminalModification().empty())
+      if (aa_sequence.hasNTerminalModification())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-          m.location = -1;
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        const ResidueModification& rmod = *(aa_sequence.getNTerminalModification());
+        m.location = -1;
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
-      if ( !aa_sequence.getCTerminalModification().empty())
+      if (aa_sequence.hasCTerminalModification())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-          m.location = boost::numeric_cast<int>(aa_sequence.size());
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
+        m.location = boost::numeric_cast<int>(aa_sequence.size());
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
         if (aa_sequence[i].isModified())
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
+          const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
           m.location = boost::numeric_cast<int>(i);
           m.unimod_id = rmod.getUniModAccession();
           p.modifications.push_back(m);

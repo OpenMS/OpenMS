@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -48,42 +48,42 @@ class DerivedLabeler
 	  public:
 	virtual void preCheck(Param &) const
   {
-    throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void setUpHook(SimTypes::FeatureMapSimVector & /* features */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void postDigestHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 	virtual void postRawTandemMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */, SimTypes::MSSimExperiment & /* simulated map */)
 	{
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
 };

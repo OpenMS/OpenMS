@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -265,12 +265,12 @@ namespace OpenMS
   {
     switch (res_type)
     {
-      case Residue::AIon: return 'a'; break;
-      case Residue::BIon: return 'b'; break;
-      case Residue::CIon: return 'c'; break;
-      case Residue::XIon: return 'x'; break;
-      case Residue::YIon: return 'y'; break;
-      case Residue::ZIon: return 'z'; break;
+      case Residue::AIon: return 'a';
+      case Residue::BIon: return 'b';
+      case Residue::CIon: return 'c';
+      case Residue::XIon: return 'x';
+      case Residue::YIon: return 'y';
+      case Residue::ZIon: return 'z';
       default:
        cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
@@ -293,13 +293,13 @@ namespace OpenMS
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
     {
       // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U) / (double)charge); 
+      p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
       p.setIntensity(intensity * it->second);
       spectrum.push_back(p);
     }
   }
 
-  void TheoreticalSpectrumGenerator::addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const 
+  void TheoreticalSpectrumGenerator::addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const
   {
     RichPeak1D p;
     p.setMZ(pos);
@@ -309,10 +309,10 @@ namespace OpenMS
       String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion_index) + String(charge, '+');
       p.setMetaValue("IonName", ion_name);
     }
-    spectrum.push_back(p);    
+    spectrum.push_back(p);
   }
 
-  void TheoreticalSpectrumGenerator::addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const 
+  void TheoreticalSpectrumGenerator::addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const
   {
     RichPeak1D p;
 
@@ -408,25 +408,25 @@ namespace OpenMS
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
     }
-    
+
     double mono_weight(Constants::PROTON_MASS_U * charge);
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
       if (peptide.hasNTerminalModification())
       {
-        mono_weight += peptide.getNTerminalResidueModification()->getDiffMonoMass();
+        mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
       }
 
       if (!add_isotopes_) // add single peak
       {
-        Size i = add_first_prefix_ion_ ? 0 : 1; 
+        Size i = add_first_prefix_ion_ ? 0 : 1;
         if (i == 1) mono_weight += peptide[0].getMonoWeight(Residue::Internal);
         for (; i < peptide.size() - 1; ++i)
         {
@@ -444,7 +444,7 @@ namespace OpenMS
       }
       else // add isotope clusters (slow)
       {
-        Size i = add_first_prefix_ion_ ? 1 : 2; 
+        Size i = add_first_prefix_ion_ ? 1 : 2;
         for (; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
@@ -454,19 +454,19 @@ namespace OpenMS
 
       if (add_losses_) // add loss peaks (slow)
       {
-        Size i = add_first_prefix_ion_ ? 1 : 2; 
+        Size i = add_first_prefix_ion_ ? 1 : 2;
         for (; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
           addLosses_(spectrum, ion, intensity, res_type, charge);
         }
-      }    
+      }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
       if (peptide.hasCTerminalModification())
       {
-        mono_weight += peptide.getCTerminalResidueModification()->getDiffMonoMass();
+        mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
       }
 
       if (!add_isotopes_) // add single peak
@@ -507,7 +507,7 @@ namespace OpenMS
       }
     }
 
-    spectrum.sortByPosition(); 
+    spectrum.sortByPosition();
 
     return;
   }

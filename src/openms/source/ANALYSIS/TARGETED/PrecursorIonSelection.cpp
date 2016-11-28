@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 //
@@ -1337,7 +1337,7 @@ namespace OpenMS
           pep_ids[i].setHits(hits);
         }
         else
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid score type, should be either a posterior error probability or a probability!", pep_ids[i].getScoreType());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid score type, should be either a posterior error probability or a probability!", pep_ids[i].getScoreType());
       }
     }
   }

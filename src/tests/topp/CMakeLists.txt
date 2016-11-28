@@ -137,7 +137,7 @@ endforeach()
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper PhosphoScoring)
+list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
 endforeach()
@@ -169,9 +169,10 @@ set_tests_properties("TOPP_AdditiveSeries_1_out4" PROPERTIES DEPENDS "TOPP_Addit
 
 #------------------------------------------------------------------------------
 # IDMerger tests
-add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input2.idXML -out IDMerger_1_output.tmp)
-add_test("TOPP_IDMerger_1_out1" ${DIFF} -in1 IDMerger_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_1_output.idXML )
+add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input2.idXML -out IDMerger_1_output.tmp -annotate_file_origin)
+add_test("TOPP_IDMerger_1_out1" ${DIFF} -in1 IDMerger_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_1_output.idXML)
 set_tests_properties("TOPP_IDMerger_1_out1" PROPERTIES DEPENDS "TOPP_IDMerger_1")
+# merge pepXML and protXML:
 add_test("TOPP_IDMerger_2" ${TOPP_BIN_PATH}/IDMerger -test -pepxml_protxml -in ${DATA_DIR_TOPP}/IDMerger_2_input1.idXML ${DATA_DIR_TOPP}/IDMerger_2_input2.idXML -out IDMerger_2_output.tmp)
 add_test("TOPP_IDMerger_2_out1" ${DIFF} -in1 IDMerger_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_2_output.idXML )
 set_tests_properties("TOPP_IDMerger_2_out1" PROPERTIES DEPENDS "TOPP_IDMerger_2")
@@ -563,6 +564,9 @@ set_tests_properties("TOPP_FileInfo_14_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_15" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_15_input.mzid -v -no_progress -out FileInfo_15.tmp)
 add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 183" -in1 FileInfo_15.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
 set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_15")
+add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out FileInfo_16_output.tmp)
+add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_16_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
+set_tests_properties("TOPP_FileInfo_16_out1" PROPERTIES DEPENDS "TOPP_FileInfo_16")
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -724,8 +728,12 @@ add_test("TOPP_IDFileConverter_14_out1" ${DIFF} -in1 IDFileConverter_14_output.t
 set_tests_properties("TOPP_IDFileConverter_14_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_14")
 # mzIdentML to idXML with RT look-up in mzML:
 add_test("TOPP_IDFileConverter_15" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_15_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML)
-add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" )
+add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" "db=")
 set_tests_properties("TOPP_IDFileConverter_15_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_15")
+# pepXML (from iProphet) to idXML:
+add_test("TOPP_IDFileConverter_16" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_16_input.pepXML -out IDFileConverter_16_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_16_out1" ${DIFF} -in1 IDFileConverter_16_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_16_output.idXML)
+set_tests_properties("TOPP_IDFileConverter_16_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_16")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1467,12 +1475,14 @@ set_tests_properties("TOPP_IDRipper_2_out2" PROPERTIES DEPENDS "TOPP_IDRipper_2"
 add_test("TOPP_IDRipper_3_prep" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML -out IDRipper_3_output.tmp -annotate_file_origin)
 add_test("TOPP_IDRipper_3_prep_out1" ${DIFF} -whitelist "?xml-stylesheet" "file_origin" -in1 IDRipper_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_3_output.idXML)
 set_tests_properties("TOPP_IDRipper_3_prep_out1" PROPERTIES DEPENDS "TOPP_IDRipper_3_prep")
-add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in
-${DATA_DIR_TOPP}/IDRipper_3_output.idXML -out_path ${DATA_DIR_TOPP}/dummy_path/)
+## create an output directory during configure time in the binary tree
+set(TMP_RIP_PATH ${PROJECT_BINARY_DIR}/tmp_path/) ## ${PROJECT_BINARY_DIR} already includes '/src/tests/topp/'
+file(MAKE_DIRECTORY ${TMP_RIP_PATH})
+add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_3_output.idXML -out_path ${TMP_RIP_PATH})
 set_tests_properties("TOPP_IDRipper_3" PROPERTIES DEPENDS "TOPP_IDRipper_3_prep")
-add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/dummy_path/IDRipper_3_input1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML)
+add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 ${TMP_RIP_PATH}/IDRipper_3_input1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML)
 set_tests_properties("TOPP_IDRipper_3_out1" PROPERTIES DEPENDS "TOPP_IDRipper_3")
-add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 ${DATA_DIR_TOPP}/dummy_path/IDRipper_3_input2.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML)
+add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 ${TMP_RIP_PATH}/IDRipper_3_input2.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML)
 set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3")
 
 #------------------------------------------------------------------------------
@@ -1832,6 +1842,21 @@ if(WITH_GUI)
   add_test("UTILS_INIUpdater_3_out" ${DIFF} -in1 INIUpdater_3_old.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas )
   set_tests_properties("UTILS_INIUpdater_3_out" PROPERTIES DEPENDS "UTILS_INIUpdater_3")
 endif()
+
+# DatabaseFilter test:
+add_test("UTILS_DatabaseFilter_1" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_1_out.fasta.tmp)
+add_test("UTILS_DatabaseFilter_1_out" ${DIFF} -in1 DatabaseFilter_1_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_1_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_1_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_1")
+add_test("UTILS_DatabaseFilter_2" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_2_out.fasta.tmp -method blacklist)
+add_test("UTILS_DatabaseFilter_2_out" ${DIFF} -in1 DatabaseFilter_2_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_2_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_2_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_2")
+add_test("UTILS_DatabaseFilter_3" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_3.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_3.mzid -out DatabaseFilter_3_out.fasta.tmp)
+add_test("UTILS_DatabaseFilter_3_out" ${DIFF} -in1 DatabaseFilter_3_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_3_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_3_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_3")
+add_test("UTILS_DatabaseFilter_4" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_3.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_3.mzid -out DatabaseFilter_4_out.fasta.tmp -method blacklist)
+add_test("UTILS_DatabaseFilter_4_out" ${DIFF} -in1 DatabaseFilter_4_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_4_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_4_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_4")
+
 
 # DecoyDatabase:
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp)
