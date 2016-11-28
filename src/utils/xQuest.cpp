@@ -49,6 +49,10 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
+// TESTING SCORES
+#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/RNPXL/PScore.h>
+
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
@@ -358,6 +362,7 @@ protected:
     // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra.
     PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
     PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+    PeakMap spectra_all_peaks;
 
     PreprocessedPairSpectra_(Size size)
     {
@@ -365,6 +370,7 @@ protected:
       {
         spectra_common_peaks.addSpectrum(PeakSpectrum());
         spectra_xlink_peaks.addSpectrum(PeakSpectrum());
+        spectra_all_peaks.addSpectrum(PeakSpectrum());
       }
     }
   };
@@ -491,11 +497,19 @@ protected:
         swap(preprocessed_pair_spectra.spectra_common_peaks[pair_index], common_peaks);
         swap(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], xlink_peaks);
 
+        PeakSpectrum exp_spec;
+        exp_spec.reserve(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() + preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size());
+        exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].end());
+        exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].end());
+        swap(preprocessed_pair_spectra.spectra_all_peaks[pair_index], exp_spec);
+
         preprocessed_pair_spectra.spectra_common_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
         preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
+        preprocessed_pair_spectra.spectra_all_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
 
         preprocessed_pair_spectra.spectra_common_peaks[pair_index].sortByPosition();
         preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].sortByPosition();
+        preprocessed_pair_spectra.spectra_all_peaks[pair_index].sortByPosition();
       }
 
 #ifdef DEBUG_XQUEST
@@ -1022,6 +1036,7 @@ protected:
                 << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (top_csm->matched_common_alpha + top_csm->matched_xlink_alpha) << "\" num_of_matched_ions_beta=\"" << (top_csm->matched_common_beta + top_csm->matched_xlink_beta) << "\" num_of_matched_common_ions_alpha=\"" << top_csm->matched_common_alpha
                 << "\" num_of_matched_common_ions_beta=\"" << top_csm->matched_common_beta << "\" num_of_matched_xlink_ions_alpha=\"" << top_csm->matched_xlink_alpha << "\" num_of_matched_xlink_ions_beta=\"" << top_csm->matched_xlink_beta << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << top_csm->percTIC
                 << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csm->wTIC << "\" intsum=\"" << top_csm->int_sum * 100 << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
+                << "\" HyperCommon=\"" << top_csm->HyperCommon << "\" HyperXLink=\"" << top_csm->HyperXlink << "\" HyperBoth=\"" << top_csm->HyperBoth << "\" PScoreCommon=\"" << top_csm->PScoreCommon << "\" PScoreXLink=\"" << top_csm->PScoreXlink << "\" PScoreBoth=\"" << top_csm->PScoreBoth
                 << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << endl;
             xml_file << "</search_hit>" << endl;
           }
@@ -1204,6 +1219,7 @@ protected:
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     multimap<StringView, AASequence> processed_peptides;
+    vector<OpenXQuestScores::PeptideMass> peptide_masses;
     
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
@@ -1279,8 +1295,15 @@ protected:
                 const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
                 const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
                 spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
-                spectrum_precursors.push_back(spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getMZ());
-                spectrum_precursors.push_back(spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getMZ());
+                double current_precursor_mz0 = spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getMZ();
+                double current_precursor_mz1 = spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getMZ();
+                double current_precursor_charge0 = spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getCharge();
+                double current_precursor_charge1 = spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getCharge();
+
+                double current_precursor_mass0 = (current_precursor_mz0 * current_precursor_charge0) - (current_precursor_charge0 * Constants::PROTON_MASS_U);
+                double current_precursor_mass1 = (current_precursor_mz1 * current_precursor_charge1) - (current_precursor_charge1 * Constants::PROTON_MASS_U);
+                spectrum_precursors.push_back(current_precursor_mass0);
+                spectrum_precursors.push_back(current_precursor_mass1);
               }
             }
           }
@@ -1294,6 +1317,12 @@ protected:
 //    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass_light, cross_link_mass_heavy);
     PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
     progresslogger.endProgress();
+
+
+    // for PScore, precompute ranks
+    vector<vector<Size> > rankMap_common = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_common_peaks);
+    vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
+    vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
  
     Size count_proteins = 0;
     Size count_peptides = 0;
@@ -1415,6 +1444,15 @@ protected:
         {
           continue;
         }
+
+        OpenXQuestScores::PeptidePosition position = OpenXQuestScores::INTERNAL;
+        if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
+        {
+          position = OpenXQuestScores::C_TERM;
+        } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        {
+          position = OpenXQuestScores::N_TERM;
+        }
             
 //#ifdef _OPENMP
 //#pragma omp atomic
@@ -1435,16 +1473,22 @@ protected:
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
+          OpenXQuestScores::PeptideMass pep_mass;
+          pep_mass.peptide_mass = candidate.getMonoWeight();
+          pep_mass.peptide_seq = candidate;
+          pep_mass.position = position;
 
 //#ifdef _OPENMP
 //#pragma omp critical (processed_peptides_access)
 //#endif
           {
             processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+            peptide_masses.push_back(pep_mass);
           }
         }
       }
     }
+    processed_peptides.clear();
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -1481,19 +1525,37 @@ protected:
 
     cout << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 
-    // Collect all processed peptides into a simple vector to iterate over
-    vector< AASequence > peptides;
-    for (map<StringView, AASequence>::const_iterator a = processed_peptides.begin(); a != processed_peptides.end(); ++a)
+    sort(peptide_masses.begin(), peptide_masses.end());
+    // The largest peptides given a fixed maximal precursor mass are possible with loop links
+    // Filter peptides using maximal loop link mass first
+    double max_precursor_mass = spectrum_precursors[spectrum_precursors.size()-1];
+
+    // compute absolute tolerance from relative, if necessary
+    double allowed_error = 0;
+    if (precursor_mass_tolerance_unit_ppm) // ppm
     {
-      peptides.push_back(a->second);
+      allowed_error = max_precursor_mass * precursor_mass_tolerance * 1e-6;
     }
-    processed_peptides.clear();
+    else // Dalton
+    {
+      allowed_error = precursor_mass_tolerance;
+    }
+
+    double max_peptide_mass = max_precursor_mass - cross_link_mass_light + allowed_error;
+
+    for (vector<OpenXQuestScores::PeptideMass>::iterator a = peptide_masses.begin(); a != peptide_masses.end(); ++a)
+    {
+      if ( a->peptide_mass > max_peptide_mass )
+      {
+        peptide_masses.erase(a);
+      }
+    }
 
     if (!ion_index_mode)
     {
       progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(peptides, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
-                                                                                                                                                    spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, min_precursor_charge, max_precursor_charge);
+      enumerated_cross_link_masses = OpenXQuestScores::enumerateCrossLinksAndMasses_(peptide_masses, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+                                                                                                                                                    spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
       progresslogger.endProgress();
       cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
       sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end());
@@ -1503,6 +1565,8 @@ protected:
     {
       // TODO refactor to remove ion_index mode completely
     }
+
+    cout << "TEST TYPE: " << sizeof(OpenXQuestScores::XLPrecursor) << " | OBJECT: " << sizeof enumerated_cross_link_masses[0] << " | " << sizeof enumerated_cross_link_masses[500] << endl;
 
     // TODO test variables, can be removed, or set to be used in debug mode?
     double pScoreMax = 0;
@@ -1533,12 +1597,12 @@ protected:
 #endif
       {
         spectrum_counter++;
-        cout << "Processing spectrum pair" << spectrum_counter << " / " << spectrum_pairs.size() << endl;
+        cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << endl;
       }
 
-      // If this spectra pair has less than 15 common peaks, then ignore it.
+      // If this spectra pair has less than 5 common peaks, then ignore it.
       //TODO is a xquest.def parameter in perl xQuest, set to 25 usually
-      if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() < 15)
+      if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() < peptide_min_size)
       {
         continue;
       }
@@ -1614,11 +1678,11 @@ protected:
           OpenXQuestScores::XLPrecursor candidate = candidates[i];
           vector <SignedSize> link_pos_first;
           vector <SignedSize> link_pos_second;
-          AASequence peptide_first = peptides[candidate.alpha_index];
+          AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
           AASequence peptide_second;
           if (candidate.beta_index)
           {
-            peptide_second = peptides[candidate.beta_index];
+            peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
           }
           String seq_first = peptide_first.toUnmodifiedString();
           String seq_second =  peptide_second.toUnmodifiedString();
@@ -1904,8 +1968,19 @@ protected:
                 theoretical_spec_xlinks = theoretical_spec_xlinks_alpha;
               }
 
-               vector< double > xcorrx = OpenXQuestScores::xCorrelation(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks, 5, 0.3);
+              RichPeakSpectrum theoretical_spec;
+              theoretical_spec.reserve(theoretical_spec_common.size() + theoretical_spec_xlinks.size());
+              theoretical_spec.insert(theoretical_spec.end(), theoretical_spec_common.begin(), theoretical_spec_common.end());
+              theoretical_spec.insert(theoretical_spec.end(), theoretical_spec_xlinks.begin(), theoretical_spec_xlinks.end());
+              theoretical_spec.sortByPosition();
+
+//              PeakSpectrum exp_spec;
+//              exp_spec.reserve(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() + preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size());
+//              exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].end());
+//              exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].end());
+
                vector< double > xcorrc = OpenXQuestScores::xCorrelation(preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common, 5, 0.2);
+               vector< double > xcorrx = OpenXQuestScores::xCorrelation(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks, 5, 0.3);
 
                 // TODO save time: only needs to be done once per light spectrum, here it is repeated for cross-link each candidate
                 vector< double > aucorrx = OpenXQuestScores::xCorrelation(spectrum_light, spectrum_light, 5, 0.3);
@@ -1917,6 +1992,31 @@ protected:
 //                LOG_DEBUG << "xCorrelation X: " << xcorrx << endl;
 //                LOG_DEBUG << "xCorrelation C: " << xcorrc << endl;
 //                LOG_DEBUG << "Autocorr: " << aucorr << "\t Autocorr_sum: " << aucorr_sum << "\t xcorrx_max: " << xcorrx_max << "\t xcorrc_max: " << xcorrc_max << endl;
+
+
+//############################# TESTING SCORES ##############################################
+
+                csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common);
+                map<Size, PeakSpectrum> peak_level_spectra_common = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_common_peaks[pair_index], rankMap_common[pair_index]);
+                csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_common, theoretical_spec_common);
+
+                // TODO this is ensured for "common" and tehrefore also for "all" but in some cases the "xlink" case could have 0 peaks
+                if (preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0)
+                {
+                  csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks);
+                  map<Size, PeakSpectrum> peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], rankMap_xlink[pair_index]);
+                  csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_xlinks, theoretical_spec_xlinks);
+                } else
+                {
+                  csm.HyperXlink = 0;
+                  csm.PScoreXlink = 0;
+                }
+                csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec);
+                map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_all_peaks[pair_index], rankMap_all[pair_index]);
+                csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
+
+
+//############################# END TESTING SCORES ###########################################
 
 #ifdef _OPENMP
 #pragma omp critical (max_subscore_variable_access)
@@ -1998,7 +2098,7 @@ protected:
                 }
                 LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 
-                // make annotations unique (otherwise )
+                // make annotations unique
                 sort(frag_annotations.begin(), frag_annotations.end());
                 vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
                 if (last_unique_anno != frag_annotations.end())
@@ -2143,6 +2243,16 @@ protected:
               ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
               ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
 
+              ph_alpha.setMetaValue("OpenXQuest:HyperCommon",top_csms_spectrum[i].HyperCommon);
+              ph_alpha.setMetaValue("OpenXQuest:HyperXlink",top_csms_spectrum[i].HyperXlink);
+              ph_alpha.setMetaValue("OpenXQuest:HyperBoth",top_csms_spectrum[i].HyperBoth);
+
+              ph_alpha.setMetaValue("OpenXQuest:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+              ph_alpha.setMetaValue("OpenXQuest:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+              ph_alpha.setMetaValue("OpenXQuest:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+
+              ph_alpha.setMetaValue("selected", "false");
+
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
               LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
               phs.push_back(ph_alpha);
@@ -2165,6 +2275,16 @@ protected:
                 ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
                 ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
                 ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+
+                ph_beta.setMetaValue("OpenXQuest:HyperCommon",top_csms_spectrum[i].HyperCommon);
+                ph_beta.setMetaValue("OpenXQuest:HyperXlink",top_csms_spectrum[i].HyperXlink);
+                ph_beta.setMetaValue("OpenXQuest:HyperBoth",top_csms_spectrum[i].HyperBoth);
+
+                ph_beta.setMetaValue("OpenXQuest:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+                ph_beta.setMetaValue("OpenXQuest:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+                ph_beta.setMetaValue("OpenXQuest:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+
+                ph_beta.setMetaValue("selected", "false");
 
                 phs.push_back(ph_beta);
               }
@@ -2209,7 +2329,6 @@ protected:
     PeptideIndexing pep_indexing;
     Param indexing_param = pep_indexing.getParameters();
 
-    // TODO update additional parameters of PeptideIndexing (enzyme etc.)
     String d_prefix = decoy_prefix ? "true" : "false";
     indexing_param.setValue("prefix", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");

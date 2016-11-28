@@ -390,8 +390,9 @@ namespace OpenMS
       String inputs_element;
       std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;
       std::set<String> sen_set, sof_set, sip_set;
-      std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids;
+      std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids, pep_pairs_ppxl;
       std::map<String, double> pp_identifier_2_thresh;
+      std::vector< std::pair<String, String> > pepid_pairs_ppxl;
 
       //TODO if constructed with a msexperiment - not yet implemented
       //~ if(ms_exp_ == 0)
@@ -724,6 +725,8 @@ namespace OpenMS
           String pepid =  "PEP_" + String(UniqueIdGenerator::getUniqueId());
           String pepi = jt->getSequence().toString();
 
+          // The same peptide sequence (including mods and link position) can be used several times in different pairs
+          // make pepi unique enough, so that PeptideEvidences are written for each case
           if (jt->metaValueExists("xl_chain"))
           {
             pepi += "_" + jt->getMetaValue("xl_chain").toString();
@@ -731,10 +734,50 @@ namespace OpenMS
             {
               pepi += "_" + jt->getMetaValue("xl_pos").toString();
             }
+            pepi += ppxl_linkid;
             //TODO ppxl : should also code for which position is linked
           }
-          std::map<String, String>::iterator pit = pep_ids.find(pepi);
-          if (pit == pep_ids.end())
+
+          bool duplicate = false;
+          std::map<String, String>::iterator pit;
+          // avoid duplicates in a normal ID case
+          if ( (!jt->metaValueExists("xl_chain")) || (it->getHits().size() < 2) )
+          {
+            pit = pep_ids.find(pepi);
+            if (pit != pep_ids.end())
+            {
+              duplicate = true;
+            }
+          }
+
+          // TODO another criterion for ppxl: the same "donor" pep_id can only be reused in combination with the same "acceptor" pep_id,
+          // for now I will just make an exemption for ppxl data, otherwise we get an invalid file as we have missing peptide pairings.
+          // the redundancy should not increase too much, since pairings between exactly the same peptides for different spectra
+          // should be a minority
+
+          // avoid duplicate pairs in ppxl data
+          // TODO access to pep_ids for both peptides from each pair necessary for PSMs
+          // below code does not work at all yet
+
+//          if (jt->metaValueExists("xl_chain") && it->getHits().size() == 2)
+//          {
+//            std::vector<PeptideHit> peps = it->getHits();
+//            String pepi2 = peps[1].getSequence().toString();
+//            std::map<String, String>::iterator pit = pep_pairs_ppxl.find(pepi);
+
+//            // last entry in vector
+//            std::pair<String, String> pepid_pairs_ppxl[pepid_pairs_ppxl.size()-1];
+
+//            if (pit != pep_pairs_ppxl.end())
+//            {
+//              if (pit->second == pep2)
+//              {
+//                duplicate = true;
+//              }
+//            }
+//          }
+
+          if (!duplicate)
           {
             String p;
             //~ TODO simplify mod cv param write
@@ -897,7 +940,7 @@ namespace OpenMS
           }
 
           std::vector<String> pevid_ids;
-          if (pit == pep_ids.end())
+          if (!duplicate)
           {
             std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
             // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first

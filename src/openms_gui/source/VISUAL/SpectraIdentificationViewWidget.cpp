@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
 #include <QtGui/QVBoxLayout>
@@ -140,11 +141,15 @@ namespace OpenMS
     QPushButton* save_idXML = new QPushButton("save idXML", this);
     connect(save_idXML, SIGNAL(clicked()), this, SLOT(saveIdXML_()));
 
+    QPushButton* save_mzIdentML = new QPushButton("save mzIdentML", this);
+    connect(save_mzIdentML, SIGNAL(clicked()), this, SLOT(saveMzIdentML_()));
+
     QPushButton* export_table = new QPushButton("export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
+    tmp_hbox_layout->addWidget(save_mzIdentML);
     tmp_hbox_layout->addWidget(save_idXML);
     tmp_hbox_layout->addWidget(export_table);
 
@@ -321,7 +326,7 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "selected";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated";
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
@@ -559,7 +564,7 @@ namespace OpenMS
             bool selected(false);
             if (ph.metaValueExists("selected"))
             {
-               selected = ph.getMetaValue("selected").toBool();
+               selected = ph.getMetaValue("selected").toString() == "true";
             }
             addCheckboxItemToBottomRow_(selected, 14, c);
 
@@ -815,6 +820,99 @@ namespace OpenMS
       copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
     }
     IdXMLFile().store(filename, prot_id, all_pep_ids);
+  }
+
+  void SpectraIdentificationViewWidget::saveMzIdentML_()
+  {
+    // no valid peak layer attached
+    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    {
+      return;
+    }
+
+    Size n_col = table_widget_->columnCount();
+    Size id_col = 0;
+    Size ph_col = 0;
+    Size sel_col = 0;
+
+    for (Size c = 0; c < n_col; ++c)
+    {
+      String col_head = table_widget_->horizontalHeaderItem(c)->text();
+      if (col_head == "#ID")
+      {
+        id_col = c;
+      }
+      if (col_head == "#PH")
+      {
+        ph_col = c;
+      }
+      if (col_head == "Curated")
+      {
+        sel_col = c;
+      }
+      cout << "Column number / name: " << c << " / " << col_head  << endl;
+    }
+
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "mzIdentML file (*.mzid)");
+    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+    vector<PeptideIdentification> all_pep_ids;
+
+    // update all "selected" fields in the PeptideHits
+    for (int r = 0; r < table_widget_->rowCount(); ++r)
+    {
+      int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
+      int num_id = table_widget_->item(r, id_col)->text().toInt();
+      int num_ph = table_widget_->item(r, ph_col)->text().toInt();
+      bool selected = table_widget_->item(r, sel_col)->checkState() == 2;
+
+
+      vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
+
+
+      if (selected)
+      {
+        // TODO output for testing, delete afterwards
+        cout << "Selected line: " << " #ID: " << num_id << " | #PH: " << num_ph << " PepID length: " << pep_id.size() << " | PepHits: " << pep_id[0].getHits().size() << "selected: " << selected << endl;
+
+        // update "selected" value
+        vector<PeptideHit> hits = pep_id[num_id].getHits();
+        // update both PeptideHits, since they belong to the same cross-link (XL-MS specific)
+        hits[0].setMetaValue("selected", "true");
+        if (hits.size() >= 2)
+        {
+          hits[1].setMetaValue("selected", "true");
+        }
+        pep_id[num_id].setHits(hits);
+      }
+      (*layer_->getPeakData())[spectrum_index].setPeptideIdentifications(pep_id);
+
+      // update "selected" value
+//      pep_id[num_id].getHits()[num_ph].setMetaValue("selected", sel);
+
+
+//      copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
+    }
+
+    // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
+    vector<int> added_spectra;
+    for (int r = 0; r < table_widget_->rowCount(); ++r)
+    {
+      int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
+
+      // skip this row, if this spectrum was already processed
+      if (std::find(added_spectra.begin(), added_spectra.end(), spectrum_index) != added_spectra.end())
+      {
+        continue;
+      }
+      added_spectra.push_back(spectrum_index);
+
+      // collect all PeptideIdentifications from this spectrum
+      vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
+      copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
+    }
+
+    MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    //TODO Export as csv for xiNET?
   }
 
   SpectraIdentificationViewWidget::~SpectraIdentificationViewWidget()

@@ -1320,6 +1320,8 @@ namespace OpenMS
       double matchodds = 0;
       double intsum = 0;
       double wTIC = 0;
+      vector< vector<String> > userParamNameLists;
+      vector< vector<String> > userParamValueLists;
 
       for (std::multimap<String, int>::iterator it=range.first; it!=range.second; ++it)
       {
@@ -1375,6 +1377,20 @@ namespace OpenMS
             RTs.push_back(RT);
           }
         }
+
+        // userParams
+        vector<String> userParamNames;
+        vector<String> userParamValues;
+        DOMNodeList* sii_up = cl_sii->getElementsByTagName(XMLString::transcode("userParam"));
+        const  XMLSize_t up_count = sii_up->getLength();
+        for (XMLSize_t i = 0; i < up_count; ++i)
+        {
+          DOMElement* element_sii_up = dynamic_cast<xercesc::DOMElement*>(sii_up->item(i));
+          userParamNames.push_back(String(XMLString::transcode(element_sii_up->getAttribute(XMLString::transcode("name")))));
+          userParamValues.push_back(String(XMLString::transcode(element_sii_up->getAttribute(XMLString::transcode("value")))));
+        }
+        userParamNameLists.push_back(userParamNames);
+        userParamValueLists.push_back(userParamValues);
 
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
@@ -1571,7 +1587,7 @@ namespace OpenMS
       for (Size i = 0; i < peptides.size(); ++i)
       {
         //cout << "current peptide: " << peptides[i] << endl;
-        //cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
+        cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
         try
         {
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
@@ -1643,6 +1659,14 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:intsum", intsum);
       ph_alpha.setMetaValue("OpenXQuest:wTIC", wTIC);
 
+      vector<String> userParamNames_alpha = userParamNameLists[alpha[0]];
+      vector<String> userParamValues_alpha = userParamValueLists[alpha[0]];
+
+      for (Size i = 0; i < userParamNames_alpha.size(); ++i)
+      {
+        ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
+      }
+
       ph_alpha.setFragmentAnnotations(frag_annotations);
 
       //cout << "xl_type: " << xl_type << endl;
@@ -1688,6 +1712,14 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:match-odds", matchodds);
         ph_beta.setMetaValue("OpenXQuest:intsum", intsum);
         ph_beta.setMetaValue("OpenXQuest:wTIC", wTIC);
+
+        vector<String> userParamNames_beta = userParamNameLists[beta[0]];
+        vector<String> userParamValues_beta = userParamValueLists[beta[0]];
+
+        for (Size i = 0; i < userParamNames_beta.size(); ++i)
+        {
+          ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
+        }
 
         phs.push_back(ph_beta);
       }
@@ -2215,17 +2247,17 @@ namespace OpenMS
                 {
                   CVTerm cv = parseCvParam_(cvp);
                   String cvname = cv.getName();
-                  if (cvname.hasSubstring("unknown mono-link"))
-                  {
-                    xl_mod_map_.insert(make_pair(pep_id, cvname));
-                  }
                   if (cvname.hasPrefix("Xlink") || cv.getAccession().hasPrefix("XLMOD"))
                   {
                     xlink_mod_found = true;
                   }
+                  if (cvname.hasSubstring("unknown mono-link"))
+                  {
+                    xl_mod_map_.insert(make_pair(pep_id, cvname));
+                  }
                   else // normal mod, copied from below
                   {
-                    if (cv.getCVIdentifierRef() != "UNIMOD")
+                    if ( (cv.getCVIdentifierRef() != "UNIMOD") && (cv.getCVIdentifierRef() != "XLMOD") )
                     {
                          //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
                       cvp = cvp->getNextElementSibling();

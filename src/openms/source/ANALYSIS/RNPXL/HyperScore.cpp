@@ -60,63 +60,64 @@ namespace OpenMS
     }
   }
 
-  double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum)
-  {
-    double dot_product = 0.0;
-    UInt y_ion_count = 0;
-    UInt b_ion_count = 0;
+//  template <typename SpectrumType>
+//  double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const SpectrumType& exp_spectrum, const RichPeakSpectrum& theo_spectrum)
+//  {
+//    double dot_product = 0.0;
+//    UInt y_ion_count = 0;
+//    UInt b_ion_count = 0;
 
-    for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
-    {
-      if (!theo_peak_it->metaValueExists("IonName"))
-      {
-        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
-        return 0.0;
-      }
+//    for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+//    {
+//      if (!theo_peak_it->metaValueExists("IonName"))
+//      {
+//        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
+//        return 0.0;
+//      }
 
-      const double theo_mz = theo_peak_it->getMZ();
-      const double theo_intensity = theo_peak_it->getIntensity();
+//      const double theo_mz = theo_peak_it->getMZ();
+//      const double theo_intensity = theo_peak_it->getIntensity();
 
-      double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+//      double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
-      // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-      Size index = exp_spectrum.findNearest(theo_mz);
-      double exp_mz = exp_spectrum[index].getMZ();
+//      // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+//      Size index = exp_spectrum.findNearest(theo_mz);
+//      double exp_mz = exp_spectrum[index].getMZ();
 
-      // found peak match
-      if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
-      {
-        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
-        if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
-        {
-          #ifdef DEBUG_HYPERSCORE
-            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-          #endif
-          ++y_ion_count;
-        }
-        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
-        {
-          #ifdef DEBUG_HYPERSCORE
-            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-          #endif
-          ++b_ion_count;
-        }       
-      }
-    }
+//      // found peak match
+//      if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+//      {
+//        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
+//        if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
+//        {
+//          #ifdef DEBUG_HYPERSCORE
+//            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+//          #endif
+//          ++y_ion_count;
+//        }
+//        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
+//        {
+//          #ifdef DEBUG_HYPERSCORE
+//            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+//          #endif
+//          ++b_ion_count;
+//        }
+//      }
+//    }
 
-    // discard very low scoring hits (basically no matching peaks)
-    if (dot_product > 1e-1)
-    {
-      double yFact = logfactorial_(y_ion_count);
-      double bFact = logfactorial_(b_ion_count);
-      double hyperScore = log(dot_product) + yFact + bFact;
-      return hyperScore;
-    }
-    else
-    {
-      return 0;
-    }
-  }
+//    // discard very low scoring hits (basically no matching peaks)
+//    if (dot_product > 1e-1)
+//    {
+//      double yFact = logfactorial_(y_ion_count);
+//      double bFact = logfactorial_(b_ion_count);
+//      double hyperScore = log(dot_product) + yFact + bFact;
+//      return hyperScore;
+//    }
+//    else
+//    {
+//      return 0;
+//    }
+//  }
 
 }
 
