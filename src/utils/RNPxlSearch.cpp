@@ -674,7 +674,7 @@ private:
     if (exp_pc_formula.empty()) return vector<FragmentAdductDefinition_>(); 
 
     #ifdef DEBUG_RNPXLSEARCH
-      cout << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
+      LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
     #endif
     set<FragmentAdductDefinition_> feasible_fragment_adducts;
 
@@ -694,7 +694,7 @@ private:
           {
             feasible_fragment_adducts.insert(*cit);
     #ifdef DEBUG_RNPXLSEARCH
-          cout << "feasible fragment adduct: " << cit->name << "\t" << cit->formula.toString() << endl;
+          LOG_DEBUG << "feasible fragment adduct: " << cit->name << "\t" << cit->formula.toString() << endl;
     #endif
           }
         }
@@ -768,7 +768,7 @@ private:
         {
           feasible_fragment_adducts.insert(fragment_adducts.begin(), fragment_adducts.end());
     #ifdef DEBUG_RNPXLSEARCH
-          cout << "Rule: " << pc_adduct << " matches to: " << exp_pc_adduct << endl;
+          LOG_DEBUG << "Rule: " << pc_adduct << " matches to: " << exp_pc_adduct << endl;
     #endif
         }
       }
@@ -804,10 +804,10 @@ private:
 
     for (map<String, vector<FragmentAdductDefinition_> >::const_iterator mit = all_pc_all_feasible_adducts.begin(); mit != all_pc_all_feasible_adducts.end(); ++mit)
     {
-      cout << "Precursor adduct: '" << mit->first << "' and feasible fragment adducts:" << endl;
+      LOG_INFO << "Precursor adduct: '" << mit->first << "' and feasible fragment adducts:" << endl;
       for (vector<FragmentAdductDefinition_>::const_iterator fit = mit->second.begin(); fit != mit->second.end(); ++fit)
       {
-        cout << fit->name << "\t" << fit->formula.toString() << endl;
+        LOG_INFO << fit->name << "\t" << fit->formula.toString() << endl;
       }
     } 
 
@@ -819,7 +819,7 @@ private:
     assert(exp.size() == annotated_hits.size());
 
     #ifdef DEBUG_RNPXLSEARCH
-      cout << exp.size() << " : " << annotated_hits.size() << endl;
+      LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
     #endif
 
     Param ps = spectrum_generator.getParameters();
@@ -1042,7 +1042,7 @@ private:
 
           // first annotate total loss peaks (these give no information where the actual shift occured)
           #ifdef DEBUG_RNPXLSEARCH
-            cout << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
+            LOG_DEBUG << "Annotating ion (total loss spectrum): " << fixed_and_variable_modified_peptide.toString()  << endl;
           #endif
           std::vector<std::pair<Size, Size> > alignment;
           spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
@@ -1061,7 +1061,7 @@ private:
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
 
@@ -1080,7 +1080,7 @@ private:
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
 
@@ -1099,7 +1099,7 @@ private:
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
               peak_is_annotated.insert(pair_it->second);                  
 
@@ -1169,7 +1169,7 @@ private:
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
               FragmentAnnotationDetail_ d;
               d.shift = fragment_shift_name;
@@ -1186,7 +1186,7 @@ private:
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
               FragmentAnnotationDetail_ d;
               d.shift = fragment_shift_name;
@@ -1203,7 +1203,7 @@ private:
               ion_nr_string.substitute("+", "");
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
               FragmentAnnotationDetail_ d;
               d.shift = fragment_shift_name;
@@ -1215,7 +1215,7 @@ private:
             else if (ion_name.hasPrefix("RNA:"))
             {
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
               #endif
               annotated_marker_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")");
             }
@@ -1225,7 +1225,7 @@ private:
               String origin = ion_name[1];  // type of immonium ion
               observed_immonium_ions.insert(origin);
             #ifdef DEBUG_RNPXLSEARCH
-              cout << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
+              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
             #endif
               shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
             }
@@ -1317,7 +1317,7 @@ private:
           }
 
           #ifdef DEBUG_RNPXLSEARCH
-            cout << "Localisation based on immonium ions: ";
+            LOG_DEBUG << "Localisation based on immonium ions: ";
           #endif
           String aas_unmodified = aas.toUnmodifiedString();
           for (Size i = 0; i != aas_unmodified.size(); ++i)
@@ -1326,7 +1326,7 @@ private:
             if (shifted_immonium_ions.find(origin) != shifted_immonium_ions.end())
             {                                
               #ifdef DEBUG_RNPXLSEARCH
-                cout << i+1 << " ";
+                LOG_DEBUG << i+1 << " ";
               #endif
               for (set<pair<String, double> >::const_iterator k = shifted_immonium_ions[origin].begin(); k != shifted_immonium_ions[origin].end(); ++k)
               {
@@ -1346,7 +1346,7 @@ private:
           for (Size i = 0; i != sites_sum_score.size(); ++i)
           {
             #ifdef DEBUG_RNPXLSEARCH
-              cout << String::number(100.0 * sites_sum_score[i], 2);
+              LOG_DEBUG << String::number(100.0 * sites_sum_score[i], 2);
             #endif
 
             if (i != 0) localization_scores += ' ';
@@ -1362,7 +1362,7 @@ private:
             if (best_localization_score > 0.0 && sites_sum_score[i] >= best_localization_score - 1e-6) best_localization[i] = tolower(best_localization[i]);
           }
           #ifdef DEBUG_RNPXLSEARCH
-            cout << endl;
+            LOG_DEBUG << endl;
           #endif
 
           // store score of best localization(s)
@@ -1384,27 +1384,27 @@ private:
           a_it->fragment_annotation_string = ListUtils::concatenate(fragment_annotations, "|");
 
           #ifdef DEBUG_RNPXLSEARCH
-            cout << "Ion centric annotation: " << endl;
-            cout << "unshifted b ions: " << endl;
-            cout << fragmentAnnotationDetailsToString_("b", unshifted_b_ions) << endl;
-            cout << "unshifted y ions: " << endl;
-            cout << fragmentAnnotationDetailsToString_("y", unshifted_y_ions) << endl;
-            cout << "unshifted a ions: " << endl;
-            cout << fragmentAnnotationDetailsToString_("a", unshifted_a_ions) << endl;
-            cout << "shifted b ions: " << endl;
-            cout << fragmentAnnotationDetailsToString_("b", shifted_b_ions) << endl;
-            cout << "shifted y ions: " << endl;
-            cout << fragmentAnnotationDetailsToString_("y", shifted_y_ions) << endl;
-            cout << "shifted a ions: " << endl;
-            cout << fragmentAnnotationDetailsToString_("a", shifted_a_ions) << endl;
-            cout << "shifted immonium ions: " << endl;
-            cout << shiftedImmoniumIonsToString_(shifted_immonium_ions) << endl;
-            cout << "shifted marker ions: " << endl;
-            cout << shiftedMarkerIonsToString_(annotated_marker_ions) << endl;
-            cout << "Localization scores: ";
-            cout << localization_scores << endl;
-            cout << "Localisation based on ion series and immonium ions of all observed fragments: ";
-            cout << best_localization << endl;
+            LOG_DEBUG << "Ion centric annotation: " << endl;
+            LOG_DEBUG << "unshifted b ions: " << endl;
+            LOG_DEBUG << fragmentAnnotationDetailsToString_("b", unshifted_b_ions) << endl;
+            LOG_DEBUG << "unshifted y ions: " << endl;
+            LOG_DEBUG << fragmentAnnotationDetailsToString_("y", unshifted_y_ions) << endl;
+            LOG_DEBUG << "unshifted a ions: " << endl;
+            LOG_DEBUG << fragmentAnnotationDetailsToString_("a", unshifted_a_ions) << endl;
+            LOG_DEBUG << "shifted b ions: " << endl;
+            LOG_DEBUG << fragmentAnnotationDetailsToString_("b", shifted_b_ions) << endl;
+            LOG_DEBUG << "shifted y ions: " << endl;
+            LOG_DEBUG << fragmentAnnotationDetailsToString_("y", shifted_y_ions) << endl;
+            LOG_DEBUG << "shifted a ions: " << endl;
+            LOG_DEBUG << fragmentAnnotationDetailsToString_("a", shifted_a_ions) << endl;
+            LOG_DEBUG << "shifted immonium ions: " << endl;
+            LOG_DEBUG << shiftedImmoniumIonsToString_(shifted_immonium_ions) << endl;
+            LOG_DEBUG << "shifted marker ions: " << endl;
+            LOG_DEBUG << shiftedMarkerIonsToString_(annotated_marker_ions) << endl;
+            LOG_DEBUG << "Localization scores: ";
+            LOG_DEBUG << localization_scores << endl;
+            LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
+            LOG_DEBUG << best_localization << endl;
           #endif
         }
       }
@@ -1937,7 +1937,7 @@ private:
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
             
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "scan index: " << scan_index << " achieved score: " << score << endl;
+                LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
               #endif
 
               // no good hit
@@ -1954,7 +1954,7 @@ private:
               ah.rna_mod_index = rna_mod_index;
 
               #ifdef DEBUG_RNPXLSEARCH
-                cout << "best score in pre-score: " << score << endl;
+                LOG_DEBUG << "best score in pre-score: " << score << endl;
               #endif
 
 #ifdef _OPENMP
@@ -1971,9 +1971,9 @@ private:
     }
     progresslogger.endProgress();
 
-    cout << "Proteins: " << count_proteins << endl;
-    cout << "Peptides: " << count_peptides << endl;
-    cout << "Processed peptides: " << processed_petides.size() << endl;
+    LOG_INFO << "Proteins: " << count_proteins << endl;
+    LOG_INFO << "Peptides: " << count_peptides << endl;
+    LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
