@@ -46,15 +46,10 @@ namespace OpenMS
   {
    /*
     * @brief Modifications can be generated and applied to AASequences. 
-    * Alternativly, only position are calculated which in many cases is more convinient and faster.
-    * Possible applications are quicker mass calculations.
     */
 
-  public:
-    typedef std::pair<int, ResidueModification> PositionModificationPair;
-
-    typedef std::vector<PositionModificationPair> PositionModificationPairs; 
-
+  public
+:
     // Applies fixed modifications to a single peptide
     static void applyFixedModifications(const std::vector<ResidueModification>::const_iterator& fixed_mods_begin, const std::vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide);
 
