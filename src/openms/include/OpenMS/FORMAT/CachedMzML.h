@@ -200,4 +200,5 @@ protected:
 
   };
 }
-#endif
+#endif // OPENMS_FORMAT_CACHEDMZML_H
+

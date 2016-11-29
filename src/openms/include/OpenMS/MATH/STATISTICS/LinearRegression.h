@@ -270,11 +270,12 @@ private:
 
       if (pass)
       {
-        if (compute_goodness) computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
       }
     }
 
@@ -324,11 +325,12 @@ private:
 
       if (nonsingular)
       {
-        if (compute_goodness) computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
 
