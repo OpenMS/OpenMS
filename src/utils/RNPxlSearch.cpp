@@ -353,7 +353,13 @@ private:
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   template <typename SpectrumType>
-  void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, 
+                                          Int min_charge, Int max_charge, 
+                                          double fragment_tolerance, bool fragment_unit_ppm, 
+                                          bool keep_only_deisotoped = false, 
+                                          Size min_isopeaks = 3, Size max_isopeaks = 10, 
+                                          bool make_single_charged = true,
+                                          bool annotate_charge = false)
   {
     if (in.empty())
     {
@@ -361,6 +367,13 @@ private:
     }
 
     SpectrumType old_spectrum = in;
+
+    if (annotate_charge) 
+    {
+      // expand to hold one additional integer data array to hold the charge
+      in.getIntegerDataArrays().resize(in.getIntegerDataArrays().size() + 1);
+      in.getIntegerDataArrays().back().setName("z");
+    }
 
     // determine charge seeds and extend them
     vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
@@ -376,7 +389,7 @@ private:
         // try to extend isotopes from mono-isotopic peak
         // if extension larger then min_isopeaks possible:
         //   - save charge q in mono_isotopic_peak[]
-        //   - annotate all isotopic peaks with feature number
+        //   - annotate_charge all isotopic peaks with feature number
         if (features[current_peak] == -1) // only process peaks which have no assigned feature number
         {
           bool has_min_isopeaks = true;
@@ -444,12 +457,24 @@ private:
         if (!make_single_charged)
         {
           in.push_back(old_spectrum[i]);
+
+          // add peak charge to annotation array
+          if (annotate_charge)
+          {
+            in.getIntegerDataArrays().back().push_back(z);
+          }
         }
         else
         {
           Peak1D p = old_spectrum[i];
           p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
           in.push_back(p);
+
+          // add peak charge to annotation array
+          if (annotate_charge)
+          {
+            in.getIntegerDataArrays().back().push_back(z);
+          }
         }
       }
       else
@@ -458,6 +483,12 @@ private:
         if (features[i] < 0)
         {
           in.push_back(old_spectrum[i]);
+
+          // add peak charge to annotation array
+          if (annotate_charge)
+          {
+            in.getIntegerDataArrays().back().push_back(z);
+          }
           continue;
         }
 
@@ -467,12 +498,22 @@ private:
           if (!make_single_charged)
           {
             in.push_back(old_spectrum[i]);
+
+            if (annotate_charge)
+            {
+              in.getIntegerDataArrays().back().push_back(z);
+            }
           }
           else
           {
             Peak1D p = old_spectrum[i];
             p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
             in.push_back(p);
+
+            if (annotate_charge)
+            {
+              in.getIntegerDataArrays().back().push_back(z);
+            }
           }
         }
       }
@@ -1997,8 +2038,7 @@ private:
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
-
-    // Reindex ids
+    // reindex ids
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
     param_pi.setValue("decoy_string_position", "prefix");
