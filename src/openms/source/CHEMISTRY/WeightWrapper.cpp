@@ -59,7 +59,7 @@ namespace OpenMS
   void WeightWrapper::setWeightMode(const WEIGHTMODE mode)
   {
     if (mode >= WeightWrapper::SIZE_OF_WEIGHTMODE)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "setWeightMode() received illegal 'mode' value!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "setWeightMode() received illegal 'mode' value!");
     weight_mode_ = mode;
   }
 

@@ -81,7 +81,7 @@ namespace OpenMS
     // avoid crash while comparing
     if (!spec1.checkCompliance(spec2))
     {
-      throw IncompatibleBinning(__FILE__, __LINE__, __PRETTY_FUNCTION__, "");
+      throw IncompatibleBinning(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
     }
 
     // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)

@@ -290,7 +290,7 @@ namespace OpenMS
     }
     catch (...)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Numpress decompression");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Numpress decompression");
     }
 
 #ifdef NUMPRESS_DEBUG

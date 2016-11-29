@@ -183,12 +183,12 @@ namespace OpenMS
     {
       if (ransac_params_ == NULL)
       {
-        throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TrafoModel::train(): no RANSAC parameters were set before calling train(). Internal error!");
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TrafoModel::train(): no RANSAC parameters were set before calling train(). Internal error!");
       }
       if (!(md == LINEAR || md == QUADRATIC))
       {
         LOG_ERROR << "RANSAC is implemented for LINEAR and QUADRATIC models only! Please disable RANSAC or choose the LINEAR or QUADRATIC model." << std::endl;
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 
@@ -320,7 +320,7 @@ namespace OpenMS
   Size MZTrafoModel::findNearest( const std::vector<MZTrafoModel>& tms, double rt )
   {
     // no peak => no search
-    if (tms.size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one model to determine the nearest model!");
+    if (tms.size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one model to determine the nearest model!");
 
     // search for position for inserting
     std::vector<MZTrafoModel>::const_iterator it = lower_bound(tms.begin(), tms.end(), rt, MZTrafoModel::RTLess());
@@ -367,7 +367,7 @@ namespace OpenMS
 
   void MZTrafoModel::getCoefficients( double& intercept, double& slope, double& power )
   {
-    if (!isTrained()) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Model is not trained yet.");
+    if (!isTrained()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Model is not trained yet.");
 
     intercept = coeff_[0];
     slope = coeff_[1];

@@ -22,9 +22,8 @@
 	be available to you.
 	The most important variables are:
 	<UL>
-	<LI>OPENMS_INCLUDE_DIRS - all include directories containing %OpenMS headers
+	<LI>OpenMS_INCLUDE_DIRECTORIES - all include directories containing %OpenMS headers
 	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
-	<LI>OPENMS_DEFINITIONS - compiler flags (e.g. to disable certain compiler warnings)
 	</UL>
 	and the %OpenMS target itself (which you can link against).
 	<br>	

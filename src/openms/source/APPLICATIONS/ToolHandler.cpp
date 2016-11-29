@@ -168,7 +168,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
       }
     }
 
@@ -190,6 +190,7 @@ namespace OpenMS
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
+    util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
@@ -268,7 +269,7 @@ namespace OpenMS
         return tools[toolname].types;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested tool '" + toolname + "' does not exist!", toolname);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested tool '" + toolname + "' does not exist!", toolname);
   }
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()

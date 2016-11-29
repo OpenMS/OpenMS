@@ -79,7 +79,7 @@ namespace OpenMS
       String msg = "Maximum m/z or intensity out of range (m/z: " + 
         String(max_mz) + ", intensity: " + String(max_intensity) + "). "
         "Has 'updateRanges' been called on the input maps?";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
@@ -202,7 +202,7 @@ namespace OpenMS
     num_maps_ = input_maps.size();
     if (num_maps_ < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "At least two input maps required");
     }
 

@@ -70,7 +70,7 @@ namespace OpenMS
     // TODO: add other enzymes
     if (param.getValue("Digestion:enzyme") != "Trypsin")
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "18 O Labeling requires digestion with Trypsin");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "18 O Labeling requires digestion with Trypsin");
     }
   }
 
@@ -79,7 +79,7 @@ namespace OpenMS
     // no action here .. just check for 2 channels
     if (features.size() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(features.size()) + " channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(features.size()) + " channel(s) given. 18O Labeling only works with 2 channels. Please provide two FASTA files!");
     }
   }
 

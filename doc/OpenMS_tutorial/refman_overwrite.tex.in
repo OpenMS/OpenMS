@@ -1,13 +1,17 @@
 \documentclass[a4paper]{article}
-\usepackage{a4wide}
+\usepackage{geometry}
+\geometry{
+  includeheadfoot,
+  margin=2.54cm
+}
 \usepackage{makeidx}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{multicol}
 \usepackage{float}
-\usepackage{textcomp}
 \usepackage{alltt}
-\usepackage{times}
+\usepackage{newtxtext, newtxmath}
+\usepackage[full]{textcomp} %Careful: newtxttext also loads textcomp. Option full needs to match.
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,
