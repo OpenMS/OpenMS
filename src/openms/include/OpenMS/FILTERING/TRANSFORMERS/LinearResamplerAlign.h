@@ -258,8 +258,14 @@ public:
       while (mz_raw_it != mz_raw_end)
       {
         //advance the resample iterator until our raw point is between two resampled iterators
-        while (mz_resample_it != mz_resample_end && *mz_resample_it < *mz_raw_it) {++mz_resample_it; ++int_resample_it;}
-        if (mz_resample_it != mz_resample_start) {--mz_resample_it; --int_resample_it;}
+        while (mz_resample_it != mz_resample_end && *mz_resample_it < *mz_raw_it)
+        {
+          ++mz_resample_it; ++int_resample_it;
+        }
+        if (mz_resample_it != mz_resample_start)
+        {
+          --mz_resample_it; --int_resample_it;
+        }
 
         // if we have the last datapoint we break
         if ((mz_resample_it + 1) == mz_resample_end) {break;}
