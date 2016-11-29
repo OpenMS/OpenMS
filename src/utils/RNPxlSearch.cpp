@@ -87,7 +87,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_RNPXLSEARCH 
+#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -522,7 +522,7 @@ private:
     in.sortByPosition();
   }
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool annotate_charge = false)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -554,7 +554,13 @@ private:
       exp[exp_index].sortByPosition();
 
       // deisotope
-      deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, single_charge_spectra);
+      deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 
+                                         1, 3, 
+                                         fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                                         false, 
+                                         3, 10, 
+                                         single_charge_spectra, 
+                                         annotate_charge);
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -567,6 +573,12 @@ private:
 
   struct FragmentAnnotationDetail_
   {
+    FragmentAnnotationDetail_(String s, int z, double m, double i):
+      shift(s),
+      charge(z),
+      mz(m),
+      intensity(i)
+      {}
     String shift;
     int charge;
     double mz;
@@ -855,7 +867,16 @@ private:
     return all_pc_all_feasible_adducts;
   }
 
-  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, TheoreticalSpectrumGenerator spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<String, vector<FragmentAdductDefinition_> > & all_feasible_fragment_adducts)
+  void postScoreHits_(const PeakMap& exp, 
+                      vector<vector<AnnotatedHit> >& annotated_hits, 
+                      Size top_hits, 
+                      const RNPxlModificationMassesResult& mm, 
+                      const vector<ResidueModification>& fixed_modifications, 
+                      const vector<ResidueModification>& variable_modifications, 
+                      Size max_variable_mods_per_peptide, 
+                      TheoreticalSpectrumGenerator spectrum_generator, 
+                      double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, 
+                      const map<String, vector<FragmentAdductDefinition_> > & all_feasible_fragment_adducts)
   {
     assert(exp.size() == annotated_hits.size());
 
@@ -1089,8 +1110,13 @@ private:
           spectrum_aligner.getSpectrumAlignment(alignment, total_loss_spectrum, exp_spectrum);
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
           {
-            const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity(); // in percent (%)
-            const double fragment_mz = exp_spectrum[pair_it->second].getMZ();
+            // information on the experimental fragment in the alignment
+            const Size& fragment_index = pair_it->second;
+            const Peak1D& fragment = exp_spectrum[fragment_index];
+            const double fragment_intensity = fragment.getIntensity(); // in percent (%)
+            const double fragment_mz = fragment.getMZ();
+            const int fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
+
             String ion_name = total_loss_spectrum[pair_it->first].getMetaValue("IonName");
 
             // define which ion names are annotated 
@@ -1106,12 +1132,20 @@ private:
               #endif
               peak_is_annotated.insert(pair_it->second);                  
 
-              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
-              FragmentAnnotationDetail_ d;
-              d.charge = charge;
-              d.mz = fragment_mz;
-              d.intensity = fragment_intensity;
-              unshifted_y_ions[ion_number].push_back(d);
+              int charge = static_cast<int>(std::count(ion_name.begin(), ion_name.end(), '+'));
+
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              { 
+                FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+                unshifted_y_ions[ion_number].push_back(d);
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              }
+              #endif
             }
             else if (ion_name.hasPrefix("b"))
             { 
@@ -1125,12 +1159,20 @@ private:
               #endif
               peak_is_annotated.insert(pair_it->second);                  
 
-              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
-              FragmentAnnotationDetail_ d;
-              d.charge = charge;
-              d.mz = fragment_mz;
-              d.intensity = fragment_intensity;
-              unshifted_b_ions[ion_number].push_back(d);
+              int charge = static_cast<int>(std::count(ion_name.begin(), ion_name.end(), '+'));
+
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              { 
+                FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+                unshifted_b_ions[ion_number].push_back(d);
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              }
+              #endif
             }
             else if (ion_name.hasPrefix("a"))
             { 
@@ -1144,12 +1186,20 @@ private:
               #endif
               peak_is_annotated.insert(pair_it->second);                  
 
-              Size charge = std::count(ion_name.begin(), ion_name.end(), '+');
-              FragmentAnnotationDetail_ d;
-              d.charge = charge;
-              d.mz = fragment_mz;
-              d.intensity = fragment_intensity;
-              unshifted_a_ions[ion_number].push_back(d);
+              int charge = static_cast<int>(std::count(ion_name.begin(), ion_name.end(), '+'));
+
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              { 
+                FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+                unshifted_a_ions[ion_number].push_back(d);
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              }
+              #endif
             }
           }
 
@@ -1175,8 +1225,6 @@ private:
             continue;
           }
 
-          set<String> observed_immonium_ions;
-
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
           {
             // only annotate experimental peaks with shift - i.e. do not annotated complete loss peaks again
@@ -1185,8 +1233,12 @@ private:
               continue;
             }
 
-            const double fragment_intensity = exp_spectrum[pair_it->second].getIntensity();
-            const double fragment_mz = exp_spectrum[pair_it->second].getMZ();
+            // information on the experimental fragment in the alignment
+            const Size& fragment_index = pair_it->second;
+            const Peak1D& fragment = exp_spectrum[fragment_index];
+            const double fragment_intensity = fragment.getIntensity(); // in percent (%)
+            const double fragment_mz = fragment.getMZ();
+            const int fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
 
             String ion_name = partial_loss_spectrum[pair_it->first].getMetaValue("IonName");
 
@@ -1204,7 +1256,7 @@ private:
             // define which ion names are annotated 
             if (fragment_ion_name.hasPrefix("y"))
             { 
-              Size charge = std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+');
+              int charge = static_cast<int>(std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+'));
               String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("y", "");
               ion_nr_string.substitute("+", "");
@@ -1212,16 +1264,23 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
-              FragmentAnnotationDetail_ d;
-              d.shift = fragment_shift_name;
-              d.charge = charge;
-              d.mz = fragment_mz;
-              d.intensity = fragment_intensity;
-              shifted_y_ions[ion_number].push_back(d);
+
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              { 
+                FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+                shifted_y_ions[ion_number].push_back(d);
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              }
+              #endif
             }
             else if (fragment_ion_name.hasPrefix("b"))
             { 
-              Size charge = std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+');
+              int charge = static_cast<int>(std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+'));
               String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("b", "");
               ion_nr_string.substitute("+", "");
@@ -1229,16 +1288,23 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
-              FragmentAnnotationDetail_ d;
-              d.shift = fragment_shift_name;
-              d.charge = charge;
-              d.mz = fragment_mz;
-              d.intensity = fragment_intensity;
-              shifted_b_ions[ion_number].push_back(d);
+
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              { 
+                FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+                shifted_b_ions[ion_number].push_back(d);
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              }
+              #endif
             }
             else if (fragment_ion_name.hasPrefix("a"))
             { 
-              Size charge = std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+');
+              int charge = static_cast<int>(std::count(fragment_ion_name.begin(), fragment_ion_name.end(), '+'));
               String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("a", "");
               ion_nr_string.substitute("+", "");
@@ -1246,29 +1312,53 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
               #endif
-              FragmentAnnotationDetail_ d;
-              d.shift = fragment_shift_name;
-              d.charge = charge;
-              d.mz = fragment_mz;
-              d.intensity = fragment_intensity;
-              shifted_a_ions[ion_number].push_back(d);
+ 
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              { 
+                FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+                shifted_a_ions[ion_number].push_back(d);
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
+              }
+              #endif
             }
             else if (ion_name.hasPrefix("RNA:"))
             {
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
               #endif
-              annotated_marker_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")");
+              if (fragment_charge <= 1) // TODO: check if higher charge states for RNA adduct ions make sense (also accept if no charge assigned)
+              {
+                annotated_marker_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")");
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
+              }
+              #endif
             }
             else if (ion_name.hasPrefix("i"))
             {
               String ion_nr_string = ion_name;
               String origin = ion_name[1];  // type of immonium ion
-              observed_immonium_ions.insert(origin);
-            #ifdef DEBUG_RNPXLSEARCH
-              LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
-            #endif
-              shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
+              #ifdef DEBUG_RNPXLSEARCH
+                LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
+              #endif
+              if (fragment_charge <= 1) // TODO: check if higher charge states for immonium ions make sense (also accept if no charge assigned)
+              {
+                shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
+              }
+              #ifdef DEBUG_RNPXLSEARCH
+              else
+              {
+                LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << 1 << endl;
+              }
+              #endif
             }
           }
 
@@ -2026,13 +2116,28 @@ private:
       spectra.clear(true);
       f.load(in_mzml, spectra);
       spectra.sortSpectra(true);    
-      preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false); // for post scoring don't convert fragments to single charge as we need this information
+
+      // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
+      preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); 
+
       progresslogger.startProgress(0, 1, "localization...");
-      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_fragment_adducts);
+      postScoreHits_(spectra, 
+                     annotated_hits, 
+                     report_top_hits, 
+                     mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, 
+                     spectrum_generator, 
+                     fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                     all_feasible_fragment_adducts);
     }
 
     progresslogger.startProgress(0, 1, "annotation...");
-    postProcessHits_(spectra, annotated_hits, protein_ids, peptide_ids, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
+    postProcessHits_(spectra, 
+                     annotated_hits, 
+                     protein_ids, peptide_ids, 
+                     report_top_hits, 
+                     mm, 
+                     fixed_modifications, variable_modifications, 
+                     max_variable_mods_per_peptide);
     progresslogger.endProgress();
 
     // annotate RNPxl related information to hits and create report
