@@ -168,6 +168,7 @@ protected:
       }
       //else caught by TOPPBase:registerInput being mandatory mzid or idxml
 
+      // will check if all ProteinIdentifications have the same search db unless it is the first, in which case all_protein_ids is empty yet.
       if (multiple_search_engines && !skip_db_check && !all_protein_ids.empty())
       {
         ProteinIdentification::SearchParameters all_search_parameters = all_protein_ids.front().getSearchParameters();
@@ -203,13 +204,6 @@ protected:
         }
       }
       TopPerc::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
-    }
-    
-    if (all_peptide_ids.empty())
-    {
-      writeLog_("No peptide hits found in input file. Aborting!");
-      printUsage_();
-      return INPUT_FILE_EMPTY;
     }
     
     if (all_protein_ids.empty())
