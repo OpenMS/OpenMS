@@ -334,26 +334,33 @@ namespace OpenMS
         String spectrum_reference = getScanMergeKey_(pit, all_peptide_ids.begin());
         unified[spectrum_reference] = ins;
       }
-      
+      LOG_DEBUG << "filled spectrum map with previously observed PSM: " << unified.size() << endl;
+
+      int nc = 0;
+      int mc = 0;
+      LOG_DEBUG << "About to merge in:" << new_peptide_ids.size() << "PSMs." << endl;
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
         //prepare for merge
         for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
         {
-          hit->setScore(1);
+          hit->setScore(1);  // new 'multiple' score is just the number of times identified by different SE
         }
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
         String spectrum_reference = getScanMergeKey_(pit, new_peptide_ids.begin());
         //merge in unified map
+        // insert newly identified spectra (PeptideIdentifications) or ..
         if (unified.find(spectrum_reference) == unified.end())
         {
           unified[spectrum_reference] = ins;
+          ++nc;
         }
+        // .. add PSMs to already identified spectrum
         else
         {
-          //find corresponding hit
+          //find corresponding hit (i.e. sequences must match)
           for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
           {
             for (vector<PeptideHit>::iterator merger = unified[spectrum_reference].getHits().begin(); merger != unified[spectrum_reference].getHits().end(); ++merger)
@@ -384,8 +391,9 @@ namespace OpenMS
                     merger->setMetaValue(*kt, hit->getMetaValue(*kt));
                   }
                 }
-                // adds up the number of hits, as the score of each separate hit is 1
+                // adds up the number of hits, as the score of each separate (new) hit is 1
                 merger->setScore(merger->getScore() + hit->getScore());
+                ++mc;
                 break;
               }
             }
@@ -402,7 +410,7 @@ namespace OpenMS
         swip.push_back(it->second);
       }
       all_peptide_ids.swap(swip);
-      LOG_DEBUG << "Now containing " << all_peptide_ids.size() << " spectra identifications."<< endl;        
+      LOG_DEBUG << "Now containing " << all_peptide_ids.size() << " spectra identifications, new: " << nc << " merged in: " << mc << endl;
     }
     
     // references from PeptideHits to ProteinHits work with the protein accessions, so no need to update the PeptideHits
@@ -477,15 +485,24 @@ namespace OpenMS
         LOG_DEBUG << "Done with next Parameters." << endl;
         all_protein_ids.front().setSearchParameters(all_sp);
       }
-      
-      StringList all_primary_ms_run_path = all_protein_ids.front().getPrimaryMSRunPath();
-      StringList new_primary_ms_run_path = new_protein_ids.front().getPrimaryMSRunPath();
-      all_primary_ms_run_path.insert(all_primary_ms_run_path.end(), new_primary_ms_run_path.begin(), new_primary_ms_run_path.end());
-      all_protein_ids.front().setPrimaryMSRunPath(all_primary_ms_run_path);
-      LOG_DEBUG << "New primary run paths: " << ListUtils::concatenate(new_primary_ms_run_path,",") << endl;
-      LOG_DEBUG << "All primary run paths: " << ListUtils::concatenate(all_primary_ms_run_path,",") << endl;
-      
-      LOG_DEBUG << "All merging finished." << endl;
+      LOG_DEBUG << "Merging primaryMSRunPaths." << endl;
+      try
+      {
+        StringList all_primary_ms_run_path = all_protein_ids.front().getPrimaryMSRunPath();
+        StringList new_primary_ms_run_path = new_protein_ids.front().getPrimaryMSRunPath();
+
+        all_primary_ms_run_path.insert(all_primary_ms_run_path.end(), new_primary_ms_run_path.begin(), new_primary_ms_run_path.end());
+        all_protein_ids.front().setPrimaryMSRunPath(all_primary_ms_run_path);
+
+        LOG_DEBUG << "New primary run paths: " << ListUtils::concatenate(new_primary_ms_run_path,",") << endl;
+        LOG_DEBUG << "All primary run paths: " << ListUtils::concatenate(all_primary_ms_run_path,",") << endl;
+      }
+      catch (Exception::BaseException& e)
+      {
+        LOG_DEBUG << "faulty primary MS run path: " << endl;
+        Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
+      }
+      LOG_DEBUG << "Merging for this file finished." << endl;
     }
     
     void TopPerc::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
@@ -628,18 +645,22 @@ namespace OpenMS
         }
       }
       
-      Int scan_number = 0;
+      Int scan = 0;
       StringList fields = ListUtils::create<String>(scan_identifier);
       for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
       {
-        // if scan number is not available, use the scan index
         Size idx = 0;
-        if ((idx = it->find("index=")) != string::npos) 
+        if ((idx = it->find("scan=")) != string::npos)
         {
-          scan_number = it->substr(idx + 6).toInt();
+          scan = it->substr(idx + 5).toInt();
+          break;
+        }  // only if scan number is not available, use the scan index
+        else if ((idx = it->find("index=")) != string::npos)
+        {
+          scan = it->substr(idx + 6).toInt();
         }
       }
-      return String(scan_number);
+      return String(scan);
     }
     
 
