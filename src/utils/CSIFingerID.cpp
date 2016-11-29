@@ -200,10 +200,15 @@ protected:
        double precursor_mz = precursor[0].getMZ();
 
        //store temporary data
-       //String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString()) + "_" + scan_index + ".ms";
        String query_id = String("unknown") + String(scan_index);
-       String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString()) + "_" + query_id.toQString() + ".ms";
-       String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString()) + "_out";
+
+       String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
+       String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_out";
+       String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
+
+       //to get the path and filename
+       cout << "\n" << "Temp_output_folder: " << tmp_dir << "\n" << endl;
+       cout << "Temp_filename: " << tmp_filename << "\n" << endl;
 
        // create temporary input file (.ms)
        ofstream os(tmp_filename.c_str());
@@ -218,18 +223,14 @@ protected:
          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_dir);
        }
 
-       os << fixed << setprecision(12);
+       os.precision(12);
+       os << fixed;
        os << ">compound " << query_id << "\n"
-          << ">parentmass " << precursor_mz << "\n"
+          << ">parentmass " << precursor_mz << fixed << "\n"
           << ">charge " << int_charge << "\n\n"
           << ">ms2" << "\n";
 
-       cout << ">compound " << query_id << "\n"
-          << ">parentmass " << precursor_mz << "\n"
-          << ">charge " << int_charge << "\n\n"
-          << ">ms2" << "\n";
-
-       //single spectrum peaks (spectrum needs to have at least 8 peaks) //just for now.
+       //single spectrum peaks
 
        for (Size i = 0; i != spectrum.size(); ++i)
        {
@@ -238,9 +239,7 @@ protected:
          float intensity = peak.getIntensity();
 
           os << mz << " " << intensity << "\n";
-
-          cout << mz << " " << intensity << "\n";
-         }
+        }
 
        os.close();
 
@@ -252,7 +251,8 @@ protected:
                       << "-s" << isotope
                       << "--noise" << noise
                       << "-c" << candidates
-                      << "--ppm-max" << ppm_max;
+                      << "--ppm-max" << ppm_max
+                      << "--output" << tmp_dir.toQString(); //internal output folder for temporary files
 
                       if (no_recalibration) process_params << "--no-recalibration";
                       if (fingerid) process_params << "--fingerid";
@@ -269,7 +269,11 @@ protected:
        }
 
        // read results from sirius output files
-       CsvFile compounds(tmp_dir + "/" + query_id, '\t');
+       //CsvFile compounds(tmp_dir + "/" + query_id +".csv", '\t');
+       CsvFile compounds(tmp_dir + "/" + unique_name + "_" + query_id +".csv", '\t');
+
+       //try
+       //CsvFile compounds(tmp_output_file, '\t');
 
        for (Size j = 0; j != compounds.rowCount(); ++j)
        {
