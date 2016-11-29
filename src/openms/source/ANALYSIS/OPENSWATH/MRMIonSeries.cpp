@@ -523,7 +523,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, *ft_it + " ion series for peptide sequence \"" + sequence.toString() + "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *ft_it + " ion series for peptide sequence \"" + sequence.toString() + "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
           }
 
           ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);

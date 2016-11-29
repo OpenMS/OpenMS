@@ -355,7 +355,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
         }
 
@@ -660,7 +660,7 @@ private:
         nesting_level_++;
 
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         // check if the scan is in the desired MS / RT range
         UInt ms_level = attributeAsInt_(attributes, s_mslevel_);

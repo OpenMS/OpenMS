@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2014-10-27T15:00:44" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML /tools/bin/TPP/tpp/schema/pepXML_v18.xsd" summary_xml="/data/lamgroup/iPRG2014/study/iP/ipro3-1A.pep.xml">
+<analysis_summary analysis="interprophet" time="2014-10-27T15:00:44">
+<interprophet_summary version="TPP v0.0.0 TRUNK (DEV), Build 201407221546-6570M (Ubuntu-x86_64)" options="MINPROB=0"  est_tot_num_correct_psm="25705.4"  est_tot_num_correct_pep="20469.1">
+<inputfile name="../oms/interact-1A.pep.xml"/>
+<inputfile name="../cmt/interact-1A.pep.xml"/>
+<inputfile name="../msgf/interact-1A.pep.xml"/>
+<roc_error_data charge="all">
+<roc_data_point min_prob="0.9999" sensitivity="0.8176" error="0.0000" num_corr="21017" num_incorr="0"/>
+<roc_data_point min_prob="0.9990" sensitivity="0.8568" error="0.0000" num_corr="22025" num_incorr="1"/>
+<roc_data_point min_prob="0.9900" sensitivity="0.9028" error="0.0002" num_corr="23207" num_incorr="5"/>
+<roc_data_point min_prob="0.9800" sensitivity="0.9176" error="0.0005" num_corr="23587" num_incorr="11"/>
+<error_point error="0.0000" min_prob="1.0000" num_corr="2" num_incorr="0"/>
+<error_point error="0.0001" min_prob="0.9957" num_corr="22770" num_incorr="2"/>
+<error_point error="0.0002" min_prob="0.9911" num_corr="23141" num_incorr="5"/>
+<error_point error="0.0003" min_prob="0.9870" num_corr="23358" num_incorr="7"/>
+<error_point error="0.0004" min_prob="0.9827" num_corr="23515" num_incorr="9"/>
+</roc_error_data>
+
+<mixturemodel name="NSS" pos_bandwidth="0.509999" neg_bandwidth="0.509999">
+<point value="-0.01" pos_dens="0.145023" neg_dens="1.11123" neg_obs_dens="1.11601" pos_obs_dens="0.126615"/>
+<point value="-0.00795591" pos_dens="0.145842" neg_dens="1.11145" neg_obs_dens="1.1162" pos_obs_dens="0.127432"/>
+<point value="-0.00591183" pos_dens="0.146666" neg_dens="1.11164" neg_obs_dens="1.11637" pos_obs_dens="0.128253"/>
+</mixturemodel>
+<mixturemodel name="NRS" pos_bandwidth="1.41983" neg_bandwidth="1.41983">
+<point value="-5.01" pos_dens="0.000498925" neg_dens="0.000622044" neg_obs_dens="0.000630156" pos_obs_dens="0.000500468"/>
+<point value="-4.98155" pos_dens="0.000535429" neg_dens="0.000663988" neg_obs_dens="0.000672304" pos_obs_dens="0.000537083"/>
+<point value="-4.95309" pos_dens="0.000574375" neg_dens="0.000708665" neg_obs_dens="0.000717193" pos_obs_dens="0.000576147"/>
+</mixturemodel>
+<mixturemodel name="NSI" pos_bandwidth="0.603999" neg_bandwidth="0.603999">
+<point value="-0.01" pos_dens="0.549546" neg_dens="0.655985" neg_obs_dens="0.65739" pos_obs_dens="0.549929"/>
+<point value="-0.0039479" pos_dens="0.550213" neg_dens="0.656088" neg_obs_dens="0.657483" pos_obs_dens="0.550594"/>
+<point value="0.0021042" pos_dens="0.550835" neg_dens="0.656125" neg_obs_dens="0.657511" pos_obs_dens="0.551213"/>
+</mixturemodel>
+<mixturemodel name="NSM" pos_bandwidth="0.501999" neg_bandwidth="0.501999">
+<point value="-0.01" pos_dens="0.736416" neg_dens="0.79083" neg_obs_dens="0.791921" pos_obs_dens="0.73702"/>
+<point value="6.01102e-05" pos_dens="0.736895" neg_dens="0.791015" neg_obs_dens="0.792098" pos_obs_dens="0.737497"/>
+<point value="0.0101202" pos_dens="0.737092" neg_dens="0.790883" neg_obs_dens="0.791957" pos_obs_dens="0.737691"/>
+</mixturemodel>
+<mixturemodel name="NSP" pos_bandwidth="2.002" neg_bandwidth="2.002">
+<point value="-0.01" pos_dens="0.0187254" neg_dens="0.14634" neg_obs_dens="0.148671" pos_obs_dens="0.0194532"/>
+<point value="0.0301202" pos_dens="0.0190238" neg_dens="0.146857" neg_obs_dens="0.149182" pos_obs_dens="0.0197594"/>
+<point value="0.0702405" pos_dens="0.0193224" neg_dens="0.147324" neg_obs_dens="0.149643" pos_obs_dens="0.0200657"/>
+</mixturemodel>
+</interprophet_summary>
+</analysis_summary>
+<analysis_summary analysis="peptideprophet" time="2014-10-26T13:20:49"/>
+<analysis_summary analysis="peptideprophet" time="2014-10-26T13:27:01"/>
+<analysis_summary analysis="peptideprophet" time="2014-10-27T14:05:17"/>
+<analysis_summary analysis="database_refresh" time="2014-10-26T13:20:41"/>
+<analysis_summary analysis="interact" time="2014-10-26T13:20:32">
+<interact_summary filename="/data/lamgroup/iPRG2014/study/oms/interact-1A.pep.xml" directory="/data/lamgroup/iPRG2014/study/oms">
+<inputfile name="JD_06232014_sample1-A.pep.xml" directory="/data/lamgroup/iPRG2014/study/oms"/>
+</interact_summary>
+</analysis_summary>
+<msms_run_summary base_name="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A" raw_data_type="raw" raw_data=".mzML">
+<sample_enzyme name="trypsin" fidelity="semispecific">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml" search_engine="OMSSA" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="n/a" out_data="n/a" search_id="1">
+<search_database local_path="/dbase/Misc/iPRG2014/iPRG2015.TargDecoy.fasta" size_in_db_entries="13256" type="AA"/>
+<enzymatic_search_constraint enzyme="Semi-Tryptic" max_num_internal_cleavages="2" min_number_termini="2"/>
+<aminoacid_modification aminoacid="C" massdiff="57.021000000000001" mass="160.03019" variable="N" description="Carbamidomethyl"/>
+<aminoacid_modification aminoacid="M" massdiff="15.995000000000001" mass="147.03549" variable="Y" description="Oxidation"/>
+<aminoacid_modification aminoacid="C" massdiff="-17.026" mass="143.00419" variable="Y" peptide_terminus="N" description="Ammonia-loss"/>
+<aminoacid_modification aminoacid="E" massdiff="-18.010000000000002" mass="111.03259" variable="Y" peptide_terminus="N" description="Glu-&gt;pyro-Glu"/>
+<aminoacid_modification aminoacid="Q" massdiff="-17.026" mass="111.03258" variable="Y" peptide_terminus="N" description="Ammonia-loss"/>
+<terminal_modification terminus="n" massdiff="42.011000000000003" mass="43.01894" variable="Y" protein_terminus="Y" description="Acetyl"/>
+</search_summary>
+<analysis_timestamp analysis="interprophet" time="2014-10-27T15:00:44" id="1"/>
+<analysis_timestamp analysis="peptideprophet" time="2014-10-26T13:20:49" id="1"/>
+<analysis_timestamp analysis="database_refresh" time="2014-10-26T13:20:41" id="1">
+<database_refresh_timestamp database="/dbase/Misc/iPRG2014/iPRG2015.TargDecoy.fasta" min_num_enz_term="0"/>
+</analysis_timestamp>
+<spectrum_query spectrum="JD_06232014_sample1-A.00006.00006.2" start_scan="6" end_scan="6" precursor_neutral_mass="870.405029296875" assumed_charge="2" index="1">
+<search_result>
+<search_hit hit_rank="1" peptide="HEEIDTK" peptide_prev_aa="K" peptide_next_aa="N" protein="sp|Q08745|RS10A_YEAST" num_tot_proteins="2" num_matched_ions="3" tot_num_ions="12" calc_neutral_pep_mass="870.409973144531" massdiff="-0.00494384765625" is_rejected="0" protein_descr="40S ribosomal protein S10-A OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=RPS10A PE=1 SV=1" num_tol_term="2" num_missed_cleavages="0">
+<alternative_protein protein="sp|P46784|RS10B_YEAST" protein_descr="40S ribosomal protein S10-B OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=RPS10B PE=1 SV=1" num_tol_term="2" peptide_prev_aa="K" peptide_next_aa="N"/>
+<search_score name="pvalue" value="0.0165201857351"/>
+<search_score name="expect" value="141.561471564068938"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.9208" all_ntt_prob="(0.0000,0.0828,0.9208)">
+<search_score_summary>
+<parameter name="fval" value="-1.4340"/>
+<parameter name="ntt" value="2"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="-0.005"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="interprophet">
+<interprophet_result probability="0.806668" all_ntt_prob="(0,0.0313812,0.806668)">
+<search_score_summary>
+<parameter name="nss" value="0"/>
+<parameter name="nrs" value="8.728"/>
+<parameter name="nsi" value="0"/>
+<parameter name="nsm" value="0"/>
+<parameter name="nsp" value="4.1724"/>
+</search_score_summary>
+</interprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="JD_06232014_sample1-A.02770.02770.2" start_scan="2770" end_scan="2770" precursor_neutral_mass="719.385009765625" assumed_charge="2" index="59">
+<search_result>
+<search_hit hit_rank="1" peptide="GLVCGSK" peptide_prev_aa="A" peptide_next_aa="F" protein="sp|P43583|BLM10_YEAST" num_tot_proteins="1" num_matched_ions="3" tot_num_ions="12" calc_neutral_pep_mass="719.361999511719" massdiff="0.02301025390625" is_rejected="0" protein_descr="Proteasome activator BLM10 OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=BLM10 PE=1 SV=2" num_tol_term="1" num_missed_cleavages="0">
+<modification_info modified_peptide="GLVCGSK">
+<mod_aminoacid_mass position="4" mass="160.03019"/>
+</modification_info>
+<search_score name="pvalue" value="16.309980374680311"/>
+<search_score name="expect" value="208914.538619280094281"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.0000" all_ntt_prob="(0.0000,0.0000,0.0000)">
+<search_score_summary>
+<parameter name="fval" value="-3.5466"/>
+<parameter name="ntt" value="1"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="0.023"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="interprophet">
+<interprophet_result probability="0" all_ntt_prob="(0,0,0)">
+<search_score_summary>
+<parameter name="nss" value="0"/>
+<parameter name="nrs" value="0"/>
+<parameter name="nsi" value="0"/>
+<parameter name="nsm" value="0"/>
+<parameter name="nsp" value="6.9737"/>
+</search_score_summary>
+</interprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="JD_06232014_sample1-A.02999.02999.3" start_scan="2999" end_scan="2999" precursor_neutral_mass="1048.56799316406" assumed_charge="3" index="71">
+<search_result>
+<search_hit hit_rank="1" peptide="LIWTMIGIS" peptide_prev_aa="R" peptide_next_aa="F" protein="sp|Q04602|VBA4_YEAST" num_tot_proteins="1" num_matched_ions="5" tot_num_ions="16" calc_neutral_pep_mass="1048.56201171875" massdiff="0.0059814453125" is_rejected="0" protein_descr="Vacuolar basic amino acid transporter 4 OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=VBA4 PE=1 SV=1" num_tol_term="1" num_missed_cleavages="0">
+<modification_info modified_peptide="LIWTM[147]IGIS">
+<mod_aminoacid_mass position="5" mass="147.03549"/>
+</modification_info>
+<search_score name="pvalue" value="0.000004789193846"/>
+<search_score name="expect" value="0.062867747613235"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.2170" all_ntt_prob="(0.0000,0.2170,0.9875)">
+<search_score_summary>
+<parameter name="fval" value="0.8010"/>
+<parameter name="ntt" value="1"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="0.006"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="interprophet">
+<interprophet_result probability="0.0223989" all_ntt_prob="(0,0.0223989,0.867219)">
+<search_score_summary>
+<parameter name="nss" value="0"/>
+<parameter name="nrs" value="0"/>
+<parameter name="nsi" value="0"/>
+<parameter name="nsm" value="0"/>
+<parameter name="nsp" value="4.0003"/>
+</search_score_summary>
+</interprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="JD_06232014_sample1-A.03084.03084.2" start_scan="3084" end_scan="3084" precursor_neutral_mass="1131.52502441406" assumed_charge="2" index="75">
+<search_result>
+<search_hit hit_rank="1" peptide="EAGIVDELAYA" peptide_prev_aa="K" peptide_next_aa="V" protein="sp|P38764|RPN1_YEAST" num_tot_proteins="1" num_matched_ions="3" tot_num_ions="20" calc_neutral_pep_mass="1131.54504394531" massdiff="-0.02001953125" is_rejected="0" protein_descr="26S proteasome regulatory subunit RPN1 OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=RPN1 PE=1 SV=3" num_tol_term="1" num_missed_cleavages="0">
+<modification_info modified_peptide="E[111]AGIVDELAYA">
+<mod_aminoacid_mass position="1" mass="111.03259"/>
+</modification_info>
+<search_score name="pvalue" value="0.007360701965562"/>
+<search_score name="expect" value="92.693319852322418"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.0700" all_ntt_prob="(0.0000,0.0700,0.9064)">
+<search_score_summary>
+<parameter name="fval" value="-1.3114"/>
+<parameter name="ntt" value="1"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="-0.020"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="interprophet">
+<interprophet_result probability="0.0505509" all_ntt_prob="(0,0.0505509,0.87261)">
+<search_score_summary>
+<parameter name="nss" value="0"/>
+<parameter name="nrs" value="0"/>
+<parameter name="nsi" value="0"/>
+<parameter name="nsm" value="0"/>
+<parameter name="nsp" value="20"/>
+</search_score_summary>
+</interprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="JD_06232014_sample1-A.03905.03905.3" start_scan="3905" end_scan="3905" precursor_neutral_mass="1823.84899902344" assumed_charge="3" index="110">
+<search_result>
+<search_hit hit_rank="1" peptide="SASAQHSQAQQQQQQK" peptide_prev_aa="M" peptide_next_aa="S" protein="sp|Q04947|RTN1_YEAST" num_tot_proteins="1" num_matched_ions="12" tot_num_ions="30" calc_neutral_pep_mass="1823.85498046875" massdiff="-0.0059814453125" is_rejected="0" protein_descr="Reticulon-like protein 1 OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=RTN1 PE=1 SV=1" num_tol_term="2" num_missed_cleavages="0">
+<modification_info mod_nterm_mass="43.0188" modified_peptide="n[43]SASAQHSQAQQQQQQK">
+</modification_info>
+<search_score name="pvalue" value="0.000000000004498"/>
+<search_score name="expect" value="0.000000064090788"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="1.0000" all_ntt_prob="(0.0000,1.0000,1.0000)">
+<search_score_summary>
+<parameter name="fval" value="4.7950"/>
+<parameter name="ntt" value="2"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="-0.006"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="interprophet">
+<interprophet_result probability="0.999999" all_ntt_prob="(0,1,1)">
+<search_score_summary>
+<parameter name="nss" value="0.4998"/>
+<parameter name="nrs" value="0"/>
+<parameter name="nsi" value="0.999999"/>
+<parameter name="nsm" value="0"/>
+<parameter name="nsp" value="9.90429"/>
+</search_score_summary>
+</interprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="JD_06232014_sample1-A.07319.07319.2" start_scan="7319" end_scan="7319" precursor_neutral_mass="1360.57104492188" assumed_charge="2" index="256">
+<search_result>
+<search_hit hit_rank="1" peptide="CLPGPATASIYQT" peptide_prev_aa="K" peptide_next_aa="L" protein="sp|P25642|IMG2_YEAST" num_tot_proteins="1" num_matched_ions="2" tot_num_ions="24" calc_neutral_pep_mass="1360.63403320312" massdiff="-0.06298828125" is_rejected="0" protein_descr="54S ribosomal protein IMG2, mitochondrial OS=Saccharomyces cerevisiae (strain ATCC 204508 \ S288c) GN=IMG2 PE=1 SV=2" num_tol_term="1" num_missed_cleavages="0">
+<modification_info modified_peptide="C[143]LPGPATASIYQT">
+<mod_aminoacid_mass position="1" mass="143.00419"/>
+</modification_info>
+<search_score name="pvalue" value="0.012783531919578"/>
+<search_score name="expect" value="111.868687828230392"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.0007" all_ntt_prob="(0.0000,0.0007,0.0848)">
+<search_score_summary>
+<parameter name="fval" value="-1.3658"/>
+<parameter name="ntt" value="1"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="-0.063"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="interprophet">
+<interprophet_result probability="2.01282e-05" all_ntt_prob="(0,2.01282e-05,0.00265544)">
+<search_score_summary>
+<parameter name="nss" value="0"/>
+<parameter name="nrs" value="0"/>
+<parameter name="nsi" value="0"/>
+<parameter name="nsm" value="0"/>
+<parameter name="nsp" value="2"/>
+</search_score_summary>
+</interprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

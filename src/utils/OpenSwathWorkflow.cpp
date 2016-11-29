@@ -536,7 +536,7 @@ protected:
     }
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown subsection", name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", name);
     }
   }
 
@@ -567,7 +567,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Input file needs to have ending mzML or mzXML");
       }
     }
@@ -710,7 +710,7 @@ protected:
     }
     if ( (out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Either out_features or out_tsv needs to be set (but not both)");
     }
 

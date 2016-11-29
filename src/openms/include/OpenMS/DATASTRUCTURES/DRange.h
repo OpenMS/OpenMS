@@ -318,7 +318,7 @@ public:
     {
       if (factor < 0)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "DRange::extend(): factor must not be negative!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DRange::extend(): factor must not be negative!");
       }
 
       for (UInt i = 0; i != D; ++i)

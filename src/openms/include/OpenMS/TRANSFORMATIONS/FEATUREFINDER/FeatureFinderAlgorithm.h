@@ -129,7 +129,7 @@ public:
     {
       if (seeds.size() != 0)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The used feature detection algorithm does not support user-specified seed lists!");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The used feature detection algorithm does not support user-specified seed lists!");
       }
     }
 

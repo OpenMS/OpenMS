@@ -46,7 +46,7 @@ namespace OpenMS
   {
     if (index >= n_spectra_)
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      index, n_spectra_);
     }
     meta = metadata_[index];

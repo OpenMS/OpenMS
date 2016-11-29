@@ -158,7 +158,7 @@ private:
                                                    std::vector<std::vector<std::pair<Size, Size> > >& indices)
   {
     if (experiment.empty())
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     for (Size f = 0; f < features.size(); ++f)
     {
       std::vector<std::pair<Size, Size> > vec;

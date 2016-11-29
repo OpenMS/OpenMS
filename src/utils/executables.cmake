@@ -6,6 +6,7 @@ set(UTILS_executables
 AccurateMassSearch
 CVInspector
 DecoyDatabase
+DatabaseFilter
 DeMeanderize
 Digestor
 DigestorMotif

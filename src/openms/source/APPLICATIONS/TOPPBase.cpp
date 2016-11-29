@@ -397,14 +397,14 @@ namespace OpenMS
     }
 
     // enable / disable collection of usage statistics by build variable
-#ifdef ENABLE_USAGE_STATISTICS
+#ifdef ENABLE_UPDATE_CHECK
     // disable collection of usage statistics if environment variable is present
-    char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
+    char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
     if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
     {
-      UpdateCheck::run(tool_name_, version_);
+      UpdateCheck::run(tool_name_, version_, debug_level_);
     }
 #endif
 
@@ -621,7 +621,7 @@ namespace OpenMS
         map<String, String>::const_iterator subsec_it = subsections_TOPP_.find(current_TOPP_subsection);
         if (subsec_it == subsections_TOPP_.end())
         {
-          throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
+          throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
         }
         cerr << "\n"; // print newline for new subsection
 
@@ -792,7 +792,7 @@ namespace OpenMS
     bool output_file = entry.tags.count("output file");
     if (input_file && output_file)
     {
-      throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Parameter '" + full_name + "' marked as both input and output file");
+      throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Parameter '" + full_name + "' marked as both input and output file");
     }
     enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
@@ -925,7 +925,7 @@ namespace OpenMS
   void TOPPBase::registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value != "")
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringOption param (" + name + ") with a non-empty default is forbidden!", default_value);
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringOption param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
   }
 
@@ -940,7 +940,7 @@ namespace OpenMS
     }
 
     //parameter not found
-    throw UnregisteredParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+    throw UnregisteredParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
   }
 
   void TOPPBase::setValidStrings_(const String& name, const std::string vstrings[], int count)
@@ -957,7 +957,7 @@ namespace OpenMS
     {
       if (strings[i].has(','))
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Comma characters in Param string restrictions are not allowed!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Comma characters in Param string restrictions are not allowed!");
       }
     }
 
@@ -967,7 +967,7 @@ namespace OpenMS
     //check if the type matches
     if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::STRINGLIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     StringList valids = strings;
@@ -982,7 +982,7 @@ namespace OpenMS
     {
       if (defaults[j].size() > 0 && !ListUtils::contains(valids, defaults[j]))
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
 
@@ -1000,7 +1000,7 @@ namespace OpenMS
         {
           if (FileHandler::getTypeByFileName(String(".") + formats[i]) == FileTypes::UNKNOWN)
           {
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The file format '" + formats[i] + "' is invalid!");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file format '" + formats[i] + "' is invalid!");
           }
         }
       }
@@ -1014,12 +1014,12 @@ namespace OpenMS
        && p.type != ParameterInformation::INPUT_FILE_LIST
        && p.type != ParameterInformation::OUTPUT_FILE_LIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     if (p.valid_strings.size() > 0)
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Internal error: Valid formats are already set for '" + name + "'. Please check for typos!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error: Valid formats are already set for '" + name + "'. Please check for typos!");
     }
     p.valid_strings = formats;
   }
@@ -1031,7 +1031,7 @@ namespace OpenMS
     //check if the type matches
     if (p.type != ParameterInformation::INT && p.type != ParameterInformation::INTLIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     IntList defaults;
@@ -1043,7 +1043,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_int = min;
@@ -1056,7 +1056,7 @@ namespace OpenMS
     //check if the type matches
     if (p.type != ParameterInformation::INT && p.type != ParameterInformation::INTLIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     IntList defaults;
     if (p.type == ParameterInformation::INT)
@@ -1067,7 +1067,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_int = max;
@@ -1080,7 +1080,7 @@ namespace OpenMS
     //check if the type matches
     if (p.type != ParameterInformation::DOUBLE && p.type != ParameterInformation::DOUBLELIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     DoubleList defaults;
     if (p.type == ParameterInformation::DOUBLE)
@@ -1091,7 +1091,7 @@ namespace OpenMS
     {
       if (defaults[j] < min)
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
     p.min_float = min;
@@ -1104,7 +1104,7 @@ namespace OpenMS
     //check if the type matches
     if (p.type != ParameterInformation::DOUBLE && p.type != ParameterInformation::DOUBLELIST)
     {
-      throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     DoubleList defaults;
     if (p.type == ParameterInformation::DOUBLE)
@@ -1115,7 +1115,7 @@ namespace OpenMS
     {
       if (defaults[j] > max)
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
     }
     p.max_float = max;
@@ -1124,14 +1124,14 @@ namespace OpenMS
   void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
     if (required && default_value != "" && !ListUtils::contains(tags, "skipexists"))
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
   }
 
   void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value != "")
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
   }
 
@@ -1139,7 +1139,7 @@ namespace OpenMS
   {
     if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a double param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a double param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
   }
@@ -1148,7 +1148,7 @@ namespace OpenMS
   {
     if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering an Int param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
   }
@@ -1156,21 +1156,21 @@ namespace OpenMS
   void TOPPBase::registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, default_value, description, required, advanced));
   }
 
   void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
     if (required && default_value.size() > 0 && !ListUtils::contains(tags, "skipexists"))
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced, tags));
   }
 
   void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRINGLIST, argument, default_value, description, required, advanced));
   }
 
@@ -1179,7 +1179,7 @@ namespace OpenMS
     stringstream ss;
     ss << default_value;
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required IntList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required IntList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INTLIST, argument, default_value, description, required, advanced));
   }
 
@@ -1188,7 +1188,7 @@ namespace OpenMS
     stringstream ss;
     ss << default_value;
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required DoubleList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
+      throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required DoubleList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLELIST, argument, default_value, description, required, advanced));
   }
 
@@ -1216,7 +1216,7 @@ namespace OpenMS
     }
     if (it == parameters_.end())
     {
-      throw UnregisteredParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw UnregisteredParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     return *it;
   }
@@ -1226,7 +1226,7 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::STRING && p.type != ParameterInformation::INPUT_FILE && p.type != ParameterInformation::OUTPUT_FILE)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
     {
@@ -1235,7 +1235,7 @@ namespace OpenMS
       {
         message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
       }
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, message);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
     String tmp = getParamAsString_(name, p.default_value);
     writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
@@ -1262,7 +1262,7 @@ namespace OpenMS
           if (find(p.valid_strings.begin(), p.valid_strings.end(), tmp) == p.valid_strings.end())
           {
             String valid_strings = ListUtils::concatenate(p.valid_strings, "', '");
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
           }
         }
         else if (p.type == ParameterInformation::INPUT_FILE)
@@ -1303,7 +1303,7 @@ namespace OpenMS
           {
             String valid_formats = "";
             valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
           }
         }
         else if (p.type == ParameterInformation::OUTPUT_FILE)
@@ -1320,7 +1320,7 @@ namespace OpenMS
           {
             String valid_formats = "";
             valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-            throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");
           }
         }
       }
@@ -1334,16 +1334,16 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::DOUBLE)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     if (p.required && getParam_(name).isEmpty())
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     double tmp = getParamAsDouble_(name, (double)p.default_value);
     if (p.required && boost::math::isnan(tmp))
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     writeDebug_(String("Value of double option '") + name + "': " + String(tmp), 1);
 
@@ -1352,7 +1352,7 @@ namespace OpenMS
     {
       if (tmp < p.min_float || tmp > p.max_float)
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
       }
     }
 
@@ -1364,11 +1364,11 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::INT)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     if (p.required && getParam_(name).isEmpty())
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     Int tmp = getParamAsInt_(name, (Int)p.default_value);
     // not checking if NAN here (as done with double, as NAN is not supported for Int)
@@ -1379,7 +1379,7 @@ namespace OpenMS
     {
       if (tmp < p.min_int || tmp > p.max_int)
       {
-        throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
+        throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
       }
     }
 
@@ -1391,16 +1391,16 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::STRINGLIST && p.type != ParameterInformation::INPUT_FILE_LIST && p.type != ParameterInformation::OUTPUT_FILE_LIST)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     if (p.required && getParam_(name).isEmpty())
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     StringList tmp_list = getParamAsStringList_(name, p.default_value);
     if (p.required && tmp_list.size() == 0)
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     for (StringList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
@@ -1430,7 +1430,7 @@ namespace OpenMS
             {
               String valid_strings = "";
               valid_strings.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
+              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
             }
           }
           else if (p.type == ParameterInformation::INPUT_FILE_LIST)
@@ -1470,7 +1470,7 @@ namespace OpenMS
             {
               String valid_formats = "";
               valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
+              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file '" + tmp + "' has invalid format '") + format + "'. Valid formats are: '" + valid_formats + "'.");
             }
           }
           else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
@@ -1487,7 +1487,7 @@ namespace OpenMS
             {
               String valid_formats = "";
               valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
-              throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");
+              throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid output file extension '") + tmp + "'. Valid file extensions are: '" + valid_formats + "'.");
             }
           }
         }
@@ -1501,16 +1501,16 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::DOUBLELIST)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     if (p.required && getParam_(name).isEmpty())
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     DoubleList tmp_list = getParamAsDoubleList_(name, p.default_value);
     if (p.required && tmp_list.size() == 0)
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     for (DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
@@ -1523,7 +1523,7 @@ namespace OpenMS
       {
         if (tmp < p.min_float || tmp > p.max_float)
         {
-          throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for float parameter '" + name + "' given. Out of valid range: '" + p.min_float + "'-'" + p.max_float + "'.");
         }
       }
     }
@@ -1535,16 +1535,16 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::INTLIST)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     if (p.required && getParam_(name).isEmpty())
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     IntList tmp_list = getParamAsIntList_(name, p.default_value);
     if (p.required && tmp_list.size() == 0)
     {
-      throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
     Int tmp;
@@ -1558,7 +1558,7 @@ namespace OpenMS
       {
         if (tmp < p.min_int || tmp > p.max_int)
         {
-          throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp + "' for integer parameter '" + name + "' given. Out of valid range: '" + p.min_int + "'-'" + p.max_int + "'.");
         }
       }
     }
@@ -1570,7 +1570,7 @@ namespace OpenMS
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::FLAG)
     {
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     bool tmp = getParamAsBool_(name);
     writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
@@ -1630,7 +1630,7 @@ namespace OpenMS
       {
         return (Int)tmp;
       }
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     else
     {
@@ -1647,7 +1647,7 @@ namespace OpenMS
       {
         return (double)tmp;
       }
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     else
     {
@@ -1677,7 +1677,7 @@ namespace OpenMS
       {
         return tmp;
       }
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     else
     {
@@ -1694,7 +1694,7 @@ namespace OpenMS
       {
         return tmp;
       }
-      throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw WrongParameterType(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     else
     {
@@ -1720,7 +1720,7 @@ namespace OpenMS
         return true;
       }
     }
-    throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp.toString() + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
+    throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Invalid value '") + tmp.toString() + "' for flag parameter '" + key + "'. Valid values are 'true' and 'false' only.");
   }
 
   DataValue const& TOPPBase::getParam_(const String& key) const
@@ -1880,17 +1880,17 @@ namespace OpenMS
     if (!File::exists(filename))
     {
       LOG_ERROR << message;
-      throw FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     if (!File::readable(filename))
     {
       LOG_ERROR << message;
-      throw FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     if (!File::isDirectory(filename) && File::empty(filename))
     {
       LOG_ERROR << message;
-      throw FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
   }
 
@@ -1908,7 +1908,7 @@ namespace OpenMS
     if (!File::writable(filename))
     {
       LOG_ERROR << message;
-      throw UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
   }
 
@@ -1943,7 +1943,7 @@ namespace OpenMS
     }
     catch (Exception::ConversionError&)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Could not convert string '" + text +
                                        "' to a range of floating point values");
     }
@@ -1971,7 +1971,7 @@ namespace OpenMS
     }
     catch (Exception::ConversionError&)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Could not convert string '" + text +
                                        "' to a range of integer values");
     }
@@ -1980,7 +1980,7 @@ namespace OpenMS
 
   Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
   {
-    throw NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
   Param TOPPBase::getDefaultParameters_() const

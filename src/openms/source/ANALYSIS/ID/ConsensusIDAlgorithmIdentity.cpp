@@ -62,7 +62,7 @@ namespace OpenMS
         String msg = "Score types '" + ids[0].getScoreType() + "' and '" +
           pep_it->getScoreType() + "' have different orientations (" + hi_lo +
           " is better) and cannot be compared meaningfully.";
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, higher_better ? "false" : "true");
       }
       score_types.insert(pep_it->getScoreType());
