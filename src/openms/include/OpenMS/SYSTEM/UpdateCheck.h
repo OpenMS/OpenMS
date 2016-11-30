@@ -49,7 +49,7 @@ namespace OpenMS
   class OPENMS_DLLAPI UpdateCheck
   {
 public:
-  static void run(const String& tool_name, const String& version);
+  static void run(const String& tool_name, const String& version, int debug_level);
   };
 }
 

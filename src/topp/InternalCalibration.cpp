@@ -133,6 +133,8 @@ using namespace std;
   Usually, peptide ID's provide calibration points for MS1 precursors, i.e. are suitable for MS1. They are applicable for MS2 only if
   the same mass analyzer was used (e.g. Q-Exactive). In other words, MS/MS spectra acquired using the ion trap analyzer of a Velos cannot be calibrated using
   peptide ID's.
+  Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration, 
+  e.g. precursor information within MS2 spectra is calibrated if target ms-level is set to 1.
   Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
 
 
@@ -169,6 +171,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
+    registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false);
         
     addEmptyLine_();
 
@@ -234,7 +237,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     String in = getStringOption_("in");
-    String out = getStringOption_("out"); 
+    String out = getStringOption_("out");
+    String rscript_executable = getStringOption_("rscript_executable"); 
     String cal_id = getStringOption_("cal:id_in");
     String cal_lock = getStringOption_("cal:lock_in");
     String file_cal_lock_out = getStringOption_("cal:lock_out");
@@ -297,7 +301,7 @@ protected:
         iter->split(",", vec);
         if (vec.size() != 3)
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Input file ") + cal_lock + " does not have three comma-separated entries per row!");
         }
         ref_masses.push_back(InternalCalibration::LockMass(vec[0].toDouble(), vec[1].toInt(), vec[2].toInt()));
       }
@@ -351,7 +355,8 @@ protected:
                       getStringOption_("quality_control:models"),
                       getStringOption_("quality_control:models_plot"),
                       getStringOption_("quality_control:residuals"),
-                      getStringOption_("quality_control:residuals_plot")))
+                      getStringOption_("quality_control:residuals_plot"),
+                      rscript_executable))
     {
       LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;

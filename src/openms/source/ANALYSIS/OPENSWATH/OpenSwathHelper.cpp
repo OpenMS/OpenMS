@@ -58,7 +58,7 @@ namespace OpenMS
   {
     if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Swath map has no Spectra");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
     const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
@@ -70,11 +70,11 @@ namespace OpenMS
       const std::vector<Precursor> prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " does not have exactly one precursor.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");
       }
       if (swath_map[index].getMSLevel() != expected_mslevel)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " if of a different MS level than the first scan.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " if of a different MS level than the first scan.");
       }
       if (
         fabs(prec[0].getMZ() - first_prec[0].getMZ()) > 0.1 ||
@@ -82,7 +82,7 @@ namespace OpenMS
         fabs(prec[0].getIsolationWindowUpperOffset() - first_prec[0].getIsolationWindowUpperOffset()) > 0.1
         )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
       }
 
     }
@@ -128,7 +128,7 @@ namespace OpenMS
   {
     if (exp.getCompounds().empty()) 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Input list of targets is empty.");
     }
     double max = exp.getCompounds()[0].rt;

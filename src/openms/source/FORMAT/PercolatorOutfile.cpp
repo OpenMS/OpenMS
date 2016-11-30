@@ -74,7 +74,7 @@ namespace OpenMS
     {
       return SCORE;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Not a valid Percolator score type",
                                   score_type_name);
   }
@@ -229,7 +229,7 @@ namespace OpenMS
     if (header != 
         "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds")
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   header, "Not a valid header for Percolator (PSM level) output");
     }
 
@@ -306,7 +306,7 @@ namespace OpenMS
           peptide.setHigherScoreBetter(false);
           break;
         case SIZE_OF_SCORETYPE:
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
       }
 
       AASequence seq;

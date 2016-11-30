@@ -137,7 +137,7 @@ endforeach()
 #------------------------------------------------------------------------------
 # TOPP
 set(TOPP_executables_CTD ${TOPP_TOOLS})
-list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper PhosphoScoring)
+list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
 foreach (i ${TOPP_executables_CTD})
   add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
 endforeach()
@@ -564,6 +564,9 @@ set_tests_properties("TOPP_FileInfo_14_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_15" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_15_input.mzid -v -no_progress -out FileInfo_15.tmp)
 add_test("TOPP_FileInfo_15_out1" ${DIFF} -whitelist "File name" "line 327 column 183" -in1 FileInfo_15.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_15_output.txt )
 set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_15")
+add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out FileInfo_16_output.tmp)
+add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_16_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
+set_tests_properties("TOPP_FileInfo_16_out1" PROPERTIES DEPENDS "TOPP_FileInfo_16")
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -725,8 +728,12 @@ add_test("TOPP_IDFileConverter_14_out1" ${DIFF} -in1 IDFileConverter_14_output.t
 set_tests_properties("TOPP_IDFileConverter_14_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_14")
 # mzIdentML to idXML with RT look-up in mzML:
 add_test("TOPP_IDFileConverter_15" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_15_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML)
-add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" )
+add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" "db=")
 set_tests_properties("TOPP_IDFileConverter_15_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_15")
+# pepXML (from iProphet) to idXML:
+add_test("TOPP_IDFileConverter_16" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_16_input.pepXML -out IDFileConverter_16_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_16_out1" ${DIFF} -in1 IDFileConverter_16_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_16_output.idXML)
+set_tests_properties("TOPP_IDFileConverter_16_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_16")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1835,6 +1842,21 @@ if(WITH_GUI)
   add_test("UTILS_INIUpdater_3_out" ${DIFF} -in1 INIUpdater_3_old.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas )
   set_tests_properties("UTILS_INIUpdater_3_out" PROPERTIES DEPENDS "UTILS_INIUpdater_3")
 endif()
+
+# DatabaseFilter test:
+add_test("UTILS_DatabaseFilter_1" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_1_out.fasta.tmp)
+add_test("UTILS_DatabaseFilter_1_out" ${DIFF} -in1 DatabaseFilter_1_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_1_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_1_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_1")
+add_test("UTILS_DatabaseFilter_2" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_1.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_1.idXML -out DatabaseFilter_2_out.fasta.tmp -method blacklist)
+add_test("UTILS_DatabaseFilter_2_out" ${DIFF} -in1 DatabaseFilter_2_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_2_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_2_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_2")
+add_test("UTILS_DatabaseFilter_3" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_3.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_3.mzid -out DatabaseFilter_3_out.fasta.tmp)
+add_test("UTILS_DatabaseFilter_3_out" ${DIFF} -in1 DatabaseFilter_3_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_3_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_3_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_3")
+add_test("UTILS_DatabaseFilter_4" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DATA_DIR_TOPP}/DatabaseFilter_3.fasta -id ${DATA_DIR_TOPP}/DatabaseFilter_3.mzid -out DatabaseFilter_4_out.fasta.tmp -method blacklist)
+add_test("UTILS_DatabaseFilter_4_out" ${DIFF} -in1 DatabaseFilter_4_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_4_out.fasta )
+set_tests_properties("UTILS_DatabaseFilter_4_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_4")
+
 
 # DecoyDatabase:
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp)

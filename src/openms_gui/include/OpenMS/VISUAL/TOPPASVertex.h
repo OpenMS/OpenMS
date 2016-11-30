@@ -48,7 +48,7 @@
     {                                                                                                                                                                           \
       std::cout << "  ";                                                                                                                                  \
     }                                                                                                                                                                           \
-    std::cout << "BEGIN [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;             \
+    std::cout << "BEGIN [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;             \
     ++global_debug_indent_;                                                                                                                             \
   }
 
@@ -60,7 +60,7 @@
     {                                                                                                                                                                           \
       std::cout << "  ";                                                                                                                                  \
     }                                                                                                                                                                           \
-    std::cout << "END [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;                   \
+    std::cout << "END [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;                   \
   }
 #else
 #define __DEBUG_BEGIN_METHOD__ {}

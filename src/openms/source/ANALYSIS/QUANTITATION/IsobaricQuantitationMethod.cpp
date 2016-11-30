@@ -52,7 +52,7 @@ namespace OpenMS
     // check the string list
     if (stringlist.size() != getNumberOfChannels())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("IsobaricQuantitationMethod: Invalid string representation of the isotope correction matrix. Expected ") + getNumberOfChannels() + " entries but got " + stringlist.size() + ".");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IsobaricQuantitationMethod: Invalid string representation of the isotope correction matrix. Expected ") + getNumberOfChannels() + " entries but got " + stringlist.size() + ".");
     }
 
     // create matrix to fill from stringlist
@@ -68,7 +68,7 @@ namespace OpenMS
       it->split('/', corrections);
       if (corrections.size() != 4)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricQuantitationMethod: Invalid entry in string representation of the isotope correction matrx. Expected four correction values separated by '/', got: '" + *it + "'");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricQuantitationMethod: Invalid entry in string representation of the isotope correction matrx. Expected four correction values separated by '/', got: '" + *it + "'");
       }
 
       // overwrite line in Matrix with custom values

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2016.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -55,7 +55,7 @@ void check_results(SpectrumT<PeakT> spec)
   }
   TEST_REAL_SIMILAR(sum, 20);
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2);
   TEST_REAL_SIMILAR(spec[1].getIntensity(), 4+2.0/3*8);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 1.0/3*8+2+1.0/3);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 2.0 / 3);
@@ -105,7 +105,7 @@ START_SECTION(( template < template< typename > class SpecT, typename PeakType >
   }
   TEST_REAL_SIMILAR(sum, 20);
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2);
   TEST_REAL_SIMILAR(spec[1].getIntensity(), 4+2.0/3*8);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 1.0/3*8+2+1.0/3);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 2.0 / 3);
@@ -138,6 +138,88 @@ START_SECTION([EXTRA] test_linear_res_chromat)
 }
 END_SECTION
 
+START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
+{
+
+  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum< Peak1D > output_spectrum;
+  output_spectrum.resize(4);
+
+  // We want to resample the input spectrum at these m/z positions: 0, 0.75, 1.5 and 2.25
+  std::vector<double> mz_res_data(4);
+  std::vector<double> int_res_data(4);
+  output_spectrum[0].setMZ(0);
+  output_spectrum[1].setMZ(0.75);
+  output_spectrum[2].setMZ(1.5);
+  output_spectrum[3].setMZ(2.25);
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", default_spacing);
+  lr.setParameters(param);
+	lr.raster(spec.begin(), spec.end(), output_spectrum.begin(), output_spectrum.end());
+
+  check_results(output_spectrum);
+}
+
+END_SECTION
+
+// it should also work with data vectors
+START_SECTION( ( template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
+     void raster(ConstPeakTypeIterator mz_raw_it, ConstPeakTypeIterator mz_raw_end,
+       ConstPeakTypeIterator int_raw_it, ConstPeakTypeIterator int_raw_end,
+       PeakTypeIterator mz_resample_it, PeakTypeIterator mz_resample_end,
+       PeakTypeIterator int_resample_it, PeakTypeIterator int_resample_end
+       )
+    ))
+{
+  MSChromatogram< Peak1D > spec;
+
+  std::vector<double> mz_data(5);
+  std::vector<double> int_data(5);
+
+  mz_data[0] = 0;
+  mz_data[1] = 0.5;
+  mz_data[2] = 1.;
+  mz_data[3] = 1.6;
+  mz_data[4] = 1.8;
+  int_data[0] = 3.0f;
+  int_data[1] = 6.0f;
+  int_data[2] = 8.0f;
+  int_data[3] = 2.0f;
+  int_data[4] = 1.0f;
+
+  // We want to resample the input spectrum at these m/z positions: 0, 0.75, 1.5 and 2.25
+  std::vector<double> mz_res_data(4);
+  std::vector<double> int_res_data(4);
+  mz_res_data[0] = 0;
+  mz_res_data[1] = 0.75;
+  mz_res_data[2] = 1.5;
+  mz_res_data[3] = 2.25;
+
+  LinearResamplerAlign lr;
+  Param param;
+  param.setValue("spacing", default_spacing);
+  lr.setParameters(param);
+
+	lr.raster(mz_data.begin(), mz_data.end(), int_data.begin(), int_data.end(),
+      mz_res_data.begin(), mz_res_data.end(), int_res_data.begin(), int_res_data.end());
+
+  // check_results(spec);
+  double sum = 0.0;
+  for (Size i=0; i<int_res_data.size(); ++i)
+  {
+    sum += int_res_data[i];
+  }
+  TEST_REAL_SIMILAR(sum, 20);
+
+  TEST_REAL_SIMILAR(int_res_data[0], 3+2);
+  TEST_REAL_SIMILAR(int_res_data[1], 4+2.0/3*8);
+  TEST_REAL_SIMILAR(int_res_data[2], 1.0/3*8+2+1.0/3);
+  TEST_REAL_SIMILAR(int_res_data[3], 2.0 / 3);
+}
+END_SECTION
+
 // it should work with alignment to 0, 1.8 and give the same result
 START_SECTION((template < template< typename > class SpecT, typename PeakType > void raster_align(SpecT< PeakType > &spectrum, double start_pos, double end_pos)))
 {
@@ -153,7 +235,7 @@ START_SECTION((template < template< typename > class SpecT, typename PeakType > 
 }
 END_SECTION
 
-// it should work with alignment to -0.25, 1.8 
+// it should work with alignment to -0.25, 1.8
 START_SECTION([EXTRA] test_linear_res_align_3)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
@@ -171,8 +253,8 @@ START_SECTION([EXTRA] test_linear_res_align_3)
   }
   TEST_REAL_SIMILAR(sum, 20);
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5); 
-  TEST_REAL_SIMILAR(spec[1].getIntensity(), 1.5+3); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5);
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 1.5+3);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 3+4);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 4.0+ 0.6);
   TEST_REAL_SIMILAR(spec[4].getIntensity(), 1.4 + 0.9 );
@@ -198,10 +280,10 @@ START_SECTION([EXTRA] test_linear_res_align_4)
   }
   TEST_REAL_SIMILAR(sum, 20);
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 0); 
-  TEST_REAL_SIMILAR(spec[1].getIntensity(), 0); 
-  TEST_REAL_SIMILAR(spec[2].getIntensity(), 0); 
-  TEST_REAL_SIMILAR(spec[3].getIntensity(), 3+2); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 0);
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 0);
+  TEST_REAL_SIMILAR(spec[2].getIntensity(), 0);
+  TEST_REAL_SIMILAR(spec[3].getIntensity(), 3+2);
   TEST_REAL_SIMILAR(spec[4].getIntensity(), 4+2.0/3*8);
   TEST_REAL_SIMILAR(spec[5].getIntensity(), 1.0/3*8+2+1.0/3);
   TEST_REAL_SIMILAR(spec[6].getIntensity(), 2.0 / 3);
@@ -226,8 +308,8 @@ START_SECTION([EXTRA] test_linear_res_align_5)
   }
   TEST_REAL_SIMILAR(sum, 20 - 2.4 -0.6); // missing points 1.75 and 2.25 which have intensity 2.4 together
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5); 
-  TEST_REAL_SIMILAR(spec[1].getIntensity(), 1.5+3); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5);
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 1.5+3);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 3+4);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 4.0);//+ 0.6);
 }
@@ -251,11 +333,11 @@ START_SECTION([EXTRA] test_linear_res_align_6)
   }
   TEST_REAL_SIMILAR(sum, 20 - 1.5 -1.5 ); // we loose 1.5 on the left
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3); //+1.5); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3); //+1.5);
   TEST_REAL_SIMILAR(spec[1].getIntensity(), 3+4);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 4.0+ 0.6);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 1.4 + 0.9 );
-}                        
+}
 END_SECTION
 
 // it should also work when we scale the m/z
@@ -280,15 +362,15 @@ START_SECTION([EXTRA] test_linear_res_align_scaling)
   }
   TEST_REAL_SIMILAR(sum, 20 - 2.4 -0.6); // missing points 1.75 and 2.25 which have intensity 2.4 together
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5); 
-  TEST_REAL_SIMILAR(spec[1].getIntensity(), 1.5+3); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 1.5);
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 1.5+3);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 3+4);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 4.0); //+ 0.6);
 }
 END_SECTION
 #endif
 
-// it should work with ppm scaling 
+// it should work with ppm scaling
 START_SECTION([EXTRA] test_linear_res_align_7)
 {
   MSSpectrum< Peak1D > spec = input_spectrum;
@@ -396,7 +478,7 @@ START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(Pe
   TEST_REAL_SIMILAR(spec[1].getIntensity(), 7);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 5.5);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 1.25);
-}                        
+}
 END_SECTION
 
 START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIterator > void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
@@ -436,7 +518,7 @@ START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIter
   }
   TEST_REAL_SIMILAR(sum, 20);
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2); 
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2);
   TEST_REAL_SIMILAR(spec[1].getIntensity(), 4+2.0/3*8);
   TEST_REAL_SIMILAR(spec[2].getIntensity(), 1.0/3*8+2+1.0/3);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 2.0 / 3);
@@ -488,7 +570,7 @@ START_SECTION([EXTRA] test_linear_res_align_input)
   }
   TEST_REAL_SIMILAR(sum, 0);
 
-}                        
+}
 END_SECTION
 
 #endif

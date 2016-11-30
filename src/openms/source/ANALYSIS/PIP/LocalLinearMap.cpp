@@ -89,7 +89,7 @@ namespace OpenMS
     else
     {
       //Throw Exception when file not found for codebooks.data
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("LocalLinearMap could not open 'codebooks.data' at: ") + codefile);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("LocalLinearMap could not open 'codebooks.data' at: ") + codefile);
     }
 
     // read in file containing Matrix< double > A
@@ -127,7 +127,7 @@ namespace OpenMS
     else
     {
       //Throw Exception when file not found for codebooks.data
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("LocalLinearMap could not open 'linearMapping.data' at: ") + a_file);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("LocalLinearMap could not open 'linearMapping.data' at: ") + a_file);
     }
     //init 2 dimensional grid of size xdim x ydim and store in coordinates
     cord_ = genCord_(param_.xdim, param_.ydim);

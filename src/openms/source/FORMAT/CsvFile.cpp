@@ -68,7 +68,7 @@ namespace OpenMS
   {
     if (row > TextFile::buffer_.size())
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     bool splitted = TextFile::buffer_.operator[](row).split(itemseperator_, list);
     if (!splitted)

@@ -108,7 +108,7 @@ public:
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Unknown option " + readoptions);
         }
 
@@ -190,7 +190,7 @@ public:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Unknown or unsupported option " + readoptions);
       }
       LOG_DEBUG << "Finished parsing Swath file " << std::endl; 
@@ -247,7 +247,7 @@ public:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Unknown or unsupported option " + readoptions);
       }
       LOG_DEBUG << "Finished parsing Swath file " << std::endl; 
@@ -308,7 +308,7 @@ protected:
           {
             if (s.getPrecursors().empty())
             {
-              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                   "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
             }
             const std::vector<Precursor> prec = s.getPrecursors();

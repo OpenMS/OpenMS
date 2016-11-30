@@ -137,7 +137,7 @@ protected:
       raw_matched_whitelist[i].split(":", tmp);
       if (tmp.size() != 2)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
       }
 

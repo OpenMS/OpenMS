@@ -80,7 +80,7 @@ namespace OpenMS
     if (upper_diff <= rt_tolerance) return upper->second;
 
     String element = "spectrum with RT " + String(rt);
-    throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      element);
   }
 
@@ -91,7 +91,7 @@ namespace OpenMS
     if (pos == ids_.end())
     {
       String element = "spectrum with native ID '" + native_id + "'";
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        element);
     }
     return pos->second;
@@ -105,7 +105,7 @@ namespace OpenMS
     if (adjusted_index >= n_spectra_)
     {
       String element = "spectrum with index " + String(index);
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        element);
     }
     return adjusted_index;
@@ -118,7 +118,7 @@ namespace OpenMS
     if (pos == scans_.end())
     {
       String element = "spectrum with scan number " + String(scan_number);
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        element);
     }
     return pos->second;
@@ -141,7 +141,7 @@ namespace OpenMS
     if (!found)
     {
       String msg = "The regular expression describing the reference format must contain at least one of the following named groups (in the format '?<GROUP>'): " + regexp_names_;
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
 
@@ -201,7 +201,7 @@ namespace OpenMS
     String msg = "Unexpected format of spectrum reference '" + spectrum_ref +
       "'. The regular expression '" + regexp + "' matched, but no usable "
       "information could be extracted.";
-    throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         msg);
   }
 
@@ -219,7 +219,7 @@ namespace OpenMS
       }
     }
     String msg = "Spectrum reference doesn't match any known format";
-    throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                 spectrum_ref, msg);
   }
 
@@ -243,7 +243,7 @@ namespace OpenMS
     }
     if (!no_error)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   native_id, "Could not extract scan number");
     }
     return -1;
@@ -267,7 +267,7 @@ namespace OpenMS
       {
         String msg = "The regular expression for extracting scan numbers from native IDs must contain a named group '?<SCAN>'.";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         __PRETTY_FUNCTION__, msg);
+                                         OPENMS_PRETTY_FUNCTION, msg);
       }
       scan_regexp_.assign(scan_regexp);
     }

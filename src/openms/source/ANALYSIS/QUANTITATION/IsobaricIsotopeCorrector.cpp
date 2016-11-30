@@ -66,7 +66,7 @@ namespace OpenMS
 
     if (matrixIsIdentityMatrix(correction_matrix))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
                                         "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
     }
@@ -82,7 +82,7 @@ namespace OpenMS
     if (!ludecomp.isInvertible())
     {
       // clean up before we leave
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: The given isotope correction matrix is not invertible!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: The given isotope correction matrix is not invertible!");
     }
 
     // data structures for NNLS
@@ -105,7 +105,7 @@ namespace OpenMS
       Eigen::MatrixXd e_mx = ludecomp.solve(b);
       if (!((*m) * e_mx).isApprox(b))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Cannot multiply!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Cannot multiply!");
       }
       solveNNLS_(correction_matrix, m_b, m_x);
 
@@ -145,7 +145,7 @@ namespace OpenMS
     Int status = NonNegativeLeastSquaresSolver::solve(correction_matrix, m_b, m_x);
     if (status != NonNegativeLeastSquaresSolver::SOLVED)
     {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
     }
   }
 
@@ -174,7 +174,7 @@ namespace OpenMS
 
     if (s_negative == 0 && s_different_count > 0) // solutions are inconsistent, despite being positive! This should not happen!
     {
-      throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!");
+      throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!");
     }
 
     // update global stats

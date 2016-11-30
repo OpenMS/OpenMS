@@ -87,7 +87,7 @@ add_definitions(/DBOOST_ALL_NO_LIB)
 
 # build doc executables
 foreach(i ${OpenMS_doc_executables})
-	add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
+  add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
   target_link_libraries(${i} ${_doc_progs_link_libraries})
 
   # let the doc progs decide how to handle a missing OpenMS_GUI library
@@ -119,10 +119,15 @@ make_doxygen_path(CF_STRIP_PATH OPENMS_DOCUMENTATION_DIRECTORIES)
 # find the necessary packages
 find_package(Doxygen)
 find_package(LATEX)
+# Doxygen with formulas built with LaTeX actually also needs Ghostscript but there is no official find module for it, yet.
+#find_package(Ghostscript)
 
 #------------------------------------------------------------------------------
 # the doc targets
 #------------------------------------------------------------------------------
+# As soon as there is a TeX formula in the html documentation we need LaTeX, dvips and ghostscript.
+# Probably only affects class documentation.
+
 if (DOXYGEN_FOUND)
   #------------------------------------------------------------------------------
   # configure doxygen configuration files
@@ -139,20 +144,20 @@ if (DOXYGEN_FOUND)
   #------------------------------------------------------------------------------
   # doc paths (bin path, topp documenter, defaultparamhandler documenter)
   #------------------------------------------------------------------------------
-	## Checks for Multiconfiguration generators like MSVC or XCode
-        if(NOT CMAKE_CONFIGURATION_TYPES)
-		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
-		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
-		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
-	else()
-		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/$(ConfigurationName)/TOPPDocumenter")
-		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/$(ConfigurationName)/DefaultParamHandlerDocumenter")
-		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)")
-	endif()
+  # Checks for Multiconfiguration generators like MSVC or XCode
+  if(NOT CMAKE_CONFIGURATION_TYPES)
+    set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
+    set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
+    set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
+  else()
+    set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/TOPPDocumenter")
+    set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/${CMAKE_CFG_INTDIR}/DefaultParamHandlerDocumenter")
+    set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}")
+  endif()
 
-	file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
-	file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
-	file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
+  file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
+  file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
+  file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
 
   #------------------------------------------------------------------------------
   # doc_param_internal targets
@@ -176,7 +181,7 @@ if (DOXYGEN_FOUND)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMENT "Build the parameters documentation"
                     VERBATIM)
-	add_dependencies(doc_param_internal doc_progs)
+  add_dependencies(doc_param_internal doc_progs)
 
   #------------------------------------------------------------------------------
   # doc(_html) generation code reused in two independent targets
@@ -300,91 +305,92 @@ if (DOXYGEN_FOUND)
   # Install documentation
   install_directory(${PROJECT_BINARY_DIR}/html ${INSTALL_DOC_DIR} doc)
   install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
+
+  #------------------------------------------------------------------------------
+  # PDF Tutorials
+  #------------------------------------------------------------------------------
+  # DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
+  if (PDFLATEX_COMPILER)
+
+    if (ENABLE_TUTORIALS)
+      set(DOC_TUTORIALS_ACTIVE TRUE)
+
+      # configure doxyfiles for tutorials
+      configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
+      configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/Doxyfile)
+
+      # check doxygen for bug with generated latex files
+      set(DOXYGEN_START_BUGGY "1.6.3")
+      set(DOXYGEN_END_BUGGY "1.7.2")
+      exec_program(${DOXYGEN_EXECUTABLE}
+        ARGS "--version"
+        OUTPUT_VARIABLE DOXYGEN_VERSION)
+
+      if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
+        message(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
+      endif()
+
+      #------------------------------------------------------------------------------
+      # doc_tutorials target
+      add_custom_target(doc_tutorials ALL
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                        COMMAND ${CMAKE_COMMAND} -E echo "Creating OpenMS pdf tutorial"
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMAND ${CMAKE_COMMAND} -E remove_directory OpenMS_tutorial/latex_output
+                        COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
+                        COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
+                        COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
+                        COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf"
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                        COMMAND ${CMAKE_COMMAND} -E echo "Creating TOPP/TOPPView pdf tutorial"
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMAND ${CMAKE_COMMAND} -E remove_directory TOPP_tutorial/latex_output
+                        COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
+                        COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${MAKEINDEX_COMPILER}" refman.idx
+                        COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  "${PDFLATEX_COMPILER}" refman.tex
+                        COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
+                        COMMAND ${CMAKE_COMMAND} -E echo "doc/TOPP_tutorial.pdf"
+                        COMMAND ${CMAKE_COMMAND} -E echo ""
+                        COMMENT "Build the OpenMS/TOPP pdf tutorial"
+                        VERBATIM)
+
+      #------------------------------------------------------------------------------
+      # add virtual dependency of tutorials on TOPP & UTILS
+      # this is not necessary but defers the generation of the tutorials to a later
+      # stage to avoid confusion if tutorials are build first
+      add_dependencies(doc_tutorials TOPP UTILS)
+
+      #------------------------------------------------------------------------------
+      # install also the tutorial pdfs
+      install_file(${PROJECT_BINARY_DIR}/TOPP_tutorial.pdf ${INSTALL_DOC_DIR} doc)
+      install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
+
+      #------------------------------------------------------------------------------
+      # inform the user
+      message(STATUS "Enabled tutorials (-D ENABLE_TUTORIALS=On).")
+    else()
+      message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
+    endif()
+  else()
+    set(DOC_TUTORIALS_ACTIVE FALSE)
+    message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
+  endif()
 else()
   message(STATUS "Doxygen not found. Disabling all documentation targets!")
   message(STATUS "Note that no documentation will be installed alongside OpenMS.")
-endif()
-
-#------------------------------------------------------------------------------
-# PDF Tutorials
-#------------------------------------------------------------------------------
-if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
-
-  if (ENABLE_TUTORIALS)
-    set(DOC_TUTORIALS_ACTIVE TRUE)
-
-    # configure doxyfiles for tutorials
-    configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
-    configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/Doxyfile)
-
-    # check doxygen for bug with generated latex files
-    set(DOXYGEN_START_BUGGY "1.6.3")
-    set(DOXYGEN_END_BUGGY "1.7.2")
-    exec_program(${DOXYGEN_EXECUTABLE}
-      ARGS "--version"
-      OUTPUT_VARIABLE DOXYGEN_VERSION)
-
-    if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
-      message(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
-    endif()
-
-    #------------------------------------------------------------------------------
-    # doc_tutorials target
-    add_custom_target(doc_tutorials ALL
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating OpenMS pdf tutorial"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E remove_directory OpenMS_tutorial/latex_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
-                      COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/refman_overwrite.tex OpenMS_tutorial/latex_output/refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  makeindex refman.idx
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir OpenMS_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E copy OpenMS_tutorial/latex_output/refman.pdf OpenMS_tutorial.pdf
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
-                      COMMAND ${CMAKE_COMMAND} -E echo "doc/OpenMS_tutorial.pdf"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating TOPP/TOPPView pdf tutorial"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E remove_directory TOPP_tutorial/latex_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/ "${DOXYGEN_EXECUTABLE}" Doxyfile
-                      COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/refman_overwrite.tex TOPP_tutorial/latex_output/refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  makeindex refman.idx
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E chdir TOPP_tutorial/latex_output/  pdflatex refman.tex
-                      COMMAND ${CMAKE_COMMAND} -E copy TOPP_tutorial/latex_output/refman.pdf TOPP_tutorial.pdf
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "The OpenMS tutorial in PDF format has been successfully created:"
-                      COMMAND ${CMAKE_COMMAND} -E echo "doc/TOPP_tutorial.pdf"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMENT "Build the OpenMS/TOPP pdf tutorial"
-                      VERBATIM)
-
-    #------------------------------------------------------------------------------
-    # add virtual dependency of tutorials on TOPP & UTILS
-    # this is not necessary but defers the generation of the tutorials to a later
-    # stage to avoid confusion if tutorials are build first
-    add_dependencies(doc_tutorials TOPP UTILS)
-
-    #------------------------------------------------------------------------------
-    # install also the tutorial pdfs
-    install_file(${PROJECT_BINARY_DIR}/TOPP_tutorial.pdf ${INSTALL_DOC_DIR} doc)
-    install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
-
-    #------------------------------------------------------------------------------
-    # inform the user
-    message(STATUS "Enabled tutorials (-D ENABLE_TUTORIALS=On).")
-  else()
-    message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
-  endif()
-else()
-  set(DOC_TUTORIALS_ACTIVE FALSE)
-  message(STATUS "Doxygen or Latex missing. Disabling 'doc_tutorials' target!")
 endif()
 
 #------------------------------------------------------------------------------

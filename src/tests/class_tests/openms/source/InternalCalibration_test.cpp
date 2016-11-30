@@ -133,23 +133,53 @@ spec.push_back(Peak1D(250.0, 1000.0));
 spec.push_back(Peak1D(500.0, 1000.0));
 spec.push_back(Peak1D(750.0, 1000.0));
 spec.push_back(Peak1D(1000.0, 1000.0));
+std::vector<Precursor> pcs;
+Precursor pc;
+pc.setMZ(123.0);
+pcs.push_back(pc);
+pc.setMZ(456.0);
+pcs.push_back(pc);
+spec.setPrecursors(pcs);
 
-START_SECTION(static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo))
+START_SECTION(static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo))
+  MZTrafoModel trafo;
+  trafo.setCoefficients(-100.0, 0.0, 0.0);
+  std::vector<Precursor> pcs2 = pcs;
+  InternalCalibration::applyTransformation(pcs2, trafo);
+  TEST_REAL_SIMILAR(pcs2[0].getMZ(), pcs[0].getMZ() - Math::ppmToMass(-100.0, 123.0));
+  TEST_REAL_SIMILAR(pcs2[1].getMZ(), pcs[1].getMZ() - Math::ppmToMass(-100.0, 456.0));
+
+END_SECTION
+
+START_SECTION(static void applyTransformation(MSExperiment<>::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo))
   MZTrafoModel trafo;
   trafo.setCoefficients(-100.0, 0.0, 0.0);
   MSExperiment<>::SpectrumType spec2 = spec;
   TEST_EQUAL(spec, spec2);
-  InternalCalibration::applyTransformation(spec, trafo);
+  InternalCalibration::applyTransformation(spec2, std::vector<Int>(1, 1), trafo);
   TEST_NOT_EQUAL(spec, spec2);
-  TEST_REAL_SIMILAR(spec2[0].getMZ(), spec[0].getMZ() + Math::ppmToMass(-100.0, 250.0));
-  TEST_REAL_SIMILAR(spec2[1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-100.0, 500.0));
+  TEST_REAL_SIMILAR(spec2[0].getMZ(), spec[0].getMZ() - Math::ppmToMass(-100.0, 250.0));
+  TEST_REAL_SIMILAR(spec2[1].getMZ(), spec[1].getMZ() - Math::ppmToMass(-100.0, 500.0));
+  TEST_EQUAL(spec2.getPrecursors()[0], pcs[0]); // unchanged, since PCs belong to MS-level 0
+  TEST_EQUAL(spec2.getPrecursors()[1], pcs[1]); // unchanged, since PCs belong to MS-level 0
+
+  spec2 = spec;
+  spec2.setMSLevel(2);
+  MSExperiment<>::SpectrumType spec2_noPC = spec2;
+  spec2_noPC.getPrecursors().resize(0); // remove PC's
+  InternalCalibration::applyTransformation(spec2, std::vector<Int>(1, 1), trafo);
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[0].getMZ(), pcs[0].getMZ() - Math::ppmToMass(-100.0, 123.0));
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[1].getMZ(), pcs[1].getMZ() - Math::ppmToMass(-100.0, 456.0));
+  spec2.getPrecursors().resize(0); // remove PC's
+  TEST_EQUAL(spec2_noPC, spec2); // everything else should be unchanged
+
 END_SECTION
 
 START_SECTION(static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo))
   MZTrafoModel trafo;
   trafo.setCoefficients(-100.0, 0.0, 0.0); // observed m/z are 100ppm lower than reference
   MSExperiment<>::SpectrumType spec2 = spec;
-  spec2.setMSLevel(2);      // will not be calibrated
+  spec2.setMSLevel(2);      // will not be calibrated, except for its PC
   MSExperiment<> exp;
   exp.addSpectrum(spec);
   exp.addSpectrum(spec2);
@@ -157,12 +187,22 @@ START_SECTION(static void applyTransformation(MSExperiment<>& exp, const IntList
   
   InternalCalibration::applyTransformation(exp, std::vector<Int>(1, 1), trafo);
   TEST_NOT_EQUAL(exp[0], spec);
-  TEST_EQUAL(exp[1], spec2);
-  TEST_NOT_EQUAL(exp[2], spec);
   TEST_REAL_SIMILAR(exp[0][0].getMZ(), spec[0].getMZ() + Math::ppmToMass(-1 * -100.0, 250.0));
   TEST_REAL_SIMILAR(exp[0][1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-1 *-100.0, 500.0));
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), exp[0].getPrecursors()[0].getMZ());
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), exp[0].getPrecursors()[1].getMZ());
+
+  TEST_NOT_EQUAL(exp[1], spec2);
+  TEST_REAL_SIMILAR(exp[1][0].getMZ(), spec2[0].getMZ());
+  TEST_REAL_SIMILAR(exp[1][1].getMZ(), spec2[1].getMZ());
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[0].getMZ(), exp[1].getPrecursors()[0].getMZ() + Math::ppmToMass(-100.0, 123.0));
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[1].getMZ(), exp[1].getPrecursors()[1].getMZ() + Math::ppmToMass(-100.0, 456.0));
+  
+  TEST_NOT_EQUAL(exp[2], spec);
   TEST_REAL_SIMILAR(exp[2][0].getMZ(), spec[0].getMZ() + Math::ppmToMass(-1 *-100.0, 250.0));
   TEST_REAL_SIMILAR(exp[2][1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-1 *-100.0, 500.0));
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), exp[2].getPrecursors()[0].getMZ());
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), exp[2].getPrecursors()[1].getMZ());
 END_SECTION
 
 

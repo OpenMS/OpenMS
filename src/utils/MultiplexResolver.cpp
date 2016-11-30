@@ -256,12 +256,12 @@ private:
     double first_mass = consensus->getFeatures().begin()->getMZ() * consensus->getFeatures().begin()->getCharge();
     if (!consensus->getPeptideIdentifications()[0].metaValueExists("map index"))
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The meta value 'map index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
     }
     double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map index"));
     if (boost::math::isnan(detected_delta_mass_at_label_set))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No delta mass with this map index could be found.", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No delta mass with this map index could be found.", "");
     }
     
     // loop over features in consensus    
@@ -380,7 +380,7 @@ private:
     
     if (pattern.size() != delta_mass_matched.size())
     {
-       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, delta_mass_matched.size());
+       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, delta_mass_matched.size());
     }
     
     // new complete consensus feature

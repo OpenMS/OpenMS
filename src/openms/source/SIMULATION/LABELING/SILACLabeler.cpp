@@ -136,7 +136,7 @@ namespace OpenMS
     // check if we have the correct number of channels
     if (features_to_simulate.size() < 2 || features_to_simulate.size() > 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(features_to_simulate.size()) + " channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(features_to_simulate.size()) + " channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!");
     }
 
     SimTypes::FeatureMapSim& medium_channel = features_to_simulate[1];
