@@ -132,7 +132,6 @@ public:
     static std::map<std::string, double> simpleFindBestFeature(
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
         bool useQualCutoff = false, double qualCutoff = 0.0);
-
   };
 }
 #endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
