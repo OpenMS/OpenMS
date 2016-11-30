@@ -243,25 +243,25 @@ public:
 
     ///@name Accessors for meta information
     ///@{
-    /// Returns the absolute retention time (is seconds)
+    /// Returns the absolute retention time (in seconds)
     inline double getRT() const
     {
       return retention_time_;
     }
 
-    /// Sets the absolute retention time (is seconds)
+    /// Sets the absolute retention time (in seconds)
     inline void setRT(double rt)
     {
       retention_time_ = rt;
     }
 
-    /// Returns the absolute retention time (is seconds)
+    /// Returns the ion mobility drift time in milliseconds (-1 means it is not set)
     inline double getDriftTime() const
     {
       return drift_time_;
     }
 
-    /// Sets the absolute retention time (is seconds)
+    /// Returns the ion mobility drift time in milliseconds
     inline void setDriftTime(double dt)
     {
       drift_time_ = dt;
