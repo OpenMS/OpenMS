@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
     # Also, note that __str__ follows Python 2.x convention and returns bytes,
     # not unicode. Please use toString if you want to have encoded data.
     cdef cppclass String:
+        # wrap-hash:
+        #   c_str()
+
         String() nogil except +
         String(String) nogil except +  # wrap-ignore
         String(char *) nogil except + # wrap-ignore

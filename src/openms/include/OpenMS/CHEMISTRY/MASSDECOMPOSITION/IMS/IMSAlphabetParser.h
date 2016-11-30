@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
 // --------------------------------------------------------------------------
 //
@@ -102,7 +102,7 @@ public:
       std::ifstream ifs(fname.c_str());
       if (!ifs)
       {
-        throw Exception::IOException(__FILE__, __LINE__, __PRETTY_FUNCTION__, fname);
+        throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, fname);
       }
       this->parse(ifs);
     }

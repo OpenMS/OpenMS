@@ -205,7 +205,7 @@ public:
     {
       if (pos >= size_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       else
       {
@@ -267,7 +267,7 @@ public:
     {
       if (it.position() >= size_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       //store pointer to the element after the current element
       //erase element
@@ -301,7 +301,7 @@ public:
     {
       if (first.position() >= size_ || last.position() > size_ || last.position() < first.position())
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
 
       size_type amount_deleted = last.position() - first.position();

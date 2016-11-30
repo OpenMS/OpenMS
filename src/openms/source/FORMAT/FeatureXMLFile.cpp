@@ -138,7 +138,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     if (Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId))
@@ -384,12 +384,12 @@ namespace OpenMS
     else if (tag == "featureList")
     {
       if (options_.getMetadataOnly())
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       Size count = attributeAsInt_(attributes, "count");
       if (size_only_) // true if loadSize() was used instead of load()
       {
         expected_size_ = count;
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
       startProgress(0, count, "Loading featureXML file");

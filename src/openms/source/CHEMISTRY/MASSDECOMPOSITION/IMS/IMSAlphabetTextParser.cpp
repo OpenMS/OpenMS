@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> ?? $
 // --------------------------------------------------------------------------
 //

@@ -37,7 +37,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 # include helper functions 
 include ( ${SCRIPT_DIR}common.cmake )
 
-set(required_variables "ARCH;PLATFORM;TARGET_DIR;TEMPLATE_FOLDER")
+set(required_variables "PLATFORM;TARGET_DIR;TEMPLATE_FOLDER")
 check_variables(required_variables)
 
 configure_file(${TEMPLATE_FOLDER}/binaries_${PLATFORM}.ini ${TARGET_DIR}/binaries.ini COPYONLY)

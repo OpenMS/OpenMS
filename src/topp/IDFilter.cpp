@@ -150,8 +150,8 @@ protected:
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
     registerTOPPSubsection_("thresh", "Filtering by significance threshold");
-    registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false);
-    registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
+    registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false, true);
+    registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false, true);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"

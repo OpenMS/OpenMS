@@ -136,7 +136,7 @@ namespace OpenMS
 
     if (output.size() != extraction_coordinates.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Output and extraction coordinates need to have the same size");
     }
 
@@ -145,7 +145,7 @@ namespace OpenMS
     if (std::adjacent_find(extraction_coordinates.begin(), extraction_coordinates.end(), 
           ExtractionCoordinates::SortExtractionCoordinatesReverseByMZ) != extraction_coordinates.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Input to extractChromatogram needs to be sorted by m/z");
     }
 
@@ -190,7 +190,7 @@ namespace OpenMS
         }
         else if (used_filter == 2)
         {
-          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
 
         // Time is first, intensity is second
@@ -213,7 +213,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Filter either needs to be tophat or bartlett");
     }
   }

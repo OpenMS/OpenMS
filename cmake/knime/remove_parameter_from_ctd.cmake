@@ -49,7 +49,7 @@ string(REGEX REPLACE "\n" ";" contents "${contents}")
 set(APPEND_TO_FILE FALSE)
 foreach(line ${contents})
   set(pos -1) 
-  if(line MATCHES ".*${PARAM}.*") 
+  if(line MATCHES ".*name=\"${PARAM}\".*") 
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
   endif() 
   

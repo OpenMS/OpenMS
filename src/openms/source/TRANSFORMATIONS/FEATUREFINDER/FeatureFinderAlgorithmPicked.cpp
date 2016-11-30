@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher, Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -1141,7 +1141,7 @@ namespace OpenMS
 
     if (index >= isotope_distributions_.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
     }
 
     //Return distribution

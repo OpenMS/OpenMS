@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -497,14 +497,14 @@ namespace OpenMS
     //check if correct parameter type
     if (entry.value.valueType() != DataValue::STRING_VALUE && entry.value.valueType() != DataValue::STRING_LIST)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     //check for commas
     for (Size i = 0; i < strings.size(); ++i)
     {
       if (strings[i].has(','))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Comma characters in Param string restrictions are not allowed!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Comma characters in Param string restrictions are not allowed!");
       }
     }
     entry.valid_strings = strings;
@@ -515,7 +515,7 @@ namespace OpenMS
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     entry.min_int = min;
   }
@@ -525,7 +525,7 @@ namespace OpenMS
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     entry.max_int = max;
   }
@@ -535,7 +535,7 @@ namespace OpenMS
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     entry.min_float = min;
   }
@@ -545,7 +545,7 @@ namespace OpenMS
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     entry.max_float = max;
   }
@@ -1089,14 +1089,14 @@ namespace OpenMS
         if (it->value.valueType() == DataValue::DOUBLE_LIST)
           p_type = "float list";
 
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name + ": Wrong parameter type '" + p_type + "' for " + d_type + " parameter '" + it.getName() + "' given!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": Wrong parameter type '" + p_type + "' for " + d_type + " parameter '" + it.getName() + "' given!");
       }
       //parameter restrictions
       ParamEntry pe = *default_value;
       pe.value = it->value;
       String s;
       if (!pe.isValid(s))
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, name + ": " + s);
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": " + s);
     }
   }
 
@@ -1297,13 +1297,13 @@ namespace OpenMS
     ParamNode* node = root_.findParentOf(key);
     if (node == 0)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
 
     Param::ParamNode::NodeIterator it = node->findNode(node->suffix(key));
     if (it == node->nodes.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     it->description = description;
   }
@@ -1476,7 +1476,7 @@ namespace OpenMS
   {
     if (tag.has(','))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Param tags may not contain comma characters", tag);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Param tags may not contain comma characters", tag);
     }
     getEntry_(key).tags.insert(tag);
   }
@@ -1488,7 +1488,7 @@ namespace OpenMS
     {
       if (tags[i].has(','))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Param tags may not contain comma characters", tags[i]);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Param tags may not contain comma characters", tags[i]);
       }
       entry.tags.insert(tags[i]);
     }
@@ -1525,7 +1525,7 @@ namespace OpenMS
     ParamEntry* entry = root_.findEntryRecursive(key);
     if (entry == 0)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
 
     return *entry;

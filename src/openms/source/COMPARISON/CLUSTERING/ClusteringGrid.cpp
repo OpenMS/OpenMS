@@ -102,7 +102,7 @@ ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
     {
         std::stringstream stream;
         stream << "This position (x,y)=(" << position.getX() << "," << position.getY() << ") is outside the range of the grid. (" << range_x_.first << " < x < " << range_x_.second << ", " << range_y_.first << " < y < " << range_y_.second << ")";
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
     
     int i = -1;
@@ -120,7 +120,7 @@ ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
     
     if (i < 0 || j < 0)
     {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Cell index is negative.","");
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,"Cell index is negative.","");
     }
     
     return ClusteringGrid::CellIndex (i,j);

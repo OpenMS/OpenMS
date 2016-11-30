@@ -232,7 +232,7 @@ public:
         // when a new entry to the minimum distance list was added, @see findNearestNeighbour_.
         if (cluster1.getPropertyA() != cluster2.getPropertyA())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Property A of both clusters not the same. ", "A");
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Property A of both clusters not the same. ", "A");
         }
         int new_A = cluster1.getPropertyA();
 

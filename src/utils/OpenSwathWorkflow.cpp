@@ -881,7 +881,7 @@ namespace OpenMS
       }
       else 
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
       }
 
@@ -896,7 +896,7 @@ namespace OpenMS
 
         if (!enoughPeptides)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "There were not enough bins with the minimal number of peptides");
         }
       }
@@ -1028,7 +1028,7 @@ namespace OpenMS
 
           if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Error, did not find chromatogram for transitions" + transition->getNativeID() );
           }
 
@@ -1264,7 +1264,10 @@ namespace OpenMS
   isolation window starting at xx and ending at yy. OpenSwathWorkflow will try
   to read the SWATH windows from the data, if this is not possible please
   provide a tab-separated list with the correct windows using the
-  -swath_windows_file parameter.
+  -swath_windows_file parameter (this is recommended). Note that the software
+  expects extraction windows (e.g. which peptides to extract from
+  which window) which cannot have overlaps, otherwise peptides will be
+  extracted from two different windwos.
 
   Alternatively, a set of split files (n+1 mzML files) can be provided, each
   containing one SWATH map (or MS1 map).
@@ -1273,6 +1276,27 @@ namespace OpenMS
   whole file into memory but rather cache it somewhere on the disk using a
   fast-access data format. This can be specified using the -readOptions cache
   parameter (this is recommended!).
+
+  <h3>Parameters</h3>
+  The current parameters are optimized for 2 hour gradients on SCIEX 5600 /
+  6600 TripleTOF instruments with a peak width of around 30 seconds using iRT
+  peptides.  If your chromatography differs, please consider adjusting
+  -Scoring:TransitionGroupPicker:min_peak_width  to allow for smaller or larger
+  peaks and adjust the -rt_extraction_window to use a different extraction
+  window for the retention time. In m/z domain, it consider adjusting
+  -mz_extraction_window to your instrument resolution, which can be in Th or
+  ppm (using -ppm). 
+
+  Furthermore, if you wish to use MS1 information, use the -use_ms1_traces flag
+  and provide an MS1 map in addition to the SWATH data.
+
+  If you encounter issues with peak picking, try to disable peak filtering by
+  setting -Scoring:TransitionGroupPicker:compute_peak_quality false which will
+  disable the filtering of peaks by chromatographic quality. Furthermore, you
+  can adjust the smoothing parameters for the peak picking, by adjusting
+  -Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length or using a
+  Gaussian smoothing based on your estimated peak width. Adjusting the signal
+  to noise threshold will make the peaks wider or smaller.
 
   <h3>Output: Feature list and chromatograms </h3>
   The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
@@ -1653,7 +1677,7 @@ protected:
     }
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown subsection", name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", name);
     }
   }
 
@@ -1684,7 +1708,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Input file needs to have ending mzML or mzXML");
       }
     }
@@ -1817,7 +1841,7 @@ protected:
     }
     if ( (out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Either out_features or out_tsv needs to be set (but not both)");
     }
 
@@ -1968,6 +1992,9 @@ protected:
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
+      chromConsumer->getOptions().setCompression(true); // compress data
+      chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
+      chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
       chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
     }
     else

@@ -28,12 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
+#include <QtGui/QInputDialog>
 #include <QtGui/QPainter>
 
 namespace OpenMS
@@ -89,6 +90,19 @@ namespace OpenMS
   const QString & Annotation1DItem::getText() const
   {
     return text_;
+  }
+
+  bool Annotation1DItem::editText()
+  {
+    bool ok;
+    QString text = QInputDialog::getText(NULL, "Edit text", "Enter text:", QLineEdit::Normal, this->getText(), &ok);
+    if (ok && !text.isEmpty())
+    {
+      if (text == getText()) return false;
+      this->setText(text);
+      return true;
+    }
+    return false;
   }
 
 } //Namespace

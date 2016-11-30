@@ -1,4 +1,3 @@
-Error: No XML file found for class 'MatrixUtils'. Aborting!
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------

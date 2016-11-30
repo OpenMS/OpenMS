@@ -10,7 +10,7 @@
 		<feature id="f_4835329514588776807">
 			<position dim="0">2463.9564</position>
 			<position dim="1">1580.19785941061</position>
-			<intensity>621448</intensity>
+			<intensity>381401</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.966667</overallquality>
@@ -83,7 +83,7 @@
 		<feature id="f_17749660155506638460">
 			<position dim="0">2458.847</position>
 			<position dim="1">1505.00996696247</position>
-			<intensity>593883</intensity>
+			<intensity>453878</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.962963</overallquality>
@@ -150,7 +150,7 @@
 		<feature id="f_7804704400743266335">
 			<position dim="0">2465.6642</position>
 			<position dim="1">1663.31735046497</position>
-			<intensity>528909</intensity>
+			<intensity>368976</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.962963</overallquality>
@@ -217,7 +217,7 @@
 		<feature id="f_15004869347769368353">
 			<position dim="0">2465.6642</position>
 			<position dim="1">1436.62662092549</position>
-			<intensity>498162</intensity>
+			<intensity>386339</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.961538</overallquality>
@@ -282,7 +282,7 @@
 		<feature id="f_3332699010107892018">
 			<position dim="0">2295.4041</position>
 			<position dim="1">1541.14987387243</position>
-			<intensity>373030</intensity>
+			<intensity>308023</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.954545</overallquality>
@@ -339,7 +339,7 @@
 		<feature id="f_13440783915218733453">
 			<position dim="0">2330.2597</position>
 			<position dim="1">1541.16946984182</position>
-			<intensity>49983.6</intensity>
+			<intensity>42298</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.8</overallquality>
@@ -362,7 +362,7 @@
 		<feature id="f_15916652588957785155">
 			<position dim="0">2457.1369</position>
 			<position dim="1">1593.02290566302</position>
-			<intensity>357051</intensity>
+			<intensity>239684</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -405,7 +405,7 @@
 		<feature id="f_15157403601844400700">
 			<position dim="0">2155.4741</position>
 			<position dim="1">1497.85093371701</position>
-			<intensity>422248</intensity>
+			<intensity>247791</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.966667</overallquality>
@@ -478,7 +478,7 @@
 		<feature id="f_6408859317243173796">
 			<position dim="0">2236.4495</position>
 			<position dim="1">1618.6387043653</position>
-			<intensity>402715</intensity>
+			<intensity>369703</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.947368</overallquality>
@@ -529,7 +529,7 @@
 		<feature id="f_474525871221756682">
 			<position dim="0">2463.9564</position>
 			<position dim="1">1755.65699697199</position>
-			<intensity>384535</intensity>
+			<intensity>239129</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.962963</overallquality>
@@ -596,7 +596,7 @@
 		<feature id="f_12999979801269632061">
 			<position dim="0">2455.4355</position>
 			<position dim="1">1517.1926445601</position>
-			<intensity>294580</intensity>
+			<intensity>231316</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -633,7 +633,7 @@
 		<feature id="f_17413765565443951891">
 			<position dim="0">2236.4495</position>
 			<position dim="1">1545.09236246071</position>
-			<intensity>333235</intensity>
+			<intensity>303269</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.941176</overallquality>
@@ -680,7 +680,7 @@
 		<feature id="f_2927519776102075938">
 			<position dim="0">2304.0212</position>
 			<position dim="1">1622.21247604866</position>
-			<intensity>382619</intensity>
+			<intensity>281669</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.95</overallquality>
@@ -733,7 +733,7 @@
 		<feature id="f_16907355690727166316">
 			<position dim="0">2050.5696</position>
 			<position dim="1">1650.6116309063</position>
-			<intensity>439545</intensity>
+			<intensity>293449</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.96875</overallquality>
@@ -810,7 +810,7 @@
 		<feature id="f_10306100746905639127">
 			<position dim="0">2300.5738</position>
 			<position dim="1">1712.24711838441</position>
-			<intensity>319728</intensity>
+			<intensity>215773</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.956522</overallquality>
@@ -869,7 +869,7 @@
 		<feature id="f_12524258085768770586">
 			<position dim="0">2298.845</position>
 			<position dim="1">1467.81058170158</position>
-			<intensity>386611</intensity>
+			<intensity>253162</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.962963</overallquality>
@@ -936,7 +936,7 @@
 		<feature id="f_1755235105885170967">
 			<position dim="0">2234.7232</position>
 			<position dim="1">1477.97989588568</position>
-			<intensity>341631</intensity>
+			<intensity>316285</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.947368</overallquality>
@@ -987,7 +987,7 @@
 		<feature id="f_14811341817612382122">
 			<position dim="0">2387.5374</position>
 			<position dim="1">1603.36660146052</position>
-			<intensity>220676</intensity>
+			<intensity>143729</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.947368</overallquality>
@@ -1038,7 +1038,7 @@
 		<feature id="f_2684106197423007927">
 			<position dim="0">2048.7927</position>
 			<position dim="1">1575.65796589313</position>
-			<intensity>432597</intensity>
+			<intensity>300242</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.969697</overallquality>
@@ -1117,7 +1117,7 @@
 		<feature id="f_8119044117483804262">
 			<position dim="0">2153.7001</position>
 			<position dim="1">1655.41015690488</position>
-			<intensity>362677</intensity>
+			<intensity>219317</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.966667</overallquality>
@@ -1190,7 +1190,7 @@
 		<feature id="f_17314619952666245179">
 			<position dim="0">2465.6642</position>
 			<position dim="1">1374.21534348336</position>
-			<intensity>337752</intensity>
+			<intensity>273395</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -1235,7 +1235,7 @@
 		<feature id="f_3023658190814908261">
 			<position dim="0">2153.7001</position>
 			<position dim="1">1572.69562501365</position>
-			<intensity>414659</intensity>
+			<intensity>295275</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.969697</overallquality>
@@ -1314,7 +1314,7 @@
 		<feature id="f_7898004582401008768">
 			<position dim="0">2255.4493</position>
 			<position dim="1">1544.81875231984</position>
-			<intensity>399381</intensity>
+			<intensity>317970</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.958333</overallquality>
@@ -1375,7 +1375,7 @@
 		<feature id="f_15050004366391181853">
 			<position dim="0">2479.3861</position>
 			<position dim="1">1498.91130002317</position>
-			<intensity>186688</intensity>
+			<intensity>134338</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -1408,7 +1408,7 @@
 		<feature id="f_17716858074023296841">
 			<position dim="0">2052.3418</position>
 			<position dim="1">1507.18261216863</position>
-			<intensity>415371</intensity>
+			<intensity>278344</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.96875</overallquality>
@@ -1485,7 +1485,7 @@
 		<feature id="f_16250062551099875712">
 			<position dim="0">2305.7472</position>
 			<position dim="1">1401.16124326357</position>
-			<intensity>220648</intensity>
+			<intensity>173738</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -1530,7 +1530,7 @@
 		<feature id="f_16177748921272733768">
 			<position dim="0">2450.3192</position>
 			<position dim="1">1448.26184437381</position>
-			<intensity>210253</intensity>
+			<intensity>161515</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.941176</overallquality>
@@ -1577,7 +1577,7 @@
 		<feature id="f_7276556891837796968">
 			<position dim="0">2475.9407</position>
 			<position dim="1">1573.80917510917</position>
-			<intensity>225886</intensity>
+			<intensity>190153</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.923077</overallquality>
@@ -1616,7 +1616,7 @@
 		<feature id="f_1147219038608936718">
 			<position dim="0">2453.7277</position>
 			<position dim="1">1676.81666192575</position>
-			<intensity>142447</intensity>
+			<intensity>127273</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -1645,7 +1645,7 @@
 		<feature id="f_11115414975438642789">
 			<position dim="0">2450.3192</position>
 			<position dim="1">1769.84820359795</position>
-			<intensity>144956</intensity>
+			<intensity>112035</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.909091</overallquality>
@@ -1680,7 +1680,7 @@
 		<feature id="f_14509930621887606273">
 			<position dim="0">2258.9136</position>
 			<position dim="1">1618.33521514398</position>
-			<intensity>338357</intensity>
+			<intensity>280310</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -1746,7 +1746,7 @@
 		<feature id="f_12665713047548007769">
 			<position dim="0">2460.5445</position>
 			<position dim="1">1858.86239851614</position>
-			<intensity>234752</intensity>
+			<intensity>89058.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.95</overallquality>
@@ -1799,7 +1799,7 @@
 		<feature id="f_17092894204355333314">
 			<position dim="0">2231.2626</position>
 			<position dim="1">1699.46797609488</position>
-			<intensity>266231</intensity>
+			<intensity>245680</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -1869,7 +1869,7 @@
 		<feature id="f_10627069796380146481">
 			<position dim="0">2458.847</position>
 			<position dim="1">1264.33407597974</position>
-			<intensity>241326</intensity>
+			<intensity>159984</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.952381</overallquality>
@@ -1924,7 +1924,7 @@
 		<feature id="f_10052793688680741109">
 			<position dim="0">2458.847</position>
 			<position dim="1">1316.97934406145</position>
-			<intensity>288747</intensity>
+			<intensity>228250</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.96</overallquality>
@@ -1987,7 +1987,7 @@
 		<feature id="f_15166508592180818156">
 			<position dim="0">2150.1436</position>
 			<position dim="1">1429.79694316054</position>
-			<intensity>282371</intensity>
+			<intensity>229438</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.958333</overallquality>
@@ -2142,7 +2142,7 @@
 		<feature id="f_893904610286969204">
 			<position dim="0">2238.1823</position>
 			<position dim="1">1416.44704336669</position>
-			<intensity>266872</intensity>
+			<intensity>240802</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.928571</overallquality>
@@ -2183,7 +2183,7 @@
 		<feature id="f_14851350658635457156">
 			<position dim="0">2050.5696</position>
 			<position dim="1">1733.09364171407</position>
-			<intensity>315439</intensity>
+			<intensity>235169</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.969697</overallquality>
@@ -2262,7 +2262,7 @@
 		<feature id="f_17447818880105247092">
 			<position dim="0">2260.6347</position>
 			<position dim="1">1416.22218519426</position>
-			<intensity>347887</intensity>
+			<intensity>292462</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.947368</overallquality>
@@ -2313,7 +2313,7 @@
 		<feature id="f_1003624456647096845">
 			<position dim="0">2391.0357</position>
 			<position dim="1">1527.04134234514</position>
-			<intensity>158393</intensity>
+			<intensity>142805</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -2350,7 +2350,7 @@
 		<feature id="f_15120290131060441429">
 			<position dim="0">2498.3931</position>
 			<position dim="1">1662.19447361598</position>
-			<intensity>72947.9</intensity>
+			<intensity>64655</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.8</overallquality>
@@ -2373,7 +2373,7 @@
 		<feature id="f_11275867043381640475">
 			<position dim="0">2498.3931</position>
 			<position dim="1">1435.71916171125</position>
-			<intensity>73261.8</intensity>
+			<intensity>66999.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -2402,7 +2402,7 @@
 		<feature id="f_3713543811689521337">
 			<position dim="0">2054.1124</position>
 			<position dim="1">1444.41395461011</position>
-			<intensity>300803</intensity>
+			<intensity>183248</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.961538</overallquality>
@@ -2467,7 +2467,7 @@
 		<feature id="f_8666254306116808202">
 			<position dim="0">2453.7277</position>
 			<position dim="1">1385.38706039707</position>
-			<intensity>139132</intensity>
+			<intensity>89990.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.909091</overallquality>
@@ -2529,7 +2529,7 @@
 		<feature id="f_4584897071539917580">
 			<position dim="0">2408.4245</position>
 			<position dim="1">1552.66689955614</position>
-			<intensity>161220</intensity>
+			<intensity>131824</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -2579,7 +2579,7 @@
 		<feature id="f_17569764383250687096">
 			<position dim="0">2236.4495</position>
 			<position dim="1">1359.8203404743</position>
-			<intensity>226737</intensity>
+			<intensity>209039</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.95</overallquality>
@@ -2632,7 +2632,7 @@
 		<feature id="f_14317784148091680644">
 			<position dim="0">2404.9536</position>
 			<position dim="1">1478.6930923822</position>
-			<intensity>141009</intensity>
+			<intensity>108433</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -2675,7 +2675,7 @@
 		<feature id="f_17671779025680303814">
 			<position dim="0">2404.9536</position>
 			<position dim="1">1411.53605692443</position>
-			<intensity>156530</intensity>
+			<intensity>111282</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -2739,7 +2739,7 @@
 		<feature id="f_7539502987715517688">
 			<position dim="0">2265.8264</position>
 			<position dim="1">1699.0826769528</position>
-			<intensity>239629</intensity>
+			<intensity>220350</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.928571</overallquality>
@@ -2828,7 +2828,7 @@
 		<feature id="f_7316644956366259183">
 			<position dim="0">2394.5305</position>
 			<position dim="1">1687.71842146293</position>
-			<intensity>209499</intensity>
+			<intensity>162454</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -2865,7 +2865,7 @@
 		<feature id="f_6182960951962378739">
 			<position dim="0">2232.9951</position>
 			<position dim="1">1307.56202829724</position>
-			<intensity>179576</intensity>
+			<intensity>160161</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -2908,7 +2908,7 @@
 		<feature id="f_14891455924036538147">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1350.25604617047</position>
-			<intensity>114615</intensity>
+			<intensity>83140.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -2945,7 +2945,7 @@
 		<feature id="f_5860084234476467938">
 			<position dim="0">2481.1011</position>
 			<position dim="1">1430.78964983428</position>
-			<intensity>151871</intensity>
+			<intensity>126704</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.888889</overallquality>
@@ -2976,7 +2976,7 @@
 		<feature id="f_12758854762884412659">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1242.31518418958</position>
-			<intensity>141722</intensity>
+			<intensity>114078</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.923077</overallquality>
@@ -3069,7 +3069,7 @@
 		<feature id="f_5495827884756377090">
 			<position dim="0">2055.8863</position>
 			<position dim="1">1386.70596345712</position>
-			<intensity>226248</intensity>
+			<intensity>150644</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.965517</overallquality>
@@ -3140,7 +3140,7 @@
 		<feature id="f_4143272592559840046">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1634.28816084261</position>
-			<intensity>148503</intensity>
+			<intensity>136357</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -3173,7 +3173,7 @@
 		<feature id="f_7870901012988979006">
 			<position dim="0">2304.0212</position>
 			<position dim="1">1340.26147619726</position>
-			<intensity>173720</intensity>
+			<intensity>145097</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.941176</overallquality>
@@ -3220,7 +3220,7 @@
 		<feature id="f_5342974036930030800">
 			<position dim="0">2458.847</position>
 			<position dim="1">1215.78509963182</position>
-			<intensity>198334</intensity>
+			<intensity>132710</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.952381</overallquality>
@@ -3275,7 +3275,7 @@
 		<feature id="f_11399299100673837381">
 			<position dim="0">2153.7001</position>
 			<position dim="1">1747.33391944797</position>
-			<intensity>248259</intensity>
+			<intensity>210176</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.947368</overallquality>
@@ -3326,7 +3326,7 @@
 		<feature id="f_16164338904207598736">
 			<position dim="0">2258.9136</position>
 			<position dim="1">1477.64266476881</position>
-			<intensity>185658</intensity>
+			<intensity>82801.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -3371,7 +3371,7 @@
 		<feature id="f_4410447320637600518">
 			<position dim="0">2404.9536</position>
 			<position dim="1">1194.54314937076</position>
-			<intensity>155791</intensity>
+			<intensity>122769</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.909091</overallquality>
@@ -3423,7 +3423,7 @@
 		<feature id="f_8795943655088158336">
 			<position dim="0">2239.8997</position>
 			<position dim="1">1788.8928938874</position>
-			<intensity>261379</intensity>
+			<intensity>237608</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.952381</overallquality>
@@ -3497,7 +3497,7 @@
 		<feature id="f_4021463513649428920">
 			<position dim="0">2477.6586</position>
 			<position dim="1">1368.57981094658</position>
-			<intensity>69020.5</intensity>
+			<intensity>62324.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -3526,7 +3526,7 @@
 		<feature id="f_3386388678910226661">
 			<position dim="0">2150.1436</position>
 			<position dim="1">1367.66555577526</position>
-			<intensity>227423</intensity>
+			<intensity>157113</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.962963</overallquality>
@@ -3608,6 +3608,7 @@
 			<UserParam type="float" name="FWHM" value="5.13059997558594"/>
 			<UserParam type="float" name="SD" value="0.00713600106047211"/>
 			<UserParam type="float" name="SD_ppm" value="3.83914607271934"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_3689406389503231823">
 			<position dim="0">2436.5378</position>
@@ -3676,7 +3677,7 @@
 		<feature id="f_11221884879889731173">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1150.33792200589</position>
-			<intensity>105992</intensity>
+			<intensity>101609</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -3726,7 +3727,7 @@
 		<feature id="f_5805590394902791448">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1496.4552161095</position>
-			<intensity>84300.9</intensity>
+			<intensity>73379.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -3755,7 +3756,7 @@
 		<feature id="f_11586291247413769442">
 			<position dim="0">2264.0944</position>
 			<position dim="1">1307.22164255963</position>
-			<intensity>100640</intensity>
+			<intensity>62582</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.909091</overallquality>
@@ -3854,7 +3855,7 @@
 		<feature id="f_3395379003172100421">
 			<position dim="0">2300.5738</position>
 			<position dim="1">1812.92295369503</position>
-			<intensity>168941</intensity>
+			<intensity>135003</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -3897,7 +3898,7 @@
 		<feature id="f_11630589982317102322">
 			<position dim="0">2048.7927</position>
 			<position dim="1">1824.30648770151</position>
-			<intensity>214117</intensity>
+			<intensity>130388</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.969697</overallquality>
@@ -3976,7 +3977,7 @@
 		<feature id="f_1339341489815824759">
 			<position dim="0">2295.4041</position>
 			<position dim="1">1284.47230395823</position>
-			<intensity>125102</intensity>
+			<intensity>113431</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.923077</overallquality>
@@ -4032,11 +4033,12 @@
 			<UserParam type="float" name="FWHM" value="12.1517000198364"/>
 			<UserParam type="float" name="SD" value="0.0507269072707871"/>
 			<UserParam type="float" name="SD_ppm" value="30.5490004086851"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_13641829453453140763">
 			<position dim="0">2300.5738</position>
 			<position dim="1">1577.7217052006</position>
-			<intensity>157136</intensity>
+			<intensity>96695.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -4096,7 +4098,7 @@
 		<feature id="f_4041634828915281168">
 			<position dim="0">2264.0944</position>
 			<position dim="1">1307.31238086977</position>
-			<intensity>36367.4</intensity>
+			<intensity>29517.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.75</overallquality>
@@ -4174,7 +4176,7 @@
 		<feature id="f_15721057298497490036">
 			<position dim="0">2257.1777</position>
 			<position dim="1">1624.24998579271</position>
-			<intensity>165438</intensity>
+			<intensity>154392</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -4211,7 +4213,7 @@
 		<feature id="f_2608380305220684729">
 			<position dim="0">2248.5422</position>
 			<position dim="1">1359.51502978855</position>
-			<intensity>165319</intensity>
+			<intensity>115518</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -4254,7 +4256,7 @@
 		<feature id="f_11422463686885200558">
 			<position dim="0">2408.4245</position>
 			<position dim="1">1725.00419842022</position>
-			<intensity>112966</intensity>
+			<intensity>63190.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.923077</overallquality>
@@ -4385,7 +4387,7 @@
 		<feature id="f_12049315334424432437">
 			<position dim="0">2050.5696</position>
 			<position dim="1">1238.2263371868</position>
-			<intensity>153181</intensity>
+			<intensity>68763.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.961538</overallquality>
@@ -4450,7 +4452,7 @@
 		<feature id="f_9868242461570157420">
 			<position dim="0">2232.9951</position>
 			<position dim="1">1259.16180774031</position>
-			<intensity>147557</intensity>
+			<intensity>139512</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -4545,7 +4547,7 @@
 		<feature id="f_1621338151966755474">
 			<position dim="0">2055.8863</position>
 			<position dim="1">1333.37987505159</position>
-			<intensity>182509</intensity>
+			<intensity>135035</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.96</overallquality>
@@ -4608,7 +4610,7 @@
 		<feature id="f_25974125700937907">
 			<position dim="0">2438.2814</position>
 			<position dim="1">1502.41371616082</position>
-			<intensity>55014.6</intensity>
+			<intensity>45703.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.833333</overallquality>
@@ -4633,7 +4635,7 @@
 		<feature id="f_7444998229116103684">
 			<position dim="0">2255.4493</position>
 			<position dim="1">1788.49520907975</position>
-			<intensity>149360</intensity>
+			<intensity>113315</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.944444</overallquality>
@@ -4682,7 +4684,7 @@
 		<feature id="f_11583213259935596392">
 			<position dim="0">2401.4906</position>
 			<position dim="1">1571.4669830935</position>
-			<intensity>53498.4</intensity>
+			<intensity>46614.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.75</overallquality>
@@ -4720,7 +4722,7 @@
 		<feature id="f_3619468215685938204">
 			<position dim="0">2477.6586</position>
 			<position dim="1">1374.303992702</position>
-			<intensity>65465.1</intensity>
+			<intensity>45455.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.833333</overallquality>
@@ -4776,7 +4778,7 @@
 		<feature id="f_17876486934271562208">
 			<position dim="0">2052.3418</position>
 			<position dim="1">1284.0313213858</position>
-			<intensity>176177</intensity>
+			<intensity>82658.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.964286</overallquality>
@@ -4893,6 +4895,7 @@
 			<UserParam type="float" name="FWHM" value="8.67510032653809"/>
 			<UserParam type="float" name="SD" value="0.0556145771784038"/>
 			<UserParam type="float" name="SD_ppm" value="31.7348920119436"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_16603831684342283009">
 			<position dim="0">2438.2814</position>
@@ -4912,11 +4915,12 @@
 			<UserParam type="float" name="FWHM" value="5.21799993515015"/>
 			<UserParam type="float" name="SD" value="0.029213491385819"/>
 			<UserParam type="float" name="SD_ppm" value="17.5945192303885"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_3607574553438867574">
 			<position dim="0">2150.1436</position>
 			<position dim="1">1310.69037807615</position>
-			<intensity>160209</intensity>
+			<intensity>125563</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.941176</overallquality>
@@ -4963,7 +4967,7 @@
 		<feature id="f_4906628401344677738">
 			<position dim="0">2418.9377</position>
 			<position dim="1">1248.74677006961</position>
-			<intensity>23621.6</intensity>
+			<intensity>14421.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -5034,7 +5038,7 @@
 		<feature id="f_11902665203725986836">
 			<position dim="0">2234.7232</position>
 			<position dim="1">1214.20694971584</position>
-			<intensity>115541</intensity>
+			<intensity>82507.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -5082,6 +5086,7 @@
 			<UserParam type="float" name="FWHM" value="6.92749977111816"/>
 			<UserParam type="float" name="SD" value="0.0435848854489741"/>
 			<UserParam type="float" name="SD_ppm" value="29.2500017522844"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_17153647282322401195">
 			<position dim="0">2408.4245</position>
@@ -5101,6 +5106,7 @@
 			<UserParam type="float" name="FWHM" value="6.94600009918213"/>
 			<UserParam type="float" name="SD" value="0.051668121940396"/>
 			<UserParam type="float" name="SD_ppm" value="29.9317297450761"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_10231321952512194787">
 			<position dim="0">2304.0212</position>
@@ -5202,7 +5208,7 @@
 		<feature id="f_1253235807487386477">
 			<position dim="0">2238.1823</position>
 			<position dim="1">1214.29192180917</position>
-			<intensity>34085.1</intensity>
+			<intensity>14426.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -5238,7 +5244,7 @@
 		<feature id="f_9657195323739211621">
 			<position dim="0">2239.8997</position>
 			<position dim="1">1888.18097999953</position>
-			<intensity>82775.8</intensity>
+			<intensity>46523.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -5267,7 +5273,7 @@
 		<feature id="f_15595829921891090644">
 			<position dim="0">2462.2518</position>
 			<position dim="1">1170.75588995277</position>
-			<intensity>97943</intensity>
+			<intensity>85234.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -5300,7 +5306,7 @@
 		<feature id="f_9693516254110939661">
 			<position dim="0">2406.691</position>
 			<position dim="1">1109.33678670612</position>
-			<intensity>76837.5</intensity>
+			<intensity>72760.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.888889</overallquality>
@@ -5472,6 +5478,7 @@
 			<UserParam type="float" name="FWHM" value="12.2073001861572"/>
 			<UserParam type="float" name="SD" value="0.0178705671969968"/>
 			<UserParam type="float" name="SD_ppm" value="12.619872095232"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3110306690676341028">
 			<position dim="0">2445.1888</position>
@@ -5499,7 +5506,7 @@
 		<feature id="f_7273255783824449336">
 			<position dim="0">2160.7929</position>
 			<position dim="1">1850.08286481696</position>
-			<intensity>161883</intensity>
+			<intensity>145759</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.928571</overallquality>
@@ -5629,7 +5636,7 @@
 		<feature id="f_4804931408721345291">
 			<position dim="0">2153.7001</position>
 			<position dim="1">1258.38641041345</position>
-			<intensity>144664</intensity>
+			<intensity>78088.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.941176</overallquality>
@@ -5699,7 +5706,7 @@
 		<feature id="f_16987762588190708774">
 			<position dim="0">2062.9985</position>
 			<position dim="1">1284.06410663577</position>
-			<intensity>29905</intensity>
+			<intensity>20960.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -5714,6 +5721,7 @@
 			<UserParam type="float" name="FWHM" value="5.38600015640259"/>
 			<UserParam type="float" name="SD" value="0.0206915442471274"/>
 			<UserParam type="float" name="SD_ppm" value="16.114105316236"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_12855069628258305325">
 			<position dim="0">2403.2204</position>
@@ -5760,6 +5768,7 @@
 			<UserParam type="float" name="FWHM" value="5.18450021743774"/>
 			<UserParam type="float" name="SD" value="0.0294752643560924"/>
 			<UserParam type="float" name="SD_ppm" value="17.2846931887017"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_11164532998186420766">
 			<position dim="0">2440.0082</position>
@@ -5852,7 +5861,7 @@
 		<feature id="f_17623301629315165502">
 			<position dim="0">2295.4041</position>
 			<position dim="1">1502.60291617177</position>
-			<intensity>134379</intensity>
+			<intensity>83299.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9</overallquality>
@@ -5902,7 +5911,7 @@
 		<feature id="f_15355009979912333657">
 			<position dim="0">2253.7202</position>
 			<position dim="1">1258.88178469081</position>
-			<intensity>137743</intensity>
+			<intensity>98323.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -6138,6 +6147,7 @@
 			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
 			<UserParam type="float" name="SD" value="0.0256082025435881"/>
 			<UserParam type="float" name="SD_ppm" value="14.6100536198824"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_2235225131863392357">
 			<position dim="0">2238.1823</position>
@@ -6186,7 +6196,7 @@
 		<feature id="f_3985464472191994486">
 			<position dim="0">2264.0944</position>
 			<position dim="1">1887.82393960486</position>
-			<intensity>120500</intensity>
+			<intensity>90712.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -6271,6 +6281,7 @@
 			<UserParam type="float" name="FWHM" value="5.26849985122681"/>
 			<UserParam type="float" name="SD" value="0.0192107772115076"/>
 			<UserParam type="float" name="SD_ppm" value="16.6988077652192"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_6748518772549940365">
 			<position dim="0">2410.1664</position>
@@ -6383,7 +6394,7 @@
 		<feature id="f_15137961832517596447">
 			<position dim="0">2298.845</position>
 			<position dim="1">1926.22245531896</position>
-			<intensity>117588</intensity>
+			<intensity>86364.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.923077</overallquality>
@@ -6605,7 +6616,7 @@
 		<feature id="f_3500354167110536664">
 			<position dim="0">2153.7001</position>
 			<position dim="1">1209.96949878398</position>
-			<intensity>99260.1</intensity>
+			<intensity>64242.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -6741,7 +6752,7 @@
 		<feature id="f_1380230199713784757">
 			<position dim="0">2295.4041</position>
 			<position dim="1">1185.71367727379</position>
-			<intensity>67822.2</intensity>
+			<intensity>50604.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -6810,6 +6821,7 @@
 			<UserParam type="float" name="FWHM" value="8.66269969940186"/>
 			<UserParam type="float" name="SD" value="0.0433890066027768"/>
 			<UserParam type="float" name="SD_ppm" value="29.3393368018851"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_17757401347613427925">
 			<position dim="0">2293.6847</position>
@@ -6829,6 +6841,7 @@
 			<UserParam type="float" name="FWHM" value="6.89849996566772"/>
 			<UserParam type="float" name="SD" value="0.0326997838825244"/>
 			<UserParam type="float" name="SD_ppm" value="21.1389403488886"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_9283548542228005819">
 			<position dim="0">2436.5378</position>
@@ -6991,7 +7004,7 @@
 		<feature id="f_2477368416748083016">
 			<position dim="0">2364.3859</position>
 			<position dim="1">1763.4678193589</position>
-			<intensity>24283.9</intensity>
+			<intensity>21251.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -7061,7 +7074,7 @@
 		<feature id="f_2935923263525422257">
 			<position dim="0">2159.018</position>
 			<position dim="1">1849.91115288386</position>
-			<intensity>129759</intensity>
+			<intensity>108852</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.909091</overallquality>
@@ -7132,6 +7145,7 @@
 			<UserParam type="float" name="FWHM" value="12.0853004455566"/>
 			<UserParam type="float" name="SD" value="0.030320127805121"/>
 			<UserParam type="float" name="SD_ppm" value="21.1375822935589"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8563167430029240731">
 			<position dim="0">2109.6008</position>
@@ -7201,7 +7215,7 @@
 		<feature id="f_4287466236848599457">
 			<position dim="0">2047.0178</position>
 			<position dim="1">1195.56868326892</position>
-			<intensity>90085.7</intensity>
+			<intensity>76890</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.933333</overallquality>
@@ -7244,7 +7258,7 @@
 		<feature id="f_5494749430262800962">
 			<position dim="0">2055.8863</position>
 			<position dim="1">1925.53573538873</position>
-			<intensity>114693</intensity>
+			<intensity>79940.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.952381</overallquality>
@@ -7394,6 +7408,7 @@
 			<UserParam type="float" name="FWHM" value="5.22399997711182"/>
 			<UserParam type="float" name="SD" value="0.0365160008900987"/>
 			<UserParam type="float" name="SD_ppm" value="22.0789964309141"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_5790065978798102656">
 			<position dim="0">2317.9356</position>
@@ -7528,6 +7543,7 @@
 			<UserParam type="float" name="FWHM" value="6.92269992828369"/>
 			<UserParam type="float" name="SD" value="0.0378693976422487"/>
 			<UserParam type="float" name="SD_ppm" value="29.9712568261837"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_11486987517808453959">
 			<position dim="0">2332.0352</position>
@@ -7610,7 +7626,7 @@
 		<feature id="f_2196373945720374912">
 			<position dim="0">2075.7091</position>
 			<position dim="1">1507.33297536951</position>
-			<intensity>42132.8</intensity>
+			<intensity>32350</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.8</overallquality>
@@ -7978,7 +7994,7 @@
 		<feature id="f_3404719972762258001">
 			<position dim="0">2293.6847</position>
 			<position dim="1">1032.77954384873</position>
-			<intensity>40784.4</intensity>
+			<intensity>35049.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.833333</overallquality>
@@ -8215,7 +8231,7 @@
 		<feature id="f_12383683518728261590">
 			<position dim="0">2146.596</position>
 			<position dim="1">1965.61821552944</position>
-			<intensity>69155.3</intensity>
+			<intensity>66547.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -8341,7 +8357,7 @@
 		<feature id="f_1306039369812879929">
 			<position dim="0">2054.1124</position>
 			<position dim="1">1734.07463322593</position>
-			<intensity>98544.3</intensity>
+			<intensity>85423</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.916667</overallquality>
@@ -8639,6 +8655,7 @@
 			<UserParam type="float" name="FWHM" value="8.5241003036499"/>
 			<UserParam type="float" name="SD" value="0.0312126392002769"/>
 			<UserParam type="float" name="SD_ppm" value="25.4653113920323"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_17518854626305524736">
 			<position dim="0">2309.2118</position>
@@ -8658,6 +8675,7 @@
 			<UserParam type="float" name="FWHM" value="6.93610000610352"/>
 			<UserParam type="float" name="SD" value="0.0149500750686698"/>
 			<UserParam type="float" name="SD_ppm" value="7.76183531605076"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_17913703819525749873">
 			<position dim="0">2176.8929</position>
@@ -8677,6 +8695,7 @@
 			<UserParam type="float" name="FWHM" value="5.48199987411499"/>
 			<UserParam type="float" name="SD" value="0.0290650888475597"/>
 			<UserParam type="float" name="SD_ppm" value="16.6326091965294"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_7924899341108903907">
 			<position dim="0">2153.7001</position>
@@ -8791,6 +8810,7 @@
 			<UserParam type="float" name="FWHM" value="7.42700004577637"/>
 			<UserParam type="float" name="SD" value="0.031965993064079"/>
 			<UserParam type="float" name="SD_ppm" value="20.5604656828625"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_3369058652043219951">
 			<position dim="0">2443.4653</position>
@@ -8810,6 +8830,7 @@
 			<UserParam type="float" name="FWHM" value="5.1609001159668"/>
 			<UserParam type="float" name="SD" value="0.0134736325307192"/>
 			<UserParam type="float" name="SD_ppm" value="11.7598176725213"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_14355553896400643137">
 			<position dim="0">2470.7948</position>
@@ -8846,6 +8867,7 @@
 			<UserParam type="float" name="FWHM" value="5.49270009994507"/>
 			<UserParam type="float" name="SD" value="0.0357817870478984"/>
 			<UserParam type="float" name="SD_ppm" value="15.2824846505838"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_16026504753601459146">
 			<position dim="0">2404.9536</position>
@@ -9105,6 +9127,7 @@
 			<UserParam type="float" name="FWHM" value="12.9927997589111"/>
 			<UserParam type="float" name="SD" value="0.0814243385345543"/>
 			<UserParam type="float" name="SD_ppm" value="48.1857218379584"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_3429226038186940441">
 			<position dim="0">2135.693</position>
@@ -9196,6 +9219,7 @@
 			<UserParam type="float" name="FWHM" value="8.99650001525879"/>
 			<UserParam type="float" name="SD" value="0.0774569177497138"/>
 			<UserParam type="float" name="SD_ppm" value="46.2822837866461"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_9280572821339638149">
 			<position dim="0">2150.1436</position>
@@ -9339,6 +9363,7 @@
 			<UserParam type="float" name="FWHM" value="7.08449983596802"/>
 			<UserParam type="float" name="SD" value="0.0134252730488444"/>
 			<UserParam type="float" name="SD_ppm" value="8.10676327105272"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_1710461392160758637">
 			<position dim="0">2491.4704</position>
@@ -9434,6 +9459,7 @@
 			<UserParam type="float" name="FWHM" value="7.41429996490479"/>
 			<UserParam type="float" name="SD" value="0.0436958100835435"/>
 			<UserParam type="float" name="SD_ppm" value="26.9826556061268"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_5251706238937085209">
 			<position dim="0">2291.9613</position>
@@ -9548,11 +9574,12 @@
 			<UserParam type="float" name="FWHM" value="6.94449996948242"/>
 			<UserParam type="float" name="SD" value="0.0188104292348954"/>
 			<UserParam type="float" name="SD_ppm" value="16.048408847941"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_9371243749883817737">
 			<position dim="0">2243.3506</position>
 			<position dim="1">1999.20807084341</position>
-			<intensity>142775</intensity>
+			<intensity>107151</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.9375</overallquality>
@@ -9612,6 +9639,7 @@
 			<UserParam type="float" name="FWHM" value="8.91269969940186"/>
 			<UserParam type="float" name="SD" value="0.011149163498635"/>
 			<UserParam type="float" name="SD_ppm" value="6.54816241619849"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_15960569366695886719">
 			<position dim="0">2401.4906</position>
@@ -9692,6 +9720,7 @@
 			<UserParam type="float" name="FWHM" value="7.05649995803833"/>
 			<UserParam type="float" name="SD" value="0.0294378876362279"/>
 			<UserParam type="float" name="SD_ppm" value="25.5188361113547"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_9252459895939169728">
 			<position dim="0">2077.5722</position>
@@ -9711,6 +9740,7 @@
 			<UserParam type="float" name="FWHM" value="9.34000015258789"/>
 			<UserParam type="float" name="SD" value="0.0178943825574434"/>
 			<UserParam type="float" name="SD_ppm" value="14.4533416281513"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_13726644473851641505">
 			<position dim="0">2267.5597</position>
@@ -9878,6 +9908,7 @@
 			<UserParam type="float" name="FWHM" value="9.2564001083374"/>
 			<UserParam type="float" name="SD" value="0.0371993743925293"/>
 			<UserParam type="float" name="SD_ppm" value="23.9280154685398"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_13283915689800830221">
 			<position dim="0">2232.9951</position>
@@ -9899,6 +9930,7 @@
 			<UserParam type="float" name="FWHM" value="12.1765003204346"/>
 			<UserParam type="float" name="SD" value="0.0329764966555835"/>
 			<UserParam type="float" name="SD_ppm" value="29.0960158846397"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_9637723581632676922">
 			<position dim="0">2113.3173</position>
@@ -9943,6 +9975,7 @@
 			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
 			<UserParam type="float" name="SD" value="0.0478793812058152"/>
 			<UserParam type="float" name="SD_ppm" value="26.8623668969906"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_655261895931297456">
 			<position dim="0">2344.5056</position>
@@ -10119,6 +10152,7 @@
 			<UserParam type="float" name="FWHM" value="12.2164001464844"/>
 			<UserParam type="float" name="SD" value="0.0111284976422632"/>
 			<UserParam type="float" name="SD_ppm" value="12.386436960158"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_2167960984773533086">
 			<position dim="0">2438.2814</position>
@@ -10397,7 +10431,7 @@
 		<feature id="f_17623414133510866146">
 			<position dim="0">2150.1436</position>
 			<position dim="1">1600.09784845856</position>
-			<intensity>31698.8</intensity>
+			<intensity>23573.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>
@@ -10412,6 +10446,7 @@
 			<UserParam type="float" name="FWHM" value="5.33050012588501"/>
 			<UserParam type="float" name="SD" value="0.048214530543606"/>
 			<UserParam type="float" name="SD_ppm" value="30.1322388440513"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_3552445793072071659">
 			<position dim="0">2339.1438</position>
@@ -10564,6 +10599,7 @@
 			<UserParam type="float" name="FWHM" value="5.47650003433228"/>
 			<UserParam type="float" name="SD" value="0.0204049076120256"/>
 			<UserParam type="float" name="SD_ppm" value="15.5665550454989"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_10262439972721943923">
 			<position dim="0">2429.5107</position>
@@ -10600,6 +10636,7 @@
 			<UserParam type="float" name="FWHM" value="5.42589998245239"/>
 			<UserParam type="float" name="SD" value="0.013729925792282"/>
 			<UserParam type="float" name="SD_ppm" value="12.5442176805728"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_13158719758619989294">
 			<position dim="0">2013.3082</position>
@@ -10721,6 +10758,7 @@
 			<UserParam type="float" name="FWHM" value="8.93610000610352"/>
 			<UserParam type="float" name="SD" value="0.0315252235325958"/>
 			<UserParam type="float" name="SD_ppm" value="28.8509650175495"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_12554011686428582825">
 			<position dim="0">2021.0909</position>
@@ -10863,7 +10901,7 @@
 		<feature id="f_15388517483644187191">
 			<position dim="0">2316.1886</position>
 			<position dim="1">962.640170725991</position>
-			<intensity>42379.7</intensity>
+			<intensity>19399.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.875</overallquality>
@@ -10926,6 +10964,7 @@
 			<UserParam type="float" name="FWHM" value="5.16069984436035"/>
 			<UserParam type="float" name="SD" value="0.0215636185777695"/>
 			<UserParam type="float" name="SD_ppm" value="21.4000530770985"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_9972482156775897349">
 			<position dim="0">2041.6855</position>
@@ -11151,6 +11190,7 @@
 			<UserParam type="float" name="FWHM" value="6.97989988327026"/>
 			<UserParam type="float" name="SD" value="0.0187375841137358"/>
 			<UserParam type="float" name="SD_ppm" value="19.0013991892579"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_10723273230193029788">
 			<position dim="0">2028.7329</position>
@@ -11238,6 +11278,7 @@
 			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
 			<UserParam type="float" name="SD" value="0.0145789805268371"/>
 			<UserParam type="float" name="SD_ppm" value="15.5068501389947"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_8937159074073549608">
 			<position dim="0">2333.8036</position>
@@ -11359,6 +11400,7 @@
 			<UserParam type="float" name="FWHM" value="5.33029985427856"/>
 			<UserParam type="float" name="SD" value="0.00874607530137761"/>
 			<UserParam type="float" name="SD_ppm" value="9.29388361703949"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_6244178397615412071">
 			<position dim="0">2115.1782</position>
@@ -11452,7 +11494,7 @@
 		<feature id="f_10147015604772775807">
 			<position dim="0">2036.2596</position>
 			<position dim="1">1444.62693181998</position>
-			<intensity>21076</intensity>
+			<intensity>19037.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.666667</overallquality>

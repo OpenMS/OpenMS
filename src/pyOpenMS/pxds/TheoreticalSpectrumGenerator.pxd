@@ -17,5 +17,5 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>" namespace "
         void getSpectrum(MSSpectrum[RichPeak1D] &spec, AASequence &peptide, Int charge) nogil except +
         void addPeaks(MSSpectrum[RichPeak1D] &spectrum, AASequence &peptide, ResidueType res_type, Int charge) nogil except +
         void addPrecursorPeaks(MSSpectrum[RichPeak1D] &spec, AASequence &peptide, Int charge) nogil except +
-        void addAbundantImmoniumIons(MSSpectrum[RichPeak1D] &spec) nogil except +
+        void addAbundantImmoniumIons(MSSpectrum[RichPeak1D] &spec, AASequence &peptide) nogil except +
 

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -271,7 +271,8 @@ protected:
       template <typename ContainerT>
       void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
       {
-
+        // Intensity is the same for chromatograms and spectra, the second
+        // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
         bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
         if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
@@ -355,7 +356,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
         }
 
@@ -413,7 +414,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
 
         }
@@ -868,7 +869,7 @@ protected:
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown array type", array_type);
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown array type", array_type);
         }
 
         // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
@@ -1199,7 +1200,7 @@ protected:
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserveSpaceSpectra(count);
@@ -1213,7 +1214,7 @@ protected:
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserveSpaceChromatograms(count);

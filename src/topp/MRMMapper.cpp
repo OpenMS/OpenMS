@@ -161,7 +161,7 @@ protected:
           // ensure: map every chromatogram to only one transition
           if (mapped_already)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Already mapped chromatogram " + String(i) + \
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Already mapped chromatogram " + String(i) + \
              " with " + String(chromatogram.getPrecursor().getMZ()) + \
               " -> " + String(chromatogram.getProduct().getMZ()) +  \
                 "! Maybe try to decrease your mapping tolerance.");
@@ -196,7 +196,7 @@ protected:
         notmapped++;
         if (!nostrict)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
         }
       }
       else

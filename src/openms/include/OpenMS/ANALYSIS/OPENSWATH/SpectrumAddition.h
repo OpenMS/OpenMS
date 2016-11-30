@@ -60,4 +60,5 @@ public:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
+

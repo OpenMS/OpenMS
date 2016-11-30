@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -231,7 +231,7 @@ public:
     {
       if (trace_peaks_.size() != db_vec.size())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
       }
 

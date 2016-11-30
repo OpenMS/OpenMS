@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -102,7 +102,7 @@ private:
       //try to open file
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       // initialize parser
@@ -112,7 +112,7 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
@@ -161,12 +161,12 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", 
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
             String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
             String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
@@ -191,7 +191,7 @@ private:
 
       if (!os)
       {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       // write data and close stream
@@ -209,7 +209,7 @@ private:
     {
       if (schema_location_.empty())
       {
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       String current_location = File::find(schema_location_);
       return XMLValidator().isValid(filename, current_location, os);

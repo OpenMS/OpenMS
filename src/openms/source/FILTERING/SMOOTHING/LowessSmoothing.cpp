@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ namespace OpenMS
   {
     if (input_x.size() != input_y.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
     }
 
@@ -114,7 +114,7 @@ namespace OpenMS
     // In our case, u represents a distance and hence should be strictly positive.
     if (u < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Value of u must be strictly positive! Aborting...", String(u));
     }
 

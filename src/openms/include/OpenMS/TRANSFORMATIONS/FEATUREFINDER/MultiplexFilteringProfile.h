@@ -119,7 +119,7 @@ private:
      *
      * @return number of isotopic peaks seen for each peptide (profile)
      */
-    int nonLocalIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& mz_shifts_actual, const std::vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const;
+    int nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& mz_shifts_actual, const std::vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const;
 
     /**
      * @brief returns the index of a peak which is nearest m/z
@@ -131,7 +131,7 @@ private:
      *
      * @return index of the peak in spectrum or -1 if no peak is present within this tolerance
      */
-    int findNearest(int spectrum_index, double mz, double scaling) const;
+    int findNearest_(int spectrum_index, double mz, double scaling) const;
 
     /**
      * @brief profile experimental data and peak boundaries

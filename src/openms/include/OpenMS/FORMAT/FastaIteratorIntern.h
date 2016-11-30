@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ public:
     */
     virtual void setSpectrum(const std::vector<double> & /*spec*/)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**
@@ -125,7 +125,7 @@ public:
     */
     virtual const std::vector<double> & getSpectrum()
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**
@@ -135,7 +135,7 @@ public:
     */
     virtual void setTolerance(double /* t */)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**
@@ -146,7 +146,7 @@ public:
     */
     virtual double getTolerance()
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**

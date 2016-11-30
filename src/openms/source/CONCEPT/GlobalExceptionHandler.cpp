@@ -28,9 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/config.h>
 
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -69,7 +71,7 @@ namespace OpenMS
     throw(OutOfMemory)
 #endif
     {
-      throw OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     void GlobalExceptionHandler::terminate() throw()

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ namespace OpenMS
     for (UInt i = 0; i < number_of_maps; i++)
     {
       ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
-      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(i));
+      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
       out_intensities[i].reserve(it->second.size);
     }
     //fill out_intensities

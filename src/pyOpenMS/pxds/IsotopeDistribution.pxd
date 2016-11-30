@@ -49,6 +49,9 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
 
         void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
 
+        # Calculate isotopic distribution for a fragment molecule
+
+        void calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
 
         # renormalizes the sum of the probabilities of the isotopes to 1
         void renormalize() nogil except +

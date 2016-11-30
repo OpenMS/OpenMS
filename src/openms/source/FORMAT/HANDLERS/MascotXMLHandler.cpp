@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -669,7 +669,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tmp_mod);
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_mod);
         }
       }
       return mods;

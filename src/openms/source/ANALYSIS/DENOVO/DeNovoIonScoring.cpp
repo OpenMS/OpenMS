@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 

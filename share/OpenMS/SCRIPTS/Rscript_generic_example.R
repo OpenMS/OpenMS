@@ -80,6 +80,7 @@ if (length(idx_outlist1)==1 && !is.na(argv[idx_outlist1]) && nchar(argv[idx_outl
   ## if the file is requested, we need to deliver
   for (outlist_entry in outlist1)
   {
+    cat(paste0("Writing some content to : '", outlist_entry, "' ...\n"))
     cat(file=outlist_entry, "The R script wrote some output here...")
   }
 } else {

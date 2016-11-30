@@ -101,7 +101,7 @@ namespace OpenMS
       }
 
       LOG_FATAL_ERROR << error_message_ << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
     }
 
     void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
@@ -192,7 +192,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
       }

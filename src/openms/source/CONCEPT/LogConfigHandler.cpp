@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ namespace OpenMS
 
       if (l.size() < 2 || l.size() > 3)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, (*iter), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (*iter), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
       }
 
       // we parse a command line here, so we append a FILE to each of the arguments
@@ -156,7 +156,7 @@ namespace OpenMS
           {
             if (stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
             {
-              throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "A stream with the same name but different type was already registered.");
+              throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A stream with the same name but different type was already registered.");
             }
           }
 
@@ -166,7 +166,7 @@ namespace OpenMS
           if (!status)
           {
             // operation failed
-            throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, commands[2]);
+            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, commands[2]);
           }
 
           log.insert(STREAM_HANDLER.getStream(type, stream_name));
@@ -281,7 +281,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream_name);
     }
     return *log;
   }
@@ -311,7 +311,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_type);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream_type);
     }
 
     return *s;
@@ -326,7 +326,7 @@ namespace OpenMS
     else
     {
       // there is no stream with this name
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There is no stream with the given name.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no stream with the given name.");
     }
   }
 
@@ -344,7 +344,7 @@ namespace OpenMS
     else
     {
       // unsupported log type
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The log type " + stream_type + " is not supported");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The log type " + stream_type + " is not supported");
     }
 
     return type;

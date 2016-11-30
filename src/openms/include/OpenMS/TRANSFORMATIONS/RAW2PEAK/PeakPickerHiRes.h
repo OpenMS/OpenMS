@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Author: Erhan Kenar $
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
