@@ -88,7 +88,7 @@ namespace OpenMS
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     Size exp_size, chrom_size;
@@ -98,7 +98,7 @@ namespace OpenMS
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
@@ -147,7 +147,7 @@ namespace OpenMS
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     Size exp_size, chrom_size;
@@ -163,7 +163,7 @@ namespace OpenMS
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 

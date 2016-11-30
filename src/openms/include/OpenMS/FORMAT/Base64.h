@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -263,7 +263,7 @@ private:
         switch (zlib_error)
         {
         case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, compressed_length);
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
           break;
 
         case Z_BUF_ERROR:
@@ -274,7 +274,7 @@ private:
 
       if (zlib_error != Z_OK)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compression error?");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
 
       String(compressed).swap(compressed);
@@ -369,7 +369,7 @@ private:
 
     if (base64_uncompressed.isEmpty())
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decompression error?");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
     }
     decompressed.resize(base64_uncompressed.size());
 
@@ -381,7 +381,7 @@ private:
     const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
     if (buffer_size % element_size != 0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
     }
     
     Size float_count = buffer_size / element_size;
@@ -418,7 +418,7 @@ private:
     }
     if (in.size() % 4 != 0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Malformed base64 input, length is not a multiple of 4.");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Malformed base64 input, length is not a multiple of 4.");
     }
 
     Size src_size = in.size();
@@ -666,7 +666,7 @@ private:
     QByteArray base64_uncompressed = qUncompress(czip);
     if (base64_uncompressed.isEmpty())
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decompression error?");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
     }
     decompressed.resize(base64_uncompressed.size());
 
@@ -682,7 +682,7 @@ private:
       {
         const Int32 * float_buffer = reinterpret_cast<const Int32 *>(byte_buffer);
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
         Size float_count = buffer_size / element_size;
         UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize32);
@@ -700,7 +700,7 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
 
         Size float_count = buffer_size / element_size;
 
@@ -722,7 +722,7 @@ private:
       {
         const Int * float_buffer = reinterpret_cast<const Int *>(byte_buffer);
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount while decoding?");
 
         Size float_count = buffer_size / element_size;
         out.resize(float_count);
@@ -738,7 +738,7 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount while decoding?");
 
         Size float_count = buffer_size / element_size;
         out.resize(float_count);

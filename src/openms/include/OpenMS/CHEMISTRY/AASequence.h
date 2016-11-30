@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -367,31 +367,36 @@ protected:
     /// returns the peptide as string without any modifications
     String toUnmodifiedString() const;
 
-    /// set the modification of the residue at position index
+    /**
+        @brief create a TPP compatible string of the modified sequence using bracket notation.
+        Modification names (fullId) passed in fixed modifications are omitted.
+        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+    */  
+    String toBracketString(const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+
+    /// set the modification of the residue at position index.
+    /// if an empty string is passed replaces the residue with its unmodified version 
     void setModification(Size index, const String& modification);
 
     /// sets the N-terminal modification
     void setNTerminalModification(const String& modification);
 
-    /// returns the Id of the N-term modification; an empty string is returned if none was set
-    const String& getNTerminalModification() const;
+    /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
+    const String& getNTerminalModificationName() const;
 
-    /// returns the N-term modification; nullptr is returned if none was set
-    const ResidueModification * getNTerminalResidueModification() const;
-
-    /// returns the C-term modification; nullptr is returned if none was set
-    const ResidueModification * getCTerminalResidueModification() const;
+    /// returns a pointer to the N-terminal modification, or zero if none is set
+    const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification
     void setCTerminalModification(const String& modification);
 
-    /// returns the Id of the C-term modification; an empty string is returned if none was set
-    const String& getCTerminalModification() const;
+    /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
+    const String& getCTerminalModificationName() const;
 
-    /// returns a pointer to the residue, which is at position index
-    const Residue& getResidue(SignedSize index) const;
+    /// returns a pointer to the C-terminal modification, or zero if none is set
+    const ResidueModification* getCTerminalModification() const;
 
-    /// returns a pointer to the residue, which is at position index
+    /// returns a pointer to the residue at position @p index
     const Residue& getResidue(Size index) const;
 
     /// returns the formula of the peptide
@@ -462,11 +467,8 @@ protected:
     /// predicate which is true if the peptide is C-term modified
     bool hasCTerminalModification() const;
 
-    /// returns true if any of the residues is modified
+    /// returns true if any of the residues or termini are modified
     bool isModified() const;
-
-    /// returns true if the residue at the position is modified
-    bool isModified(Size index) const;
 
     /// equality operator. Two sequences are equal iff all amino acids including PTMs are equal
     bool operator==(const AASequence& rhs) const;
@@ -529,7 +531,8 @@ protected:
       const String::ConstIterator str_it, const String& str, AASequence& aas);
 
     static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas);
+      const String::ConstIterator str_it, const String& str, AASequence& aas, 
+      const ResidueModification::TermSpecificity& specificity);
 
     static void parseString_(const String& peptide, AASequence& aas,
                              bool permissive = true);

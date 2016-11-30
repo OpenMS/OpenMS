@@ -137,7 +137,7 @@ namespace OpenMS
     // could not determine the delimiter correctly
     if (header.size() < min_header_size)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Determined your csv/tsv file to have delimiter '" + (String)txt_delimiter + 
           "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + 
           (String)min_header_size + ". Please check your input file.");
@@ -162,7 +162,7 @@ namespace OpenMS
     {
       if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
             "I determined that your your csv/tsv file has the delimiter '" + (String)txt_delimiter +
              "'.\nBut the parsed header does not have the required field \"" + (String)header_names_[requiredFields[i]] + 
              "\". Please check your input file.");
@@ -234,7 +234,7 @@ namespace OpenMS
 
       if (tmp_line.size() != header_dict.size())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" +
                                          " do not match: " + String(tmp_line.size()) + " != " + String(header_dict.size()));
       }
@@ -302,7 +302,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Expected a header named RetentionTime, Tr_recalibrated or SpectraSTRetentionTime but found none");
       }
 
@@ -1064,38 +1064,33 @@ namespace OpenMS
 
     AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
 
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-
     // in TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
     if (std::string::npos == tr_it->FullPeptideName.find("["))
     {
-      if (!aa_sequence.getNTerminalModification().empty())
+      if (aa_sequence.hasNTerminalModification())
       {
-        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-        addModification_(mods, -1, rmod, aa_sequence.getNTerminalModification());
+        const ResidueModification& rmod = *(aa_sequence.getNTerminalModification());
+        addModification_(mods, -1, rmod);
       }
-      if (!aa_sequence.getCTerminalModification().empty())
+      if (aa_sequence.hasCTerminalModification())
       {
-        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-        addModification_(mods, aa_sequence.size(), rmod, aa_sequence.getCTerminalModification());
+        const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
+        addModification_(mods, aa_sequence.size(), rmod);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
         if (aa_sequence[i].isModified())
         {
-          // search the residue in the modification database (if the sequence is valid, we should find it)
-          TargetedExperiment::Peptide::Modification mod;
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
-          addModification_(mods, i, rmod, aa_sequence.getResidue(i).getModification());
+          const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
+          addModification_(mods, i, rmod);
         }
       }
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Error, could not parse modifications on " + tr_it->FullPeptideName +
                                        ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
     }
@@ -1149,7 +1144,7 @@ namespace OpenMS
   }
 
   void TransitionTSVReader::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                                             int location, ResidueModification& rmod, const String& name)
+                                             int location, const ResidueModification& rmod)
   {
     TargetedExperiment::Peptide::Modification mod;
     String unimod_str = rmod.getUniModAccession();
@@ -1160,7 +1155,7 @@ namespace OpenMS
     CVTerm unimod_name;
     unimod_name.setCVIdentifierRef("UNIMOD");
     unimod_name.setAccession(unimod_str.toUpper());
-    unimod_name.setName(name);
+    unimod_name.setName(rmod.getId());
     mod.addCVTerm(unimod_name);
     mods.push_back(mod);
   }
@@ -1446,7 +1441,7 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Your input file contains invalid references, cannot process file.");
     }
     writeTSVOutput_(filename, targeted_exp);
@@ -1470,7 +1465,7 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Invalid input, contains duplicate or invalid references");
     }
   }

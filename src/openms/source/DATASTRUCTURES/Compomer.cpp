@@ -109,7 +109,7 @@ namespace OpenMS
   void Compomer::add(const Adduct& a, UInt side)
   {
     if (side >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::add() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::add() does not support this value for 'side'!", String(side));
 
     if (a.getAmount() < 0)
     {
@@ -146,9 +146,9 @@ namespace OpenMS
   bool Compomer::isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
   {
     if (side_this  >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
     if (side_other >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::isConflicting() does not support this value for 'side_other'!", String(side_other));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_other'!", String(side_other));
 
     bool conflict_found = false;
 
@@ -235,7 +235,7 @@ namespace OpenMS
   String Compomer::getAdductsAsString(UInt side) const
   {
     if (side >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
 
     String r;
     CompomerSide::const_iterator it = cmp_[side].begin();
@@ -244,7 +244,7 @@ namespace OpenMS
       Int f = it->second.getAmount();
 
       if (it->first.has('+'))
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "An Adduct contains implicit charge. This is not allowed!", it->first);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", it->first);
 
       EmpiricalFormula ef(it->first);
       ef = ef * f;
@@ -257,7 +257,7 @@ namespace OpenMS
   bool Compomer::isSingleAdduct(Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
 
     if (cmp_[side].size() != 1)
       return false;
@@ -278,7 +278,7 @@ namespace OpenMS
   Compomer Compomer::removeAdduct(const Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
 
     Compomer tmp(*this);
     if (tmp.cmp_[side].count(a.getFormula()) > 0)
@@ -304,7 +304,7 @@ namespace OpenMS
   StringList Compomer::getLabels(const UInt side) const
   {
     if (side >= BOTH)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::getLabels() does not support this value for 'side'!", String(side));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getLabels() does not support this value for 'side'!", String(side));
 
     StringList tmp;
 

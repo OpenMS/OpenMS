@@ -1,6 +1,3 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.set cimport set as libcpp_set
-from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
@@ -8,6 +5,8 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
+        # wrap-hash:
+        #   getName().c_str()
 
         Residue() nogil except +
         Residue(Residue) nogil except + # wrap-ignore
@@ -113,17 +112,19 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # returns average weight of the residue
         double getAverageWeight(ResidueType res_type) nogil except +
 
-        # sets mono weight of the residue (must be full, with N and C-terminus)
+        # sets monoisotopic weight of the residue (must be full, with N and C-terminus)
         void setMonoWeight(double weight) nogil except +
 
-        # returns mono weight of the residue
+        # returns monoisotopic weight of the residue
         double getMonoWeight(ResidueType res_type) nogil except +
 
-        # sets by the name, this mod should be present in ModificationsDB
+        # CONST POINTER # ResidueModification * getModification() nogil except +
+
+        # sets the modification by name; the mod should be present in ModificationsDB
         void setModification(String name) nogil except +
 
         # returns the name of the modification to the modification
-        String getModification() nogil except +
+        String getModificationName() nogil except +
 
         # sets the low mass marker ions as a vector of formulas
         void setLowMassIons(libcpp_vector[EmpiricalFormula] low_mass_ions) nogil except +

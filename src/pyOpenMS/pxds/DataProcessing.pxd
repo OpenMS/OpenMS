@@ -1,6 +1,4 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.set cimport set as libcpp_set
-from libcpp.string cimport string as libcpp_string
+from Types cimport *
 from SpectrumSettings cimport *
 from Peak1D cimport *
 from String cimport *
@@ -53,3 +51,4 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataPro
         QUANTITATION, FEATURE_GROUPING, IDENTIFICATION_MAPPING,
         FORMAT_CONVERSION, CONVERSION_MZDATA, CONVERSION_MZML,
         CONVERSION_MZXML, CONVERSION_DTA, SIZE_OF_PROCESSINGACTION
+

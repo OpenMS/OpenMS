@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz$
-// $Authors: Guillaume Belz$
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_XMASSFILE_H
@@ -88,7 +88,7 @@ public:
       Internal::FidHandler fid(filename);
       if (!fid)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       //  Delete old spectrum
@@ -242,7 +242,7 @@ public:
     template <typename SpectrumType>
     void store(const String & /*filename*/, const SpectrumType & /*spectrum*/)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
   };

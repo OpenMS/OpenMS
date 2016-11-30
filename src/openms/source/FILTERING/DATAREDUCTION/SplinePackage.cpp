@@ -50,7 +50,7 @@ namespace OpenMS
   {
     if (!(mz.size() == intensity.size() && mz.size() > 1))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors either not of the same size or too short.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z and intensity vectors either not of the same size or too short.");
     }
 
     mz_min_ = mz.front();

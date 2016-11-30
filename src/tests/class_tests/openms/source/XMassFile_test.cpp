@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Guillaune Belz $
 // --------------------------------------------------------------------------
 

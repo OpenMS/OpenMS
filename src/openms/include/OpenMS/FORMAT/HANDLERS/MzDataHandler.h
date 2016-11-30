@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -597,7 +597,7 @@ protected:
       else if (tag == "spectrumList")
       {
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         //std::cout << Date::now() << " Reserving space for spectra" << std::endl;
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserve(count);

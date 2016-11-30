@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -380,7 +380,7 @@ public:
         // would like to have...
         if (rts.empty() || rts[0].getCVTerms()["MS:1000896"].empty())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "No retention time information (CV term 1000896) available");
         }
         return rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();

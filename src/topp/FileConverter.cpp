@@ -363,7 +363,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
       }
     }

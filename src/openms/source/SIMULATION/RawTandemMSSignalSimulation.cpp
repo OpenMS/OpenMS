@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Chris Bielow, Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -195,7 +195,7 @@ namespace OpenMS
          ||
           !features[i_f].metaValueExists("elution_profile_intensities"))
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MetaValue:elution_profile_***");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaValue:elution_profile_***");
       }
       // check if values fit the experiment:
 
@@ -269,7 +269,7 @@ namespace OpenMS
       // merge all MS2 spectra
       sm.mergeSpectraBlockWise(MS2_spectra);
       if (MS2_spectra.size() != 1)
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, MS2_spectra.size());
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, MS2_spectra.size());
       // store merged spectrum
       MS2_spectra[0].setMetaValue("MSE_Spectrum", "true");
       MS2_spectra[0].setMetaValue("MSE_sequences", feature_seq);

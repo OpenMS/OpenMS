@@ -55,6 +55,8 @@ namespace OpenMS
 
       Is able to transform a spectra on the fly while it is read using a
       function pointer that can be set on the object.
+
+      Note that the spectrum gets transformed in-place.
     */
     class OPENMS_DLLAPI MSDataTransformingConsumer :
       public Interfaces::IMSDataConsumer<>

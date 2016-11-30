@@ -102,7 +102,7 @@ else()
        OUTPUT_VARIABLE CYTHON_VERSION
        OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  message(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
+  message(STATUS "Looking for cython - found version ${CYTHON_VERSION} (should be 0.23 or higher)")
 endif()
 
 #------------------------------------------------------------------------------
@@ -122,14 +122,14 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 7, 1))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 8, 0))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;import autowrap; print ('%d.%d.%d' % (autowrap.version))"
+        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print ('%d.%d.%d' % (autowrap.version))"
         OUTPUT_VARIABLE AUTOWRAP_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -137,7 +137,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.7.1 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.8.0 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()

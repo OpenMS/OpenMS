@@ -190,7 +190,7 @@ public:
     {
       if (bins_.empty())
       {
-        throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       return bins_;
     }
@@ -209,7 +209,7 @@ public:
         }
         catch (...)
         {
-          throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
       }
       return bins_;
@@ -255,7 +255,7 @@ public:
         }
         catch (...)
         {
-          throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
       }
     }
@@ -276,7 +276,7 @@ public:
         }
         catch (...)
         {
-          throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
       }
     }

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -750,7 +750,7 @@ namespace OpenMS
   {
     if (map_model.empty() || map_scene.empty())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "One of the input maps is empty! This is not allowed!");
     }
 
@@ -1047,7 +1047,7 @@ namespace OpenMS
 
       if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("Superimposer could not compute an initial transformation!") +
                                       "You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }

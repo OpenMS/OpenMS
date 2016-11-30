@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 //
@@ -198,7 +198,7 @@ namespace OpenMS
         if (boost::math::isnan(new_maxlike - maxlike) || new_maxlike < maxlike)
         {
           return false;
-          //throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
+          //throw Exception::UnableToFit(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
         }
         if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {

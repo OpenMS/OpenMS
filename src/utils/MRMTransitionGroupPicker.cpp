@@ -201,7 +201,7 @@ protected:
     m.doMap(input, transition_exp);
     if (!m.allAssaysHaveChromatograms() )
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Not all assays could be mapped to chromatograms");
     }
 

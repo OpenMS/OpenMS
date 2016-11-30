@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -79,8 +79,8 @@ namespace OpenMS
 
         // Step 2: If the above step fails, try to find the correct
         // modification by using the mass difference
-        const ResidueModification * mod = mod_db->getBestModificationsByDiffMonoMass(
-               peptide.sequence[it->location], it->mono_mass_delta, 1.0);
+        const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
+          it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
         if (mod != NULL)
         {
           setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);

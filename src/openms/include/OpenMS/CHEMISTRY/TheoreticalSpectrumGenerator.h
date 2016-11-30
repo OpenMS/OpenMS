@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -83,8 +83,8 @@ namespace OpenMS
     /// adds the precursor peaks to the spectrum
     virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
 
-    /// Adds the common, most abundant immonium ions to the theoretical spectra
-    void addAbundantImmoniumIons(RichPeakSpectrum & spec) const;
+    /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
+    void addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const;
 
     /// overwrite
     void updateMembers_();

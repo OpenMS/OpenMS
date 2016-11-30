@@ -80,8 +80,6 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
 
-
-
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:
       CID,                      #< Collision-induced dissociation

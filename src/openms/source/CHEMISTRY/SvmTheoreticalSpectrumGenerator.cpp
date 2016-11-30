@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -569,7 +569,7 @@ namespace OpenMS
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, svm_info_file);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, svm_info_file);
     }
     ++left_marker;
     precursor_charge_ = left_marker->toInt();
@@ -579,7 +579,7 @@ namespace OpenMS
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, svm_info_file);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, svm_info_file);
     }
 
     //Now read the primary types and load the corresponding svm models
@@ -730,7 +730,7 @@ namespace OpenMS
 
     if (mp_.class_models.empty() || mp_.reg_models.empty() || mp_.ion_types.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no svm models loaded. Call load function before using simulate");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no svm models loaded. Call load function before using simulate");
     }
 
     //load parameters

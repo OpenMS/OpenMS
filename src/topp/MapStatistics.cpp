@@ -175,7 +175,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", ListUtils::create<String>("featureXML,consensusXML"));
-    registerOutputFile_("out", "<file>", "", "Optional output txt file. If '-' or left out, the output is written to the command line.", false);
+    registerOutputFile_("out", "<file>", "", "Optional output txt file. If empty, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
 
     registerIntOption_("n", "<n>", 4, // 4 slices is the default
@@ -508,7 +508,7 @@ protected:
     String out = getStringOption_("out");
 
     //output to command line
-    if (out == "" || out == "-")
+    if (out.empty())
     {
       return outputTo(cout);
     }
