@@ -721,7 +721,7 @@ protected:
         // repair size of array, accessing memory that is beyond int_size will lead to segfaults later
         if (repair_array_length)
         {
-          default_arr_length = std::min(int_size, rt_size);
+          default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)
           warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
         }
 
