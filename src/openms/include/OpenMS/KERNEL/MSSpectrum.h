@@ -255,13 +255,22 @@ public:
       retention_time_ = rt;
     }
 
-    /// Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+    /**
+      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+
+      @note Drift times may be stored directly as an attribute of the spectrum
+      (if they relate to the spectrum as a whole). In case of ion mobility
+      spectra, the drift time of the spectrum will always be set here while the
+      drift times attribute in the Precursor class may often be unpopulated.
+    */
     inline double getDriftTime() const
     {
       return drift_time_;
     }
 
-    /// Returns the ion mobility drift time in milliseconds
+    /**
+      @brief Returns the ion mobility drift time in milliseconds
+    */
     inline void setDriftTime(double dt)
     {
       drift_time_ = dt;

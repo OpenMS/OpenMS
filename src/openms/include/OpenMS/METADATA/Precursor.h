@@ -137,7 +137,13 @@ public:
     /// sets the upper offset from the target m/z
     void setIsolationWindowUpperOffset(double bound);
 
-    /// gets the ion mobility drift time in milliseconds (-1 means it is not set)
+    /**
+      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+
+      @note It is possible for the spectrum to not have a Precursor but still
+      have a drift time, please check getDriftTime of MSSpectrum first and only
+      use this function if you need find-grained access to individual precursors.
+    */
     double getDriftTime() const;
     /// sets the ion mobility drift time in milliseconds
     void setDriftTime(double drift_time);
