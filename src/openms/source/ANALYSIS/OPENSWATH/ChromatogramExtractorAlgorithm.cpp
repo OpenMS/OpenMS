@@ -95,7 +95,9 @@ namespace OpenMS
       integrated_intensity += (*int_walker);
     }
 
-    // (i) walk to the left until we go outside the window
+    // (i) Walk to the left one step and then keep walking left until we go
+    // outside the window. Note for the first step to the left we have to
+    // check for the walker becoming zero.
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_start)
@@ -121,7 +123,8 @@ namespace OpenMS
       --int_walker;
     }
 
-    // (ii) walk to the left until we go outside the window
+    // (ii) Walk to the right one step and then keep walking right until we are
+    // outside the window
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_end)
