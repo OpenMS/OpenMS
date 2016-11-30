@@ -223,6 +223,11 @@ protected:
          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_dir);
        }
 
+       //TODO: MS1 data m/z and intensity of precursor and precursor isotope pattern
+       //TODO: IF no MS1 information is present -  run without MS1 information- might lead to an incorrect identification
+       //TODO: Collision energy optional for MS2
+
+       //write internal unique .ms data as sirius input
        os.precision(12);
        os << fixed;
        os << ">compound " << query_id << "\n"
@@ -231,7 +236,6 @@ protected:
           << ">ms2" << "\n";
 
        //single spectrum peaks
-
        for (Size i = 0; i != spectrum.size(); ++i)
        {
          const Peak1D& peak = spectrum[i];
@@ -240,7 +244,6 @@ protected:
 
           os << mz << " " << intensity << "\n";
         }
-
        os.close();
 
        QStringList process_params; // the actual process
@@ -260,8 +263,8 @@ protected:
 
        process_params << tmp_filename.toQString();
 
+       //int status = QProcess::startDetached((executable, process_params)); //instead of QProcess::execute
        int status = QProcess::execute(executable, process_params);
-
        if (status != 0)
        {
          writeLog_("Fatal error: Running sirius returned an error code");
@@ -269,11 +272,9 @@ protected:
        }
 
        // read results from sirius output files
-       //CsvFile compounds(tmp_dir + "/" + query_id +".csv", '\t');
        CsvFile compounds(tmp_dir + "/" + unique_name + "_" + query_id +".csv", '\t');
 
-       //try
-       //CsvFile compounds(tmp_output_file, '\t');
+
 
        for (Size j = 0; j != compounds.rowCount(); ++j)
        {
