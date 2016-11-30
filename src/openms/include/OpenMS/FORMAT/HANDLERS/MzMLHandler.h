@@ -2020,10 +2020,16 @@ protected:
           // this property should thus go into the selectedIon tag inside a
           // <precursor>
           //
-          // However, drift time may also be a property of the scan itself
-          // (similar to retention time).
+          // However, actual files (e.g. written by ProteoWizard msconvert.exe) also
+          // put the information inside the <scan> tag which relate the
+          // spectrum as such and not to a particular precursor. This is why
+          // MSSpectrum also stores drift time and allows us to handle cases
+          // where there is no precursor. Here, we still set the spectrum drift
+          // time, assuming that in most cases there is a single precursor with
+          // a single drift time.
+          //
+          // Note that only milliseconds are valid units
 
-          // This assumes that this is a fragment ion spectrum derived from a precursor with a given drift time
           if (in_spectrum_list_)
           {
             spec_.getPrecursors().back().setDriftTime(value.toDouble());
@@ -2339,7 +2345,6 @@ protected:
         }
         else if (accession == "MS:1002476") //ion mobility drift time
         {
-
           // Drift time may be a property of the precursor (in case we are
           // acquiring a fragment ion spectrum) which is consistent with the CV
           // annotation which lists MS:1002476 with the relation "is_a:
@@ -2347,8 +2352,13 @@ protected:
           // this property should thus go into the selectedIon tag inside a
           // <precursor>
           //
-          // However, drift time may also be a property of the scan itself
-          // (similar to retention time).
+          // However, actual files (e.g. written by ProteoWizard msconvert.exe) also
+          // put the information inside the <scan> tag which relate the
+          // spectrum as such and not to a particular precursor. This is why
+          // MSSpectrum also stores drift time and allows us to handle cases
+          // where there is no precursor.
+          //
+          // Note that only milliseconds are valid units
           spec_.setDriftTime(value.toDouble());
         }
         else if (accession == "MS:1000011") //mass resolution
