@@ -96,10 +96,10 @@ set(CYTHON_VERSION_OK FALSE)
 if(CYTHON_MISSING)
 	message(FATAL_ERROR "Looking for cython - not found")
 else()
-  # check that minor version of Cython (0.xx.yy) is 23 or higher
+  # check that minor version of Cython (0.xx.yy) is 23
   execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) <= 23)"
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) == 23)"
       RESULT_VARIABLE _CYTHON_VERSION_OK
       ERROR_QUIET
       OUTPUT_QUIET
@@ -114,13 +114,13 @@ else()
       message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
       set(CYTHON_VERSION_OK TRUE)
   else()
-      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is to old (>= 0.23.0 is required)")
+      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is either too old or too new (== 0.23 is required)")
       message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
   endif()
 endif()
 
 #------------------------------------------------------------------------------
-# Check for autowrap Cython
+# Check for autowrap
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import autowrap"
