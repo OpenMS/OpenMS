@@ -231,6 +231,25 @@ protected:
 
     registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula];[name]: e.g 'C9H10N2O5;U-H3PO4' or 'U-H2O->C9H11N2O8P1;U-H2O',", false, false);
 
+/*
+ * a,b,y series:
+ * T?C10H14N5O7P;T-H2O & C10H14N5O7P;T-HPO3 & C10H14N5O7P;T-H3PO4, A?C10H14N5O7P;A-H2O & C10H14N5O7P;A-HPO3, *?C10H14N5O7P;R-HPO3
+ *
+ * marker ions (not exlusive but only based on nucleotide contained):
+ * T?C10H14N5O7P;T-H2O & C10H14N5O7P;T-HPO3 & C10H14N5O7P;T-H3PO4, A?C10H14N5O7P;A-H2O & C10H14N5O7P;A-HPO3 BUT NOT *?C10H14N5O7P;R-HPO3
+ *
+ * e.g. TA on PC:
+ * T, T-H2O, T-HPO3, T-H3PO4, A, A-H2O, A-HPO3, A-H3PO4
+ *
+ * e.g. T on PC:
+ * T, T-H2O, T-HPO3, T-H3PO4
+ *
+ * e.g. T-H2O on PC (not feasible removed):
+ * T-H2O, T-H3PO4
+ *
+ * no marker ion for ribose (*)
+ */
+
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
@@ -680,6 +699,23 @@ private:
     return fas;
   }
 
+  String shiftedPrecursorIonsToString_(const map<String, set<pair<String, double > > >& shifted_precursor_ions)
+  {
+    String fas;
+    for (map<String, set<pair<String, double > > >::const_iterator ait = shifted_precursor_ions.begin(); ait != shifted_precursor_ions.end(); ++ait)
+    {
+      for (set<pair<String, double> >::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+      {
+        if (ait != shifted_precursor_ions.begin() || sit != ait->second.begin())
+        {
+          fas += "|";
+        }
+        fas += sit->first;
+      }
+    }
+    return fas;
+  }
+
   String shiftedMarkerIonsToString_(const map<String, set<String> >& annotated_marker_ions)
   {
     String fas;
@@ -952,7 +988,6 @@ private:
           // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
           RichPeakSpectrum total_loss_spectrum, a_ions, b_ions, y_ions;
 
-          // TODO: generate MS2 precursor peaks of the total loss peptide for all z <= precursor charge  
           // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge  
 
           for (Size z = 1; z <= precursor_charge; ++z)
@@ -960,6 +995,8 @@ private:
             spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
             spectrum_generator.addPeaks(b_ions, fixed_and_variable_modified_peptide, Residue::BIon, z);
             spectrum_generator.addPeaks(y_ions, fixed_and_variable_modified_peptide, Residue::YIon, z);
+            // generate MS2 precursor peaks of the total loss peptide for all z <= precursor charge  
+            spectrum_generator.addPrecursorPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, z);
           }
           total_loss_spectrum.insert(total_loss_spectrum.end(), a_ions.begin(), a_ions.end());
           total_loss_spectrum.insert(total_loss_spectrum.end(), b_ions.begin(), b_ions.end());
@@ -1061,13 +1098,15 @@ private:
  
             RichPeakSpectrum shifted_series_peaks;
 
-            // TODO: generate MS2 precursor peaks of the MS2 adducts carrying peptide for all z <= precursor charge  
             for (Size z = 1; z <= precursor_charge; ++z)
             {
-              RichPeakSpectrum a_ions, b_ions, y_ions;
+              RichPeakSpectrum a_ions, b_ions, y_ions, precursor_ions;
               spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
               spectrum_generator.addPeaks(b_ions, fixed_and_variable_modified_peptide, Residue::BIon, z);
               spectrum_generator.addPeaks(y_ions, fixed_and_variable_modified_peptide, Residue::YIon, z);
+
+              // generate MS2 precursor peaks of the MS2 adducts carrying peptide for all z <= precursor charge  
+              spectrum_generator.addPrecursorPeaks(precursor_ions, fixed_and_variable_modified_peptide, z);
 
               for (Size j = 0; j != a_ions.size(); ++j)
               {
@@ -1081,10 +1120,15 @@ private:
               {
                 y_ions[j].setMZ(y_ions[j].getMZ() + shift / static_cast<double>(z));
               }
+              for (Size j = 0; j != precursor_ions.size(); ++j)
+              {
+                precursor_ions[j].setMZ(precursor_ions[j].getMZ() + shift / static_cast<double>(z));
+              }
 
               shifted_series_peaks.insert(shifted_series_peaks.end(), a_ions.begin(), a_ions.end());
               shifted_series_peaks.insert(shifted_series_peaks.end(), b_ions.begin(), b_ions.end());
               shifted_series_peaks.insert(shifted_series_peaks.end(), y_ions.begin(), y_ions.end());
+              shifted_series_peaks.insert(shifted_series_peaks.end(), precursor_ions.begin(), precursor_ions.end());
             }
 
             // annotate generated a,b,y ions with fragment shift name
@@ -1093,7 +1137,7 @@ private:
               const String& ion_name = shifted_series_peaks[j].getMetaValue("IonName");
               shifted_series_peaks[j].setMetaValue("IonName", ion_name + " " + fragment_shift_name);
             }
-            
+           
             // add shifted and annotated ion series to partial loss spectrum
             partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());            
           }
@@ -1107,6 +1151,8 @@ private:
           map<Size, vector<FragmentAnnotationDetail_> > unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
           map<String, set<pair<String, double> > > shifted_immonium_ions;
           map<String, set<String> > annotated_marker_ions;
+          map<String, set<pair<String, double> > > annotated_precursor_ions;
+
 
           // first annotate total loss peaks (these give no information where the actual shift occured)
           #ifdef DEBUG_RNPXLSEARCH
@@ -1206,6 +1252,10 @@ private:
                 LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
               }
               #endif
+            }
+            else if (ion_name.hasPrefix("[M+"))
+            {
+              annotated_precursor_ions[ion_name].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
             }
           }
 
@@ -1366,6 +1416,10 @@ private:
               }
               #endif
             }
+            else if (ion_name.hasPrefix("[M+"))
+            {
+              annotated_precursor_ions[ion_name].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
+            }
           }
 
           for (Size i = 0; i != sites_sum_score.size(); ++i) 
@@ -1517,6 +1571,8 @@ private:
           if (!sii.empty()) fragment_annotations.push_back(sii);
           String smi = shiftedMarkerIonsToString_(annotated_marker_ions);
           if (!smi.empty()) fragment_annotations.push_back(smi);
+          String spi = shiftedPrecursorIonsToString_(annotated_precursor_ions);
+          if (!spi.empty()) fragment_annotations.push_back(spi);
 
           a_it->fragment_annotation_string = ListUtils::concatenate(fragment_annotations, "|");
 
@@ -1538,6 +1594,8 @@ private:
             LOG_DEBUG << shiftedImmoniumIonsToString_(shifted_immonium_ions) << endl;
             LOG_DEBUG << "shifted marker ions: " << endl;
             LOG_DEBUG << shiftedMarkerIonsToString_(annotated_marker_ions) << endl;
+            LOG_DEBUG << "shifted precursor ions: " << endl;
+            LOG_DEBUG << shiftedPrecursorIonsToString_(annotated_precursor_ions) << endl;
             LOG_DEBUG << "Localization scores: ";
             LOG_DEBUG << localization_scores << endl;
             LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
