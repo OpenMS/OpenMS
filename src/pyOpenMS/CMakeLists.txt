@@ -92,14 +92,15 @@ if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
 	set(CYTHON_MISSING TRUE)
 endif()
 
+# check minor version of Cython (0.xx.yy)
+# Working versions (tested manually) are 0.22, 0.23, 0.24 and 0.25
 set(CYTHON_VERSION_OK FALSE)
 if(CYTHON_MISSING)
 	message(FATAL_ERROR "Looking for cython - not found")
 else()
-  # check that minor version of Cython (0.xx.yy) is 23
   execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) == 23)"
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) >= 22)"
       RESULT_VARIABLE _CYTHON_VERSION_OK
       ERROR_QUIET
       OUTPUT_QUIET
@@ -114,7 +115,7 @@ else()
       message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
       set(CYTHON_VERSION_OK TRUE)
   else()
-      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is either too old or too new (== 0.23 is required)")
+      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is either too old (>= 0.22 is required)")
       message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
   endif()
 endif()
