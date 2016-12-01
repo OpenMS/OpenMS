@@ -87,7 +87,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-#define DEBUG_RNPXLSEARCH 
+//#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -952,6 +952,9 @@ private:
           // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
           RichPeakSpectrum total_loss_spectrum, a_ions, b_ions, y_ions;
 
+          // TODO: generate MS2 precursor peaks of the total loss peptide for all z <= precursor charge  
+          // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge  
+
           for (Size z = 1; z <= precursor_charge; ++z)
           {
             spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
@@ -964,7 +967,7 @@ private:
 
           total_loss_spectrum.sortByPosition();
 
-          //TODO generate unshifted immonium ions
+          // TODO: generate unshifted immonium ions to gain confidence in identified peptide sequence
 
           // Add peaks for marker ions A', G', C' marker ions (presence of these are determined by precursor RNA)
           RichPeak1D RNA_fragment_peak;
@@ -972,21 +975,21 @@ private:
           if (precursor_rna_adduct.hasSubstring("A"))
           {
             RNA_fragment_peak.setMZ(136.0623); // C5H6N5
-            RNA_fragment_peak.setMetaValue("IonName", "A'");
+            RNA_fragment_peak.setMetaValue("IonName", "RNA:A'");
             partial_loss_spectrum.push_back(RNA_fragment_peak);
           }
 
           if (precursor_rna_adduct.hasSubstring("G"))
           {
             RNA_fragment_peak.setMZ(152.0572); //C5H6N5O
-            RNA_fragment_peak.setMetaValue("IonName", "G'");
+            RNA_fragment_peak.setMetaValue("IonName", "RNA:G'");
             partial_loss_spectrum.push_back(RNA_fragment_peak);
           }
 
           if (precursor_rna_adduct.hasSubstring("C"))
           {
             RNA_fragment_peak.setMZ(112.0510); // C4H6N3O
-            RNA_fragment_peak.setMetaValue("IonName", "C'");
+            RNA_fragment_peak.setMetaValue("IonName", "RNA:C'");
             partial_loss_spectrum.push_back(RNA_fragment_peak);
           }
 
@@ -1044,6 +1047,8 @@ private:
             {
               double immonium_ion_mz = 101.10732 + fragment_shift_mass;
               partial_loss_spectrum.push_back(getAnnotatedImmoniumIon_('K', immonium_ion_mz, fragment_shift_name));
+              // TODO: add a lysin derived fragment (similar to immonium ion) 84. and 129.10 (ask Aleks)
+
             }
             else if (unmodified_sequence.hasSubstring("M"))
             {
@@ -1056,6 +1061,7 @@ private:
  
             RichPeakSpectrum shifted_series_peaks;
 
+            // TODO: generate MS2 precursor peaks of the MS2 adducts carrying peptide for all z <= precursor charge  
             for (Size z = 1; z <= precursor_charge; ++z)
             {
               RichPeakSpectrum a_ions, b_ions, y_ions;
@@ -1331,7 +1337,7 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
               #endif
-              if (fragment_charge <= 1) // TODO: check if higher charge states for RNA adduct ions make sense (also accept if no charge assigned)
+              if (fragment_charge <= 1)
               {
                 annotated_marker_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")");
               }
@@ -1349,7 +1355,7 @@ private:
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " intensity: " << fragment_intensity << endl;                
               #endif
-              if (fragment_charge <= 1) // TODO: check if higher charge states for immonium ions make sense (also accept if no charge assigned)
+              if (fragment_charge <= 1)
               {
                 shifted_immonium_ions[origin].insert(make_pair("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")", fragment_intensity));
               }
