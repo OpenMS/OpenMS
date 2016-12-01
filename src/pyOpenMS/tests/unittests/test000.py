@@ -4347,9 +4347,10 @@ def testEnzymesDB():
     assert edb.hasEnzyme(s(b"testEnzyme"))
     assert edb.hasRegEx(s(b"someregex"))
 
-    edb.clear()
-    assert not edb.hasEnzyme(pyopenms.String("testEnzyme"))
-    assert not edb.hasEnzyme(pyopenms.String("Trypsin"))
+    # cannot clear a global variable and expect things to stay the same!!
+    # edb.clear()
+    # assert not edb.hasEnzyme(pyopenms.String("testEnzyme"))
+    # assert not edb.hasEnzyme(pyopenms.String("Trypsin"))
 
 
 @report
