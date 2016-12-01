@@ -92,17 +92,31 @@ if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
 	set(CYTHON_MISSING TRUE)
 endif()
 
+set(CYTHON_VERSION_OK FALSE)
 if(CYTHON_MISSING)
 	message(FATAL_ERROR "Looking for cython - not found")
 else()
-  # find out cython version info
+  # check that minor version of Cython (0.xx.yy) is 23 or higher
   execute_process(
-       COMMAND
-       ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
-       OUTPUT_VARIABLE CYTHON_VERSION
-       OUTPUT_STRIP_TRAILING_WHITESPACE
+      COMMAND
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) <= 23)"
+      RESULT_VARIABLE _CYTHON_VERSION_OK
+      ERROR_QUIET
+      OUTPUT_QUIET
   )
-  message(STATUS "Looking for cython - found version ${CYTHON_VERSION} (should be 0.23 or higher)")
+  execute_process(
+      COMMAND
+      ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
+      OUTPUT_VARIABLE CYTHON_VERSION
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(_CYTHON_VERSION_OK)
+      message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
+      set(CYTHON_VERSION_OK TRUE)
+  else()
+      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is to old (>= 0.23.0 is required)")
+      message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -116,7 +130,6 @@ execute_process(
 )
 
 set(AUTOWRAP_VERSION_OK FALSE)
-
 if(AUTOWRAP_MISSING)
 	message(STATUS "Looking for autowrap - not found")
 else()
@@ -246,7 +259,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
