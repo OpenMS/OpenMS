@@ -44,6 +44,7 @@
    #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
    #include <OpenMS/FORMAT/MzTab.h>
    #include <OpenMS/FORMAT/CsvFile.h>
+   #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
    #include <QtCore/QFile>
    #include <QtCore/QProcess>
@@ -163,6 +164,7 @@ protected:
    // loop over all spectra
    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
    {
+
      //process only MS2 spectra
      if (s_it->getMSLevel() != 2) continue;
 
@@ -176,18 +178,22 @@ protected:
 
      // needed later for writing in ms file
      int int_charge(1);
-     if (p == IonSource::Polarity::NEGATIVE)
-     {
-        int_charge = -1;
-     }
-     else if (p == IonSource::Polarity::POSITIVE)
+     if (p == IonSource::Polarity::POSITIVE)
      {
         int_charge = +1;
+     }
+     else
+     {
+      LOG_WARN << "CSIFingerID only support positive ion mode and mono charged analytes." << endl;
+      continue;
      }
 
      //there should be only one precursor and MS2 should contain peaks to be considered
      if (precursor.size() == 1 && !spectrum.empty())
      {
+      //get the activation energy (collision energy)
+       double collision =  precursor[0].getActivationEnergy();
+
        //read charge annotated to MS2
        int precursor_charge = precursor[0].getCharge();
 
@@ -197,7 +203,9 @@ protected:
          LOG_WARN << "Sirius only support mono charges analytes." << endl;
        }
 
+       //get m/z and intensity of precursor != MS1 spectrum
        double precursor_mz = precursor[0].getMZ();
+       float precursor_int = precursor[0].getIntensity(); //does not work give 0.0000
 
        //store temporary data
        String query_id = String("unknown") + String(scan_index);
@@ -209,6 +217,7 @@ protected:
        //to get the path and filename
        cout << "\n" << "Temp_output_folder: " << tmp_dir << "\n" << endl;
        cout << "Temp_filename: " << tmp_filename << "\n" << endl;
+       cout << "Activation Energy: "<< precursor[0].getActivationEnergy() << "\n" <<endl;
 
        // create temporary input file (.ms)
        ofstream os(tmp_filename.c_str());
@@ -223,7 +232,7 @@ protected:
          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_dir);
        }
 
-       //TODO: MS1 data m/z and intensity of precursor and precursor isotope pattern
+       //TODO: MS1 data m/z and intensity of precursor and precursor isotope pattern - for the right sum forumla
        //TODO: IF no MS1 information is present -  run without MS1 information- might lead to an incorrect identification
        //TODO: Collision energy optional for MS2
 
@@ -233,7 +242,18 @@ protected:
        os << ">compound " << query_id << "\n"
           << ">parentmass " << precursor_mz << fixed << "\n"
           << ">charge " << int_charge << "\n\n"
-          << ">ms2" << "\n";
+          << ">ms1" << "\n"
+          << precursor_mz << " " << precursor_int << "\n\n"; //not working properly
+
+       //if collision energy was given - write it into .ms file if not use ms2 instead
+       if (collision == 0)
+       {
+         os << ">ms2" << "\n";
+       }
+       else
+       {
+         os << ">collision" << " " << collision << "\n";
+       }
 
        //single spectrum peaks
        for (Size i = 0; i != spectrum.size(); ++i)
@@ -274,22 +294,22 @@ protected:
        // read results from sirius output files
        CsvFile compounds(tmp_dir + "/" + unique_name + "_" + query_id +".csv", '\t');
 
-
-
        for (Size j = 0; j != compounds.rowCount(); ++j)
        {
          StringList sl;
          compounds.getRow(j, sl);
          for (Size k = 0; k != sl.size(); ++k)
          {
-           cout << sl[k];
+           os << sl[k];
            if (k != sl.size() - 1)
            {
-             cout << "\t";
+             os << "\t";
            } else
            {
-            cout << "\n";
+            os << "\n";
            }
+
+
          }
        }
 
