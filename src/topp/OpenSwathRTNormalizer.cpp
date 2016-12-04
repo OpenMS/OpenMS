@@ -213,9 +213,9 @@ protected:
 
     // 2. Store the peptide retention times in an intermediate map
     std::map<std::string, double> PeptideRTMap;
-    for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
+    for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
-      PeptideRTMap[targeted_exp.getPeptides()[i].id] = targeted_exp.getPeptides()[i].rt; 
+      PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt; 
     }
 
     MzMLFile f;
@@ -307,7 +307,7 @@ protected:
     }
     else 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
@@ -319,7 +319,7 @@ protected:
       pepEstimationParams.getValue("MinBinsFilled") );
     if (estimateBestPeptides && !enoughPeptides)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "There were not enough bins with the minimal number of peptides");
     }
 

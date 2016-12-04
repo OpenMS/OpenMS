@@ -47,8 +47,8 @@ namespace OpenMS
 {
   /** @brief An annotation item which paints a set of carets on the canvas.
 
-      Most useful to visualize (theoretical) isotope distributions.
-      Additionally, a text annotation can be provided
+      Most useful to visualize (theoretical) isotope distributions (one caret per isotope position).
+      Additionally, a text annotation can be provided.
 
       @see Annotation1DItem
   */
@@ -61,7 +61,7 @@ public:
     typedef std::vector<PointType> PositionsType;
 
     /// Constructor
-    Annotation1DCaret(const PositionsType& poly_positions, const QString& text, const QColor& colour);
+    Annotation1DCaret(const PositionsType& poly_positions, const QString& text, const QColor& colour, const QColor& connection_line_color);
 
     /// Copy constructor
     Annotation1DCaret(const Annotation1DCaret& rhs);
@@ -109,9 +109,11 @@ protected:
     /// The colour of the label
     QColor color_;
 
+    /// The colour of the (optional) dashed line connecting peak and label
+    QColor connection_line_color_;
+
     /// Holds the (rich) text
     QStaticText st_;
-    //QTextDocument doc_;
 
   };
 } // namespace OpenMS

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ protected:
       idxml.load(filenames[1], protxml_proteins, protxml_peptides);
       if (protxml_proteins[0].getProteinGroups().empty())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
       }
     }
     else // first idXML contains data from the protXML
@@ -124,7 +124,7 @@ protected:
 
     if ((protxml_peptides.size() > 1) || (protxml_proteins.size() > 1))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The idXML derived from a protXML file should contain only one 'ProteinIdentification' and one 'PeptideIdentification' instance.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The idXML derived from a protXML file should contain only one 'ProteinIdentification' and one 'PeptideIdentification' instance.");
     }
 
     // peptide information comes from the pepXML (additional information in
@@ -183,7 +183,14 @@ protected:
   {
     do
     {
-      date_time = date_time.addSecs(1);
+      if (date_time.isValid())
+      {
+        date_time = date_time.addSecs(1);
+      }
+      else
+      {
+        date_time = DateTime::now();
+      }
       new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
     }
     while (used_ids.find(new_id) != used_ids.end());
@@ -191,8 +198,9 @@ protected:
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
                            vector<PeptideIdentification>& peptides,
-                           const String& filename)
+                           String filename)
   {
+    if (test_mode_) filename = File::basename(filename);
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {

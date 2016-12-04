@@ -150,8 +150,8 @@ protected:
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
     registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
     registerTOPPSubsection_("thresh", "Filtering by significance threshold");
-    registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false);
-    registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
+    registerDoubleOption_("thresh:pep", "<fraction>", 0.0, "Keep a peptide hit only if its score is above this fraction of the peptide significance threshold.", false, true);
+    registerDoubleOption_("thresh:prot", "<fraction>", 0.0, "Keep a protein hit only if its score is above this fraction of the protein significance threshold. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false, true);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
@@ -250,7 +250,7 @@ protected:
 
     if (getFlag_("unique"))
     {
-      LOG_INFO << "Filtering by removing duplicate peptide hits..." << endl;
+      LOG_INFO << "Removing duplicate peptide hits..." << endl;
       IDFilter::removeDuplicatePeptideHits(peptides);
     }
 
@@ -328,6 +328,8 @@ protected:
     vector<String> whitelist_mods = getStringList_("whitelist:modifications");
     if (!whitelist_mods.empty())
     {
+      LOG_INFO << "Filtering peptide IDs by modification whitelisting..."
+               << endl;
       set<String> good_mods(whitelist_mods.begin(), whitelist_mods.end());
       IDFilter::keepPeptidesWithMatchingModifications(peptides, good_mods);
     }
@@ -377,6 +379,8 @@ protected:
     vector<String> blacklist_mods = getStringList_("blacklist:modifications");
     if (!blacklist_mods.empty())
     {
+      LOG_INFO << "Filtering peptide IDs by modification blacklisting..."
+               << endl;
       set<String> bad_mods(blacklist_mods.begin(), blacklist_mods.end());
       IDFilter::removePeptidesWithMatchingModifications(peptides, bad_mods);
     }
@@ -439,7 +443,7 @@ protected:
     Size best_n_pep = getIntOption_("best:n_peptide_hits");
     if (best_n_pep > 0)
     {
-      LOG_INFO << "Filtering by best n peptide hits...\n" << endl;
+      LOG_INFO << "Filtering by best n peptide hits..." << endl;
       IDFilter::keepNBestHits(peptides, best_n_pep);
     }
 
@@ -485,12 +489,13 @@ protected:
     Size best_n_prot = getIntOption_("best:n_protein_hits");
     if (best_n_prot > 0)
     {
-      LOG_INFO << "Filtering by best n protein hits...\n" << endl;
+      LOG_INFO << "Filtering by best n protein hits..." << endl;
       IDFilter::keepNBestHits(proteins, best_n_prot);
     }
         
     if (getFlag_("remove_decoys"))
     {
+      LOG_INFO << "Removing decoy hits..." << endl;
       IDFilter::removeDecoyHits(peptides);
       IDFilter::removeDecoyHits(proteins);
     }
@@ -500,7 +505,7 @@ protected:
 
     if (!getFlag_("keep_unreferenced_protein_hits"))
     {
-      LOG_INFO << "Filtering unreferenced protein hits..." << endl;
+      LOG_INFO << "Removing unreferenced protein hits..." << endl;
       IDFilter::removeUnreferencedProteins(proteins, peptides);
     }
 
@@ -510,6 +515,7 @@ protected:
     // remove non-existant protein references from peptides (and optionally:
     // remove peptides with no proteins):
     bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
+    if (rm_pep) LOG_INFO << "Removing peptide hits without protein references..." << endl;
     IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);

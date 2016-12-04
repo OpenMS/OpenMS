@@ -9,6 +9,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="APRTT" score="40" sequence="" >
 			</ProteinHit>
+			<UserParam type="string" name="file_origin" value="IDMerger_1_input1.idXML"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.58" RT="-1" >
 			<PeptideHit score="40.5" sequence="APRTPEPTIDER" charge="2" protein_refs="PH_0" >
@@ -21,6 +22,7 @@
 			</PeptideHit>
 			<PeptideHit score="30.5" sequence="APEPTIDERR" charge="2" >
 			</PeptideHit>
+			<UserParam type="string" name="file_origin" value="IDMerger_1_input1.idXML"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2006-10-07T06:31:08" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
@@ -29,6 +31,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="BPRTT" score="40" sequence="" >
 			</ProteinHit>
+			<UserParam type="string" name="file_origin" value="IDMerger_1_input2.idXML"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.58" RT="-1" >
 			<PeptideHit score="40.5" sequence="BPRTPEPTIDER" charge="2" protein_refs="PH_2" >
@@ -39,6 +42,7 @@
 			</PeptideHit>
 			<PeptideHit score="30.5" sequence="BPEPTIDER" charge="2" >
 			</PeptideHit>
+			<UserParam type="string" name="file_origin" value="IDMerger_1_input2.idXML"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

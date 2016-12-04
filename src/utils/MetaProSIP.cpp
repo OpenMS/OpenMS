@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -362,7 +362,7 @@ public:
 class MetaProSIPReporting
 {
 public:
-  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
+  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String filename = String("heatmap") + file_suffix + "." + file_extension;
     String script_filename = String("heatmap") + file_suffix + String(".R");
@@ -445,7 +445,7 @@ public:
       qparam << "--quiet";
     }
     qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-    p.start("R", qparam);
+    p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
 
@@ -465,7 +465,7 @@ public:
     }
   }
 
-  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
     String script_filename = String("spectrum_plot") + file_suffix + String(".R");
@@ -523,7 +523,7 @@ public:
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
+      p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
 
@@ -664,7 +664,7 @@ public:
     current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
   }
 
-  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0)
+  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String score_filename = String("score_plot") + file_suffix + file_extension;
     String script_filename = String("score_plot") + file_suffix + String(".R");
@@ -744,7 +744,7 @@ public:
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
+      p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
 
@@ -764,7 +764,15 @@ public:
     }
   }
 
-  static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, const vector<vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
+  static void createQualityReport(String tmp_path, 
+                                  String qc_output_directory, 
+                                  String file_suffix, 
+                                  const String& file_extension, 
+                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster, 
+                                  Size n_heatmap_bins, 
+                                  double score_plot_y_axis_min, 
+                                  bool report_natural_peptides, 
+                                  const QString& executable = QString("R"))
   {
     vector<SIPPeptide> sip_peptides;
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -785,13 +793,13 @@ public:
     vector<vector<double> > binned_peptide_ria;
     vector<String> class_labels;
     createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
-    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
+    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
     LOG_INFO << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
+    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
 
     LOG_INFO << "Plotting correlation score and weight distribution" << endl;
-    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
+    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
 
     if (file_extension != "pdf") // html doesn't support pdf as image
     {
@@ -1938,7 +1946,7 @@ class RIntegration
 {
 public:
   // Perform a simple check if R and all R dependencies are thereget
-  static bool checkRDependencies(String tmp_path, StringList package_names)
+  static bool checkRDependencies(String tmp_path, StringList package_names, const QString& executable = QString("R"))
   {
     String random_name = String::random(8);
     String script_filename = tmp_path + String("/") + random_name + String(".R");
@@ -1958,7 +1966,7 @@ public:
 
       QStringList checkRinPathQParam;
       checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-      p.start("R", checkRinPathQParam);
+      p.start(executable, checkRinPathQParam);
       p.waitForFinished(-1);
 
       if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
@@ -2002,7 +2010,7 @@ public:
 
     QStringList qparam;
     qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-    p.start("R", qparam);
+    p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
 
@@ -2057,6 +2065,8 @@ protected:
 
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
+
+    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false);
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
@@ -2912,6 +2922,7 @@ protected:
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
+    QString executable = getStringOption_("r_executable").toQString();
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double rt_tolerance_s = getDoubleOption_("rt_tolerance_s");
 
@@ -2964,7 +2975,7 @@ protected:
     // check if R and dependencies are installed
     StringList package_names;
     package_names.push_back("gplots");
-    bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names);
+    bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
     if (!R_is_working)
     {
       LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
@@ -3593,7 +3604,7 @@ protected:
     if (!qc_output_directory.empty() && R_is_working)
     {
       // TODO plot merged is now passed as false
-      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides);
+      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }
 
     return EXECUTION_OK;

@@ -125,7 +125,7 @@ public:
       {
         if (rank == 0)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The cut-off value for rank filtering must not be zero!");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The cut-off value for rank filtering must not be zero!");
         }
       }
 
@@ -134,7 +134,7 @@ public:
         Size hit_rank = hit.getRank();
         if (hit_rank == 0)
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No rank assigned to peptide or protein hit");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No rank assigned to peptide or protein hit");
         }
         return hit_rank <= rank;
       }
@@ -393,7 +393,7 @@ public:
         }
         else if (best_id_it->getScoreType() != id_it->getScoreType())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Can't compare scores of different types", best_id_it->getScoreType() + "/" + id_it->getScoreType());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can't compare scores of different types", best_id_it->getScoreType() + "/" + id_it->getScoreType());
         }
 
         bool higher_better = best_id_it->isHigherScoreBetter();
@@ -764,10 +764,10 @@ public:
     /**
        @brief Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID).
 
-       Hits are considered duplicated if they compare as equal using PeptideHit::operator== (i.e. not only the sequences have to match!).
+       By default, hits are considered duplicated if they compare as equal using PeptideHit::operator==. However, if @p seq_only is set, only the sequences (incl. modifications) are compared. In both cases, the first occurrence of each hit in a peptide ID is kept, later ones are removed.
     */
     static void removeDuplicatePeptideHits(std::vector<PeptideIdentification>&
-                                           peptides);
+                                           peptides, bool seq_only = false);
 
     ///@}
 

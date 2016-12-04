@@ -154,7 +154,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01b;
   shuffleAASequence_target_sequence_01b.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01b;
-  shuffleAASequence_expected_01b.sequence = "TCTTPDPISEE";
+  shuffleAASequence_expected_01b.sequence = "TETTPDPICEE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01b;
   shuffleAASequence_result_01b = gen.shufflePeptide(shuffleAASequence_target_sequence_01b, 0.2, 42, 10000, true);
   TEST_EQUAL(shuffleAASequence_result_01b.sequence, shuffleAASequence_expected_01b.sequence)
@@ -162,7 +162,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00b;
   shuffleAASequence_target_sequence_00b.sequence = "TESTPEPTIDE";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00b;
-  shuffleAASequence_expected_00b.sequence = "HGCGPDPCCHG";
+  shuffleAASequence_expected_00b.sequence = "QDCHGLGGEEC";
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00b;
   shuffleAASequence_result_00b = gen.shufflePeptide(shuffleAASequence_target_sequence_00b, 0.0, 42, 2000, true);
   TEST_EQUAL(shuffleAASequence_result_00b.sequence, shuffleAASequence_expected_00b.sequence)
@@ -398,7 +398,24 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment & exp,
   MRMDecoy decoys = MRMDecoy();
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
   TEST_EQUAL(targeted_exp.getTransitions().size(), 36)
-  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, skip_unannotated);  traml.store(test, targeted_decoy);
+  decoys.generateDecoys(targeted_exp, 
+                        targeted_decoy,
+                        method,
+                        decoy_tag,
+                        identity_threshold,
+                        max_attempts,
+                        mz_threshold,
+                        mz_shift, 
+                        exclude_similar,
+                        similarity_threshold,
+                        remove_CNterminal_mods, 
+                        0.1,
+                        fragment_types, 
+                        fragment_charges,
+                        enable_specific_losses, 
+                        enable_unspecific_losses,
+                        skip_unannotated); 
+  traml.store(test, targeted_decoy);
 
   TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }

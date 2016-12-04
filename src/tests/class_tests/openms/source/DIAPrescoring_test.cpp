@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
@@ -70,13 +70,13 @@ START_SECTION ( testscorefunction)
 
   OpenSwath::LightTransition mock_tr1;
   mock_tr1.product_mz = 500.;
-  mock_tr1.charge = 1;
+  mock_tr1.fragment_charge = 1;
   mock_tr1.transition_name = "group1";
   mock_tr1.library_intensity = 5.;
 
   OpenSwath::LightTransition mock_tr2;
   mock_tr2.product_mz = 600.;
-  mock_tr2.charge = 1;
+  mock_tr2.fragment_charge = 1;
   mock_tr2.transition_name = "group2";
   mock_tr2.library_intensity = 5.;
 
@@ -132,8 +132,8 @@ START_SECTION ( testscorefunction)
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.644473950768828)
-  TEST_REAL_SIMILAR(manhattan, 1.00199893289589)
+  TEST_REAL_SIMILAR(dotprod, 0.649257055562646)
+  TEST_REAL_SIMILAR(manhattan, 0.99470376511618)
 }
 END_SECTION
 

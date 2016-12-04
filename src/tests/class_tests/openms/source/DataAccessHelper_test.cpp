@@ -1,4 +1,3 @@
-Error: No XML file found for class 'DataAccessHelper'. Aborting!
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------

@@ -7,8 +7,15 @@ from EmpiricalFormula cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
     
     cdef cppclass ResidueModification "OpenMS::ResidueModification":
+        # wrap-hash:
+        #   getFullId().c_str()
+
         ResidueModification() nogil except +
         ResidueModification(ResidueModification) nogil except +
+
+        bool operator==(ResidueModification & modification) nogil except +
+        bool operator!=(ResidueModification & modification) nogil except +
+
         void setId(String & id_) nogil except +
         String  getId() nogil except +
         void setFullId(String & full_id) nogil except +
@@ -21,16 +28,16 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         String  getFullName() nogil except +
         void setName(String & name) nogil except +
         String  getName() nogil except +
-        void setTermSpecificity(Term_Specificity term_spec) nogil except +
+        void setTermSpecificity(TermSpecificity term_spec) nogil except +
         void setTermSpecificity(String & name) nogil except +
-        Term_Specificity getTermSpecificity() nogil except +
-        String getTermSpecificityName(Term_Specificity ) nogil except +
+        TermSpecificity getTermSpecificity() nogil except +
+        String getTermSpecificityName(TermSpecificity ) nogil except +
         void setOrigin(String & origin) nogil except +
         String  getOrigin() nogil except +
         void setSourceClassification(String & classification) nogil except +
-        void setSourceClassification(Source_Classification classification) nogil except +
-        Source_Classification getSourceClassification() nogil except +
-        String getSourceClassificationName(Source_Classification classification) nogil except +
+        void setSourceClassification(SourceClassification classification) nogil except +
+        SourceClassification getSourceClassification() nogil except +
+        String getSourceClassificationName(SourceClassification classification) nogil except +
         void setAverageMass(double mass) nogil except +
         double getAverageMass() nogil except +
         void setMonoMass(double mass) nogil except +
@@ -53,11 +60,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setNeutralLossAverageMass(double average_mass) nogil except +
         double getNeutralLossAverageMass() nogil except +
         bool hasNeutralLoss() nogil except +
-        bool operator==(ResidueModification & modification) nogil except +
-        bool operator!=(ResidueModification & modification) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
-    cdef enum Term_Specificity "OpenMS::ResidueModification::Term_Specificity":
+    cdef enum TermSpecificity "OpenMS::ResidueModification::TermSpecificity":
         #wrap-attach:
         #    ResidueModification
         ANYWHERE
@@ -68,7 +73,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::R
         NUMBER_OF_TERM_SPECIFICITY
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
-    cdef enum Source_Classification "OpenMS::ResidueModification::Source_Classification":
+    cdef enum SourceClassification "OpenMS::ResidueModification::SourceClassification":
         #wrap-attach:
         #    ResidueModification
         ARTIFACT

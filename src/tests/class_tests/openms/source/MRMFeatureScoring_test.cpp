@@ -202,8 +202,8 @@ START_SECTION((virtual void test_dia_scores()))
   OpenMS::AASequence aas = AASequence::fromString(sequence);
   diascoring.dia_by_ion_score(sptr, aas, by_charge_state, bseries_score, yseries_score);
 
-  TEST_REAL_SIMILAR(isotope_corr, 0.286635451556 * transition_group.getTransitions().size() )
-  TEST_REAL_SIMILAR(isotope_corr, 0.859906354668202)
+  TEST_REAL_SIMILAR(isotope_corr, 0.2866618 * transition_group.getTransitions().size() )
+  TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0599970892071724)
 
   TEST_REAL_SIMILAR(ppm_score, 1.76388919944981)

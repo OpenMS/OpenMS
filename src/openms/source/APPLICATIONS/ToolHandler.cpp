@@ -59,6 +59,7 @@ namespace OpenMS
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
+    tools_map["ExternalCalibration"] = Internal::ToolDescription("ExternalCalibration", "Signal processing and preprocessing");
     tools_map["FalseDiscoveryRate"] = Internal::ToolDescription("FalseDiscoveryRate", "ID Processing");
     tools_map["FeatureFinderCentroided"] = Internal::ToolDescription("FeatureFinderCentroided", "Quantitation");
     tools_map["FeatureFinderIdentification"] = Internal::ToolDescription("FeatureFinderIdentification", "Quantitation");
@@ -116,6 +117,7 @@ namespace OpenMS
     tools_map["OpenSwathMzMLFileCacher"] = Internal::ToolDescription("OpenSwathMzMLFileCacher", "Targeted Experiments");
     tools_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", "Targeted Experiments");
     tools_map["OpenSwathRTNormalizer"] = Internal::ToolDescription("OpenSwathRTNormalizer", "Targeted Experiments");
+    tools_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", "Targeted Experiments");
     tools_map["PeakPickerHiRes"] = Internal::ToolDescription("PeakPickerHiRes", "Signal processing and preprocessing");
     tools_map["PeakPickerWavelet"] = Internal::ToolDescription("PeakPickerWavelet", "Signal processing and preprocessing");
     tools_map["PepNovoAdapter"] = Internal::ToolDescription("PepNovoAdapter", "Identification");
@@ -166,7 +168,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
       }
     }
 
@@ -188,6 +190,7 @@ namespace OpenMS
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
+    util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
@@ -209,6 +212,7 @@ namespace OpenMS
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");
@@ -228,6 +232,7 @@ namespace OpenMS
     util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", util_category);
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
+    util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
     util_map["TopPerc"] = Internal::ToolDescription("TopPerc", util_category);
     util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
@@ -264,7 +269,7 @@ namespace OpenMS
         return tools[toolname].types;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested tool '" + toolname + "' does not exist!", toolname);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested tool '" + toolname + "' does not exist!", toolname);
   }
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()

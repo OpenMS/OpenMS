@@ -92,12 +92,20 @@ namespace OpenMS
       transition_exp.proteins.push_back(p);
     }
 
-    //copy peptides
+    //copy peptides and store as compounds
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
-      OpenSwath::LightPeptide p;
-      OpenSwathDataAccessHelper::convertTargetedPeptide(transition_exp_.getPeptides()[i], p);
-      transition_exp.peptides.push_back(p);
+      OpenSwath::LightCompound p;
+      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getPeptides()[i], p);
+      transition_exp.compounds.push_back(p);
+    }
+
+    //copy compounds and store as compounds 
+    for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
+    {
+      OpenSwath::LightCompound c;
+      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getCompounds()[i], c);
+      transition_exp.compounds.push_back(c);
     }
 
     //mapping of transitions
@@ -109,7 +117,15 @@ namespace OpenMS
       t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
       t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
       t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
-      t.charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
+      // try compound ref
+      if (t.peptide_ref.empty())
+      {
+        t.peptide_ref = transition_exp_.getTransitions()[i].getCompoundRef();
+      }
+      if (transition_exp_.getTransitions()[i].isProductChargeStateSet())
+      {
+        t.fragment_charge = transition_exp_.getTransitions()[i].getProductChargeState();
+      }
       t.decoy = false;
 
       // legacy
@@ -130,7 +146,7 @@ namespace OpenMS
       else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
           transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
       }
       else
@@ -146,118 +162,111 @@ namespace OpenMS
         t.decoy = true;
       }
 
-      if (transition_exp_.getTransitions()[i].metaValueExists("detecting_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
-        {
-          t.detecting_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
-        {
-          t.detecting_transition = true;
-        }
-      }
-      else
-      {
-        t.detecting_transition = true;
-      }
-      if (transition_exp_.getTransitions()[i].metaValueExists("identifying_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
-        {
-          t.identifying_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
-        {
-          t.identifying_transition = true;
-        }
-      }
-      else
-      {
-        t.identifying_transition = false;
-      }
-      if (transition_exp_.getTransitions()[i].metaValueExists("quantifying_transition"))
-      {
-        if (!transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
-        {
-          t.quantifying_transition = false;
-        }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
-        {
-          t.quantifying_transition = true;
-        }
-      }
-      else
-      {
-        t.quantifying_transition = true;
-      }
+      t.detecting_transition = transition_exp_.getTransitions()[i].isDetectingTransition();
+      t.identifying_transition = transition_exp_.getTransitions()[i].isIdentifyingTransition();
+      t.quantifying_transition = transition_exp_.getTransitions()[i].isQuantifyingTransition();
 
       transition_exp.transitions.push_back(t);
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
     OpenSwath::LightModification m;
-    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
 
     p.id = pep.id;
     if (!pep.rts.empty())
     {
       p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
     }
-    p.charge = pep.getChargeState();
+    if (pep.hasCharge())
+    {
+      p.charge = pep.getChargeState();
+    }
+
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
+
+    // Is it potentially a metabolomics compound
+    if (pep.metaValueExists("SumFormula"))
+    {
+      p.sum_formula = (std::string)pep.getMetaValue("SumFormula");
+    }
+    if (pep.metaValueExists("CompoundName"))
+    {
+      p.compound_name = (std::string)pep.getMetaValue("CompoundName");
+    }
 
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
+      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() );
     }
 
-    // Mapping of peptide modifications
+    // Mapping of peptide modifications (don't do this for metabolites...)
+    if (p.isPeptide())
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
-      if ( !aa_sequence.getNTerminalModification().empty())
+      if (aa_sequence.hasNTerminalModification())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-          m.location = -1;
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        const ResidueModification& rmod = *(aa_sequence.getNTerminalModification());
+        m.location = -1;
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
-      if ( !aa_sequence.getCTerminalModification().empty())
+      if (aa_sequence.hasCTerminalModification())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-          m.location = boost::numeric_cast<int>(aa_sequence.size());
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
+        m.location = boost::numeric_cast<int>(aa_sequence.size());
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
         if (aa_sequence[i].isModified())
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
-          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
+          const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
           m.location = boost::numeric_cast<int>(i);
           m.unimod_id = rmod.getUniModAccession();
           p.modifications.push_back(m);
-
         }
       }
 
     }
-    // transition_exp.peptides.push_back(p);
   }
 
-  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
-      aa_sequence = AASequence::fromString(peptide.sequence);
-      for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
-      {
-        TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
-      }
+    comp.id = compound.id;
+    if (!compound.rts.empty())
+    {
+      comp.rt = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+    }
+    if (compound.hasCharge())
+    {
+      comp.charge = compound.getChargeState();
+    }
+
+    comp.sum_formula = (std::string)compound.molecular_formula;
+    if (compound.metaValueExists("CompoundName"))
+    {
+      comp.compound_name = (std::string)compound.getMetaValue("CompoundName");
+    }
+  }
+
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence)
+  {
+    OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
+
+    aa_sequence = AASequence::fromString(peptide.sequence);
+    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin();
+        it != peptide.modifications.end(); ++it)
+    {
+      TargetedExperimentHelper::setModification(it->location, 
+                                                boost::numeric_cast<int>(peptide.sequence.size()), 
+                                                it->unimod_id, aa_sequence);
+    }
   }
 
 

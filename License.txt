@@ -1,69 +1,92 @@
---------------------------------------------------------------------------
+-----------------------------------------------------------------
                   OpenMS -- Open-Source Mass Spectrometry
---------------------------------------------------------------------------
+-----------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 
 This software is released under a three-clause BSD license:
- * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
- * Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
- * Neither the name of any author or any participating institution
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
+ * Redistributions of source code must retain the above
+   copyright notice, this list of conditions and the following
+   disclaimer.
+ * Redistributions in binary form must reproduce the above
+   copyright notice, this list of conditions and the following 
+   disclaimer in the documentation and/or other materials
+   provided with the distribution.
+ * Neither the name of any author or any participating
+   institution may be used to endorse or promote products
+   derived from this software without specific prior written
+   permission.
 For a full list of authors, refer to the file AUTHORS.
---------------------------------------------------------------------------
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-----------------------------------------------------------------
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE
+CONTRIBUTING INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
 
-The source code of OpenMS is available via our homepage http://www.OpenMS.de
+The source code of OpenMS is available via our homepage
+http://www.OpenMS.de
 
 OpenMS depends on third party libraries which are listed below.
-The source code of these libraries is available from their website or can be 
-obtained via a "contrib" package, which specifically configures these libraries
-for OpenMS and is available on our website.
+The source code of these libraries is available from their
+website or can be obtained via a "contrib" package, which
+specifically configures these libraries for OpenMS and is
+available on our website.
 
-The respective license files for the contrib libraries can be found 
-in the "contrib" package root directory or online (see below).
+The respective license files for the contrib libraries
+can be found in the "contrib" package root directory or online
+(see below).
 
 libSVM
-  - URL: http://www.csie.ntu.edu.tw/~cjlin/libsvm/
-  - License available at http://www.csie.ntu.edu.tw/~cjlin/libsvm/COPYRIGHT
+  - URL:
+  http://www.csie.ntu.edu.tw/~cjlin/libsvm/
+  - License:
+  http://www.csie.ntu.edu.tw/~cjlin/libsvm/COPYRIGHT
 	
 GLPK
-  - URL: http://www.gnu.org/s/glpk/
-  - License available at http://www.gnu.org/copyleft/gpl.html
+  - URL:
+  http://www.gnu.org/s/glpk/
+  - License:
+  http://www.gnu.org/copyleft/gpl.html
 
 Qt 4
-  - URL: http://qt.nokia.com/
-  - License available at http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt 
+  - URL:
+  https://www.qt.io/
+  - License (links):
+  http://doc.qt.io/qt-4.8/opensourceedition.html
 
 Xerces-C
-  - URL: http://xerces.apache.org/xerces-c/index.html
-  - License available at http://www.apache.org/licenses/LICENSE-2.0.html
+  - URL:
+  http://xerces.apache.org/xerces-c/index.html
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0.html
 
 Boost (headers)
-  - URL: http://www.boost.org/
-  - License available at http://www.boost.org/more/license_info.html
+  - URL:
+  http://www.boost.org/
+  - License:
+  http://www.boost.org/more/license_info.html
   
 ZLib
-  - URL: http://www.zlib.net
-  - License available at http://www.zlib.net/zlib_license.html
+  - URL:
+  http://www.zlib.net
+  - License:
+  http://www.zlib.net/zlib_license.html
   
 BZ2Lib
-  - URL: http://www.bzip.org/
-  - License.bzip2.txt 
+  - URL:
+  http://www.bzip.org/
+  - License:
+  http://www.bzip.org/1.0.5/bzip2-manual-1.0.5.html
 
 Search engines:
  
@@ -72,17 +95,32 @@ OMSSA
   - License: Public Domain
 
 X!Tandem:
-  - URL and source code: http://www.thegpm.org/tandem/
-  - License available at: http://www.perlfoundation.org/attachment/legal/artistic-2_0.txt
+  - URL and source code:
+  http://www.thegpm.org/tandem/
+  - License:
+  http://www.perlfoundation.org/attachment/legal/artistic-2_0.txt
 
 MyriMatch:
-  - URL and source code: http://fenchurch.mc.vanderbilt.edu/software.php
-  - License available at: http://www.apache.org/licenses/LICENSE-2.0.txt
+  - URL and source code:
+  http://fenchurch.mc.vanderbilt.edu/software.php
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0.txt
 
 MSGF+:
-  - URL and source code: http://proteomics.ucsd.edu/Software/MSGFPlus/ 
-  - License available at: http://sourceforge.net/p/open-ms/code/HEAD/tree/THIRDPARTY/All/MSGFPlus/LICENSE.txt
+  - URL and source code:
+  http://proteomics.ucsd.edu/Software/MSGFPlus/ 
+  - License:
+  http://sourceforge.net/p/open-ms/code/HEAD/tree/THIRDPARTY/All/
+  MSGFPlus/LICENSE.txt
 
 Fido:
-  - URL and source code: https://noble.gs.washington.edu/proj/fido/
-  - License available at: https://gist.github.com/hendrikweisser/2d10eb8bf1e370e6dfbb 
+  - URL and source code:
+  https://noble.gs.washington.edu/proj/fido/
+  - License:
+  https://gist.github.com/hendrikweisser/2d10eb8bf1e370e6dfbb
+
+LuciPhOr2:
+  - URL and source code:
+  http://luciphor2.sourceforge.net/
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0

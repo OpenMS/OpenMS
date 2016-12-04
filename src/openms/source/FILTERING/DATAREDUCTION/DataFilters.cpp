@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ namespace OpenMS
     tmp.split(' ', parts);
     SignedSize size = parts.size();
     if (size < 2)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid filter format.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid filter format.", tmp);
     //field
     tmp = parts[0];
     tmp.toLower();
@@ -144,7 +144,7 @@ namespace OpenMS
       meta_name = tmp.suffix(tmp.size() - 6);
     }
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid field name.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid field name.", tmp);
     //operation
     tmp = parts[1];
     if (tmp == ">=")
@@ -159,7 +159,7 @@ namespace OpenMS
       return;
     }
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid operator.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid operator.", tmp);
     //value
     if (size > 3)     // string values may contain spaces, implode to a single string
     {
@@ -171,7 +171,7 @@ namespace OpenMS
     }
     else     // size < 3 && operation is binary (only "exists" is unary) --> invalid
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid filter format.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid filter format.", tmp);
     }
     try
     {
@@ -183,7 +183,7 @@ namespace OpenMS
       value_is_numerical = false;
       if (!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid value.", tmp);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid value.", tmp);
       }
       else
       {
@@ -191,7 +191,7 @@ namespace OpenMS
       }
       if (!meta)       // non meta values must be numerical
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid value.", tmp);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid value.", tmp);
       }
       else
       {
@@ -219,7 +219,7 @@ namespace OpenMS
   void DataFilters::remove(Size index)
   {
     if (index >= filters_.size())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
     filters_.erase(filters_.begin() + index);
     meta_indices_.erase(meta_indices_.begin() + index);
 
@@ -231,7 +231,7 @@ namespace OpenMS
   void DataFilters::replace(Size index, const DataFilter & filter)
   {
     if (index >= filters_.size())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
     filters_[index] = filter;
     if (filter.field == DataFilters::META_DATA)
     {
@@ -258,7 +258,7 @@ namespace OpenMS
   const DataFilters::DataFilter & DataFilters::operator[](Size index) const
   {
     if (index >= filters_.size())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
     return filters_[index];
   }
 

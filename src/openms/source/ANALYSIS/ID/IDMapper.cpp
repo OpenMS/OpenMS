@@ -438,7 +438,7 @@ namespace OpenMS
     {
       return mz_tolerance_;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
   }
 
   bool IDMapper::isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const
@@ -451,7 +451,7 @@ namespace OpenMS
     {
       return (fabs(rt_distance) <= rt_tolerance_) && (fabs(mz_theoretical - mz_observed) <= mz_tolerance_);
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
   }
 
   void IDMapper::checkHits_(const std::vector<PeptideIdentification>& ids) const
@@ -460,11 +460,11 @@ namespace OpenMS
     {
       if (!ids[i].hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'RT' information missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper: 'RT' information missing for peptide identification!");
       }
       if (!ids[i].hasMZ())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'MZ' information missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDMapper: 'MZ' information missing for peptide identification!");
       }
     }
   }

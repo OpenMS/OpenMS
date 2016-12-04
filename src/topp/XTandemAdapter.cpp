@@ -145,6 +145,7 @@ protected:
                        "Default parameters input file, defaulting to the ones in the OpenMS/share folder."
                          "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
                        false, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("default_config_file", ListUtils::create<String>("xml"));
     registerFlag_("ignore_adapter_param", "The config given in 'default_config_file' is used exclusively! No matter what other parameters "
                                           "(apart from -in,-out,-database,-xtandem_executable) are saying.");
 
@@ -395,7 +396,7 @@ protected:
     File::fileList(temp_directory, "_tandem_output_file*.xml", files);
     if (files.size() != 1)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, tandem_output_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tandem_output_filename);
     }
     tandem_output.load(temp_directory + files[0], protein_id, peptide_ids);
 

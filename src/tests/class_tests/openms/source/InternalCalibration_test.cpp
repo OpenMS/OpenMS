@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Alexandra Zerck, Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -37,10 +37,12 @@
 
 ///////////////////////////
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 ///////////////////////////
+
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -65,91 +67,143 @@ START_SECTION(~InternalCalibration())
 }
 END_SECTION
 
-ptr = new InternalCalibration();
 
-MSExperiment<> exp;
-MzDataFile file;
-file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_test.mzData"),exp);
-std::vector<double> ref_masses;
-ref_masses.push_back(1296.68476942);
-ref_masses.push_back(2465.19833942);
-Param param;
-param.setValue("mz_tolerance", 100.);
-param.setValue("mz_tolerance_unit", "ppm");
-
-START_SECTION((template < typename InputPeakType > void calibrateMapSpectrumwise(MSExperiment< InputPeakType >& exp, const std::vector< double >& ref_masses)))
-{
-  TOLERANCE_ABSOLUTE(0.000001)
-
-  ptr->setParameters(param);
-  ptr->calibrateMapSpectrumwise(exp, ref_masses);
-	
-  TEST_REAL_SIMILAR(exp[0][14].getMZ(), 1296.68476942)
-  TEST_REAL_SIMILAR(exp[0][77].getMZ(), 2465.19833942)
-
-}
-END_SECTION
-
-START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(MSExperiment< InputPeakType >& exp, const std::vector< double >& ref_masses, const String& trafo_file_name="")))
-{
-  TOLERANCE_ABSOLUTE(0.000001)
-  ptr->setParameters(param);
-  ptr->calibrateMapGlobally(exp, ref_masses);
+START_SECTION(Size fillCalibrants(const MSExperiment<> exp, const std::vector<InternalCalibration::LockMass>& ref_masses, double tol_ppm, bool lock_require_mono, bool lock_require_iso, CalibrationData& failed_lock_masses, bool verbose = true))
+  MSExperiment<> exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2_lockmass.mzML.gz"), exp);
+  std::vector<InternalCalibration::LockMass> ref_masses;
   
-  TEST_REAL_SIMILAR(exp[0][14].getMZ(), 1296.68476942)
-  TEST_REAL_SIMILAR(exp[1][40].getMZ(), 1296.68476942)
-  TEST_REAL_SIMILAR(exp[0][77].getMZ(), 2465.19833942)
-  TEST_REAL_SIMILAR(exp[1][90].getMZ(), 2465.19833942)
-}
+  ref_masses.push_back(InternalCalibration::LockMass(327.25353, 1, 1));
+  ref_masses.push_back(InternalCalibration::LockMass(362.29065, 1, 1));
+  ref_masses.push_back(InternalCalibration::LockMass(680.48022, 1, 1));
+
+  InternalCalibration ic;
+  CalibrationData failed_locks;
+  Size cal_count = ic.fillCalibrants(exp, ref_masses, 25.0, true, false, failed_locks, true); // no 'require_iso', since the example data has really high C13 mass error (up to 7ppm to +1 iso)
+
+  TEST_EQUAL(cal_count, 21 * 3); // 21 MS1 scans, 3 calibrants each
+
 END_SECTION
 
-IdXMLFile id_file;
-std::vector<ProteinIdentification> prot_ids;
-std::vector<PeptideIdentification> pep_ids;
-id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_1.idXML"), prot_ids, pep_ids);
+std::vector<PeptideIdentification> peps;
+std::vector<ProteinIdentification> prots;
+IdXMLFile().load(File::find("./examples/BSA/BSA1_OMSSA.idXML"), prots, peps);
 
-START_SECTION((template < typename InputPeakType > void calibrateMapGlobally(MSExperiment< InputPeakType >& exp, const std::vector< PeptideIdentification >& ref_ids, const String& trafo_file_name="")))
-{
-  TOLERANCE_ABSOLUTE(0.000001)
-  ptr->setParameters(param);
-  ptr->calibrateMapGlobally(exp, pep_ids);
+START_SECTION(Size fillCalibrants(const FeatureMap& fm, double tol_ppm))
+  FeatureMap fm;
+  fm.setUnassignedPeptideIdentifications(peps);
+
+  InternalCalibration ic;
+  Size cal_count = ic.fillCalibrants(fm, 100.0);
+  TEST_EQUAL(cal_count, 44); // all pep IDs
+
+  cal_count = ic.fillCalibrants(fm, 10.0);
+  TEST_EQUAL(cal_count, 37);  // a few outliers IDs removed
+
+END_SECTION
+
+START_SECTION(Size fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm))
+  InternalCalibration ic;
+  Size cal_count = ic.fillCalibrants(peps, 100.0);
+  TEST_EQUAL(cal_count, 44);
+
+  cal_count = ic.fillCalibrants(peps, 10.0);
+  TEST_EQUAL(cal_count, 37);
+
+  TEST_EQUAL(ic.getCalibrationPoints().size(), cal_count)
+
+END_SECTION
+
+START_SECTION(const CalibrationData& getCalibrationPoints() const)
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(bool calibrate(MSExperiment<>& exp, const IntList& target_mslvl, MZTrafoModel::MODELTYPE model_type, double rt_chunk, bool use_RANSAC, double post_ppm_median, double post_ppm_MAD, const String& file_models, const String& file_residuals))
+  InternalCalibration ic;
+  ic.fillCalibrants(peps, 3.0);
+  MSExperiment<> exp;
+  MzMLFile().load(File::find("./examples/BSA/BSA1.mzML"), exp);
+  MZTrafoModel::setRANSACParams(Math::RANSACParam(2, 1000, 1.0, 30, true));
+  bool success = ic.calibrate(exp, std::vector<Int>(1, 1), MZTrafoModel::LINEAR, -1, true, 1.0, 1.0);
+  TEST_EQUAL(success, true)
+END_SECTION
+
+MSExperiment<>::SpectrumType spec;
+spec.push_back(Peak1D(250.0, 1000.0));
+spec.push_back(Peak1D(500.0, 1000.0));
+spec.push_back(Peak1D(750.0, 1000.0));
+spec.push_back(Peak1D(1000.0, 1000.0));
+std::vector<Precursor> pcs;
+Precursor pc;
+pc.setMZ(123.0);
+pcs.push_back(pc);
+pc.setMZ(456.0);
+pcs.push_back(pc);
+spec.setPrecursors(pcs);
+
+START_SECTION(static void applyTransformation(std::vector<Precursor>& pcs, const MZTrafoModel& trafo))
+  MZTrafoModel trafo;
+  trafo.setCoefficients(-100.0, 0.0, 0.0);
+  std::vector<Precursor> pcs2 = pcs;
+  InternalCalibration::applyTransformation(pcs2, trafo);
+  TEST_REAL_SIMILAR(pcs2[0].getMZ(), pcs[0].getMZ() - Math::ppmToMass(-100.0, 123.0));
+  TEST_REAL_SIMILAR(pcs2[1].getMZ(), pcs[1].getMZ() - Math::ppmToMass(-100.0, 456.0));
+
+END_SECTION
+
+START_SECTION(static void applyTransformation(MSExperiment<>::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo))
+  MZTrafoModel trafo;
+  trafo.setCoefficients(-100.0, 0.0, 0.0);
+  MSExperiment<>::SpectrumType spec2 = spec;
+  TEST_EQUAL(spec, spec2);
+  InternalCalibration::applyTransformation(spec2, std::vector<Int>(1, 1), trafo);
+  TEST_NOT_EQUAL(spec, spec2);
+  TEST_REAL_SIMILAR(spec2[0].getMZ(), spec[0].getMZ() - Math::ppmToMass(-100.0, 250.0));
+  TEST_REAL_SIMILAR(spec2[1].getMZ(), spec[1].getMZ() - Math::ppmToMass(-100.0, 500.0));
+  TEST_EQUAL(spec2.getPrecursors()[0], pcs[0]); // unchanged, since PCs belong to MS-level 0
+  TEST_EQUAL(spec2.getPrecursors()[1], pcs[1]); // unchanged, since PCs belong to MS-level 0
+
+  spec2 = spec;
+  spec2.setMSLevel(2);
+  MSExperiment<>::SpectrumType spec2_noPC = spec2;
+  spec2_noPC.getPrecursors().resize(0); // remove PC's
+  InternalCalibration::applyTransformation(spec2, std::vector<Int>(1, 1), trafo);
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[0].getMZ(), pcs[0].getMZ() - Math::ppmToMass(-100.0, 123.0));
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[1].getMZ(), pcs[1].getMZ() - Math::ppmToMass(-100.0, 456.0));
+  spec2.getPrecursors().resize(0); // remove PC's
+  TEST_EQUAL(spec2_noPC, spec2); // everything else should be unchanged
+
+END_SECTION
+
+START_SECTION(static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo))
+  MZTrafoModel trafo;
+  trafo.setCoefficients(-100.0, 0.0, 0.0); // observed m/z are 100ppm lower than reference
+  MSExperiment<>::SpectrumType spec2 = spec;
+  spec2.setMSLevel(2);      // will not be calibrated, except for its PC
+  MSExperiment<> exp;
+  exp.addSpectrum(spec);
+  exp.addSpectrum(spec2);
+  exp.addSpectrum(spec);
   
-	TEST_REAL_SIMILAR(exp[0][14].getMZ(), 1296.68476942)
-  TEST_REAL_SIMILAR(exp[1][40].getMZ(), 1296.68476942)
-  TEST_REAL_SIMILAR(exp[0][77].getMZ(), 2465.19833942)
-  TEST_REAL_SIMILAR(exp[1][90].getMZ(), 2465.19833942)
-}
-END_SECTION
+  InternalCalibration::applyTransformation(exp, std::vector<Int>(1, 1), trafo);
+  TEST_NOT_EQUAL(exp[0], spec);
+  TEST_REAL_SIMILAR(exp[0][0].getMZ(), spec[0].getMZ() + Math::ppmToMass(-1 * -100.0, 250.0));
+  TEST_REAL_SIMILAR(exp[0][1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-1 *-100.0, 500.0));
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), exp[0].getPrecursors()[0].getMZ());
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), exp[0].getPrecursors()[1].getMZ());
 
-FeatureMap f_map;
-FeatureXMLFile f_file;
-f_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_annotated.featureXML"), f_map);
-START_SECTION((void calibrateMapGlobally(FeatureMap& feature_map, const String& trafo_file_name="")))
-{
-  FeatureMap fmap2 = f_map;
-  ptr->calibrateMapGlobally(fmap2);
-  TEST_REAL_SIMILAR(fmap2[0].getMZ(), 687.841430243171)
-  TEST_REAL_SIMILAR(fmap2[1].getMZ(), 720.005082366204)
-  TEST_REAL_SIMILAR(fmap2[2].getMZ(), 927.493444113771)
-  TEST_REAL_SIMILAR(fmap2[3].getMZ(), 1052.06529617992)
-  TEST_REAL_SIMILAR(fmap2[4].getMZ(), 1224.59976809287)
-  TEST_REAL_SIMILAR(fmap2[5].getMZ(), 998.486309862771)
-}
+  TEST_NOT_EQUAL(exp[1], spec2);
+  TEST_REAL_SIMILAR(exp[1][0].getMZ(), spec2[0].getMZ());
+  TEST_REAL_SIMILAR(exp[1][1].getMZ(), spec2[1].getMZ());
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[0].getMZ(), exp[1].getPrecursors()[0].getMZ() + Math::ppmToMass(-100.0, 123.0));
+  TEST_REAL_SIMILAR(spec2.getPrecursors()[1].getMZ(), exp[1].getPrecursors()[1].getMZ() + Math::ppmToMass(-100.0, 456.0));
+  
+  TEST_NOT_EQUAL(exp[2], spec);
+  TEST_REAL_SIMILAR(exp[2][0].getMZ(), spec[0].getMZ() + Math::ppmToMass(-1 *-100.0, 250.0));
+  TEST_REAL_SIMILAR(exp[2][1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-1 *-100.0, 500.0));
+  TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), exp[2].getPrecursors()[0].getMZ());
+  TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), exp[2].getPrecursors()[1].getMZ());
 END_SECTION
-id_file.load(OPENMS_GET_TEST_DATA_PATH("InternalCalibration_2.idXML") ,prot_ids, pep_ids);
-START_SECTION((void calibrateMapGlobally(FeatureMap& feature_map, const std::vector< PeptideIdentification >& ref_ids, const String& trafo_file_name="")))
-{
-  FeatureMap f_map2 = f_map;
-  ptr->calibrateMapGlobally(f_map2, pep_ids);
-  TEST_REAL_SIMILAR(f_map2[0].getMZ(),687.841430243171)
-  TEST_REAL_SIMILAR(f_map2[1].getMZ(),720.005082366204)
-  TEST_REAL_SIMILAR(f_map2[2].getMZ(),927.493444113771)
-  TEST_REAL_SIMILAR(f_map2[3].getMZ(),1052.06529617992)
-  TEST_REAL_SIMILAR(f_map2[4].getMZ(),1224.59976809287)
-  TEST_REAL_SIMILAR(f_map2[5].getMZ(),998.486309862771)
-}
-END_SECTION
-
 
 
 /////////////////////////////////////////////////////////////

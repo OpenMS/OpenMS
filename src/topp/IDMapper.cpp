@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -185,7 +185,7 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       __PRETTY_FUNCTION__,
+                                       OPENMS_PRETTY_FUNCTION,
                                        "wrong id fileformat");
     }
 

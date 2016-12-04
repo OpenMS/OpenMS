@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -148,7 +148,7 @@ namespace OpenMS
       expr.append(e.getFunction());
       std::string mess = "- due to that error of type ";
       mess.append(e.getName());
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, expr, mess);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
     }
   }
 

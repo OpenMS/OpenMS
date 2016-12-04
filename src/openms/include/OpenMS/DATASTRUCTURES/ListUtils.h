@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -169,16 +169,28 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container to concatenate.
+      @param container The container to concatenate;
       @param glue The string to add in between elements.
     */
     template <typename T>
     static String concatenate(const std::vector<T>& container, const String& glue = "")
     {
+      return concatenate< std::vector<T> >(container, glue);
+    }
+
+    /**
+      @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
+
+      @param container The container <T> to concatenate; must have begin() and end() iterator.
+      @param glue The string to add in between elements.
+    */
+    template <typename T>
+    static String concatenate(const T& container, const String& glue = "")
+    {
       // handle empty containers
       if (container.empty()) return "";
 
-      typename std::vector<T>::const_iterator it = container.begin();
+      typename T::const_iterator it = container.begin();
       String ret = String(*it);
       // we have handled the first element
       ++it;
@@ -201,7 +213,7 @@ public:
         std::find(container.begin(), container.end(), elem);
       if (pos == container.end()) return -1;
 
-      return std::distance(container.begin(), pos);
+      return static_cast<Int>(std::distance(container.begin(), pos));
     }
 
   };
@@ -219,7 +231,7 @@ public:
       }
       catch (boost::bad_lexical_cast&)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + *it + "'");
       }
     }
 

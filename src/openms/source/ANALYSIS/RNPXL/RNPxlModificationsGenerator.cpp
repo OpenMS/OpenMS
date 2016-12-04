@@ -33,6 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -71,7 +75,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   String original_sequence_restriction = sequence_restriction;
 
   // 152 modification
-  const String cysteine_adduct_string("C1H2N3O6");
+  const String cysteine_adduct_string("C4H8S2O2");
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
   RNPxlModificationMassesResult result;
@@ -394,6 +398,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   // output index  -> empirical formula -> (ambiguous) nucleotide formulas
   // nucleotide formulas which only differ in nucleotide ordering are only printed once
+  // e.g. 5 C19H24N7O12P1 573.122 ( AU-H1O3P1 )
   double pseudo_rt = 1;
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
@@ -497,5 +502,6 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     target_sequences.push_back(res_seq);
   }
 }
+
 }
 

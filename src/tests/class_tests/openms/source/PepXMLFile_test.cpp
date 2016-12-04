@@ -429,6 +429,29 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 }
 END_SECTION
 
+// store PepXML with mzML file information
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "PepXMLFile_test.mzML", const String& mz_name = "", bool peptideprophet_analyzed = false))
+{
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
+  String mzML_filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  PepXMLFile().load(filename, proteins, peptides);
+
+  // Test PeptideProphet-analyzed pepxml.
+  String cm_file_out;
+  NEW_TMP_FILE(cm_file_out);
+  PepXMLFile().store(cm_file_out, proteins, peptides, mzML_filename, "test", true);
+
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableAbsolute(1e-7);
+  fsc.setAcceptableRelative(1.0 + 1e-7);
+  // fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
+  String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_mzML.pepxml");
+  TEST_EQUAL(fsc.compareFiles(cm_file_out.c_str(), filename_out.c_str()), true)
+}
+END_SECTION
+
 START_SECTION(void keepNativeSpectrumName(bool keep) )
 {
   // tested above in the [EXTRA] store as we store / load once with

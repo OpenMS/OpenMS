@@ -66,7 +66,6 @@ namespace OpenMS
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
-
     if (layer.type == LayerData::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
@@ -179,7 +178,9 @@ namespace OpenMS
           {
             name = name.substr(0, 17) + "...";
           }
-          formula_to_names[ith->getMetaValue("chemical_formula")].push_back(name);
+          String cf = ith->getMetaValue("chemical_formula");
+          if (cf.empty()) continue; // skip unannotated "null" peaks
+          formula_to_names[cf].push_back(name);
         }
         else
         {
@@ -215,8 +216,9 @@ namespace OpenMS
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                          QString(),
-                                                          cols[i]);
+                                                         QString(),
+                                                         cols[i],
+                                                         current_layer.param.getValue("peak_color").toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -242,6 +244,10 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
   {
     Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+
+    // return if no active 1D widget is present
+    if (widget_1D == 0) return;
+
     widget_1D->canvas()->activateSpectrum(index);
     const LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
 
@@ -322,25 +328,20 @@ namespace OpenMS
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
         Annotation1DDistanceItem * item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
-        // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
+        // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
         ticks.push_back(it->getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
 
         temporary_annotations_.push_back(item); // for removal (no ownership)
-        current_layer.getCurrentAnnotations().push_front(item); // for visualisation (ownership)
+        current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
       }
     }
     else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
     {
 
     }
-  }
-
-  /// Behavior for activate1DSpectrum
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> >)
-  {
   }
 
   void TOPPViewIdentificationViewBehavior::removeTemporaryAnnotations_(Size spectrum_index)
@@ -435,7 +436,7 @@ namespace OpenMS
       }
       if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
       {
-        generator.addAbundantImmoniumIons(rich_spec);
+        generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
       }
     }
     catch (Exception::BaseException & e)
@@ -539,9 +540,9 @@ namespace OpenMS
           QString aa_ss;
           for (Size j = aa_sequence.size() - 1; j >= aa_sequence.size() - ion_number; --j)
           {
-            const Residue & r = aa_sequence.getResidue(j);
+            const Residue& r = aa_sequence.getResidue(j);
             aa_ss.append(r.getOneLetterCode().toQString());
-            if (r.getModification() != "")
+            if (r.isModified())
             {
               aa_ss.append("*");
             }
@@ -582,7 +583,12 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::deactivate1DSpectrum(int spectrum_index)
   {
-    LayerData & current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+
+    // return if no active 1D widget is present
+    if (widget_1D == 0) return;
+
+    LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
     int ms_level = (*current_layer.getPeakData())[spectrum_index].getMSLevel();
 
     removeTemporaryAnnotations_(spectrum_index);
@@ -623,10 +629,8 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
-    if ( w == 0)
-    {
-      return;
-    }
+    if (w == 0) return;
+
     SpectrumCanvas * current_canvas = w->canvas();
     LayerData & current_layer = current_canvas->getCurrentLayer();
     SpectrumType & current_spectrum = current_layer.getCurrentSpectrum();
@@ -652,25 +656,29 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::deactivateBehavior()
   {
+    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+
+    // return if no active 1D widget is present
+    if (widget_1D == 0) return;
+
     // remove precusor labels, theoretical spectra and trigger repaint
-    if (tv_->getActive1DWidget() != 0)
-    {
-      removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
-      removeTheoreticalSpectrumLayer_();
-      tv_->getActive1DWidget()->canvas()->repaint();
-    }
+    removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
+    removeTheoreticalSpectrumLayer_();
+    tv_->getActive1DWidget()->canvas()->repaint();
   }
 
   void TOPPViewIdentificationViewBehavior::setVisibleArea1D(double l, double h)
   {
-    if (tv_->getActive1DWidget() != 0)
-    {
-      DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-      range.setMinX(l);
-      range.setMaxX(h);
-      tv_->getActive1DWidget()->canvas()->setVisibleArea(range);
-      tv_->getActive1DWidget()->canvas()->repaint();
-    }
+    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+
+    // return if no active 1D widget is present
+    if (widget_1D == 0) return;
+
+    DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+    range.setMinX(l);
+    range.setMaxX(h);
+    tv_->getActive1DWidget()->canvas()->setVisibleArea(range);
+    tv_->getActive1DWidget()->canvas()->repaint();
   }
 
 }

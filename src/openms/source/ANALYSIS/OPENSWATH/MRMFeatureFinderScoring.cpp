@@ -231,9 +231,9 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp)
   {
-    for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
+    for (Size i = 0; i < transition_exp.getCompounds().size(); i++)
     {
-      PeptideRefMap_[transition_exp.getPeptides()[i].id] = &transition_exp.getPeptides()[i];
+      PeptideRefMap_[transition_exp.getCompounds()[i].id] = &transition_exp.getCompounds()[i];
     }
   }
 
@@ -388,7 +388,7 @@ namespace OpenMS
       signal_noise_estimators.push_back(snptr);
     }
 
-    // get the expected rt value for this peptide
+    // get the expected rt value for this compound
     const PeptideType* pep = PeptideRefMap_[transition_group_detection.getTransitionGroupID()];
     double expected_rt = pep->rt;
     TransformationDescription newtr = trafo;
@@ -413,7 +413,7 @@ namespace OpenMS
       int group_size = boost::numeric_cast<int>(transition_group_detection.size());
       if (group_size == 0)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Error: Transition group " + transition_group_detection.getTransitionGroupID() + " has no chromatograms.");
       }
       if (group_size < 2)
@@ -564,7 +564,7 @@ namespace OpenMS
       PeptideIdentification pep_id_ = PeptideIdentification();
       PeptideHit pep_hit_ = PeptideHit();
 
-      if (pep->getChargeState() != -1)
+      if (pep->getChargeState() != 0)
       {
         pep_hit_.setCharge(pep->getChargeState());
       }
@@ -573,7 +573,11 @@ namespace OpenMS
       {
         pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
       }
-      pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+
+      if (pep->isPeptide())
+      {
+        pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+      }
 
       // set protein accession numbers 
       for (Size k = 0; k < pep->protein_refs.size(); k++)
@@ -604,7 +608,10 @@ namespace OpenMS
       for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
       {
         Feature curr_feature = mrmfeature->getPrecursorFeature(*id_it);
-        curr_feature.setCharge(pep->getChargeState());
+        if (pep->getChargeState() != 0)
+        {
+          curr_feature.setCharge(pep->getChargeState());
+        }
         processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
         allFeatures.push_back(curr_feature);
       }
@@ -689,7 +696,7 @@ namespace OpenMS
           transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Error: Transition " + transition->getNativeID() + " from group " +
                                            transition->getPeptideRef() + " does not have a corresponding chromatogram");
         }
@@ -727,7 +734,7 @@ namespace OpenMS
           ". Maybe your retention time transformation is off?" << std::endl;
         if (strict_)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
                                            ". Maybe your retention time transformation is off?");
         }
@@ -758,7 +765,7 @@ namespace OpenMS
     {
       if (trgroup_it->second.getChromatograms().size() > 0 && (trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size()))
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
                                          trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \
                                          " chromatograms but " + String(trgroup_it->second.getTransitions().size()) + " transitions.");
       }

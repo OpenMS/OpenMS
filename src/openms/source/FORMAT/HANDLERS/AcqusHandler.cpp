@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz$
-// $Authors: Guillaume Belz$
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
@@ -51,7 +51,7 @@ namespace OpenMS
       std::ifstream is(filename.c_str());
       if (!is)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       //temporary variables

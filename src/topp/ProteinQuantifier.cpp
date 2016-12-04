@@ -662,7 +662,7 @@ protected:
     if (out.empty() && peptide_out.empty())
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
+                                                 OPENMS_PRETTY_FUNCTION,
                                                  "out/peptide_out");
     }
 
@@ -674,7 +674,7 @@ protected:
       if (proteins.empty() || 
           proteins[0].getIndistinguishableProteins().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
       }
       proteins_ = proteins[0]; // inference data is attached to first ID run
     }

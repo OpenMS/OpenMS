@@ -1,10 +1,7 @@
 <ttd>
 	<tool status="external">
 		<category>does not really matter</category>
-		// multiple of these are allowed
 		<type>TPP_RefreshParser</type>
-		#name# -- for internal only
-		// multiple of these allowed (same # as 'types') - for external only
 		<external>
       <text>
         <onstartup>Calling TPP's RefreshParser ...  Wrapper tested with TPP v4.4.1 (VUVUZELA), report issues to the OpenMS team at www.OpenMS.de</onstartup>
