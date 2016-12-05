@@ -38,12 +38,14 @@
    #include <OpenMS/DATASTRUCTURES/String.h>
    #include <OpenMS/SYSTEM/File.h>
    #include <OpenMS/SYSTEM/JavaInfo.h>
-   #include <OpenMS/FORMAT/MzMLFile.h>
-   #include <OpenMS/FORMAT/FileHandler.h>
    #include <OpenMS/DATASTRUCTURES/ListUtils.h>
    #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+   #include <OpenMS/FORMAT/MzMLFile.h>
+   #include <OpenMS/FORMAT/FileHandler.h>
    #include <OpenMS/FORMAT/MzTab.h>
+   #include <OpenMS/FORMAT/MzTabFile.h>
    #include <OpenMS/FORMAT/CsvFile.h>
+   #include <OpenMS/FORMAT/FileTypes.h>
    #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
    #include <QtCore/QFile>
@@ -109,8 +111,8 @@ protected:
    registerInputFile_("in", "<file>", "", "mzML File");
    setValidFormats_("in", ListUtils::create<String>("mzml"));
 
-   //registerOutputFile_("out", "<file>", "", "mzTab File");
-   //setValidFormats_("out", ListUtils::create<String>("csv"));
+//   registerOutputFile_("out_csv", "<file>", "", "CSV Output file for CSIFingerID results");
+//   setValidFormats_("out_csv", ListUtils::create<String>("csv"));
 
    registerStringOption_("analysis_profile", "<choice>", "qtof", "Specify the used analysis profile", false);
    setValidStrings_("analysis_profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
@@ -119,7 +121,6 @@ protected:
    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
    registerIntOption_("noise", "<num>", 0, "median intensity of noise peaks", false);
    registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
-   registerStringOption_("formula", "<choice>", "","specify the neutral molecular formula of the measured compound to compute its tree or a list of candidate formulas the method should discriminate. Omit this option if you want to consider all possible molecular formulas", false);
    registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
    setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
    registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
@@ -136,7 +137,6 @@ protected:
    //-------------------------------------------------------------
 
   String in = getStringOption_("in");
-  //String out = getStringOption_("out");
 
   // Parameter for Sirius3
   QString executable = getStringOption_("executable").toQString();
@@ -144,7 +144,6 @@ protected:
   QString analysis_profile = getStringOption_("analysis_profile").toQString();
   QString elements = getStringOption_("elements").toQString();
   QString database = getStringOption_("database").toQString();
-  //QString formula = getStringOption_("formula").toQString();
   QString isotope = getStringOption_("isotope").toQString();
   QString noise = QString::number(getIntOption_("noise"));
   QString ppm_max = QString::number(getIntOption_("ppm_max"));
@@ -191,9 +190,6 @@ protected:
      //there should be only one precursor and MS2 should contain peaks to be considered
      if (precursor.size() == 1 && !spectrum.empty())
      {
-      //get the activation energy (collision energy)
-       double collision =  precursor[0].getActivationEnergy();
-
        //read charge annotated to MS2
        int precursor_charge = precursor[0].getCharge();
 
@@ -207,17 +203,25 @@ protected:
        double precursor_mz = precursor[0].getMZ();
        float precursor_int = precursor[0].getIntensity(); //does not work give 0.0000
 
+//       //look for precursor isotope pattern
+//       s_it2 = s_it-1;
+//       //get ms1 spectrum
+//       spectrum_ms1 <- *s_it2; //The precursor spectrum is the first spectrum before this spectrum, that has a lower MS-level than the current spectrum.
+//       cout <- spectrum_ms1.getMsLevel();
+
+       //get the activation energy (collision energy)
+       double collision =  precursor[0].getActivationEnergy();
+
        //store temporary data
        String query_id = String("unknown") + String(scan_index);
-
        String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
        String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_out";
        String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
 
        //to get the path and filename
-       cout << "\n" << "Temp_output_folder: " << tmp_dir << "\n" << endl;
-       cout << "Temp_filename: " << tmp_filename << "\n" << endl;
-       cout << "Activation Energy: "<< precursor[0].getActivationEnergy() << "\n" <<endl;
+       writeLog_(String("Temp_output_folder: " + tmp_dir));
+       writeLog_(String("Temp_filename: " + tmp_filename));
+       //writeLog_(String("Activation Energy: " + collision)); //ERROR
 
        // create temporary input file (.ms)
        ofstream os(tmp_filename.c_str());
@@ -233,10 +237,11 @@ protected:
        }
 
        //TODO: MS1 data m/z and intensity of precursor and precursor isotope pattern - for the right sum forumla
-       //TODO: IF no MS1 information is present -  run without MS1 information- might lead to an incorrect identification
        //TODO: Collision energy optional for MS2
+       //TODO: Generate output
 
        //write internal unique .ms data as sirius input
+       streamsize prec = os.precision();
        os.precision(12);
        os << fixed;
        os << ">compound " << query_id << "\n"
@@ -261,16 +266,19 @@ protected:
          const Peak1D& peak = spectrum[i];
          double mz = peak.getMZ();
          float intensity = peak.getIntensity();
-
-          os << mz << " " << intensity << "\n";
-        }
+           //intensity has to be higher than zero - Problems wiht QProcess occured if the values with zero intenstiy were given
+           if (intensity != 0)
+           {
+            os << mz << " " << intensity << "\n";
+           }
+       }
+       os.precision(prec); //reset the precision
        os.close();
 
        QStringList process_params; // the actual process
        process_params << "-p" << analysis_profile
                       << "-e" << elements
                       << "-d" << database
-                      //<< "-f" << formula
                       << "-s" << isotope
                       << "--noise" << noise
                       << "-c" << candidates
@@ -283,37 +291,73 @@ protected:
 
        process_params << tmp_filename.toQString();
 
-       //int status = QProcess::startDetached((executable, process_params)); //instead of QProcess::execute
-       int status = QProcess::execute(executable, process_params);
-       if (status != 0)
+       //no terminal output of CSIFingerID/Sirius
+       QProcess qp;
+       qp.start(executable, process_params); // does automatic escaping etc... start
+       bool success = qp.waitForFinished();
+       String output(QString(qp.readAllStandardOutput()));
+
+       if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
        {
-         writeLog_("Fatal error: Running sirius returned an error code");
+         writeLog_("Fatal error: Running CSIFingerID returned an error code");
          return EXTERNAL_PROGRAM_ERROR;
        }
+
+       //-------------------------------------------------------------
+       // writing output
+       //-------------------------------------------------------------
 
        // read results from sirius output files
        CsvFile compounds(tmp_dir + "/" + unique_name + "_" + query_id +".csv", '\t');
 
-       for (Size j = 0; j != compounds.rowCount(); ++j)
+       String csv_out_file(getStringOption_("out_csv"));
+
+       if (compounds.rowCount() != 0)
        {
-         StringList sl;
-         compounds.getRow(j, sl);
-         for (Size k = 0; k != sl.size(); ++k)
+         ofstream csv_file(csv_out_file.c_str());
+         for (Size j= 0; j != compounds.rowCount(); ++j)
          {
-           os << sl[k];
-           if (k != sl.size() - 1)
-           {
-             os << "\t";
-           } else
-           {
-            os << "\n";
-           }
-
-
+          StringList sl;
+          compounds.getRow(j,sl);
+          for (Size k = 0; k != sl.size(); ++k)
+          {
+            csv_file << sl[k];
+            if (k != sl.size() - 1)
+            {
+              csv_file << "\t";
+            }
+            else
+            {
+              csv_file << "\n";
+            }
+          }
          }
+         csv_file.close();
+       }
+       else
+       {
+         LOG_WARN << "Not output was generated" << tmp_filename << endl;
        }
 
-       // clean up temporary input files and output folder
+       //Manual output for control
+//       for (Size j = 0; j != compounds.rowCount(); ++j)
+//       {
+//         StringList sl;
+//         compounds.getRow(j, sl);
+//         for (Size k = 0; k != sl.size(); ++k)
+//         {
+//           cout  << sl[k];
+//           if (k != sl.size() - 1)
+//           {
+//             cout << "\t";
+//           } else
+//           {
+//             cout << "\n";
+//           }
+//         }
+//       }
+
+       //clean up temporary input files and output folder
        if (getIntOption_("debug") < 2)
        {
          writeDebug_("Removing temporary files", 1);
@@ -325,7 +369,7 @@ protected:
          }
 
          // remove temporary output folder
-         if (File::removeDirRecursively(tmp_dir))
+         if (File::exists(tmp_dir) && !File::removeDirRecursively(tmp_dir))
          {
            LOG_WARN << "Unable to remove temporary folder: " << tmp_dir << endl;
          }
