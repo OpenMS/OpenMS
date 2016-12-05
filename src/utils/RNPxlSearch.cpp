@@ -91,28 +91,198 @@
 
 using namespace OpenMS;
 using namespace std;
-/*
-  TODO:
-  // check for common annotation error in unimod
-  if ((origin == "C-term" || origin == "N-term") && term_specifity == ResidueModification::ANYWHERE)
+
+class Deisotoper
+{
+  public:
+  /* @brief Detect isotopic clusters in a fragment spectrum.
+
+     Note: spectrum must must be sorted by m/z
+
+   * @param [min_charge] The minimum charge considered
+   * @param [max_charge] The maximum charge considered
+   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
+   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
+   * @param [min_isopeaks] The minimum number of isotopic peaks required for an isotopic cluster
+   * @param [max_isopeaks] The maximum number of isotopic peaks considered for an isotopic cluster
+   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
+   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "z" (0 for unknown charge)
+   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
+   */
+  template <typename SpectrumType>
+  static void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, 
+                                          double fragment_tolerance, bool fragment_unit_ppm, 
+                                          Int min_charge = 1, Int max_charge = 3,
+                                          bool keep_only_deisotoped = false, 
+                                          Size min_isopeaks = 3, Size max_isopeaks = 10, 
+                                          bool make_single_charged = true,
+                                          bool annotate_charge = false)
+  {
+    if (in.empty())
+    {
+      return;
+    }
+
+    SpectrumType old_spectrum = in;
+
+    // reserve integer data array to store charge of peaks
+    if (annotate_charge) 
+    {
+      // expand to hold one additional integer data array to hold the charge
+      in.getIntegerDataArrays().resize(in.getIntegerDataArrays().size() + 1);
+      in.getIntegerDataArrays().back().setName("z");
+    }
+
+    // determine charge seeds and extend them
+    vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+    vector<Int> features(old_spectrum.size(), -1);
+    Int feature_number = 0;
+
+    for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+    {
+      double current_mz = old_spectrum[current_peak].getPosition()[0];
+
+      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
+      {
+        // try to extend isotopes from mono-isotopic peak
+        // if extension larger then min_isopeaks possible:
+        //   - save charge q in mono_isotopic_peak[]
+        //   - annotate_charge all isotopic peaks with feature number
+        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
+        {
+          bool has_min_isopeaks = true;
+          vector<Size> extensions;
+          for (Size i = 0; i < max_isopeaks; ++i)
+          {
+            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+            Size p = old_spectrum.findNearest(expected_mz);
+            double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
+            {
+              if (i < min_isopeaks)
+              {
+                has_min_isopeaks = false;
+              }
+              break;
+            }
+            else
+            {
+              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
+              Size n_extensions = extensions.size();
+              if (n_extensions != 0)
+              {
+                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
+                {
+                  if (i < min_isopeaks)
+                  {
+                    has_min_isopeaks = false;
+                  }
+                  break;
+                }
+              }
+
+              // averagine check passed
+              extensions.push_back(p);
+            }
+          }
+
+          if (has_min_isopeaks)
+          {
+            //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
+            mono_isotopic_peak[current_peak] = q;
+            for (Size i = 0; i != extensions.size(); ++i)
+            {
+              features[extensions[i]] = feature_number;
+            }
+            feature_number++;
+          }
+        }
+      }
+    }
+
+    in.clear(false);
+    for (Size i = 0; i != old_spectrum.size(); ++i)
+    {
+      Int z = mono_isotopic_peak[i];
+      if (keep_only_deisotoped)
+      {
+        if (z == 0)
         {
           continue;
         }
-    move predicate member functions to class
-*/
 
+        // if already single charged or no decharging selected keep peak as it is
+        if (!make_single_charged)
+        {
+          in.push_back(old_spectrum[i]);
 
+          // add peak charge to annotation array
+          if (annotate_charge)
+          {
+            in.getIntegerDataArrays().back().push_back(z);
+          }
+        }
+        else
+        {
+          Peak1D p = old_spectrum[i];
+          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+          in.push_back(p);
 
-struct PeptideHitSequenceLessComparator
-{
-  bool operator()(const PeptideHit& a, const PeptideHit& b)
-  {
-    if (a.getSequence().toString() < b.getSequence().toString()) return true;
+          // add peak charge to annotation array
+          if (annotate_charge)
+          {
+            in.getIntegerDataArrays().back().push_back(z);
+          }
+        }
+      }
+      else
+      {
+        // keep all unassigned peaks
+        if (features[i] < 0)
+        {
+          in.push_back(old_spectrum[i]);
 
-    return false;
+          // add peak charge to annotation array
+          if (annotate_charge)
+          {
+            in.getIntegerDataArrays().back().push_back(z);
+          }
+          continue;
+        }
+
+        // convert mono-isotopic peak with charge assigned by deisotoping
+        if (z != 0)
+        {
+          if (!make_single_charged)
+          {
+            in.push_back(old_spectrum[i]);
+
+            if (annotate_charge)
+            {
+              in.getIntegerDataArrays().back().push_back(z);
+            }
+          }
+          else // make single charged
+          {
+            Peak1D p = old_spectrum[i];
+            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            in.push_back(p);
+
+            if (annotate_charge)
+            {
+              // annotate the original charge
+              in.getIntegerDataArrays().back().push_back(z);
+            }
+          }
+        }
+      }
+    }
+
+    in.sortByPosition();
   }
-
 };
+
 
 class RNPxlSearch :
   public TOPPBase
@@ -306,241 +476,6 @@ protected:
     return modifications;
   }
 
-  // check for minimum size
-  class HasInvalidPeptideLengthPredicate
-  {
-public:
-    explicit HasInvalidPeptideLengthPredicate(Size min_size)
-      : min_size_(min_size)
-    {
-    }
-
-    bool operator()(const AASequence& aas)
-    {
-      return aas.size() < min_size_;
-    }
-
-private:
-    Size min_size_;
-  };
-
-
-  // return a vector with estimated charges assigned for each peak. 0 if charge is unknown
-  template <typename SpectrumType>
-  vector<Size> estimatePeptideFragmentCharges(SpectrumType& in, double fragment_tolerance, bool fragment_unit_ppm, int min_charge = 1, int max_charge = 3, Size min_isopeaks = 2, Size max_isopeaks = 10)
-  {
-    vector<Size> charges(in.size(), 0);
-    for (Size i = 0; i != in.size(); ++i)
-    {
-      const double mz = in[i].getPosition()[0];
-
-      if (charges[i]) continue; // only process peaks with no charge assigned
-
-      for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low (e.g. charge 1 would otherwise annotate half of the double charged fragments)
-      {
-        vector<Size> extensions;
-        extensions.reserve(10);
-
-        for (Size k = 0; k < max_isopeaks; ++k)
-        {
-          const double expected_mz = mz + k * Constants::C13C12_MASSDIFF_U / q;
-          Size p = in.findNearest(expected_mz);
-
-          const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
-
-          if (fabs(in[p] - expected_mz) > tolerance_dalton) // peak is missing, stop extending
-          {
-            break;
-          }
-          else  // peak is present, save index
-          {
-            extensions.push_back(p);
-          }
-        }
-        
-        if (extensions.size() < min_isopeaks) continue;
-
-        // annotate charge of all peaks in extension
-        for (Size k = 0; k != extensions.size(); ++k)
-        {
-          charges[extensions[k]] = q;   
-        }
-      }
-    }
-    return charges;
-  }
-
-  // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-  template <typename SpectrumType>
-  void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, 
-                                          Int min_charge, Int max_charge, 
-                                          double fragment_tolerance, bool fragment_unit_ppm, 
-                                          bool keep_only_deisotoped = false, 
-                                          Size min_isopeaks = 3, Size max_isopeaks = 10, 
-                                          bool make_single_charged = true,
-                                          bool annotate_charge = false)
-  {
-    if (in.empty())
-    {
-      return;
-    }
-
-    SpectrumType old_spectrum = in;
-
-    if (annotate_charge) 
-    {
-      // expand to hold one additional integer data array to hold the charge
-      in.getIntegerDataArrays().resize(in.getIntegerDataArrays().size() + 1);
-      in.getIntegerDataArrays().back().setName("z");
-    }
-
-    // determine charge seeds and extend them
-    vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
-    vector<Int> features(old_spectrum.size(), -1);
-    Int feature_number = 0;
-
-    for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-    {
-      double current_mz = old_spectrum[current_peak].getPosition()[0];
-
-      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
-      {
-        // try to extend isotopes from mono-isotopic peak
-        // if extension larger then min_isopeaks possible:
-        //   - save charge q in mono_isotopic_peak[]
-        //   - annotate_charge all isotopic peaks with feature number
-        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
-        {
-          bool has_min_isopeaks = true;
-          vector<Size> extensions;
-          for (Size i = 0; i < max_isopeaks; ++i)
-          {
-            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
-            Size p = old_spectrum.findNearest(expected_mz);
-            double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
-            {
-              if (i < min_isopeaks)
-              {
-                has_min_isopeaks = false;
-              }
-              break;
-            }
-            else
-            {
-              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
-              Size n_extensions = extensions.size();
-              if (n_extensions != 0)
-              {
-                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
-                {
-                  if (i < min_isopeaks)
-                  {
-                    has_min_isopeaks = false;
-                  }
-                  break;
-                }
-              }
-
-              // averagine check passed
-              extensions.push_back(p);
-            }
-          }
-
-          if (has_min_isopeaks)
-          {
-            //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
-            mono_isotopic_peak[current_peak] = q;
-            for (Size i = 0; i != extensions.size(); ++i)
-            {
-              features[extensions[i]] = feature_number;
-            }
-            feature_number++;
-          }
-        }
-      }
-    }
-
-    in.clear(false);
-    for (Size i = 0; i != old_spectrum.size(); ++i)
-    {
-      Int z = mono_isotopic_peak[i];
-      if (keep_only_deisotoped)
-      {
-        if (z == 0)
-        {
-          continue;
-        }
-
-        // if already single charged or no decharging selected keep peak as it is
-        if (!make_single_charged)
-        {
-          in.push_back(old_spectrum[i]);
-
-          // add peak charge to annotation array
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
-        }
-        else
-        {
-          Peak1D p = old_spectrum[i];
-          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-          in.push_back(p);
-
-          // add peak charge to annotation array
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
-        }
-      }
-      else
-      {
-        // keep all unassigned peaks
-        if (features[i] < 0)
-        {
-          in.push_back(old_spectrum[i]);
-
-          // add peak charge to annotation array
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
-          continue;
-        }
-
-        // convert mono-isotopic peak with charge assigned by deisotoping
-        if (z != 0)
-        {
-          if (!make_single_charged)
-          {
-            in.push_back(old_spectrum[i]);
-
-            if (annotate_charge)
-            {
-              in.getIntegerDataArrays().back().push_back(z);
-            }
-          }
-          else
-          {
-            Peak1D p = old_spectrum[i];
-            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-            in.push_back(p);
-
-            if (annotate_charge)
-            {
-              in.getIntegerDataArrays().back().push_back(z);
-            }
-          }
-        }
-      }
-    }
-
-    in.sortByPosition();
-  }
-
   void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool annotate_charge = false)
   {
     // filter MS2 map
@@ -573,9 +508,9 @@ private:
       exp[exp_index].sortByPosition();
 
       // deisotope
-      deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 
-                                         1, 3, 
+      Deisotoper::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                                         1, 3, 
                                          false, 
                                          3, 10, 
                                          single_charge_spectra, 
