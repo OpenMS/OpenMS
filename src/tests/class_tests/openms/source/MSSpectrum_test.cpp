@@ -519,6 +519,71 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 	}
 END_SECTION
 
+START_SECTION((FloatDataArray::iterator getFloatDataArrayByName(const String& name)))
+	MSSpectrum<> ds;
+	MSSpectrum<>::FloatDataArray float_array;
+        float_array.push_back(56);  
+        float_array.push_back(201); 
+        float_array.push_back(31);  
+        float_array.push_back(201); 
+        float_array.push_back(201);  
+	
+        ds.getFloatDataArrays() = std::vector<MSSpectrum<>::FloatDataArray>(3, float_array);
+	ds.getFloatDataArrays()[0].setName("f1");
+	ds.getFloatDataArrays()[1].setName("f2");
+	ds.getFloatDataArrays()[2].setName("f3");
+
+        TEST_EQUAL(ds.getFloatDataArrayByName("f2") == ds.getFloatDataArrays().end(), false);
+        TEST_EQUAL(ds.getFloatDataArrayByName("NOT_THERE") == ds.getFloatDataArrays().end(), true);
+
+        TEST_EQUAL(ds.getFloatDataArrayByName("f1") - ds.getFloatDataArrays().begin(), 0);
+        TEST_EQUAL(ds.getFloatDataArrayByName("f2") - ds.getFloatDataArrays().begin(), 1);
+        TEST_EQUAL(ds.getFloatDataArrayByName("f3") - ds.getFloatDataArrays().begin(), 2);
+END_SECTION
+
+START_SECTION((StringDataArray::iterator getStringDataArrayByName(const String& name)))
+	MSSpectrum<> ds;
+	MSSpectrum<>::StringDataArray string_array;
+        string_array.push_back("56");  
+        string_array.push_back("201"); 
+        string_array.push_back("31");  
+        string_array.push_back("201"); 
+        string_array.push_back("201");  
+	ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(3, string_array);
+	ds.getStringDataArrays()[0].setName("f1");
+	ds.getStringDataArrays()[1].setName("f2");
+	ds.getStringDataArrays()[2].setName("f3");
+
+        TEST_EQUAL(ds.getStringDataArrayByName("f2") == ds.getStringDataArrays().end(), false);
+        TEST_EQUAL(ds.getStringDataArrayByName("NOT_THERE") == ds.getStringDataArrays().end(), true);
+
+        TEST_EQUAL(ds.getStringDataArrayByName("f1") - ds.getStringDataArrays().begin(), 0);
+        TEST_EQUAL(ds.getStringDataArrayByName("f2") - ds.getStringDataArrays().begin(), 1);
+        TEST_EQUAL(ds.getStringDataArrayByName("f3") - ds.getStringDataArrays().begin(), 2);
+END_SECTION
+
+START_SECTION((IntegerDataArray::iterator getIntegerDataArrayByName(const String& name)))
+	MSSpectrum<> ds;
+	MSSpectrum<>::IntegerDataArray int_array;
+        int_array.push_back(56);  
+        int_array.push_back(201); 
+        int_array.push_back(31);  
+        int_array.push_back(201); 
+        int_array.push_back(201);  
+
+	ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(3, int_array);
+	ds.getIntegerDataArrays()[0].setName("f1");
+	ds.getIntegerDataArrays()[1].setName("f2");
+	ds.getIntegerDataArrays()[2].setName("f3");
+
+        TEST_EQUAL(ds.getIntegerDataArrayByName("f2") == ds.getIntegerDataArrays().end(), false);
+        TEST_EQUAL(ds.getIntegerDataArrayByName("NOT_THERE") == ds.getIntegerDataArrays().end(), true);
+
+        TEST_EQUAL(ds.getIntegerDataArrayByName("f1") - ds.getIntegerDataArrays().begin(), 0);
+        TEST_EQUAL(ds.getIntegerDataArrayByName("f2") - ds.getIntegerDataArrays().begin(), 1);
+        TEST_EQUAL(ds.getIntegerDataArrayByName("f3") - ds.getIntegerDataArrays().begin(), 2);
+END_SECTION
+
 START_SECTION((void sortByPosition()))
 	MSSpectrum<> ds;
 	Peak1D p;

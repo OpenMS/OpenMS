@@ -107,7 +107,7 @@ class Deisotoper
    * @param [min_isopeaks] The minimum number of isotopic peaks required for an isotopic cluster
    * @param [max_isopeaks] The maximum number of isotopic peaks considered for an isotopic cluster
    * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
-   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "z" (0 for unknown charge)
+   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
    * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
    */
   template <typename SpectrumType>
@@ -131,7 +131,7 @@ class Deisotoper
     {
       // expand to hold one additional integer data array to hold the charge
       in.getIntegerDataArrays().resize(in.getIntegerDataArrays().size() + 1);
-      in.getIntegerDataArrays().back().setName("z");
+      in.getIntegerDataArrays().back().setName("charge");
     }
 
     // determine charge seeds and extend them
@@ -278,11 +278,9 @@ class Deisotoper
         }
       }
     }
-
     in.sortByPosition();
   }
 };
-
 
 class RNPxlSearch :
   public TOPPBase

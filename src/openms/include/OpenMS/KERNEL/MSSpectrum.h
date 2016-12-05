@@ -330,6 +330,78 @@ public:
       return integer_data_arrays_;
     }
 
+    /// Returns an iterator to the first float data array with the given name. 
+    /// The End iterator is returned in case no data array with given name exists.
+    typename FloatDataArrays::iterator getFloatDataArrayByName(const String& name)
+    {
+      typename FloatDataArrays::iterator it = float_data_arrays_.begin();
+      for (; it != float_data_arrays_.end(); ++it)
+      {
+        if (it->getName() == name) return it;
+      }
+      return it;
+    }
+
+    /// Returns an iterator to the first string data array with the given name. 
+    /// The End iterator is returned in case no data array with given name exists.
+    typename StringDataArrays::iterator getStringDataArrayByName(const String& name)
+    {
+      typename StringDataArrays::iterator it = string_data_arrays_.begin();
+      for (; it != string_data_arrays_.end(); ++it)
+      {
+        if (it->getName() == name) return it;
+      }
+      return it;
+    }
+
+    /// Returns an iterator to the first int data array with the given name. 
+    /// The End iterator is returned in case no data array with given name exists.
+    typename IntegerDataArrays::iterator getIntegerDataArrayByName(const String& name)
+    {
+      typename IntegerDataArrays::iterator it = integer_data_arrays_.begin();
+      for (; it != integer_data_arrays_.end(); ++it)
+      {
+        if (it->getName() == name) return it;
+      }
+      return it;
+    }
+
+    /// Returns an iterator to the first float data array with the given name. 
+    /// The End iterator is returned in case no data array with given name exists.
+    typename FloatDataArrays::const_iterator getFloatDataArrayByName(const String& name) const
+    {
+      typename FloatDataArrays::iterator it = float_data_arrays_.begin();
+      for (; it != float_data_arrays_.end(); ++it)
+      {
+        if (it->getName() == name) return it;
+      }
+      return it;
+    }
+
+    /// Returns an iterator to the first string data array with the given name. 
+    /// The End iterator is returned in case no data array with given name exists.
+    typename StringDataArrays::const_iterator getStringDataArrayByName(const String& name) const
+    {
+      typename StringDataArrays::iterator it = string_data_arrays_.begin();
+      for (; it != string_data_arrays_.end(); ++it)
+      {
+        if (it->getName() == name) return it;
+      }
+      return it;
+    }
+
+    /// Returns an iterator to the first int data array with the given name. 
+    /// The End iterator is returned in case no data array with given name exists.
+    typename IntegerDataArrays::const_iterator getIntegerDataArrayByName(const String& name) const
+    {
+      typename IntegerDataArrays::iterator it = integer_data_arrays_.begin();
+      for (; it != integer_data_arrays_.end(); ++it)
+      {
+        if (it->getName() == name) return it;
+      }
+      return it;
+    }
+
     //@}
 
     ///@name Sorting peaks
@@ -670,7 +742,6 @@ public:
       }
     }
 
-
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
@@ -726,7 +797,7 @@ public:
     }
 
 protected:
-
+   
     /// Retention time
     double retention_time_;
 
@@ -768,3 +839,4 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
+
