@@ -149,36 +149,20 @@ namespace OpenMS
     for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
         trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      // we need at least one feature to find the best one
-      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
-      if (transition_group->getFeatures().size() == 0)
-      {
-        std::cout << "Did not find any features for group " + transition_group->getTransitionGroupID() << std::endl;
-        continue;
-      }
+      if (trgroup_it->second.getFeatures().empty() ) {continue;}
 
       // Find the feature with the highest score
-      MRMFeature * bestf = NULL;
-      double highest_score = 0;
-      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-           mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
-      {
-        if (!bestf || mrmfeature->getOverallQuality() > highest_score)
-        {
-          bestf = &(*mrmfeature);
-          highest_score = mrmfeature->getOverallQuality();
-        }
-      }
+      const MRMFeature & bestf = trgroup_it->second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (!bestf || (useQualCutoff && bestf->getOverallQuality() < qualCutoff) ) 
+      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
       {
         continue;
       }
 
       // If we have a found a best feature, add it to the vector
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-      result[ pepref ] = bestf->getRT();
+      result[ pepref ] = bestf.getRT();
     }
     return result;
   }

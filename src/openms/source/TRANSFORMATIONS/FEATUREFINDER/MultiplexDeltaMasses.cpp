@@ -79,7 +79,7 @@ namespace OpenMS
   {
     std::stringstream ss;
     
-    for (MultiplexDeltaMasses::LabelSet::iterator it = ls.begin(); it != ls.end(); ++it)
+    for (MultiplexDeltaMasses::LabelSet::const_iterator it = ls.begin(); it != ls.end(); ++it)
     {
       if (it != ls.begin())
       {
