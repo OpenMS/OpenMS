@@ -851,6 +851,13 @@ protected:
     return all_pc_all_feasible_adducts;
   }
 
+  /* @brief Localization step of the cross-link identification engine.
+   * Given a top scoring candidate (based on total loss spectrum) it:
+   *  - generates all fragment adducts based on the attached precursor adduct
+   *  - annotated peaks
+   *  - calculates an additive score that considers the presence or absence of evidence for a cross-linking site
+   *  - the maximum score is reported
+   */
   void postScoreHits_(const PeakMap& exp, 
                       vector<vector<AnnotatedHit> >& annotated_hits, 
                       Size top_hits, 
@@ -1554,6 +1561,7 @@ protected:
     }
   }
 
+  /// Filter by top scoring hits, reconstruct original peptide from memory efficient structure, and add additional meta information.
   void postProcessHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide)
   {
   // remove all but top n scoring
