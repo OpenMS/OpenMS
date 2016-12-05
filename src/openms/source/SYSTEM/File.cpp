@@ -492,32 +492,9 @@ namespace OpenMS
     String filename = home_path + "/.OpenMS/OpenMS.ini";
 
     Param p;
-    if (!File::readable(filename)) // create file
+    if (!File::readable(filename)) // no file, lets keep it that way
     {
       p = getSystemParameterDefaults_();
-
-      String dirname = home_path + "/.OpenMS";
-      QDir dir(dirname.toQString());
-      if (!dir.exists())
-      {
-        if (!File::writable(dirname))
-        {
-          LOG_WARN << "Warning: Cannot create folder '.OpenMS' in user home directory. Please check your environment!" << std::endl;
-          LOG_WARN << "         Home directory determined is: " << home_path  << "." << std::endl;
-          return p;
-        }
-        dir.mkpath(".");
-      }
-
-      if (!File::writable(filename))
-      {
-        LOG_WARN << "Warning: Cannot create '.OpenMS/OpenMS.ini' in user home directory. Please check your environment!" << std::endl;
-        LOG_WARN << "         Home directory determined is: " << home_path << "." << std::endl;
-        return p;
-      }
-
-      ParamXMLFile paramFile;
-      paramFile.store(filename, p);
     }
     else
     {
@@ -539,8 +516,7 @@ namespace OpenMS
         Param p_new = getSystemParameterDefaults_();
         p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
         p_new.update(p);
-
-        paramFile.store(filename, p_new);
+        // no new version is stored
       }
     }
     return p;
@@ -558,7 +534,6 @@ namespace OpenMS
                "respective TOPP tool, and the database will be searched in the directories specified here " + \
                ""); // only active when user enters something in this value
     p.setValue("threads", 1);
-    // TODO: maybe we add -log, -debug.... or....
 
     return p;
   }
