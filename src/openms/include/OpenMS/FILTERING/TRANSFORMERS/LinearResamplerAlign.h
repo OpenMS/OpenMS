@@ -55,7 +55,7 @@ namespace OpenMS
     points are known in advance, e.g. if one needs to resample a chromatogram
     at the positions of another chromatogram.
   */
-  class LinearResamplerAlign :
+  class OPENMS_DLLAPI LinearResamplerAlign :
     public LinearResampler
   {
 
@@ -387,4 +387,5 @@ protected:
 
 }
 
-#endif
+#endif // OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLERALIGN_H
+
