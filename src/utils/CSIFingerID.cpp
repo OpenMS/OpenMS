@@ -277,9 +277,13 @@ protected:
     os << fixed;
     os << ">compound " << query_id << "\n"
     << ">parentmass " << precursor_mz << fixed << "\n"
-    << ">charge " << int_charge << "\n\n"
-    << ">ms1" << "\n"
-    << precursor_mz << " " << precursor_int << "\n\n"; //not working properly
+    << ">charge " << int_charge << "\n\n";
+
+    if (precursor_int != 0) //if only fragmentspectra are available precuror intensity is 0
+    {
+    os << ">ms1" << "\n"
+    << precursor_mz << " " << precursor_int << "\n\n";
+    }
 
     //if collision energy was given - write it into .ms file if not use ms2 instead
     if (collision == 0)
@@ -325,12 +329,12 @@ protected:
     //no terminal output of CSIFingerID/Sirius
     QProcess qp;
     qp.start(executable, process_params); // does automatic escaping etc... start
-    bool success = qp.waitForFinished();
+    bool success = qp.waitForFinished(-1);
     String output(QString(qp.readAllStandardOutput()));
 
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-     writeLog_("Fatal error: Running CSIFingerID returned an error code");
+     writeLog_("Fatal error: Running CSIFingerID returned an error code! Scan Index: " + String(scan_index));
      return EXTERNAL_PROGRAM_ERROR;
     }
 
