@@ -74,7 +74,6 @@ namespace OpenMS
     /// Cross Correlation matrix
     typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
 
-    std::vector<double> intensityi, intensityj;
     XCorrMatrixType xcorr_matrix;
     xcorr_matrix.resize(sonar_profiles.size());
     for (std::size_t i = 0; i < sonar_profiles.size(); i++)
@@ -152,10 +151,10 @@ namespace OpenMS
     debug_file << "\n";
 
 
-    std::cout << " doing RT " << imrmfeature->getRT() << " using maps: " ;
+    std::cout << " doing RT " << imrmfeature->getRT() << " using maps: ";
     for (Size i  = 0; i < swath_maps.size() ; i++)
     {
-      std::cout << (swath_maps[i].lower + swath_maps[i].upper) / 2 << " " ;
+      std::cout << (swath_maps[i].lower + swath_maps[i].upper) / 2 << " ";
     }
     std::cout << std::endl;
 
@@ -292,10 +291,11 @@ namespace OpenMS
 
       double sonar_sn = 1.0;
       double pos_med = 1.0;
-      double neg_med = 1.0;
       // from here on, its not sorted any more !!
       if (!sonar_profile_pos.empty() && !sonar_profile_neg.empty())
       {
+        double neg_med = 1.0;
+
         pos_med = Math::median(sonar_profile_pos.begin(), sonar_profile_pos.end());
         neg_med = Math::median(sonar_profile_neg.begin(), sonar_profile_neg.end());
 

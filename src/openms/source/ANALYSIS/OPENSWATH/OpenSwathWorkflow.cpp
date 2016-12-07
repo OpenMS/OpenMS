@@ -348,7 +348,7 @@ namespace OpenMS
         chr_map[ chromatograms[i].getNativeID() ].push_back(i);
       }
 
-      for (std::map<std::string, std::vector<int> >::iterator it = chr_map.begin(); it != chr_map.end(); it++)
+      for (std::map<std::string, std::vector<int> >::iterator it = chr_map.begin(); it != chr_map.end(); ++it)
       {
         MSChromatogram<> chrom_acc; // accumulator
         for (Size i = 0; i < it->second.size(); i++)
@@ -484,7 +484,7 @@ namespace OpenMS
             // Step 3: score these extracted transitions
             FeatureMap featureFile;
             std::vector< OpenSwath::SwathMap > dummy_maps;
-            OpenSwath::SwathMap dummy_map (swath_maps[i]) ;
+            OpenSwath::SwathMap dummy_map (swath_maps[i]);
             dummy_map.sptr = current_swath_map;
             dummy_maps.push_back(dummy_map);
             scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, dummy_maps, transition_exp_used,
