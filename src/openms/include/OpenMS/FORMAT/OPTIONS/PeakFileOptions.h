@@ -166,12 +166,15 @@ public:
     /**
         @name Precision options
 
+        Note that m/z and RT are controlled with the same flag (for spectra and
+        chromatograms) while there is a separate flag for intensity.
+
         @note This option is ignored if the format does not support multiple precisions
     */
     //@{
-    //Sets if mz-data should be stored with 32bit or 64bit precision
+    //Sets if mz-data and rt-data should be stored with 32bit or 64bit precision
     void setMz32Bit(bool mz_32_bit);
-    //returns @c true, if mz-data should be stored with 32bit precision
+    //returns @c true, if mz-data and rt-data should be stored with 32bit precision
     bool getMz32Bit() const;
     //Sets if intensity data should be stored with 32bit or 64bit precision
     void setIntensity32Bit(bool int_32_bit);

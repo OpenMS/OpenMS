@@ -867,6 +867,9 @@ protected:
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
+      chromConsumer->getOptions().setCompression(true); // compress data
+      chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
+      chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
       chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
     }
     else

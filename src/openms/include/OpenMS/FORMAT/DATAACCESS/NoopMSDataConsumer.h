@@ -41,7 +41,7 @@ namespace OpenMS
 {
 
   /**
-    @brief Consumer class that perform no operation.
+    @brief Consumer class that performs no operation.
 
     This is sometimes necessary to fulfill the requirement of passing an
     valid Interfaces::IMSDataConsumer<> object or pointer but no operation is
@@ -61,4 +61,5 @@ namespace OpenMS
   };
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_DATAACCESS_NOOPMSDATACONSUMER_H
+
