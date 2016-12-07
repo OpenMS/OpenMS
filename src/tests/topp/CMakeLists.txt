@@ -85,7 +85,7 @@ configure_file(${DATA_DIR_TOPP}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPP_BIN}/Ex
 #------------------------------------------------------------------------------
 # test if -write_wdsl works
 #------------------------------------------------------------------------------
-add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -write_wsdl WSDL_out.tmp)
+add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -test -write_wsdl WSDL_out.tmp)
 add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL_out.wsdl)
 set_tests_properties("TOPP_WSDL_1_out1" PROPERTIES DEPENDS "TOPP_WSDL_1")
 
@@ -97,10 +97,10 @@ set_tests_properties("TOPP_WSDL_1_out1" PROPERTIES DEPENDS "TOPP_WSDL_1")
 # TOPP
 set(TOPP_executables_INI ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) # GenericWrapper (has a -type flag)
-add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
+add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -test -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
 foreach (i ${TOPP_executables_INI})
-  add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -write_ini "${i}.ini.tmp")
-	add_test("TOPPWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
+  add_test("TOPPWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
+  add_test("TOPPWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
   set_tests_properties("TOPPWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "TOPPWRITEINI_${i}")
 endforeach(i)
 
@@ -114,13 +114,13 @@ if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
 endif()
 
 foreach (i ${UTILS_executables_INI})
-  add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -write_ini "${i}.ini.tmp")
-	add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
-	set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
+  add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
+  add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
+  set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
 endforeach(i)
 
 #------------------------------------------------------------------------------
-# WRITECTD test to check wether -write_ctd works
+# WRITECTD test to check whether -write_ctd works
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
 	list(REMOVE_ITEM UTILS_executables_CTD IDEvaluator)
 endif()
 foreach (i ${UTILS_executables_CTD})
-  add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
+  add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
 endforeach()
 
 #------------------------------------------------------------------------------
@@ -139,14 +139,14 @@ endforeach()
 set(TOPP_executables_CTD ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper)
 foreach (i ${TOPP_executables_CTD})
-  add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
+  add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
 endforeach()
 
 #------------------------------------------------------------------------------
 # test if write_ini does the correct updates when given an old INI file (using
 # one arbitrary TOPP tool)
 #------------------------------------------------------------------------------
-add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -write_ini "WRITE_INI.ini.tmp" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
+add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -test -write_ini "WRITE_INI.ini.tmp" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
 add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.ini.tmp -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
 
@@ -1871,8 +1871,8 @@ add_test("UTILS_DecoyDatabase_2_out" ${DIFF} -in1 DecoyDatabase_2.fasta.tmp -in2
 set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_2")
 
 # SimpleSearchEngine:
-add_test("UTILS_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine
--test -ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
+add_test("UTILS_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_1_out.tmp
 -database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("UTILS_SimpleSearchEngine_1_out" ${DIFF} -in1 SimpleSearchEngine_1_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
