@@ -294,7 +294,7 @@ namespace OpenMS
       // from here on, its not sorted any more !!
       if (!sonar_profile_pos.empty() && !sonar_profile_neg.empty())
       {
-        double neg_med = 1.0;
+        double neg_med;
 
         pos_med = Math::median(sonar_profile_pos.begin(), sonar_profile_pos.end());
         neg_med = Math::median(sonar_profile_neg.begin(), sonar_profile_neg.end());
