@@ -59,9 +59,7 @@ using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
-//-------------------------------------------------------------
-
-/**
+//----------------------------------------------------------
     @page UTILS_CSIFingerID
 
     @brief Metabolite identification using single and tandem mass spectrometry.
@@ -301,7 +299,8 @@ protected:
      const Peak1D& peak = spectrum[i];
      double mz = peak.getMZ();
      float intensity = peak.getIntensity();
-     //intensity has to be higher than zero - Problems wiht QProcess occured if the values with zero intenstiy were given
+
+     //intensity has to be higher than zero
      if (intensity != 0)
      {
       os << mz << " " << intensity << "\n";
@@ -329,15 +328,16 @@ protected:
     //no terminal output of CSIFingerID/Sirius
     QProcess qp;
     qp.start(executable, process_params); // does automatic escaping etc... start
-    bool success = qp.waitForFinished(-1);
+    bool success = qp.waitForFinished(10000); // exits job after 10 seconds
     String output(QString(qp.readAllStandardOutput()));
 
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-     writeLog_("Fatal error: Running CSIFingerID returned an error code! Scan Index: " + String(scan_index));
-     return EXTERNAL_PROGRAM_ERROR;
+     qp.close();
+     writeLog_("Fatal error: Running CSIFingerID returned an error code or could no compute the input within 10 seconds for following scan index: " + String(scan_index));
     }
 
+    //close the process
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -401,9 +401,9 @@ protected:
      }
     }
    }
-  } // +}
+  }
 
-   // TODO: write out results to mzTab file
+   // write out results to mzTab file
    MzTab mztab;
    MzTabFile mztab_out;
    MzTabMetaData md;
@@ -452,7 +452,7 @@ protected:
    mztab_out.store(out, mztab);
 
    return EXECUTION_OK;
- } // - }
+ }
 };
 
 int main(int argc, const char ** argv)
