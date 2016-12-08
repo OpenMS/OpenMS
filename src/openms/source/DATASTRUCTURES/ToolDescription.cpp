@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ namespace OpenMS
          || (!other.is_internal && other.external_details.size() != other.types.size())
           )
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Extending (external) ToolDescription failed!", "");
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Extending (external) ToolDescription failed!", "");
       }
 
       // append types and external information
@@ -169,7 +169,7 @@ namespace OpenMS
         {
           LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";
         }
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "see above!", "");
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "see above!", "");
       }
     }
 

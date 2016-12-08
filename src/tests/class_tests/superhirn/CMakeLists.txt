@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -50,30 +50,30 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES}
 # --------------------------------------------------------------------------
 set(superhirn_tests
   # superhirn classes
-  FeatureFinderAlgorithmSHSuperhirnBackgroundControl_test
-  FeatureFinderAlgorithmSHSuperhirnBackgroundIntensityBin_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidData_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidPeak_test
-  FeatureFinderAlgorithmSHSuperhirnClusteredMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnDeisotoper_test
-  FeatureFinderAlgorithmSHSuperhirnFT_PeakDetectController_test
-  FeatureFinderAlgorithmSHSuperhirnIsotopicDist_test
-  FeatureFinderAlgorithmSHSuperhirnLCMSCData_test
-  FeatureFinderAlgorithmSHSuperhirnLC_MS_test
-  FeatureFinderAlgorithmSHSuperhirnLC_elution_peak_test
-  FeatureFinderAlgorithmSHSuperhirnMS1_feature_merger_test
-  FeatureFinderAlgorithmSHSuperhirnMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Fragment_test
-  FeatureFinderAlgorithmSHSuperhirnMS2_feature_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Info_test
-  FeatureFinderAlgorithmSHSuperhirnProcess_Data_test
-  FeatureFinderAlgorithmSHSuperhirnRawData_test
-  FeatureFinderAlgorithmSHSuperhirnconsensIsotopePattern_test
-  FeatureFinderAlgorithmSHSuperhirnfeatureLCprofile_test
-  FeatureFinderAlgorithmSHSuperhirnfeature_test
-  FeatureFinderAlgorithmSHSuperhirnms_peak_test
+  SuperhirnBackgroundControl_test
+  SuperhirnBackgroundIntensityBin_test
+  SuperhirnCentroidData_test
+  SuperhirnCentroidPeak_test
+  SuperhirnClusteredMS2ConsensusSpectrum_test
+  SuperhirnDeisotoper_test
+  SuperhirnFT_PeakDetectController_test
+  SuperhirnIsotopicDist_test
+  SuperhirnLCMSCData_test
+  SuperhirnLC_MS_test
+  SuperhirnLC_elution_peak_test
+  SuperhirnMS1_feature_merger_test
+  SuperhirnMS2ConsensusSpectrum_test
+  SuperhirnMS2Fragment_test
+  SuperhirnMS2_feature_test
+  SuperhirnMS2Info_test
+  SuperhirnProcess_Data_test
+  SuperhirnRawData_test
+  SuperhirnconsensIsotopePattern_test
+  SuperhirnfeatureLCprofile_test
+  Superhirnfeature_test
+  Superhirnms_peak_test
   # superhirn featurefinder
-  FeatureFinderAlgorithmSH_test
+  Superhirn_test
 )
 
 # --------------------------------------------------------------------------

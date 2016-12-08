@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <vector>
 #include <algorithm>    // std::min, std::max
+#include <functional>
 
 namespace OpenMS
 {
@@ -72,7 +73,7 @@ namespace OpenMS
       @param x The input vector in the first dimension
       @param y The input vector in the second dimension
       @param f Fraction of datapoints to use for each local regression (the span, recommended value: 2/3) 
-      @param nsteps The number of rubstifying iterations (recommended value: 3)
+      @param nsteps The number of robustifying iterations (recommended value: 3)
       @param delta nonnegative parameter which may be used to save computations (recommended value: 0.01 * range of x)
       @param result Result of fit
 

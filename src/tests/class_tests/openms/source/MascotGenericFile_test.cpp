@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -142,7 +142,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
                     "TITLE=901.23457_234.568_ident_test\n"
                     "PEPMASS=901.23457\n"
                     "RTINSECONDS=234.568\n"
-                    "890.12346 2345.68\n"
+                    "890.12346 2345.679\n"
                     "END IONS");
   TEST_EQUAL(mgf_file.hasSubstring(content), true);
 }

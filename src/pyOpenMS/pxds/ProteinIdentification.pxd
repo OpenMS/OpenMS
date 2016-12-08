@@ -5,6 +5,7 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from ProteinHit cimport *
+from Enzyme cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
 
@@ -71,7 +72,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void assignRanks() nogil except +
 
         # Compute the coverage (in percent) of all ProteinHits given PeptideHits
-        Size computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) nogil except +
+        void computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) nogil except +
 
         # Returns the date of the protein identification run
         DateTime getDateTime() nogil except +
@@ -104,12 +105,6 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
         #    ProteinIdentification
         MONOISOTOPIC, AVERAGE, SIZE_OF_PEAKMASSTYPE
 
-    cdef enum DigestionEnzyme:
-        # wrap-attach:
-        #    ProteinIdentification
-        TRYPSIN, PEPSIN_A, PROTEASE_K, CHYMOTRYPSIN,
-        NO_ENZYME, UNKNOWN_ENZYME, SIZE_OF_DIGESTIONENZYME 
-
     cdef cppclass ProteinGroup:
 
       ProteinGroup()  nogil except +
@@ -136,9 +131,9 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       PeakMassType mass_type            #< Mass type of the peaks
       libcpp_vector[String] fixed_modifications            #< Used fixed modifications
       libcpp_vector[String] variable_modifications            #< Allowed variable modifications
-      DigestionEnzyme enzyme            #< The enzyme used for cleavage
       UInt missed_cleavages            #< The number of allowed missed cleavages
       double fragment_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
       bool fragment_mass_tolerance_ppm
-      double precursor_tolerance            #< Mass tolerance of precursor ions (Dalton)
+      double precursor_mass_tolerance            #< Mass tolerance of precursor ions (Dalton)
       bool precursor_mass_tolerance_ppm
+      Enzyme digestion_enzyme            #< The enzyme for cleavage

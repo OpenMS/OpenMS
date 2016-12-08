@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,6 @@ public:
     /// Names of the Specificity
     static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
 
-
     /// Default constructor
     EnzymaticDigestion();
 
@@ -82,12 +81,11 @@ public:
     /// Assignment operator
     EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs);
 
-
     /// Returns the number of missed cleavages for the digestion
-    SignedSize getMissedCleavages() const;
+    Size getMissedCleavages() const;
 
     /// Sets the number of missed cleavages for the digestion (default is 0). This setting is ignored when log model is used.
-    void setMissedCleavages(SignedSize missed_cleavages);
+    void setMissedCleavages(Size missed_cleavages);
 
     /// Returns the enzyme for the digestion
     String getEnzymeName() const;
@@ -108,6 +106,9 @@ public:
     /// Performs the enzymatic digestion of a protein.
     void digest(const AASequence& protein, std::vector<AASequence>& output) const;
 
+    /// Performs the enzymatic digestion of a unmodified protein String. By returning only references into the original string it is much faster. max_length restricts the maximum length of reported peptides (0 = no restriction)
+    void digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length = 1, Size max_length = 0) const;
+
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
     Size peptideCount(const AASequence& protein);
 
@@ -119,7 +120,7 @@ protected:
     std::vector<Size> tokenize_(const String& sequence) const;
 
     /// Number of missed cleavages
-    SignedSize missed_cleavages_;
+    Size missed_cleavages_;
 
     /// Used enzyme
     Enzyme enzyme_;
@@ -131,3 +132,4 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_CHEMISTRY_ENZYMATICDIGESTION_H
+

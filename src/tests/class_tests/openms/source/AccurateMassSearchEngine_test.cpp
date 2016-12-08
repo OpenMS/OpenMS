@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -101,8 +101,8 @@ START_SECTION([EXTRA]AdductInfo)
 END_SECTION
 
 Param ams_param;
-ams_param.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
-ams_param.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
+ams_param.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
+ams_param.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
 ams_param.setValue("keep_unidentified_masses", "true");
 ams_param.setValue("mzTab:exportIsotopeIntensities", 3);
 AccurateMassSearchEngine ams;
@@ -351,8 +351,8 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   MzTab mzt;
   Param p;
   p.setValue("ionization_mode","auto");
-  p.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
-  p.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
+  p.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
+  p.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
   ams.setParameters(p);
   ams.init();
 

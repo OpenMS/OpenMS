@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <fstream>
 
@@ -45,8 +46,8 @@ using namespace std;
 namespace OpenMS
 {
   FeatureXMLFile::FeatureXMLFile() :
-    Internal::XMLHandler("", "1.8"),
-    Internal::XMLFile("/SCHEMAS/FeatureXML_1_8.xsd", "1.8")
+    Internal::XMLHandler("", "1.9"),
+    Internal::XMLFile("/SCHEMAS/FeatureXML_1_9.xsd", "1.9")
   {
     resetMembers_();
   }
@@ -137,7 +138,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     if (Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId))
@@ -176,7 +177,7 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("UserParam", os, feature_map, 1);
@@ -222,35 +223,14 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      if (search_param.enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"unknown_enzyme\" ";
-      }
+      String enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
+
       String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
       String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" ";
+         << "precursor_peak_tolerance=\"" << search_param.precursor_mass_tolerance << "\" ";
       os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
       os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
       os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
@@ -290,6 +270,13 @@ namespace OpenMS
 
         os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+        
+        double coverage = current_prot_id.getHits()[j].getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          os << " coverage=\"" << coverage << "\"";
+        }
+        
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
@@ -397,12 +384,12 @@ namespace OpenMS
     else if (tag == "featureList")
     {
       if (options_.getMetadataOnly())
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       Size count = attributeAsInt_(attributes, "count");
       if (size_only_) // true if loadSize() was used instead of load()
       {
         expected_size_ = count;
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
       startProgress(0, count, "Loading featureXML file");
@@ -547,7 +534,7 @@ namespace OpenMS
       String peak_unit;
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
-      search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      search_param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       String precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
@@ -564,29 +551,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (enzyme == "trypsin")
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        search_param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        search_param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        search_param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
       last_meta_ = &search_param_;
     }
@@ -625,6 +592,14 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
 
       //sequence
       String tmp = "";
@@ -886,6 +861,15 @@ namespace OpenMS
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
+    else if (tag == "FixedModification")
+    {
+      last_meta_ = &search_param_;
+    }
+    else if (tag == "VariableModification")
+    {
+      last_meta_ = &search_param_;
+    }
+
     else if (tag == "ProteinHit")
     {
       prot_id_.insertHit(prot_hit_);

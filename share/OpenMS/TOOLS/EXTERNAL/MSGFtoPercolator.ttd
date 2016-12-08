@@ -1,10 +1,7 @@
 <ttd>
 	<tool status="external">
 		<category>Identification</category>
-		// multiple of these are allowed
 		<type>MSGFtoPercolator</type>
-		#name# -- for internal use only
-		// multiple of these allowed (same # as 'types') - for external only
 		<external>
       <text>
         <onstartup>Running "msgf2pin" converter...</onstartup>

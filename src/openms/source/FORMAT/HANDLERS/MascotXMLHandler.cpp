@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
@@ -193,49 +193,60 @@ namespace OpenMS
       else if (tag_ == "pep_seq")
       {
         AASequence temp_aa_sequence = AASequence::fromString(character_buffer_.trim());
-
+        
         // if everything is just read from the MascotXML file
         if (modified_peptides_.empty())
         {
           // fixed modifications
           for (vector<String>::const_iterator it = search_parameters_.fixed_modifications.begin(); it != search_parameters_.fixed_modifications.end(); ++it)
           {
-            // e.g. Carboxymethyl (C)
             vector<String> mod_split;
             it->split(' ', mod_split);
-            if (mod_split.size() >= 2)
+            if (mod_split.size() < 2 || mod_split.size() > 3)
             {
-              // could be "(C-term)" or "(C-term X)" etc.
-              if (mod_split[1].hasPrefix("(C-term") || mod_split[1].hasPrefix("(Protein C-term"))
-              {
-                temp_aa_sequence.setCTerminalModification(mod_split[0]);
-              }
-              else
-              {
-                // could be "(N-term)" or "(N-term X)" etc.
-                if (mod_split[1].hasPrefix("(N-term") || mod_split[1].hasPrefix("(Protein N-term"))
-                {
-                  temp_aa_sequence.setNTerminalModification(mod_split[0]);
-                }
-                else
-                {
-                  String origin = mod_split[1];
-                  origin.remove(')');
-                  origin.remove('(');
-                  for (Size i = 0; i != temp_aa_sequence.size(); ++i)
-                  {
-                    // best way we can check; because origin can be e.g. (STY)
-                    if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
-                    {
-                      temp_aa_sequence.setModification(i, mod_split[0]);
-                    }
-                  }
-                }
-              }
+              error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
             }
             else
             {
-              error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
+              // C-term modification without specification or protein terminus
+              if (mod_split[1] == "(C-term)" || (mod_split[1] == "(Protein" && mod_split[2] == "C-term)"))
+              {
+                temp_aa_sequence.setCTerminalModification(mod_split[0]);
+              }
+              // N-term modification without specification or protein terminus
+              else if (mod_split[1] == "(N-term)" || (mod_split[1] == "(Protein" && mod_split[2] == "N-term)"))
+              {
+                temp_aa_sequence.setNTerminalModification(mod_split[0]);
+              }
+              // C-term modification for specific amino acid; e.g. <Modification> (N-term C)
+              else if ((mod_split[1] == "(C-term") && (mod_split.size() == 3))
+              {
+                if ((temp_aa_sequence.end() - 1)->getOneLetterCode() == mod_split[2].remove(')'))
+                {
+                  temp_aa_sequence.setCTerminalModification(mod_split[0]);
+                }
+              }
+              // N-term modification for specific amino acid; e.g. <Modification> (N-term C)
+              else if ((mod_split[1] == "(N-term") && (mod_split.size() == 3))
+              {
+                if (temp_aa_sequence.begin()->getOneLetterCode() == mod_split[2].remove(')'))
+                {
+                  temp_aa_sequence.setNTerminalModification(mod_split[0]);
+                }
+              }
+              else 
+              { // e.g. Carboxymethyl (C)
+                String AA = mod_split[1];
+                AA.remove(')');
+                AA.remove('(');
+                for (Size i = 0; i != temp_aa_sequence.size(); ++i)
+                {
+                  if (AA == temp_aa_sequence[i].getOneLetterCode())
+                  {
+                    temp_aa_sequence.setModification(i, mod_split[0]);
+                  }
+                }
+              }
             }
           }
         }
@@ -262,7 +273,10 @@ namespace OpenMS
         AASequence temp_aa_sequence = actual_peptide_hit_.getSequence();
         String temp_string = character_buffer_.trim();
         vector<String> parts;
-
+        
+        // E.g. seq: QKAAGSK, pos: 4.0000000.0 -> mod at position 4 in var_mods vector is n-terminal
+        // therefore it is not possible to split Phospho (ST) to Phospho (S), Phospho (T) before this,
+        // because the original order is required
         temp_string.split('.', parts);
         if (parts.size() == 3)
         {
@@ -431,7 +445,19 @@ namespace OpenMS
         if (search_parameters_.fixed_modifications.empty())
         {
           String temp_string = (character_buffer_.trim());
-          temp_string.split(',', search_parameters_.fixed_modifications);
+          vector<String> tmp_mods;
+          temp_string.split(',', tmp_mods);
+          
+          for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
+          {
+            // check if modification is not on the remove list
+            if (std::find(remove_fixed_mods_.begin(), remove_fixed_mods_.end(), *it) == remove_fixed_mods_.end())
+            {
+              // split because e.g. Phospho (ST)
+              vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+              search_parameters_.fixed_modifications.insert(search_parameters_.fixed_modifications.end(), mods_split.begin(), mods_split.end());
+            }
+          }
         }
       }
       else if (tag_ == "IT_MODS")
@@ -443,36 +469,28 @@ namespace OpenMS
         if (search_parameters_.variable_modifications.empty())
         {
           String temp_string = (character_buffer_.trim());
-          temp_string.split(',', search_parameters_.variable_modifications);
+          vector<String> tmp_mods;
+          temp_string.split(',', tmp_mods);
+          
+          for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
+          {
+            // split because e.g. Phospho (ST)
+            vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+            search_parameters_.variable_modifications.insert(search_parameters_.variable_modifications.end(), mods_split.begin(), mods_split.end());
+          }
         }
       }
       else if (tag_ == "CLE")
       {
         String temp_string = (character_buffer_.trim());
-        if (temp_string == "Trypsin")
+        if (EnzymesDB::getInstance()->hasEnzyme(temp_string))
         {
-          search_parameters_.enzyme = ProteinIdentification::TRYPSIN;
-        }
-        else if (temp_string == "PepsinA")
-        {
-          search_parameters_.enzyme = ProteinIdentification::PEPSIN_A;
-        }
-        else if (temp_string == "Chymotrypsin")
-        {
-          search_parameters_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-        }
-        else if (temp_string == "None")
-        {
-          search_parameters_.enzyme = ProteinIdentification::NO_ENZYME;
-        }
-        else
-        {
-          search_parameters_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+          search_parameters_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(temp_string);
         }
       }
       else if (tag_ == "TOL")
       {
-        search_parameters_.precursor_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.precursor_mass_tolerance = (character_buffer_.trim()).toDouble();
       }
       else if (tag_ == "ITOL")
       {
@@ -494,19 +512,48 @@ namespace OpenMS
            || (tags_open_.size() >= 2 &&
                tags_open_[tags_open_.size() - 2] == "variable_mods"))
         {
+          // e.g. Phospho (ST) cannot be split for variable modifications at this point, because the order of
+          // variable modifications needs to be preserved. Split before search parameters are set.
           search_parameters_.variable_modifications.push_back(character_buffer_.trim());
           // cerr << "var. mod. added: " << search_parameters_.variable_modifications.back() << "\n";
         }
         else if (tags_open_.size() >= 2 &&
                  tags_open_[tags_open_.size() - 2] == "fixed_mods")
         {
-          search_parameters_.fixed_modifications.push_back(character_buffer_.trim());
-          // cerr << "fixed mod. added: " << search_parameters_.fixed_modifications.back() << "\n";
+          // check if modification is not on the remove list
+          String fixed_mod = character_buffer_.trim();
+          if (std::find(remove_fixed_mods_.begin(), remove_fixed_mods_.end(), fixed_mod) == remove_fixed_mods_.end())
+          {
+            // split because e.g. Phospho (ST)
+            vector<String> mods_split = splitModificationBySpecifiedAA(character_buffer_.trim());
+            search_parameters_.fixed_modifications.insert(search_parameters_.fixed_modifications.end(), mods_split.begin(), mods_split.end());
+            // cerr << "fixed mod. added: " << search_parameters_.fixed_modifications.back() << "\n";
+          }
+          else
+          {
+            warning(LOAD, String("Modification removed as fixed modification: '") + character_buffer_.trim() + String("'"));
+          }
         }
       }
       else if (tag_ == "warning")
       {
         warning(LOAD, String("Warnings were present: '") + character_buffer_ + String("'"));
+        
+        // check if fixed modification can only be used as variable modification
+        if (character_buffer_.trim().hasSubstring("can only be used as a variable modification"))
+        {
+          vector<String> warn_split;
+          character_buffer_.trim().split(';', warn_split);
+          if (warn_split[0].hasPrefix("'"))
+          {
+            Size end_pos = warn_split[0].find("'", 1);
+            if (end_pos < warn_split[0].size())
+            {
+              warn_split[0] = warn_split[0].substr(1, end_pos - 1);
+              remove_fixed_mods_.push_back(warn_split[0]);
+            }
+          }
+        }
       }
       else if (tag_ == "protein")
       {
@@ -560,7 +607,17 @@ namespace OpenMS
       {
         protein_identification_.setSearchEngine("Mascot");
         protein_identification_.setIdentifier(identifier_);
-        protein_identification_.setSearchParameters(search_parameters_);
+        
+        // split variable modifications e.g. Phospho (ST)
+        //vector<String> var_mods;
+        vector<String> var_mods;
+        for (vector<String>::iterator it = search_parameters_.variable_modifications.begin(); it != search_parameters_.variable_modifications.end(); ++it)
+        {
+          vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+          var_mods.insert(var_mods.end(), mods_split.begin(), mods_split.end());
+        }
+        search_parameters_.variable_modifications = var_mods;
+        protein_identification_.setSearchParameters(search_parameters_);        
       }
 
       tag_ = ""; // reset tag, for the following characters() call (due to line break) of the parent tag
@@ -577,6 +634,45 @@ namespace OpenMS
       if (tag_.empty()) return;
 
       character_buffer_ += String(sm_.convert(chars));
+    }
+    
+    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(String mod)
+    {
+      vector<String> mods;
+      vector<String> parts;
+      mod.split(' ', parts);
+      
+      // either format "Modification (Protein C-term)" or "Modification (C-term X)"
+      if (parts.size() != 2)
+      {
+        mods.push_back(mod);
+        return mods;
+      }
+      
+      if (parts[1].hasPrefix("(N-term") || parts[1].hasPrefix("(C-term"))
+      {
+        mods.push_back(mod);
+        return mods;
+      }
+      
+      // format e.g. Phospho (ST)
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      String AAs = parts[1];
+      AAs.remove(')');
+      AAs.remove('(');
+      for (String::const_iterator it = AAs.begin(); it != AAs.end(); ++it)
+      {
+        String tmp_mod = parts[0] + " (" + *it + ")";
+        if (mod_db->has(tmp_mod))
+        {
+          mods.push_back(tmp_mod);
+        }
+        else
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_mod);
+        }
+      }
+      return mods;
     }
 
   } // namespace Internal

@@ -1,14 +1,11 @@
 <ttd>
 	<tool status="external">
 		<category>Identification</category>
-		// multiple of these are allowed
 		<type>MascotPercolator</type>
-		#name# -- for internal use only
-		// multiple of these allowed (same # as 'types') - for external only
 		<external>
       <text>
         <onstartup>Running Mascot Percolator...</onstartup>
-        <onfail>Something went wrong. Is Java 7 available?</onfail>
+        <onfail>Something went wrong. Is Java 8 available?</onfail>
         <onfinish>Mascot Percolator finished successfully.</onfinish>
       </text>    
 		  <e_category>Identification</e_category>

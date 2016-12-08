@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,12 +84,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_NOT_EQUAL(protein_ids[0].getDateTime().getDate(),"0000-00-00")
   TEST_NOT_EQUAL(protein_ids[0].getDateTime().getTime(),"00:00:00")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"database.fasta")
-  TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme, ProteinIdentification::TRYPSIN)
   TEST_EQUAL(protein_ids[0].getSearchParameters().missed_cleavages, 1000)
   TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.size(), fm.size())
   TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.back(), fm.back())
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,20)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,20)
 
   //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
 //  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
@@ -148,11 +147,11 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getDateTime().getTime(),protein_ids2[0].getDateTime().getTime())
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,protein_ids2[0].getSearchParameters().db)
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,protein_ids2[0].getSearchParameters().db_version)
-  TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,protein_ids2[0].getSearchParameters().enzyme)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().digestion_enzyme.getName(),protein_ids2[0].getSearchParameters().digestion_enzyme.getName())
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,protein_ids2[0].getSearchParameters().charges)
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,protein_ids2[0].getSearchParameters().mass_type)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,protein_ids2[0].getSearchParameters().fragment_mass_tolerance)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,protein_ids2[0].getSearchParameters().precursor_tolerance)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,protein_ids2[0].getSearchParameters().precursor_mass_tolerance)
 
   //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
 //  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
@@ -299,7 +298,6 @@ START_SECTION(([EXTRA] thresholds))
   String filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
-  MzIdentMLFile().store("/tmp/test.mzid", protein_ids, peptide_ids);
   protein_ids.clear();
   peptide_ids.clear();
   MzIdentMLFile().load(filename, protein_ids, peptide_ids);
@@ -312,7 +310,6 @@ START_SECTION(([EXTRA] thresholds))
       TEST_EQUAL(peptide_ids[i].getHits().size(),3)
       for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
       {
-        std::cout << peptide_ids[i].getHits()[j].getScore() << peptide_ids[i].getHits()[j].getSequence().toString() << peptide_ids[i].getHits()[j].getMetaValue("pass_threshold") << std::endl;
         if (peptide_ids[i].getHits()[j].getScore() > protein_ids[0].getSignificanceThreshold())
         {
           TEST_EQUAL(peptide_ids[i].getHits()[j].getMetaValue("pass_threshold"),false)
@@ -325,9 +322,22 @@ START_SECTION(([EXTRA] thresholds))
 
 
 END_SECTION
+START_SECTION(([EXTRA] regression test for file loading on example files))
+  std::vector<ProteinIdentification> protein_ids;
+  std::vector<PeptideIdentification> peptide_ids;
+  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+  input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+  input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
+  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+
+END_SECTION
 
 
-START_SECTION(([EXTRA] compability issues))
+//START_SECTION(([EXTRA] compability issues))
 //  MzIdentMLFile mzidfile;
 //  vector<ProteinIdentification> protein_ids;
 //  vector<PeptideIdentification> peptide_ids;
@@ -359,8 +369,7 @@ START_SECTION(([EXTRA] compability issues))
 //  No MZ #might occurr when reading idxml. no mz to peptidehit
 
 //  PeptideEvidence without reference to the positional in originating sequence found. #will always occurr when reading idxml  no start end positional arguments
-
-END_SECTION
+//END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

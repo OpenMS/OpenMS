@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar$
 // --------------------------------------------------------------------------
 
@@ -96,16 +96,28 @@ fsc.setWhitelist(sl);
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {
     FeatureFindingMetabo test_ffm;
+    // run with non-default setting (C13 isotope distance)
+    Param p = test_ffm.getParameters();
+    p.setValue("mz_scoring_13C", "true");
+    test_ffm.setParameters(p);
+    test_ffm.run(splitted_mt, test_fm);
+    TEST_EQUAL(test_fm.size(), 93);
+
+    // run with default settings (from paper using charge+isotope# dependent distances)
+    p.setValue("report_convex_hulls", "true");
+    p.setValue("mz_scoring_13C", "false");
+    test_ffm.setParameters(p);
     test_ffm.run(splitted_mt, test_fm);
     test_fm.sortByMZ();
+    TEST_EQUAL(test_fm.size(), 91);
+    // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 
     test_fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // test annotation of input
     String tmp_file;
     NEW_TMP_FILE(tmp_file);
-    FeatureXMLFile ff;
-    ff.store(tmp_file, test_fm);
+    FeatureXMLFile().store(tmp_file, test_fm);
     TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML")), true);
 
 }

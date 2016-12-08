@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -46,8 +46,8 @@ namespace OpenMS
 {
 
   IdXMLFile::IdXMLFile() :
-    XMLHandler("", "1.3"),
-    XMLFile("/SCHEMAS/IdXML_1_3.xsd", "1.3"),
+    XMLHandler("", "1.4"),
+    XMLFile("/SCHEMAS/IdXML_1_4.xsd", "1.4"),
     last_meta_(0),
     document_id_(),
     prot_id_in_run_(false)
@@ -95,7 +95,7 @@ namespace OpenMS
     std::ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     os.precision(writtenDigits<double>(0.0));
 
@@ -107,8 +107,7 @@ namespace OpenMS
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_3.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
-
+    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //look up different search parameters
     std::vector<ProteinIdentification::SearchParameters> params;
@@ -137,35 +136,13 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << params[i].charges << "\" ";
-      if (params[i].enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (params[i].enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (params[i].enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (params[i].enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"" << params[i].digestion_enzyme.getName() << "\" "; // os << "enzyme=\"unknown_enzyme\" ";
-      }
+      String enzyme_name = params[i].digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
       String precursor_unit = params[i].precursor_mass_tolerance_ppm ? "true" : "false";
       String peak_unit = params[i].fragment_mass_tolerance_ppm ? "true" : "false";
 
       os << "missed_cleavages=\"" << params[i].missed_cleavages << "\" "
-         << "precursor_peak_tolerance=\"" << params[i].precursor_tolerance << "\" ";
+         << "precursor_peak_tolerance=\"" << params[i].precursor_mass_tolerance << "\" ";
       os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
       os << "peak_mass_tolerance=\"" << params[i].fragment_mass_tolerance << "\" ";
       os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
@@ -238,8 +215,13 @@ namespace OpenMS
         accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
         os << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" ";
         os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
-        // os << "coverage=\"" << protein_ids[i].getHits()[j].getCoverage()
-        //   << "\" ";
+        
+        double coverage = protein_ids[i].getHits()[j].getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          os << "coverage=\"" << coverage << "\" ";
+        }
+
         os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
         writeUserParam_("UserParam", os, protein_ids[i].getHits()[j], 4);
         os << "\t\t\t</ProteinHit>\n";
@@ -438,7 +420,7 @@ namespace OpenMS
       optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
       param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
 
-      param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
       String precursor_unit;
       optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
       param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
@@ -459,30 +441,6 @@ namespace OpenMS
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
         param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
-      }
-      if (enzyme == "trypsin")
-      {
-        param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
       }
       last_meta_ = &param_;
     }
@@ -545,6 +503,14 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
 
       //sequence
       String tmp;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,47 +70,93 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
       OpenSwath::SpectrumAccessPtr swath_map, OpenSwath::SpectrumAccessPtr ms1_map, OpenMS::DIAScoring & diascoring,
-      const PeptideType& pep, OpenSwath_Scores & scores)
+      const CompoundType& compound, OpenSwath_Scores & scores)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
 
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
-    // parameters
-    int by_charge_state = 1; // for which charge states should we check b/y series
-    double precursor_mz = transitions[0].precursor_mz;
-
     // find spectrum that is closest to the apex of the peak using binary search
     OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
     OpenSwath::SpectrumPtr* spectrum = &spectrum_;
 
-    // Isotope correlation / overlap score: Is this peak part of an
-    // isotopic pattern or is it the monoisotopic peak in an isotopic
-    // pattern?
-    diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
         scores.massdev_score, scores.weighted_massdev_score);
 
-    // Presence of b/y series score
-    OpenMS::AASequence aas;
-    OpenSwathDataAccessHelper::convertPeptideToAASequence(pep, aas);
-    diascoring.dia_by_ion_score((*spectrum), aas, by_charge_state, scores.bseries_score, scores.yseries_score);
+    // DIA dotproduct and manhattan score based on library intensity
+    diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
+
+    // Isotope correlation / overlap score: Is this peak part of an
+    // isotopic pattern or is it the monoisotopic peak in an isotopic
+    // pattern?
+    // Currently this is computed for an averagine model of a peptide so its
+    // not optimal for metabolites - but better than nothing, given that for
+    // most fragments we dont really know their composition
+    diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+
+    // Peptide-specific scores
+    if (compound.isPeptide())
+    {
+      // Presence of b/y series score
+      OpenMS::AASequence aas;
+      int by_charge_state = 1; // for which charge states should we check b/y series
+      OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
+      diascoring.dia_by_ion_score((*spectrum), aas, by_charge_state, scores.bseries_score, scores.yseries_score);
+    }
 
     // FEATURE we should not punish so much when one transition is missing!
     scores.massdev_score = scores.massdev_score / transitions.size();
 
-    // DIA dotproduct and manhattan score
-    diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
-
-    // MS1 ppm score : check that the map is not NULL and contains spectra
+    // Compute precursor-level scores:
+    // - compute mass difference in ppm
+    // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0) 
     {
+      double precursor_mz = transitions[0].precursor_mz;
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
-      diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, pep.getChargeState(), scores.ms1_isotope_correlation, scores.ms1_isotope_overlap);
+
+      int precursor_charge = 1;
+      if (compound.getChargeState() != 0) {precursor_charge = compound.getChargeState();}
+
+      if (compound.isPeptide())
+      {
+        diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
+                                          precursor_charge, scores.ms1_isotope_correlation,
+                                          scores.ms1_isotope_overlap);
+      }
+      else
+      {
+        diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum,
+                                          precursor_charge, scores.ms1_isotope_correlation,
+                                          scores.ms1_isotope_overlap, compound.sum_formula);
+      }
     }
+  }
+
+  void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature, const TransitionType & transition,
+      OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
+      OpenSwath_Scores & scores)
+  {
+    // find spectrum that is closest to the apex of the peak using binary search
+    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+
+    // If no charge is given, we assume it to be 1
+    int putative_product_charge = 1;
+    if (transition.getProductChargeState() > 0)
+    {
+      putative_product_charge = transition.getProductChargeState();
+    }
+
+    // Isotope correlation / overlap score: Is this peak part of an
+    // isotopic pattern or is it the monoisotopic peak in an isotopic
+    // pattern?
+    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), (*spectrum), putative_product_charge, scores.isotope_correlation, scores.isotope_overlap);
+    // Mass deviation score
+    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), (*spectrum), scores.massdev_score);
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
@@ -163,10 +209,37 @@ namespace OpenMS
     }
   }
 
+  void OpenSwathScoring::calculateChromatographicIdScores(
+        OpenSwath::IMRMFeature* imrmfeature,
+        const std::vector<std::string>& native_ids_identification,
+        const std::vector<std::string>& native_ids_detection,
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        OpenSwath_Scores & idscores)
+  { 
+    OpenSwath::MRMScoring mrmscore_;
+    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+
+    if (su_.use_coelution_score_)
+    {
+      idscores.ind_xcorr_coelution_score = mrmscore_.calcIndXcorrIdCoelutionScore();
+    }
+
+    if (su_.use_shape_score_)
+    {
+      idscores.ind_xcorr_shape_score = mrmscore_.calcIndXcorrIdShape_score();
+    }
+
+    // Signal to noise scoring
+    if (su_.use_sn_score_)
+    {
+      idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
+    }
+  }
+
   void OpenSwathScoring::calculateLibraryScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<TransitionType> & transitions,
-        const PeptideType& pep,
+        const CompoundType& pep,
         const double normalized_feature_rt,
         OpenSwath_Scores & scores)
   {
@@ -217,6 +290,11 @@ namespace OpenMS
       double RT, int nr_spectra_to_add)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
+    if (indices.empty() ) 
+    {
+      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+      return sptr;
+    }
     int closest_idx = boost::numeric_cast<int>(indices[0]);
     if (indices[0] != 0 &&
         std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
@@ -237,8 +315,14 @@ namespace OpenMS
       all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
       for (int i = 1; i <= nr_spectra_to_add / 2; i++) // cast to int is intended!
       {
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
+        if (closest_idx - i >= 0) 
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
+        }
+        if (closest_idx + i < (int)swath_map->getNrSpectra()) 
+        {
+          all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
+        }
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
       return spectrum_;

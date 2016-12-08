@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <set>
 #include <string>
 #include <iostream>
@@ -88,9 +88,9 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root = XMLString::transcode("MzIdentML");
-      TAG_CV = XMLString::transcode("cvParam");
-      ATTR_name = XMLString::transcode("option_a");
+      xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
+      xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
+      xml_name_attr_ptr_ = XMLString::transcode("option_a");
 
     }
 
@@ -120,9 +120,9 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root = XMLString::transcode("MzIdentML");
-      TAG_CV = XMLString::transcode("cvParam");
-      ATTR_name = XMLString::transcode("name");
+      xml_root_tag_ptr_ = XMLString::transcode("MzIdentML");
+      xml_cvparam_tag_ptr_ = XMLString::transcode("cvParam");
+      xml_name_attr_ptr_ = XMLString::transcode("name");
 
     }
 
@@ -135,9 +135,9 @@ namespace OpenMS
     {
       try
       {
-        XMLString::release(&TAG_root);
-        XMLString::release(&TAG_CV);
-        XMLString::release(&ATTR_name);
+        XMLString::release(&xml_root_tag_ptr_);
+        XMLString::release(&xml_cvparam_tag_ptr_);
+        XMLString::release(&xml_name_attr_ptr_);
 //         if(m_name)   XMLString::release( &m_name ); //releasing you here is releasing you twice, dunno yet why?!
       }
       catch (...)
@@ -173,8 +173,9 @@ namespace OpenMS
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         else if (errno == ENOTDIR)
           throw (runtime_error("A component of the path is not a directory."));
-        else if (errno == ELOOP)
-          throw (runtime_error("Too many symbolic links encountered while traversing the path."));
+        // On MSVC 2008, the ELOOP constant is not declared and thus introduces a compile error
+        //else if (errno == ELOOP)
+        //  throw (runtime_error("Too many symbolic links encountered while traversing the path."));
         else if (errno == EACCES)
           throw (runtime_error("Permission denied."));
         else if (errno == ENAMETOOLONG)
@@ -489,10 +490,11 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
 
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
-        if (!unitAcc.empty() && unitCvRef.empty() && unitName.empty())
+        if (!unitAcc.empty() && !unitCvRef.empty() && !unitName.empty())
         {
           u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
         }
+        // TODO: warn if only a part of the unit attributes are not empty?
         return CVTerm(accession, name, cvRef, value, u);
       }
       else
@@ -789,7 +791,10 @@ namespace OpenMS
           sp.db_version = db_map_[searchDatabase_ref].version;
           pro_id_->back().setSearchParameters(sp);
 
-          pro_id_->back().setMetaValue("spectra_data", sd_map_[spectra_data_ref]);
+          // internally we store a list of files so convert the mzIdentML file String to a StringList
+          StringList spectra_data_list;
+          spectra_data_list.push_back(sd_map_[spectra_data_ref]);
+          pro_id_->back().setMetaValue("spectra_data", spectra_data_list);
           if (!spectrumIdentification_date.empty())
           {
             pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date.toQString(), "yyyy-MM-ddThh:mm:ss"));
@@ -961,25 +966,9 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (enzymename == "Trypsin")
+                if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
                 {
-                  sp.enzyme = ProteinIdentification::TRYPSIN;
-                }
-                else if (enzymename == "PepsinA")
-                {
-                  sp.enzyme = ProteinIdentification::PEPSIN_A;
-                }
-                else if (enzymename == "Chymotrypsin")
-                {
-                  sp.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-                }
-                else if (enzymename == "NoEnzyme")
-                {
-                  sp.enzyme = ProteinIdentification::NO_ENZYME;
-                }
-                else // if enzymename ==  || PROTEASE_K
-                {
-                  sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
                 }
                 enzyme = enzyme->getNextElementSibling();
               }
@@ -990,7 +979,7 @@ namespace OpenMS
               //+- take the numerically greater
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
-                f_tol = max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                f_tol = max(f_tol, it->second.front().getValue().toString().toDouble());
                 sp.fragment_mass_tolerance = f_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
@@ -1004,8 +993,8 @@ namespace OpenMS
               //+- take the numerically greater
               for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
               {
-                p_tol = max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
-                sp.precursor_tolerance = p_tol;
+                p_tol = max(p_tol, it->second.front().getValue().toString().toDouble());
+                sp.precursor_mass_tolerance = p_tol;
                 if (it->second.front().getUnit().name == "parts per million" )
                 {
                   sp.precursor_mass_tolerance_ppm = true;
@@ -1107,18 +1096,35 @@ namespace OpenMS
             DateTime releaseDate;
 //            releaseDate.set(String(XMLString::transcode(element_in->getAttribute(XMLString::transcode("releaseDate")))));
             String version = XMLString::transcode(element_in->getAttribute(XMLString::transcode("version")));
-            //assumed that <DatabaseName> is the first child, following cv omitted for now
             String dbname = "";
-            DOMElement* pren = element_in->getFirstElementChild();
-            if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
+            DOMElement* element_dbn = element_in->getFirstElementChild();
+            while (element_dbn)
             {
-              CVTerm param = parseCvParam_(pren->getFirstElementChild());
-              dbname = param.getValue();
+              if ((std::string)XMLString::transcode(element_dbn->getTagName()) == "DatabaseName")
+              {
+                DOMElement* databasename_param = element_dbn->getFirstElementChild();
+                while (databasename_param)
+                {
+                  if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "userParam")
+                  {
+                    CVTerm param = parseCvParam_(databasename_param);
+                    dbname = param.getValue();
+                  }
+                  else if ((std::string)XMLString::transcode(databasename_param->getTagName()) == "cvParam")
+                  {
+                    pair<String, DataValue> param = parseUserParam_(databasename_param);
+                    dbname = param.second.toString();
+                  }
+                  databasename_param = databasename_param->getNextElementSibling();
+                }
+                //each SearchDatabase element may have one DatabaseName, each DatabaseName only one param
+              }
+              element_dbn = element_dbn->getNextElementSibling();
             }
-            else if ((std::string)XMLString::transcode(pren->getTagName()) == "cvParam")
+            if (dbname.empty())
             {
-              pair<String, DataValue> param = parseUserParam_(pren->getFirstElementChild());
-              dbname = param.second.toString();
+              LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
+              dbname = "unknown";
             }
             DatabaseInput temp_struct = {dbname, location, version, releaseDate};
             db_map_.insert(make_pair(id, temp_struct));
@@ -1181,9 +1187,15 @@ namespace OpenMS
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
               {
-                if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
+                // check for retention time or scan time entry
+                if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
+                  double rt = cvit->second.front().getValue().toString().toDouble();
+                  if (cvit->second.front().getUnit().accession == "UO:0000031")  // minutes
+                  {
+                    rt *= 60.0;
+                  }
+                  pep_id_->back().setRT(rt);
                 }
                 else
                 {
@@ -1296,7 +1308,7 @@ namespace OpenMS
         {
           for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
           {
-            hit.setMetaValue(cvs->first, cv->getValue());
+            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
           }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
@@ -1676,7 +1688,7 @@ namespace OpenMS
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getNTerminalModification());
+          const ResidueModification& mod = *(peps->second.getNTerminalModification());
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
@@ -1692,7 +1704,7 @@ namespace OpenMS
         }
         if (peps->second.hasCTerminalModification())
         {
-          ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getCTerminalModification());
+          const ResidueModification& mod = *(peps->second.getCTerminalModification());
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
@@ -1709,22 +1721,22 @@ namespace OpenMS
         if (peps->second.isModified())
         {
           Size i = 0;
-          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res)
+          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res, ++i)
           {
-            ResidueModification mod = ModificationsDB::getInstance()->getModification(res->getModification());
+            const ResidueModification* mod = res->getModification();
+            if (mod == 0) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
             current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));
-            current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
+            current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod->getOrigin().c_str()));
 
-            current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+            current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
             current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-            current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+            current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
             current_mod->appendChild(current_cv);
             current_pep->appendChild(current_mod);
-            ++i;
           }
         }
         sequenceCollectionElements->appendChild(current_pep);

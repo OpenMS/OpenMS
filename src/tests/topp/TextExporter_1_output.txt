@@ -3,7 +3,7 @@
 #UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions
 #FEATURE	rt	mz	intensity	charge	width	quality	rt_quality	mz_quality	rt_start	rt_end
 #PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions
-RUN	Mascot_2006-03-09T11:31:52		higher-score-better	2006-03-09T11:31:52		db=, db_version=, taxonomy=, charges=, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=Unknown, missed_cleavages=0, peak_mass_tolerance=0, precursor_mass_tolerance=0
+RUN	Mascot_2006-03-09T11:31:52		higher-score-better	2006-03-09T11:31:52		db=, db_version=, taxonomy=, charges=, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=unknown_enzyme, missed_cleavages=0, peak_mass_tolerance=0, precursor_mass_tolerance=0
 PROTEIN	0	0	ABCDE		-1	
 PROTEIN	0	0	FGHIJ		-1	
 UNASSIGNEDPEPTIDE	-1	-1	4324.433	0	F	23	X	Y		Mascot_2006-03-09T11:31:52	FGHIJ

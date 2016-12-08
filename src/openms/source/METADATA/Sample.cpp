@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -244,7 +244,7 @@ namespace OpenMS
   {
     if (before_position > Int(treatments_.size()))
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, before_position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, before_position, treatments_.size());
     }
     list<SampleTreatment *>::iterator it;
     if (before_position >= 0)
@@ -267,7 +267,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -281,7 +281,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -295,7 +295,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)

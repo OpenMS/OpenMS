@@ -8,6 +8,8 @@ from Map cimport *
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
     cdef cppclass AASequence:
+        # wrap-hash:
+        #   toString().c_str()
 
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
@@ -25,25 +27,29 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the peptide as string without any modifications
         String toUnmodifiedString() nogil except +
 
+        # returns the peptide as a pepXML style bracket string . fixed modifications are omitted
+        String toBracketString(libcpp_vector[String] fixed_modifications) nogil except +
+
         # set the modification of the residue at position index
         void setModification(Size index, String modification) nogil except +
 
         # sets the N-terminal modification
         void setNTerminalModification(String modification) nogil except +
 
-        # returns the Id of the N-term modification nogil except + an empty string is returned if none was set
-        String getNTerminalModification() nogil except +
+        # returns the name (ID) of the N-terminal modification, or an empty string if none is set nogil except +
+        String getNTerminalModificationName() nogil except +
 
         # sets the C-terminal modification
         void setCTerminalModification(String modification) nogil except +
 
-        # returns the Id of the C-term modification nogil except + an empty string is returned if none was set
-        String getCTerminalModification() nogil except +
+        # CONST POINTER # ResidueModification * getNTerminalModification() nogil except +
 
-        # returns a pointer to the residue, which is at position index
-        Residue getResidue(SignedSize index) nogil except +
+        # returns the name (ID) of the C-terminal modification, or an empty string if none is set nogil except +
+        String getCTerminalModificationName() nogil except +
 
-        # returns a pointer to the residue, which is at position index
+        # CONST POINTER # ResidueModification * getCTerminalModification() nogil except +
+
+        # returns the residue at position index
         Residue getResidue(Size index) nogil except +
 
         # returns the formula of the peptide
@@ -91,11 +97,8 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # predicate which is true if the peptide is C-term modified
         bool hasCTerminalModification() nogil except +
 
-        # returns true if any of the residues is modified
+        # returns true if any of the residues or termini are modified
         bool isModified() nogil except +
-
-        # returns true if the residue at the position is modified
-        bool isModified(Size index) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
 

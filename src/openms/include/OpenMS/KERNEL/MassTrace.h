@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -231,7 +231,7 @@ public:
     {
       if (trace_peaks_.size() != db_vec.size())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Number of smoothed intensities deviates from mass trace size! Aborting...", String(db_vec.size()));
       }
 
@@ -314,6 +314,9 @@ public:
     void updateWeightedMZsd();
     ///@}
 
+    /// Average FWHM of m/z peaks
+    double fwhm_mz_avg;
+
 private:
 
     /// median of trace intensities
@@ -337,9 +340,9 @@ private:
     /// Container for smoothed intensities. Smoothing must be done externally.
     std::vector<double> smoothed_intensities_;
 
-    double fwhm_;
-    Size fwhm_start_idx_; // index into 'trace_peaks_' vector (inclusive)
-    Size fwhm_end_idx_; // index into 'trace_peaks_' vector (inclusive)
+    double fwhm_; //< FWHM of RT peak
+    Size fwhm_start_idx_; //< index into 'trace_peaks_' vector (inclusive)
+    Size fwhm_end_idx_; //< index into 'trace_peaks_' vector (inclusive)
 
     /// use area under mass trace or the median of intensities
     MT_QUANTMETHOD quant_method_;

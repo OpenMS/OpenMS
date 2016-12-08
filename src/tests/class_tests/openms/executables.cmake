@@ -20,6 +20,7 @@ set(concept_executables_list
 set(datastructures_executables_list
   Adduct_test
   #BinaryTreeNode_test
+  CalibrationData_test
   ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
@@ -55,11 +56,6 @@ set(datastructures_executables_list
   StringListUtils_test
   StringUtils_test
   String_test
-  SuffixArrayPeptideFinder_test
-  SuffixArraySeqan_test
-  SuffixArrayTrypticCompressed_test
-  SuffixArrayTrypticSeqan_test
-  SuffixArray_test
   #ToolDescription_test
 )
 
@@ -67,6 +63,7 @@ set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
   CVTermList_test
+  CVTermListInterface_test
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
@@ -171,6 +168,7 @@ set(format_executables_list
   GzipInputStream_test
   IBSpectraFile_test
   IdXMLFile_test
+  IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
   InspectInfile_test
@@ -216,6 +214,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
+  SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
   SwathWindowLoader_test
@@ -233,6 +232,7 @@ set(format_executables_list
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
+  SpectrumAccessQuadMZTransforming_test
 )
 
 set(math_executables_list
@@ -253,9 +253,12 @@ set(math_executables_list
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
-  #QuadraticRegression_test
+  QuadraticRegression_test
   #RegressionUtils_test
   RANSAC_test
+  RANSACModel_test
+  RANSACModelLinear_test
+  RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
   #Spline2d_test
@@ -295,6 +298,7 @@ set(filtering_executables_list
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
+  MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
@@ -344,8 +348,6 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
-  EdwardsLippertIteratorTryptic_test
-  EdwardsLippertIterator_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
@@ -453,12 +455,9 @@ set(analysis_executables_list
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
-  PILISModelGenerator_test
-  PILISModel_test
-  PILISScoring_test
-  PILISCrossValidation_test
-  PILISNeutralLossModel_test
   PeakIntensityPredictor_test
+  PScore_test
+  HyperScore_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorIonSelectionPreprocessing_test
@@ -479,6 +478,7 @@ set(analysis_executables_list
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test
+  TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
 )
@@ -534,9 +534,16 @@ set(transformations_executables_list
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  TwoDOptimization_test
   TraceFitter_test
 )
+
+if(NOT DISABLE_WAVELET2DTEST)
+set(transformations_executables_list
+  ${transformations_executables_list}
+  TwoDOptimization_test
+)
+endif(NOT DISABLE_WAVELET2DTEST)
+
 
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,14 +50,20 @@ namespace OpenMS
 {
 
   /**
-    @brief A class to read an indexedmzML file.
+    @brief A low-level class to read an indexedmzML file.
+
+    This class provides low-level access to the underlying data structures, if
+    you simply want to read an indexed mzML file you probably want to use
+    IndexedMzMLFileLoader instead.
 
     This class implements access to an indexedmzML file and the contained spectra
     and chromatogram data through the getSpectrumById and getChromatogramById
     functions. It thus allows random access to spectra and chromatograms data
-    without having to read the whole file into memory.
+    without having to read the whole file into memory. It does not provide the
+    same interface as MSExperiment, if this is desired, please use
+    IndexedMzMLFileLoader and OnDiscMSExperiment.
 
-    Internally it uses the IndexedMzMLDecoder for initial parsing and
+    Internally, it uses the IndexedMzMLDecoder for initial parsing and
     extracting all the offsets of the <chromatogram> and <spectrum> tags. These
     offsets are stored as members of this class as well as the offset to the <indexList> element
 
@@ -91,6 +97,8 @@ namespace OpenMS
 
       Upon success, the chromatogram and spectra offsets will be populated and
       parsing_success_ will be set to true.
+
+      @note You *need* to check getParsingSuccess after calling this!
     */
     void parseFooter_(String filename);
 
@@ -99,7 +107,7 @@ namespace OpenMS
     /**
       @brief Constructor
     */
-    IndexedMzMLFile() {}
+    IndexedMzMLFile() : parsing_success_(false), skip_xml_checks_(false) {}
 
     /**
       @brief Constructor

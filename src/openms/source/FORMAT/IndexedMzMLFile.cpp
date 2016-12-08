@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,11 @@ namespace OpenMS
     //-------------------------------------------------------------
 
     index_offset_ = IndexedMzMLDecoder().findIndexListOffset(filename);
+    if (index_offset_ == (std::streampos)-1)
+    {
+      parsing_success_ = false;
+      return;
+    }
     int res = IndexedMzMLDecoder().parseOffsets(filename, index_offset_, spectra_offsets_, chromatograms_offsets_);
 
     spectra_before_chroms_ = true;
@@ -112,13 +117,13 @@ namespace OpenMS
     int spectrumToGet = id;
 
     if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Parsing was unsuccessful, cannot read file", "");
     if (spectrumToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           String( "id needs to be positive, was " + String(id) ));
     if (spectrumToGet >= (int)getNrSpectra())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String( 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
         "id needs to be smaller than the number of spectra, was " + String(id) 
         + " maximal allowed is " + String(getNrSpectra()) ));
 
@@ -160,7 +165,7 @@ namespace OpenMS
 
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
     MzMLSpectrumDecoder d;
-    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.setSkipXMLChecks(skip_xml_checks_);
     d.domParseSpectrum(text, sptr);
 
 #ifdef DEBUG_READER
@@ -175,13 +180,13 @@ namespace OpenMS
     int chromToGet = id;
 
     if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Parsing was unsuccessful, cannot read file", "");
     if (chromToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           String( "id needs to be positive, was " + String(id) ));
     if (chromToGet >= (int)getNrChromatograms())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String( 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
         "id needs to be smaller than the number of spectra, was " + String(id) 
         + " maximal allowed is " + String(getNrSpectra()) ));
 
@@ -223,7 +228,7 @@ namespace OpenMS
 
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
     MzMLSpectrumDecoder d;
-    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.setSkipXMLChecks(skip_xml_checks_);
     d.domParseChromatogram(text, sptr);
 
 #ifdef DEBUG_READER

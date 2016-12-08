@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -214,7 +214,7 @@ protected:
             const Residue& mod = aaseq.getResidue(j);
             for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModification())
+              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
               {
                 fixed_modifications_ok = false;
                 break;
@@ -227,12 +227,12 @@ protected:
         {
           for (Size j = 0; j < aaseq.size(); ++j)
           {
-            if (aaseq.isModified(j))
+            if (aaseq[j].isModified())
             {
               const Residue& mod = aaseq.getResidue(j);
               for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModification())
+                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
                 {
                   variable_modifications_ok = false;
                   break;
@@ -304,7 +304,7 @@ protected:
       prot_id.setDateTime(DateTime::now());
       prot_id.setScoreType(compare_function);
       ProteinIdentification::SearchParameters searchparam;
-      searchparam.precursor_tolerance = precursor_mass_tolerance;
+      searchparam.precursor_mass_tolerance = precursor_mass_tolerance;
       prot_id.setSearchParameters(searchparam);
       /***********SEARCH**********/
       for (UInt j = 0; j < query.size(); ++j)

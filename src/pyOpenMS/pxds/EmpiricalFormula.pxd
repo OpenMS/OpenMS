@@ -23,11 +23,20 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # returns the average weight of the formula (includes proton charges)
         double getAverageWeight() nogil except +
 
+        # Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
+        bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
+
         # @brief returns the isotope distribution of the formula
         #   *	The details of the calculation of the isotope distribution
         #   * are described in the doc to the IsotopeDistribution class.
         #   *	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
         IsotopeDistribution getIsotopeDistribution(UInt max_depth) nogil except +
+
+        # @brief returns the fragment isotope distribution of this conditioned
+        # on a precursor formula and a list of isolated precursor isotopes.
+        # @param precursor: the empirical formula of the precursor
+        # @param precursor_isotopes: the list of precursor isotopes that were isolated
+        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
 
         # returns the number of atoms
         Size getNumberOf(Element * element) nogil except +

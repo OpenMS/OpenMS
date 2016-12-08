@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,6 +112,16 @@ namespace OpenMS
   boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
     return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
+  }
+
+  std::vector<std::string> MRMFeatureOpenMS::getNativeIDs() const
+  {
+    std::vector<std::string> v;
+    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = features_.begin(); it != features_.end(); ++it)
+    {
+      v.push_back(it->first);
+    }
+    return v;
   }
 
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const

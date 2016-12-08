@@ -19,8 +19,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         void setMaxScore(double & max_score) nogil except +
         void sortByTotalScore(FeatureMap & features) nogil except +
         void getNextPrecursors(FeatureMap & features, FeatureMap & next_features, UInt number) nogil except +
+
         # TODO immutable types by reference
         # void getNextPrecursorsSeq(FeatureMap & features, FeatureMap & next_features, UInt number, double & rt) nogil except +
+
         void getNextPrecursors(libcpp_vector[ int ] & solution_indices,
                                libcpp_vector[ IndexTriple ] & variable_indices,
                                libcpp_set[ int ] & measured_variables,

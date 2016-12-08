@@ -32,16 +32,18 @@ build_contrib EIGEN
 popd
 
 # build custom cppcheck if we want to perform style tests
-if [ $ENABLE_STYLE_TESTING == "On" ]; then
+if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
   git checkout 1.65
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else
-  # regular builds .. get the search engine executables. don't fail if sourceforge is down ('|| true')
-  svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/Linux/64bit/ _thirdparty || true
-  # remove .svn otherwise we can't check out the other search engines into the same directory (TODO: maybe switch to wget)
+  # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
+  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
+  # remove .svn otherwise we can't check out the other search engines into the same directory
   rm _thirdparty/.svn -R -f || true
-  svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/All/ _thirdparty || true
+  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
 fi
+
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
-#include <OpenMS/VISUAL/TOPPViewBehaviorInterface.h>
 
 namespace OpenMS
 {
@@ -47,8 +46,8 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in identification mode.
   */
-  class TOPPViewIdentificationViewBehavior :
-    public TOPPViewBehaviorInterface
+  class TOPPViewIdentificationViewBehavior
+    : public QObject
   {
     Q_OBJECT
     ///@name Type definitions
@@ -81,9 +80,6 @@ public slots:
 
     /// Behavior for activate1DSpectrum
     virtual void activate1DSpectrum(int index);
-
-    /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
 
     /// Behavior for deactivate1DSpectrum
     virtual void deactivate1DSpectrum(int index);

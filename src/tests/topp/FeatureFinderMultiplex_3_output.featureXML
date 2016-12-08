@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.8" id="fm_15004869347769368353" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_8.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="ms_run-location" value="[file:///Z:/home/samwein/.wine/drive_c/Xcalibur/data/raws/let7_1um_150709024552_150828005253.raw]"/>
+<featureMap version="1.9" id="fm_15004869347769368353" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file:///Z:/home/samwein/.wine/drive_c/Xcalibur/data/raws/let7_1um_150709024552_150828005253.raw]"/>
 	<featureList count="3">
 		<feature id="f_3332699010107892018">
 			<position dim="0">2788.07689412228</position>

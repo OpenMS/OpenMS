@@ -6,6 +6,7 @@ set(sources_list
 Adduct.cpp
 BigString.cpp
 BinaryTreeNode.cpp
+CalibrationData.cpp
 ChargePair.cpp
 Compomer.cpp
 ConstRefVector.cpp
@@ -34,11 +35,7 @@ QTCluster.cpp
 SparseVector.cpp
 String.cpp
 StringListUtils.cpp
-SuffixArray.cpp
-SuffixArrayPeptideFinder.cpp
-SuffixArraySeqan.cpp
-SuffixArrayTrypticCompressed.cpp
-SuffixArrayTrypticSeqan.cpp
+StringUtils.cpp
 ToolDescription.cpp
 LPWrapper.cpp
 )

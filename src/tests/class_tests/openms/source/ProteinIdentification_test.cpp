@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -499,17 +499,27 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   PeptideHit phit(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe;
   pe.setProteinAccession("P1");
+  pe.setStart(0);
+  pe.setEnd(59);
   phit.addPeptideEvidence(pe);
   phit.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
   pid.insertHit(phit);
+  pe.setStart(60);
+  pe.setEnd(119);
+  phit.addPeptideEvidence(pe);
   phit.setSequence(AASequence::fromString("DKPAKNIILLIGDGMGDSEITAARNYAEGAGGFFKGIDALPLTGQYTHYALNKKTGKPDY"));
   pid.insertHit(phit);
+  pe.setStart(0);
+  pe.setEnd(59);
+  phit.addPeptideEvidence(pe);
   phit.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS")); // should not count
   pid.insertHit(phit);
   pep_ids.push_back(pid);
 
   PeptideIdentification pid2;
   PeptideHit phit2(0, 0, 1, AASequence::fromString(""));
+  pe.setStart(0);
+  pe.setEnd(59);
   phit2.addPeptideEvidence(pe);
   phit2.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
   pid2.insertHit(phit2); // should not count
@@ -520,6 +530,9 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 200.0 / 3.0);
   TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 0.0);
 
+  pe.setStart(120);
+  pe.setEnd(179);
+  phit2.addPeptideEvidence(pe);
   phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
   pid2.insertHit(phit2); 
   pep_ids.push_back(pid2);
@@ -534,11 +547,19 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   PeptideHit phit3(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe2;
   pe2.setProteinAccession("P2");
+  pe2.setStart(0);
+  pe2.setEnd(18);
   phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("PEMPVLENRAAQGDITAPP")); // 1st half
   pid3.insertHit(phit3); 
+  pe2.setStart(19);
+  pe2.setEnd(37);
+  phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("GGARRLTGDQTAALRDSLS")); // 2nd half
   pid3.insertHit(phit3); 
+  pe2.setStart(8);
+  pe2.setEnd(26);
+  phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("RAAQGDITAPPGGARRLTG")); // middle half
   pid3.insertHit(phit3); 
   
@@ -547,7 +568,7 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   id.computeCoverage(pep_ids);
 
   TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 0.0);
-  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 150.0);
+  TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 100.0);
 
 END_SECTION
 
@@ -618,11 +639,11 @@ START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   TEST_EQUAL(sp.mass_type, 0)
   TEST_EQUAL(sp.fixed_modifications.size(), 0)
   TEST_EQUAL(sp.variable_modifications.size(), 0)
-  TEST_EQUAL(sp.enzyme, ProteinIdentification::UNKNOWN_ENZYME)
+  TEST_EQUAL(sp.digestion_enzyme.getName(), "unknown_enzyme")
   TEST_EQUAL(sp.missed_cleavages, 0)
   TEST_EQUAL(sp.fragment_mass_tolerance, 0.0)
   TEST_EQUAL(sp.fragment_mass_tolerance_ppm, false)
-  TEST_EQUAL(sp.precursor_tolerance, 0.0)
+  TEST_EQUAL(sp.precursor_mass_tolerance, 0.0)
   TEST_EQUAL(sp.precursor_mass_tolerance_ppm, false)
 
 END_SECTION

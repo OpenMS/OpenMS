@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -744,9 +744,9 @@ protected:
           {
             Residue res = *z;
             String temp;
-            if (!res.getModification().empty() && res.getModification() != "Carbamidomethyl")
+            if (res.isModified() && res.getModificationName() != "Carbamidomethyl")
             {
-              temp = res.getModification() + " (" + res.getOneLetterCode()  + ")";
+              temp = res.getModificationName() + " (" + res.getOneLetterCode()  + ")";
               //cout<<res.getModification()<<endl;
               for (UInt w = 0; w < var_mods.size(); ++w)
               {

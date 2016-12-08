@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -192,9 +192,9 @@ public:
     /// Performs a topological sort of all vertices
     void topoSort();
     /// Returns the name of the directory for output files
-    const QString & getOutDir();
+    const QString & getOutDir() const;
     /// Returns the name of the directory for temporary files
-    const QString & getTempDir();
+    const QString & getTempDir() const;
     /// Sets the name of the directory for output files
     void setOutDir(const QString & dir);
     /// Saves the pipeline if it has been changed since the last save.

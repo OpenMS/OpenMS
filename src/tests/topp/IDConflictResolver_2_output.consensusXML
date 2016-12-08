@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.6" id="cm_9095812810053804060" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.7" id="cm_9095812810053804060" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2011-08-16T09:41:02">
 		<software name="FeatureLinker" version="1.8.0" />
 		<processingAction name="Feature grouping" />
@@ -47,7 +47,6 @@
 	</IdentificationRun>
 	<IdentificationRun id="PI_1" date="2011-08-15T18:16:06" search_engine="SEQUEST" search_engine_version="">
 		<SearchParameters db="/home/sorcerer/fasta/ex_sp_4932.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
-			<FixedModification name="C+57.0215" />
 			<FixedModification name="C+57.0215" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">

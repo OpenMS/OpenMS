@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,22 +47,31 @@ namespace OpenSwath
   struct OPENSWATHALGO_DLLAPI LightTransition
   {
 public:
+
+    LightTransition() :
+      fragment_charge(0)
+    {
+    }
+
     std::string transition_name;
     std::string peptide_ref;
     double library_intensity;
     double product_mz;
     double precursor_mz;
-    int charge;
+    int fragment_charge;
     bool decoy;
     bool detecting_transition;
     bool quantifying_transition;
     bool identifying_transition;
-    std::vector<int> site_identifying_transition;
-    std::vector<std::string> site_identifying_class;
 
     int getProductChargeState() const
     {
-      return charge;
+      return fragment_charge;
+    }
+
+    bool isProductChargeStateSet() const
+    {
+      return !(fragment_charge == 0);
     }
 
     std::string getNativeID() const
@@ -124,26 +133,6 @@ public:
     {
       return identifying_transition;
     }
-
-    void setSiteIdentifyingTransition (std::vector<int> i)
-    {
-      site_identifying_transition = i;
-    }
-
-    std::vector<int> getSiteIdentifyingTransition() const
-    {
-      return site_identifying_transition;
-    }
-
-    void setSiteIdentifyingClass (std::vector<std::string> i)
-    {
-      site_identifying_class = i;
-    }
-
-    std::vector<std::string> getSiteIdentifyingClass() const
-    {
-      return site_identifying_class;
-    }
   };
 
   struct OPENSWATHALGO_DLLAPI LightModification
@@ -152,8 +141,15 @@ public:
     std::string unimod_id;
   };
 
-  struct OPENSWATHALGO_DLLAPI LightPeptide
+  // A compound is either a peptide or a metabolite
+  struct OPENSWATHALGO_DLLAPI LightCompound
   {
+
+    LightCompound() :
+      charge(0)
+    {
+    }
+
     double rt;
     int charge;
     std::string sequence;
@@ -161,6 +157,21 @@ public:
     // Peptide group label (corresponds to MS:1000893, all peptides that are isotopic forms of the same peptide should be assigned the same peptide group label)
     std::string peptide_group_label;
     std::string id;
+
+    // for metabolites
+    std::string sum_formula;
+    std::string compound_name;
+
+    // By convention, if there is no (metabolic) compound name, it is a peptide 
+    bool isPeptide() const
+    {
+      return compound_name.empty();
+    }
+
+    void setChargeState(int ch)
+    {
+      charge = ch;
+    }
 
     int getChargeState() const
     {
@@ -178,23 +189,23 @@ public:
 
   struct OPENSWATHALGO_DLLAPI LightTargetedExperiment
   {
-    LightTargetedExperiment() : peptide_reference_map_dirty_(true) {}
+    LightTargetedExperiment() : compound_reference_map_dirty_(true) {}
 
     typedef LightTransition Transition;
-    typedef LightPeptide Peptide;
+    typedef LightCompound Peptide;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
-    std::vector<LightPeptide> peptides;
+    std::vector<LightCompound> compounds;
     std::vector<LightProtein> proteins;
     std::vector<LightTransition> & getTransitions()
     {
       return transitions;
     }
 
-    std::vector<LightPeptide> & getPeptides()
+    std::vector<LightCompound> & getCompounds()
     {
-      return peptides;
+      return compounds;
     }
 
     std::vector<LightProtein> & getProteins()
@@ -202,28 +213,35 @@ public:
       return proteins;
     }
 
-    const LightPeptide& getPeptideByRef(const std::string& ref)
+    // legacy
+    const LightCompound& getPeptideByRef(const std::string& ref)
     {
-      if (peptide_reference_map_dirty_)
+      return getCompoundByRef(ref);
+    }
+
+    const LightCompound& getCompoundByRef(const std::string& ref)
+    {
+      if (compound_reference_map_dirty_)
       {
         createPeptideReferenceMap_();
       }
-      return *(peptide_reference_map_[ref]);
+      return *(compound_reference_map_[ref]);
     }
 
   private:
 
     void createPeptideReferenceMap_()
     {
-      for (size_t i = 0; i < getPeptides().size(); i++)
+      for (size_t i = 0; i < getCompounds().size(); i++)
       {
-        peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
+        compound_reference_map_[getCompounds()[i].id] = &getCompounds()[i];
       }
-      peptide_reference_map_dirty_ = false;
+      compound_reference_map_dirty_ = false;
     }
 
-    bool peptide_reference_map_dirty_;
-    std::map<std::string, LightPeptide*> peptide_reference_map_;
+    // Map of compounds (peptides or metabolites)
+    bool compound_reference_map_dirty_;
+    std::map<std::string, LightCompound*> compound_reference_map_;
 
   };
 

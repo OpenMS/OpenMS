@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
@@ -148,7 +148,7 @@ public:
       FileTypes::Type in_type = fh.getTypeByContent(in_filename);
       if (in_type == FileTypes::UNKNOWN)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not determine type of the file. Aborting!", in_filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not determine type of the file. Aborting!", in_filename);
       }
       type = FileTypes::typeToName(in_type);
       fh.loadExperiment(in_filename, exp, in_type, ProgressLogger::NONE, false, false);

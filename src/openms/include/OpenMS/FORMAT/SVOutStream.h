@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <ostream>
+#include <fstream>      // std::ofstream
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
 namespace OpenMS
@@ -55,6 +56,20 @@ namespace OpenMS
     public std::ostream
   {
 public:
+
+    /**
+         @brief Constructor
+
+         @param file_out Output filename; will be overwritten if exists
+         @param sep Separator string (typically comma, semicolon, or tab)
+         @param replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
+         @param quoting Quoting method for strings (see @p String::quote)
+    */
+    SVOutStream(const String& file_out,
+                const String& sep = "\t",
+                const String& replacement = "_",
+                String::QuotingMethod quoting = String::DOUBLE);
+
     /**
          @brief Constructor
 
@@ -63,10 +78,18 @@ public:
          @param replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
          @param quoting Quoting method for strings (see @p String::quote)
     */
-    SVOutStream(std::ostream& out, const String& sep = "\t",
+    SVOutStream(std::ostream& out,
+                const String& sep = "\t",
                 const String& replacement = "_",
                 String::QuotingMethod quoting = String::DOUBLE);
 
+    /** 
+      @brief Destructor
+
+      Frees ofstream_* if filename c'tor was used.
+
+    */
+    ~SVOutStream();
 
     /**
          @brief Stream output operator for @p String
@@ -146,6 +169,9 @@ public:
     }
 
 protected:
+    /// internal file stream when C'tor is called with a filename
+    std::ofstream* ofs_;
+
     /// Separator string
     String sep_;
 

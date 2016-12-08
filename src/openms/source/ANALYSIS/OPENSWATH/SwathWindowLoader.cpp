@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ namespace OpenMS
         std::cerr << "Trying to access annotation for SWATH map " << j <<
           " but there are only " << swath_prec_lower_.size() << " windows in the" <<
           " swath_windows_file. Please check your input." << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "The number of SWATH maps read from the raw data and from the annotation file do not match.");
       }
 
@@ -91,7 +91,7 @@ namespace OpenMS
     {
       std::cerr << "The number of SWATH maps read from the raw data (" <<
         j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "The number of SWATH maps read from the raw data and from the annotation file do not match.");
     }
   }

@@ -12,6 +12,7 @@ ConsensusMapNormalizer
 Decharger
 DTAExtractor
 EICExtractor
+ExternalCalibration
 FalseDiscoveryRate
 FeatureFinderCentroided
 FeatureFinderIdentification
@@ -42,6 +43,7 @@ InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
 ITRAQAnalyzer
+LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
@@ -70,10 +72,6 @@ PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
 PhosphoScoring
-PILISIdentification
-PILISModelCV
-PILISModelTrainer
-PILISSpectraGenerator
 PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  int MultiplexFiltering::positionsAndBlacklistFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum,
+  int MultiplexFiltering::positionsAndBlacklistFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum,
                                                       const vector<double>& peak_position, int peak,
                                                       vector<double>& mz_shifts_actual,
                                                       vector<int>& mz_shifts_actual_indices) const
@@ -83,7 +83,7 @@ namespace OpenMS
         scaling = 2;
       }
 
-      int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMZShiftAt(mz_position), scaling);
+      int index = getPeakIndex_(peak_position, peak, peak_position[peak] + pattern.getMZShiftAt(mz_position), scaling);
       if (index != -1)
       {
         ++found_peaks;
@@ -171,7 +171,7 @@ namespace OpenMS
     return peaks_found_in_all_peptides;
   }
 
-  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
+  bool MultiplexFiltering::monoIsotopicPeakIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const vector<int>& mz_shifts_actual_indices) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -192,7 +192,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::zerothPeakFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual) const
+  bool MultiplexFiltering::zerothPeakFilter_(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual) const
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -218,7 +218,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexFiltering::peptideSimilarityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
+  bool MultiplexFiltering::peptideSimilarityFilter_(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const
   {
     std::vector<double> isotope_pattern_1;
     std::vector<double> isotope_pattern_2;
@@ -245,7 +245,7 @@ namespace OpenMS
           isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
         }
       }
-      if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
+      if (getPatternSimilarity_(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
       {
         return false;
       }
@@ -254,7 +254,7 @@ namespace OpenMS
     return true;
   }
 
-  bool MultiplexFiltering::averagineSimilarityFilter(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+  bool MultiplexFiltering::averagineSimilarityFilter_(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
     // Use a more restrictive averagine similarity when we are searching for peptide singlets.
     double similarity;
@@ -284,7 +284,7 @@ namespace OpenMS
           isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
         }
       }
-      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < similarity)
+      if (getAveragineSimilarity_(isotope_pattern, mz * pattern.getCharge()) < similarity)
       {
         return false;
       }
@@ -293,7 +293,7 @@ namespace OpenMS
     return true;
   }
 
-  void MultiplexFiltering::blacklistPeaks(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+  void MultiplexFiltering::blacklistPeaks_(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -362,7 +362,7 @@ namespace OpenMS
     }
   }
 
-  int MultiplexFiltering::getPeakIndex(const std::vector<double>& peak_position, int start, double mz, double scaling) const
+  int MultiplexFiltering::getPeakIndex_(const std::vector<double>& peak_position, int start, double mz, double scaling) const
   {
     const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * peak_position[start] : scaling * mz_tolerance_;
     const double mz_min = mz - tolerance_th;
@@ -387,7 +387,7 @@ namespace OpenMS
     return smallest_error_index;
   }
 
-  double MultiplexFiltering::getPatternSimilarity(const vector<double>& pattern1, const vector<double>& pattern2) const
+  double MultiplexFiltering::getPatternSimilarity_(const vector<double>& pattern1, const vector<double>& pattern2) const
   {
     if (pattern1.empty() || pattern2.empty())
     {
@@ -398,7 +398,7 @@ namespace OpenMS
   }
 
 
-  double MultiplexFiltering::getAveragineSimilarity(const vector<double>& pattern, double m) const
+  double MultiplexFiltering::getAveragineSimilarity_(const vector<double>& pattern, double m) const
 
   {
     // construct averagine distribution
@@ -419,7 +419,7 @@ namespace OpenMS
     }
     else
     {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Averagine type unrecognized.");;
     }
 
@@ -428,7 +428,7 @@ namespace OpenMS
       averagine_pattern.push_back(it->second);
     }
 
-    return getPatternSimilarity(pattern, averagine_pattern);
+    return getPatternSimilarity_(pattern, averagine_pattern);
   }
 
 }

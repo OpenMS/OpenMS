@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,6 +130,15 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
   delete chaining_consumer;
+
+  // note how the transforming consumer still works as deleting the chaining
+  // consumer does not take ownership of the consumers
+  transforming_consumer->consumeSpectrum(exp.getSpectrum(0) );
+
+  TEST_EQUAL(first_spectrum.isSorted(), true)
+  TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
+
+  delete transforming_consumer;
 }
 END_SECTION
 

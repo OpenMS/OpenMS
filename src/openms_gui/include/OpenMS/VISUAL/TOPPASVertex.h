@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@
     {                                                                                                                                                                           \
       std::cout << "  ";                                                                                                                                  \
     }                                                                                                                                                                           \
-    std::cout << "BEGIN [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;             \
+    std::cout << "BEGIN [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;             \
     ++global_debug_indent_;                                                                                                                             \
   }
 
@@ -60,7 +60,7 @@
     {                                                                                                                                                                           \
       std::cout << "  ";                                                                                                                                  \
     }                                                                                                                                                                           \
-    std::cout << "END [" << topo_nr_ << "] " << __PRETTY_FUNCTION__ << std::endl;                   \
+    std::cout << "END [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;                   \
   }
 #else
 #define __DEBUG_BEGIN_METHOD__ {}

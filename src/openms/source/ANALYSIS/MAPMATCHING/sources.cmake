@@ -30,6 +30,7 @@ StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp
 TransformationModelBSpline.cpp
+TransformationModelLowess.cpp
 TransformationModelLinear.cpp
 TransformationModelInterpolated.cpp
 )

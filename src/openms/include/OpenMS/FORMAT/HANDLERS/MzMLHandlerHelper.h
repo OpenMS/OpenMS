@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,6 +102,12 @@ namespace OpenMS
         std::vector< std::pair<std::string, long> > & chromatograms_offsets
       );
 
+      /**
+        @brief Decode Base64 arrays and write into data_ array
+        
+        @param data_ The input and output
+        @param skipXMLCheck whether to skip cleaning the Base64 arrays and remove whitespaces 
+      */
       static void decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck = false);
 
       static void computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, String index_name);

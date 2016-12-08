@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,20 +99,6 @@ public:
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
-
-    enum DigestionEnzyme
-    {
-      TRYPSIN,
-      PEPSIN_A,
-      PROTEASE_K,
-      CHYMOTRYPSIN,
-      NO_ENZYME,
-      UNKNOWN_ENZYME,
-      SIZE_OF_DIGESTIONENZYME
-    };
-    /// Names corresponding to digestion enzymes
-    static const std::string NamesOfDigestionEnzyme[SIZE_OF_DIGESTIONENZYME];
-
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
@@ -124,11 +110,10 @@ public:
       PeakMassType mass_type; ///< Mass type of the peaks
       std::vector<String> fixed_modifications; ///< Used fixed modifications
       std::vector<String> variable_modifications; ///< Allowed variable modifications
-      DigestionEnzyme enzyme; ///< The enzyme used for cleavage
       UInt missed_cleavages; ///< The number of allowed missed cleavages
       double fragment_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton or ppm)
       bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
-      double precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
+      double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Enzyme digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
       
@@ -207,13 +192,13 @@ public:
     /// Sorts the protein hits by score and assigns ranks (best score has rank 1)
     void assignRanks();
     /**
-               @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
+       @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
-               @throws Exception::MissingInformation if ProteinsHits do not have sequence information
+       @throws Exception::MissingInformation if ProteinsHits do not have sequence information
 
-               @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
-          */
-    Size computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
+       Does not return anything but stores the coverage inside the ProteinHit objects
+    */
+    void computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
     //@}
 
     ///@name General information

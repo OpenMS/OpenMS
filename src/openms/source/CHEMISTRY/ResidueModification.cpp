@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  ResidueModification::ResidueModification(const ResidueModification & rhs) :
+  ResidueModification::ResidueModification(const ResidueModification& rhs) :
     id_(rhs.id_),
     full_id_(rhs.full_id_),
     psi_mod_accession_(rhs.psi_mod_accession_),
@@ -77,7 +77,7 @@ namespace OpenMS
   {
   }
 
-  ResidueModification & ResidueModification::operator=(const ResidueModification & rhs)
+  ResidueModification & ResidueModification::operator=(const ResidueModification& rhs)
   {
     if (this != &rhs)
     {
@@ -105,7 +105,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ResidueModification::operator==(const ResidueModification & rhs) const
+  bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
     return id_ == rhs.id_ &&
            full_id_ == rhs.full_id_ &&
@@ -128,7 +128,7 @@ namespace OpenMS
            neutral_loss_average_mass_ == rhs.neutral_loss_average_mass_;
   }
 
-  bool ResidueModification::operator!=(const ResidueModification & rhs) const
+  bool ResidueModification::operator!=(const ResidueModification& rhs) const
   {
     return !(*this == rhs);
   }
@@ -138,72 +138,72 @@ namespace OpenMS
 
   }
 
-  void ResidueModification::setId(const String & id)
+  void ResidueModification::setId(const String& id)
   {
     id_ = id;
   }
 
-  const String & ResidueModification::getId() const
+  const String& ResidueModification::getId() const
   {
     return id_;
   }
 
-  void ResidueModification::setFullId(const String & full_id)
+  void ResidueModification::setFullId(const String& full_id)
   {
     full_id_ = full_id;
   }
 
-  const String & ResidueModification::getFullId() const
+  const String& ResidueModification::getFullId() const
   {
     return full_id_;
   }
 
-  void ResidueModification::setPSIMODAccession(const String & id)
+  void ResidueModification::setPSIMODAccession(const String& id)
   {
     psi_mod_accession_ = id;
   }
 
-  const String & ResidueModification::getPSIMODAccession() const
+  const String& ResidueModification::getPSIMODAccession() const
   {
     return psi_mod_accession_;
   }
 
-  void ResidueModification::setUniModAccession(const String & id)
+  void ResidueModification::setUniModAccession(const String& id)
   {
     unimod_accession_ = id;
   }
 
-  const String & ResidueModification::getUniModAccession() const
+  const String& ResidueModification::getUniModAccession() const
   {
     return unimod_accession_;
   }
 
-  void ResidueModification::setFullName(const String & full_name)
+  void ResidueModification::setFullName(const String& full_name)
   {
     full_name_ = full_name;
   }
 
-  const String & ResidueModification::getFullName() const
+  const String& ResidueModification::getFullName() const
   {
     return full_name_;
   }
 
-  void ResidueModification::setName(const String & name)
+  void ResidueModification::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & ResidueModification::getName() const
+  const String& ResidueModification::getName() const
   {
     return name_;
   }
 
-  void ResidueModification::setTermSpecificity(Term_Specificity term_spec)
+  void ResidueModification::setTermSpecificity(TermSpecificity term_spec)
   {
     term_spec_ = term_spec;
   }
 
-  void ResidueModification::setTermSpecificity(const String & term_spec)
+  void ResidueModification::setTermSpecificity(const String& term_spec)
   {
     if (term_spec == "C-term")
     {
@@ -224,12 +224,12 @@ namespace OpenMS
     return;
   }
 
-  ResidueModification::Term_Specificity ResidueModification::getTermSpecificity() const
+  ResidueModification::TermSpecificity ResidueModification::getTermSpecificity() const
   {
     return term_spec_;
   }
 
-  String ResidueModification::getTermSpecificityName(Term_Specificity term_spec) const
+  String ResidueModification::getTermSpecificityName(TermSpecificity term_spec) const
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
@@ -241,7 +241,7 @@ namespace OpenMS
 
     case N_TERM: return "N-term";
 
-    default:         // ANYWHERE
+    default: // ANYWHERE
       if (term_spec != ANYWHERE)
       {
         cerr << "ResidueModification: cannot convert '" << term_spec << "' into term specificity name!" << endl;
@@ -250,22 +250,22 @@ namespace OpenMS
     }
   }
 
-  void ResidueModification::setOrigin(const String & origin)
+  void ResidueModification::setOrigin(const String& origin)
   {
     origin_ = origin;
   }
 
-  const String & ResidueModification::getOrigin() const
+  const String& ResidueModification::getOrigin() const
   {
     return origin_;
   }
 
-  void ResidueModification::setSourceClassification(Source_Classification classification)
+  void ResidueModification::setSourceClassification(SourceClassification classification)
   {
     classification_ = classification;
   }
 
-  void ResidueModification::setSourceClassification(const String & classification)
+  void ResidueModification::setSourceClassification(const String& classification)
   {
     String c = classification;
     c.toLower();
@@ -351,12 +351,12 @@ namespace OpenMS
     return;
   }
 
-  ResidueModification::Source_Classification ResidueModification::getSourceClassification() const
+  ResidueModification::SourceClassification ResidueModification::getSourceClassification() const
   {
     return classification_;
   }
 
-  String ResidueModification::getSourceClassificationName(Source_Classification classification) const
+  String ResidueModification::getSourceClassificationName(SourceClassification classification) const
   {
     if (classification == NUMBER_OF_SOURCE_CLASSIFICATIONS)
     {
@@ -441,47 +441,47 @@ namespace OpenMS
     return diff_mono_mass_;
   }
 
-  void ResidueModification::setFormula(const String & formula)
+  void ResidueModification::setFormula(const String& formula)
   {
     formula_ = formula;
   }
 
-  const String & ResidueModification::getFormula() const
+  const String& ResidueModification::getFormula() const
   {
     return formula_;
   }
 
-  void ResidueModification::setDiffFormula(const EmpiricalFormula & diff_formula)
+  void ResidueModification::setDiffFormula(const EmpiricalFormula& diff_formula)
   {
     diff_formula_ = diff_formula;
   }
 
-  const EmpiricalFormula & ResidueModification::getDiffFormula() const
+  const EmpiricalFormula& ResidueModification::getDiffFormula() const
   {
     return diff_formula_;
   }
 
-  void ResidueModification::addSynonym(const String & synonym)
+  void ResidueModification::addSynonym(const String& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  void ResidueModification::setSynonyms(const set<String> & synonyms)
+  void ResidueModification::setSynonyms(const set<String>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  const set<String> & ResidueModification::getSynonyms() const
+  const set<String>& ResidueModification::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void ResidueModification::setNeutralLossDiffFormula(const EmpiricalFormula & diff_formula)
+  void ResidueModification::setNeutralLossDiffFormula(const EmpiricalFormula& diff_formula)
   {
     neutral_loss_diff_formula_ = diff_formula;
   }
 
-  const EmpiricalFormula & ResidueModification::getNeutralLossDiffFormula() const
+  const EmpiricalFormula& ResidueModification::getNeutralLossDiffFormula() const
   {
     return neutral_loss_diff_formula_;
   }

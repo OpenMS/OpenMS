@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
   {
     if (enzyme_names_.find(name) == enzyme_names_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Enzyme name cannot be found. '");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Enzyme name cannot be found. '");
     }
     return enzyme_names_.at(name);
   }
@@ -73,7 +73,7 @@ namespace OpenMS
   {
     if (!enzyme_regex_.has(cleavage_regex))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Enzyme with regex "
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Enzyme with regex "
                                                                                        + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
     }
     return enzyme_regex_[cleavage_regex];
@@ -96,7 +96,9 @@ namespace OpenMS
     // add to internal storage
     const_enzymes_.insert(r);
     // add to internal indices (by name and its synonyms)
-    enzyme_names_[r->getName()] = r;
+    String name = r->getName();
+    enzyme_names_[name] = r;
+    enzyme_names_[name.toLower()] = r;
     for (set<String>::const_iterator it = r->getSynonyms().begin(); it != r->getSynonyms().end(); ++it)
     {
       enzyme_names_[*it] = r;
@@ -134,7 +136,7 @@ namespace OpenMS
 
     if (!param.begin().getName().hasPrefix("Enzymes"))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "");
     }
 
     try
@@ -163,7 +165,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, e.what(), "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
     }
   }
 

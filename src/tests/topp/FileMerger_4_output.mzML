@@ -14,12 +14,12 @@
 		</fileContent>
 		<sourceFileList count="2">
 			<sourceFile id="sf_ru_0" name="FileMerger_4_input1.dta2d" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="56dceb0d4394cb84d291fc6ef39759b8cb4901e6" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="4cb96da02ad4943977b1389c8870fbea5eb2fd69" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_ru_1" name="FileMerger_4_input2.dta2d" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="ff9d43ace5b91bffedab3f50692b69a6b7136076" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="c7519d2cf14fbcdad0737606c71adfb5c58f885a" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>

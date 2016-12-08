@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,14 +41,30 @@ namespace OpenMS
 {
 
   /**
-    @brief Consumer class that passes all operations on to a set of consumers
+    @brief Consumer class that passes all consumed data through a set of operations
 
     This consumer allows to chain multiple data consumers and applying them in
     a pre-specified order. This can be useful if a certain operation on a
     dataset needs to be performed but some pre-processing (data reduction etc.)
     or post-processing (writing to disk, caching on disk). The different
-    processing steps can be added to the chaining consumer(in the correct
+    processing steps can be added to the chaining consumer (in the correct
     order) without knowledge of the specific pre/post processing steps.
+
+    Usage:
+
+    @code
+    MSDataTransformingConsumer * transforming_consumer_first = new MSDataTransformingConsumer(); // apply some transformation
+    MSDataTransformingConsumer * transforming_consumer_second = new MSDataTransformingConsumer(); // apply second transformation
+    MSDataWritingConsumer * writing_consumer = new MSDataWritingConsumer(outfile); // writing to disk
+
+    std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+    consumer_list.push_back(transforming_consumer_first);
+    consumer_list.push_back(transforming_consumer_second);
+    consumer_list.push_back(writing_consumer);
+    MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
+
+    // now chaining_consumer can be passed to a function expecting a IMSDataConsumer interface
+    @endcode
 
   */
   class OPENMS_DLLAPI MSDataChainingConsumer :
@@ -69,7 +85,7 @@ namespace OpenMS
      *
      * Pass a list of consumers that should be called sequentially
      *
-     * @note This does not transfers ownership - it is the callers
+     * @note By default, this does not transfers ownership - it is the callers
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
@@ -78,13 +94,16 @@ namespace OpenMS
     /**
      * @brief Destructor
      *
+     * Does nothing. Does not destroy underlying consumers, therefore is the
+     * responsibility of the caller to destroy all consumers.
+     *
      */
     ~MSDataChainingConsumer();
 
     /**
      * @brief Append a consumer to the chain of consumers to be executed
      *
-     * @note This does not transfers ownership - it is the callers
+     * @note This does not transfer ownership - it is the callers
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
@@ -122,4 +141,5 @@ namespace OpenMS
 
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_DATAACCESS_MSDATACHAININGCONSUMER_H
+

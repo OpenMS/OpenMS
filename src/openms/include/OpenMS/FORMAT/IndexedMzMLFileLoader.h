@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,10 @@ namespace OpenMS
   /**
     @brief A class to load an indexedmzML file.
 
-    Providing the same interface as the other classes such as mzMLFile,
-    mzXMLFile etc. to load a file.
+    Providing the same interface as the other classes such as MzMLFile,
+    MzXMLFile etc. to load and store a file. Reading a file from disk will load
+    the file into a OnDiscMSExperiment while the class can write to disk both,
+    a MSExperiment and a OnDiscMSExperiment.
 
   */
   class OPENMS_DLLAPI IndexedMzMLFileLoader

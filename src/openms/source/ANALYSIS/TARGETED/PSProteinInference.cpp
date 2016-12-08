@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ namespace OpenMS
     //     if(ids[i].getHits().empty() || ids[i].getHits().size() > 1)
     //       {
     //         LOG_FATAL_ERROR << "peptide id contains more than 1 peptide hit -> filter for best hits before using PSProteinInference!";
-    //         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
+    //         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
     //       }
 
     //     const vector<String> & accs = ids[i].getHits()[0].getProteinAccessions();
@@ -130,7 +130,7 @@ namespace OpenMS
       if (peptide_ids[p].getHits().size() > 1)
       {
         LOG_FATAL_ERROR << "peptide id contains more than 1 peptide hit -> filter for best hits before using PSProteinInference!";
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide Id contains more than 1 peptide hit", String(peptide_ids[p].getHits().size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide Id contains more than 1 peptide hit", String(peptide_ids[p].getHits().size()));
       }
 
       // get column indices for all corresponding proteins
@@ -176,7 +176,7 @@ namespace OpenMS
       if (ids[i].getHits().empty() || ids[i].getHits().size() > 1)
       {
         LOG_FATAL_ERROR << "peptide id contains more than 1 peptide hit -> filter for best hits before using PSProteinInference!";
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
       }
 
       const std::set<String> accs = ids[i].getHits()[0].extractProteinAccessions();

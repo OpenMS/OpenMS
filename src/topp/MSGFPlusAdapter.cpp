@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -113,7 +114,7 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),
+    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),  // EnzymesDB::getInstance()->getAllNames()
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
@@ -135,9 +136,6 @@ protected:
   // primary MS run referenced in the mzML file
   StringList primary_ms_run_path_;
   
-  // legacy conversion via tsv instead of mzid
-  bool legacy_conversion_;
-
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
@@ -173,9 +171,9 @@ protected:
     registerStringOption_("tryptic", "<choice>", tryptic_[2], "Level of cleavage specificity required (MS-GF+ parameter '-ntt')", false);
     setValidStrings_("tryptic", tryptic_);
 
-    registerIntOption_("min_precursor_charge", "<num>", 2, "Minimum precursor ion charge (MS-GF+ parameter '-minCharge')", false);
+    registerIntOption_("min_precursor_charge", "<num>", 2, "Minimum precursor ion charge (only used for spectra without charge information; MS-GF+ parameter '-minCharge')", false);
     setMinInt_("min_precursor_charge", 1);
-    registerIntOption_("max_precursor_charge", "<num>", 3, "Maximum precursor ion charge (MS-GF+ parameter '-maxCharge')", false);
+    registerIntOption_("max_precursor_charge", "<num>", 3, "Maximum precursor ion charge (only used for spectra without charge information; MS-GF+ parameter '-maxCharge')", false);
     setMinInt_("max_precursor_charge", 1);
 
     registerIntOption_("min_peptide_length", "<num>", 6, "Minimum peptide length to consider (MS-GF+ parameter '-minLength')", false);
@@ -200,6 +198,7 @@ protected:
     
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
@@ -387,6 +386,31 @@ protected:
     }
   }
   
+  String describeHit_(const PeptideHit& hit)
+  {
+    return "peptide hit with sequence '" + hit.getSequence().toString() +
+      "', charge " + String(hit.getCharge()) + ", score " + 
+      String(hit.getScore());
+  }
+
+  // Set the MS-GF+ e-value (MS:1002052) as new peptide identification score.
+  void switchScores_(PeptideIdentification& id)
+  {
+    for (vector<PeptideHit>::iterator hit_it = id.getHits().begin(); hit_it != id.getHits().end(); ++hit_it)
+    {
+      // MS:1002052 == MS-GF spectral E-value
+      if (!hit_it->metaValueExists("MS:1002052"))
+      {
+        String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
+      }
+      
+      hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
+    }
+    id.setScoreType("SpecEValue");
+    id.setHigherScoreBetter(false);
+  }
+  
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -402,6 +426,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    String java_executable = getStringOption_("java_executable");
     String db_name = getStringOption_("database");
     if (!File::readable(db_name))
     {
@@ -428,9 +453,9 @@ protected:
 
     if (!getFlag_("force"))
     {
-      if (!JavaInfo::canRun("java"))
+      if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java not found, or the Java process timed out. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable. If you are certain java is installed, please set the 'force' flag in order to avoid this error message.");
+        writeLog_("Fatal error: Java is needed to run MS-GF+!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -507,8 +532,6 @@ protected:
     {
       process_params << "-mod" << mod_file.toQString();
     }
-    
-    legacy_conversion_ = getFlag_("legacy_conversion");
 
     //-------------------------------------------------------------
     // execute MS-GF+
@@ -516,10 +539,10 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    int status = QProcess::execute("java", process_params);
+    int status = QProcess::execute(java_executable.toQString(), process_params);
     if (status != 0)
     {
-      writeLog_("Fatal error: Running MS-GF+ returned an error code. Does the MS-GF+ executable (.jar file) exist?");
+      writeLog_("Fatal error: Running MS-GF+ returned an error code '" + String(status) + "'. Does the MS-GF+ executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -529,7 +552,7 @@ protected:
     
     if (!out.empty())
     {
-      if (legacy_conversion_)
+      if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
         String tsv_out = temp_dir + "msgfplus_converted.tsv";
@@ -546,10 +569,10 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        status = QProcess::execute("java", process_params);
+        status = QProcess::execute(java_executable.toQString(), process_params);
         if (status != 0)
         {
-          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code.");
+          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code '" + String(status) + "'.");
           return EXTERNAL_PROGRAM_ERROR;
         }
     
@@ -564,28 +587,15 @@ protected:
         search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
         search_parameters.fixed_modifications = fixed_mods;
         search_parameters.variable_modifications = variable_mods;
-        search_parameters.precursor_tolerance = precursor_mass_tol;
+        search_parameters.precursor_mass_tolerance = precursor_mass_tol;
         search_parameters.precursor_mass_tolerance_ppm = false;
         if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
         {
-          search_parameters.precursor_tolerance *= 2.0 / 3000.0;
+          search_parameters.precursor_mass_tolerance *= 2.0 / 3000.0;
           search_parameters.precursor_mass_tolerance_ppm = true;
         }
     
-        ProteinIdentification::DigestionEnzyme enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
-        if (enzyme == "trypsin")
-        {
-          enzyme_type = ProteinIdentification::TRYPSIN;
-        }
-        else if (enzyme == "chymotrypsin")
-        {
-          enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
-        }
-        else if (enzyme == "no_cleavage")
-        {
-          enzyme_type = ProteinIdentification::NO_ENZYME;
-        }
-        search_parameters.enzyme = enzyme_type;
+        search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
     
         // create idXML file
         vector<ProteinIdentification> protein_ids;
@@ -734,6 +744,11 @@ protected:
         vector<ProteinIdentification> protein_ids;
         vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        // set the MS-GF+ spectral e-value as new peptide identification score
+        for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
+        {
+          switchScores_(*pep_it);
+        }
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,17 +39,18 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
@@ -139,9 +140,9 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
+    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
@@ -244,6 +245,11 @@ protected:
         valid = IdXMLFile().isValid(in, os);
         break;
 
+      case FileTypes::MZIDENTML:
+        os << " against XML schema version " << MzIdentMLFile().getVersion() << "\n";
+        valid = MzIdentMLFile().isValid(in, os);
+        break;
+
       case FileTypes::CONSENSUSXML:
         os << " against XML schema version " << ConsensusXMLFile().getVersion() << "\n";
         valid = ConsensusXMLFile().isValid(in, os);
@@ -258,6 +264,11 @@ protected:
         os << " against XML schema version " << PepXMLFile().getVersion() << "\n";
         valid = PepXMLFile().isValid(in, os);
         break;
+
+      case FileTypes::TRANSFORMATIONXML:
+        os << " against XML schema version " << TransformationXMLFile().getVersion() << "\n";
+        valid = TransformationXMLFile().isValid(in, os);
+        break;        
 
       default:
         os << "\n" << "Aborted: Validation of this file type is not supported!" << "\n";
@@ -385,19 +396,30 @@ protected:
 
       // Charge distribution and TIC
       Map<UInt, UInt> charges;
+      Map<UInt, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         charges[feat[i].getCharge()]++;
         tic += feat[i].getIntensity();
+        const vector<PeptideIdentification>& peptide_ids = feat[i].getPeptideIdentifications();
+        numberofids[peptide_ids.size()]++;
       }
 
       os << "Total ion current in features: " << tic << "\n";
-      os << "Charge distribution:" << "\n";
+      os << "\n" << "Charge distribution:" << "\n";
       for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
+
+      os << "\n" << "Distribution of peptide identifications (IDs) per feature:\n";
+      for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
+      {
+        os << "  " << it->first << " IDs: " << it->second << "\n";
+      }
+
+      os << "\n" << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
@@ -500,7 +522,7 @@ protected:
             AASequence aa = temp_hits[0].getSequence();
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
-              if (aa[ia].isModified()) ++mod_counts[aa[ia].getModification()];
+              if (aa[ia].isModified()) ++mod_counts[aa[ia].getModificationName()];
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
@@ -545,6 +567,13 @@ protected:
     else if (in_type == FileTypes::PEPXML)
     {
       os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << "\n";
+    }
+    else if (in_type == FileTypes::TRANSFORMATIONXML)
+    {
+      TransformationDescription trafo;
+      TransformationXMLFile().load(in, trafo);
+      os << "\nTransformation model: " << trafo.getModelType() << "\n";
+      trafo.printSummary(os);
     }
     else //peaks
     {

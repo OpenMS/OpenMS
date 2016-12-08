@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
 #define OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
 
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -57,11 +58,11 @@ namespace OpenMS
 {
 /**
   @brief This class generates a TargetedExperiment object with decoys based on a TargetedExperiment object
- 
+
   There are multiple methods to create the decoy transitions, the simplest ones
   are reverse and pseudo-reverse which reverse the sequence either completely or
   leaving the last (tryptic) AA untouched respectively.
- 
+
   Another decoy generation method is "shuffle" which uses an algorithm similar
   to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
   libraries for false discovery rate estimation in spectral library searching in
@@ -108,58 +109,19 @@ public:
     */
     void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold, 
-                        bool theoretical, double mz_shift, bool exclude_similar, 
-                        double similarity_threshold, bool remove_CNterm_mods, 
-                        double precursor_mass_shift, bool enable_losses, bool remove_unannotated);
-    /**
-      @brief Remove transitions s.t. all peptides have a defined set of transitions.
-
-      All transitions of a peptide above max_transitions get deleted, all
-      peptides with less than min_transitions also get deleted.
-
-    */
-    void restrictTransitions(OpenMS::TargetedExperiment& exp, int min_transitions,
-                             int max_transitions);
+                        double identity_threshold, int max_attempts, double mz_threshold,
+                        double mz_shift, bool exclude_similar,
+                        double similarity_threshold, bool remove_CNterm_mods,
+                        double precursor_mass_shift, std::vector<String> fragment_types,
+                        std::vector<size_t> fragment_charges, bool enable_specific_losses,
+                        bool enable_unspecific_losses, bool remove_unannotated,
+                        int round_decPow = -4);
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    typedef boost::unordered_map<String, boost::unordered_map<String, double> > IonSeries;
-    typedef boost::unordered_map<String, IonSeries> IonSeriesMapType;
-
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
-
-    /**
-      @brief Selects a decoy ion from a set of ions.
-    */
-    std::pair<String, double> getDecoyIon(String ionid,
-                                              boost::unordered_map<String, boost::unordered_map<String, double> >& decoy_ionseries);
-
-    /**
-      @brief Selects a target ion from a set of ions.
-    */
-    std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold,
-                                           boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries,
-                                           bool enable_losses);
-    /**
-      @brief Generate all ion series for an input AASequence
-
-      Currently generated are:
-
-      bionseries, bionseries_loss,
-      yionseries, yionseries_loss,
-      aionseries
-
-      for each of these, the following neutral losses are calculated:
-        -17, -18, -34, -35, -36, -44, -45, -46, -64, -98.
-
-      FEATURE (george): a more generic mechanism to specify which series and losses should be
-      generated. possible integration with TheoreticalSpectrumGenerator?
-    */
-    boost::unordered_map<String, boost::unordered_map<String, double> > getIonSeries(
-      AASequence sequence, int precursor_charge);
 
     /**
       @brief Find all tryptic sites in a sequence
@@ -173,14 +135,9 @@ public:
     float AASequenceIdentity(const String& sequence, const String& decoy);
 
     /**
-      @brief Check if a peptide has C or N terminal modifications 
+      @brief Check if a peptide has C or N terminal modifications
     */
-    bool has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide & peptide);
-
-    /**
-      @brief Correct the masses according to theoretically computed masses
-    */
-    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses);
+    bool has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide& peptide);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
@@ -191,7 +148,7 @@ public:
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed = -1,
-      int max_attempts = 10);
+      int max_attempts = 10, bool replace_aa_instead_append = false);
 
     /**
       @brief Pseudo-reverse a peptide sequence (with its modifications)

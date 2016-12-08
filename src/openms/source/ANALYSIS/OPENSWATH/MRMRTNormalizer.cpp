@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
 #include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
+#include <OpenMS/MATH/MISC/RANSACModelLinear.h> // RANSAC model
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
@@ -55,24 +56,24 @@ namespace OpenMS
 
     if (n < 5)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
           boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     if (pairs.size() < 30)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
           boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
 
-    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC::ransac(pairs, n, k, t, d);
-    double bestrsq = Math::RANSAC::llsm_rsq(new_pairs);
+    std::vector<std::pair<double, double> > new_pairs = Math::RANSAC<Math::RansacModelLinear>().ransac(pairs, n, k, t, d);
+    double bestrsq = Math::RansacModelLinear::rm_rsq_impl(new_pairs.begin(), new_pairs.end());
 
     if (bestrsq < rsq_limit)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
           boost::lexical_cast<std::string>(bestrsq) + " is below limit of " +
           boost::lexical_cast<std::string>(rsq_limit) +
@@ -81,7 +82,7 @@ namespace OpenMS
 
     if (new_pairs.size() < d)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " +
           boost::lexical_cast<std::string>(new_pairs.size()) +
           " is below limit of " + boost::lexical_cast<std::string>(d) +
@@ -137,10 +138,10 @@ namespace OpenMS
       std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, bool use_chauvenet, std::string method)
   {
-    if (pairs.size() < 2)
+    if (pairs.size() < 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Need at least 2 points for the regression.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Need at least 3 data points to remove outliers for the regression.");
     }
 
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
@@ -195,7 +196,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Method ") + method + " is not a valid method for removeOutliersIterative");
         }
 
@@ -221,7 +222,7 @@ namespace OpenMS
     if (rsq < rsq_limit)
     {
       // If the rsq is below the limit, this is an indication that something went wrong!
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
           boost::lexical_cast<std::string>(rsq) + " is below limit of " +
           boost::lexical_cast<std::string>(rsq_limit) +

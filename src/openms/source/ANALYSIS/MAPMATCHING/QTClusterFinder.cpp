@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ namespace OpenMS
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
-    defaults_.setValue("nr_partitions", 1, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
+    defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
     defaults_.setMinInt("nr_partitions", 1);
 
 
@@ -79,7 +79,7 @@ namespace OpenMS
       String msg = "Maximum m/z or intensity out of range (m/z: " + 
         String(max_mz) + ", intensity: " + String(max_intensity) + "). "
         "Has 'updateRanges' been called on the input maps?";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
@@ -103,7 +103,7 @@ namespace OpenMS
                              ConsensusMap& result_map)
   {
     // update parameters (dummy)
-    setParameters_(1, 1); 
+    setParameters_(1, 1);
 
     result_map.clear(false);
 
@@ -133,11 +133,20 @@ namespace OpenMS
       double massrange_diff = max_diff_mz_;
       int pts_per_partition = massrange.size() / nr_partitions_;
 
+      // if m/z tolerance is specified in ppm, we adapt massrange_diff
+      // in each iteration below
+      bool mz_ppm = param_.getValue("distance_MZ:unit") == "ppm";
+      double mz_tol = param_.getValue("distance_MZ:max_difference");
+
       // compute partition boundaries
       std::vector< double > partition_boundaries; 
       partition_boundaries.push_back(massrange.front());
       for (size_t j = 0; j < massrange.size()-1; j++)
       {
+        if (mz_ppm)
+        {
+          massrange_diff = mz_tol * 1e-6 * massrange[j+1];
+        }
         if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
         {
           if (j >= (partition_boundaries.size() ) * pts_per_partition  )
@@ -193,20 +202,20 @@ namespace OpenMS
     num_maps_ = input_maps.size();
     if (num_maps_ < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "At least two input maps required");
     }
 
-    // set up the distance functor (and set other parameters):
+    // set up the distance functor (and set other parameters)
+    // for the current partition
     double max_intensity = 0.0;
     double max_mz = 0.0;
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
          map_it != input_maps.end(); ++map_it)
     {
       max_intensity = max(max_intensity, map_it->getMaxInt());
-      max_mz = max(max_mz, map_it->getMax()[0]);
+      max_mz = max(max_mz, map_it->getMax().getY());
     }
-
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
@@ -415,10 +424,10 @@ namespace OpenMS
       }
 
       for (ElementMapping::iterator it = tmp_element_mapping.begin(); 
-          it != tmp_element_mapping.end(); it++ )
+          it != tmp_element_mapping.end(); ++it )
       {
         for (std::vector<QTCluster*>::iterator it2 = it->second.begin();
-            it2 != it->second.end(); it2++)
+            it2 != it->second.end(); ++it2)
         {
           element_mapping[ it->first ].push_back(*it2);
         }
@@ -435,7 +444,7 @@ namespace OpenMS
     std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
     std::set<AASequence> a = cluster.getAnnotations();
     std::cout << " with annotations: ";
-    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
+    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
     std::cout << std::endl;
 #endif
 
@@ -502,7 +511,7 @@ namespace OpenMS
     {
       std::set<AASequence> a = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
-      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); it++) std::cout << " " << *it;
+      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
       std::cout << std::endl;
     }
 #endif

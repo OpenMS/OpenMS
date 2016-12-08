@@ -8,12 +8,17 @@ REM
 
 IF "%~1"=="" (
   ECHO.
-  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[c]lass-test^|[t]opp^|[u]til^|[g]ui^>]
+  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^>]
   ECHO.
   ECHO  e.g.
-  ECHO          build -    
-  ECHO          build - r c   // same as above ^(build all class tests in release mode^)
-  ECHO          build FeatureFinderCentroided r t
+  ECHO          // build all targets from all projects ^(TOPP, UTILS, tests, GUI^) in release mode
+  ECHO          build -
+  ECHO.
+  ECHO          // build all targets ^(-^) from Class tests in Release mode
+  ECHO          build - r c
+  ECHO.
+  ECHO          // just build FeatureFinderCentroided in Debug mode ^(no need to specify where to find it^)
+  ECHO          build FeatureFinderCentroided d
   goto end
 )
 
@@ -26,7 +31,8 @@ IF "%~2"=="r" set CFG=Release
 IF "%~2"=="d" set CFG=Debug
 
 
-IF "%~3"=="" set SLN=src\tests\class_tests\OpenMS_class_tests.sln
+IF "%~3"==""  set SLN=OpenMS_host.sln
+IF "%~3"=="a" set SLN=OpenMS_host.sln
 IF "%~3"=="c" set SLN=src\tests\class_tests\OpenMS_class_tests.sln
 IF "%~3"=="t" set SLN=src\topp\openms_topp.sln
 IF "%~3"=="u" set SLN=src\utils\openms_utils.sln

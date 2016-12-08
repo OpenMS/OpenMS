@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -71,10 +71,10 @@ namespace OpenMS
       as first arguments. This information is usually printed in case of an uncaught exception.
 
       To support this feature, each @em throw directive should look as follows:
-      @code throw Exception::Exception(__FILE__, __LINE__, __PRETTY_FUNCTION__,...); @endcode
+      @code throw Exception::Exception(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,...); @endcode
 
       @em __FILE__ and @em __LINE__ are built-in preprocessor macros that hold the desired information.
-      @n @em __PRETTY_FUNCTION__ is replaced by the GNU G++ compiler with the demangled name of the current function.
+      @n @em OPENMS_PRETTY_FUNCTION is replaced by the GNU G++ compiler with the demangled name of the current function.
       (For other compilers it is defined as "<unknown>" in config.h.)
 
       %OpenMS provides its own Exception::GlobalExceptionHandler::terminate() handler. This handler extracts as much

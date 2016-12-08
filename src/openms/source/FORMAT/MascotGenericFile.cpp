@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,8 +42,8 @@
 #include <QFileInfo>
 #include <QtCore/QRegExp>
 
-#define HIGH_PRECISION 8
-#define LOW_PRECISION 6
+#define HIGH_PRECISION 5
+#define LOW_PRECISION 3
 
 using namespace std;
 
@@ -68,7 +68,7 @@ namespace OpenMS
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
     defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
     defaults_.setValidStrings("fragment_error_units", ListUtils::create<String>("mmu,Da"));
-    defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
+    defaults_.setValue("charges", "1,2,3", "Charge states to consider, given as a comma separated list of integers (only used for spectra without precursor charge information)");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -134,7 +134,7 @@ namespace OpenMS
   {
     if (!File::writable(filename))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     ofstream os(filename.c_str());
     store(os, filename, experiment, compact);
@@ -143,7 +143,9 @@ namespace OpenMS
 
   void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
   {
-    const streamsize precision = os.precision(); // may get changed, so back-up
+    // stream formatting may get changed, so back up:
+    const ios_base::fmtflags old_flags = os.flags();
+    const streamsize old_precision = os.precision();
 
     store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
@@ -151,7 +153,9 @@ namespace OpenMS
     if (param_.getValue("internal:content") != "header_only")
       writeMSExperiment_(os, filename, experiment);
 
-    os.precision(precision); // reset precision
+    // reset formatting:
+    os.flags(old_flags);
+    os.precision(old_precision);
   }
 
   void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
@@ -303,11 +307,10 @@ namespace OpenMS
     }
     if (spec.size() >= 10000)
     {
-      throw Exception::InvalidValue(
-              __FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as "
-                                                       "MGF has more than 10.000 peaks, which is the maximum upper limit. "
-                                                       "Only centroided data is allowed. This is most likely raw data.",
-              String(spec.size()));
+      String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
+        " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       msg);
     }
     double mz(precursor.getMZ()), rt(spec.getRT());
 
@@ -330,7 +333,7 @@ namespace OpenMS
       }
       else
       {
-        os << "TITLE=" << setprecision(HIGH_PRECISION) << mz << "_"
+        os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
            << setprecision(LOW_PRECISION) << rt << "_"
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
@@ -362,7 +365,7 @@ namespace OpenMS
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
           if (intensity == 0.0) continue; // skip zero-intensity peaks
-          os << setprecision(HIGH_PRECISION) << it->getMZ() << " "
+          os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -294,7 +294,7 @@ protected:
         break;
 
       default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       return gradient.precalculatedColorIndex(gradientPos);
     }
@@ -380,6 +380,9 @@ protected:
     PeakIndex selected_peak_;
     /// start peak/feature of measuring mode
     PeakIndex measurement_start_;
+
+    /// stores the linear color gradient for non-log modes
+    MultiGradient linear_gradient_;
     
     double pen_size_min_; //< minimum number of pixels for one data point
     double pen_size_max_; //< maximum number of pixels for one data point

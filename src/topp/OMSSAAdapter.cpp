@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -560,7 +560,7 @@ protected:
       {
         if (split.size() < 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "parse mapping file line: '" + *it + "'", "");
         }
         for (Size i = 2; i != split.size(); ++i)
         {
@@ -661,7 +661,7 @@ protected:
             9 modmax	-  the max number of modification types
         */
 
-        ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
+        ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
         String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
         if (ts == ResidueModification::ANYWHERE)
         {
@@ -736,7 +736,7 @@ protected:
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
-      ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
         fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it).getOrigin()] = *it;
@@ -1011,7 +1011,7 @@ protected:
     search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
-    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getFlag_("precursor_mass_tolerance_unit_ppm");
     search_parameters.fragment_mass_tolerance_ppm = false; // OMSSA doesn't support ppm fragment mass tolerance
     

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   cni.getIdentifications(ids, exp);
   TEST_EQUAL(ids.size(), 1)
   TEST_EQUAL(ids.begin()->getHits().size() > 0, true)
-  TEST_EQUAL(ids.begin()->getHits().begin()->getSequence() == AASequence::fromString("DFPLANGER"), true)
+  TEST_STRING_EQUAL(ids.begin()->getHits().begin()->getSequence().toString(), "DFPLANGER")
 END_SECTION
 
 START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec)))

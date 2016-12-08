@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -377,6 +377,58 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 
 END_SECTION
+
+
+
+//InPrecursorMZRange
+
+IsInIsolationWindow<MSSpectrum<> >* ptr500 = 0;
+IsInIsolationWindow<MSSpectrum<> >* nullPointer500 = 0;
+START_SECTION((IsInIsolationWindow(const double& mz_left, const double& mz_right, bool reverse = false)))
+  ptr500 = new IsInIsolationWindow<MSSpectrum<> >(ListUtils::create<double>("100.0, 200.0"));
+  TEST_NOT_EQUAL(ptr500, nullPointer500)
+END_SECTION
+
+START_SECTION(([EXTRA]~IsInIsolationWindow()))
+  delete ptr500;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+  IsInIsolationWindow<MSSpectrum<> > s(ListUtils::create<double>("300.0, 100.0, 200.0, 400.0"));    // unsorted on purpose
+  IsInIsolationWindow<MSSpectrum<> > s2(ListUtils::create<double>("300.0, 100.0, 200.0, 400.0"), true);
+  
+  MSSpectrum<> spec;
+  spec.setMSLevel(2);
+  std::vector<Precursor> pc;
+  Precursor p;
+  p.setMZ(200.3);
+  p.setIsolationWindowLowerOffset(0.5);
+  p.setIsolationWindowUpperOffset(0.5);
+  pc.push_back(p);
+  spec.setPrecursors(pc);
+
+  TEST_EQUAL(s(spec), true);
+  TEST_EQUAL(s2(spec), false);
+
+  // outside of allowed window
+  p.setMZ(201.1);
+  pc[0] = p;
+  spec.setPrecursors(pc);
+
+  TEST_EQUAL(s(spec), false);
+  TEST_EQUAL(s2(spec), true);
+
+  // multiple precursors:
+  // adding second which is within limits... so it's a hit (any PC must match)
+  p.setMZ(299.9);
+  pc.push_back(p);
+  spec.setPrecursors(pc);
+
+  TEST_EQUAL(s(spec), true);
+  TEST_EQUAL(s2(spec), false);
+
+END_SECTION
+
 
 //HasScanPolarity
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h> //ONLY used for checking if pepxml transformation produced a reusable id file
 ///////////////////////////
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -168,20 +169,17 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
   TEST_EQUAL(params.db, "./current.fasta");
   TEST_EQUAL(params.mass_type, ProteinIdentification::MONOISOTOPIC);
-  TEST_EQUAL(params.enzyme, ProteinIdentification::TRYPSIN);
+  TEST_EQUAL(params.digestion_enzyme.getName(), "Trypsin");
 
   vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
   TEST_EQUAL(fix_mods.size(), 1)
-  TEST_EQUAL(var_mods.size(), 4)
+  TEST_EQUAL(var_mods.size(), 5)
 
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "C-17.0265") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "E-18.0106") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+15.9949") != var_mods.end(), true)
-  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Q-17.0265") != var_mods.end(), true)
-
-  //TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)
-  //TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (Q)") != var_mods.end(), true)
-  //TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (E)") != var_mods.end(), true)
+  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Ammonia-loss (N-term C)") != var_mods.end(), true)
+  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (N-term E)") != var_mods.end(), true)
+  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Oxidation (M)") != var_mods.end(), true)
+  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (N-term Q)") != var_mods.end(), true)
+  TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+1") != var_mods.end(), true)
 
   // wrong "experiment_name" produces an exception:
   TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
@@ -431,12 +429,70 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
 }
 END_SECTION
 
+// store PepXML with mzML file information
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "PepXMLFile_test.mzML", const String& mz_name = "", bool peptideprophet_analyzed = false))
+{
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
+  String mzML_filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
+  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  PepXMLFile().load(filename, proteins, peptides);
+
+  // Test PeptideProphet-analyzed pepxml.
+  String cm_file_out;
+  NEW_TMP_FILE(cm_file_out);
+  PepXMLFile().store(cm_file_out, proteins, peptides, mzML_filename, "test", true);
+
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableAbsolute(1e-7);
+  fsc.setAcceptableRelative(1.0 + 1e-7);
+  // fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
+  String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_mzML.pepxml");
+  TEST_EQUAL(fsc.compareFiles(cm_file_out.c_str(), filename_out.c_str()), true)
+}
+END_SECTION
+
 START_SECTION(void keepNativeSpectrumName(bool keep) )
 {
   // tested above in the [EXTRA] store as we store / load once with
   // keepNativeSpectrumName and once without
   NOT_TESTABLE 
 }
+END_SECTION
+
+
+START_SECTION(([EXTRA] checking pepxml transformation to reusable identifications))
+
+  // PepXMLFile file; // shadow
+  vector<ProteinIdentification> proteins, reread_proteins;
+  vector<PeptideIdentification> peptides, reread_peptides;
+  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
+  PepXMLFile().load(filename, proteins, peptides);
+
+  // Test PeptideProphet-analyzed pepxml.
+  String cm_file_out;
+  NEW_TMP_FILE(cm_file_out);
+  IdXMLFile().store(cm_file_out, proteins, peptides);
+  IdXMLFile().load(cm_file_out, reread_proteins, reread_peptides);
+
+  ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
+  ProteinIdentification::SearchParameters reread_params = reread_proteins[0].getSearchParameters();
+  TEST_EQUAL(params.db, reread_params.db);
+  TEST_EQUAL(params.mass_type, reread_params.mass_type);
+
+  vector<String> fix_mods(params.fixed_modifications), var_mods(params.variable_modifications);
+  vector<String> reread_fix_mods(reread_params.fixed_modifications), reread_var_mods(reread_params.variable_modifications);
+  TEST_EQUAL(fix_mods.size(), reread_fix_mods.size())
+  TEST_EQUAL(var_mods.size(), reread_var_mods.size())
+
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), reread_fix_mods[0]) != var_mods.end(), true)
+  TEST_EQUAL(find(fix_mods.begin(), fix_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)
+
+  for (size_t i = 0; i < reread_var_mods.size(); ++i)
+  {
+    TEST_EQUAL(find(var_mods.begin(), var_mods.end(), reread_var_mods[i]) != var_mods.end(), true)
+  }
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

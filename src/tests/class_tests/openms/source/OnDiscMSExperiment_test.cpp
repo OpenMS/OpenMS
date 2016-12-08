@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,8 @@ END_SECTION
 
 START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& filename)))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; 
+  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscMSExperiment<> tmp2(tmp);
   TEST_EQUAL(tmp2.getExperimentalSettings()->getInstrument().getName(), tmp.getExperimentalSettings()->getInstrument().getName() )
   TEST_EQUAL(tmp2.getExperimentalSettings()->getInstrument().getVendor(), tmp.getExperimentalSettings()->getInstrument().getVendor() )
@@ -76,18 +77,18 @@ START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& filename)))
 }
 END_SECTION
 
-START_SECTION((OnDiscMSExperiment(const String& filename)))
-{
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  TEST_EQUAL(tmp.size(), 2);
-}
-END_SECTION
+// START_SECTION((OnDiscMSExperiment(const String& filename)))
+// {
+//   OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+//   TEST_EQUAL(tmp.size(), 2);
+// }
+// END_SECTION
 
 START_SECTION((bool operator== (const OnDiscMSExperiment& rhs) const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> same(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> failed(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> same; same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
   TEST_EQUAL(tmp==same, true);
   TEST_EQUAL((*tmp.getExperimentalSettings())==(*same.getExperimentalSettings()), true);
@@ -97,34 +98,44 @@ END_SECTION
 
 START_SECTION((bool operator!= (const OnDiscMSExperiment& rhs) const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> same(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> failed(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> same; same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
   TEST_EQUAL(tmp!=same, false);
   TEST_EQUAL(tmp!=failed, true);
 }
 END_SECTION
 
-START_SECTION((openFile(const String& source)))
+START_SECTION((bool openFile(const String& source)))
 {
   OnDiscMSExperiment<> tmp;
-  tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  TEST_EQUAL(tmp.size(), 2);
+  OnDiscMSExperiment<> same;
+  OnDiscMSExperiment<> failed;
+  
+  bool res;
+  res = tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(res, true)
+
+  res = same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(res, true)
+
+  res = failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  TEST_EQUAL(res, false)
 }
 END_SECTION
 
 START_SECTION((bool isSortedByRT() const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.isSortedByRT(), true);
 }
 END_SECTION
 
 START_SECTION((Size size() const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> failed(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.size(), 2);
   TEST_EQUAL(failed.size(), 0);
 }
@@ -132,8 +143,8 @@ END_SECTION
 
 START_SECTION((bool empty() const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> failed(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   TEST_EQUAL(failed.empty(), true);
 }
@@ -141,8 +152,8 @@ END_SECTION
 
 START_SECTION((Size getNrSpectra() const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> failed(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrSpectra(), 2);
   TEST_EQUAL(failed.getNrSpectra(), 0);
 }
@@ -150,8 +161,8 @@ END_SECTION
 
 START_SECTION((Size getNrChromatograms() const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-  OnDiscMSExperiment<> failed(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrChromatograms(), 1);
   TEST_EQUAL(failed.getNrChromatograms(), 0);
 }
@@ -159,7 +170,7 @@ END_SECTION
 
 START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSettings() const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   boost::shared_ptr<const ExperimentalSettings> settings = tmp.getExperimentalSettings();
 
   TEST_EQUAL(settings->getInstrument().getName(), "LTQ FT")
@@ -169,7 +180,7 @@ END_SECTION
 
 START_SECTION((MSSpectrum<PeakT> operator[] (Size n) const))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   MSSpectrum<> s = tmp[0];
   TEST_EQUAL(s.empty(), false);
@@ -179,7 +190,7 @@ END_SECTION
 
 START_SECTION((MSSpectrum<PeakT> getSpectrum(Size id)))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   MSSpectrum<> s = tmp.getSpectrum(0);
   TEST_EQUAL(s.empty(), false);
@@ -189,7 +200,7 @@ END_SECTION
 
 START_SECTION(OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   OpenMS::Interfaces::SpectrumPtr s = tmp.getSpectrumById(0);
   TEST_EQUAL(s->getMZArray()->data.empty(), false);
@@ -201,7 +212,7 @@ END_SECTION
 
 START_SECTION((MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrChromatograms(), 1);
   TEST_EQUAL(tmp.empty(), false);
   MSChromatogram<> c = tmp.getChromatogram(0);
@@ -212,7 +223,7 @@ END_SECTION
 
 START_SECTION(OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id))
 {
-  OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  OnDiscMSExperiment<> tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
   OpenMS::Interfaces::ChromatogramPtr s = tmp.getChromatogramById(0);
   TEST_EQUAL(s->getTimeArray()->data.empty(), false);
@@ -221,7 +232,6 @@ START_SECTION(OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id))
   TEST_EQUAL(s->getIntensityArray()->data.size(), 48);
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

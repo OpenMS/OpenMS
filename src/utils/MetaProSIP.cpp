@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -362,7 +362,7 @@ public:
 class MetaProSIPReporting
 {
 public:
-  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
+  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String filename = String("heatmap") + file_suffix + "." + file_extension;
     String script_filename = String("heatmap") + file_suffix + String(".R");
@@ -445,7 +445,7 @@ public:
       qparam << "--quiet";
     }
     qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-    p.start("R", qparam);
+    p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
 
@@ -465,7 +465,7 @@ public:
     }
   }
 
-  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
     String script_filename = String("spectrum_plot") + file_suffix + String(".R");
@@ -523,7 +523,7 @@ public:
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
+      p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
 
@@ -664,7 +664,7 @@ public:
     current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
   }
 
-  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0)
+  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String score_filename = String("score_plot") + file_suffix + file_extension;
     String script_filename = String("score_plot") + file_suffix + String(".R");
@@ -744,7 +744,7 @@ public:
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
+      p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
 
@@ -764,7 +764,15 @@ public:
     }
   }
 
-  static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, const vector<vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
+  static void createQualityReport(String tmp_path, 
+                                  String qc_output_directory, 
+                                  String file_suffix, 
+                                  const String& file_extension, 
+                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster, 
+                                  Size n_heatmap_bins, 
+                                  double score_plot_y_axis_min, 
+                                  bool report_natural_peptides, 
+                                  const QString& executable = QString("R"))
   {
     vector<SIPPeptide> sip_peptides;
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -785,13 +793,13 @@ public:
     vector<vector<double> > binned_peptide_ria;
     vector<String> class_labels;
     createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
-    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
+    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
     LOG_INFO << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
+    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
 
     LOG_INFO << "Plotting correlation score and weight distribution" << endl;
-    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
+    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
 
     if (file_extension != "pdf") // html doesn't support pdf as image
     {
@@ -1397,20 +1405,44 @@ public:
     return ret;
   }
 
-  static Size getNumberOfLabelingElements(bool use_N15, const AASequence& peptide)
+  static Size getNumberOfLabelingElements(String labeling_element, const AASequence& peptide)
   {
+    const Element * e;
+    if (labeling_element == "N")
+    {
+      e = ElementDB::getInstance()->getElement("Nitrogen");
+    }
+    else if (labeling_element == "C")
+    {
+      e = ElementDB::getInstance()->getElement("Carbon");
+    } else if (labeling_element == "H")
+    {
+      e = ElementDB::getInstance()->getElement("Hydrogen");
+    } else if (labeling_element == "O")
+    {
+      e = ElementDB::getInstance()->getElement("Oxygen");
+    } else
+    {
+      return 0;
+    }
+
+    // try to determine if modification adds or removes elements
     AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
     EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+    int labeling_element_mods_excluded = unmodified_peptide_ef.getNumberOf(e);
 
-    if (use_N15)
+    EmpiricalFormula peptide_ef = peptide.getFormula();
+    int labeling_element_mods_included = peptide_ef.getNumberOf(e);
+
+    int diff = labeling_element_mods_included - labeling_element_mods_excluded;
+
+    if (diff >= 0) // common case, mod added unlabeled elements
     {
-      const Element* e = ElementDB::getInstance()->getElement("Nitrogen");
-      return (Size)unmodified_peptide_ef.getNumberOf(e);
-    }
-    else
+      return labeling_element_mods_excluded;
+    } 
+    else // special case, mod results in loss of labeling element
     {
-      const Element* e = ElementDB::getInstance()->getElement("Carbon");
-      return (Size)unmodified_peptide_ef.getNumberOf(e);
+      return labeling_element_mods_included;
     }
   }
 
@@ -1488,6 +1520,154 @@ public:
     return ret;
   }
 
+  static IsotopePatterns calculateIsotopePatternsFor2HRange(const AASequence& peptide, Size additional_isotopes = 5)
+  {
+    IsotopePatterns ret;
+
+    const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
+    Element* e2 = const_cast<Element*>(e1);
+
+    EmpiricalFormula peptide_ef = peptide.getFormula();
+    Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1);
+
+    // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
+    AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
+    EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+    UInt max_labeling_element = (UInt)unmodified_peptide_ef.getNumberOf(e1); // max. number of atoms that can be labeled
+    EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef; // difference formula for modifications (note that it can contain positive/negative numbers)
+
+    if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) atoms
+    {
+      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
+      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_element)
+      {
+        double a = abundance / 100.0;
+        IsotopeDistribution isotopes;
+        std::vector<std::pair<Size, double> > container;
+        container.push_back(make_pair(1, 1.0 - a));
+        container.push_back(make_pair(2, a));
+        isotopes.set(container);
+        e2->setIsotopeDistribution(isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
+        dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
+        container = dist.getContainer();
+        vector<double> intensities;
+        for (Size i = 0; i != container.size(); ++i)
+        {
+          intensities.push_back(container[i].second);
+        }
+        ret.push_back(make_pair(abundance, intensities));
+      }
+    }
+    else
+    {
+      // calculate isotope distribution for a given peptide and varying incoperation rates
+      // modification of isotope distribution in static ElementDB
+      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
+      {
+        double a = abundance / 100.0;
+        IsotopeDistribution isotopes;
+        std::vector<std::pair<Size, double> > container;
+        container.push_back(make_pair(1, 1.0 - a));
+        container.push_back(make_pair(2, a));
+        isotopes.set(container);
+        e2->setIsotopeDistribution(isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
+        container = dist.getContainer();
+        vector<double> intensities;
+        for (Size i = 0; i != container.size(); ++i)
+        {
+          intensities.push_back(container[i].second);
+        }
+        ret.push_back(make_pair(abundance, intensities));
+      }
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(1, 0.999885));
+    container.push_back(make_pair(2, 0.000115));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+
+  static IsotopePatterns calculateIsotopePatternsFor18ORange(const AASequence& peptide, Size additional_isotopes = 5)
+  {
+    IsotopePatterns ret;
+
+    const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
+    Element* e2 = const_cast<Element*>(e1);
+
+    EmpiricalFormula peptide_ef = peptide.getFormula();
+    Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1); 
+    // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
+    AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
+    EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+    UInt max_labeling_element = (UInt)unmodified_peptide_ef.getNumberOf(e1); // max. number of atoms that can be labeled
+    EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef; // difference formula for modifications (note that it can contain positive/negative numbers)
+
+    if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) atoms
+    {
+      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
+      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / static_cast<double>(max_labeling_element * 2.0))
+      {
+        double a = abundance / 100.0;
+        IsotopeDistribution isotopes;
+        std::vector<std::pair<Size, double> > container;
+        container.push_back(make_pair(1, 1.0 - a));
+        container.push_back(make_pair(2, 0.0)); // 17O is neglectable (=0.038%)
+        container.push_back(make_pair(3, a));
+        isotopes.set(container);
+        e2->setIsotopeDistribution(isotopes);
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element * 2 + additional_isotopes); // 2 * isotopic traces
+        dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
+        container = dist.getContainer();
+        vector<double> intensities;
+        for (Size i = 0; i != container.size(); ++i)
+        {
+          intensities.push_back(container[i].second);
+        }
+        ret.push_back(make_pair(abundance, intensities));
+      }
+    }
+    else
+    {
+      // calculate isotope distribution for a given peptide and varying incoperation rates
+      // modification of isotope distribution in static ElementDB
+      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / static_cast<double>(MAXISOTOPES * 2.0))
+      {
+        double a = abundance / 100.0;
+        IsotopeDistribution isotopes;
+        std::vector<std::pair<Size, double> > container;
+        container.push_back(make_pair(1, 1.0 - a));
+        container.push_back(make_pair(2, 0.0)); // 17O is neglectable (=0.038%)
+        container.push_back(make_pair(3, a));
+        isotopes.set(container);
+        e2->setIsotopeDistribution(isotopes);
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES * 2 + additional_isotopes); // 2 * isotopic traces
+        container = dist.getContainer();
+        vector<double> intensities;
+        for (Size i = 0; i != container.size(); ++i)
+        {
+          intensities.push_back(container[i].second);
+        }
+        ret.push_back(make_pair(abundance, intensities));
+      }
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(1, 0.99757));
+    container.push_back(make_pair(2, 0.00038));
+    container.push_back(make_pair(3, 0.00205));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+  
   static IsotopePatterns calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
@@ -1569,6 +1749,87 @@ public:
     return ret;
   }
 
+  static IsotopePatterns calculateIsotopePatternsFor2HRangeOfAveraginePeptide(double mass)
+  {
+    IsotopePatterns ret;
+
+    const Element* e1 = ElementDB::getInstance()->getElement("Hydrogen");
+    Element* e2 = const_cast<Element*>(e1);
+    Size element_count = mass * 0.06981572169;
+
+    // calculate isotope distribution for a given peptide and varying incoperation rates
+    // modification of isotope distribution in static ElementDB
+    for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)element_count)
+    {
+      double a = abundance / 100.0;
+      IsotopeDistribution isotopes;
+      std::vector<std::pair<Size, double> > container;
+      container.push_back(make_pair(1, 1.0 - a));
+      container.push_back(make_pair(2, a));
+      isotopes.set(container);
+      e2->setIsotopeDistribution(isotopes);
+      IsotopeDistribution dist(element_count);
+      dist.estimateFromPeptideWeight(mass);
+      container = dist.getContainer();
+      vector<double> intensities;
+      for (Size i = 0; i != container.size(); ++i)
+      {
+        intensities.push_back(container[i].second);
+      }
+      ret.push_back(make_pair(abundance, intensities));
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(1, 0.999885));
+    container.push_back(make_pair(2, 0.000115));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+
+  static IsotopePatterns calculateIsotopePatternsFor18ORangeOfAveraginePeptide(double mass)
+  {
+    IsotopePatterns ret;
+
+    const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
+    Element* e2 = const_cast<Element*>(e1);
+    Size element_count = mass * 0.01329399039;  
+
+    // calculate isotope distribution for a given peptide and varying incoperation rates
+    // modification of isotope distribution in static ElementDB
+    for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)element_count)
+    {
+      double a = abundance / 100.0;
+      IsotopeDistribution isotopes;
+      std::vector<std::pair<Size, double> > container;
+      container.push_back(make_pair(1, 1.0 - a));
+      container.push_back(make_pair(2, 0));
+      container.push_back(make_pair(3, a));
+      isotopes.set(container);
+      e2->setIsotopeDistribution(isotopes);
+      IsotopeDistribution dist(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
+      dist.estimateFromPeptideWeight(mass);
+      container = dist.getContainer();
+      vector<double> intensities;
+      for (Size i = 0; i != container.size(); ++i)
+      {
+        intensities.push_back(container[i].second);
+      }
+      ret.push_back(make_pair(abundance, intensities));
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(1, 0.99757));
+    container.push_back(make_pair(2, 0.00038));
+    container.push_back(make_pair(3, 0.00205));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
 };
 
 class MetaProSIPXICExtraction
@@ -1685,7 +1946,7 @@ class RIntegration
 {
 public:
   // Perform a simple check if R and all R dependencies are thereget
-  static bool checkRDependencies(String tmp_path, StringList package_names)
+  static bool checkRDependencies(String tmp_path, StringList package_names, const QString& executable = QString("R"))
   {
     String random_name = String::random(8);
     String script_filename = tmp_path + String("/") + random_name + String(".R");
@@ -1705,7 +1966,7 @@ public:
 
       QStringList checkRinPathQParam;
       checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-      p.start("R", checkRinPathQParam);
+      p.start(executable, checkRinPathQParam);
       p.waitForFinished(-1);
 
       if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
@@ -1749,7 +2010,7 @@ public:
 
     QStringList qparam;
     qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-    p.start("R", qparam);
+    p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
 
@@ -1805,6 +2066,8 @@ protected:
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
 
+    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false);
+
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
     registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Rolerance window around feature rt for XIC extraction", false);
@@ -1823,6 +2086,8 @@ protected:
 
     registerDoubleOption_("pattern_15N_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerDoubleOption_("pattern_13C_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
+    registerDoubleOption_("pattern_2H_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
+    registerDoubleOption_("pattern_18O_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation.", false, true);
 
     registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false);
@@ -1834,7 +2099,13 @@ protected:
 
     registerStringOption_("qc_output_directory", "<directory>", "", "Output directory for the quality report", false);
 
-    registerFlag_("use_15N", "Use 15N instead of 13C", false);
+    registerStringOption_("labeling_element", "<parameter>", "C", "Which element (single letter code) is labeled.", false);
+    StringList valid_element;
+    valid_element.push_back("C");
+    valid_element.push_back("N");
+    valid_element.push_back("H");
+    valid_element.push_back("O");
+    setValidStrings_("labeling_element", valid_element);
 
     registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", false);
 
@@ -1928,14 +2199,28 @@ protected:
 
   ///< Calculates the correlation between measured isotopic_intensities and the theoretical isotopic patterns for all incorporation rates
   void calculateCorrelation(Size n_element, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
-                            MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double mass, double min_correlation_distance_to_averagine)
+                            MapRateToScoreType& map_rate_to_correlation_score, String labeling_element, double mass, double min_correlation_distance_to_averagine)
   {
     double min_observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
     LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
 
-    double TIC_threshold = use_N15 ? getDoubleOption_("pattern_15N_TIC_threshold") : getDoubleOption_("pattern_13C_TIC_threshold"); // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
-
+    double TIC_threshold(0.0);
+    
+    // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
+    if (labeling_element == "N")
+    {
+      TIC_threshold = getDoubleOption_("pattern_15N_TIC_threshold");
+    } else if (labeling_element == "C")
+    {
+      TIC_threshold = getDoubleOption_("pattern_13C_TIC_threshold");
+    } else if (labeling_element == "H")
+    {
+      TIC_threshold = getDoubleOption_("pattern_2H_TIC_threshold");
+    } else if (labeling_element == "O")
+    {
+      TIC_threshold = getDoubleOption_("pattern_18O_TIC_threshold");
+    }
     double max_incorporation_rate = 100.0;
     double incorporation_step = max_incorporation_rate / (double)n_element;
 
@@ -2637,6 +2922,7 @@ protected:
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
+    QString executable = getStringOption_("r_executable").toQString();
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double rt_tolerance_s = getDoubleOption_("rt_tolerance_s");
 
@@ -2668,7 +2954,8 @@ protected:
     ofstream out_peptide_csv_stream(out_peptide_centric_csv.c_str());
     out_peptide_csv_stream << fixed << setprecision(4);
 
-    bool use_N15 = getFlag_("use_15N");
+    String labeling_element = getStringOption_("labeling_element");
+
     //bool plot_merged = getFlag_("plot_merged");
     bool report_natural_peptides = getFlag_("report_natural_peptides");
     bool use_unassigned_ids = getFlag_("use_unassigned_ids");
@@ -2688,7 +2975,7 @@ protected:
     // check if R and dependencies are installed
     StringList package_names;
     package_names.push_back("gplots");
-    bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names);
+    bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
     if (!R_is_working)
     {
       LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
@@ -2968,18 +3255,48 @@ protected:
       EmpiricalFormula e = feature_hit_aaseq.getFormula();
 
       // assign mass difference between labeling element isotopes
-      sip_peptide.mass_diff = use_N15 ? 0.9970349 : 1.003354837810;
+      if (labeling_element == "C")
+      {
+        sip_peptide.mass_diff = 1.003354837810;
+      } else if (labeling_element == "N")
+      {
+        sip_peptide.mass_diff = 0.9970349;
+      } else if (labeling_element == "H")
+      {
+        sip_peptide.mass_diff = 1.00627675;
+      } else if (labeling_element == "O")
+      {
+        // 18O-16O distance is approx. 2.0042548 Dalton but natural isotopic pattern is dominated by 13C-12C distance (approx. 1.0033548)
+        // After the convolution of the O-isotope distribution with the natural one we get multiple copies of the O-distribution (with 2 Da spaces) 
+        // shifted by 13C-12C distances. Choosing (18O-16O) / 2 as expected mass trace distance should therefor collect all of them.
+        sip_peptide.mass_diff = 2.0042548 / 2.0;
+      }
 
-      Size element_count;
+      Size element_count(0);
+      Size isotopic_trace_count(0);
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
-        element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(use_N15, feature_hit_aaseq);
+        element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(labeling_element, feature_hit_aaseq);
       }
       else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
-        // calculate number of expected labeling elements using averagine model
-        element_count = use_N15 ? sip_peptide.mass_theo * 0.0122177302837372 : sip_peptide.mass_theo * 0.0444398894906044;
+        // calculate number of expected labeling elements using averagine model C:4.9384 H:7.7583 N:1.3577 O:1.4773 S:0.0417 divided by average weight 111.1254
+        if (labeling_element == "C")
+        {
+          element_count = sip_peptide.mass_theo * 0.0444398894906044;
+        } else if (labeling_element == "N")
+        {
+          element_count = sip_peptide.mass_theo * 0.0122177302837372;
+        } else if (labeling_element == "H")
+        {
+          element_count = sip_peptide.mass_theo * 0.06981572169;
+        } else if (labeling_element == "O")
+        {
+          element_count = sip_peptide.mass_theo * 0.01329399039;
+        }
       }
+
+      isotopic_trace_count = labeling_element != "O" ? element_count : element_count * 2; 
 
       // collect 13C / 15N peaks
       if (debug_level_ >= 10)
@@ -2987,7 +3304,7 @@ protected:
         LOG_DEBUG << "Extract XICs" << endl;
       }
 
-      vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
+      vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(isotopic_trace_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
 
       // set intensity to zero if not enough neighboring isotopic peaks are present
       for (Size i = 0; i != isotopic_intensities.size(); ++i)
@@ -3081,11 +3398,35 @@ protected:
       // calculate isotopic patterns for the given sequence, incoroporation interval/steps
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
-        patterns = use_N15 ? MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq)) : MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
+       if (labeling_element == "N")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq));
+       } else if (labeling_element == "C")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
+       } else if (labeling_element == "H")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRange(AASequence::fromString(feature_hit_seq));
+       } else if (labeling_element == "O")
+       { 
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORange(AASequence::fromString(feature_hit_seq));
+       }
       }
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
-        patterns = use_N15 ? MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo) : MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
+       if (labeling_element == "N")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo);
+       } else if (labeling_element == "C")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
+       } else if (labeling_element == "H")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRangeOfAveraginePeptide(sip_peptide.mass_theo);
+       } else if (labeling_element == "O")
+       {
+         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORangeOfAveraginePeptide(sip_peptide.mass_theo);
+       }
       }
 
       // store theoretical patterns for visualization
@@ -3100,14 +3441,14 @@ protected:
 
       // calculate decomposition into isotopic patterns
       MapRateToScoreType map_rate_to_decomposition_weight;
-      MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
+      MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(isotopic_trace_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
 
       // set first intensity to zero and remove first 2 possible RIAs (0% and e.g. 1.07% for carbon)
       MapRateToScoreType tmp_map_rate_to_correlation_score;
       if (getFlag_("filter_monoisotopic"))
       {
         // calculate correlation of natural RIAs (for later reporting) before we subtract the intensities. This is somewhat redundant but no speed bottleneck.
-        calculateCorrelation(element_count, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, use_N15, sip_peptide.mass_theo, -1.0);
+        calculateCorrelation(isotopic_trace_count, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, labeling_element, sip_peptide.mass_theo, -1.0);
         for (Size i = 0; i != sip_peptide.reconstruction_monoistopic.size(); ++i)
         {
           if (i == 0)
@@ -3126,7 +3467,7 @@ protected:
       sip_peptide.decomposition_map = map_rate_to_decomposition_weight;
 
       // calculate Pearson correlation coefficients
-      calculateCorrelation(element_count, isotopic_intensities, patterns, map_rate_to_correlation_score, use_N15, sip_peptide.mass_theo, min_correlation_distance_to_averagine);
+      calculateCorrelation(isotopic_trace_count, isotopic_intensities, patterns, map_rate_to_correlation_score, labeling_element, sip_peptide.mass_theo, min_correlation_distance_to_averagine);
 
       // restore original correlation of natural RIAs (take maximum of observed correlations)
       if (getFlag_("filter_monoisotopic"))
@@ -3263,7 +3604,7 @@ protected:
     if (!qc_output_directory.empty() && R_is_working)
     {
       // TODO plot merged is now passed as false
-      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides);
+      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }
 
     return EXECUTION_OK;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -225,7 +225,7 @@ namespace OpenSWATH_Test
       TransitionType tr;
       tr.library_intensity = 10000;
       tr.product_mz = 618.31;
-      tr.charge = 1;
+      tr.fragment_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
@@ -238,7 +238,7 @@ namespace OpenSWATH_Test
       TransitionType tr;
       tr.library_intensity = 1;
       tr.product_mz = 628.435;
-      tr.charge = 1;
+      tr.fragment_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }
@@ -251,7 +251,7 @@ namespace OpenSWATH_Test
       TransitionType tr;
       tr.library_intensity = 2000;
       tr.product_mz = 628.435;
-      tr.charge = 1;
+      tr.fragment_charge = 1;
       tr.transition_name = native_id;
       transition_group.addTransition(tr, native_id );
     }

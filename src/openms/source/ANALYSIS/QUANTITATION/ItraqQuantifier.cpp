@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,7 +145,7 @@ namespace OpenMS
       // if it is an identity matrix, performing isotope correction makes no sense
       if (isIdentityCorrectionMatrix_(channel_frequency))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: The given isotope correction matrix is an identity matrix leading to no correction. Please provide a valid isotope_correction matrix as it was provided with the iTRAQ/TMT kit!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: The given isotope correction matrix is an identity matrix leading to no correction. Please provide a valid isotope_correction matrix as it was provided with the iTRAQ/TMT kit!");
       }
 
 #ifdef ITRAQ_DEBUG
@@ -163,7 +163,7 @@ namespace OpenMS
 
       if (!ludecomp.isInvertible())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
       }
 
       LOG_INFO << "SOLVING isotope correction via NNLS\n";
@@ -202,12 +202,12 @@ namespace OpenMS
         // check if a solution exists
         if (!((*m) * matrix_x).isApprox(b))
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
         }
         Int status = NonNegativeLeastSquaresSolver::solve(channel_frequency, m_b, m_x);
         if (status != NonNegativeLeastSquaresSolver::SOLVED)
         {
-          throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Failed to find least-squares fit!");
+          throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Failed to find least-squares fit!");
         }
 
         Size s_negative(0);
@@ -229,7 +229,7 @@ namespace OpenMS
 
         if (s_negative == 0 && s_different_count > 0) // solutions are inconsistent, despite being positive! This should not happen!
         {
-          throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Isotope correction values of alternative method differ!");
+          throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Isotope correction values of alternative method differ!");
         }
 
         // update global stats
@@ -315,15 +315,15 @@ namespace OpenMS
     Int reference_channel = Int(param_.getValue("channel_reference"));
     if (itraq_type_ == ItraqConstants::FOURPLEX && (reference_channel < 114 || reference_channel > 117))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for 4plex are 114-117!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for 4plex are 114-117!");
     }
     else if (itraq_type_ == ItraqConstants::EIGHTPLEX && (reference_channel < 113 || reference_channel > 121))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for 8plex are 113-121!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for 8plex are 113-121!");
     }
     else if (itraq_type_ == ItraqConstants::TMT_SIXPLEX && (reference_channel < 126 || reference_channel > 131))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for TMT-6plex are 126-131!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier:Invalid entry in Param 'channel_reference'; Valid channels for TMT-6plex are 126-131!");
     }
 
 #ifdef ITRAQ_DEBUG
@@ -519,7 +519,7 @@ namespace OpenMS
       } // ! ref_channel valid
       else
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::run() Parameter 'channel_reference' does not name a valid channel!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier::run() Parameter 'channel_reference' does not name a valid channel!");
       }
     } // !do_normalization
 
@@ -661,7 +661,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier::reconstructChannelInfo_ The ConsensusMap provided is missing MetaInfo from ItraqChannelExtractor!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier::reconstructChannelInfo_ The ConsensusMap provided is missing MetaInfo from ItraqChannelExtractor!");
       }
     }
   }

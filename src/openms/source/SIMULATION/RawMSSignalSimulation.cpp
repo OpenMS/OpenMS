@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
@@ -226,7 +226,7 @@ namespace OpenMS
       return resolution * (std::sqrt(400.0) / sqrt(query_mz));
 
     default:
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown RESOLUTIONMODEL encountered!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown RESOLUTIONMODEL encountered!");
     }
   }
 
@@ -241,7 +241,7 @@ namespace OpenMS
     else if (model == "sqrt")
       res_model_ = RES_SQRT;
     else
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Resolution:type given in parameters is unknown");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Resolution:type given in parameters is unknown");
 
     sampling_points_per_FWHM_ = (Int) param_.getValue("mz:sampling_points") - 1;
 
@@ -266,7 +266,7 @@ namespace OpenMS
         contaminants_file = File::find(contaminants_file);
       }
       if (!File::readable(contaminants_file))
-        throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, contaminants_file);
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, contaminants_file);
       // read & parse file:
       TextFile tf(contaminants_file, true);
       contaminants_.clear();
@@ -281,7 +281,7 @@ namespace OpenMS
         line.removeWhitespaces().split(',', cols, true);
         if (cols.size() != COLS_EXPECTED)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));
         }
         ContaminantInfo c;
         c.name = cols[0];
@@ -290,12 +290,12 @@ namespace OpenMS
           c.sf = EmpiricalFormula(cols[1]);
           if (c.sf.getCharge() != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, cols[1], "Line " + String(line_number) + " in " + contaminants_file + " contains forbidden charged sum formulas. Charges must be specified in another column. Remove all '+' or '-'!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, cols[1], "Line " + String(line_number) + " in " + contaminants_file + " contains forbidden charged sum formulas. Charges must be specified in another column. Remove all '+' or '-'!");
           }
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, cols[1], "Could not parse line " + String(line_number) + " in " + contaminants_file + ".");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, cols[1], "Could not parse line " + String(line_number) + " in " + contaminants_file + ".");
         }
         try
         {
@@ -306,7 +306,7 @@ namespace OpenMS
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Could not parse line " + String(line_number) + " in " + contaminants_file + ".");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "Could not parse line " + String(line_number) + " in " + contaminants_file + ".");
         }
         if (cols[6].toUpper() == "REC")
         {
@@ -318,7 +318,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Unknown shape type: " + cols[6] + " in line " + String(line_number) + " of '" + contaminants_file + "'");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "Unknown shape type: " + cols[6] + " in line " + String(line_number) + " of '" + contaminants_file + "'");
         }
 
         if (cols[7].toUpper() == "ESI")
@@ -335,7 +335,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Unknown ionization type: " + cols[7] + " in line " + String(line_number) + " of '" + contaminants_file + "'");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "Unknown ionization type: " + cols[7] + " in line " + String(line_number) + " of '" + contaminants_file + "'");
         }
 
         contaminants_.push_back(c);
@@ -352,7 +352,7 @@ namespace OpenMS
     // we rely on the same size of Raw and Peak Map
     if (experiment.size() != experiment_ct.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, experiment_ct.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, experiment_ct.size());
     }
 
     if (param_.getValue("enabled") == "false")
@@ -620,7 +620,7 @@ namespace OpenMS
 
     if (experiment.size() < 2)
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, experiment.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, experiment.size());
     }
     double rt_sampling_rate = experiment[1].getRT() - experiment[0].getRT();
     EGHModel* elutionmodel = new EGHModel();
@@ -709,7 +709,7 @@ namespace OpenMS
 
     if (exp_start == experiment.end())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
 
     SimTypes::SimIntensityType intensity_sum(0.0);
@@ -897,7 +897,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Elution profile shape cannot be created. Wrong meta-values!", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Elution profile shape cannot be created. Wrong meta-values!", "");
     }
 
     elutionmodel->setParameters(p); // does the calculation
@@ -936,7 +936,7 @@ namespace OpenMS
   {
     if (exp.size() == 1)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__); // not implemented for 1D yet
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); // not implemented for 1D yet
     }
 
     if (!contaminants_loaded_)
@@ -1162,7 +1162,7 @@ namespace OpenMS
   {
     if (fabs(mz_max - mz_min) < step_Da)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sampling grid seems very small. This cannot be computed!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sampling grid seems very small. This cannot be computed!");
     }
     grid.clear();
     SimTypes::SimCoordinateType mz = mz_min;
@@ -1186,7 +1186,7 @@ namespace OpenMS
   {
     if (experiment.size() < 1 || experiment[0].getInstrumentSettings().getScanWindows().size() < 1)
     {
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     SimTypes::SimCoordinateType min_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].begin;
     SimTypes::SimCoordinateType max_mz = experiment[0].getInstrumentSettings().getScanWindows()[0].end;

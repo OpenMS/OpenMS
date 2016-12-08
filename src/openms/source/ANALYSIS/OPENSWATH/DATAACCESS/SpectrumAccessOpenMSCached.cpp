@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,9 @@ namespace OpenMS
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
+
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
@@ -87,7 +90,7 @@ namespace OpenMS
     {
       std::cerr << "Error while reading spectrum " << id << " - seekg created an error when trying to change position to " << spectra_index_[id] << "." << std::endl;
       std::cerr << "Maybe an invalid position was supplied to seekg, this can happen for example when reading large files (>2GB) on 32bit systems." << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
@@ -101,6 +104,9 @@ namespace OpenMS
 
   OpenSwath::SpectrumMeta SpectrumAccessOpenMSCached::getSpectrumMetaById(int id) const
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
+
     OpenSwath::SpectrumMeta meta;
     meta.RT = meta_ms_experiment_[id].getRT();
     meta.ms_level = meta_ms_experiment_[id].getMSLevel();
@@ -109,6 +115,9 @@ namespace OpenMS
 
   OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) 
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of chromatograms");
+
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
 
@@ -116,7 +125,7 @@ namespace OpenMS
     {
       std::cerr << "Error while reading chromatogram " << id << " - seekg created an error when trying to change position to " << chrom_index_[id] << "." << std::endl;
       std::cerr << "Maybe an invalid position was supplied to seekg, this can happen for example when reading large files (>2GB) on 32bit systems." << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
@@ -137,9 +146,12 @@ namespace OpenMS
     // further spectra as long as they are below RT + deltaRT.
     std::vector<std::size_t> result;
     MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin(RT - deltaRT);
+    if (spectrum == meta_ms_experiment_.end()) return result;
+
     result.push_back(std::distance(meta_ms_experiment_.begin(), spectrum));
     spectrum++;
-    while (spectrum->getRT() < RT + deltaRT && spectrum != meta_ms_experiment_.end())
+
+    while (spectrum != meta_ms_experiment_.end() && spectrum->getRT() < RT + deltaRT)
     {
       result.push_back(spectrum - meta_ms_experiment_.begin());
       spectrum++;
@@ -164,11 +176,15 @@ namespace OpenMS
 
   ChromatogramSettings SpectrumAccessOpenMSCached::getChromatogramMetaInfo(int id) const
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
     return meta_ms_experiment_.getChromatograms()[id];
   }
 
   std::string SpectrumAccessOpenMSCached::getChromatogramNativeID(int id) const
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
     return meta_ms_experiment_.getChromatograms()[id].getNativeID();
   }
 

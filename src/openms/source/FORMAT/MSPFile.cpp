@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -82,11 +82,11 @@ namespace OpenMS
   {
     if (!File::exists(filename))
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     if (!File::readable(filename))
     {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     exp.reset();
@@ -265,7 +265,7 @@ namespace OpenMS
             RichPeak1D peak;
             if (split.size() != 3)
             {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
             }
             peak.setMZ(split[0].toFloat());
             peak.setIntensity(split[1].toFloat());
@@ -312,7 +312,7 @@ namespace OpenMS
   {
     if (!File::writable(filename))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     ofstream out(filename.c_str());
@@ -326,7 +326,7 @@ namespace OpenMS
         for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
         {
           if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-              fabs(ModificationsDB::getInstance()->getModification("M", pit->getModification(), ResidueModification::ANYWHERE).getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+              fabs(pit->getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
           {
             peptide += "M(O)";
           }
@@ -345,10 +345,9 @@ namespace OpenMS
         vector<String> modifications;
         if (hit.getSequence().hasNTerminalModification())
         {
-          String mod = hit.getSequence().getNTerminalModification();
+          String mod = hit.getSequence().getNTerminalModificationName();
           ++num_mods;
-          String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + ",";
-          modification += ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM).getId();
+          String modification = "0," + hit.getSequence().begin()->getOneLetterCode() + "," + mod;
           modifications.push_back(modification);
         }
 
@@ -361,11 +360,10 @@ namespace OpenMS
             continue;
           }
 
-          String mod = pit->getModification();
+          String mod = pit->getModificationName();
           String res = pit->getOneLetterCode();
           ++num_mods;
-          String modification = String(pos) + "," + res + ",";
-          modification += ModificationsDB::getInstance()->getModification(res, mod, ResidueModification::ANYWHERE).getId();
+          String modification = String(pos) + "," + res + "," + mod;
           modifications.push_back(modification);
         }
 

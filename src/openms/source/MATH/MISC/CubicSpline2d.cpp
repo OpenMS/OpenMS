@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,18 +46,18 @@ namespace OpenMS
   {
     if (x.size() != y.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors are not of the same size.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "x and y vectors are not of the same size.");
     }
 
     if (x.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors need to contain two or more elements.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "x and y vectors need to contain two or more elements.");
     }
 
     // assert spectrum is sorted
     if (std::adjacent_find(x.begin(), x.end(), std::greater<double>()) != x.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x vector is not sorted.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "x vector is not sorted.");
     }
 
     init_(x, y);
@@ -67,7 +67,7 @@ namespace OpenMS
   {
     if (m.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map needs to contain two or more elements.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Map needs to contain two or more elements.");
     }
 
     std::vector<double> x;
@@ -90,7 +90,7 @@ namespace OpenMS
   {
     if (x < x_.front() || x > x_.back())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Argument out of range of spline interpolation.");
     }
 
     // determine index of closest node left of (or exactly at) x
@@ -108,12 +108,12 @@ namespace OpenMS
   {
     if (x < x_.front() || x > x_.back())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Argument out of range of spline interpolation.");
     }
 
     if (order < 1 || order > 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first, second and third derivative defined on cubic spline");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only first, second and third derivative defined on cubic spline");
     }
 
     // determine index of closest node left of (or exactly at) x
