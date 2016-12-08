@@ -231,6 +231,70 @@ namespace OpenMS
 
   }
 
+  void IDMapper::annotate(FeatureMap& fmap, const MSExperiment<>& pmap)
+  {
+    //keep track of assigned/unassigned precursors
+    std::map<Size, Size> assigned;
+
+    // store which precursor fit which feature (and avoid double entries)
+    std::vector<std::set<size_t> > mapping(pmap.size());
+
+    DoubleList mz_values;
+    IntList charges;
+
+    //iterate over the precursors
+    for (Size i = 0; i < pmap.size(); ++i)
+    {
+      const vector<Precursor>& precursors = pmap[i].getPrecursors();
+
+      if (precursors.empty()) continue;
+
+      double rt_prec = pmap[i].getRT();
+
+      //iterate over the features
+      for (Size fm_index = 0; fm_index < fmap.size(); ++fm_index)
+      {
+        bool was_added = false; // was current precursor-m/z matched?!
+
+        // iterate over m/z values of precursors
+        for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+        {
+          double mz_prec = precursors[i_p].getMZ();
+
+          // charge states to use for checking:
+          IntList current_charges;
+          if (!ignore_charge_)
+          {
+            current_charges.push_back(precursors[i_p].getCharge());
+            current_charges.push_back(0); // "not specified" always matches
+          }
+
+          //check if we compare distance from centroid or subelements
+          if (isMatch_(rt_prec - fmap[fm_index].getRT(), mz_prec, fmap[fm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, fmap[fm_index].getCharge())))
+          {
+            was_added = true;
+            if (fmap[fm_index].metaValueExists("spectrum_index"))
+            {
+              IntList indices = fmap[fm_index].getMetaValue("spectrum_index").toIntList();
+              indices.push_back(i);
+              fmap[fm_index].setMetaValue("spectrum_index", indices);
+            }
+            else
+            {
+              IntList il;
+              il.push_back(i);
+              fmap[fm_index].setMetaValue("spectrum_index", il);
+            }
+            ++assigned[i];
+          }
+
+          if (was_added) break;
+
+        } // m/z values to check
+      } // features
+    }
+  }
+
   void IDMapper::annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, bool measure_from_subelements, bool annotate_with_subelements)
   {
     //keep track of assigned/unassigned precursors
@@ -338,7 +402,7 @@ namespace OpenMS
         // break to here
 
       } // features
-    } // Identifications
+    }
 
 
     Size matches_none(0);

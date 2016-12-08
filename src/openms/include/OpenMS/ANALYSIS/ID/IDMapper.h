@@ -264,6 +264,16 @@ public:
     */
     void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false);
 
+    /**
+         @brief Mapping method for feature map
+ 
+         If several features are inside the allowed tolerance, the precursor
+         is mapped to all features. The potential multiple scan indices of a feature is annotated in the meta value "scan_index".
+
+         @param cmap FeatureMap to receive the precursors
+         @param pmap PeakMap containing precursor
+     */
+    void annotate(FeatureMap& fmap, const MSExperiment<>& pmap);
 
     /**
          @brief Mapping method for consensus maps
@@ -274,6 +284,7 @@ public:
          @param cmap ConsensusMap to receive the precursors
          @param pmap PeakMap containing precursor
          @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
+         @param annotate_with_subelements Save the subelement the precursor was matched to (e.g., scan 12345 matches to map 1 "scan_index_1=12345")
      */
     void annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, bool measure_from_subelements = false, bool annotate_with_subelements = false);
 
