@@ -307,10 +307,13 @@ namespace OpenMS
   void ModificationsDB::readFromOBOFile(const String& filename)
   {
     ResidueModification mod;
-    Map<String, ResidueModification> all_mods;
+    // add multiple mods for multiple specificities
+    //Map<String, ResidueModification> all_mods;
+    multimap<String, ResidueModification> all_mods;
 
     ifstream is(File::find(filename).c_str());
     String line, line_wo_spaces, id;
+    String origin = "";
 
     //parse file
     while (getline(is, line, '\n'))
@@ -328,11 +331,54 @@ namespace OpenMS
       {
         if (id != "") //store last term
         {
-          all_mods[id] = mod;
+          // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
+          vector<String> origins;
+          origin.split(",", origins);
+
+          std::sort(origins.begin(), origins.end());
+          vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+          origins.resize(distance(origins.begin(), unique_end));
+
+          for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+          {
+            if (orig_it->size() == 1 && (*orig_it) != "X")
+            {
+              mod.setOrigin((*orig_it));
+              all_mods.insert(make_pair(id, mod));
+            }
+          }
+
+          // Protein terminals
+          String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
+          vector<String> res_list;
+          res_string.split(",", res_list);
+
+          if (origin.hasSubstring("ProteinN-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::PROTEIN_N_TERM);
+            for (Size i = 0; i < res_list.size(); ++i)
+            {
+              mod = ResidueModification(mod);
+              mod.setOrigin(res_list[i]);
+              all_mods.insert(make_pair(id, mod));
+            }
+          }
+          if (origin.hasSubstring("ProteinC-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::PROTEIN_C_TERM);
+            for (Size i = 0; i < res_list.size(); ++i)
+            {
+              mod.setOrigin(res_list[i]);
+              all_mods.insert(make_pair(id, mod));
+            }
+          }
+
           id = "";
+          origin = "";
           mod = ResidueModification();
         }
       }
+
       //new id line
       else if (line_wo_spaces.hasPrefix("id:"))
       {
@@ -433,7 +479,8 @@ namespace OpenMS
         }
         else if (val.hasPrefix("Origin:"))
         {
-          mod.setOrigin(val_split[1]);
+          //mod.setOrigin(val_split[1]);
+          origin = val_split[1];
         }
         else if (val.hasPrefix("Source:"))
         {
@@ -450,18 +497,68 @@ namespace OpenMS
         }
         else if(val.hasPrefix("specificities:"))
         {
-          mod.setOrigin(val_split[1][1]);
+          // TODO cross-linker specificities can be different for both chain sides, right now the sum of both sides is used
+          origin = val_split[1];
+
+          // remove brackets
+          origin.remove('(');
+          origin.remove(')');
+          origin.substitute("&", ",");
         }
       }
     }
 
     if (id != "") //store last term
     {
-      all_mods[id] = mod;
+      // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
+      vector<String> origins;
+      origin.split(",", origins);
+
+      std::sort(origins.begin(), origins.end());
+      vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+      origins.resize(distance(origins.begin(), unique_end));
+
+      for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+      {
+        if (orig_it->size() == 1 && (*orig_it) != "X")
+        {
+          mod.setOrigin((*orig_it));
+          all_mods.insert(make_pair(id, mod));
+        }
+      }
+
+      // Protein terminals
+      String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
+      vector<String> res_list;
+      res_string.split(",", res_list);
+
+      if (origin.hasSubstring("ProteinN-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::PROTEIN_N_TERM);
+        for (Size i = 0; i < res_list.size(); ++i)
+        {
+          mod = ResidueModification(mod);
+          mod.setOrigin(res_list[i]);
+          all_mods.insert(make_pair(id, mod));
+        }
+      }
+      if (origin.hasSubstring("ProteinC-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::PROTEIN_C_TERM);
+        for (Size i = 0; i < res_list.size(); ++i)
+        {
+          mod.setOrigin(res_list[i]);
+          all_mods.insert(make_pair(id, mod));
+        }
+      }
+
+      id = "";
+      origin = "";
+      mod = ResidueModification();
     }
 
     // now use the term and all synonyms to build the database
-    for (Map<String, ResidueModification>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
     {
 
       // check whether a unimod definition already exists, then simply add synonyms to it
