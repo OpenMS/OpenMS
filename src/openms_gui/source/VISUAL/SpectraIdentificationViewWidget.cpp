@@ -124,6 +124,7 @@ namespace OpenMS
     table_widget_->setShowGrid(false);
 
     connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
+    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
 
     spectra_widget_layout->addWidget(table_widget_);
 
@@ -326,7 +327,8 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "XL position (Protein)";
+
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
@@ -356,6 +358,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(12, 45);
     table_widget_->setColumnWidth(13, 45);
     table_widget_->setColumnWidth(14, 45);
+    table_widget_->setColumnWidth(15, 70);
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
@@ -441,10 +444,16 @@ namespace OpenMS
         // peptide identification index
         addTextItemToBottomRow_("-", 14, c);
 
+        // ppm error
+        addTextItemToBottomRow_("-", 15, c);
+
+        // cross-link position in Protein
+        addTextItemToBottomRow_("-", 16, c);
+
         // add additional meta value columns
         if (create_rows_for_commmon_metavalue_->isChecked())
         {
-          Int current_col = 15;
+          Int current_col = 17;
           for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
           {
             item = table_widget_->itemPrototype()->clone();
@@ -568,10 +577,65 @@ namespace OpenMS
             }
             addCheckboxItemToBottomRow_(selected, 14, c);
 
+            // ppm error
+            if (!(*layer_->getPeakData())[i].getPrecursors().empty()) // has precursor
+            {
+              // TODO compute theoretical precursor
+              // following code is from precursor
+              item = table_widget_->itemPrototype()->clone();
+              item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
+              item->setBackgroundColor(c);
+              item->setTextColor(Qt::blue);
+              // table_widget_->setItem(table_widget_->rowCount() - 1, 3, item); // precursor version
+//              addDoubleItemToBottomRow_(5.0, 15, c);
+              double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
+              int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
+
+              // different theoretical precursors for XL-MS and other data
+              double theo_mass = 0;
+              //vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
+              if (pi[pi_idx].getHits()[0].metaValueExists("xl_chain")) // XL-MS data
+              {
+                vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
+                theo_mass = xl_hits[0].getSequence().getMonoWeight();
+                if (xl_hits.size() > 1) // both peptide masses for cross-links
+                {
+                  theo_mass += xl_hits[1].getSequence().getMonoWeight();
+                }
+              } else // general case
+              {
+                theo_mass = ph.getSequence().getMonoWeight();
+              }
+
+              double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
+              double ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
+              addDoubleItemToBottomRow_(ppm_error, 15, c);
+            }
+
+            // cross-link position in Protein
+            if (ph.metaValueExists("xl_pos") && ph.getPeptideEvidences().size() > 0)
+            {
+              const vector<PeptideEvidence> pevs = ph.getPeptideEvidences();
+              String positions = "";
+              // positions for all protein accessions, separated by "," just like the accessions themselves
+              for (vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+              {
+                // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+                Int prot_link_pos = pev->getStart() + int(ph.getMetaValue("xl_pos")) + 1;
+                positions = positions + "," + prot_link_pos;
+              }
+              // remove leading "," of first position
+              positions = positions.suffix(positions.size()-1);
+              addTextItemToBottomRow_(positions.toQString(), 16, c);
+            } else
+            {
+              addTextItemToBottomRow_("-", 16, c);
+            }
+
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 15;
+              Int current_col = 17;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = ph.getMetaValue(*sit);
@@ -850,7 +914,6 @@ namespace OpenMS
       {
         sel_col = c;
       }
-      cout << "Column number / name: " << c << " / " << col_head  << endl;
     }
 
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "mzIdentML file (*.mzid)");
@@ -864,6 +927,8 @@ namespace OpenMS
       int num_id = table_widget_->item(r, id_col)->text().toInt();
       int num_ph = table_widget_->item(r, ph_col)->text().toInt();
       bool selected = table_widget_->item(r, sel_col)->checkState() == 2;
+
+      // TODO itemClicked, find out col and row, change PeptideHit
 
 
       vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
@@ -913,6 +978,71 @@ namespace OpenMS
 
     MzIdentMLFile().store(filename, prot_id, all_pep_ids);
     //TODO Export as csv for xiNET?
+  }
+
+  // Upon changes in the table data (only possible by checking or unchecking a checkbox rith now),
+  // update the corresponding PeptideIdentification / PeptideHits
+  void SpectraIdentificationViewWidget::updateData_(QTableWidgetItem* item)
+  {
+    // no valid peak layer attached
+    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    {
+      return;
+    }
+
+    // Find column indices by names
+    Size n_col = table_widget_->columnCount();
+    Size id_col = 0;
+    Size ph_col = 0;
+    Size sel_col = 0;
+
+    for (Size c = 0; c < n_col; ++c)
+    {
+      String col_head = table_widget_->horizontalHeaderItem(c)->text();
+      if (col_head == "#ID")
+      {
+        id_col = c;
+      }
+      if (col_head == "#PH")
+      {
+        ph_col = c;
+      }
+      if (col_head == "Curated")
+      {
+        sel_col = c;
+      }
+    }
+
+    // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
+    int r = item->row();
+    bool selected = item->checkState() == 2;
+    int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
+    int num_id = table_widget_->item(r, id_col)->text().toInt();
+    int num_ph = table_widget_->item(r, ph_col)->text().toInt();
+
+    vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
+
+    // TODO output for testing, delete afterwards
+    //cout << "Selected line: " << " #ID: " << num_id << " | #PH: " << num_ph << " PepID length: " << pep_id.size() << " | PepHits: " << pep_id[0].getHits().size() << "selected: " << selected << endl;
+
+    // update "selected" value in the correct PeptideHits
+    vector<PeptideHit> hits = pep_id[num_id].getHits();
+    String sel = selected ? "true" : "false";
+
+    if (hits[0].metaValueExists("xl_chain")) // XL-MS specific case, both PeptideHits belong to the same cross-link
+    {
+      hits[0].setMetaValue("selected", sel);
+      if (hits.size() >= 2)
+      {
+        hits[1].setMetaValue("selected", sel);
+      }
+    } else // general case, update only the selected PepideHit
+    {
+      hits[num_ph].setMetaValue("selected", sel);
+    }
+    pep_id[num_id].setHits(hits);
+    (*layer_->getPeakData())[spectrum_index].setPeptideIdentifications(pep_id);
+
   }
 
   SpectraIdentificationViewWidget::~SpectraIdentificationViewWidget()
