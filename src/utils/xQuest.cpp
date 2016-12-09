@@ -1103,6 +1103,20 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
+//#################  TEST AREA ############################
+
+// loop over all and cout origins ???
+//Size mod_num = ModificationsDB::getInstance()->getNumberOfModifications();
+
+//for (Size i = 0; i < mod_num; ++i)
+//{
+//  ResidueModification mod = ModificationsDB::getInstance()->getModification(i);
+//  cout << "Mod id: " << mod.getPSIMODAccession() << mod.getUniModAccession() << ":" << mod.getId() << " | mod origin: " << mod.getOrigin() << " | term spec: " << mod.getTermSpecificityName(mod.getTermSpecificity()) << endl;
+//}
+
+//################# TEST AREA END ##########################
+
+
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
 
@@ -1543,6 +1557,9 @@ protected:
 
     double max_peptide_mass = max_precursor_mass - cross_link_mass_light + allowed_error;
 
+    cout << "Filtering peptides with precursors" << endl;
+    // TODO peptides are sorted!
+    // search for the closest one, cut off everything lager
     for (vector<OpenXQuestScores::PeptideMass>::iterator a = peptide_masses.begin(); a != peptide_masses.end(); ++a)
     {
       if ( a->peptide_mass > max_peptide_mass )
@@ -1670,6 +1687,8 @@ protected:
             }
           }
         }
+
+        cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
 
         // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
         vector <TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink> cross_link_candidates;
@@ -1974,6 +1993,16 @@ protected:
               theoretical_spec.insert(theoretical_spec.end(), theoretical_spec_xlinks.begin(), theoretical_spec_xlinks.end());
               theoretical_spec.sortByPosition();
 
+              RichPeakSpectrum theoretical_spec_alpha;
+              theoretical_spec_alpha.reserve(theoretical_spec_common_alpha.size() + theoretical_spec_xlinks_alpha.size());
+              theoretical_spec_alpha.insert(theoretical_spec_alpha.end(), theoretical_spec_common_alpha.begin(), theoretical_spec_common_alpha.end());
+              theoretical_spec_alpha.insert(theoretical_spec_alpha.end(), theoretical_spec_xlinks_alpha.begin(), theoretical_spec_xlinks_alpha.end());
+
+              RichPeakSpectrum theoretical_spec_beta;
+              theoretical_spec_beta.reserve(theoretical_spec_common_beta.size() + theoretical_spec_xlinks_beta.size());
+              theoretical_spec_beta.insert(theoretical_spec_beta.end(), theoretical_spec_common_beta.begin(), theoretical_spec_common_beta.end());
+              theoretical_spec_beta.insert(theoretical_spec_beta.end(), theoretical_spec_xlinks_beta.begin(), theoretical_spec_xlinks_beta.end());
+
 //              PeakSpectrum exp_spec;
 //              exp_spec.reserve(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() + preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size());
 //              exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].end());
@@ -2000,6 +2029,9 @@ protected:
                 map<Size, PeakSpectrum> peak_level_spectra_common = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_common_peaks[pair_index], rankMap_common[pair_index]);
                 csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_common, theoretical_spec_common);
 
+                csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec_alpha);
+                csm.HyperBeta = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec_beta);
+
                 // TODO this is ensured for "common" and tehrefore also for "all" but in some cases the "xlink" case could have 0 peaks
                 if (preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0)
                 {
@@ -2014,6 +2046,8 @@ protected:
                 csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec);
                 map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_all_peaks[pair_index], rankMap_all[pair_index]);
                 csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
+                csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
+                csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
 
 
 //############################# END TESTING SCORES ###########################################
@@ -2245,10 +2279,14 @@ protected:
 
               ph_alpha.setMetaValue("OpenXQuest:HyperCommon",top_csms_spectrum[i].HyperCommon);
               ph_alpha.setMetaValue("OpenXQuest:HyperXlink",top_csms_spectrum[i].HyperXlink);
+              ph_alpha.setMetaValue("OpenXQuest:HyperAlpha", top_csms_spectrum[i].HyperAlpha);
+              ph_alpha.setMetaValue("OpenXQuest:HyperBeta", top_csms_spectrum[i].HyperBeta);
               ph_alpha.setMetaValue("OpenXQuest:HyperBoth",top_csms_spectrum[i].HyperBoth);
 
               ph_alpha.setMetaValue("OpenXQuest:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
               ph_alpha.setMetaValue("OpenXQuest:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+              ph_alpha.setMetaValue("OpenXQuest:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
+              ph_alpha.setMetaValue("OpenXQuest:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
               ph_alpha.setMetaValue("OpenXQuest:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
 
               ph_alpha.setMetaValue("selected", "false");
@@ -2278,10 +2316,14 @@ protected:
 
                 ph_beta.setMetaValue("OpenXQuest:HyperCommon",top_csms_spectrum[i].HyperCommon);
                 ph_beta.setMetaValue("OpenXQuest:HyperXlink",top_csms_spectrum[i].HyperXlink);
+                ph_beta.setMetaValue("OpenXQuest:HyperAlpha",top_csms_spectrum[i].HyperAlpha);
+                ph_beta.setMetaValue("OpenXQuest:HyperBeta",top_csms_spectrum[i].HyperBeta);
                 ph_beta.setMetaValue("OpenXQuest:HyperBoth",top_csms_spectrum[i].HyperBoth);
 
                 ph_beta.setMetaValue("OpenXQuest:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
                 ph_beta.setMetaValue("OpenXQuest:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+                ph_beta.setMetaValue("OpenXQuest:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
+                ph_beta.setMetaValue("OpenXQuest:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
                 ph_beta.setMetaValue("OpenXQuest:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
 
                 ph_beta.setMetaValue("selected", "false");
