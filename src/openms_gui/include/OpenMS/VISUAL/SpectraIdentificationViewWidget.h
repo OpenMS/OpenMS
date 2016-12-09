@@ -97,6 +97,8 @@ private slots:
     void saveIdXML_();
     /// Saves the (potentially filtered) mzIdentML
     void saveMzIdentML_();
+    /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
+    void updateData_(QTableWidgetItem* item);
     /// Display header context menu
     void headerContextMenu_(const QPoint&);
     /// Cell clicked in table_widget
