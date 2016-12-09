@@ -243,10 +243,12 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
       @param use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
+      @param spectra Whether precursors not contained in the identifications are annotated with 
+                     an empty PeptideIdentification object containing the scan index. 
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false);
+    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
 
     /**
       @brief Mapping method for consensus maps

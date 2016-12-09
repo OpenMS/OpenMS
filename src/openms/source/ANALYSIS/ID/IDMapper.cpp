@@ -101,11 +101,12 @@ namespace OpenMS
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
 
-    //append protein identifications to Map
+    // append protein identifications to Map
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
-    //keep track of assigned/unassigned peptide identifications
-    std::map<Size, Size> assigned;
+    // keep track of assigned/unassigned peptide identifications. 
+    // maps Pep.Id. index to number of assignments to a feature
+    std::map<Size, Size> assigned_ids;
 
     // store which peptides fit which feature (and avoid double entries)
     // consensusMap -> {peptide_index}
@@ -158,7 +159,7 @@ namespace OpenMS
             {
               was_added = true;
               map[cm_index].getPeptideIdentifications().push_back(ids[i]);
-              ++assigned[i];
+              ++assigned_ids[i];
             }
           }
           else
@@ -180,7 +181,7 @@ namespace OpenMS
                   }
                   
                   map[cm_index].getPeptideIdentifications().push_back(id_pep);
-                  ++assigned[i];
+                  ++assigned_ids[i];
                   mapping[cm_index].insert(i);
                 }
                 break; // we added this peptide already.. no need to check other handles
@@ -207,16 +208,16 @@ namespace OpenMS
     //append unassigned peptide identifications
     for (Size i = 0; i < ids.size(); ++i)
     {
-      if (assigned[i] == 0)
+      if (assigned_ids[i] == 0)
       {
         map.getUnassignedPeptideIdentifications().push_back(ids[i]);
         ++matches_none;
       }
-      else if (assigned[i] == 1)
+      else if (assigned_ids[i] == 1)
       {
         ++matches_single;
       }
-      else if (assigned[i] > 1)
+      else if (assigned_ids[i] > 1)
       {
         ++matches_multi;
       }
@@ -435,11 +436,11 @@ namespace OpenMS
     
   }
   
-  void IDMapper::annotate(FeatureMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool use_centroid_rt, bool use_centroid_mz)
+  void IDMapper::annotate(FeatureMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool use_centroid_rt, bool use_centroid_mz, const MSExperiment<Peak1D>& spectra)
   {
     // std::cout << "Starting annotation..." << std::endl;
     checkHits_(ids); // check RT and m/z are present
-    
+
     // append protein identifications
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
     
@@ -536,9 +537,9 @@ namespace OpenMS
          ids.begin(); id_it != ids.end(); ++id_it)
     {
       // std::cout << "Peptide ID: " << id_it - ids.begin() << std::endl;
-      
+
       if (id_it->getHits().empty()) continue;
-      
+
       DoubleList mz_values;
       double rt_value;
       IntList charges;
@@ -622,13 +623,149 @@ namespace OpenMS
       else if (matching_features == 1) ++matches_single;
       else ++matches_multi;
     }
+
+    // determine unidentified precursors
+    vector<Size> unidentified;
+    for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
+    {
+      bool identified(false);
+      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      if (!spectrum.getPrecursors().empty())
+      {
+        const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+        // check if precursor has been identified
+        for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+        {
+          // check by precursor mass and spectrum RT
+          double mz_p = precursors[i_p].getMZ();
+          double rt_s = spectrum.getRT();
+          
+          for (Size i_id = 0; i_id != ids.size(); ++i_id)
+          {
+            const PeptideIdentification& pid = ids[i_id];
+
+            // do not count empty ids as identification of a spectrum
+            if (pid.getHits().empty()) continue;
+
+            double mz_id = pid.getMZ();
+            double rt_id = pid.getRT();
+            
+            if ( fabs(mz_id - mz_p) < 0.001 && fabs(rt_s - rt_id) < 0.001 )
+            {
+              identified = true;
+              break; 
+            }
+          }
+        }   
+        if (!identified) unidentified.push_back(spectrum_index);
+      }
+    }
+
+    // map all unidentified precursor to features
+    Size spectrum_matches_none(0);
+    Size spectrum_matches(0);
+    Size spectrum_matches_single(0);
+    Size spectrum_matches_multi(0);
+
+    for (Size i = 0; i != unidentified.size(); ++i)
+    {
+      Size spectrum_index = unidentified[i];
+      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+      // check if precursor has been identified
+      for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+      {
+        // check by precursor mass and spectrum RT
+        double mz_p = precursors[i_p].getMZ();
+        double rt_value = spectrum.getRT();
+        int z_p = precursors[i_p].getCharge();
+
+        if ((rt_value < min_rt) || (rt_value > max_rt)) // RT out of bounds
+        {
+          ++spectrum_matches_none;
+          continue;
+        }
+      
+        // iterate over candidate features:
+        Size index = SignedSize(floor(rt_value)) - offset;
+        Size matching_features = 0;
+
+        PeptideIdentification precursor_empty_id;
+        precursor_empty_id.setRT(rt_value);
+        precursor_empty_id.setMZ(mz_p);
+        //precursor_empty_id.setCharge(z_p);
+
+        for (std::vector<SignedSize>::iterator hash_it =
+           hash_table[index].begin(); hash_it != hash_table[index].end();
+           ++hash_it)
+        {
+          Feature & feat = map[*hash_it];
+        
+          // (optinally) check charge state
+          if (!ignore_charge_)
+          {
+            if (!z_p, feat.getCharge()) continue;
+          }
+        
+          DPosition<2> id_pos(rt_value, mz_p);
+
+          if (boxes[*hash_it].encloses(id_pos)) // potential match
+          {
+            if (use_centroid_mz)
+            {
+              // only one m/z value to check, which was already incorporated
+              // into the overall bounding box -> success!
+              feat.getPeptideIdentifications().push_back(precursor_empty_id);
+              ++spectrum_matches;
+              break; // "mz_it" loop
+            }
+            // else: check all the mass traces
+            bool found_match = false;
+            for (std::vector<ConvexHull2D>::iterator ch_it =
+                  feat.getConvexHulls().begin(); ch_it !=
+                  feat.getConvexHulls().end(); ++ch_it)
+            {
+              DBoundingBox<2> box = ch_it->getBoundingBox();
+              if (use_centroid_rt)
+              {
+                box.setMinX(feat.getRT());
+                box.setMaxX(feat.getRT());
+              }
+              increaseBoundingBox_(box);
+              if (box.encloses(id_pos)) // success!
+              {
+                feat.getPeptideIdentifications().push_back(precursor_empty_id);
+                ++matching_features;
+                found_match = true;
+                break; // "ch_it" loop
+              }
+            }
+
+            if (found_match) break; // "mz_it" loop
+          }
+        }
+
+        if (matching_features == 0)
+        {
+          ++spectrum_matches_none;
+        }
+        else if (matching_features == 1) ++spectrum_matches_single;
+        else ++spectrum_matches_multi;
+      }             
+    }    
     
     // some statistics output
     LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
     << "Peptides assigned to exactly one feature: " << matches_single << "\n"
-    << "Peptides assigned to multiple features: " << matches_multi << "\n"
-    << map.getAnnotationStatistics()
-    << std::endl;
+    << "Peptides assigned to multiple features: " << matches_multi << "\n";
+
+    LOG_INFO << "Unassigned and unidentified precursors: " << spectrum_matches_none << "\n"
+    << "Unidentified precursor assigned to exactly one feature: " << spectrum_matches_single << "\n"
+    << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multi << "\n";
+
+    LOG_INFO << map.getAnnotationStatistics()<< std::endl;
     
   }
 
