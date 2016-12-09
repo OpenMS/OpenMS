@@ -241,6 +241,10 @@ namespace OpenMS
 
     case N_TERM: return "N-term";
 
+    case PROTEIN_C_TERM: return "Protein C-term";
+
+    case PROTEIN_N_TERM: return "Protein N-term";
+
     default:         // ANYWHERE
       if (term_spec != ANYWHERE)
       {
