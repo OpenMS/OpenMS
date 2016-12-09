@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
@@ -135,6 +136,8 @@ protected:
     setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
+    registerInputFile_("spectra", "<file>", "", "MS run", false);
+    setValidFormats_("spectra", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML,mzq"));
 
@@ -190,6 +193,7 @@ protected:
     }
 
     String in = getStringOption_("in");
+    String spectra = getStringOption_("spectra");
     String out = getStringOption_("out");
     in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
@@ -236,9 +240,17 @@ protected:
       FeatureXMLFile file;
       file.load(in, map);
 
+      MSExperiment<Peak1D> exp;
+
+      if (!spectra.empty())
+      {
+        MzMLFile().load(spectra, exp);
+      }
+
       mapper.annotate(map, peptide_ids, protein_ids,
                       getFlag_("feature:use_centroid_rt"),
-                      getFlag_("feature:use_centroid_mz"));
+                      getFlag_("feature:use_centroid_mz"),
+                      exp);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));

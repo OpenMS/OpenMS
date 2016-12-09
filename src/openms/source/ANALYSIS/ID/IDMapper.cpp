@@ -695,6 +695,7 @@ namespace OpenMS
         PeptideIdentification precursor_empty_id;
         precursor_empty_id.setRT(rt_value);
         precursor_empty_id.setMZ(mz_p);
+        precursor_empty_id.setMetaValue("spectrum_index", spectrum_index);
         //precursor_empty_id.setCharge(z_p);
 
         for (std::vector<SignedSize>::iterator hash_it =
@@ -706,7 +707,7 @@ namespace OpenMS
           // (optinally) check charge state
           if (!ignore_charge_)
           {
-            if (!z_p, feat.getCharge()) continue;
+            if (z_p != feat.getCharge()) continue;
           }
         
           DPosition<2> id_pos(rt_value, mz_p);
