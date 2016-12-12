@@ -136,8 +136,6 @@ protected:
     setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
-    registerInputFile_("spectra", "<file>", "", "MS run", false);
-    setValidFormats_("spectra", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML,mzq"));
 
@@ -163,6 +161,10 @@ protected:
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
     registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
+
+    registerTOPPSubsection_("spectra", "Additional options for mzML input");
+    registerInputFile_("spectra:in", "<file>", "", "MS run used to annotated unidentified spectra to features.", false);
+    setValidFormats_("spectra:in", ListUtils::create<String>("mzML"));
   }
 
   ExitCodes main_(int, const char**)
@@ -193,7 +195,7 @@ protected:
     }
 
     String in = getStringOption_("in");
-    String spectra = getStringOption_("spectra");
+    String spectra = getStringOption_("spectra:in");
     String out = getStringOption_("out");
     in_type = FileHandler::getType(in);
     //----------------------------------------------------------------

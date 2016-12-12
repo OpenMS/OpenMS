@@ -1462,6 +1462,20 @@ set_tests_properties("TOPP_IDMapper_2_out1" PROPERTIES DEPENDS "TOPP_IDMapper_2"
 add_test("TOPP_IDMapper_3" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_3_input.featureXML -out IDMapper_3_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_3_input.idXML  -mz_measure ppm -mz_tolerance 3 -rt_tolerance 4 -ignore_charge)
 add_test("TOPP_IDMapper_3_out1" ${DIFF} -in1 IDMapper_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_3_output.featureXML )
 set_tests_properties("TOPP_IDMapper_3_out1" PROPERTIES DEPENDS "TOPP_IDMapper_3")
+add_test("TOPP_IDMapper_4" ${TOPP_BIN_PATH}/IDMapper -test -in
+${DATA_DIR_TOPP}/IDMapper_4_input.featureXML -out IDMapper_4_output.tmp -id
+${DATA_DIR_TOPP}/IDMapper_4_input.idXML -spectra:in
+${DATA_DIR_TOPP}/IDMapper_4_input.mzML -mz_measure ppm -mz_tolerance 20
+-rt_tolerance 10)
+add_test("TOPP_IDMapper_4_out1" ${DIFF} -in1 IDMapper_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_4_output.featureXML )
+set_tests_properties("TOPP_IDMapper_4_out1" PROPERTIES DEPENDS "TOPP_IDMapper_4")
+add_test("TOPP_IDMapper_5" ${TOPP_BIN_PATH}/IDMapper -test -in
+${DATA_DIR_TOPP}/IDMapper_5_input.featureXML -out IDMapper_5_output.tmp -id
+${DATA_DIR_TOPP}/IDMapper_5_input.idXML -spectra:in
+${DATA_DIR_TOPP}/IDMapper_5_input.mzML -mz_measure ppm -mz_tolerance 10
+-rt_tolerance 20)
+add_test("TOPP_IDMapper_5_out1" ${DIFF} -in1 IDMapper_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_5_output.featureXML )
+set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5")
 
 #------------------------------------------------------------------------------
 # IDRipper tests

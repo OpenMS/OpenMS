@@ -624,7 +624,6 @@ namespace OpenMS
       else ++matches_multi;
     }
 
-    // determine unidentified precursors
     vector<Size> unidentified;
     for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
     {
@@ -667,7 +666,27 @@ namespace OpenMS
     Size spectrum_matches(0);
     Size spectrum_matches_single(0);
     Size spectrum_matches_multi(0);
+    
+    
+    // we need a valid search run identifier so we try to extract one from the map
+    ProteinIdentification empty_protein_id;
+    if (!unidentified.empty())
+    {
+      if (!map.getProteinIdentifications().empty())
+      {
+        empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
+      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      {
+        empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
+      } else
+      {
+        // add a new search identification run (mandatory)
+        empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
+        map.getProteinIdentifications().push_back(empty_protein_id);
+      }
+    }
 
+    // are there any mapped but unidentified precursors?
     for (Size i = 0; i != unidentified.size(); ++i)
     {
       Size spectrum_index = unidentified[i];
@@ -696,6 +715,9 @@ namespace OpenMS
         precursor_empty_id.setRT(rt_value);
         precursor_empty_id.setMZ(mz_p);
         precursor_empty_id.setMetaValue("spectrum_index", spectrum_index);
+        precursor_empty_id.setMetaValue("spectrum_reference",  spectra[spectrum_index].getNativeID());
+        precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
+
         //precursor_empty_id.setCharge(z_p);
 
         for (std::vector<SignedSize>::iterator hash_it =
