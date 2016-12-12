@@ -47,6 +47,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -60,34 +61,35 @@ using namespace std;
 //-------------------------------------------------------------
 //Doxygen docu
 //----------------------------------------------------------
-    @page UTILS_CSIFingerID
+/**
+@page UTILS_CSIFingerID
 
-    @brief Metabolite identification using single and tandem mass spectrometry.
+@brief Metabolite identification using single and tandem mass spectrometry.
 
-    CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
+CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
 
-    To use this feature, the Sirius command line tool as well as a java installation is needed.
+To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-    Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
+Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
 
-    If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
+If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
 
-    Please see the following publications:
+Please see the following publications:
 
-    Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
+Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
 
-    Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (cite this when using CSI:FingerID)
+Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (cite this when using CSI:FingerID)
 
-    Sebastian Böcker, Matthias C. Letzel, Zsuzsanna Lipták and Anton Pervukhin. SIRIUS: decomposing isotope patterns for metabolite identification. Bioinformatics (2009) 25 (2): 218-224. (Cite this for isotope pattern analysis)
+Sebastian Böcker, Matthias C. Letzel, Zsuzsanna Lipták and Anton Pervukhin. SIRIUS: decomposing isotope patterns for metabolite identification. Bioinformatics (2009) 25 (2): 218-224. (Cite this for isotope pattern analysis)
 
-    Florian Rasche, Aleš Svatoš, Ravi Kumar Maddula, Christoph Böttcher, and Sebastian Böcker. Computing Fragmentation Trees from Tandem Mass Spectrometry Data. Analytical Chemistry (2011) 83 (4): 1243–1251. (Cite this for introduction of fragmentation trees as used by SIRIUS)
+Florian Rasche, Aleš Svatoš, Ravi Kumar Maddula, Christoph Böttcher, and Sebastian Böcker. Computing Fragmentation Trees from Tandem Mass Spectrometry Data. Analytical Chemistry (2011) 83 (4): 1243–1251. (Cite this for introduction of fragmentation trees as used by SIRIUS)
 
-    Sebastian Böcker and Florian Rasche. Towards de novo identification of metabolites by analyzing tandem mass spectra. Bioinformatics (2008) 24 (16): i49-i55. (The very first paper to mention fragmentation trees as used by SIRIUS)
+Sebastian Böcker and Florian Rasche. Towards de novo identification of metabolites by analyzing tandem mass spectra. Bioinformatics (2008) 24 (16): i49-i55. (The very first paper to mention fragmentation trees as used by SIRIUS)
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_CSIFingerID.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_CSIFingerID.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude UTILS_CSIFingerID.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude UTILS_CSIFingerID.html
 */
 
 // We do not want this class to show up in the docu:
@@ -154,6 +156,24 @@ protected:
   registerFlag_("iontree", "'--iontree' Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
   registerFlag_("no_recalibration", "'--no-recalibration' If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
   registerFlag_("fingerid", "'--fingerid' If this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecIf this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecular formulular formula", false);
+ }
+
+ Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum<Peak1D>& spectrum1, double left_tolerance, double right_tolerance)
+ {
+  MSSpectrum<Peak1D>::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
+  MSSpectrum<Peak1D>::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
+
+  // no MS1 precursor peak in +- tolerance window found
+  if (left == right || left->getMZ() > test_mz + right_tolerance)
+  {
+   return -1; //not sure if that is allright
+  }
+
+  MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+
+  if (max_intensity_it == right) return -1;
+
+  return max_intensity_it - spectrum1.begin();
  }
 
  ExitCodes main_(int, const char **)
@@ -237,10 +257,50 @@ protected:
     float precursor_int = precursor[0].getIntensity();
     double spectrum_rt = spectrum.getRT();
 
-    //       if (getPrecursorSpectrum(s_it) != s_it.end())
-    //       {
-    //        const MSSpectrum<Peak1D>& ms1spectrum = *(getPrecursorSpectrum(s_it));
-    //       }
+    //find corresponding ms1 spectra (precursor)
+    PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
+    map<double,float> range; //mz,intensity
+    map<double,float> range1; //mz,intensity
+    map<double,float> range2;
+
+    double test_mz = precursor_mz;
+
+    vector<Peak1D> isotopes;
+
+    if (s_it2->getMSLevel() != 1)
+    {
+     LOG_WARN << "Error: no MS1 spectrum for this precursor. No isotopes considered in sirius." << endl;
+    }
+    //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1Da
+    else
+    {
+     const MSSpectrum<Peak1D>& spectrum1 = *s_it2;
+
+     Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.1, 0.1);
+
+     if (mono_index != -1)
+     {
+      const Peak1D& max_mono_peak = spectrum1[mono_index];
+      isotopes.push_back(max_mono_peak);
+
+      // make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
+      const double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
+      Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + 1.0, spectrum1, 0, C13_dd);
+
+      if (iso1_index != -1)
+      {
+       const Peak1D& iso1_peak = spectrum1[iso1_index];
+       isotopes.push_back(iso1_peak);
+       Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + 2.0, spectrum1, 0, C13_dd);
+
+       if (iso2_index != -1)
+       {
+        const Peak1D& iso2_peak = spectrum1[iso2_index];
+        isotopes.push_back(iso2_peak);
+       }
+      }
+     }
+    }
 
     //store temporary data
     String query_id = String("unknown") + String(scan_index);
@@ -268,6 +328,7 @@ protected:
 
     //TODO: MS1 data m/z and intensity of precursor and precursor isotope pattern - for the right sum forumla
     //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
+    //TODO: Scan index working as expected
 
     //write internal unique .ms data as sirius input
     streamsize prec = os.precision();
@@ -277,10 +338,17 @@ protected:
     << ">parentmass " << precursor_mz << fixed << "\n"
     << ">charge " << int_charge << "\n\n";
 
-    if (precursor_int != 0) //if only fragmentspectra are available precuror intensity is 0
+    if (precursor_int != 0 && isotopes.empty() == 0) // if only fragmentspectra are available precuror intensity is 0
     {
-    os << ">ms1" << "\n"
-    << precursor_mz << " " << precursor_int << "\n\n";
+     os << ">ms1" << "\n"
+     << precursor_mz << " " << precursor_int << "\n\n";
+    }
+    else
+    {
+     os << ">ms1" << "\n"
+     << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n"
+     << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n"
+     << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n\n";
     }
 
     //if collision energy was given - write it into .ms file if not use ms2 instead
@@ -378,80 +446,80 @@ protected:
      csi_result.identifications.push_back(csi_id);
 
      //clean up temporary input files and output folder
-     if (getIntOption_("debug") < 2)
-     {
-      writeDebug_("Removing temporary files", 1);
+     //     if (getIntOption_("debug") < 2)
+     //     {
+     //      writeDebug_("Removing temporary files", 1);
 
-      // remove temporary input file
-      if (File::exists(tmp_filename) && !File::remove(tmp_filename))
-      {
-       LOG_WARN << "Unable to remove temporary file: " << tmp_filename << endl;
-      }
+     //      // remove temporary input file
+     //      if (File::exists(tmp_filename) && !File::remove(tmp_filename))
+     //      {
+     //       LOG_WARN << "Unable to remove temporary file: " << tmp_filename << endl;
+     //      }
 
-      // remove temporary output folder
-      if (File::exists(tmp_dir) && !File::removeDirRecursively(tmp_dir))
-      {
-       LOG_WARN << "Unable to remove temporary folder: " << tmp_dir << endl;
-      }
-     }
-     else
-     {
-      writeDebug_(String("Input to sirius kept for inspection at ") + tmp_filename + "\n", 2);
-      writeDebug_(String("Output folder kept for inspection at ") + tmp_dir + "\n", 2);
-     }
+     //      // remove temporary output folder
+     //      if (File::exists(tmp_dir) && !File::removeDirRecursively(tmp_dir))
+     //      {
+     //       LOG_WARN << "Unable to remove temporary folder: " << tmp_dir << endl;
+     //      }
+     //     }
+     //     else
+     //     {
+     //      writeDebug_(String("Input to sirius kept for inspection at ") + tmp_filename + "\n", 2);
+     //      writeDebug_(String("Output folder kept for inspection at ") + tmp_dir + "\n", 2);
+     //     }
     }
    }
   }
 
-   // write out results to mzTab file
-   MzTab mztab;
-   MzTabFile mztab_out;
-   MzTabMetaData md;
-   MzTabMSRunMetaData md_run;
-   md_run.location = MzTabString(in);
-   md.ms_run[1] = md_run;
+  // write out results to mzTab file
+  MzTab mztab;
+  MzTabFile mztab_out;
+  MzTabMetaData md;
+  MzTabMSRunMetaData md_run;
+  md_run.location = MzTabString(in);
+  md.ms_run[1] = md_run;
 
-   MzTabSmallMoleculeSectionRows smsd;
-   for (Size i = 0; i != csi_result.identifications.size(); ++i)
+  MzTabSmallMoleculeSectionRows smsd;
+  for (Size i = 0; i != csi_result.identifications.size(); ++i)
+  {
+   const CSIFingerIDIdentification& id = csi_result.identifications[i];
+   for (Size j = 0; j != id.hits.size(); ++j)
    {
-    const CSIFingerIDIdentification& id = csi_result.identifications[i];
-    for (Size j = 0; j != id.hits.size(); ++j)
+    const CSIFingerIDHit& hit = id.hits[j];
+    MzTabSmallMoleculeSectionRow smsr;
+    smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
+    smsr.charge = MzTabDouble(id.charge);
+    //smsr.chemical_formula = TODO extract from inchi
+    smsr.database = MzTabString(database);
+    smsr.description = MzTabString(hit.name);
+    smsr.exp_mass_to_charge = MzTabDouble(id.mz);
+    vector<MzTabString> pubchemids;
+    for (Size k = 0; k != hit.pubchemids.size(); ++k)
     {
-     const CSIFingerIDHit& hit = id.hits[j];
-     MzTabSmallMoleculeSectionRow smsr;
-     smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
-     smsr.charge = MzTabDouble(id.charge);
-     //smsr.chemical_formula = TODO extract from inchi
-     smsr.database = MzTabString(database);
-     smsr.description = MzTabString(hit.name);
-     smsr.exp_mass_to_charge = MzTabDouble(id.mz);
-     vector<MzTabString> pubchemids;
-     for (Size k = 0; k != hit.pubchemids.size(); ++k)
-     {
-      pubchemids.push_back(MzTabString(hit.pubchemids[k]));
-     }
-     smsr.identifier.set(pubchemids);
-     smsr.inchi_key = MzTabString(hit.inchikey2D);
-     smsr.smiles = MzTabString(hit.smiles);
-     vector<MzTabDouble> rts;
-     rts.push_back(MzTabDouble(id.rt));
-     smsr.retention_time.set(rts);
-     smsr.search_engine.fromCellString("[,,CSIFingerID,3.3]");
-     smsr.search_engine_score_ms_run[1] = smsr.best_search_engine_score;
-     smsr.spectra_ref.fromCellString(String("ms_run[1]:scan_index=" + String(id.scan_index)));
-     smsr.uri = MzTabString(hit.links);
-     MzTabOptionalColumnEntry rank;
-     rank.first = "rank";
-     rank.second = MzTabString(hit.rank);
-     smsr.opt_.push_back(rank);
-     smsd.push_back(smsr);
+     pubchemids.push_back(MzTabString(hit.pubchemids[k]));
     }
+    smsr.identifier.set(pubchemids);
+    smsr.inchi_key = MzTabString(hit.inchikey2D);
+    smsr.smiles = MzTabString(hit.smiles);
+    vector<MzTabDouble> rts;
+    rts.push_back(MzTabDouble(id.rt));
+    smsr.retention_time.set(rts);
+    smsr.search_engine.fromCellString("[,,CSIFingerID,3.3]");
+    smsr.search_engine_score_ms_run[1] = smsr.best_search_engine_score;
+    smsr.spectra_ref.fromCellString(String("ms_run[1]:scan_index=" + String(id.scan_index)));
+    smsr.uri = MzTabString(hit.links);
+    MzTabOptionalColumnEntry rank;
+    rank.first = "rank";
+    rank.second = MzTabString(hit.rank);
+    smsr.opt_.push_back(rank);
+    smsd.push_back(smsr);
    }
+  }
 
-   mztab.setSmallMoleculeSectionRows(smsd);
-   mztab_out.store(out, mztab);
+  mztab.setSmallMoleculeSectionRows(smsd);
+  mztab_out.store(out, mztab);
 
-   return EXECUTION_OK;
+  return EXECUTION_OK;
  }
 };
 
