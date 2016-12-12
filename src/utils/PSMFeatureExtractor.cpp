@@ -111,6 +111,10 @@ protected:
     //registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true); 
     registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied.", true);
     registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together wtih -multiple_search_engines flag.", true);
+    registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
+    // setValidStrings_("extra", ?);
+    registerFlag_("impute", "Will instead of discarding all PSM not unanimously detected by all SE, impute missing values by their respective scores min/max observed.", true);
+    registerFlag_("limit_imputation", "Will impute missing scores with the worst numerical limit (instead of min/max observed) of the respective score.", true);
   }
   
   ExitCodes main_(int, const char**)
@@ -200,7 +204,7 @@ protected:
         else
         {
           // will collapse the list (reference)
-          TopPerc::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids);
+          TopPerc::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
         }
       }
       TopPerc::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
@@ -220,9 +224,9 @@ protected:
     if (multiple_search_engines) search_engine = "multiple";
     LOG_DEBUG << "Registered search engine: " << search_engine << endl;
     
-    TextFile txt;
-
+    StringList extra_features = getStringList_("extra");
     StringList feature_set;
+
     if (search_engine == "multiple")
     {
       if (getFlag_("concat"))
@@ -231,10 +235,11 @@ protected:
       }
       else
       {
-        TopPerc::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set);
+        bool impute = getFlag_("impute");
+        bool limits = getFlag_("limit_imputation");
+        TopPerc::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
       }
     }
-    //TODO introduce custom feature selection from TopPerc::prepareCUSTOMpin to parameters
     else if (search_engine == "MS-GF+") TopPerc::addMSGFFeatures(all_peptide_ids, feature_set);
     else if (search_engine == "Mascot") TopPerc::addMASCOTFeatures(all_peptide_ids, feature_set);
     else if (search_engine == "XTandem") TopPerc::addXTANDEMFeatures(all_peptide_ids, feature_set);
@@ -244,11 +249,12 @@ protected:
       writeLog_("No known input to create PSM features from. Aborting");
       return INCOMPATIBLE_INPUT_DATA;
     }
-    
+
     String run_identifier = all_protein_ids.front().getIdentifier();
     for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
     {
       it->setIdentifier(run_identifier);
+      TopPerc::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features
     }
     
     // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
@@ -257,6 +263,7 @@ protected:
       ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
       
       search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+      feature_set.insert(feature_set.end(), extra_features.begin(), extra_features.end());
       search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
       it->setSearchParameters(search_parameters);
     }

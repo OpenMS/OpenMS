@@ -320,7 +320,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids)
+    void TopPerc::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
     {
       LOG_DEBUG << "creating spectrum map" << endl;
       
@@ -342,10 +342,47 @@ namespace OpenMS
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
+        string st = pit->getScoreType();
         //prepare for merge
         for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
         {
+          // keep the hit score as meta value
+          if (st == "MS-GF:RawScore")
+              st = "MS:1002049";
+          else if (st == "XTandem")
+              st = "MS:1001331";
+          else if (st == "Mascot")
+              st = "MS:1001171";
+          else if ((st == "expect" && search_engine == "Comet" )|| st == "Comet")
+              st = "MS:1002257";
+
+          if (!hit->metaValueExists(st))
+            hit->setMetaValue(st, hit->getScore());
+
           hit->setScore(1);  // new 'multiple' score is just the number of times identified by different SE
+
+          // rename ambiguous meta value names to PSI cv term ids
+          if (search_engine == "MS-GF+")  // MS-GF should have all values as PSI cv terms available anyway
+          {
+            if (hit->metaValueExists("EValue"))
+              hit->setMetaValue("MS:1002053", hit->getMetaValue("EValue"));
+          }
+          if (search_engine == "Mascot")
+          {
+            if (hit->metaValueExists("EValue"))
+              hit->setMetaValue("MS:1001172", hit->getMetaValue("EValue"));
+          }
+          if (search_engine == "Comet")
+          {
+            if (hit->metaValueExists("xcorr"))
+              hit->setMetaValue("MS:1002252", hit->getMetaValue("xcorr"));
+          }
+          if (search_engine == "XTandem")
+          {
+            if (hit->metaValueExists("E-Value"))
+              hit->setMetaValue("MS:1001330", hit->getMetaValue("E-Value"));
+          }
+
         }
         ins.setScoreType("multiple");
         ins.setIdentifier("TopPerc_multiple_SE_input");
@@ -391,6 +428,7 @@ namespace OpenMS
                     merger->setMetaValue(*kt, hit->getMetaValue(*kt));
                   }
                 }
+
                 // adds up the number of hits, as the score of each separate (new) hit is 1
                 merger->setScore(merger->getScore() + hit->getScore());
                 ++mc;
@@ -417,7 +455,6 @@ namespace OpenMS
     void TopPerc::mergeMULTISEProteinIds(vector<ProteinIdentification>& all_protein_ids, vector<ProteinIdentification>& new_protein_ids)
     {      
       LOG_DEBUG << "merging search parameters" << endl;
-      //care for search parameters!!
       
       String SE = new_protein_ids.front().getSearchEngine();  
       if (all_protein_ids.empty())
@@ -538,28 +575,38 @@ namespace OpenMS
       all_peptide_ids.insert(all_peptide_ids.end(), new_peptide_ids.begin(), new_peptide_ids.end());
     }
 
-    void TopPerc::addMULTISEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set)
+    void TopPerc::addMULTISEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only, bool limits_imputation)
     {
+      map<String,vector<double> > extremals;  // will have as keys the below SE cv terms
+      vector<String> max_better, min_better;
+      // This is the minimum set for each SE that should be available in all openms id files in one way or another
       if (ListUtils::contains(search_engines_used, "MS-GF+"))
       {
         feature_set.push_back("MS:1002049");  // rawscore
         feature_set.push_back("MS:1002053");  // evalue
+        max_better.push_back("MS:1002049");  // higher is better - start high, get min
+        min_better.push_back("MS:1002053");  // lower is better - start low, get max
       }
       if (ListUtils::contains(search_engines_used, "Mascot"))
       {
-        feature_set.push_back("MS:1001171");
-        feature_set.push_back("EValue");
+        feature_set.push_back("MS:1001171");  // score aka Mascot
+        feature_set.push_back("MS:1001172");  // evalue aka EValue
+        max_better.push_back("MS:1001171");  // higher is better - start high, get min
+        min_better.push_back("MS:1001172");  // lower is better - start low, get max
       }
       if (ListUtils::contains(search_engines_used, "Comet"))
       {
-        feature_set.push_back("MS:1002252");  //xcorr
-        feature_set.push_back("MS:1002257");  //evalue
+        feature_set.push_back("MS:1002252");  // xcorr
+        feature_set.push_back("MS:1002257");  // evalue
+        max_better.push_back("MS:1002252");  // higher is better - start high, get min
+        min_better.push_back("MS:1002257");  // lower is better - start low, get max
       }
       if (ListUtils::contains(search_engines_used, "XTandem"))
       {
-        //TODO: create XTandem score
-        //feature_set.push_back("XTandem_score");
-        feature_set.push_back("E-Value");
+        feature_set.push_back("MS:1001331");  // hyperscore aka XTandem
+        feature_set.push_back("MS:1001330");  // evalue aka E-Value
+        max_better.push_back("MS:1001331");  // higher is better - start high, get min
+        min_better.push_back("MS:1001330");  // lower is better - start low, get max
       }
       //feature_set.push_back("MULTI:ionFrac");
       //feature_set.push_back("MULTI:numHits"); // this is not informative if we only keep PSMs with hits for all search engines
@@ -567,20 +614,154 @@ namespace OpenMS
       LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
 
       // get all the feature values
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      if (!complete_only)
       {
-        it->sort();
-        it->assignRanks();
-        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+        {
+          for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+          {
+            for (StringList::iterator feats = feature_set.begin(); feats != feature_set.end(); ++feats)
+            {
+              if (hit->metaValueExists(*feats))
+              {
+                // TODO raise issue: MS-GF raw score values are sometimes registered as string DataValues and henceforth casted defectively
+                if (hit->getMetaValue(*feats).valueType() == DataValue::STRING_VALUE)
+                {
+                  string recast = hit->getMetaValue(*feats);
+                  double d = boost::lexical_cast<double>(recast);
+                  LOG_DEBUG << "recast: "
+                            << recast << " "
+                            << double(hit->getMetaValue(*feats)) << "* ";
+                  hit->setMetaValue(*feats,d);
+                  LOG_DEBUG << hit->getMetaValue(*feats).valueType() << " "
+                            << hit->getMetaValue(*feats)
+                            << endl;
+                }
+                extremals[*feats].push_back(hit->getMetaValue(*feats));
+              }
+            }
+          }
+        }
+        // TODO : add optional manual extremal values settings for 'data imputation' instead of min/max or numeric_limits value
+        for (vector<String>::iterator maxbt = max_better.begin(); maxbt != max_better.end(); ++maxbt)
+        {
+          map<String,vector<double> >::iterator fi = extremals.find(*maxbt);
+          if (fi != extremals.end())
+          {
+            vector<double>::iterator mymax = min_element(fi->second.begin(), fi->second.end());
+            iter_swap(fi->second.begin(), mymax);
+            if (limits_imputation)
+            {
+              fi->second.front() = -std::numeric_limits<float>::max();
+            }
+          }
+        }
+        for (vector<String>::iterator minbt = min_better.begin(); minbt != min_better.end(); ++minbt)
+        {
+          map<String,vector<double> >::iterator fi = extremals.find(*minbt);
+          if (fi != extremals.end())
+          {
+            vector<double>::iterator mymin = max_element(fi->second.begin(), fi->second.end());
+            iter_swap(fi->second.begin(), mymin);
+            if (limits_imputation)
+            {
+              fi->second.front() = std::numeric_limits<float>::max();
+            }
+          }
+        }
+      }
+
+      size_t sum_removed = 0;
+      size_t imputed_values = 0;
+      size_t observed_values = 0;
+      size_t complete_spectra = 0;
+      size_t incomplete_spectra = 0;
+
+      LOG_DEBUG << "Looking for minimum feature set:" << ListUtils::concatenate(feature_set, ", ") << "." << endl;
+
+      for (vector<PeptideIdentification>::iterator pi = peptide_ids.begin(); pi != peptide_ids.end(); ++pi)
+      {
+        pi->sort();
+        pi->assignRanks();
+        vector<vector<PeptideHit>::iterator> incompletes;
+
+        size_t imputed_back = imputed_values;
+        for (vector<PeptideHit>::iterator hit = pi->getHits().begin(); hit != pi->getHits().end(); ++hit)
         {
           //double ion_frac = hit->getMetaValue("matched_intensity").toString().toDouble() / hit->getMetaValue("sum_intensity").toString().toDouble();  // also consider "matched_ion_number"/"peak_number"
           //hit->setMetaValue("MULTI:ionFrac", ion_frac);
           
+          for (StringList::iterator feats = feature_set.begin(); feats != feature_set.end(); ++feats)
+          {
+            if (complete_only && !hit->metaValueExists(*feats))
+            {
+              incompletes.push_back(hit);  // mark for removal
+              break;
+            }
+            else if (!hit->metaValueExists(*feats))
+            {
+              hit->setMetaValue(*feats, extremals[*feats].front());  // imputation
+              ++imputed_values;
+            }
+            else
+            {
+              ++observed_values;
+            }
+          }
           int num_hits = hit->getScore();
           hit->setMetaValue("MULTI:numHits", num_hits);
         }
+        if (complete_only)
+        {
+          // remove incompletes
+          for (vector<vector<PeptideHit>::iterator>::reverse_iterator rit = incompletes.rbegin(); rit != incompletes.rend(); ++rit)
+          {
+            pi->getHits().erase(*rit);
+          }
+          sum_removed += incompletes.size();
+        }
+        if (incompletes.size() > 0 || imputed_back < imputed_values)
+          ++incomplete_spectra;
+        else
+          ++complete_spectra;
+      }
+      if (sum_removed > 0)
+      {
+        LOG_WARN << "Removed " << sum_removed << " incomplete cases of PSMs." << endl;
+      }
+      if (imputed_values > 0)
+      {
+        LOG_WARN << "Imputed " << imputed_values << " of " << observed_values+imputed_values
+                 << " missing values. ("
+                 << imputed_values*100.0/(imputed_values+observed_values)
+                 << "%)" << endl;
+        LOG_WARN << "Affected " << incomplete_spectra << " of " << incomplete_spectra+complete_spectra
+                 << " spectra. ("
+                 << incomplete_spectra*100.0/(incomplete_spectra+complete_spectra)
+                 << "%)" << endl;
       }
     }
+
+    void TopPerc::checkExtraFeatures(const vector<PeptideHit>& psms, StringList& extra_features)
+    {
+      set<StringList::iterator> unavail;
+      for (vector<PeptideHit>::const_iterator hit = psms.begin(); hit != psms.end(); ++hit)
+      {
+        for (StringList::iterator ef = extra_features.begin(); ef != extra_features.end(); ++ef)
+        {
+          if (!hit->metaValueExists(*ef))
+          {
+            unavail.insert(ef);
+          }
+        }
+      }
+      for (set<StringList::iterator>::reverse_iterator rit = unavail.rbegin(); rit != unavail.rend(); ++rit)
+      {
+        LOG_WARN << "A extra_feature requested (" << *(*rit) << ") was not available - removed." << endl;
+        extra_features.erase(*rit);
+      }
+    }
+
     
     // Function adapted from MsgfplusReader in Percolator converter
     double TopPerc::rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons)
@@ -625,7 +806,7 @@ namespace OpenMS
       return suf;
     }
     
-    // TODO: check if this is consistent for all search engines. MSGF+ and X!Tandem have been checked.
+    // TODO: this is code redundancy to PercolatorAdapter
     String TopPerc::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {
       // MSGF+ uses this field, is empty if not specified

@@ -40,10 +40,15 @@
 #include <cmath>
 #include <string>
 #include <map>
+#include <algorithm>
+#include <limits>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+
+#include <boost/lexical_cast.hpp>
 
 namespace OpenMS
 {
@@ -52,16 +57,18 @@ namespace OpenMS
 
     public:
         static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
-        static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids);
+        static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
         static void mergeMULTISEProteinIds(std::vector<ProteinIdentification>& all_protein_ids, std::vector<ProteinIdentification>& new_protein_ids);
         
         static void addMSGFFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
         static void addXTANDEMFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
         static void addCOMETFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
         static void addMASCOTFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
-        static void addMULTISEFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set);
+        static void addMULTISEFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only = true, bool limits_imputation = false);
         static void addCONCATSEFeatures(std::vector<PeptideIdentification>& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
-        
+
+        static void checkExtraFeatures(const std::vector<PeptideHit> &psms, StringList& extra_features);
+
         struct lq_ProteinHit
         {
           inline bool operator() (const ProteinHit& h1, const ProteinHit& h2)

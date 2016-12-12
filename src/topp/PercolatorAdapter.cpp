@@ -52,6 +52,9 @@
 #include <string>
 #include <set>
 
+#include <boost/algorithm/clamp.hpp>
+#include <typeinfo>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -241,6 +244,7 @@ protected:
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
   }
   
+  // TODO replace with TopPerc::getScanMergeKey
   String getScanIdentifier_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
   {
     // MSGF+ uses this field, is empty if not specified
@@ -262,6 +266,7 @@ protected:
     return scan_identifier.removeWhitespaces();
   }
   
+  // TODO replace with TopPerc::getScanMergeKey
   Int getScanNumber_(String scan_identifier)
   {
     Int scan_number = 0;
@@ -524,7 +529,6 @@ protected:
         }
         for (vector<PeptideHit>::iterator pht = pit->getHits().begin(); pht != pit->getHits().end(); ++pht)
         {
-          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
           if (!pht->metaValueExists("target_decoy"))
           {
             if (isDecoy)
@@ -550,6 +554,8 @@ protected:
           {
             min_charge = pht->getCharge();
           }
+
+          // TODO: set min/max scores?
         }
       }
       
@@ -639,7 +645,7 @@ protected:
 
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
-    if (percolator_executable.empty()) //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
+    if (percolator_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
     {
       writeLog_("No percolator executable specified. Aborting!");
       printUsage_();
