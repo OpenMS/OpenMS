@@ -46,7 +46,7 @@ using namespace std;
 
 START_TEST(SpectrumHelper, "$Id$")
 
-START_SECTION((MSSpectrum<>::FloatDataArrays::iterator getDataArrayByName(const MSSpectrum::FloatDataArrays& a, const String& name)))
+START_SECTION((MSSpectrum<>::FloatDataArrays::iterator getDataArrayByName(MSSpectrum::FloatDataArrays& a, const String& name)))
 	MSSpectrum<> ds;
 	MSSpectrum<>::FloatDataArray float_array;
         float_array.push_back(56);  
@@ -66,9 +66,16 @@ START_SECTION((MSSpectrum<>::FloatDataArrays::iterator getDataArrayByName(const 
         TEST_EQUAL(getDataArrayByName(ds.getFloatDataArrays(), "f1") - ds.getFloatDataArrays().begin(), 0);
         TEST_EQUAL(getDataArrayByName(ds.getFloatDataArrays(), "f2") - ds.getFloatDataArrays().begin(), 1);
         TEST_EQUAL(getDataArrayByName(ds.getFloatDataArrays(), "f3") - ds.getFloatDataArrays().begin(), 2);
+
+        // test const version
+        const MSSpectrum<>::FloatDataArrays cfa(ds.getFloatDataArrays());
+        TEST_EQUAL(getDataArrayByName(cfa, "f2") == cfa.end(), false);
+        TEST_EQUAL(getDataArrayByName(cfa, "f1") - cfa.begin(), 0);
+        TEST_EQUAL(getDataArrayByName(cfa, "NOT_THERE") == cfa.end(), true);
+
 END_SECTION
 
-START_SECTION((MSSpectrum<>::StringDataArrays::iterator getDataArrayByName(const MSSpectrum::StringDataArrays& a, const String& name)))
+START_SECTION((MSSpectrum<>::StringDataArrays::iterator getDataArrayByName(MSSpectrum::StringDataArrays& a, const String& name)))
 	MSSpectrum<> ds;
 	MSSpectrum<>::StringDataArray string_array;
         string_array.push_back("56");  
@@ -89,7 +96,7 @@ START_SECTION((MSSpectrum<>::StringDataArrays::iterator getDataArrayByName(const
         TEST_EQUAL(getDataArrayByName(ds.getStringDataArrays(), "f3") - ds.getStringDataArrays().begin(), 2);
 END_SECTION
 
-START_SECTION((MSSpectrum<>::IntegerDataArrays::iterator getDataArrayByName(const MSSpectrum::IntegerDataArrays& a, const String& name)))
+START_SECTION((MSSpectrum<>::IntegerDataArrays::iterator getDataArrayByName(MSSpectrum::IntegerDataArrays& a, const String& name)))
 	MSSpectrum<> ds;
 	MSSpectrum<>::IntegerDataArray int_array;
         int_array.push_back(56);  
@@ -133,7 +140,7 @@ START_SECTION((MSChromatogram<>::FloatDataArrays::iterator getDataArrayByName(co
         TEST_EQUAL(getDataArrayByName(ds.getFloatDataArrays(), "f3") - ds.getFloatDataArrays().begin(), 2);
 END_SECTION
 
-START_SECTION((MSChromatogram<>::StringDataArrays::iterator getDataArrayByName(const MSChromatogram::StringDataArrays& a, const String& name)))
+START_SECTION((MSChromatogram<>::StringDataArrays::iterator getDataArrayByName(MSChromatogram::StringDataArrays& a, const String& name)))
 	MSChromatogram<> ds;
 	MSChromatogram<>::StringDataArray string_array;
         string_array.push_back("56");  
@@ -154,7 +161,7 @@ START_SECTION((MSChromatogram<>::StringDataArrays::iterator getDataArrayByName(c
         TEST_EQUAL(getDataArrayByName(ds.getStringDataArrays(), "f3") - ds.getStringDataArrays().begin(), 2);
 END_SECTION
 
-START_SECTION((MSChromatogram<>::IntegerDataArrays::iterator getDataArrayByName(const MSChromatogram::IntegerDataArrays& a, const String& name)))
+START_SECTION((MSChromatogram<>::IntegerDataArrays::iterator getDataArrayByName(MSChromatogram::IntegerDataArrays& a, const String& name)))
 	MSChromatogram<> ds;
 	MSChromatogram<>::IntegerDataArray int_array;
         int_array.push_back(56);  

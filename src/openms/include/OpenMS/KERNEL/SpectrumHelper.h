@@ -56,6 +56,16 @@ namespace OpenMS
     }
     return it;
   }
+  template <class DataArrayT>
+  typename DataArrayT::const_iterator getDataArrayByName(const DataArrayT& a, const String& name)
+  {
+    typename DataArrayT::const_iterator it = a.begin();
+    for (; it != a.end(); ++it)
+    {
+      if (it->getName() == name) return it;
+    }
+    return it;
+  }
 
 } // namespace OpenMS
 
