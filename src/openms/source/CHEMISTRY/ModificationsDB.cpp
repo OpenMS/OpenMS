@@ -143,12 +143,6 @@ namespace OpenMS
     return modification_names_.has(modification);
   }
 
-
-  bool ModificationsDB::hasModification(const String & mod_name) const
-  {
-    return modification_names_.has(mod_name);
-  }
-
   Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
     Size idx(0);
@@ -299,6 +293,10 @@ namespace OpenMS
 
   void ModificationsDB::addModification(ResidueModification * new_mod)
   {
+    if (has(new_mod->getFullId()))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
+    }
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);

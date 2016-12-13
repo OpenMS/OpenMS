@@ -120,12 +120,8 @@ public:
     bool has(String modification) const;
 
     /**
-       @brief Returns true if the modification is part of ModificationsDB
-    */
-    bool hasModification(const String & modification) const;
-
-    /**
-       @brief Add a new modification to ModificationsDB
+       @brief Add a new modification to ModificationsDB.
+       @throw Exception::InvalidValue if modification already exists (based on its fullID)
     */
     void addModification(ResidueModification * new_mod);
 

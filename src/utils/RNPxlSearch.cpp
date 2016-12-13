@@ -1783,12 +1783,12 @@ protected:
       precursor_to_fragment_adducts[key].insert(fad);
 
       // register all fragment adducts as N- and C-terminal modification (if not already registered)
-      if (!ModificationsDB::getInstance()->hasModification(name))
+      if (!ModificationsDB::getInstance()->has(name))
       {
         ResidueModification * c_term = new ResidueModification();
         c_term->setId(name);
         c_term->setName(name);
-        c_term->setFullId(name);
+        c_term->setFullId(name + " (C-term)");
         c_term->setTermSpecificity(ResidueModification::C_TERM);
         c_term->setDiffMonoMass(formula.getMonoWeight());
         ModificationsDB::getInstance()->addModification(c_term);
@@ -1796,7 +1796,7 @@ protected:
         ResidueModification * n_term = new ResidueModification();
         n_term->setId(name);
         n_term->setName(name);
-        n_term->setFullId(name);
+        n_term->setFullId(name + " (N-term)");
         n_term->setTermSpecificity(ResidueModification::N_TERM);
         n_term->setDiffMonoMass(formula.getMonoWeight());
         ModificationsDB::getInstance()->addModification(n_term);
@@ -1808,7 +1808,7 @@ protected:
       for (map<String, set<FragmentAdductDefinition_> >::const_iterator mit =  precursor_to_fragment_adducts.begin(); mit != precursor_to_fragment_adducts.end(); ++mit)
       {
         cout << "precursor adduct:" << mit->first << " fragment adduct:" << mit->second.formula.toString() << " name:" <<  mit->second.name << endl;
-        cout << ModificationsDB::getInstance()->hasModification(mit->second.name) << endl;
+        cout << ModificationsDB::getInstance()->has(mit->second.name) << endl;
       }
     #endif
 */
