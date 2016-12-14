@@ -495,7 +495,11 @@ namespace OpenMS
           u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
           if (unitCvRef.empty())
           {
-            LOG_WARN << "MZID retention times with units but without unit cv reference encountered!" << endl;
+            LOG_WARN << "This mzid file uses a cv term with units, but without "
+                     << "unit cv reference (required)! Please notify the mzid "
+                     << "producer of this file. \"" << name << "\" will be read as \""
+                     << unitName << "\" but further actions on this unit may fail."
+                     << endl;
           }
         }
         return CVTerm(accession, name, cvRef, value, u);
