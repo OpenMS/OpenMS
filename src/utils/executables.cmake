@@ -41,6 +41,7 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
+RNPxlSearch
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
@@ -51,8 +52,6 @@ TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
-#SimpleSearchEngine
-#RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)

@@ -43,7 +43,6 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -72,6 +71,8 @@
 
 #include <math.h>
 
+//#define DEBUG_METAPROSIP
+
 using namespace OpenMS;
 using namespace std;
 using boost::math::normal;
@@ -94,8 +95,9 @@ struct SIPIncorporation
   double correlation; ///< correlation coefficient
 
   double abundance; ///< abundance of isotopologue
-
-  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution
+#ifdef DEBUG_METAPROSIP
+  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution. Large memory consumption.
+#endif
 };
 
 /// datastructure for reporting a peptide with one or more incorporation rates
@@ -149,7 +151,9 @@ struct SIPPeptide
 
   IsotopePatterns patterns;
 
+#ifdef DEBUG_METAPROSIP
   vector<PeakSpectrum> pattern_spectra;
+#endif
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
@@ -2655,8 +2659,9 @@ protected:
             closest_idx = i;
           }
         }
+#ifdef DEBUG_METAPROSIP
         sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
-
+#endif
         if (int_sum > 1e-4)
         {
           sip_incorporations.push_back(sip_incorporation);
@@ -2840,7 +2845,10 @@ protected:
           closest_idx = i;
         }
       }
+
+#ifdef DEBUG_METAPROSIP
       sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
+#endif
 
       sip_incorporations.push_back(sip_incorporation);
     }
@@ -3436,7 +3444,9 @@ protected:
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);
+#ifdef DEBUG_METAPROSIP
         sip_peptide.pattern_spectra.push_back(p);
+#endif
       }
 
       // calculate decomposition into isotopic patterns
