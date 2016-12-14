@@ -1221,6 +1221,14 @@ if(WITH_GUI)
 endif()
 
 #------------------------------------------------------------------------------
+# RNPxlSearch
+add_test("TOPP_RNPxlSearch_1" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_1_output.tmp -ini ${DATA_DIR_TOPP}/RNPxlSearch_1_parameters.ini)
+add_test("TOPP_RNPxlSearch_1_out1" ${DIFF} -whitelist "IdentificationRun date"
+"db=" -in1 RNPxlSearch_1_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_1_output.idXML )
+set_tests_properties("TOPP_RNPxlSearch_1_out1" PROPERTIES DEPENDS "TOPP_RNPxlSearch_1")
+
+#------------------------------------------------------------------------------
 # RTModel tests
 add_test("TOPP_RTModel_1" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_1_input.idXML -out RTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_1_parameters.ini)
 add_test("TOPP_RTModel_1_out1" ${DIFF} -in1 RTModel_1_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_1_output.model )

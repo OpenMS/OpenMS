@@ -670,7 +670,6 @@ public:
       }
     }
 
-
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
@@ -726,7 +725,7 @@ public:
     }
 
 protected:
-
+   
     /// Retention time
     double retention_time_;
 
@@ -768,3 +767,4 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
+

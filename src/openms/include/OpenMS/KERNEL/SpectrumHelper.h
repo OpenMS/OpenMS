@@ -28,43 +28,46 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
-
-#include <vector>
-#include <map>
-#include <set>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#ifndef OPENMS_KERNEL_SPECTRUMHELPER_H
+#define OPENMS_KERNEL_SPECTRUMHELPER_H
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI ModifiedPeptideGenerator
+  class String;
+  /**
+    @brief Helper functions for MSSpectrum and MSChromatogram.
+
+    @ingroup Kernel
+  */
+
+  /// Returns an iterator to the first data array with the given name. 
+  /// The end iterator is returned in case no data array with given name exists.
+  template <class DataArrayT>
+  typename DataArrayT::iterator getDataArrayByName(DataArrayT& a, const String& name)
   {
-   /*
-    * @brief Modifications can be generated and applied to AASequences. 
-    */
+    typename DataArrayT::iterator it = a.begin();
+    for (; it != a.end(); ++it)
+    {
+      if (it->getName() == name) return it;
+    }
+    return it;
+  }
+  template <class DataArrayT>
+  typename DataArrayT::const_iterator getDataArrayByName(const DataArrayT& a, const String& name)
+  {
+    typename DataArrayT::const_iterator it = a.begin();
+    for (; it != a.end(); ++it)
+    {
+      if (it->getName() == name) return it;
+    }
+    return it;
+  }
 
-  public
-:
-    // Applies fixed modifications to a single peptide
-    static void applyFixedModifications(const std::vector<ResidueModification>::const_iterator& fixed_mods_begin, const std::vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide);
+} // namespace OpenMS
 
-    // Applies variable modifications to a single peptide. If keep_original is set the original (e.g. unmodified version) is also returned
-    static void applyVariableModifications(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, Size max_variable_mods_per_peptide, std::vector<AASequence>& all_modified_peptides, bool keep_original=true);
-
-  protected:
-    // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedPeptides_(const std::vector<int>& subset_indices, const std::map<int, std::vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, std::vector<AASequence>& modified_peptides);
-
-    // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
-    static void applyAtMostOneVariableModification_(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, std::vector<AASequence>& all_modified_peptides, bool keep_original=true);
-
-  };
-}
-
-#endif
+#endif // OPENMS_KERNEL_SPECTRUMHELPER_H
 
