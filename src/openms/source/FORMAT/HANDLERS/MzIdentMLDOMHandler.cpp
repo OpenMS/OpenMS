@@ -490,11 +490,18 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
 
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
-        if (!unitAcc.empty() && !unitCvRef.empty() && !unitName.empty())
+        if (!unitAcc.empty() && !unitName.empty())
         {
           u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
+          if (unitCvRef.empty())
+          {
+            LOG_WARN << "This mzid file uses a cv term with units, but without "
+                     << "unit cv reference (required)! Please notify the mzid "
+                     << "producer of this file. \"" << name << "\" will be read as \""
+                     << unitName << "\" but further actions on this unit may fail."
+                     << endl;
+          }
         }
-        // TODO: warn if only a part of the unit attributes are not empty?
         return CVTerm(accession, name, cvRef, value, u);
       }
       else
