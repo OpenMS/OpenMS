@@ -35,7 +35,6 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
@@ -44,7 +43,6 @@
 #include <QtGui/QImage>
 
 using namespace OpenMS;
-using namespace OpenMS::Math;
 using namespace std;
 
 //-------------------------------------------------------------
