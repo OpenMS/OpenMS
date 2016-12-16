@@ -64,14 +64,60 @@ struct OPENMS_DLLAPI PScore
    * @param peak_map Fragment spectra used for rank calculation. Typically a peak map after removal of all MS1 spectra.
    * @param mz_window window in Thomson centered at each peak
    */
-  static std::vector<std::vector<Size> > calculateRankMap(const PeakMap& peak_map, double mz_window = 100);
+  template <typename PeakType>
+  static std::vector<std::vector<Size> > calculateRankMap(const MSExperiment<PeakType>& peak_map, double mz_window = 100)
+  {
+    std::vector<std::vector<Size> > rank_map; // note: ranks are zero based
+    rank_map.reserve(peak_map.size());
+    for (Size i = 0; i != peak_map.size(); ++i)
+    {
+      const MSSpectrum<PeakType>& spec = peak_map[i];
+      std::vector<double> mz;
+      std::vector<double> intensities;
+      for (Size j = 0; j != spec.size(); ++j)
+      {
+        mz.push_back(spec[j].getMZ());
+        intensities.push_back(spec[j].getIntensity());
+      }
+      rank_map.push_back(calculateIntensityRankInMZWindow(mz, intensities, mz_window));
+    }
+    return rank_map;
+  }
+
+  static double computeCumulativeScore_(Size N, Size n, double p);
 
   /* @brief Calculates spectra for peak level between min_level to max_level and stores them in the map
    * A spectrum of peak level n retains the (n+1) top intensity peaks in a sliding mz_window centered at each peak.
    * @note: levels are zero based (level 0 has only the top intensity peaks for each window, level 1 the top and second most intensive one)
    * @note: min and max level are taken from the Andromeda publication but are similar to the AScore publication
    */ 
-  static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(const PeakSpectrum& spec, const std::vector<Size>& ranks, Size min_level = 1, Size max_level = 9);
+  template <typename SpectrumType>
+  static std::map<Size, SpectrumType > calculatePeakLevelSpectra(const SpectrumType& spec, const std::vector<Size>& ranks, Size min_level = 1, Size max_level = 9)
+  {
+    typename std::map<Size, SpectrumType > peak_level_spectra;
+
+    if (spec.empty()) return peak_level_spectra;
+
+    // loop over all peaks and associated (zero-based) ranks
+    for (Size i = 0; i != ranks.size(); ++i)
+    {
+      // start at the highest (less restrictive) level
+      for (int j = static_cast<int>(max_level); j >= static_cast<int>(min_level); --j)
+      {
+        // if the current peak is annotated to have lower or equal rank then allowed for this peak level add it
+        if (static_cast<int>(ranks[i]) <= j)
+        {
+          peak_level_spectra[j].push_back(spec[i]);
+        }
+        else
+        {
+          // if the current peak has higher rank than the current level then all it is also to high for the lower levels
+          break;
+        }
+      }
+    }
+    return peak_level_spectra;
+  }
 
   /* @brief Computes the PScore for a vector of theoretical spectra
    * Similar to Andromeda, a vector of theoretical spectra can be provided that e.g. contain loss spectra or higher charge spectra depending on the sequence.
@@ -82,7 +128,55 @@ struct OPENMS_DLLAPI PScore
    * @param theo_spectra theoretical spectra as obtained e.g. from TheoreticalSpectrumGenerator
    * @param mz_window window in Thomson centered at each peak
    */ 
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window = 100.0);
+  template <typename SpectrumType>
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, SpectrumType>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window = 100.0)
+  {
+//    OpenMS::AScore a_score_algorithm; // TODO: make the cumulative score function static
+
+    double best_pscore = 0.0;
+
+    for (typename std::vector<SpectrumType>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
+    {
+      const RichPeakSpectrum& theo_spectrum = *theo_spectra_it;
+
+      // number of theoretical ions for current spectrum
+      Size N = theo_spectrum.size();
+
+      for (typename std::map<Size, SpectrumType>::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+      {
+        const double level = static_cast<double>(l_it->first);
+        const PeakSpectrum& exp_spectrum = l_it->second;
+
+        Size matched_peaks(0);
+        for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+        {
+          const double& theo_mz = theo_peak_it->getMZ();
+
+          double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+          // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+          Size index = exp_spectrum.findNearest(theo_mz);
+          double exp_mz = exp_spectrum[index].getMZ();
+
+          // found peak match
+          if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+          {
+            ++matched_peaks;
+          }
+        }
+
+        // compute p score as e.g. in the AScore implementation or Andromeda
+        const double p = level / mz_window;
+        const double pscore = -10.0 * log10(computeCumulativeScore_(N, matched_peaks, p));
+        if (pscore > best_pscore)
+        {
+          best_pscore = pscore;
+        }
+      }
+    }
+
+    return best_pscore;
+  }
 
   /* @brief Computes the PScore for a single theoretical spectrum
    * @param fragment_mass_tolerance mass tolerance for matching peaks
@@ -91,7 +185,50 @@ struct OPENMS_DLLAPI PScore
    * @param theo_spectra theoretical spectra as obtained e.g. from TheoreticalSpectrumGenerator
    * @param mz_window window in Thomson centered at each peak
    */ 
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const RichPeakSpectrum& theo_spectrum, double mz_window = 100.0);
+  template <typename SpectrumType>
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, SpectrumType>& peak_level_spectra, const RichPeakSpectrum& theo_spectrum, double mz_window = 100.0)
+  {
+//    AScore a_score_algorithm; // TODO: make the cumulative score function static
+
+    double best_pscore = 0.0;
+
+    // number of theoretical ions for current spectrum
+    Size N = theo_spectrum.size();
+
+    for (typename std::map<Size, SpectrumType>::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+    {
+      const double level = static_cast<double>(l_it->first);
+      const SpectrumType& exp_spectrum = l_it->second;
+
+      Size matched_peaks(0);
+      for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      {
+        const double& theo_mz = theo_peak_it->getMZ();
+
+        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+        Size index = exp_spectrum.findNearest(theo_mz);
+        double exp_mz = exp_spectrum[index].getMZ();
+
+        // found peak match
+        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+        {
+          ++matched_peaks;
+        }
+      }
+      // compute p score as e.g. in the AScore implementation or Andromeda
+      const double p = (level + 1) / mz_window;
+      const double pscore = -10.0 * log10(computeCumulativeScore_(N, matched_peaks, p));
+
+      if (pscore > best_pscore)
+      {
+        best_pscore = pscore;
+      }
+    }
+
+    return best_pscore;
+  }
 
   /// additive correction terms used by Andromeda (pscore + massC + cleaveC + modC - 100). For reference see the Andromeda source code.
   /// @note: constants used in the correction term might be instrument dependent
