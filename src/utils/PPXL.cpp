@@ -1196,6 +1196,8 @@ protected:
     void writeXQuestXML(const String& out_file, String base_name, const vector< PeptideIdentification >& peptide_ids, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const RichPeakMap& spectra)
     {
       String spec_xml_name = base_name + "_matched";
+
+      cout << "Writing xquest.xml to " << out_file << endl;
       ofstream xml_file;
       xml_file.open(out_file.c_str(), ios::trunc);
       // XML Header
@@ -1381,12 +1383,13 @@ protected:
       return;
     }
 
-    void writeXQuestXMLSpec(String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const RichPeakMap& spectra)
+    void writeXQuestXMLSpec(String out_file, String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const RichPeakMap& spectra)
     {
-      String spec_xml_filename = base_name + "_matched.spec.xml";
+      // String spec_xml_filename = base_name + "_matched.spec.xml";
       // XML Header
       ofstream spec_xml_file;
-      spec_xml_file.open(spec_xml_filename.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
+      cout << "Writing spec.xml to " << out_file << endl;
+      spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
       // TODO write actual data
       spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
 
@@ -1798,7 +1801,7 @@ protected:
     }
 
     // for PScore, precompute ranks
-//    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
+    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
 
     // TODO test variables, can be removed, or set to be used in debug mode?
     double pScoreMax = 0;
@@ -1910,7 +1913,6 @@ protected:
           vector <SignedSize> link_pos_second;
           AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
           AASequence peptide_second;
-          cout << "Current candidate alpha: " << peptide_first.toString() << endl;
           if (candidate.beta_index)
           {
             peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
@@ -2234,12 +2236,12 @@ protected:
 
 //############################# TESTING SCORES ##############################################
 
-//                map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
-//                csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_common);
-//                csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_xlinks);
-//                csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec);
-//                csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_alpha);
-//                csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_beta);
+                map<Size, RichPeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
+                csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_common);
+                csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_xlinks);
+                csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec);
+                csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_alpha);
+                csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_beta);
 
                 csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_common);
                 csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_alpha);
@@ -2468,11 +2470,11 @@ protected:
               ph_alpha.setMetaValue("OpenXQuest:HyperBeta", top_csms_spectrum[i].HyperBeta);
               ph_alpha.setMetaValue("OpenXQuest:HyperBoth",top_csms_spectrum[i].HyperBoth);
 
-//              ph_alpha.setMetaValue("OpenXQuest:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
-//              ph_alpha.setMetaValue("OpenXQuest:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
-//              ph_alpha.setMetaValue("OpenXQuest:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
-//              ph_alpha.setMetaValue("OpenXQuest:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
-//              ph_alpha.setMetaValue("OpenXQuest:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+              ph_alpha.setMetaValue("OpenXQuest:AndroCommon",top_csms_spectrum[i].PScoreCommon);
+              ph_alpha.setMetaValue("OpenXQuest:AndroXlink",top_csms_spectrum[i].PScoreXlink);
+              ph_alpha.setMetaValue("OpenXQuest:AndroAlpha",top_csms_spectrum[i].PScoreAlpha);
+              ph_alpha.setMetaValue("OpenXQuest:AndroBeta",top_csms_spectrum[i].PScoreBeta);
+              ph_alpha.setMetaValue("OpenXQuest:AndroBoth",top_csms_spectrum[i].PScoreBoth);
 
               ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
               LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
@@ -2503,11 +2505,11 @@ protected:
                 ph_beta.setMetaValue("OpenXQuest:HyperBeta",top_csms_spectrum[i].HyperBeta);
                 ph_beta.setMetaValue("OpenXQuest:HyperBoth",top_csms_spectrum[i].HyperBoth);
 
-//                ph_beta.setMetaValue("OpenXQuest:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
-//                ph_beta.setMetaValue("OpenXQuest:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
-//                ph_beta.setMetaValue("OpenXQuest:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
-//                ph_beta.setMetaValue("OpenXQuest:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
-//                ph_beta.setMetaValue("OpenXQuest:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+                ph_beta.setMetaValue("OpenXQuest:AndroCommon",top_csms_spectrum[i].PScoreCommon);
+                ph_beta.setMetaValue("OpenXQuest:AndroXlink",top_csms_spectrum[i].PScoreXlink);
+                ph_beta.setMetaValue("OpenXQuest:AndroAlpha",top_csms_spectrum[i].PScoreAlpha);
+                ph_beta.setMetaValue("OpenXQuest:AndroBeta",top_csms_spectrum[i].PScoreBeta);
+                ph_beta.setMetaValue("OpenXQuest:AndroBoth",top_csms_spectrum[i].PScoreBoth);
 
                 phs.push_back(ph_beta);
               }
@@ -2577,8 +2579,15 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
 
+      vector<String> output_split_dir;
+      vector<String> output_split;
+      Size found;
+      found = out_xquest.find_last_of("/\\");
+      // TODO "/" is Unix specific
+      String matched_spec_xml_name = out_xquest.substr(0, found) + "/" + base_name + "_matched.spec.xml";
+
       writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra);
-      writeXQuestXMLSpec(base_name, all_top_csms, spectra);
+      writeXQuestXMLSpec(matched_spec_xml_name, base_name, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 
