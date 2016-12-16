@@ -24,6 +24,7 @@ ResidueDB.cpp
 ResidueModification.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLinks.cpp
+TheoreticalSpectrumGeneratorXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
