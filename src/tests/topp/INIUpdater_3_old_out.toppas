@@ -126,6 +126,9 @@
           <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." required="false" advanced="false" restrictions="true,false" />
           <ITEM name="annotate_ids_with_subelements" value="false" type="string" description="Store the map index of the sub-feature in the peptide ID." required="false" advanced="true" restrictions="true,false" />
         </NODE>
+        <NODE name="spectra" description="Additional options for mzML input">
+          <ITEM name="in" value="" type="input-file" description="MS run used to annotated unidentified spectra to features." required="false" advanced="false" supported_formats="*.mzML" />
+        </NODE>
       </NODE>
     </NODE>
     <NODE name="5" description="">

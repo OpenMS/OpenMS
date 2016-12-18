@@ -627,10 +627,10 @@ namespace OpenMS
     vector<Size> unidentified;
     for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
     {
-      bool identified(false);
       const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
       if (!spectrum.getPrecursors().empty())
       {
+        bool identified(false);
         const vector<Precursor>& precursors = spectrum.getPrecursors();
 
         // check if precursor has been identified
