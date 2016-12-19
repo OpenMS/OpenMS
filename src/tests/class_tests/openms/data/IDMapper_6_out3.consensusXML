@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2016-12-19T17:13:47" search_engine="" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2016-12-19T18:31:03" search_engine="" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -47,24 +47,19 @@
 				<element map="3" id="0" rt="306.58" mz="117.1" it="0.6"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="426.849" RT="306.58" >
-				<UserParam type="int" name="spectrum index" value="0"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="426.849" RT="305.58" >
-				<UserParam type="int" name="spectrum index" value="1"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="426.849" RT="307.58" >
-				<UserParam type="int" name="spectrum index" value="2"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="2"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="426.849" RT="304.58" >
-				<UserParam type="int" name="spectrum index" value="3"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="3"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="426.849" RT="308.58" >
-				<UserParam type="int" name="spectrum index" value="4"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="4"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_1" quality="0">

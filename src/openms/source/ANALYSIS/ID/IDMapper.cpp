@@ -285,8 +285,11 @@ namespace OpenMS
         PeptideIdentification precursor_empty_id;
         precursor_empty_id.setRT(rt_value);
         precursor_empty_id.setMZ(mz_p);
-        precursor_empty_id.setMetaValue("spectrum index", spectrum_index);
-        precursor_empty_id.setMetaValue("spectrum reference",  spectra[spectrum_index].getNativeID());
+        precursor_empty_id.setMetaValue("spectrum_index", spectrum_index);
+        if (!spectra[spectrum_index].getNativeID().empty())
+        {
+          precursor_empty_id.setMetaValue("spectrum_reference",  spectra[spectrum_index].getNativeID());
+        }
         precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
 
         // iterate over the consensus features
@@ -322,6 +325,8 @@ namespace OpenMS
                 {                  
                   // store the map index the precursor was mapped to                  
                   Size map_index = it_handle->getMapIndex();
+
+                  // we use no undesrscore here to be compatible with linkers
                   precursor_empty_id.setMetaValue("map index", String(map_index));
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
@@ -615,8 +620,11 @@ namespace OpenMS
         PeptideIdentification precursor_empty_id;
         precursor_empty_id.setRT(rt_value);
         precursor_empty_id.setMZ(mz_p);
-        precursor_empty_id.setMetaValue("spectrum index", spectrum_index);
-        precursor_empty_id.setMetaValue("spectrum reference",  spectra[spectrum_index].getNativeID());
+        precursor_empty_id.setMetaValue("spectrum_index", spectrum_index);
+        if (!spectra[spectrum_index].getNativeID().empty())
+        {
+          precursor_empty_id.setMetaValue("spectrum_reference",  spectra[spectrum_index].getNativeID());
+        }
         precursor_empty_id.setIdentifier(empty_protein_id.getIdentifier());
         //precursor_empty_id.setCharge(z_p);
 

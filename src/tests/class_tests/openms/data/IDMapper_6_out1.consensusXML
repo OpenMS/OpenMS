@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2016-12-19T18:31:44" search_engine="" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -47,8 +47,7 @@
 				<element map="3" id="0" rt="306.58" mz="117.1" it="0.6"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="426.849" RT="306.58" >
-				<UserParam type="int" name="spectrum index" value="0"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_1" quality="0">
@@ -60,8 +59,7 @@
 				<element map="3" id="1" rt="306.58" mz="117.1" it="6.2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="405.85" RT="306.58" >
-				<UserParam type="int" name="spectrum index" value="1"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_2" quality="0">
@@ -73,8 +71,7 @@
 				<element map="3" id="2" rt="312.738" mz="117.1" it="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="506.815" RT="312.738" >
-				<UserParam type="int" name="spectrum index" value="2"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_3" quality="0">
@@ -86,8 +83,7 @@
 				<element map="3" id="3" rt="312.738" mz="117.1" it="1.6"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="484.83" RT="312.738" >
-				<UserParam type="int" name="spectrum index" value="3"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="3"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_4" quality="0">
@@ -99,8 +95,7 @@
 				<element map="3" id="4" rt="3112.53" mz="117.1" it="7"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="496.244" RT="3112.53" >
-				<UserParam type="int" name="spectrum index" value="4"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="4"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_5" quality="0">
@@ -112,8 +107,7 @@
 				<element map="3" id="5" rt="3840.95" mz="117.1" it="2.4"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="430.212" RT="3840.95" >
-				<UserParam type="int" name="spectrum index" value="5"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="5"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_6" quality="0">
@@ -125,8 +119,7 @@
 				<element map="3" id="6" rt="3849.22" mz="117.1" it="3.2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="446.081" RT="3849.22" >
-				<UserParam type="int" name="spectrum index" value="6"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="6"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_7" quality="0">
@@ -138,8 +131,7 @@
 				<element map="3" id="7" rt="3870.67" mz="117.1" it="4.8"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="453.233" RT="3870.67" >
-				<UserParam type="int" name="spectrum index" value="7"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="7"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_8" quality="0">
@@ -151,8 +143,7 @@
 				<element map="3" id="8" rt="3880.9" mz="117.1" it="7"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400.172" RT="3880.9" >
-				<UserParam type="int" name="spectrum index" value="8"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="8"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_9" quality="0">
@@ -164,8 +155,7 @@
 				<element map="3" id="9" rt="3892.26" mz="117.1" it="6"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="437.227" RT="3892.26" >
-				<UserParam type="int" name="spectrum index" value="9"/>
-				<UserParam type="string" name="spectrum reference" value=""/>
+				<UserParam type="int" name="spectrum_index" value="9"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_10" quality="0">
