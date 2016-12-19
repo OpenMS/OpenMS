@@ -261,34 +261,83 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
       @param annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
+      @param spectra Whether precursors not contained in the identifications are annotated with 
+                     an empty PeptideIdentification object containing the scan index.
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
-    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false);
+    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false, const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
+
 
     /**
-         @brief Mapping method for feature map
- 
-         If several features are inside the allowed tolerance, the precursor
-         is mapped to all features. The potential multiple scan indices of a feature is annotated in the meta value "scan_index".
-
-         @param cmap FeatureMap to receive the precursors
-         @param pmap PeakMap containing precursor
-     */
-    void annotate(FeatureMap& fmap, const MSExperiment<>& pmap);
+      @brief Result of a partitioning by Identification state.
+    */
+    struct SpectraIdentificationState
+    {
+      std::vector<Size> no_precursors;
+      std::vector<Size> identified;
+      std::vector<Size> unidentified;
+    }; 
 
     /**
-         @brief Mapping method for consensus maps
- 
-         If several consensus features lie inside the allowed deviation, the precursor
-         are mapped to all the consensus features. The scan_index gets annotated.
+      @brief Mapping of peptide identifications to spectra. 
+             Returns whether the spectrum had: no precursor, at least one identified precursor, or only unidentified precursor.             
+    */
+    template <typename PeakType>
+    static SpectraIdentificationState mapPrecursorsToIdentifications(const MSExperiment<PeakType>& spectra, const std::vector<PeptideIdentification>& ids, double mz_tol = 0.001, double rt_tol = 0.001)
+    {
+      SpectraIdentificationState ret;
+      for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
+      {
+        const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+        if (!spectrum.getPrecursors().empty())
+        {
+          bool identified(false);
+          const std::vector<Precursor>& precursors = spectrum.getPrecursors();
 
-         @param cmap ConsensusMap to receive the precursors
-         @param pmap PeakMap containing precursor
-         @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
-         @param annotate_with_subelements Save the subelement the precursor was matched to (e.g., scan 12345 matches to map 1 "scan_index_1=12345")
-     */
-    void annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, bool measure_from_subelements = false, bool annotate_with_subelements = false);
+          // check if precursor has been identified
+          for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+          {
+            // check by precursor mass and spectrum RT
+            double mz_p = precursors[i_p].getMZ();
+            double rt_s = spectrum.getRT();
+          
+            for (Size i_id = 0; i_id != ids.size(); ++i_id)
+            {
+              const PeptideIdentification& pid = ids[i_id];
+
+              // do not count empty ids as identification of a spectrum
+              if (pid.getHits().empty()) continue;
+
+              double mz_id = pid.getMZ();
+              double rt_id = pid.getRT();
+
+              std::cout << fabs(mz_id - mz_p) << "\t" << fabs(rt_s - rt_id) << std::endl; 
+
+              if ( fabs(mz_id - mz_p) < mz_tol && fabs(rt_s - rt_id) < rt_tol )
+              {
+                identified = true;
+                break; 
+              }
+            }
+          }   
+          if (!identified) 
+          {
+            ret.unidentified.push_back(spectrum_index);
+          }
+          else
+          {
+            ret.identified.push_back(spectrum_index);
+          }
+        }
+        else
+        {
+          ret.no_precursors.push_back(spectrum_index);
+        }
+      }
+      return ret;
+    }
+
 
 protected:
     void updateMembers_();

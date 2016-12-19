@@ -434,7 +434,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
     mapper.annotate(cons_map, peptide_ids, protein_ids);
     cons_file.store(tmp_filename,cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out1.consensusXML"));
   }
 
@@ -445,7 +445,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
     mapper.annotate(cons_map, peptide_ids, protein_ids, true);
     cons_file.store(tmp_filename,cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out2.consensusXML"));
   }
 
@@ -466,7 +466,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.consensusXML"), cons_map);
     mapper5.annotate(cons_map, peptide_ids2, protein_ids2, true, true);
     cons_file.store(tmp_filename,cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_5_out1.consensusXML"));
   }
 
@@ -496,21 +496,15 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
                peptide_ids.size());
   }
 
-}
-END_SECTION
-
-START_SECTION((void annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, bool measure_from_subelements=false)))
-{
-  IDMapper mapper;
-  Param p = mapper.getParameters();
+  // annotation of precursors without id
+  IDMapper mapper6;
+  p = mapper6.getParameters();
   p.setValue("mz_tolerance", 0.01);
   p.setValue("mz_measure","Da");
   p.setValue("ignore_charge", "true");
-  mapper.setParameters(p);
+  mapper6.setParameters(p);
 
   TOLERANCE_ABSOLUTE(0.01);
-
-  ConsensusXMLFile cons_file;
 
   MSExperiment<> experiment;
   MSSpectrum<> spectrum;
@@ -535,9 +529,9 @@ START_SECTION((void annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, boo
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper.annotate(cons_map, experiment);
+    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out1.consensusXML"));
   }
 
@@ -563,9 +557,9 @@ START_SECTION((void annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, boo
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper.annotate(cons_map, experiment);
+    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out2.consensusXML"));
   }
 
@@ -588,12 +582,11 @@ START_SECTION((void annotate(ConsensusMap& cmap, const MSExperiment<>& pmap, boo
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper.annotate(cons_map, experiment);
+    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out3.consensusXML"));
   }
-   
 }
 END_SECTION
 
