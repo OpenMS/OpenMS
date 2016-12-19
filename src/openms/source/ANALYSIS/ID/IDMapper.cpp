@@ -120,6 +120,9 @@ namespace OpenMS
     double rt_pep;
     IntList charges;
 
+    // for statistics
+    Size id_matches_none(0), id_matches_single(0), id_matches_multiple(0);
+
     // iterate over the peptide IDs
     for (Size i = 0; i < ids.size(); ++i)
     {
@@ -205,11 +208,25 @@ namespace OpenMS
 
       } // features
 
+      // the id has not been mapped to any consensus feature
       if (!id_mapped)
       {
         map.getUnassignedPeptideIdentifications().push_back(ids[i]);
+        ++id_matches_none;
       }
     } // Identifications
+
+    for (std::map<Size, Size>::const_iterator it = assigned_ids.begin(); it != assigned_ids.end(); ++it)
+    {
+      if (it->second == 1)
+      {
+        ++id_matches_single;
+      }
+      else if (it->second > 1)
+      {
+        ++id_matches_multiple;
+      }
+    }
 
     vector<Size> unidentified = mapPrecursorsToIdentifications(spectra, ids).unidentified;
 
@@ -224,7 +241,9 @@ namespace OpenMS
                << "No precursor: " << mapPrecursorsToIdentifications(spectra, ids).no_precursors.size() << endl;
     }
 
-    // we need a valid search run identifier so we try to extract one from the map
+    // we need a valid search run identifier so we try to:
+    //   extract one from the map (either assigned or unassigned).
+    //   or fall back to a new search run identifier.
     ProteinIdentification empty_protein_id;
     if (!unidentified.empty())
     {
@@ -237,11 +256,14 @@ namespace OpenMS
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
       } else
       {
-        // add a new search identification run (mandatory)
+        // No search run identifier given so we create a new one
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
         map.getProteinIdentifications().push_back(empty_protein_id);
       }
     }
+
+    // for statistics:
+    Size spectrum_matches_none(0), spectrum_matches_single(0), spectrum_matches_multiple(0);
 
     // are there any mapped but unidentified precursors?
     for (Size ui = 0; ui != unidentified.size(); ++ui)
@@ -249,6 +271,8 @@ namespace OpenMS
       Size spectrum_index = unidentified[ui];
       const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+      bool precursor_mapped(false);
 
       // check if precursor has been identified
       for (Size i_p = 0; i_p < precursors.size(); ++i_p)
@@ -283,6 +307,7 @@ namespace OpenMS
             {
               map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
               ++assigned_precursors[spectrum_index];
+              precursor_mapped = true;
             }
           }
           else // measure from subelements
@@ -301,31 +326,40 @@ namespace OpenMS
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
                 ++assigned_precursors[spectrum_index];
+                precursor_mapped = true;
               }
             }
           }
         } // m/z values to check
-      }             
+      }
+      if (!precursor_mapped) ++spectrum_matches_none;
     }
 
-    // for statistics:
-    Size matches_none = 0, matches_single = 0, matches_multi = 0;
-    Size spectrum_matches_none(0), spectrum_matches_single(0), spectrum_matches_multi(0);
-    
+    for (std::map<Size, Size>::const_iterator it = assigned_precursors.begin(); it != assigned_precursors.end(); ++it)
+    {
+      if (it->second == 1)
+      {
+        ++spectrum_matches_single;
+      }
+      else if (it->second > 1)
+      {
+        ++spectrum_matches_multiple;
+      }
+    }
     
     // some statistics output
     if (!ids.empty())
     {
-      LOG_INFO << "Unassigned peptides: " << matches_none << "\n"
-               << "Peptides assigned to exactly one feature: " << matches_single << "\n"
-               << "Peptides assigned to multiple features: " << matches_multi << "\n";
+      LOG_INFO << "Unassigned peptides: " << id_matches_none << "\n"
+               << "Peptides assigned to exactly one feature: " << id_matches_single << "\n"
+               << "Peptides assigned to multiple features: " << id_matches_multiple << "\n";
     }
 
     if (!spectra.empty())
     {
-      LOG_INFO << "Unassigned and unidentified precursors: " << spectrum_matches_none << "\n"
+      LOG_INFO << "Unassigned precursors without identification: " << spectrum_matches_none << "\n"
                << "Unidentified precursor assigned to exactly one feature: " << spectrum_matches_single << "\n"
-               << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multi << "\n";
+               << "Unidentified precursor assigned to multiple features: " << spectrum_matches_multiple << "\n";
     }
   }
 
@@ -532,7 +566,9 @@ namespace OpenMS
     Size spectrum_matches_single(0);
     Size spectrum_matches_multi(0);
     
-    // We need a valid search run identifier so we try to extract one from the map
+    // we need a valid search run identifier so we try to:
+    //   extract one from the map (either assigned or unassigned).
+    //   or fall back to a new search run identifier.
     ProteinIdentification empty_protein_id;
     if (!unidentified.empty())
     {
