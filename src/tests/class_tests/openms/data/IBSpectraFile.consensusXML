@@ -142,7 +142,7 @@
                 <element map="5" id="156" rt="600.45400000002" mz="131.138176" it="142863" />
             </groupedElementList>
             <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="777.471801757813" RT="600.45400000002">
-                <PeptideHit score="0.00883049752315313" sequence=".(TMT6plex)K(TMT6plex)TESHHK(TMT6plex)." charge="2" protein_refs="PH_151 PH_1037 PH_328 PH_1058 PH_1094 PH_231 PH_907 PH_939">
+                <PeptideHit score="0.00883049752315313" sequence="(TMT6plex)K(TMT6plex)TESHHK(TMT6plex)" charge="2" protein_refs="PH_151 PH_1037 PH_328 PH_1058 PH_1094 PH_231 PH_907 PH_939">
                     <UserParam type="float" name="similarity" value="2" />
                     <UserParam type="float" name="Number of annotations" value="3" />
                     <UserParam type="string" name="target_decoy" value="target" />
@@ -186,7 +186,7 @@
                 <element map="5" id="214" rt="721.64950000002" mz="131.138176" it="19155.3" />
             </groupedElementList>
             <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="723.428894042969" RT="720.3375">
-                <PeptideHit score="0.0362532523850824" sequence=".(TMT6plex)VPLSHGYSK(TMT6plex)." charge="2" protein_refs="PH_1003">
+                <PeptideHit score="0.0362532523850824" sequence="(TMT6plex)VPLSHGYSK(TMT6plex)" charge="2" protein_refs="PH_1003">
                     <UserParam type="float" name="similarity" value="1" />
                     <UserParam type="float" name="Number of annotations" value="1" />
                     <UserParam type="string" name="target_decoy" value="target" />

@@ -10,19 +10,19 @@
       </ProteinHit>
     </ProteinIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="60" >
-      <PeptideHit score="33.85" sequence=".LHASGITVTEIPVTATNFK." charge="3" protein_refs="PH_0 PH_1" >
+      <PeptideHit score="33.85" sequence="LHASGITVTEIPVTATNFK" charge="3" protein_refs="PH_0 PH_1" >
       </PeptideHit>
-      <PeptideHit score="33.12" sequence=".MRSLGYVAVISAVATDTDK." charge="3" protein_refs="PH_0" >
+      <PeptideHit score="33.12" sequence="MRSLGYVAVISAVATDTDK" charge="3" protein_refs="PH_0" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="12" MZ="11" RT="120" >
-      <PeptideHit score="43.9" sequence=".HSKLSAK." charge="2" protein_refs="PH_1" >
+      <PeptideHit score="43.9" sequence="HSKLSAK" charge="2" protein_refs="PH_1" >
       </PeptideHit>
     </PeptideIdentification>
     <PeptideIdentification score_type="" higher_score_better="true" significance_threshold="19" MZ="20" RT="180" >
-      <PeptideHit score="5.41" sequence=".RASNSPQDPQSATAHSFR." charge="2" >
+      <PeptideHit score="5.41" sequence="RASNSPQDPQSATAHSFR" charge="2" >
       </PeptideHit>
-      <PeptideHit score="7.87" sequence=".MYSTVGPA." charge="2" >
+      <PeptideHit score="7.87" sequence="MYSTVGPA" charge="2" >
       </PeptideHit>
     </PeptideIdentification>
   </IdentificationRun>

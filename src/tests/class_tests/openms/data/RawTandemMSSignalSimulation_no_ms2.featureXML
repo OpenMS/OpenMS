@@ -57,7 +57,7 @@
 				<pt x="500" y="696.314928283221" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="520.594857594428" >
-				<PeptideHit score="1" sequence=".YICDNQDTISSK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="YICDNQDTISSK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="2"/>
 			</PeptideIdentification>
@@ -120,7 +120,7 @@
 				<pt x="500" y="1391.62158009967" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="520.594857594428" >
-				<PeptideHit score="1" sequence=".YICDNQDTISSK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="YICDNQDTISSK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="2"/>
 			</PeptideIdentification>
@@ -177,7 +177,7 @@
 				<pt x="500" y="463.748653035421" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="522.278746309155" >
-				<PeptideHit score="1" sequence=".AEFVEVTK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="AEFVEVTK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="2"/>
 			</PeptideIdentification>
@@ -234,7 +234,7 @@
 				<pt x="500" y="926.489029604071" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="522.278746309155" >
-				<PeptideHit score="1" sequence=".AEFVEVTK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="AEFVEVTK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="2"/>
 			</PeptideIdentification>
@@ -303,7 +303,7 @@
 				<pt x="520" y="820.335702291771" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="531.214405365346" >
-				<PeptideHit score="1" sequence=".YNGVFQECCQAEDK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="YNGVFQECCQAEDK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="2"/>
 			</PeptideIdentification>
@@ -372,7 +372,7 @@
 				<pt x="520" y="1639.66312811677" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="531.214405365346" >
-				<PeptideHit score="1" sequence=".YNGVFQECCQAEDK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="YNGVFQECCQAEDK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="2"/>
 			</PeptideIdentification>
@@ -435,7 +435,7 @@
 				<pt x="520" y="437.577895487571" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="550.702049713038" >
-				<PeptideHit score="1" sequence=".HLVDEPQNLIK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HLVDEPQNLIK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="3"/>
 			</PeptideIdentification>
@@ -498,7 +498,7 @@
 				<pt x="520" y="655.862704997971" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="550.702049713038" >
-				<PeptideHit score="1" sequence=".HLVDEPQNLIK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HLVDEPQNLIK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="3"/>
 			</PeptideIdentification>
@@ -561,7 +561,7 @@
 				<pt x="520" y="1310.71713352917" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="550.702049713038" >
-				<PeptideHit score="1" sequence=".HLVDEPQNLIK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HLVDEPQNLIK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="3"/>
 			</PeptideIdentification>
@@ -630,7 +630,7 @@
 				<pt x="520" y="509.254555837238" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="551.468952427504" >
-				<PeptideHit score="1" sequence=".LKPDPNTLCDEFK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LKPDPNTLCDEFK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="3"/>
 			</PeptideIdentification>
@@ -699,7 +699,7 @@
 				<pt x="520" y="763.377695522471" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="551.468952427504" >
-				<PeptideHit score="1" sequence=".LKPDPNTLCDEFK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LKPDPNTLCDEFK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="3"/>
 			</PeptideIdentification>
@@ -768,7 +768,7 @@
 				<pt x="520" y="1525.74711457817" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="551.468952427504" >
-				<PeptideHit score="1" sequence=".LKPDPNTLCDEFK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LKPDPNTLCDEFK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="3"/>
 			</PeptideIdentification>
@@ -831,7 +831,7 @@
 				<pt x="540" y="328.156161723971" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="572.00322669864" >
-				<PeptideHit score="1" sequence=".NECFLSHK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="NECFLSHK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="4"/>
 			</PeptideIdentification>
@@ -894,7 +894,7 @@
 				<pt x="540" y="491.730104352571" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="572.00322669864" >
-				<PeptideHit score="1" sequence=".NECFLSHK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="NECFLSHK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="4"/>
 			</PeptideIdentification>
@@ -957,7 +957,7 @@
 				<pt x="540" y="982.451932238371" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="572.00322669864" >
-				<PeptideHit score="1" sequence=".NECFLSHK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="NECFLSHK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="4"/>
 			</PeptideIdentification>
@@ -1014,7 +1014,7 @@
 				<pt x="560" y="466.251362519471" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="579.449050955055" >
-				<PeptideHit score="1" sequence=".YLYEIAR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="YLYEIAR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="4"/>
 			</PeptideIdentification>
@@ -1071,7 +1071,7 @@
 				<pt x="560" y="931.494448572171" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="579.449050955055" >
-				<PeptideHit score="1" sequence=".YLYEIAR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="YLYEIAR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="4"/>
 			</PeptideIdentification>
@@ -1140,7 +1140,7 @@
 				<pt x="580" y="685.744799853721" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="599.955443374951" >
-				<PeptideHit score="1" sequence=".ETYGDMADCCEK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ETYGDMADCCEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="5"/>
 			</PeptideIdentification>
@@ -1209,7 +1209,7 @@
 				<pt x="580" y="1370.48132324067" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="599.955443374951" >
-				<PeptideHit score="1" sequence=".ETYGDMADCCEK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ETYGDMADCCEK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="5"/>
 			</PeptideIdentification>
@@ -1266,7 +1266,7 @@
 				<pt x="600" y="282.492530723971" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="617.075682409174" >
-				<PeptideHit score="1" sequence=".LCVLHEK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LCVLHEK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="6"/>
 			</PeptideIdentification>
@@ -1323,7 +1323,7 @@
 				<pt x="600" y="423.234657852571" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="617.075682409174" >
-				<PeptideHit score="1" sequence=".LCVLHEK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LCVLHEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="6"/>
 			</PeptideIdentification>
@@ -1380,7 +1380,7 @@
 				<pt x="600" y="845.461039238371" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="617.075682409174" >
-				<PeptideHit score="1" sequence=".LCVLHEK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LCVLHEK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="6"/>
 			</PeptideIdentification>
@@ -1443,7 +1443,7 @@
 				<pt x="600" y="758.926034285071" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="621.049923201567" >
-				<PeptideHit score="1" sequence=".VPQVSTPTLVEVSR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="VPQVSTPTLVEVSR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="7"/>
 			</PeptideIdentification>
@@ -1506,7 +1506,7 @@
 				<pt x="600" y="1516.84379210337" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="621.049923201567" >
-				<PeptideHit score="1" sequence=".VPQVSTPTLVEVSR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="VPQVSTPTLVEVSR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="7"/>
 			</PeptideIdentification>
@@ -1569,7 +1569,7 @@
 				<pt x="600" y="528.250869964221" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="621.669445937699" >
-				<PeptideHit score="1" sequence=".EACFAVEGPK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="EACFAVEGPK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="7"/>
 			</PeptideIdentification>
@@ -1632,7 +1632,7 @@
 				<pt x="600" y="1055.49346346167" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="621.669445937699" >
-				<PeptideHit score="1" sequence=".EACFAVEGPK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="EACFAVEGPK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="7"/>
 			</PeptideIdentification>
@@ -1689,7 +1689,7 @@
 				<pt x="600" y="1006.58399298687" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="625.209553988263" >
-				<PeptideHit score="1" sequence=".LVVSTQTALA." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LVVSTQTALA" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="7"/>
 			</PeptideIdentification>
@@ -1752,7 +1752,7 @@
 				<pt x="660" y="394.858905513304" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="677.435503546177" >
-				<PeptideHit score="1" sequence=".ECCDKPLLEK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ECCDKPLLEK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="9"/>
 			</PeptideIdentification>
@@ -1815,7 +1815,7 @@
 				<pt x="660" y="591.784220036571" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="677.435503546177" >
-				<PeptideHit score="1" sequence=".ECCDKPLLEK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ECCDKPLLEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="9"/>
 			</PeptideIdentification>
@@ -1878,7 +1878,7 @@
 				<pt x="660" y="1182.56016360637" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="677.435503546177" >
-				<PeptideHit score="1" sequence=".ECCDKPLLEK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ECCDKPLLEK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="9"/>
 			</PeptideIdentification>
@@ -1947,7 +1947,7 @@
 				<pt x="660" y="697.790064616321" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="679.141775740297" >
-				<PeptideHit score="1" sequence=".EYEATLEECCAK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="EYEATLEECCAK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="9"/>
 			</PeptideIdentification>
@@ -2016,7 +2016,7 @@
 				<pt x="660" y="1394.57185276587" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="679.141775740297" >
-				<PeptideHit score="1" sequence=".EYEATLEECCAK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="EYEATLEECCAK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="9"/>
 			</PeptideIdentification>
@@ -2073,7 +2073,7 @@
 				<pt x="660" y="353.205368724971" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="692.116618249062" >
-				<PeptideHit score="1" sequence=".GACLLPK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="GACLLPK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="10"/>
 			</PeptideIdentification>
@@ -2130,7 +2130,7 @@
 				<pt x="660" y="705.402460983171" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="692.116618249062" >
-				<PeptideHit score="1" sequence=".GACLLPK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="GACLLPK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="10"/>
 			</PeptideIdentification>
@@ -2193,7 +2193,7 @@
 				<pt x="680" y="430.242735466304" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="706.050047093489" >
-				<PeptideHit score="1" sequence=".HPEYAVSVLLR." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HPEYAVSVLLR" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="11"/>
 			</PeptideIdentification>
@@ -2256,7 +2256,7 @@
 				<pt x="680" y="644.859964966071" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="706.050047093489" >
-				<PeptideHit score="1" sequence=".HPEYAVSVLLR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HPEYAVSVLLR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="11"/>
 			</PeptideIdentification>
@@ -2319,7 +2319,7 @@
 				<pt x="680" y="1288.71165346537" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="706.050047093489" >
-				<PeptideHit score="1" sequence=".HPEYAVSVLLR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HPEYAVSVLLR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="11"/>
 			</PeptideIdentification>
@@ -2382,7 +2382,7 @@
 				<pt x="700" y="515.232154297321" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="718.891593027527" >
-				<PeptideHit score="1" sequence=".CCTESLVNR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="CCTESLVNR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="11"/>
 			</PeptideIdentification>
@@ -2445,7 +2445,7 @@
 				<pt x="700" y="1029.45603212787" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="718.891593027527" >
-				<PeptideHit score="1" sequence=".CCTESLVNR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="CCTESLVNR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="11"/>
 			</PeptideIdentification>
@@ -2502,7 +2502,7 @@
 				<pt x="720" y="509.814327290621" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="748.553385381514" >
-				<PeptideHit score="1" sequence=".QTALVELLK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="QTALVELLK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="13"/>
 			</PeptideIdentification>
@@ -2559,7 +2559,7 @@
 				<pt x="720" y="1018.62037811447" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="748.553385381514" >
-				<PeptideHit score="1" sequence=".QTALVELLK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="QTALVELLK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="13"/>
 			</PeptideIdentification>
@@ -2622,7 +2622,7 @@
 				<pt x="740" y="584.819974338471" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="759.060399067519" >
-				<PeptideHit score="1" sequence=".LVNELTEFAK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LVNELTEFAK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="13"/>
 			</PeptideIdentification>
@@ -2685,7 +2685,7 @@
 				<pt x="740" y="1168.63167221017" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="759.060399067519" >
-				<PeptideHit score="1" sequence=".LVNELTEFAK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LVNELTEFAK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="13"/>
 			</PeptideIdentification>
@@ -2754,7 +2754,7 @@
 				<pt x="760" y="610.639069716571" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="787.007720942944" >
-				<PeptideHit score="1" sequence=".RPCFSALTPDETYVPK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="RPCFSALTPDETYVPK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="15"/>
 			</PeptideIdentification>
@@ -2823,7 +2823,7 @@
 				<pt x="760" y="915.454466341471" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="787.007720942944" >
-				<PeptideHit score="1" sequence=".RPCFSALTPDETYVPK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="RPCFSALTPDETYVPK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="15"/>
 			</PeptideIdentification>
@@ -2892,7 +2892,7 @@
 				<pt x="760" y="1829.90065621617" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="787.007720942944" >
-				<PeptideHit score="1" sequence=".RPCFSALTPDETYVPK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="RPCFSALTPDETYVPK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="15"/>
 			</PeptideIdentification>
@@ -2961,7 +2961,7 @@
 				<pt x="800" y="528.871900206938" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="828.182910952688" >
-				<PeptideHit score="1" sequence=".ECCHGDLLECADDR." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ECCHGDLLECADDR" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="17"/>
 			</PeptideIdentification>
@@ -3030,7 +3030,7 @@
 				<pt x="800" y="792.803712077021" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="828.182910952688" >
-				<PeptideHit score="1" sequence=".ECCHGDLLECADDR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ECCHGDLLECADDR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="17"/>
 			</PeptideIdentification>
@@ -3099,7 +3099,7 @@
 				<pt x="800" y="1584.59914768727" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="828.182910952688" >
-				<PeptideHit score="1" sequence=".ECCHGDLLECADDR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="ECCHGDLLECADDR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="17"/>
 			</PeptideIdentification>
@@ -3168,7 +3168,7 @@
 				<pt x="840" y="981.484476104071" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="853.79671667138" >
-				<PeptideHit score="1" sequence=".DAIPENLPPLTADFAEDK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="DAIPENLPPLTADFAEDK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="18"/>
 			</PeptideIdentification>
@@ -3237,7 +3237,7 @@
 				<pt x="840" y="1961.96067574137" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="853.79671667138" >
-				<PeptideHit score="1" sequence=".DAIPENLPPLTADFAEDK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="DAIPENLPPLTADFAEDK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="18"/>
 			</PeptideIdentification>
@@ -3300,7 +3300,7 @@
 				<pt x="940" y="742.902361657471" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="957.738400778008" >
-				<PeptideHit score="1" sequence=".LGEYGFQNALIVR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LGEYGFQNALIVR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="23"/>
 			</PeptideIdentification>
@@ -3363,7 +3363,7 @@
 				<pt x="940" y="1484.79644684817" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="957.738400778008" >
-				<PeptideHit score="1" sequence=".LGEYGFQNALIVR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LGEYGFQNALIVR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="23"/>
 			</PeptideIdentification>
@@ -3426,7 +3426,7 @@
 				<pt x="1000" y="456.563257720271" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1014.44152087447" >
-				<PeptideHit score="1" sequence=".SLHTLFGDELCK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="SLHTLFGDELCK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="26"/>
 			</PeptideIdentification>
@@ -3489,7 +3489,7 @@
 				<pt x="1000" y="684.340748347021" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1014.44152087447" >
-				<PeptideHit score="1" sequence=".SLHTLFGDELCK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="SLHTLFGDELCK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="26"/>
 			</PeptideIdentification>
@@ -3552,7 +3552,7 @@
 				<pt x="1000" y="1367.67322022727" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1014.44152087447" >
-				<PeptideHit score="1" sequence=".SLHTLFGDELCK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="SLHTLFGDELCK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="26"/>
 			</PeptideIdentification>
@@ -3621,7 +3621,7 @@
 				<pt x="1000" y="619.638958393871" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1023.59480366358" >
-				<PeptideHit score="1" sequence=".LFTFHADICTLPDTEK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LFTFHADICTLPDTEK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="27"/>
 			</PeptideIdentification>
@@ -3690,7 +3690,7 @@
 				<pt x="1000" y="928.954299357421" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1023.59480366358" >
-				<PeptideHit score="1" sequence=".LFTFHADICTLPDTEK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LFTFHADICTLPDTEK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="27"/>
 			</PeptideIdentification>
@@ -3759,7 +3759,7 @@
 				<pt x="1000" y="1856.90032224807" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1023.59480366358" >
-				<PeptideHit score="1" sequence=".LFTFHADICTLPDTEK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="LFTFHADICTLPDTEK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="27"/>
 			</PeptideIdentification>
@@ -3822,7 +3822,7 @@
 				<pt x="1020" y="702.850948894871" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1046.00346904635" >
-				<PeptideHit score="1" sequence=".TVMENFVAFVDK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="TVMENFVAFVDK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="28"/>
 			</PeptideIdentification>
@@ -3885,7 +3885,7 @@
 				<pt x="1020" y="1404.69362132297" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1046.00346904635" >
-				<PeptideHit score="1" sequence=".TVMENFVAFVDK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="TVMENFVAFVDK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="28"/>
 			</PeptideIdentification>
@@ -3954,7 +3954,7 @@
 				<pt x="1040" y="632.314803129271" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1069.69370825379" >
-				<PeptideHit score="1" sequence=".HPYFYAPELLYYANK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HPYFYAPELLYYANK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="29"/>
 			</PeptideIdentification>
@@ -4023,7 +4023,7 @@
 				<pt x="1040" y="947.968066460521" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1069.69370825379" >
-				<PeptideHit score="1" sequence=".HPYFYAPELLYYANK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HPYFYAPELLYYANK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="29"/>
 			</PeptideIdentification>
@@ -4092,7 +4092,7 @@
 				<pt x="1040" y="1894.92785645427" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1069.69370825379" >
-				<PeptideHit score="1" sequence=".HPYFYAPELLYYANK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="HPYFYAPELLYYANK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="29"/>
 			</PeptideIdentification>
@@ -4155,7 +4155,7 @@
 				<pt x="1140" y="786.876010093671" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1170.58559057675" >
-				<PeptideHit score="1" sequence=".DAFLGSFLYEYSR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="DAFLGSFLYEYSR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="34"/>
 			</PeptideIdentification>
@@ -4218,7 +4218,7 @@
 				<pt x="1140" y="1572.74374372057" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1170.58559057675" >
-				<PeptideHit score="1" sequence=".DAFLGSFLYEYSR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="DAFLGSFLYEYSR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="34"/>
 			</PeptideIdentification>
@@ -4287,7 +4287,7 @@
 				<pt x="1180" y="837.411212578871" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1193.93528299752" >
-				<PeptideHit score="1" sequence=".MPCTEDYLSLILNR." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="MPCTEDYLSLILNR" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="35"/>
 			</PeptideIdentification>
@@ -4356,7 +4356,7 @@
 				<pt x="1180" y="1673.81414869097" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1193.93528299752" >
-				<PeptideHit score="1" sequence=".MPCTEDYLSLILNR." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="MPCTEDYLSLILNR" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="35"/>
 			</PeptideIdentification>
@@ -4431,7 +4431,7 @@
 				<pt x="1340" y="814.753447861738" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1359.0978085241" >
-				<PeptideHit score="1" sequence=".GLVLIAFSQYLQQCPFDEHVK." charge="3" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="GLVLIAFSQYLQQCPFDEHVK" charge="3" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="43"/>
 			</PeptideIdentification>
@@ -4506,7 +4506,7 @@
 				<pt x="1340" y="1221.62603355922" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1359.0978085241" >
-				<PeptideHit score="1" sequence=".GLVLIAFSQYLQQCPFDEHVK." charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="GLVLIAFSQYLQQCPFDEHVK" charge="2" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="43"/>
 			</PeptideIdentification>
@@ -4581,7 +4581,7 @@
 				<pt x="1340" y="2442.24379065167" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" RT="1359.0978085241" >
-				<PeptideHit score="1" sequence=".GLVLIAFSQYLQQCPFDEHVK." charge="1" protein_refs="PH_0">
+				<PeptideHit score="1" sequence="GLVLIAFSQYLQQCPFDEHVK" charge="1" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="int" name="RT_index" value="43"/>
 			</PeptideIdentification>
