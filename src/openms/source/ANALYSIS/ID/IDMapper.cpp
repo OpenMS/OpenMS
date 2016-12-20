@@ -187,7 +187,7 @@ namespace OpenMS
                   PeptideIdentification id_pep = ids[i];
                   if (annotate_ids_with_subelements)
                   {
-                    id_pep.setMetaValue("map index", it_handle->getMapIndex());
+                    id_pep.setMetaValue("map_index", it_handle->getMapIndex());
                   }
                   
                   map[cm_index].getPeptideIdentifications().push_back(id_pep);
@@ -327,7 +327,7 @@ namespace OpenMS
                   Size map_index = it_handle->getMapIndex();
 
                   // we use no undesrscore here to be compatible with linkers
-                  precursor_empty_id.setMetaValue("map index", String(map_index));
+                  precursor_empty_id.setMetaValue("map_index", String(map_index));
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
                 ++assigned_precursors[spectrum_index];

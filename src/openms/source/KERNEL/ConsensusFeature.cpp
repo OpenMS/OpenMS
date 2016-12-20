@@ -124,7 +124,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
     for (std::vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
     {
-      it->setMetaValue("map index", map_index);
+      it->setMetaValue("map_index", map_index);
     }
     peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }

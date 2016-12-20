@@ -266,11 +266,15 @@ public:
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
-    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false, const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
+    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, 
+                  const std::vector<ProteinIdentification>& protein_ids, 
+                  bool measure_from_subelements = false, 
+                  bool annotate_ids_with_subelements = false, 
+                  const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
 
 
     /**
-      @brief Result of a partitioning by Identification state.
+      @brief Result of a partitioning by identification state with mapPrecursorsToIdentifications().
     */
     struct SpectraIdentificationState
     {
@@ -280,11 +284,25 @@ public:
     }; 
 
     /**
-      @brief Mapping of peptide identifications to spectra. 
-             Returns whether the spectrum had: no precursor, at least one identified precursor, or only unidentified precursor.             
+      @brief Mapping of peptide identifications to spectra
+             This helper function partitions all spectra into those that had: 
+              - no precursor (e.g. MS1 spectra),
+              - at least one identified precursor, 
+              - or only unidentified precursor.
+      @param spectra The mass spectra
+      @param ids The peptide identifications
+      @mz_tol Tolerance used to map to precursor m/z
+      @rt_tol Tolerance used to map to spectrum retention time
+
+      Note: mz/tol and rt_tol should, in principle, be zero (or close to zero under numeric inaccuracies). 
+
+      @return A struct of vectors holding spectra indices of the partitioning.
     */
     template <typename PeakType>
-    static SpectraIdentificationState mapPrecursorsToIdentifications(const MSExperiment<PeakType>& spectra, const std::vector<PeptideIdentification>& ids, double mz_tol = 0.001, double rt_tol = 0.001)
+    static SpectraIdentificationState mapPrecursorsToIdentifications(const MSExperiment<PeakType>& spectra, 
+                                                                     const std::vector<PeptideIdentification>& ids, 
+                                                                     double mz_tol = 0.001, 
+                                                                     double rt_tol = 0.001)
     {
       SpectraIdentificationState ret;
       for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
