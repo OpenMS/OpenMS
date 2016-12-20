@@ -25,7 +25,7 @@
 				<element map="2" id="0" rt="100" mz="100" it="1000" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
-				<PeptideHit score="1" sequence="AAA" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence=".AAA." charge="2" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -36,7 +36,7 @@
 				<element map="1" id="1" rt="200" mz="200" it="200" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
-				<PeptideHit score="1" sequence="CCC" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence=".CCC." charge="2" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -48,7 +48,7 @@
 				<element map="2" id="2" rt="300" mz="300" it="30" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
-				<PeptideHit score="1" sequence="EEE" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence=".EEE." charge="2" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -59,7 +59,7 @@
 				<element map="1" id="3" rt="400" mz="400" it="4" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400" RT="400" >
-				<PeptideHit score="1" sequence="GGG" charge="2" protein_refs="PH_0">
+				<PeptideHit score="1" sequence=".GGG." charge="2" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

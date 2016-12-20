@@ -1,4 +1,4 @@
-#Consensus features extracted from TextExporter_7_input.consensusXML on 2016-04-14 13:13:51
+#Consensus features extracted from /nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/TextExporter_7_input.consensusXML on 2016-12-20 16:52:46
 #MAP	id	filename	label	size	channel_active	channel_center	channel_description	channel_id	channel_name
 #RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
 #PROTEIN	score	rank	accession	protein_description	coverage	sequence

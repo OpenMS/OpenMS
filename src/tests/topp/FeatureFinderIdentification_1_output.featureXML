@@ -262,7 +262,7 @@
 			<UserParam type="float" name="var_library_corr" value="0.999973523371529"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.00142306232246529"/>
 			<UserParam type="float" name="var_library_sangle" value="0.00390901687130379"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00154478016975326"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00154478016975325"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.00277775363521057"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999995066631841"/>
 			<UserParam type="float" name="delta_rt" value="-1.36294755726044"/>
@@ -544,9 +544,9 @@
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.996956443500796"/>
 			<UserParam type="float" name="var_library_corr" value="0.997947541587198"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0151838533472798"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0393472444414584"/>
+			<UserParam type="float" name="var_library_sangle" value="0.03934724444145"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0165313243256487"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0272382019598867"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0272382019598865"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999639106697525"/>
 			<UserParam type="float" name="delta_rt" value="-12.165069736177"/>
 			<UserParam type="float" name="assay_rt" value="2085.73901367188"/>
@@ -1173,11 +1173,11 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.991461099320878"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.995442436210723"/>
-			<UserParam type="float" name="var_library_corr" value="0.99924576286611"/>
+			<UserParam type="float" name="var_library_corr" value="0.999245762866111"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0229233788998283"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0610791016806187"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0610791016806151"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0233216067332502"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0844182877935904"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0844182877935905"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.997042210587509"/>
 			<UserParam type="float" name="delta_rt" value="-11.5610017186682"/>
 			<UserParam type="float" name="assay_rt" value="1772.37097167969"/>
@@ -1198,7 +1198,7 @@
 			<UserParam type="float" name="model_upper" value="1772.56972668674"/>
 			<UserParam type="float" name="model_EGH_tau" value="2.03411286317761"/>
 			<UserParam type="float" name="model_EGH_sigma" value="3.95225341691862"/>
-			<UserParam type="float" name="model_error" value="0.171571955468567"/>
+			<UserParam type="float" name="model_error" value="0.171571955468568"/>
 			<UserParam type="float" name="model_area" value="26097733.1261485"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="16595281"/>
@@ -1435,7 +1435,7 @@
 					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="369229.5"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.0826150152836374"/>
+					<UserParam type="float" name="isotope_probability" value="0.0826150152836375"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
@@ -1454,10 +1454,10 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999761317114127"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999818211529178"/>
 			<UserParam type="float" name="var_library_corr" value="0.999997800568594"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00172385166108875"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00172385166108876"/>
 			<UserParam type="float" name="var_library_sangle" value="0.00417142156119624"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00201990114064338"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0049958260741913"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00201990114064339"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00499582607419133"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999988615212499"/>
 			<UserParam type="float" name="delta_rt" value="11.1109819901956"/>
 			<UserParam type="float" name="assay_rt" value="1738.03344726562"/>
@@ -1816,12 +1816,12 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999815572570795"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999856625259863"/>
-			<UserParam type="float" name="var_library_corr" value="0.999958895792084"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00210877092034115"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999856625259862"/>
+			<UserParam type="float" name="var_library_corr" value="0.999958895792083"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00210877092034118"/>
 			<UserParam type="float" name="var_library_sangle" value="0.00568290169440622"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00234666785239154"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00569725491872133"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00234666785239155"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00569725491872139"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999984331005195"/>
 			<UserParam type="float" name="delta_rt" value="-91.4555240369095"/>
 			<UserParam type="float" name="assay_rt" value="1944.45550537109"/>
@@ -2185,10 +2185,10 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999306122500148"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999507596125883"/>
 			<UserParam type="float" name="var_library_corr" value="0.999999844087868"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.000371332607761033"/>
-			<UserParam type="float" name="var_library_sangle" value="0.000881644613006046"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.000398123525759047"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.000664275022441985"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00037133260776107"/>
+			<UserParam type="float" name="var_library_sangle" value="0.00088164461288012"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.000398123525759099"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00066427502244204"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999999759192938"/>
 			<UserParam type="float" name="delta_rt" value="11.87630380473"/>
 			<UserParam type="float" name="assay_rt" value="1840.79333496094"/>
@@ -2517,9 +2517,9 @@
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.996803427295687"/>
 			<UserParam type="float" name="var_library_corr" value="0.99980651285564"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0186970886065384"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0488746489843266"/>
+			<UserParam type="float" name="var_library_sangle" value="0.048874648984322"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0193660888888348"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0787371455997618"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0787371455997619"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.997326850432155"/>
 			<UserParam type="float" name="delta_rt" value="-2.40877574883007"/>
 			<UserParam type="float" name="assay_rt" value="2078.5048828125"/>
@@ -2870,9 +2870,9 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.954878339555897"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.971277369934739"/>
-			<UserParam type="float" name="var_library_corr" value="0.991836366513429"/>
+			<UserParam type="float" name="var_library_corr" value="0.99183636651343"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0643953513633727"/>
-			<UserParam type="float" name="var_library_sangle" value="0.191305766479877"/>
+			<UserParam type="float" name="var_library_sangle" value="0.191305766479878"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0727675302961711"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.226469537934377"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.98132994148654"/>
@@ -2895,7 +2895,7 @@
 			<UserParam type="float" name="model_upper" value="1796.80987321334"/>
 			<UserParam type="float" name="model_EGH_tau" value="9.08077854261271"/>
 			<UserParam type="float" name="model_EGH_sigma" value="5.40511076244956"/>
-			<UserParam type="float" name="model_error" value="0.374671517101148"/>
+			<UserParam type="float" name="model_error" value="0.374671517101149"/>
 			<UserParam type="float" name="model_area" value="1941997.69164358"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="1230650.875"/>
@@ -3291,7 +3291,7 @@
 			<UserParam type="float" name="model_EGH_tau" value="12.2088252134406"/>
 			<UserParam type="float" name="model_EGH_sigma" value="5.97710140588358"/>
 			<UserParam type="float" name="model_error" value="0.374552473287904"/>
-			<UserParam type="float" name="model_area" value="21001145.967055"/>
+			<UserParam type="float" name="model_area" value="21001145.9670549"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="14827223"/>
 		</feature>
@@ -3771,7 +3771,7 @@
 					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i3"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.049427293750048"/>
+					<UserParam type="float" name="isotope_probability" value="0.0494272937500481"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
@@ -3807,15 +3807,15 @@
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.689104542136192"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.27074706717956"/>
 			<UserParam type="float" name="PrecursorMZ" value="408.874238280604"/>
-			<UserParam type="float" name="model_height" value="67984.3022056742"/>
-			<UserParam type="float" name="model_FWHM" value="247.846843628904"/>
-			<UserParam type="float" name="model_center" value="1580.50076737023"/>
-			<UserParam type="float" name="model_lower" value="1577.78547519476"/>
-			<UserParam type="float" name="model_upper" value="2676.33904195081"/>
-			<UserParam type="float" name="model_EGH_tau" value="349.799523473715"/>
-			<UserParam type="float" name="model_EGH_sigma" value="21.819340158686"/>
-			<UserParam type="float" name="model_error" value="0.244238474124181"/>
-			<UserParam type="float" name="model_area" value="24135707.6742868"/>
+			<UserParam type="float" name="model_height" value="67984.3022084822"/>
+			<UserParam type="float" name="model_FWHM" value="247.846843602815"/>
+			<UserParam type="float" name="model_center" value="1580.50076736868"/>
+			<UserParam type="float" name="model_lower" value="1577.78547520661"/>
+			<UserParam type="float" name="model_upper" value="2676.33904193697"/>
+			<UserParam type="float" name="model_EGH_tau" value="349.799523474065"/>
+			<UserParam type="float" name="model_EGH_sigma" value="21.8193401047573"/>
+			<UserParam type="float" name="model_error" value="0.244238474124182"/>
+			<UserParam type="float" name="model_area" value="24135707.6735962"/>
 			<UserParam type="string" name="model_status" value="2 (center out of bounds)"/>
 			<UserParam type="float" name="raw_intensity" value="798547.5625"/>
 		</feature>
@@ -4535,12 +4535,12 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.995799290398627"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.99736698685367"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.997366986853669"/>
 			<UserParam type="float" name="var_library_corr" value="0.999095051690155"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0354231623401309"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.035423162340131"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0778105921020369"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0379316957090146"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0710981014249446"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0710981014249448"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99733442812843"/>
 			<UserParam type="float" name="delta_rt" value="12.0147697582699"/>
 			<UserParam type="float" name="assay_rt" value="1772.36950683594"/>
@@ -4898,7 +4898,7 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.967360492339232"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.980555897441065"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.980555897441064"/>
 			<UserParam type="float" name="var_library_corr" value="0.997558611609638"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0310543917361926"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0929804085534422"/>
@@ -4924,7 +4924,7 @@
 			<UserParam type="float" name="model_upper" value="1659.40229809276"/>
 			<UserParam type="float" name="model_EGH_tau" value="12.7950794909942"/>
 			<UserParam type="float" name="model_EGH_sigma" value="6.58258605929518"/>
-			<UserParam type="float" name="model_error" value="0.414170098166019"/>
+			<UserParam type="float" name="model_error" value="0.414170098166021"/>
 			<UserParam type="float" name="model_area" value="12307781.9934213"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="7818904.5"/>
@@ -5171,8 +5171,8 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.985023530854238"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.989038955721603"/>
 			<UserParam type="float" name="var_library_corr" value="0.999065586547459"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0606738510358504"/>
-			<UserParam type="float" name="var_library_sangle" value="0.132114197730993"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0606738510358503"/>
+			<UserParam type="float" name="var_library_sangle" value="0.132114197730992"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0655868838992153"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.122634544499542"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.991835781704516"/>
@@ -5463,8 +5463,8 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.995895989809538"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.997074108224133"/>
 			<UserParam type="float" name="var_library_corr" value="0.999989549983186"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0436864894252684"/>
-			<UserParam type="float" name="var_library_sangle" value="0.102585993951528"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0436864894252683"/>
+			<UserParam type="float" name="var_library_sangle" value="0.102585993951527"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0501961111286264"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.110403554765519"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.994048075824363"/>
@@ -6926,12 +6926,12 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.998880001273236"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999472673990011"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999472673990012"/>
 			<UserParam type="float" name="var_library_corr" value="0.999907034253007"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00463660925900029"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0143897073131222"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00478872847039573"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0145422528069642"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00463660925900032"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0143897073131299"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00478872847039575"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0145422528069643"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999896167522342"/>
 			<UserParam type="float" name="delta_rt" value="-38.4837206868676"/>
 			<UserParam type="float" name="assay_rt" value="1827.63842773437"/>
@@ -7262,9 +7262,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999629990763269"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999733072960455"/>
 			<UserParam type="float" name="var_library_corr" value="0.999995380795278"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.000639030223112217"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.000639030223112194"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0018696875711686"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0007679777887049"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.000767977788704878"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.000911424340701905"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99999946438143"/>
 			<UserParam type="float" name="delta_rt" value="-18.8034418323073"/>
