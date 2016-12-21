@@ -1322,6 +1322,7 @@ namespace OpenMS
       double wTIC = 0;
       vector< vector<String> > userParamNameLists;
       vector< vector<String> > userParamValueLists;
+      vector< vector<String> > userParamUnitLists;
 
       for (std::multimap<String, int>::iterator it=range.first; it!=range.second; ++it)
       {
@@ -1381,6 +1382,8 @@ namespace OpenMS
         // userParams
         vector<String> userParamNames;
         vector<String> userParamValues;
+        vector<String> userParamUnits;
+
         DOMNodeList* sii_up = cl_sii->getElementsByTagName(XMLString::transcode("userParam"));
         const  XMLSize_t up_count = sii_up->getLength();
         for (XMLSize_t i = 0; i < up_count; ++i)
@@ -1388,9 +1391,11 @@ namespace OpenMS
           DOMElement* element_sii_up = dynamic_cast<xercesc::DOMElement*>(sii_up->item(i));
           userParamNames.push_back(String(XMLString::transcode(element_sii_up->getAttribute(XMLString::transcode("name")))));
           userParamValues.push_back(String(XMLString::transcode(element_sii_up->getAttribute(XMLString::transcode("value")))));
+          userParamUnits.push_back(String(XMLString::transcode(element_sii_up->getAttribute(XMLString::transcode("unitName")))));
         }
         userParamNameLists.push_back(userParamNames);
         userParamValueLists.push_back(userParamValues);
+        userParamUnitLists.push_back(userParamUnits);
 
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
@@ -1587,7 +1592,7 @@ namespace OpenMS
       for (Size i = 0; i < peptides.size(); ++i)
       {
         //cout << "current peptide: " << peptides[i] << endl;
-        cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
+//        cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
         try
         {
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
@@ -1661,10 +1666,17 @@ namespace OpenMS
 
       vector<String> userParamNames_alpha = userParamNameLists[alpha[0]];
       vector<String> userParamValues_alpha = userParamValueLists[alpha[0]];
+      vector<String> userParamUnits_alpha = userParamUnitLists[alpha[0]];
 
       for (Size i = 0; i < userParamNames_alpha.size(); ++i)
       {
-        ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
+        if (userParamUnits_alpha[i] == "xsd:double")
+        {
+          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
+        } else
+        {
+          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
+        }
       }
 
       ph_alpha.setFragmentAnnotations(frag_annotations);
@@ -1715,10 +1727,17 @@ namespace OpenMS
 
         vector<String> userParamNames_beta = userParamNameLists[beta[0]];
         vector<String> userParamValues_beta = userParamValueLists[beta[0]];
+        vector<String> userParamUnits_beta = userParamUnitLists[beta[0]];
 
         for (Size i = 0; i < userParamNames_beta.size(); ++i)
         {
-          ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
+          if (userParamUnits_beta[i] == "xsd:double")
+          {
+            ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i].toDouble());
+          } else
+          {
+            ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
+          }
         }
 
         phs.push_back(ph_beta);
@@ -1773,12 +1792,13 @@ namespace OpenMS
             pev.setAABefore(pv.pre);
             pev.setAAAfter(pv.post);
 
-            // TODO is this still necessary anywhere?
-//            if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
-//            {
+            if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
+            {
 //              phs[pep].setMetaValue("start", pv.start);
 //              phs[pep].setMetaValue("end", pv.stop);
-//            }
+              pev.setStart(pv.start);
+              pev.setEnd(pv.stop);
+            }
 
             idec = pv.idec;
             if (idec)
@@ -1967,6 +1987,8 @@ namespace OpenMS
             {
               hit.setMetaValue("start", pv.start);
               hit.setMetaValue("end", pv.stop);
+              pev.setStart(pv.start);
+              pev.setEnd(pv.stop);
             }
 
             idec = pv.idec;

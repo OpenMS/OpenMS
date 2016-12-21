@@ -103,6 +103,7 @@ namespace OpenMS
     // or n_charges * 2?
     Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
+
     double range = theoretical_spec[theo_size-1].getMZ() -  theoretical_spec[0].getMZ();
 
     // Compute fragment tolerance for the middle of the range / mean of MZ values, if ppm
@@ -358,32 +359,8 @@ namespace OpenMS
     // initialize progress counter
     Size countA = 0;
 
-//    // The largest peptides given a fixed maximal precursor mass are possible with loop links
-//    // Filter peptides using maximal loop link mass first
-//    double max_precursor = spectrum_precursors[spectrum_precursors.size()-1];
-
-//    // compute absolute tolerance from relative, if necessary
-//    double allowed_error = 0;
-//    if (precursor_mass_tolerance_unit_ppm) // ppm
-//    {
-//      allowed_error = max_precursor * precursor_mass_tolerance * 1e-6;
-//    }
-//    else // Dalton
-//    {
-//      allowed_error = precursor_mass_tolerance;
-//    }
-
-//    double max_peptide_mass = max_precursor - cross_link_mass + allowed_error;
-
-//    for (vector<OpenXQuestScores::PeptideMass>::iterator a = peptides.begin(); a != peptides.end(); ++a)
-//    {
-//      if ( a.peptide_mass > max_peptide_mass )
-//      {
-//        peptides.erase(a);
-//      }
-//    }
-
     double min_precursor = spectrum_precursors[0];
+    double max_precursor = spectrum_precursors[spectrum_precursors.size()-1];
 
 // Multithreading options: schedule: static, dynamic, guided
 // use OpenMP to run this for-loop on multiple CPU cores
@@ -471,6 +448,12 @@ namespace OpenMS
       }
       double min_second_peptide_mass = min_precursor - cross_link_mass - peptides[p1].peptide_mass - allowed_error;
 
+      if (precursor_mass_tolerance_unit_ppm) // ppm
+      {
+        allowed_error = max_precursor * precursor_mass_tolerance * 1e-6;
+      }
+      double max_second_peptide_mass = max_precursor - cross_link_mass - peptides[p1].peptide_mass + allowed_error;
+
       // Generate cross-links: one cross-linker linking two separate peptides, the most important case
       // Loop over all p2 peptide candidates, that come after p1 in the list
       for (Size p2 = p1; p2 < peptides.size(); ++p2)
@@ -479,6 +462,9 @@ namespace OpenMS
         if (peptides[p2].peptide_mass < min_second_peptide_mass)
         {
           continue;
+        } else if (peptides[p2].peptide_mass > max_second_peptide_mass)
+        {
+          break;
         }
 
         // Monoisotopic weight of the first peptide + the second peptide + cross-linker
