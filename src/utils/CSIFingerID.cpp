@@ -139,7 +139,7 @@ protected:
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
-    registerOutputFile_("out", "<file>", "", " MzTab Output file for CSIFingerID results");
+    registerOutputFile_("out", "<file>", "", "MzTab Output file for CSIFingerID results");
     setValidFormats_("out", ListUtils::create<String>("csv"));
 
     registerStringOption_("analysis_profile", "<choice>", "qtof", "Specify the used analysis profile", false);
@@ -153,9 +153,12 @@ protected:
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
     registerIntOption_("mass_deviation", "<num>", 5, "Specify the allowed mass deviation of the fragment peak in ppm.", false);
-    registerFlag_("iontree", "'--iontree' Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
-    registerFlag_("no_recalibration", "'--no-recalibration' If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("fingerid", "'--fingerid' If this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecIf this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecular formulular formula", false);
+
+    registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
+
+    registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
+    registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
+    registerFlag_("fingerid", "If this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecIf this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecular formulular formula", false);
   }
 
   Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum<Peak1D>& spectrum1, double left_tolerance, double right_tolerance)
@@ -184,6 +187,8 @@ protected:
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    int number = getIntOption_("number");
+    number = number + 1; // needed for counting later on
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -211,6 +216,16 @@ protected:
     f.load(in, spectra);
 
     CSIFingerIDRun csi_result;
+
+    //check for all spectra at the beginning if spectra are centroided
+    // determine type of spectral data (profile or centroided) //only checking first spectrum (could be ms2 spectrum)
+    SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
+    }
+
 
     // loop over all spectra
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
@@ -263,6 +278,7 @@ protected:
         double test_mz = precursor_mz;
 
         vector<Peak1D> isotopes;
+        isotopes.clear();
 
         if (s_it2->getMSLevel() != 1)
         {
@@ -273,7 +289,7 @@ protected:
         {
           const MSSpectrum<Peak1D>& spectrum1 = *s_it2;
 
-          Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.1, 0.1);
+          Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.2, 0.2); //which window to choose for precursor
 
           if (mono_index != -1)
           {
@@ -324,10 +340,11 @@ protected:
         }
 
         //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
+        //TODO: MS2 instensity cutoff? -> to reduce the interference of low intensity peaks (?) - can do that for specific spectra (hard coded/soft coded?)
 
         //write internal unique .ms data as sirius input
         streamsize prec = os.precision();
-        os.precision(6);
+        os.precision(12);
         os << fixed;
         os << ">compound " << query_id << "\n";
         if (isotopes.empty() == false)
@@ -341,25 +358,28 @@ protected:
         os << ">charge " << int_charge << "\n\n";
 
         // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
+
         if (isotopes.empty() == false) //if ms1 spectrum was present
         {
           os << ">ms1" << "\n";
-          if (isotopes[0].getMZ() != 0.0) os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";
-          if (isotopes[1].getMZ() != 0.0) os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";
-          if (isotopes[2].getMZ() != 0.0) os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";
+          //m/z and intensity have to be higher than 1e-10
+          //the intensity of the peaks of the isotope pattern have to be smaller than the one before
+          if (isotopes[0].getMZ() > 1e-10 && isotopes[0].getIntensity() > 1e-10){ os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";}
+          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() > 1e-10){ os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";}
+          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() > 1e-10){ os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";}
           os << "\n";
         }
         else
         {
           if(precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
           {
-          os << ">ms1" << "\n"
-             << precursor_mz << " " << precursor_int << "\n\n";
+            os << ">ms1" << "\n"
+               << precursor_mz << " " << precursor_int << "\n\n";
           }
         }
 
         //if collision energy was given - write it into .ms file if not use ms2 instead
-        if (collision == 0)
+        if (collision == 0.0)
         {
           os << ">ms2" << "\n";
         }
@@ -390,7 +410,7 @@ protected:
                        << "-d" << database
                        << "-s" << isotope
                        << "--noise" << noise
-                       << "-c" << candidates
+                       << "--candidates" << candidates
                        << "--ppm-max" << ppm_max
                        << "--output" << tmp_dir.toQString(); //internal output folder for temporary files
 
@@ -426,7 +446,12 @@ protected:
           // fill indentification structure containing all candidate hits for a single spectrum
           CSIFingerIDIdentification csi_id;
 
-          for (Size j = 1; j < compounds.rowCount(); ++j)
+          if (number > compounds.rowCount())
+          {
+            number = compounds.rowCount();
+          }
+
+          for (Size j = 1; j < number; ++j)
           {
             StringList sl;
             compounds.getRow(j,sl);
@@ -474,6 +499,10 @@ protected:
           //      writeDebug_(String("Input to sirius kept for inspection at ") + tmp_filename + "\n", 2);
           //      writeDebug_(String("Output folder kept for inspection at ") + tmp_dir + "\n", 2);
           //     }
+        }
+        else
+        {
+          LOG_WARN << "No Output file was generated by CSIFingerID. Scan Index: " << scan_index << endl;
         }
       }
     }
