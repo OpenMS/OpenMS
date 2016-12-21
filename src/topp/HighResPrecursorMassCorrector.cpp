@@ -124,9 +124,11 @@ class TOPPHiResPrecursorMassCorrector :
       setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
       registerTOPPSubsection_("highest_intensity_peak", "Use centroided MS1 peak with the highest intensity in a certrain mass range - for precursor mass correction");
-      registerDoubleOption_("highest_peak:range","<num>", 0.2,"The precursor mass tolerance to find the highest intensity MS1 peak (Da)", false);
+      registerDoubleOption_("highest_intensity_peak:mz_tolerance","<num>", 0.2,"The precursor mass tolerance to find the highest intensity MS1 peak (Da)", false);
+      registerStringOption_("highest_intensity_peak:mz_tolerance_unit", "<choice>", "Da", "Unit of precursor mass tolerance", false);
+      setValidStrings_("highest_intensity_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-      registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(csv_header), ", ") + ".", false);
+      registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' or 'highest_intensity_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(csv_header), ", ") + ".", false);
       setValidFormats_("out_csv", ListUtils::create<String>("csv"));
     }
 
@@ -278,7 +280,7 @@ class TOPPHiResPrecursorMassCorrector :
       return corrected_precursors;
     }
 
-    set<Size> coorectToHighestIntensityMS1Peak(PeakMap& exp)
+    set<Size> coorectToHighestIntensityMS1Peak(PeakMap & exp, double mz_tolerance, vector<double> & deltaMZs,vector<double> & mzs, vector<double> & rts)
     {set<Size> corrected_precursors;
       // load experiment and extract precursors
       vector<Precursor> precursors;  // precursor
@@ -310,19 +312,28 @@ class TOPPHiResPrecursorMassCorrector :
           LOG_WARN << "Error: no MS1 spectrum for this precursor" << endl;
         }
 
-        //cout << rt_it->getRT() << " " << rt_it->size() << endl;
+        MSSpectrum<Peak1D>::ConstIterator left = rt_it.MZBegin(mz - highest_intensity_peak_mz_tolerance);
+        MSSpectrum<Peak1D>::ConstIterator right = rt_it.MZEnd(mz + highest_intensity_peak_mz_tolerance);
+
+        // no MS1 precursor peak in +- tolerance window found
+        if (left == right || left->getMZ() > mz + tolerance)
+        {
+          LOG_WARN << "Error: The method highest_intensity_peak failed."
+        }
+
+        MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
         // find peak (index) closest to expected position
-        Size nearest_peak_idx = rt_it->findNearest(mz);
+        Size highest_peak_idx = max_intensity_it - rt_it.begin();
 
         // get actual position of closest peak
-        double nearest_peak_mz = (*rt_it)[nearest_peak_idx].getMZ();
+        double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
 
         // calculate error between expected and actual position
-        double nearestPeakError = ppm ? abs(nearest_peak_mz - mz)/mz * 1e6 : abs(nearest_peak_mz - mz);
+        double highestPeakError = ppm ? abs(highest_peak_idx - mz)/mz * 1e6 : abs(highest_peak_mz - mz);
 
         // check if error is small enough
-        if (nearestPeakError < mz_tolerance)
+        if (highestPeakError < mz_tolerance)
         {
           // sanity check: do we really have the same precursor in the original and the picked spectrum
           if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
@@ -331,13 +342,13 @@ class TOPPHiResPrecursorMassCorrector :
           }
 
           // cout << mz << " -> " << nearest_peak_mz << endl;
-          double deltaMZ = nearest_peak_mz - mz;
+          double deltaMZ = highest_peak_mz - mz;
           deltaMZs.push_back(deltaMZ);
           mzs.push_back(mz);
           rts.push_back(rt);
           // correct entries
           Precursor corrected_prec = precursors[i];
-          corrected_prec.setMZ(nearest_peak_mz);
+          corrected_prec.setMZ(highest_peak_mz);
           exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
           corrected_precursors.insert(precursor_spectrum_idx);
         }
@@ -510,6 +521,9 @@ class TOPPHiResPrecursorMassCorrector :
 
       const double nearest_peak_mz_tolerance = getDoubleOption_("nearest_peak:mz_tolerance");
       const bool nearest_peak_ppm = getStringOption_("nearest_peak:mz_tolerance_unit") == "ppm" ? true : false;
+
+      const double highest_intensity_peak_mz_tolerance = getDoubleOption_("highest_intensity_peak:mz_tolerance")
+      const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       PeakMap exp;
       MzMLFile().load(in_mzml, exp);
