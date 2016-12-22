@@ -1302,7 +1302,10 @@ protected:
       Param params = feat_finder_.getParameters();
       params.setValue("stop_report_after_feature", -1); // return all features
       params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-      if (elution_model != "none") params.setValue("write_convex_hull", "true");
+      if ((elution_model != "none") || (!candidates_out.empty()))
+      {
+        params.setValue("write_convex_hull", "true");
+      }
       if (min_peak_width < 1.0) min_peak_width *= peak_width;
       params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                       peak_width);
@@ -1497,6 +1500,19 @@ protected:
                           (elution_model == "asymmetric") ? "true" : "false");
       emf.setParameters(emf_params);
       emf.fitElutionModels(features);
+    }
+    else if (!candidates_out.empty()) // hulls not needed, remove them
+    {
+      for (FeatureMap::Iterator feat_it = features.begin(); 
+           feat_it != features.end(); ++feat_it)
+      {
+        for (vector<Feature>::iterator sub_it =
+               feat_it->getSubordinates().begin(); sub_it != 
+               feat_it->getSubordinates().end(); ++sub_it)
+        {
+          sub_it->getConvexHulls().clear();
+        }
+      }
     }
 
     //-------------------------------------------------------------
