@@ -159,9 +159,18 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     double region_start = double(feat_it->getMetaValue("leftWidth"));
     double region_end = double(feat_it->getMetaValue("rightWidth"));
 
+    if (feat_it->getSubordinates().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No subordinate features for mass traces available.");
+    }
+    const Feature& sub = feat_it->getSubordinates()[0];
+    if (sub.getConvexHulls().empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No hull points for mass trace in subordinate feature available.");
+    }
+
     vector<Peak1D> peaks;
     // reserve space once, to avoid copying and invalidating pointers:
-    const Feature& sub = feat_it->getSubordinates()[0];
     Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
     peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
                   (add_zeros > 0.0)); // don't forget additional zero point
