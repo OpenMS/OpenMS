@@ -36,16 +36,50 @@
 #define OPENMS_ANALYSIS_XLMS_OPENXQUESTSCORES
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLinks.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <numeric>
 
 namespace OpenMS
 {
 
+  struct ProteinProteinCrossLink
+    {
+      /** Enums
+      */
+      //@{
+      /** @brief type of Protein-Protein cross-link
+      */
+      enum ProteinProteinCrossLinkType
+      {
+        CROSS = 0,
+        MONO = 1,
+        LOOP = 2,
+        NUMBER_OF_TERM_SPECIFICITY
+      };
+
+      AASequence alpha; // longer peptide
+      AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
+      std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
+      double cross_linker_mass;
+      String cross_linker_name;
+      ResidueModification::Term_Specificity term_spec_alpha;
+      ResidueModification::Term_Specificity term_spec_beta;
+
+      ProteinProteinCrossLinkType getType() const
+      {
+        if (!beta.empty()) return CROSS;
+
+        if (cross_link_position.second == -1) return MONO;
+
+        return LOOP;
+      }
+
+    }__attribute__((packed));
+
 struct CrossLinkSpectrumMatch
   {
     /// structure of the cross-link
-    TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link;
+    ProteinProteinCrossLink cross_link;
 
     /// reference to pair of spectra
     Size scan_index_light;
@@ -116,6 +150,7 @@ struct CrossLinkSpectrumMatch
 
   };
 
+
   struct OPENMS_DLLAPI OpenXQuestScores
   {
 
@@ -140,8 +175,7 @@ struct CrossLinkSpectrumMatch
   {
     INTERNAL = 0,
     C_TERM = 1,
-    N_TERM = 2,
-    NUMBER_OF_TERM_SPECIFICITY
+    N_TERM = 2
   };
 
   struct PeptideMass
@@ -160,6 +194,8 @@ struct CrossLinkSpectrumMatch
       return peptide_mass < other;
     }
   } __attribute__((packed));
+
+
 
 
     //bool operator< (const double other, const XLPrecursor& pre) {return other < pre.precursor_mass;}
@@ -316,8 +352,8 @@ struct CrossLinkSpectrumMatch
 
   };
 
-  bool operator< (const double other, const OpenXQuestScores::XLPrecursor& pre) {return other < pre.precursor_mass;}
-  bool operator< (const double other, const OpenXQuestScores::PeptideMass& pre) {return other < pre.peptide_mass;}
+  static bool operator< (const double other, const OpenXQuestScores::XLPrecursor& pre) {return other < pre.precursor_mass;}
+  static bool operator< (const double other, const OpenXQuestScores::PeptideMass& pre) {return other < pre.peptide_mass;}
 
 }
 

@@ -1309,7 +1309,7 @@ protected:
             String topology = String("a") + alpha_pos;
             String id = structure + String("-") + letter_first + alpha_pos + String("-") + static_cast<int>(top_csm->cross_link.cross_linker_mass);
 
-            if (top_csm->cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
+            if (top_csm->cross_link.getType() == ProteinProteinCrossLink::CROSS)
             {
               xltype = "xlink";
               structure += "-" + top_csm->cross_link.beta.toUnmodifiedString();
@@ -1317,7 +1317,7 @@ protected:
               weight += top_csm->cross_link.beta.getMonoWeight();
               id = structure + "-" + topology;
             }
-            else if (top_csm->cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::LOOP)
+            else if (top_csm->cross_link.getType() == ProteinProteinCrossLink::LOOP)
             {
               xltype = "intralink";
               topology += String("-b") + beta_pos;
@@ -1904,7 +1904,7 @@ protected:
         }
 
         // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-        vector <TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink> cross_link_candidates;
+        vector <ProteinProteinCrossLink> cross_link_candidates;
         for (Size i = 0; i != candidates.size(); ++i)
         {
           //pair<const AASequence*, const AASequence*> candidate = candidates[i];
@@ -1976,7 +1976,7 @@ protected:
           {
             for (Size y = 0; y < link_pos_second.size(); ++y)
             {
-              TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate;
+              ProteinProteinCrossLink cross_link_candidate;
               if (seq_second.size() == 0)
               {
                 // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
@@ -2039,7 +2039,7 @@ protected:
 
         for (Size i = 0; i != cross_link_candidates.size(); ++i)
         {
-          TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
+          ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
           double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
           LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
@@ -2054,7 +2054,7 @@ protected:
 	  RichPeakSpectrum theoretical_spec_xlinks_alpha;
 	  RichPeakSpectrum theoretical_spec_xlinks_beta;
 
-	  bool type_is_cross_link = cross_link_candidate.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS;
+	  bool type_is_cross_link = cross_link_candidate.getType() == ProteinProteinCrossLink::CROSS;
 
           specGen.getCommonIonSpectrum(theoretical_spec_common_alpha, cross_link_candidate, 2, true);
           if (type_is_cross_link)
@@ -2355,7 +2355,7 @@ protected:
               LOG_DEBUG << "Score: " << all_csms_spectrum[max_position].score << "\t wTIC: " << all_csms_spectrum[max_position].wTIC << "\t xcorrx: " << all_csms_spectrum[max_position].xcorrx_max
                       << "\t xcorrc: " << all_csms_spectrum[max_position].xcorrc_max << "\t match-odds: " << all_csms_spectrum[max_position].match_odds << "\t Intsum: " << all_csms_spectrum[max_position].int_sum << endl;
 
-              if (all_csms_spectrum[max_position].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
+              if (all_csms_spectrum[max_position].cross_link.getType() == ProteinProteinCrossLink::CROSS)
               {
                 LOG_DEBUG << "Matched ions calpha , cbeta , xalpha , xbeta" << "\t" << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_common_beta
                         << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha <<  "\t" << all_csms_spectrum[max_position].matched_xlink_beta << endl;
@@ -2384,11 +2384,11 @@ protected:
               SignedSize alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first;
               SignedSize beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second;
 
-              if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::MONO)
+              if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
               {
                 xltype = "mono-link";
               }
-              else if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::LOOP)
+              else if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::LOOP)
               {
                 xltype = "loop-link";
               }
@@ -2396,7 +2396,7 @@ protected:
               PeptideHit ph_alpha, ph_beta;
               // Set monolink as a modification or add MetaValue for cross-link identity and mass
               AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
-              if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::MONO)
+              if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
               {
                 //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
                 vector< String > mods;
@@ -2438,7 +2438,7 @@ protected:
               }
 
 
-              if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::LOOP)
+              if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::LOOP)
               {
                 ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
               }
@@ -2480,7 +2480,7 @@ protected:
               LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
               phs.push_back(ph_alpha);
 
-              if (top_csms_spectrum[i].cross_link.getType() == TheoreticalSpectrumGeneratorXLinks::ProteinProteinCrossLink::CROSS)
+              if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::CROSS)
               {
                 ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
                 ph_beta.setCharge(precursor_charge);
