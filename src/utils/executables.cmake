@@ -31,6 +31,8 @@ MSSimulator
 MultiplexResolver
 MzMLSplitter
 OpenMSInfo
+OpenProXL
+OpenProXLLF
 PeakPickerIterative
 QCCalculator
 QCEmbedder
@@ -52,10 +54,9 @@ SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
 TopPerc
-xQuest
 XMLValidator
 RNPxlSearch
-PPXL
+
 )
 
 if(NOT DISABLE_OPENSWATH)

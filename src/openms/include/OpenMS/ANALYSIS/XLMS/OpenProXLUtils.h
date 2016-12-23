@@ -32,8 +32,8 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_OPENXQUESTSCORES
-#define OPENMS_ANALYSIS_XLMS_OPENXQUESTSCORES
+#ifndef OPENMS_ANALYSIS_XLMS_OPENPROXLUTILS
+#define OPENMS_ANALYSIS_XLMS_OPENPROXLUTILS
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -151,7 +151,7 @@ struct CrossLinkSpectrumMatch
   };
 
 
-  struct OPENMS_DLLAPI OpenXQuestScores
+  struct OPENMS_DLLAPI OpenProXLUtils
   {
 
     struct XLPrecursor
@@ -205,7 +205,7 @@ struct CrossLinkSpectrumMatch
 
     static double cumulativeBinomial(Size n, Size k, double p);
 
-    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenXQuestScores::PeptideMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
+    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenProXLUtils::PeptideMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
 
     static double match_odds_score(const RichPeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1);
@@ -352,8 +352,8 @@ struct CrossLinkSpectrumMatch
 
   };
 
-  static bool operator< (const double other, const OpenXQuestScores::XLPrecursor& pre) {return other < pre.precursor_mass;}
-  static bool operator< (const double other, const OpenXQuestScores::PeptideMass& pre) {return other < pre.peptide_mass;}
+  static bool operator< (const double other, const OpenProXLUtils::XLPrecursor& pre) {return other < pre.precursor_mass;}
+  static bool operator< (const double other, const OpenProXLUtils::PeptideMass& pre) {return other < pre.peptide_mass;}
 
 }
 
