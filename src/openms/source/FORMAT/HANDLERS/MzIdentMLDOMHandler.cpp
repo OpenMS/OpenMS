@@ -1604,8 +1604,8 @@ namespace OpenMS
       vector<Size> beta;
       for (Size i = 0; i < peptides.size(); ++i)
       {
-        //cout << "current peptide: " << peptides[i] << endl;
-        //cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
+        cout << "current peptide: " << peptides[i] << endl;
+        cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
         try
         {
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
@@ -1649,6 +1649,16 @@ namespace OpenMS
       current_pep_id.setMetaValue("spectrum_reference", spectrumID);
       current_pep_id.setScoreType("OpenXQuest:combined score");
       current_pep_id.setHigherScoreBetter(true);
+
+      // correction for terminal modifications
+      if (alpha_pos == -1)
+      {
+        ++alpha_pos;
+      }
+      else if (alpha_pos == (*pep_map_.find(peptides[alpha[0]])).second.size())
+      {
+        --alpha_pos;
+      }
 
 
       vector<PeptideHit> phs;
@@ -1717,6 +1727,16 @@ namespace OpenMS
       {
         PeptideHit ph_beta;
         Size beta_pos = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
+
+        // correction for terminal modifications
+        if (beta_pos == -1)
+        {
+          ++beta_pos;
+        }
+        else if (beta_pos == (*pep_map_.find(peptides[beta[0]])).second.size())
+        {
+          --beta_pos;
+        }
         ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
@@ -2225,6 +2245,8 @@ namespace OpenMS
         }
       }
       //3. Modifications
+      as.trim();
+      cout << "Current parsePeptideSiblings peptide sequence: " << as << " TEST" << endl;
       AASequence aas = AASequence::fromString(as);
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
@@ -2235,7 +2257,7 @@ namespace OpenMS
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
           if ((std::string)XMLString::transcode(element_sib->getTagName()) == "Modification")
           {
-            SignedSize index = -1;
+            SignedSize index = -2;
             try
             {
               index = static_cast<SignedSize>(String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt());
