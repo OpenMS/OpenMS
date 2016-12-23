@@ -813,16 +813,33 @@ namespace OpenMS
             String p;
             //~ TODO simplify mod cv param write
             p += String("\t<Peptide id=\"") + pepid + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
-            if (jt->getSequence().isModified())
+            if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
               const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
               if (n_term_mod != 0)
               {
                 p += "\t\t<Modification location=\"0\">\n";
                 String acc = n_term_mod->getUniModAccession();
-                p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                bool unimod = true;
+                if (!acc.empty())
+                {
+                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                }
+                else
+                {
+                  acc = n_term_mod->getPSIMODAccession();
+                  p += "\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                  unimod = false;
+                }
                 p += "\" name=\"" + n_term_mod->getId();
-                p += "\" cvRef=\"UNIMOD\"/>";
+                if (unimod)
+                {
+               	  p += "\" cvRef=\"UNIMOD\"/>";
+                }
+                else
+                {
+                  p += "\" cvRef=\"XLMOD\"/>";
+                }
                 p += "\n\t\t</Modification>\n";
               }
               const ResidueModification* c_term_mod = jt->getSequence().getCTerminalModification();
@@ -830,9 +847,26 @@ namespace OpenMS
               {
                 p += "\t\t<Modification location=\"" + String(jt->getSequence().size()) + "\">\n";
                 String acc = c_term_mod->getUniModAccession();
-                p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                bool unimod = true;
+                if (!acc.empty())
+                {
+                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                }
+                else
+                {
+                  acc = c_term_mod->getPSIMODAccession();
+                  p += "\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                  unimod = false;
+                }
                 p += "\" name=\"" + c_term_mod->getId();
-                p += "\" cvRef=\"UNIMOD\"/>";
+                if (unimod)
+                {
+                  p += "\" cvRef=\"UNIMOD\"/>";
+                }
+                else
+                {
+                  p += "\" cvRef=\"XLMOD\"/>";
+                }
                 p += "\n\t\t</Modification>\n";
               }
               for (Size i = 0; i < jt->getSequence().size(); ++i)
@@ -844,31 +878,137 @@ namespace OpenMS
                   p += "\t\t<Modification location=\"" + String(i + 1);
                   p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
                   String acc = mod->getUniModAccession();
-                  p += "\">\n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
-                  p += "\" name=\"" + mod->getId();
-                  p += "\" cvRef=\"UNIMOD\"/>";
-                  p += "\n\t\t</Modification>\n";
+                  if (!acc.empty())
+                  {
+                    p += "\">\n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':'); //TODO @all: do not exclusively use unimod ...
+                    p += "\" name=\"" + mod->getId();
+                    p += "\" cvRef=\"UNIMOD\"/>";
+                    p += "\n\t\t</Modification>\n";
+                  }
+                  else
+                  {
+                    acc = mod->getPSIMODAccession();
+                    p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                    p += "\" name=\"" +  mod->getId();
+                    p += "\" cvRef=\"XLMOD\"/>";
+                    p += "\n\t\t</Modification>\n";
+                  }
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
+              }
+              // Failsafe, if someone uses a new cross-linker (given these conditions, there MUST be a linker at this position, but it does not have a Unimod or XLMOD entry)
+              else if (jt->metaValueExists("xl_mod") && (jt->getMetaValue("xl_pos").toString().toInt() == i) && (jt->getMetaValue("xl_type").toString() == "mono-link") )
+              {
+                p += "\t\t<Modification location=\"" + String(i + 1);
+                p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                p += "\"> \n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
+                p += "\" name=\"" +  jt->getMetaValue("xl_mod").toString();
+                p += "\" cvRef=\"XLMOD\"/>";
+                p += "\n\t\t</Modification> \n";
               }
             }
             if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv) <- check for use of unimod:DSS use
             {
               int i = jt->getMetaValue("xl_pos").toString().toInt();
-              p += "\t\t<Modification location=\"" + String(i + 1);
-              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+//              p += "\t\t<Modification location=\"" + String(i + 1);
+//              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
-                p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
-                p += "\t\t\t<cvParam accession=\"XL:00002\" cvRef=\"XLMOD\" name=\"DSS\"/>\n";
-              }
-              else
-              {
-                p += "\" monoisotopicMassDelta=\"0";
-              }
-              p += "\"> \n\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
+                ModificationsDB* mod_db = ModificationsDB::getInstance();
+                //std::set<const ResidueModification*> mods;
+                std::vector<String> mods;
+                mod_db->getModificationsByDiffMonoMass(mods, String(jt->getSequence()[i].getOneLetterCode()), double(jt->getMetaValue("xl_mass")), 0.0001);
+                if (mods.size() > 0)
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                }
 
-              //TODO ppxl from where to get if other crosslink agent was used ???
+                if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                {
+                  ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, double(jt->getMetaValue("xl_mass")), 0.0001, ResidueModification::N_TERM);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"0";
+                  }
+                }
+                else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
+                {
+                  ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, double(jt->getMetaValue("xl_mass")), 0.0001, ResidueModification::C_TERM);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"" + String(i + 2);
+                  }
+                }
+
+                String acc = "";
+                String name = "";
+                for (Size s = 0; s < mods.size(); ++s)
+                {
+                  if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
+                  {
+                    ResidueModification mod;
+                    try
+                    {
+                      mod = mod_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[s], ResidueModification::ANYWHERE);
+                    }
+                    catch (...)
+                    {
+                      if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                      {
+                        mod = mod_db->getTerminalModification(mods[s], ResidueModification::N_TERM);
+                      }
+                      else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
+                      {
+                        mod = mod_db->getTerminalModification(mods[s], ResidueModification::C_TERM);
+                      }
+                    }
+                    acc = mod.getPSIMODAccession();
+                    name = mod.getId();
+                  }
+                  if (!acc.empty())
+                  {
+                    break;
+                  }
+                }
+                if ( acc.empty() && (mods.size() > 0) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
+                {
+                  ResidueModification mod = mod_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
+                  acc = mod.getPSIMODAccession();
+                  name = mod.getId();
+                }
+
+                if (!acc.empty())
+                {
+                  p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
+                  p += "\t\t\t<cvParam accession=\"" + acc + "\" cvRef=\"XLMOD\" name=\"" + name + "\"/>\n";
+                }
+                else // if there is no matching modification in the database, write out a placeholder
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                  p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
+                  p += "\t\t\t<cvParam accession=\"XLMOD:XXXXX\" cvRef=\"XLMOD\" name=\"" + jt->getMetaValue("xl_mod").toString() + "\"/>\n";
+                }
+              }
+              else // xl_chain = "MS:1002510", acceptor
+              {
+                if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                {
+                  p += "\t\t<Modification location=\"0";
+                }
+                else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 2);
+                }
+                else
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                }
+                p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                p += "\" monoisotopicMassDelta=\"0\"> \n";
+              }
+              p += "\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
               p += "\n\t\t</Modification> \n";
             }
             if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
@@ -877,7 +1017,7 @@ namespace OpenMS
               p += "\t\t<Modification location=\"" + String(i + 1);
               p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               p += "\" monoisotopicMassDelta=\"0";
-              // ppxl crosslink loop xl_pos2 is always the reciever ("MS:1002510")
+              // ppxl crosslink loop xl_pos2 is always the acceptor ("MS:1002510")
               p += "\"> \n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
               p += "\n\t\t</Modification> \n";
             }
