@@ -349,28 +349,32 @@ namespace OpenMS
           }
 
           // Protein terminals
-          String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
-          vector<String> res_list;
-          res_string.split(",", res_list);
+          //String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
+    //      vector<String> res_list;
+    //      res_string.split(",", res_list);
 
           if (origin.hasSubstring("ProteinN-term"))
           {
-            mod.setTermSpecificity(ResidueModification::PROTEIN_N_TERM);
-            for (Size i = 0; i < res_list.size(); ++i)
-            {
-              mod = ResidueModification(mod);
-              mod.setOrigin(res_list[i]);
-              all_mods.insert(make_pair(id, mod));
-            }
+            mod.setTermSpecificity(ResidueModification::N_TERM);
+            mod.setOrigin("N-term");
+            all_mods.insert(make_pair(id, mod));
+    //        for (Size i = 0; i < res_list.size(); ++i)
+    //        {
+    //          mod = ResidueModification(mod);
+    //          mod.setOrigin(res_list[i]);
+    //          all_mods.insert(make_pair(id, mod));
+    //        }
           }
           if (origin.hasSubstring("ProteinC-term"))
           {
-            mod.setTermSpecificity(ResidueModification::PROTEIN_C_TERM);
-            for (Size i = 0; i < res_list.size(); ++i)
-            {
-              mod.setOrigin(res_list[i]);
-              all_mods.insert(make_pair(id, mod));
-            }
+            mod.setTermSpecificity(ResidueModification::C_TERM);
+            mod.setOrigin("C-term");
+            all_mods.insert(make_pair(id, mod));
+    //        for (Size i = 0; i < res_list.size(); ++i)
+    //        {
+    //          mod.setOrigin(res_list[i]);
+    //          all_mods.insert(make_pair(id, mod));
+    //        }
           }
 
           id = "";
@@ -528,28 +532,32 @@ namespace OpenMS
       }
 
       // Protein terminals
-      String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
-      vector<String> res_list;
-      res_string.split(",", res_list);
+      //String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
+//      vector<String> res_list;
+//      res_string.split(",", res_list);
 
       if (origin.hasSubstring("ProteinN-term"))
       {
-        mod.setTermSpecificity(ResidueModification::PROTEIN_N_TERM);
-        for (Size i = 0; i < res_list.size(); ++i)
-        {
-          mod = ResidueModification(mod);
-          mod.setOrigin(res_list[i]);
-          all_mods.insert(make_pair(id, mod));
-        }
+        mod.setTermSpecificity(ResidueModification::N_TERM);
+        mod.setOrigin("N-term");
+        all_mods.insert(make_pair(id, mod));
+//        for (Size i = 0; i < res_list.size(); ++i)
+//        {
+//          mod = ResidueModification(mod);
+//          mod.setOrigin(res_list[i]);
+//          all_mods.insert(make_pair(id, mod));
+//        }
       }
       if (origin.hasSubstring("ProteinC-term"))
       {
-        mod.setTermSpecificity(ResidueModification::PROTEIN_C_TERM);
-        for (Size i = 0; i < res_list.size(); ++i)
-        {
-          mod.setOrigin(res_list[i]);
-          all_mods.insert(make_pair(id, mod));
-        }
+        mod.setTermSpecificity(ResidueModification::C_TERM);
+        mod.setOrigin("C-term");
+        all_mods.insert(make_pair(id, mod));
+//        for (Size i = 0; i < res_list.size(); ++i)
+//        {
+//          mod.setOrigin(res_list[i]);
+//          all_mods.insert(make_pair(id, mod));
+//        }
       }
 
       id = "";
@@ -576,7 +584,8 @@ namespace OpenMS
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        if (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X")
+        if ( (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X") ||
+              (it->second.getOrigin() == "N-term") || (it->second.getOrigin() == "C-term"))
         {
           mods_.push_back(new ResidueModification(it->second));
 
