@@ -29,6 +29,8 @@ MRMPairFinder
 MSSimulator
 MzMLSplitter
 OpenMSInfo
+OpenProXL
+OpenProXLLF
 PeakPickerIterative
 QCCalculator
 QCEmbedder
@@ -47,10 +49,9 @@ SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 TopPerc
-xQuest
 XMLValidator
 RNPxlSearch
-PPXL
+
 )
 
 if(NOT DISABLE_OPENSWATH)

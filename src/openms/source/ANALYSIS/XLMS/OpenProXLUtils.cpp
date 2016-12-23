@@ -32,7 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/XLMS/OpenXQuestScores.h>
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 #include <boost/math/special_functions/binomial.hpp>
 //#include <numeric>
 
@@ -42,7 +42,7 @@ namespace OpenMS
 {
   // fast pre-Score for cross-links
   // required: numbers of peaks for each chain, and how many of them were matched
-  float OpenXQuestScores::preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
+  float OpenProXLUtils::preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
   {
     if ( (ionsAlpha > 0) && (ionsBeta > 0) )
     {
@@ -55,7 +55,7 @@ namespace OpenMS
   }
 
   // fast pre-Score for mono-links and loop-links
-  float OpenXQuestScores::preScore(Size matchedAlpha, Size ionsAlpha)
+  float OpenProXLUtils::preScore(Size matchedAlpha, Size ionsAlpha)
   {
     if (ionsAlpha > 0)
     {
@@ -69,7 +69,7 @@ namespace OpenMS
 
   // Statistics/Combinatorics functions for match-odds score
   // Standard cumulative binomial distribution
-  double OpenXQuestScores::cumulativeBinomial(Size n, Size k, double p)
+  double OpenProXLUtils::cumulativeBinomial(Size n, Size k, double p)
   {
     double p_cumul = 0.0;
     if (p < 1e-99) return static_cast<double>(k == 0); //  (not true/false, but 1/0 as probability)
@@ -95,7 +95,7 @@ namespace OpenMS
   }
 
   // match odds score, spectra must be sorted by position
-  double OpenXQuestScores::match_odds_score(const RichPeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
+  double OpenProXLUtils::match_odds_score(const RichPeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
     // TODO Theoretical spectra for cross-links contain 1. and 2. isotopic peak, is mostly one of them matched making theo_size = 2 * matched_size in the best case?
     // how does that skew the statistics?
@@ -148,7 +148,7 @@ namespace OpenMS
 
 //   // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, a constant binsize)
 //  template <typename SpectrumType1, typename SpectrumType2>
-//  std::vector< double > OpenXQuestScores::xCorrelation(const SpectrumType1 & spec1, const SpectrumType2 & spec2, Int maxshift, double tolerance)
+//  std::vector< double > OpenProXLUtils::xCorrelation(const SpectrumType1 & spec1, const SpectrumType2 & spec2, Int maxshift, double tolerance)
 //  {
 //    // generate vector of results, filled with zeroes
 //    std::vector< double > results(maxshift * 2 + 1, 0);
@@ -216,7 +216,7 @@ namespace OpenMS
 //  }
 
   // weigthed TIC score, using standard max- and mindigestlength, TODO remove digestlength from equation after benchmarking scores against xQuest?
-  double OpenXQuestScores::weighted_TIC_score(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double intsum, double total_current, bool type_is_cross_link)
+  double OpenProXLUtils::weighted_TIC_score(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double intsum, double total_current, bool type_is_cross_link)
   {
     // TODO from xquest.def, but not used in this program aside from this calculation
     double maxdigestlength = 50;
@@ -244,7 +244,7 @@ namespace OpenMS
   }
 
 //  // Sum of matched ion intesity, for Intsum score and %TIC score
-//  double OpenXQuestScores::matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+//  double OpenProXLUtils::matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
 //  {
 //    double intsum = 0;
 //    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
@@ -258,7 +258,7 @@ namespace OpenMS
 //    return intsum;
 //  }
 
-//  double OpenXQuestScores::total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+//  double OpenProXLUtils::total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
 //  {
 //    // make vectors of matched peak indices
 //    double intsum = 0;
@@ -304,7 +304,7 @@ namespace OpenMS
 
 
   // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data
-  void filter_and_add_candidate (vector<OpenXQuestScores::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OpenXQuestScores::XLPrecursor precursor)
+  void filter_and_add_candidate (vector<OpenProXLUtils::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OpenProXLUtils::XLPrecursor precursor)
   {
     bool found_matching_precursors = false;
     // loop over all considered ion charges;
@@ -352,10 +352,10 @@ namespace OpenMS
 
 
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
-  vector<OpenXQuestScores::XLPrecursor> OpenXQuestScores::enumerateCrossLinksAndMasses_(const vector<OpenXQuestScores::PeptideMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  vector<OpenProXLUtils::XLPrecursor> OpenProXLUtils::enumerateCrossLinksAndMasses_(const vector<OpenProXLUtils::PeptideMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
-    vector<OpenXQuestScores::XLPrecursor> mass_to_candidates;
+    vector<OpenProXLUtils::XLPrecursor> mass_to_candidates;
     // initialize progress counter
     Size countA = 0;
 
@@ -485,7 +485,7 @@ namespace OpenMS
 
 //  // Enumerates all possible combinations containing a cross-link, without specific cross-link positions. (There are cases where multiple positions are possible, but they have the same precursor mass)
 //  // At this point the only difference between mono-links and loop-links is the added cross-link mass
-//  multimap<double, pair<const AASequence*, const AASequence*> > OpenXQuestScores::enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
+//  multimap<double, pair<const AASequence*, const AASequence*> > OpenProXLUtils::enumerateCrossLinksAndMasses_(const multimap<StringView, AASequence>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2)
 //  {
 //    multimap<double, pair<const AASequence*, const AASequence*> > mass_to_candidates;
 //    Size countA = 0;

@@ -36,7 +36,7 @@
 #ifndef THEORETICALSPECTRUMGENERATORXLINKS_H
 #define THEORETICALSPECTRUMGENERATORXLINKS_H
 
-#include <OpenMS/ANALYSIS/XLMS/OpenXQuestScores.h>
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
