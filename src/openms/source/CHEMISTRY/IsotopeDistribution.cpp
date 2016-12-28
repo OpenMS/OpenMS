@@ -205,7 +205,7 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
   {
-    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndComp(average_weight_fragment, C, H, N, O, S, P);
