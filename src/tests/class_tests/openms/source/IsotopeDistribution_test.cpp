@@ -463,7 +463,7 @@ START_SECTION(void estimateForFragmentFromWeightAndComp(double average_weight_pr
 
 	iso.estimateForFragmentFromWeightAndComp(2000.0, 1000.0, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
 	iso2.estimateForFragmentFromPeptideWeight(2000.0, 1000.0, precursor_isotopes);
-	TEST_EQUAL(iso.begin()->second,iso2.begin()->second);
+	TEST_EQUAL(iso.begin()->second, iso2.begin()->second);
 END_SECTION
 
 
