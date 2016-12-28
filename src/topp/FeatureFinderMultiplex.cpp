@@ -559,9 +559,9 @@ public:
         // loop over points in cluster
         for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
         {
-          int index = (*point_it);
+          int idx = (*point_it);
 
-          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(idx);
           double rt = result_peak.getRT();
 
           for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
