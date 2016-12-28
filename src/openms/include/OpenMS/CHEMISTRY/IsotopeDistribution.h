@@ -165,7 +165,7 @@ public:
         @param average_weight_fragment: average weight of the fragment
         @param precursor_isotopes: the precursor isotopes that were isolated
 
-        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_fragment > 0
         @pre average_weight_precursor > 0
         @pre precursor_isotopes.size() > 0
@@ -181,7 +181,7 @@ public:
         @param average_weight_fragment: average weight of the fragment
         @param precursor_isotopes: the precursor isotopes that were isolated
 
-        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_precursor > 0
         @pre average_weight_fragment > 0
         @pre precursor_isotopes.size() > 0
@@ -197,7 +197,7 @@ public:
         @param average_weight_fragment: average weight of the fragment
         @param precursor_isotopes: the precursor isotopes that were isolated
 
-        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_precursor > 0
         @pre average_weight_fragment > 0
         @pre precursor_isotopes.size() > 0
@@ -220,7 +220,7 @@ public:
         @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
 
         @pre S, C, H, N, O, P >= 0
-        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_precursor > 0
         @pre average_weight_fragment > 0
         @pre precursor_isotopes.size() > 0
