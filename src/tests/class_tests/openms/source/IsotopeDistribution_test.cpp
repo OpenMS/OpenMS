@@ -293,6 +293,180 @@ START_SECTION(void estimateFromDNAWeight(double average_weight))
     TEST_REAL_SIMILAR(iso.begin()->second, 0.075138)
 END_SECTION
 
+START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes))
+	IsotopeDistribution iso;
+	std::vector<UInt> precursor_isotopes;
+	// We're isolating the M0 and M+1 precursor isotopes
+	precursor_isotopes.push_back(0);
+	precursor_isotopes.push_back(1);
+	// These are regression tests, but the results also follow an expected pattern.
+
+	// All the fragments from the M0 precursor will also be monoisotopic, while a fragment
+	// that is half the mass of the precursor and coming from the M+1 precursor will be
+	// roughly 50/50 monoisotopic/M+1.
+	// For such a small peptide, the M0 precursor isotope is much more abundant than M+1.
+	// Therefore, it's much more likely this fragment will be monoisotopic.
+	iso.estimateForFragmentFromPeptideWeight(200.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.954654801320083)
+
+	// This peptide is large enough that the M0 and M+1 precursors are similar in abundance.
+	// However, since the fragment is only 1/20th the mass of the precursor, it's
+	// much more likely for the extra neutron to be on the complementary fragment.
+	// Therefore, it's still much more likely this fragment will be monoisotopic.
+	iso.estimateForFragmentFromPeptideWeight(2000.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.975984866212216)
+
+	// Same explanation as the previous example.
+	iso.estimateForFragmentFromPeptideWeight(20000.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.995783521351781)
+
+	// Like the first example, the fragment is half the mass of the precursor so
+	// the fragments from the M+1 precursor will be roughly 50/50 monoisotopic/M+1.
+	// However, this time the peptide is larger than the first example, so the M0
+	// and M+1 precursors are also roughly 50/50 in abundance. Therefore, the
+	// probability of the M0 fragment should be in the 75% range.
+	//                  i.e. (100% * 50%) + (50% * 50%) = 75%
+	// M0 frags due to M0 precursor^             ^M0 frags due to M+1 precursor
+	iso.estimateForFragmentFromPeptideWeight(2000.0, 1000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.741290977639283)
+
+	// Same explanation as the second example, except now the M+1 precursor is
+	// more abundant than the M0 precursor. But, the fragment is so small that
+	// it's still more likely for the fragment to be monoisotopic.
+	iso.estimateForFragmentFromPeptideWeight(20000.0, 1000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.95467154987681)
+
+	// Same explanation as above.
+	iso.estimateForFragmentFromPeptideWeight(20000.0, 10000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.542260764523188)
+
+	// If the fragment is identical to the precursor, then the distribution
+	// should be the same as if it was just a precursor that wasn't isolated.
+	iso.estimateForFragmentFromPeptideWeight(200.0, 200.0, precursor_isotopes);
+	IsotopeDistribution iso_precursor(2);
+	iso_precursor.estimateFromPeptideWeight(200.0);
+	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
+
+	for (; it1 != iso.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_SIMILAR(it2->second, it2->second)
+	}
+
+END_SECTION
+
+START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes))
+	IsotopeDistribution iso;
+	std::vector<UInt> precursor_isotopes;
+	// We're isolating the M0 and M+1 precursor isotopes
+	precursor_isotopes.push_back(0);
+	precursor_isotopes.push_back(1);
+
+	// These are regression tests, but the results also follow an expected pattern.
+	// See the comments in estimateForFragmentFromPeptideWeight for an explanation.
+	iso.estimateForFragmentFromDNAWeight(200.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.963845242419331)
+
+	iso.estimateForFragmentFromDNAWeight(2000.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.978300783455351)
+
+	iso.estimateForFragmentFromDNAWeight(20000.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.995652529512413)
+
+	iso.estimateForFragmentFromDNAWeight(2000.0, 1000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.776727852910751)
+
+	iso.estimateForFragmentFromDNAWeight(20000.0, 1000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.95504592203456)
+
+	iso.estimateForFragmentFromDNAWeight(20000.0, 10000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.555730613643729)
+
+	iso.estimateForFragmentFromDNAWeight(200.0, 200.0, precursor_isotopes);
+	IsotopeDistribution iso_precursor(2);
+	iso_precursor.estimateFromDNAWeight(200.0);
+	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
+
+	for (; it1 != iso.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_SIMILAR(it2->second, it2->second)
+	}
+
+END_SECTION
+
+START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes))
+	IsotopeDistribution iso;
+	std::vector<UInt> precursor_isotopes;
+	// We're isolating the M0 and M+1 precursor isotopes
+	precursor_isotopes.push_back(0);
+	precursor_isotopes.push_back(1);
+
+	// These are regression tests, but the results also follow an expected pattern.
+	// See the comments in estimateForFragmentFromPeptideWeight for an explanation.
+	iso.estimateForFragmentFromRNAWeight(200.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.963845242419331)
+
+	iso.estimateForFragmentFromRNAWeight(2000.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.977854088814216)
+
+	iso.estimateForFragmentFromRNAWeight(20000.0, 100.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.995465661923629)
+
+	iso.estimateForFragmentFromRNAWeight(2000.0, 1000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.784037437107401)
+
+	iso.estimateForFragmentFromRNAWeight(20000.0, 1000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.955768644474843)
+
+	iso.estimateForFragmentFromRNAWeight(20000.0, 10000.0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.begin()->second, 0.558201381343203)
+
+	iso.estimateForFragmentFromRNAWeight(200.0, 200.0, precursor_isotopes);
+	IsotopeDistribution iso_precursor(2);
+	iso_precursor.estimateFromRNAWeight(200.0);
+	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
+
+	for (; it1 != iso.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_SIMILAR(it2->second, it2->second)
+	}
+
+END_SECTION
+
+START_SECTION(void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P))
+	// We are testing that the parameterized version matches the hardcoded version.
+	IsotopeDistribution iso(3);
+	IsotopeDistribution iso2(3);
+	std::vector<UInt> precursor_isotopes;
+	precursor_isotopes.push_back(0);
+	precursor_isotopes.push_back(1);
+
+	iso.estimateForFragmentFromWeightAndComp(2000.0, 1000.0, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
+	iso2.estimateForFragmentFromPeptideWeight(2000.0, 1000.0, precursor_isotopes);
+	TEST_EQUAL(iso.begin()->second,iso2.begin()->second);
+END_SECTION
+
+
 START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
     // We are testing that the parameterized version matches the hardcoded version.
     IsotopeDistribution iso(3);

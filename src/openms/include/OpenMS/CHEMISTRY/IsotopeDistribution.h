@@ -155,6 +155,78 @@ public:
     */
     void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
+
+    /**
+        @brief Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor peptide
+        @param average_weight_fragment: average weight of the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated
+
+        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_fragment > 0
+        @pre average_weight_precursor > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor nucleotide
+        @param average_weight_fragment: average weight of the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated
+
+        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor nucleotide
+        @param average_weight_fragment: average weight of the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated
+
+        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, a list of isolated precursor isotopes, and average composition
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor molecule
+        @param average_weight_fragment: average weight of the fragment molecule
+        @param precursor_isotopes: the precursor isotopes that were isolated
+        @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
+        @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+        @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+        @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
+        @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+        @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+        @pre S, C, H, N, O, P >= 0
+        @pre average_weight_precursor > average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+     */
+    void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
+
     /**
         @brief Calculate isotopic distribution for a fragment molecule
 

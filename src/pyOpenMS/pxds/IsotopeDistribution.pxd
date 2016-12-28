@@ -49,6 +49,22 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
 
         void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
 
+        # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
+        # fragment's average weight, and a list of isolated precursor isotopes.
+        void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
+
+        # Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
+        # fragment's average weight, and a list of isolated precursor isotopes.
+        void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
+
+        # Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
+        # fragment's average weight, and a list of isolated precursor isotopes.
+        void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
+
+        # Estimate fragment IsotopeDistribution from the precursor's average weight,
+        # fragment's average weight, a list of isolated precursor isotopes, and average composition
+        void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, libcpp_vector[ unsigned int ]& precursor_isotopes, double C, double H, double N, double O, double S, double P) nogil except +
+
         # Calculate isotopic distribution for a fragment molecule
 
         void calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
