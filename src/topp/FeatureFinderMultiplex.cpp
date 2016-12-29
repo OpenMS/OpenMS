@@ -231,7 +231,7 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
-      defaults.setValue("spectrum_type", "automatic", "Spectrum type of the MS level to be averaged", ListUtils::create<String>("advanced"));
+      defaults.setValue("spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. Either 'profile', 'centroid' or 'automatic'. The last option determines the spectrum type directly from the input mzML file.", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
       defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
