@@ -37959,7 +37959,6 @@ antiserum and mass spectrometric analysis</umod:text>
          </umod:delta>
          <umod:alt_name>4-acetamido-4'-((iodoacetyl)amino)stilbene-2,2'-disulfonic acid</umod:alt_name>
       </umod:mod>
-   </umod:modifications>
       <umod:mod title="Methyl:2H(2)13C"
         full_name="Mono-methylation 2H(2)13C"
         username_of_poster="Weng"
@@ -38123,7 +38122,7 @@ derivative" spec_group="5"/>
             <umod:element symbol="O" number="8"/>
             <umod:element symbol="P" number="1"/>
          </umod:delta>
-      </umod:mod>	
+      </umod:mod>
       <umod:mod title="RNPXlink4" full_name="U-H2O gain of 152" username_of_poster="Timo"
                 group_of_poster="admin"
                 date_time_posted="2002-08-19 19:17:11"
