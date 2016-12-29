@@ -6102,7 +6102,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="691.667602539063" RT="7365.17449999998" >
-			<PeptideHit score="0.311171156417568" sequence="(Glu->pyro-Glu)EASTQSSSAAASQGWVLPEGK" charge="3" aa_before="R X X X" aa_after="I X X X" protein_refs="PH_77 PH_102 PH_133 PH_134" >
+			<PeptideHit score="0.311171156417568" sequence=".(Glu->pyro-Glu)EASTQSSSAAASQGWVLPEGK" charge="3" aa_before="R X X X" aa_after="I X X X" protein_refs="PH_77 PH_102 PH_133 PH_134" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="22.3"/>
 				<UserParam type="float" name="E-Value" value="0.23"/>

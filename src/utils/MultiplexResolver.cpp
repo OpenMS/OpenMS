@@ -346,7 +346,7 @@ private:
     std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift;
     std::vector<bool>::const_iterator it_delta_mass_matched;
     for (it_mass_shift = pattern.begin(), it_delta_mass_matched = delta_mass_matched.begin();
-         it_mass_shift != pattern.end(), it_delta_mass_matched != delta_mass_matched.end();
+         it_mass_shift != pattern.end() && it_delta_mass_matched != delta_mass_matched.end();
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       // find the first match
@@ -406,7 +406,7 @@ private:
     std::vector<bool>::const_iterator it_delta_mass_matched;
     ConsensusFeature::HandleSetType::const_iterator it_feature;
     for (it_mass_shift = pattern.begin(), it_delta_mass_matched = delta_mass_matched.begin(), it_feature = consensus.getFeatures().begin();
-         it_mass_shift != pattern.end(), it_delta_mass_matched != delta_mass_matched.end();
+         it_mass_shift != pattern.end() && it_delta_mass_matched != delta_mass_matched.end();
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       
