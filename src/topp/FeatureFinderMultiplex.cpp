@@ -166,6 +166,7 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  String spectrum_type_;
   String averagine_type_;
 
   // section "labels"
@@ -230,6 +231,8 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
+      defaults.setValue("spectrum_type", "automatic", "Spectrum type of the MS level to be averaged", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
       defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     }
@@ -301,6 +304,7 @@ public:
     averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
+    spectrum_type_ = getParam_().getValue("algorithm:spectrum_type");
     averagine_type_ = getParam_().getValue("algorithm:averagine_type");
   }
 
@@ -953,7 +957,19 @@ private:
       spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
     }
 
-    bool centroided = spectrum_type == SpectrumSettings::PEAKS;
+    bool centroided;
+    if (spectrum_type_=="automatic")
+    {
+      centroided = spectrum_type == SpectrumSettings::PEAKS;
+    }
+    else if (spectrum_type_=="centroid")
+    {
+      centroided = true;
+    }
+    else  // "profile"
+    {
+      centroided = false;
+    }
 
     /**
      * pick peaks
