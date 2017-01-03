@@ -71,9 +71,9 @@ using namespace std;
 
   This tool performs precursor m/z correction on picked (=centroided) high resolution data.
 
-  Three methods are available: 'nearest_peak', 'highest_intensity peak' and 'feature'. Both can be used in order.
+  Three methods are available: 'nearest_peak', 'highest_intensity_peak' and 'feature'. They can be used in order.
     - nearest_peak: Use nearest centroided MS1 peak for precursor mass correction.
-    - highest_intensity_peak: Use highest intensity centroided MS1 peak in a given mass range for precursorm mass correction.
+    - highest_intensity_peak: Use highest intensity centroided MS1 peak in a given mass range for precursor mass correction.
     - feature: Use features for precursor mass correction, which allows for charge correction.
 
   See the corresponding parameter subsection for details.
@@ -298,7 +298,7 @@ class TOPPHiResPrecursorMassCorrector :
         // get precursor MZ
         double mz = precursors[i].getMZ();
 
-        cout << rt << " " << mz << endl;
+        // cout << rt << " " << mz << endl;
 
         // get precursor spectrum
         MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
