@@ -576,7 +576,7 @@ class TOPPHiResPrecursorMassCorrector :
         {
           LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
         }
-        else if(highest_intensity_peak_mz_tolerance > 0.0)
+        else if (highest_intensity_peak_mz_tolerance > 0.0)
         {
           LOG_INFO << "Corrected " << corrected_to_highest_intensity_peak.size() << " precursor to a MS1 peak." << endl;
         }
