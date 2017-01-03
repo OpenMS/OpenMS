@@ -36,6 +36,7 @@
 #ifndef THEORETICALSPECTRUMGENERATORXLINKS_H
 #define THEORETICALSPECTRUMGENERATORXLINKS_H
 
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -57,50 +58,50 @@ namespace OpenMS
   {
 public:
 
-    struct ProteinProteinCrossLink
-    {
-      /** Enums
-      */
-      //@{
-      /** @brief type of Protein-Protein cross-link
-      */
-      enum ProteinProteinCrossLinkType
-      {
-        CROSS = 0,
-        MONO = 1,
-        LOOP = 2,
-        NUMBER_OF_TERM_SPECIFICITY
-      };
-
-      AASequence alpha; // longer peptide
-      AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
-      std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
-      double cross_linker_mass;
-      String cross_linker_name;
-
-      ProteinProteinCrossLinkType getType() const
-      {
-        if (!beta.empty()) return CROSS;
-
-        if (cross_link_position.second == -1) return MONO;
-
-        return LOOP;
-      }
-
-//      double getMass(double cross_linker_mass)
+//    struct ProteinProteinCrossLink
+//    {
+//      /** Enums
+//      */
+//      //@{
+//      /** @brief type of Protein-Protein cross-link
+//      */
+//      enum ProteinProteinCrossLinkType
 //      {
-//        switch(getType())
-//        {
-//          case PROTEIN_PROTEIN: return 0; break;
-//          case MONO: return 0; break;
-//          case LOOP: return 0; break;
-//          default:
-//          //TODO: error
-//          break;
-//        }
-//        return cross_linker_mass; // TODO change
+//        CROSS = 0,
+//        MONO = 1,
+//        LOOP = 2,
+//        NUMBER_OF_TERM_SPECIFICITY
+//      };
+
+//      AASequence alpha; // longer peptide
+//      AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
+//      std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
+//      double cross_linker_mass;
+//      String cross_linker_name;
+
+//      ProteinProteinCrossLinkType getType() const
+//      {
+//        if (!beta.empty()) return CROSS;
+
+//        if (cross_link_position.second == -1) return MONO;
+
+//        return LOOP;
 //      }
-    };
+
+////      double getMass(double cross_linker_mass)
+////      {
+////        switch(getType())
+////        {
+////          case PROTEIN_PROTEIN: return 0; break;
+////          case MONO: return 0; break;
+////          case LOOP: return 0; break;
+////          default:
+////          //TODO: error
+////          break;
+////        }
+////        return cross_linker_mass; // TODO change
+////      }
+//    };
 
 
     /** @name Constructors and Destructors

@@ -794,9 +794,26 @@ namespace OpenMS
                 if (!mods.empty())
                 {
                   String acc = (*mods.begin())->getUniModAccession();
-                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                  bool unimod = true;
+                  if (!acc.empty())
+                  {
+                    p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                  }
+                  else
+                  {
+                    acc = (*mods.begin())->getPSIMODAccession();
+                    p += "\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                    unimod = false;
+                  }
                   p += "\" name=\"" +  mod_str;
-                  p += "\" cvRef=\"UNIMOD\"/>";
+                  if (unimod)
+                  {
+                    p += "\" cvRef=\"UNIMOD\"/>";
+                  }
+                  else
+                  {
+                    p += "\" cvRef=\"XLMOD\"/>";
+                  }
                 }
                 else // TODO @mths file issue: as this appears to yield hodgepodge 'id's (sometimes e.g. Gln->pyro-Glu other times UNIMOD accessions) - issue is probably in some idXML writing code or xtandem xml consuming code
                 {
@@ -815,9 +832,25 @@ namespace OpenMS
                 if (!mods.empty())
                 {
                   String acc = (*mods.begin())->getUniModAccession();
-                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                  bool unimod = true;
+                  if (!acc.empty())
+                  {
+                    p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                  }
+                  else
+                  {
+                    acc = (*mods.begin())->getPSIMODAccession();
+                    p += "\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                  }
                   p += "\" name=\"" +  mod_str;
-                  p += "\" cvRef=\"UNIMOD\"/>";
+                  if (unimod)
+                  {
+                    p += "\" cvRef=\"UNIMOD\"/>";
+                  }
+                  else
+                  {
+                    p += "\" cvRef=\"XLMOD\"/>";
+                  }
                 }
                 else // TODO @mths file issue: as this appears to yield hodgepodge 'id's (sometimes e.g. Gln->pyro-Glu other times UNIMOD accessions) - issue is probably in some idXML writing code or xtandem xml consuming code
                 {
@@ -872,21 +905,58 @@ namespace OpenMS
             if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv) <- check for use of unimod:DSS use
             {
               int i = jt->getMetaValue("xl_pos").toString().toInt();
-              p += "\t\t<Modification location=\"" + String(i + 1);
-              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+//              p += "\t\t<Modification location=\"" + String(i + 1);
+//              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
                 ModificationsDB* mod_db = ModificationsDB::getInstance();
                 //std::set<const ResidueModification*> mods;
                 std::vector<String> mods;
                 mod_db->getModificationsByDiffMonoMass(mods, String(jt->getSequence()[i].getOneLetterCode()), double(jt->getMetaValue("xl_mass")), 0.0001);
+                if (mods.size() > 0)
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                }
+
+                if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                {
+                  ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, double(jt->getMetaValue("xl_mass")), 0.0001, ResidueModification::N_TERM);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"0";
+                  }
+                }
+                else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
+                {
+                  ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, double(jt->getMetaValue("xl_mass")), 0.0001, ResidueModification::C_TERM);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"" + String(i + 2);
+                  }
+                }
+
                 String acc = "";
                 String name = "";
                 for (Size s = 0; s < mods.size(); ++s)
                 {
                   if (mods[s].hasSubstring(jt->getMetaValue("xl_mod")))
                   {
-                    ResidueModification mod = mod_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[s], ResidueModification::ANYWHERE);
+                    ResidueModification mod;
+                    try
+                    {
+                      mod = mod_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[s], ResidueModification::ANYWHERE);
+                    }
+                    catch (...)
+                    {
+                      if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                      {
+                        mod = mod_db->getTerminalModification(mods[s], ResidueModification::N_TERM);
+                      }
+                      else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
+                      {
+                        mod = mod_db->getTerminalModification(mods[s], ResidueModification::C_TERM);
+                      }
+                    }
                     acc = mod.getPSIMODAccession();
                     name = mod.getId();
                   }
@@ -901,23 +971,39 @@ namespace OpenMS
                   acc = mod.getPSIMODAccession();
                   name = mod.getId();
                 }
-                p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
+
                 if (!acc.empty())
                 {
+                  p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
                   p += "\t\t\t<cvParam accession=\"" + acc + "\" cvRef=\"XLMOD\" name=\"" + name + "\"/>\n";
                 }
                 else // if there is no matching modification in the database, write out a placeholder
                 {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                  p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
                   p += "\t\t\t<cvParam accession=\"XLMOD:XXXXX\" cvRef=\"XLMOD\" name=\"" + jt->getMetaValue("xl_mod").toString() + "\"/>\n";
                 }
               }
-              else
+              else // xl_chain = "MS:1002510", acceptor
               {
+                if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                {
+                  p += "\t\t<Modification location=\"0";
+                }
+                else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 2);
+                }
+                else
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                }
+                p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
                 p += "\" monoisotopicMassDelta=\"0\"> \n";
               }
               p += "\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
-
-              //TODO ppxl from where to get if other crosslink agent was used ???
               p += "\n\t\t</Modification> \n";
             }
             if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)

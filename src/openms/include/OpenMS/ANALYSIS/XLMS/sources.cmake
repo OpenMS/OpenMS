@@ -3,7 +3,7 @@ set(directory include/OpenMS/ANALYSIS/XLMS)
 
 ### list all header files of the directory here
 set(sources_list_h
-OpenXQuestScores.h
+OpenProXLUtils.h
 )
 
 ### add path to the filenames
