@@ -37959,6 +37959,136 @@ antiserum and mass spectrometric analysis</umod:text>
          </umod:delta>
          <umod:alt_name>4-acetamido-4'-((iodoacetyl)amino)stilbene-2,2'-disulfonic acid</umod:alt_name>
       </umod:mod>
+      <umod:mod title="CUSTOM0"
+                full_name="custom modification 0"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9900">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM1"
+                full_name="custom modification 1"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9901">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM2"
+                full_name="custom modification 2"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9902">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM3"
+                full_name="custom modification 3"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9903">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM4"
+                full_name="custom modification 4"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9904">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM5"
+                full_name="custom modification 5"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9905">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM6"
+                full_name="custom modification 6"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9906">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM7"
+                full_name="custom modification 7"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9907">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM8"
+                full_name="custom modification 8"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9908">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
+      <umod:mod title="CUSTOM9"
+                full_name="custom modification 9"
+                username_of_poster=""
+                group_of_poster=""
+                date_time_posted=""
+                date_time_modified=""
+                approved="0"
+                record_id="9909">
+         <umod:specificity hidden="1" site="K" position="Anywhere" classification="Chemical derivative" spec_group="1"/>
+         <umod:delta mono_mass="0.0" avge_mass="" composition="H(1)">
+            <umod:element symbol="H" number="1"/>
+         </umod:delta>
+      </umod:mod>
       <umod:mod title="Methyl:2H(2)13C"
         full_name="Mono-methylation 2H(2)13C"
         username_of_poster="Weng"
