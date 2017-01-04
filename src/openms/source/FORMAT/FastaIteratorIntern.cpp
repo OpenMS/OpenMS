@@ -66,7 +66,7 @@ namespace OpenMS
   {
     if (fasta_file_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     return *it_;
   }
@@ -75,7 +75,7 @@ namespace OpenMS
   {
     if (fasta_file_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     ++it_;
     return *this;
@@ -85,7 +85,7 @@ namespace OpenMS
   {
     if (fasta_file_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     PepIterator * old = new FastaIteratorIntern(*this);
     ++it_;
@@ -120,7 +120,7 @@ namespace OpenMS
   {
     if (fasta_file_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     return true;
   }

@@ -94,7 +94,7 @@ namespace OpenMS
 
   Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
 } // namespace OpenMS

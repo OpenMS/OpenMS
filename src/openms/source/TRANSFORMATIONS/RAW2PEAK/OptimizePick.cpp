@@ -117,7 +117,7 @@ namespace OpenMS
     //termination states.
     if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
     {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
     }
 
     // iterate over all peaks and store the optimized values in peaks

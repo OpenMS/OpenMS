@@ -468,7 +468,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "Cannot parse charge part of formula!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, formula, "Cannot parse charge part of formula!");
           }
         }
 
@@ -540,7 +540,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "This formula does not begin with an element!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, formula, "This formula does not begin with an element!");
       }
     }
 
@@ -589,7 +589,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown element '" + split + "'", "'" + symbol + "' found. Please use only valid element identifiers or modify share/OpenMS/CHEMISTRY/Elements.xml!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown element '" + split + "'", "'" + symbol + "' found. Please use only valid element identifiers or modify share/OpenMS/CHEMISTRY/Elements.xml!");
       }
     }
 

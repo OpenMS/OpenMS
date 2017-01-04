@@ -241,6 +241,15 @@ START_SECTION((void getAllSearchModifications(std::vector<String>& modifications
 }
 END_SECTION
 
+START_SECTION((bool addModification(ResidueModification* modification)))
+{
+  TEST_EQUAL(ptr->has("Phospho (E)"), false);
+  ResidueModification* modification = new ResidueModification();
+  modification->setFullId("Phospho (E)");
+  ptr->addModification(modification);
+  TEST_EQUAL(ptr->has("Phospho (E)"), true);
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

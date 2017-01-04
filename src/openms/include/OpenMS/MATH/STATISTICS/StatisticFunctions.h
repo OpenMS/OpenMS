@@ -70,7 +70,7 @@ namespace OpenMS
     {
       if (begin == end)
       {
-        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 
@@ -86,7 +86,7 @@ namespace OpenMS
     {
       if (begin != end)
       {
-        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 
@@ -102,9 +102,9 @@ namespace OpenMS
       IteratorType1 begin_b, IteratorType1 end_b,
       IteratorType2 begin_a, IteratorType2 end_a)
     {
-      if(begin_b != end_b && begin_a == end_a)
+      if (begin_b != end_b && begin_a == end_a)
       {
-        throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 

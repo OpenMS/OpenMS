@@ -166,6 +166,7 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  String spectrum_type_;
   String averagine_type_;
 
   // section "labels"
@@ -230,6 +231,8 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
+      defaults.setValue("spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. 'automatic' determines the spectrum type directly from the input mzML file.", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
       defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     }
@@ -301,6 +304,7 @@ public:
     averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
+    spectrum_type_ = getParam_().getValue("algorithm:spectrum_type");
     averagine_type_ = getParam_().getValue("algorithm:averagine_type");
   }
 
@@ -452,7 +456,7 @@ public:
     {
       if (all_intensities[i].size() != count)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The profile intensity vectors for each peptide are not of the same size.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The profile intensity vectors for each peptide are not of the same size.");
       }
     }
 
@@ -559,9 +563,9 @@ public:
         // loop over points in cluster
         for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
         {
-          int index = (*point_it);
+          int idx = (*point_it);
 
-          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(idx);
           double rt = result_peak.getRT();
 
           for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
@@ -953,7 +957,19 @@ private:
       spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
     }
 
-    bool centroided = spectrum_type == SpectrumSettings::PEAKS;
+    bool centroided;
+    if (spectrum_type_=="automatic")
+    {
+      centroided = spectrum_type == SpectrumSettings::PEAKS;
+    }
+    else if (spectrum_type_=="centroid")
+    {
+      centroided = true;
+    }
+    else  // "profile"
+    {
+      centroided = false;
+    }
 
     /**
      * pick peaks

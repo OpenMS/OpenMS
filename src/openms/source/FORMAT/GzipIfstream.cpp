@@ -70,13 +70,13 @@ namespace OpenMS
       if (n_buffer_ < 0)
       {
         close();
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "gzip file seems to be corrupted");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "gzip file seems to be corrupted");
       }
       return n_buffer_;
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no file for decompression initialized");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no file for decompression initialized");
     }
   }
 
@@ -92,7 +92,7 @@ namespace OpenMS
     if (gzfile_ == NULL)
     {
       close();
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     else
     {

@@ -881,7 +881,7 @@ namespace OpenMS
       }
       else 
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
       }
 
@@ -896,7 +896,7 @@ namespace OpenMS
 
         if (!enoughPeptides)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "There were not enough bins with the minimal number of peptides");
         }
       }
@@ -1028,7 +1028,7 @@ namespace OpenMS
 
           if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Error, did not find chromatogram for transitions" + transition->getNativeID() );
           }
 
@@ -1677,7 +1677,7 @@ protected:
     }
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown subsection", name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", name);
     }
   }
 
@@ -1708,7 +1708,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Input file needs to have ending mzML or mzXML");
       }
     }
@@ -1841,7 +1841,7 @@ protected:
     }
     if ( (out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Either out_features or out_tsv needs to be set (but not both)");
     }
 
@@ -1992,6 +1992,9 @@ protected:
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
+      chromConsumer->getOptions().setCompression(true); // compress data
+      chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
+      chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
       chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
     }
     else

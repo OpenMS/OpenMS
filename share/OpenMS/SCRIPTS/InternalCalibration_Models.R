@@ -30,6 +30,7 @@ if (model_count == 0)
         geom_point(aes(x=RT, y=value, col=source)) +
         ggtitle(paste("Model coefficients over time\n", model_count, "model(s)", collapse="")) +
         xlab("RT [sec]") +
+        ylab("model coefficient") +
         facet_grid(  variable ~ ., scales="free_y")
   print(pl)
 }

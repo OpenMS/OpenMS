@@ -42,6 +42,8 @@
 
 namespace OpenMS
 {  
+  class AASequence;
+
   struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
     std::map<String, double> mod_masses; // empirical formula -> mass

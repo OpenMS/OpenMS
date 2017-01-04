@@ -143,6 +143,7 @@ set(kernel_executables_list
   RichPeak1D_test
   RichPeak2D_test
   StandardTypes_test
+  SpectrumHelper_test
 )
 
 set(format_executables_list

@@ -113,7 +113,7 @@ namespace OpenMS
     else if (iterator_pos % 2 == 0)
     {
       // even case
-      // compute the arithmethic mean between the two middle elements
+      // compute the arithmetic mean between the two middle elements
       double f = *(first + iterator_pos / 2);
       std::nth_element(first, first + iterator_pos / 2 -1, last);
       double s = *(first + iterator_pos / 2 - 1);
