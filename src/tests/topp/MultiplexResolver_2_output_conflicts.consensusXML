@@ -1582,7 +1582,7 @@
 				<element map="2" id="0" rt="1703.21457670347" mz="846.371266909694" it="3.49323e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="846.371276855469" RT="1688.80788" >
-				<PeptideHit score="0" sequence="(Dimethyl)SC(Carbamidomethyl)ALDQNC(Carbamidomethyl)QWEPR" charge="2" aa_before="R" aa_after="N" start="763" end="775" protein_refs="PH_321">
+				<PeptideHit score="0" sequence=".(Dimethyl)SC(Carbamidomethyl)ALDQNC(Carbamidomethyl)QWEPR" charge="2" aa_before="R" aa_after="N" start="763" end="775" protein_refs="PH_321">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
@@ -1599,7 +1599,7 @@
 				<element map="2" id="0" rt="1717.62674166766" mz="704.049128486814" it="3.0955e+09" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="702.709594726563" RT="1706.98404" >
-				<PeptideHit score="0.0290519877675841" sequence="(Dimethyl)AANLSDARYK(Dimethyl)ESWRNLR" charge="3" aa_before="N" aa_after="A" start="1263" end="1279" protein_refs="PH_60">
+				<PeptideHit score="0.0290519877675841" sequence=".(Dimethyl)AANLSDARYK(Dimethyl)ESWRNLR" charge="3" aa_before="N" aa_after="A" start="1263" end="1279" protein_refs="PH_60">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
@@ -1616,7 +1616,7 @@
 				<element map="2" id="0" rt="1746.05299401795" mz="732.339696958821" it="1.13147e+09" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="732.339721679688" RT="1732.51728" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(4))QSEDSTFYLGER" charge="2" aa_before="R" aa_after="T" start="720" end="731" protein_refs="PH_318">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(4))QSEDSTFYLGER" charge="2" aa_before="R" aa_after="T" start="720" end="731" protein_refs="PH_318">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>

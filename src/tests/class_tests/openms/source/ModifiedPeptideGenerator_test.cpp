@@ -108,8 +108,8 @@ START_SECTION((static void applyFixedModifications(const std::vector< ResidueMod
   seq1 = AASequence::fromString("K(Carbamyl)AAAAAAAA"); // ambigous case: is mod Carbamyl (K) or (N-Term)?
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq0);
   ModifiedPeptideGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq1);
-  TEST_EQUAL(seq0.toString(), "(Carbamyl)KAAAAAAAA");
-  TEST_EQUAL(seq1.toString(), "(Carbamyl)K(Carbamyl)AAAAAAAA");
+  TEST_EQUAL(seq0.toString(), ".(Carbamyl)KAAAAAAAA");
+  TEST_EQUAL(seq1.toString(), ".(Carbamyl)K(Carbamyl)AAAAAAAA");
  
 }
 END_SECTION
@@ -263,8 +263,8 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   TEST_EQUAL(modified_peptides.size(), 4);
   TEST_EQUAL(modified_peptides[0].toString(), "KAAAAAAAMA");
   TEST_EQUAL(modified_peptides[1].toString(), "KAAAAAAAM(Oxidation)A");
-  TEST_EQUAL(modified_peptides[2].toString(), "(Carbamyl)KAAAAAAAMA");
-  TEST_EQUAL(modified_peptides[3].toString(), "(Carbamyl)KAAAAAAAM(Oxidation)A");
+  TEST_EQUAL(modified_peptides[2].toString(), ".(Carbamyl)KAAAAAAAMA");
+  TEST_EQUAL(modified_peptides[3].toString(), ".(Carbamyl)KAAAAAAAM(Oxidation)A");
   
   modified_peptides.clear();
   seq = AASequence::fromString("K(Carbamyl)AAAAAAAMA"); 
@@ -272,8 +272,8 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   TEST_EQUAL(modified_peptides.size(), 4);
   TEST_EQUAL(modified_peptides[0].toString(), "K(Carbamyl)AAAAAAAMA");
   TEST_EQUAL(modified_peptides[1].toString(), "K(Carbamyl)AAAAAAAM(Oxidation)A");
-  TEST_EQUAL(modified_peptides[2].toString(), "(Carbamyl)K(Carbamyl)AAAAAAAMA");
-  TEST_EQUAL(modified_peptides[3].toString(), "(Carbamyl)K(Carbamyl)AAAAAAAM(Oxidation)A");
+  TEST_EQUAL(modified_peptides[2].toString(), ".(Carbamyl)K(Carbamyl)AAAAAAAMA");
+  TEST_EQUAL(modified_peptides[3].toString(), ".(Carbamyl)K(Carbamyl)AAAAAAAM(Oxidation)A");
 }
 END_SECTION
 
