@@ -163,7 +163,7 @@ public:
         The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
         @param average_weight_precursor: average weight of the precursor peptide
         @param average_weight_fragment: average weight of the fragment
-        @param precursor_isotopes: the precursor isotopes that were isolated
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
 
         @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_fragment > 0
@@ -179,7 +179,7 @@ public:
         The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
         @param average_weight_precursor: average weight of the precursor nucleotide
         @param average_weight_fragment: average weight of the fragment
-        @param precursor_isotopes: the precursor isotopes that were isolated
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
 
         @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_precursor > 0
@@ -195,7 +195,7 @@ public:
         The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
         @param average_weight_precursor: average weight of the precursor nucleotide
         @param average_weight_fragment: average weight of the fragment
-        @param precursor_isotopes: the precursor isotopes that were isolated
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
 
         @pre average_weight_precursor >= average_weight_fragment
         @pre average_weight_precursor > 0
@@ -211,7 +211,7 @@ public:
         The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
         @param average_weight_precursor: average weight of the precursor molecule
         @param average_weight_fragment: average weight of the fragment molecule
-        @param precursor_isotopes: the precursor isotopes that were isolated
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
         @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
         @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
         @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
@@ -238,7 +238,7 @@ public:
         "Dissociation of Individual Isotopic Peaks: Predicting Isotopic Distributions of Product Ions in MSn"
         @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
-        @param precursor_isotopes a list of which precursor isotopes were isolated
+        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
     */
     void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
 
@@ -328,7 +328,7 @@ protected:
 
         @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
-        @param precursor_isotopes a list of which precursor isotopes were isolated
+        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
      */
     void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
 
