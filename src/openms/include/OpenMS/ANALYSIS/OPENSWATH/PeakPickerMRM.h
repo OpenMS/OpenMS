@@ -108,14 +108,11 @@ protected:
     Size findClosestPeak_(const RichPeakChromatogram& chromatogram, double target_rt, Size current_peak = 0);
 
     /**
-      @brief Helper function to remove overlapping peaks in a single chromatogram
+      @brief Helper function to remove overlapping peaks in a single Chromatogram
+
     */
     void removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 
-    /**
-      @brief Adjust peak borders inwards as long as intensity at the border is zero
-    */
-    void fixPeakBorders_(const RichPeakChromatogram& chromatogram);
 
     /// Synchronize members with param class
     void updateMembers_();
