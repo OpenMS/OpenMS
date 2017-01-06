@@ -73,8 +73,8 @@ namespace OpenMS
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
     defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
 
-    defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad).");
-    defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad"));
+    defaults_.setValue("method", "legacy", "Method for chromatographic peak-picking: 'legacy' - use raw data, 'corrected' - use smoothed data, 'crawdad' - Crawdad algorithm, 'corrected_nonzero' - use smoothed data initially, but adjust peak borders based on raw data.");
+    defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad,corrected_nonzero"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -143,22 +143,17 @@ namespace OpenMS
     {
       // Legacy is to use the original chromatogram for peak-detection
       pickChromatogram_(chromatogram, picked_chrom);
-      if (remove_overlapping_)
-        removeOverlappingPeaks_(chromatogram, picked_chrom);
-
-      // for peak integration, we want to use the raw data
-      integratePeaks_(chromatogram);
+      if (remove_overlapping_) removeOverlappingPeaks_(chromatogram, picked_chrom);
     }
-    else if (method_ == "corrected")
+    else if ((method_ == "corrected") || (method_ == "corrected_nonzero"))
     {
       // use the smoothed chromatogram to derive the peak boundaries
       pickChromatogram_(smoothed_chrom, picked_chrom);
-      if (remove_overlapping_)
-        removeOverlappingPeaks_(smoothed_chrom, picked_chrom);
-
-      // for peak integration, we want to use the raw data
-      integratePeaks_(chromatogram);
+      if (method_ == "corrected_nonzero") fixPeakBorders_(chromatogram);
+      if (remove_overlapping_) removeOverlappingPeaks_(smoothed_chrom, picked_chrom);
     }
+    // for peak integration, we always want to use the raw data
+    integratePeaks_(chromatogram);
 
     // Store the result in the picked_chromatogram
     picked_chrom.getFloatDataArrays().clear();
@@ -185,10 +180,8 @@ namespace OpenMS
     snt_parameters.setValue("write_log_messages", param_.getValue("write_sn_log_messages"));
     snt.setParameters(snt_parameters);
 
-    integrated_intensities_.clear();
     left_width_.clear();
     right_width_.clear();
-    integrated_intensities_.reserve(picked_chrom.size());
     left_width_.reserve(picked_chrom.size());
     right_width_.reserve(picked_chrom.size());
 
@@ -196,6 +189,7 @@ namespace OpenMS
     {
       snt.init(chromatogram);
     }
+
     Size current_peak = 0;
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
@@ -231,7 +225,6 @@ namespace OpenMS
 
       left_width_.push_back(left_idx);
       right_width_.push_back(right_idx);
-      integrated_intensities_.push_back(0);
 
       LOG_DEBUG << "Found peak at " << central_peak_mz << " and "  << picked_chrom[i].getIntensity()
                 << " with borders " << chromatogram[left_width_[i]].getMZ() << " " << chromatogram[right_width_[i]].getMZ() <<
@@ -308,7 +301,7 @@ namespace OpenMS
 
   void PeakPickerMRM::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
-    if (picked_chrom.empty()) {return; }
+    if (picked_chrom.empty()) return;
     LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
     Size current_peak = 0;
     // Find overlapping peaks
@@ -392,6 +385,7 @@ namespace OpenMS
 
   void PeakPickerMRM::integratePeaks_(const RichPeakChromatogram& chromatogram)
   {
+    integrated_intensities_.resize(left_width_.size());
     for (Size i = 0; i < left_width_.size(); i++)
     {
       const int current_left_idx = left_width_[i];
@@ -408,6 +402,7 @@ namespace OpenMS
 
   void PeakPickerMRM::updateMembers_()
   {
+    // no need to check validity against defaults here - this is done automatically
     sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
     sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
     gauss_width_ = (double)param_.getValue("gauss_width");
@@ -421,12 +416,6 @@ namespace OpenMS
     write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
     method_ = (String)param_.getValue("method");
 
-    if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Method needs to be one of: crawdad, corrected, legacy");
-    }
-
 #ifndef WITH_CRAWDAD
     if (method_ == "crawdad")
     {
@@ -434,6 +423,23 @@ namespace OpenMS
                                        "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
     }
 #endif
+  }
+
+  void PeakPickerMRM::fixPeakBorders_(const RichPeakChromatogram& chromatogram)
+  {
+    for (Size i = 0; i < left_width_.size(); i++)
+    {
+      int& left_idx = left_width_[i];
+      int& right_idx = right_width_[i];
+      while ((chromatogram[left_idx].getIntensity() <= 0.0) && (left_idx <= right_idx))
+      {
+        ++left_idx;
+      }
+      while ((chromatogram[right_idx].getIntensity() <= 0.0) && (left_idx <= right_idx))
+      {
+        --right_idx;
+      }
+    }
   }
 
 }

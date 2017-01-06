@@ -198,7 +198,7 @@ protected:
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
     registerDoubleOption_("detect:peak_width", "<value>", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
+    registerDoubleOption_("detect:min_peak_width", "<value>", 0.1, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
     setMinFloat_("detect:min_peak_width", 0.0);
     registerDoubleOption_("detect:signal_to_noise", "<value>", 0.8, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
     setMinFloat_("detect:signal_to_noise", 0.1);
@@ -1317,7 +1317,7 @@ protected:
       params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
       params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
       params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
-                      "corrected");
+                      "corrected_nonzero");
       feat_finder_.setParameters(params);
       feat_finder_.setLogType(ProgressLogger::NONE);
       feat_finder_.setStrictFlag(false);
