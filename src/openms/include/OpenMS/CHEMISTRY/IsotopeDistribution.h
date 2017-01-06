@@ -39,6 +39,7 @@
 
 #include <utility>
 #include <vector>
+#include <set>
 
 namespace OpenMS
 {
@@ -170,7 +171,7 @@ public:
         @pre average_weight_precursor > 0
         @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes);
+    void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
         @brief Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
@@ -186,7 +187,7 @@ public:
         @pre average_weight_fragment > 0
         @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes);
+    void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
         @brief Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
@@ -202,7 +203,7 @@ public:
         @pre average_weight_fragment > 0
         @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes);
+    void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
         @brief Estimate fragment IsotopeDistribution from the precursor's average weight,
@@ -225,7 +226,7 @@ public:
         @pre average_weight_fragment > 0
         @pre precursor_isotopes.size() > 0
      */
-    void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
+    void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
 
     /**
         @brief Calculate isotopic distribution for a fragment molecule
@@ -240,7 +241,7 @@ public:
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
         @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
     */
-    void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
+    void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
     /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
 
@@ -328,9 +329,9 @@ protected:
 
         @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
-        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+        @param precursor_isotopes which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
      */
-    void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::vector<UInt>& precursor_isotopes);
+    void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
     ContainerType fillGaps_(const ContainerType& id) const;

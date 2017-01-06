@@ -293,12 +293,12 @@ START_SECTION(void estimateFromDNAWeight(double average_weight))
     TEST_REAL_SIMILAR(iso.begin()->second, 0.075138)
 END_SECTION
 
-START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes))
+START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
-	std::vector<UInt> precursor_isotopes;
+	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
-	precursor_isotopes.push_back(0);
-	precursor_isotopes.push_back(1);
+	precursor_isotopes.insert(0);
+	precursor_isotopes.insert(1);
 	// These are regression tests, but the results also follow an expected pattern.
 
 	// All the fragments from the M0 precursor will also be monoisotopic, while a fragment
@@ -361,12 +361,12 @@ START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_pr
 
 END_SECTION
 
-START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes))
+START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
-	std::vector<UInt> precursor_isotopes;
+	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
-	precursor_isotopes.push_back(0);
-	precursor_isotopes.push_back(1);
+	precursor_isotopes.insert(0);
+	precursor_isotopes.insert(1);
 
 	// These are regression tests, but the results also follow an expected pattern.
 	// See the comments in estimateForFragmentFromPeptideWeight for an explanation.
@@ -407,12 +407,12 @@ START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precur
 
 END_SECTION
 
-START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes))
+START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
-	std::vector<UInt> precursor_isotopes;
+	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
-	precursor_isotopes.push_back(0);
-	precursor_isotopes.push_back(1);
+	precursor_isotopes.insert(0);
+	precursor_isotopes.insert(1);
 
 	// These are regression tests, but the results also follow an expected pattern.
 	// See the comments in estimateForFragmentFromPeptideWeight for an explanation.
@@ -453,13 +453,13 @@ START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precur
 
 END_SECTION
 
-START_SECTION(void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::vector<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P))
+START_SECTION(void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P))
 	// We are testing that the parameterized version matches the hardcoded version.
 	IsotopeDistribution iso(3);
 	IsotopeDistribution iso2(3);
-	std::vector<UInt> precursor_isotopes;
-	precursor_isotopes.push_back(0);
-	precursor_isotopes.push_back(1);
+	std::set<UInt> precursor_isotopes;
+	precursor_isotopes.insert(0);
+	precursor_isotopes.insert(1);
 
 	iso.estimateForFragmentFromWeightAndComp(2000.0, 1000.0, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
 	iso2.estimateForFragmentFromPeptideWeight(2000.0, 1000.0, precursor_isotopes);
@@ -549,14 +549,14 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   TEST_EQUAL(iso3 != iso4, false)
 END_SECTION
 
-START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution & comp_fragment_isotope_distribution, const std::vector<UInt>& precursor_isotopes))
+START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes))
   IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(11)); // fragment
   IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementary fragment
 
-  std::vector<UInt> precursor_isotopes;
-  precursor_isotopes.push_back(0);
-  precursor_isotopes.push_back(1);
-  precursor_isotopes.push_back(2);
+  std::set<UInt> precursor_isotopes;
+  precursor_isotopes.insert(0);
+  precursor_isotopes.insert(1);
+  precursor_isotopes.insert(2);
   IsotopeDistribution iso3;
   iso3.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
   iso3.renormalize();
@@ -571,7 +571,7 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribut
 	TEST_REAL_SIMILAR(it1->second, it2->second)
   }
 
-  precursor_isotopes.pop_back();
+  precursor_isotopes.erase(precursor_isotopes.find(2));
   IsotopeDistribution iso4;
   iso4.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
   iso4.renormalize();
