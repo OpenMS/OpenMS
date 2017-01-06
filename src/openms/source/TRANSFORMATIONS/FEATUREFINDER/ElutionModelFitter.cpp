@@ -61,6 +61,9 @@ ElutionModelFitter::ElutionModelFitter():
   defaults_.setValue("no_imputation", "false", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", advanced);
   defaults_.setValidStrings("no_imputation", truefalse);
 
+  defaults_.setValue("check:min_area", 1.0, "Lower bound for the area under the curve of a valid elution model", advanced);
+  defaults_.setMinFloat("check:min_area", 0.0);
+
   defaults_.setValue("check:boundaries", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", advanced);
   defaults_.setMinFloat("check:boundaries", 0.0);
   defaults_.setMaxFloat("check:boundaries", 1.0);
@@ -117,6 +120,10 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   bool weighted = !param_.getValue("unweighted_fit").toBool();
   bool impute = !param_.getValue("no_imputation").toBool();
   double check_boundaries = param_.getValue("check:boundaries");
+  double area_limit = param_.getValue("check:min_area");
+  double width_limit = param_.getValue("check:width");
+  double asym_limit = (asymmetric ? 
+                       double(param_.getValue("check:asymmetry")) : 0.0);
 
   TraceFitter* fitter;
   if (asymmetric)
@@ -131,12 +138,8 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     fitter->setParameters(params);
   }
 
-  // store model parameters to find outliers later:
-  double width_limit = param_.getValue("check:width");
-  double asym_limit = (asymmetric ? 
-                       double(param_.getValue("check:asymmetry")) : 0.0);
-  // store values redundantly - once aligned with the features in the map,
-  // once only for successful models:
+  // store model parameters to find outliers later; store values redundantly -
+  // once aligned with the features in the map, once only for successful models:
   vector<double> widths_all, widths_good, asym_all, asym_good;
   if (width_limit > 0)
   {
@@ -276,7 +279,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     // check model validity:
     double area = fitter->getArea();
     feat_it->setMetaValue("model_area", area);
-    if ((area != area) || (area <= 0.0)) // x != x: test for NaN
+    if ((area != area) || (area <= area_limit)) // x != x: test for NaN
     {
       feat_it->setMetaValue("model_status", "1 (invalid area)");
     }
