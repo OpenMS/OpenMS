@@ -37987,8 +37987,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38022,8 +38022,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38057,8 +38057,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38092,8 +38092,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38127,8 +38127,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38162,8 +38162,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38197,8 +38197,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38232,8 +38232,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38267,8 +38267,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
@@ -38302,8 +38302,8 @@ antiserum and mass spectrometric analysis</umod:text>
         <umod:specificity hidden="1" site="V" position="Anywhere" classification="Chemical derivative" spec_group="18"/>
         <umod:specificity hidden="1" site="W" position="Anywhere" classification="Chemical derivative" spec_group="19"/>
         <umod:specificity hidden="1" site="Y" position="Anywhere" classification="Chemical derivative" spec_group="20"/>
-        <umod:specificity hidden="1" site="N-term" position="Anywhere" classification="Chemical derivative" spec_group="21"/>
-        <umod:specificity hidden="1" site="C-term" position="Anywhere" classification="Chemical derivative" spec_group="22"/>
+        <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Chemical derivative" spec_group="21"/>
+        <umod:specificity hidden="1" site="C-term" position="Any C-term" classification="Chemical derivative" spec_group="22"/>
         <umod:delta mono_mass="1.00784" avge_mass="1.00811"
           composition="H(1)">
           <umod:element symbol="H" number="1"/>
