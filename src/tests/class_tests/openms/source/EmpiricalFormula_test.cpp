@@ -332,12 +332,12 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   }
 END_SECTION
 
-START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const)
+START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const)
   EmpiricalFormula precursor("C2");
   EmpiricalFormula fragment("C");
-  std::vector<UInt> precursor_isotopes;
+  std::set<UInt> precursor_isotopes;
 
-  precursor_isotopes.push_back(0);
+  precursor_isotopes.insert(0);
   // isolated precursor isotope is M0
   IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   double result[] = { 1.0 };
@@ -347,8 +347,8 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result[i])
   }
 
-  precursor_isotopes.pop_back();
-  precursor_isotopes.push_back(1);
+  precursor_isotopes.clear();
+  precursor_isotopes.insert(1);
   // isolated precursor isotope is M+1
   iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   double result2[] = { 0.5, 0.5};
@@ -358,7 +358,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result2[i])
   }
 
-  precursor_isotopes.push_back(0);
+  precursor_isotopes.insert(0);
   // isolated precursor isotopes are M0 and M+1
   iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   double result3[] = { 0.98941, 0.01059};
@@ -368,7 +368,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result3[i])
   }
 
-  precursor_isotopes.push_back(2);
+  precursor_isotopes.insert(2);
   // isolated precursor isotopes are M0, M+1, and M+2
   // This is the example found in the comments of the getConditionalFragmentIsotopeDist function.
   // Since we're isolating all the possible precursor isotopes, the fragment isotope distribution
@@ -381,7 +381,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result4[i])
   }
 
-  precursor_isotopes.push_back(3);
+  precursor_isotopes.insert(3);
   // isolated precursor isotopes are M0, M+1, M+2, and M+3
   // It's impossible for precursor C2 to have 3 extra neutrons (assuming only natural stable isotopes)
   // Invalid precursor isotopes are ignored and should give the answer as if they were not there
@@ -397,7 +397,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   EmpiricalFormula small_fragment = EmpiricalFormula("C1H1N1O1S1");
 
   precursor_isotopes.clear();
-  precursor_isotopes.push_back(1);
+  precursor_isotopes.insert(1);
   // isolated precursor isotope is M+1
   IsotopeDistribution big_iso = big_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
