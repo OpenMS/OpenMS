@@ -265,6 +265,31 @@ START_SECTION(Int estimateFromWeightAndComp(double average_weight, double C, dou
 
 END_SECTION
 
+START_SECTION(bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P))
+    EmpiricalFormula ef("C494H776N136O148S4");
+    EmpiricalFormula ef_approx;
+    EmpiricalFormula ef_approx_S;
+    bool return_flag;
+    // Using averagine stoichiometry, excluding sulfur.
+    return_flag = ef_approx_S.estimateFromWeightAndCompAndS(ef.getAverageWeight(), 4, 4.9384, 7.7583, 1.3577, 1.4773, 0);
+    TEST_EQUAL(4, ef_approx_S.getNumberOf(db->getElement("S")));
+
+    // Formula of methionine.
+    EmpiricalFormula ef2("C5H9N1O1S1");
+    // Using averagine stoichiometry, excluding sulfur.
+    return_flag = ef_approx_S.estimateFromWeightAndCompAndS(ef2.getAverageWeight(), 1, 4.9384, 7.7583, 1.3577, 1.4773, 0);
+    // Shouldn't need negative hydrogens for this approximation.
+    TEST_EQUAL(return_flag, true);
+    ef_approx.estimateFromWeightAndComp(ef2.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    // The averagine approximation should result in 0 sulfurs.
+    TEST_EQUAL(0, ef_approx.getNumberOf(db->getElement("S")));
+    // But with the sulfur-specified averagine version, we forced it be 1
+    TEST_EQUAL(1, ef_approx_S.getNumberOf(db->getElement("S")));
+    TOLERANCE_ABSOLUTE(1);
+    TEST_REAL_SIMILAR(ef_approx.getAverageWeight(), ef_approx_S.getAverageWeight());
+
+END_SECTION
+
 START_SECTION(double getMonoWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");
