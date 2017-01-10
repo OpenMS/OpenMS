@@ -612,7 +612,6 @@ set_tests_properties("TOPP_FileMerger_10_out3" PROPERTIES DEPENDS "TOPP_FileMerg
 
 #------------------------------------------------------------------------------
 # HighResPrecursorMassCorrector tests
-
 add_test("TOPP_HighResPrecursorMassCorrector_1"
 ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.featureXML -out HighResPrecursorMassCorrector_2860_1103_3_out.tmp)
 add_test("TOPP_HighResPrecursorMassCorrector_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 HighResPrecursorMassCorrector_2860_1103_3_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3_out.mzML )
@@ -636,10 +635,10 @@ set_tests_properties("TOPP_HighResPrecursorMassCorrector_4_out1" PROPERTIES DEPE
 add_test("TOPP_HighResPrecursorMassCorrector_5" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_3070_1191_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_3070_1191_3.featureXML -out HighResPrecursorMassCorrector_3070_1191_3_out.tmp)
 add_test("TOPP_HighResPrecursorMassCorrector_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 HighResPrecursorMassCorrector_3070_1191_3_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_3070_1191_3_out.mzML )
 set_tests_properties("TOPP_HighResPrecursorMassCorrector_5_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_5")
-
-add_test("TOPP_HighResPrecursorMassCorrector_6" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_6.mzML -highest_intensity_peak:mz_tolerance 0.2 -out HighResPrecursorMassCorrector_6_out.tmp)
+add_test("TOPP_HighResPrecursorMassCorrector_6" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_6.mzML -highest_intensity_peak:mz_tolerance 0.2 -highest_intensity_peak:switch on -out HighResPrecursorMassCorrector_6_out.tmp)
 add_test("TOPP_HighResPrecursorMassCorrector_6_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 HighResPrecursorMassCorrector_6_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_6_out.mzML )
 set_tests_properties("TOPP_HighResPrecursorMassCorrector_6_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_6")
+
 #------------------------------------------------------------------------------
 # IDRTCalibration tests
 add_test("TOPP_IDRTCalibration_1" ${TOPP_BIN_PATH}/IDRTCalibration -test -in ${DATA_DIR_TOPP}/IDRTCalibration_1_input.idXML -out IDRTCalibration_1_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)

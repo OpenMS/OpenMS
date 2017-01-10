@@ -71,7 +71,7 @@ using namespace std;
 
   This tool performs precursor m/z correction on picked (=centroided) high resolution data.
 
-  Three methods are available: 'nearest_peak', 'highest_intensity_peak' and 'feature'. They can be used in order.
+  Three methods are available: 'nearest_peak', 'highest_intensity_peak' and 'feature'.
     - nearest_peak: Use nearest centroided MS1 peak for precursor mass correction.
     - highest_intensity_peak: Use highest intensity centroided MS1 peak in a given mass range for precursor mass correction.
     - feature: Use features for precursor mass correction, which allows for charge correction.
@@ -125,9 +125,9 @@ class TOPPHiResPrecursorMassCorrector :
       setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
       registerTOPPSubsection_("highest_intensity_peak", "Use centroided MS1 peak with the highest intensity in a certrain mass range - for precursor mass correction");
-      registerDoubleOption_("highest_intensity_peak:mz_tolerance","<num>", 0.0,"The precursor mass tolerance to find the highest intensity MS1 peak (Da) (Use 0.2 Da as default)", false);
-      registerStringOption_("highest_intensity_peak:mz_tolerance_unit", "<choice>", "Da", "Unit of precursor mass tolerance", false);
-      setValidStrings_("highest_intensity_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+      registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.2, "The precursor mass tolerance to find the highest intensity MS1 peak (Da).", false);
+      registerStringOption_("highest_intensity_peak:switch", "<choice>", "off", "Switch method highest_intensity_peak on and off", false);
+      setValidStrings_("highest_intensity_peak:switch", ListUtils::create<String>("on,off"));
 
       registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' or 'highest_intensity_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(csv_header), ", ") + ".", false);
       setValidFormats_("out_csv", ListUtils::create<String>("csv"));
@@ -281,7 +281,8 @@ class TOPPHiResPrecursorMassCorrector :
       return corrected_precursors;
     }
 
-    set<Size> correctToHighestIntensityMS1Peak(PeakMap & exp, double mz_tolerance, bool ppm, vector<double> & deltaMZs,vector<double> & mzs, vector<double> & rts)
+    //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
+    set<Size> correctToHighestIntensityMS1Peak(PeakMap & exp, double mz_tolerance, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -289,6 +290,7 @@ class TOPPHiResPrecursorMassCorrector :
       vector<double> precursors_rt;  // RT of precursor MS2 spectrum
       vector<Size> precursor_scan_index;
       getPrecursors_(exp, precursors, precursors_rt, precursor_scan_index);
+      int count_error_highest_intenstiy = 0;
 
       for (Size i = 0; i != precursors_rt.size(); ++i)
       {
@@ -300,7 +302,7 @@ class TOPPHiResPrecursorMassCorrector :
 
         // cout << rt << " " << mz << endl;
 
-        // get precursor spectrum
+        // retrieves iterator of the MS2 fragment sprectrum
         MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
@@ -320,44 +322,37 @@ class TOPPHiResPrecursorMassCorrector :
         // no MS1 precursor peak in +- tolerance window found
         if (left == right || left->getMZ() > mz + mz_tolerance)
         {
-          LOG_WARN << "Error: The method highest_intensity_peak failed.";
+          count_error_highest_intenstiy += 1;
         }
 
         MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
-        // find peak (index) closest to expected position
+        // find peak (index) with highest intensity to expected position
         Size highest_peak_idx = max_intensity_it - rt_it->begin();
 
-        // get actual position of closest peak
+        // get actual position of highest intensity peak
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
 
-        // calculate error between expected and actual position
-        double highestPeakError = ppm ? abs(highest_peak_idx - mz)/mz * 1e6 : abs(highest_peak_mz - mz);
+        // cout << mz << " -> " << nearest_peak_mz << endl;
+        double deltaMZ = highest_peak_mz - mz;
+        deltaMZs.push_back(deltaMZ);
+        mzs.push_back(mz);
+        rts.push_back(rt);
+        // correct entries
+        Precursor corrected_prec = precursors[i];
+        corrected_prec.setMZ(highest_peak_mz);
+        exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
+        corrected_precursors.insert(precursor_spectrum_idx);
 
-        // check if error is small enough
-        if (highestPeakError < mz_tolerance)
-        {
-          // sanity check: do we really have the same precursor in the original and the picked spectrum
-          if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
-          {
-            LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
-          }
-
-          // cout << mz << " -> " << nearest_peak_mz << endl;
-          double deltaMZ = highest_peak_mz - mz;
-          deltaMZs.push_back(deltaMZ);
-          mzs.push_back(mz);
-          rts.push_back(rt);
-          // correct entries
-          Precursor corrected_prec = precursors[i];
-          corrected_prec.setMZ(highest_peak_mz);
-          exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
-          corrected_precursors.insert(precursor_spectrum_idx);
-        }
       }
+
+      if (count_error_highest_intenstiy != 0)
+      {
+        LOG_WARN << "Error: The method highest_intensity_peak failed" << count_error_highest_intenstiy << "times.";
+      }
+
       return corrected_precursors;
     }
-
 
     // Wrong assignment of the mono-isotopic mass for precursors are assumed:
     // - if precursor_mz matches the mz of a non-monoisotopic feature mass trace
@@ -525,7 +520,7 @@ class TOPPHiResPrecursorMassCorrector :
       const bool nearest_peak_ppm = getStringOption_("nearest_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       const double highest_intensity_peak_mz_tolerance = getDoubleOption_("highest_intensity_peak:mz_tolerance");
-      const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
+      bool highest_intensity_peak_switch = getStringOption_("highest_intensity_peak:switch") == "off" ? false : true;
 
       PeakMap exp;
       MzMLFile().load(in_mzml, exp);
@@ -538,7 +533,7 @@ class TOPPHiResPrecursorMassCorrector :
       vector<double> rts;
       set<Size> corrected_precursors; // spectrum index of corrected precursors
 
-      if ((nearest_peak_mz_tolerance == 0.0) && in_feature.empty() && (highest_intensity_peak_mz_tolerance == 0.0))
+      if ((nearest_peak_mz_tolerance == 0.0) && in_feature.empty() && (highest_intensity_peak_switch == false))
       {
         LOG_ERROR << "No method for PC correction requested. Either provide featureXML input files or set 'nearest_peak:mz_tolerance' > 0 or specify a 'highest_intensity_peak:mz_tolerance' > 0" << std::endl;
         return MISSING_PARAMETERS;
@@ -553,9 +548,9 @@ class TOPPHiResPrecursorMassCorrector :
 
       //perform correction to highest intensity MS1 peak
       set<Size> corrected_to_highest_intensity_peak;
-      if (highest_intensity_peak_mz_tolerance > 0.0)
+      if (highest_intensity_peak_mz_tolerance > 0.0 && highest_intensity_peak_switch == true)
       {
-        corrected_to_highest_intensity_peak = correctToHighestIntensityMS1Peak(exp, highest_intensity_peak_mz_tolerance, highest_intensity_peak_ppm, deltaMZs, mzs, rts);
+        corrected_to_highest_intensity_peak = correctToHighestIntensityMS1Peak(exp, highest_intensity_peak_mz_tolerance, deltaMZs, mzs, rts);
       }
  
       // perform correction to closest feature (also corrects charge if not disabled)
@@ -576,7 +571,7 @@ class TOPPHiResPrecursorMassCorrector :
         {
           LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
         }
-        else if (highest_intensity_peak_mz_tolerance > 0.0)
+        else if (highest_intensity_peak_mz_tolerance > 0.0 && highest_intensity_peak_switch == true)
         {
           LOG_INFO << "Corrected " << corrected_to_highest_intensity_peak.size() << " precursor to a MS1 peak." << endl;
         }
