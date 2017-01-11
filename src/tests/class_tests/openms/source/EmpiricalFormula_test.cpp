@@ -226,7 +226,7 @@ START_SECTION(double getAverageWeight() const)
   TEST_REAL_SIMILAR(ef.getAverageWeight(), e->getAverageWeight() * 2)
 END_SECTION
 
-START_SECTION(Int estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
+START_SECTION(bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
     // Same stoichiometry as the averagine model
     EmpiricalFormula ef("C494H776N136O148S4");
     EmpiricalFormula ef_approx;
