@@ -8,6 +8,7 @@ BinnedSpectralContrastAngle.h
 BinnedSpectrum.h
 BinnedSpectrumCompareFunctor.h
 BinnedSumAgreeingIntensities.h
+HashedSpectrum.h
 PeakAlignment.h
 PeakSpectrumCompareFunctor.h
 SpectraSTSimilarityScore.h
