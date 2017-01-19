@@ -123,12 +123,12 @@ class TOPPHiResPrecursorMassCorrector :
       registerFlag_("feature:assign_all_matching", "Correct a precursor using all matching features (true) or only the nearest (false). Only evaluated if copies are created (feature:keep_original).");
 
       registerTOPPSubsection_("nearest_peak", "Use nearest centroided MS1 peak for precursor mass correction.");
-      registerDoubleOption_("nearest_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the closest MS1 peak. Suggested value 1/max. expected charge.", false);
+      registerDoubleOption_("nearest_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the closest MS1 peak. (Disable method by setting value to 0.0)", false);
       registerStringOption_("nearest_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
       setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
       registerTOPPSubsection_("highest_intensity_peak", "Use centroided MS1 peak with the highest intensity in a certrain mass range - for precursor mass correction");
-      registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the highest intensity MS1 peak (Da).", false);
+      registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the highest intensity MS1 peak (Da). Suggested value 1/max. expected charge. (Disable method by setting value to 0.0)", false);
 
       registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' or 'highest_intensity_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(csv_header), ", ") + ".", false);
       setValidFormats_("out_csv", ListUtils::create<String>("csv"));
@@ -533,7 +533,7 @@ class TOPPHiResPrecursorMassCorrector :
       vector<double> rts;
       set<Size> corrected_precursors; // spectrum index of corrected precursors
 
-      if ((nearest_peak_mz_tolerance == 0.0) && (highest_intensity_peak_mz_tolerance == 0.0) && in_feature.empty())
+      if ((nearest_peak_mz_tolerance <= 0.0) && (highest_intensity_peak_mz_tolerance <= 0.0) && in_feature.empty())
       {
         LOG_ERROR << "No method for PC correction requested. Either provide featureXML input files or set 'nearest_peak:mz_tolerance' > 0 or specify a 'highest_intensity_peak:mz_tolerance' > 0" << std::endl;
         return MISSING_PARAMETERS;
@@ -541,7 +541,7 @@ class TOPPHiResPrecursorMassCorrector :
 
       // perform correction to closest MS1 peak
       set<Size> corrected_to_nearest_peak;
-      if (nearest_peak_mz_tolerance > 0.0 && highest_intensity_peak_mz_tolerance == 0.0)
+      if (nearest_peak_mz_tolerance > 0.0 && highest_intensity_peak_mz_tolerance <= 0.0)
       {
         corrected_to_nearest_peak = correctToNearestMS1Peak(exp, nearest_peak_mz_tolerance, nearest_peak_ppm, deltaMZs, mzs, rts);
       }
@@ -567,7 +567,7 @@ class TOPPHiResPrecursorMassCorrector :
 
       if (!out_csv.empty())
       {
-        if (nearest_peak_mz_tolerance > 0.0 && highest_intensity_peak_mz_tolerance == 0.0)
+        if (nearest_peak_mz_tolerance > 0.0 && highest_intensity_peak_mz_tolerance <= 0.0)
         {
           LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
         }
