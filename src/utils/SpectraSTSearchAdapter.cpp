@@ -149,7 +149,7 @@ protected:
 
      // Executable
      String executable = getStringOption_(TOPPSpectraSTSearchAdapter::param_executable);
-     if(executable.empty())
+     if (executable.empty())
      {
          executable = "spectrast";
      }
@@ -157,7 +157,7 @@ protected:
      // Add library file argument, terminate if the corresponding spidx is not present
      String library_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_library_file);
      String index_file = File::removeExtension(library_file).append(".spidx");
-     if(! File::exists(index_file))
+     if (! File::exists(index_file))
      {
          LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
          return INPUT_FILE_NOT_FOUND;
@@ -166,12 +166,12 @@ protected:
 
      // Add Sequence Database file if exists
      String sequence_database_file  = getStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_file);
-     if(! sequence_database_file.empty())
+     if (! sequence_database_file.empty())
      {
          String sequence_database_type = getStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_type);
 
          // Check empty or invalid sequence database type
-         if(sequence_database_type.empty())
+         if (sequence_database_type.empty())
          {
             LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
             return MISSING_PARAMETERS;
@@ -186,21 +186,21 @@ protected:
 
      // Set the search file
      String search_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_search_file);
-     if(! search_file.empty())
+     if (! search_file.empty())
      {
          arguments << search_file.toQString().prepend("-sS");
      }
 
      // Flags
      arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass) ? "-sA" : "-sA!");
-     if(getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states))
+     if (getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states))
      {
          arguments << "-sz";
      }
 
      // User mod file
      String user_mod_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_user_mod_file);
-     if(! user_mod_file.empty())
+     if (! user_mod_file.empty())
      {
         arguments << user_mod_file.toQString().prepend("-M");
      }
@@ -208,12 +208,12 @@ protected:
      // Input and output files, errors if lists are not equally long
      StringList spectra_files = getStringList_(TOPPSpectraSTSearchAdapter::param_spectra_files);
      StringList output_files = getStringList_(TOPPSpectraSTSearchAdapter::param_output_files);
-     if(spectra_files.size() != output_files.size())
+     if (spectra_files.size() != output_files.size())
      {
         LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
         return ILLEGAL_PARAMETERS;
      }
-     if(spectra_files.size() < 1)
+     if (spectra_files.size() < 1)
      {
          LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
          return ILLEGAL_PARAMETERS;
@@ -221,31 +221,31 @@ protected:
      String first_output_file = output_files[0];
      String outputFormat;
      // Determine the output format with the first file
-     for(StringList::const_iterator it = TOPPSpectraSTSearchAdapter::param_output_file_formats.begin();
+     for (StringList::const_iterator it = TOPPSpectraSTSearchAdapter::param_output_file_formats.begin();
          it != TOPPSpectraSTSearchAdapter::param_output_file_formats.end(); ++it)
      {
           String format = *it;
-          if(first_output_file.hasSuffix(format))
+          if (first_output_file.hasSuffix(format))
           {
               outputFormat = format;
           }
      }
-     if(outputFormat.empty())
+     if (outputFormat.empty())
      {
          LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
          return ILLEGAL_PARAMETERS;
      }
      // Output files must agree on format and are not allowed to exist already
-     for(StringList::const_iterator it = output_files.begin();
+     for (StringList::const_iterator it = output_files.begin();
          it != output_files.end(); ++it)
      {
          String output_file = *it;
-         if(File::exists(output_file))
+         if (File::exists(output_file))
          {
              LOG_ERROR << "ERROR: Output file already exists: " << output_file << endl;
              return ILLEGAL_PARAMETERS;
          }
-         if(! output_file.hasSuffix(outputFormat))
+         if (! output_file.hasSuffix(outputFormat))
          {
              LOG_ERROR << "ERROR: Output filename does not agree in format: "
                        << output_file << " is not " << outputFormat << endl;
@@ -264,27 +264,27 @@ protected:
      String inputFormat;
 
      // Determine the output format with the first file
-     for(StringList::const_iterator it = TOPPSpectraSTSearchAdapter::param_input_file_formats.begin();
+     for (StringList::const_iterator it = TOPPSpectraSTSearchAdapter::param_input_file_formats.begin();
          it != TOPPSpectraSTSearchAdapter::param_input_file_formats.end(); ++it)
      {
           String format = *it;
-          if(first_input_file.hasSuffix(format))
+          if (first_input_file.hasSuffix(format))
           {
               inputFormat = format;
           }
      }
 
      // Exit if the input file format is invalid
-     if(inputFormat.empty())
+     if (inputFormat.empty())
      {
          LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << endl;
          return ILLEGAL_PARAMETERS;
      }
 
-     for(vector<String>::const_iterator it = spectra_files.begin(); it != spectra_files.end(); ++it)
+     for (vector<String>::const_iterator it = spectra_files.begin(); it != spectra_files.end(); ++it)
      {
       String input_file = *it;
-      if(! input_file.hasSuffix(inputFormat))
+      if (! input_file.hasSuffix(inputFormat))
       {
         LOG_ERROR << "ERROR: Input filename does not agree in format: "
                        << input_file << " is not " << inputFormat << endl;
@@ -296,7 +296,7 @@ protected:
 
      // Echoing the command
      cout << "COMMAND: " << executable;
-     for(QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+     for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
      {
          cout << " " << it->toStdString();
      }
@@ -307,7 +307,7 @@ protected:
      QProcess spectrast_process;
      spectrast_process.start(executable.toQString(), arguments);
 
-     if(! spectrast_process.waitForFinished(-1))
+     if (! spectrast_process.waitForFinished(-1))
      {
          LOG_ERROR << "Fatal error running SpectraST\n" << "Does the spectrast executable exist?" << endl;
          return EXTERNAL_PROGRAM_ERROR;
@@ -315,7 +315,7 @@ protected:
 
      // Copy the output files to the specified location
      QDir temp_dir_qt = QDir(temp_dir.toQString());
-     for(size_t i = 0; i < spectra_files.size(); i++)
+     for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
         QString actual_path = temp_dir_qt.filePath(File::removeExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
@@ -358,4 +358,3 @@ int main(int argc, const char ** argv)
   TOPPSpectraSTSearchAdapter tool;
   return tool.main(argc, argv);
 }
-
