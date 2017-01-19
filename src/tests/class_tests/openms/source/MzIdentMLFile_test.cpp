@@ -325,6 +325,8 @@ END_SECTION
 START_SECTION(([EXTRA] regression test for file loading on example files))
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
+
+  // TODO create artificial example data,
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
   input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
@@ -370,6 +372,21 @@ END_SECTION
 
 //  PeptideEvidence without reference to the positional in originating sequence found. #will always occurr when reading idxml  no start end positional arguments
 //END_SECTION
+
+START_SECTION(([EXTRA] XLMS data))
+  vector<ProteinIdentification> protein_ids;
+  vector<PeptideIdentification> peptide_ids;
+  vector<ProteinIdentification> read_protein_ids;
+  vector<PeptideIdentification> read_peptide_ids;
+
+  String filename;
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+  protein_ids.clear();
+  peptide_ids.clear();
+  MzIdentMLFile().load(filename, read_protein_ids, read_peptide_ids);
+
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
