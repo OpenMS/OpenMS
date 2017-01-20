@@ -895,16 +895,16 @@ namespace OpenMS
                   }
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
-              }
-              // Failsafe, if someone uses a new cross-linker (given these conditions, there MUST be a linker at this position, but it does not have a Unimod or XLMOD entry)
-              else if (jt->metaValueExists("xl_mod") && (jt->getMetaValue("xl_pos").toString().toInt() == i) && (jt->getMetaValue("xl_type").toString() == "mono-link") )
-              {
-                p += "\t\t<Modification location=\"" + String(i + 1);
-                p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
-                p += "\"> \n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
-                p += "\" name=\"" +  jt->getMetaValue("xl_mod").toString();
-                p += "\" cvRef=\"XLMOD\"/>";
-                p += "\n\t\t</Modification> \n";
+                // Failsafe, if someone uses a new cross-linker (given these conditions, there MUST be a linker at this position, but it does not have a Unimod or XLMOD entry)
+                else if (jt->metaValueExists("xl_mod") && (jt->getMetaValue("xl_pos").toString().toInt() == i) && (jt->getMetaValue("xl_type").toString() == "mono-link") )
+                {
+                  p += "\t\t<Modification location=\"" + String(i + 1);
+                  p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
+                  p += "\"> \n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
+                  p += "\" name=\"" +  jt->getMetaValue("xl_mod").toString();
+                  p += "\" cvRef=\"XLMOD\"/>";
+                  p += "\n\t\t</Modification> \n";
+                }
               }
             }
             if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv) <- check for use of unimod:DSS use
