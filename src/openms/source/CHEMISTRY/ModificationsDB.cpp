@@ -348,33 +348,17 @@ namespace OpenMS
             }
           }
 
-          // Protein terminals
-          //String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
-    //      vector<String> res_list;
-    //      res_string.split(",", res_list);
-
           if (origin.hasSubstring("ProteinN-term"))
           {
             mod.setTermSpecificity(ResidueModification::N_TERM);
             mod.setOrigin("N-term");
             all_mods.insert(make_pair(id, mod));
-    //        for (Size i = 0; i < res_list.size(); ++i)
-    //        {
-    //          mod = ResidueModification(mod);
-    //          mod.setOrigin(res_list[i]);
-    //          all_mods.insert(make_pair(id, mod));
-    //        }
           }
           if (origin.hasSubstring("ProteinC-term"))
           {
             mod.setTermSpecificity(ResidueModification::C_TERM);
             mod.setOrigin("C-term");
             all_mods.insert(make_pair(id, mod));
-    //        for (Size i = 0; i < res_list.size(); ++i)
-    //        {
-    //          mod.setOrigin(res_list[i]);
-    //          all_mods.insert(make_pair(id, mod));
-    //        }
           }
 
           id = "";
@@ -494,14 +478,15 @@ namespace OpenMS
         {
           mod.setTermSpecificity(val_split[1]);
         }
-        // XLMOD
+        // XLMOD specific field
         else if (val.hasPrefix("monoisotopicMass:"))
         {
           mod.setDiffMonoMass(val_split[1].toDouble());
         }
         else if(val.hasPrefix("specificities:"))
         {
-          // TODO cross-linker specificities can be different for both chain sides, right now the sum of both sides is used
+          // TODO cross-linker specificities can be different for both chain sides, right now the union of both sides is used
+          // Input parameters of the cross-link search tool make sure, that the chemistry is not violated
           origin = val_split[1];
 
           // remove brackets
@@ -531,33 +516,17 @@ namespace OpenMS
         }
       }
 
-      // Protein terminals
-      //String res_string = "A,C,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,V,W,Y";
-//      vector<String> res_list;
-//      res_string.split(",", res_list);
-
       if (origin.hasSubstring("ProteinN-term"))
       {
         mod.setTermSpecificity(ResidueModification::N_TERM);
         mod.setOrigin("N-term");
         all_mods.insert(make_pair(id, mod));
-//        for (Size i = 0; i < res_list.size(); ++i)
-//        {
-//          mod = ResidueModification(mod);
-//          mod.setOrigin(res_list[i]);
-//          all_mods.insert(make_pair(id, mod));
-//        }
       }
       if (origin.hasSubstring("ProteinC-term"))
       {
         mod.setTermSpecificity(ResidueModification::C_TERM);
         mod.setOrigin("C-term");
         all_mods.insert(make_pair(id, mod));
-//        for (Size i = 0; i < res_list.size(); ++i)
-//        {
-//          mod.setOrigin(res_list[i]);
-//          all_mods.insert(make_pair(id, mod));
-//        }
       }
 
       id = "";
