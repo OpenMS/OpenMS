@@ -917,7 +917,7 @@ namespace OpenMS
                 ModificationsDB* mod_db = ModificationsDB::getInstance();
                 //std::set<const ResidueModification*> mods;
                 std::vector<String> mods;
-                mod_db->getModificationsByDiffMonoMass(mods, String(jt->getSequence()[i].getOneLetterCode()), double(jt->getMetaValue("xl_mass")), 0.0001);
+                mod_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
                 if (mods.size() > 0)
                 {
                   p += "\t\t<Modification location=\"" + String(i + 1);
@@ -925,7 +925,7 @@ namespace OpenMS
 
                 if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                 {
-                  ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, double(jt->getMetaValue("xl_mass")), 0.0001, ResidueModification::N_TERM);
+                  ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::N_TERM);
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"0";
@@ -933,7 +933,7 @@ namespace OpenMS
                 }
                 else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                 {
-                  ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, double(jt->getMetaValue("xl_mass")), 0.0001, ResidueModification::C_TERM);
+                  ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::C_TERM);
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"" + String(i + 2);
@@ -949,17 +949,17 @@ namespace OpenMS
                     ResidueModification mod;
                     try
                     {
-                      mod = mod_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[s], ResidueModification::ANYWHERE);
+                      mod = mod_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
                     }
                     catch (...)
                     {
                       if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                       {
-                        mod = mod_db->getTerminalModification(mods[s], ResidueModification::N_TERM);
+                        mod = mod_db->getModification(mods[s], "", ResidueModification::N_TERM);
                       }
                       else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                       {
-                        mod = mod_db->getTerminalModification(mods[s], ResidueModification::C_TERM);
+                        mod = mod_db->getModification(mods[s], "", ResidueModification::C_TERM);
                       }
                     }
                     acc = mod.getPSIMODAccession();
