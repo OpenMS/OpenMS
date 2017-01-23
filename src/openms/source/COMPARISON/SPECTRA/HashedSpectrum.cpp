@@ -29,102 +29,104 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: $
+// $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
-//
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/COMPARISON/SPECTRA/HashedSpectrum.h>
+#include <OpenMS/MATH/MISC/Spline2d.h>
 
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  HashedSpectrum::HashedSpectrum() :
-    bin_spread_(1), bin_size_(2.0), bins_(), raw_spec_()
-  {
-  }
 
-  HashedSpectrum::HashedSpectrum(float size, UInt spread, PeakSpectrum ps) :
-    bin_spread_(spread), bin_size_(size), bins_(), raw_spec_(ps)
+  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum)
   {
-    setBinning();
-  }
-
-  HashedSpectrum::HashedSpectrum(const HashedSpectrum& source) :
-    bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins()), raw_spec_(source.raw_spec_)
-  {
+	if (raw_spectrum.size() <= 2)
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, raw_spectrum.size());
+    }
+	  
+	//std::cout << "number of data points   = " << raw_spectrum.size() << "\n\n";
+	
+	mz_bin_ = 1.0;
+    
+    std::vector<double> mz;
+    std::vector<double> intensity;
+    int index = 0;
+    int last_index = 0;
+    HashedSpectrum::MzInterval interval;
+    interval.first = &*raw_spectrum.begin();
+    interval.last = &*raw_spectrum.begin();
+    for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    {
+		index = (int) floor((it->getMZ() - raw_spectrum.begin()->getMZ())/mz_bin_);			
+		
+		if (index > last_index)
+		{
+			// close previous interval
+			intervals_.push_back(interval);
+			
+			// add empty intervals
+			interval.first = NULL;
+			interval.last = NULL;
+			for (int i=0; i < (index - last_index -1); ++i)
+			{
+				intervals_.push_back(interval);
+			}
+		  
+			// open new interval
+			interval.first = &*it;
+			interval.last = &*it;
+			
+			//std::cout << "\n";
+			last_index = index;
+		}
+		else
+		{
+			interval.last = &*it;
+		}
+	  
+	  //std::cout << "m/z = " << it->getMZ() << "    index = " << index << "\n";
+		
+      mz.push_back(it->getMZ());
+      intensity.push_back(it->getIntensity());
+    }
+    // close last interval
+    intervals_.push_back(interval);
+    
+    //std::cout << "\n";
+    
+    //std::cout << "number of intervals = " << intervals_.size() << "\n\n";
+    
+    mz_min_ = mz.front();
+    mz_max_ = mz.back();
+           
   }
 
   HashedSpectrum::~HashedSpectrum()
   {
   }
 
-  //accessors and operators see .h file
-
-
-  void HashedSpectrum::setBinning()
+  double HashedSpectrum::getMzMin() const
   {
-    if (raw_spec_.empty())
-    {
-      throw HashedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    bins_.clear();
-
-    //make all necessary bins accessible
-    raw_spec_.sortByPosition();
-    bins_ = SparseVector<float>((UInt)ceil(raw_spec_.back().getMZ() / bin_size_) + bin_spread_, 0, 0);
-
-    //put all peaks into bins
-    UInt bin_number;
-    for (Size i = 0; i < raw_spec_.size(); ++i)
-    {
-      //bin_number counted form 0 -> floor
-      bin_number = (UInt)floor(raw_spec_[i].getMZ() / bin_size_);
-      //e.g. bin_size_ = 1.5: first bin covers range [0,1.5] so peak at 1.5 falls in first bin (index 0)
-
-      if (raw_spec_[i].getMZ() / bin_size_ == (double)bin_number)
-      {
-        --bin_number;
-      }
-
-      //add peak to corresponding bin
-      bins_[bin_number] = bins_.at(bin_number) + raw_spec_[i].getIntensity();
-
-      //add peak to neighboring binspread many
-      for (Size j = 0; j < bin_spread_; ++j)
-      {
-        bins_[bin_number + j + 1] = bins_.at(bin_number + j + 1) + raw_spec_[i].getIntensity();
-        // we are not in one of the first bins (0 to bin_spread)
-        //not working:  if (bin_number-j-1 >= 0)
-        if (bin_number >= j + 1)
-        {
-          bins_[bin_number - j - 1] = bins_.at(bin_number - j - 1) + raw_spec_[i].getIntensity();
-        }
-      }
-    }
-
+    return mz_min_;
   }
 
-  //yields false if given HashedSpectrum size or spread differs from this one (comparing those might crash)
-  bool HashedSpectrum::checkCompliance(const HashedSpectrum& bs) const
+  double HashedSpectrum::getMzMax() const
   {
-    return (this->bin_size_ == bs.getBinSize()) &&
-           (this->bin_spread_ == bs.getBinSpread());
+    return mz_max_;
   }
 
-  HashedSpectrum::NoSpectrumIntegrated::NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message) throw() :
-    BaseException(file, line, function, "HashedSpectrum::NoSpectrumIntegrated", message)
+  double HashedSpectrum::getMzBin() const
   {
+    return mz_bin_;
   }
-
-  HashedSpectrum::NoSpectrumIntegrated::~NoSpectrumIntegrated() throw()
-  {
-  }
-
-  const PeakSpectrum& HashedSpectrum::getRawSpectrum() const
-  {
-    return raw_spec_;
-  }
-
+  
 }
