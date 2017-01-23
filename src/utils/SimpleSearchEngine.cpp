@@ -644,7 +644,8 @@ class SimpleSearchEngine :
               const Size& scan_index = low_it->second;
               const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              //double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              double score = 0;
               //double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
               // no hit
