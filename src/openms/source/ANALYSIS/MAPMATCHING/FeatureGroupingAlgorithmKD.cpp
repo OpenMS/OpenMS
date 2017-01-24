@@ -276,7 +276,7 @@ namespace OpenMS
 
       // compile the actual list of sub feature indices for cluster with center i
       vector<Size> cf_indices;
-      computeBestClusterForCenter(i, cf_indices, assigned, kd_data);
+      computeBestClusterForCenter_(i, cf_indices, assigned, kd_data);
 
       // add consensus feature
       addConsensusFeature_(cf_indices, kd_data, out);
@@ -321,7 +321,7 @@ namespace OpenMS
       Size i = *it;
       const ClusterProxyKD& old_proxy = cluster_for_idx[i];
       vector<Size> unused;
-      ClusterProxyKD new_proxy = computeBestClusterForCenter(i, unused, assigned, kd_data);
+      ClusterProxyKD new_proxy = computeBestClusterForCenter_(i, unused, assigned, kd_data);
 
       // only need to update if size and/or average distance have changed
       if (new_proxy != old_proxy)
@@ -333,7 +333,7 @@ namespace OpenMS
     }
   }
 
-  ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const
+  ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter_(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const
   {
     // for scaling distances relative to tolerance windows below
     pair<double, double> dummy_mz_win = Math::getTolWindow(1000, mz_tol_, mz_ppm_);

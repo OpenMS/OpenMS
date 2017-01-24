@@ -238,7 +238,7 @@ private:
     void updateClusterProxies_(std::set<ClusterProxyKD>& potential_clusters, std::vector<ClusterProxyKD>& cluster_for_idx, const std::set<Size>& update_these, const std::vector<Int>& assigned, const KDTreeFeatureMaps& kd_data);
 
     /// Compute the current best cluster with center index @p i (mutates @p proxy and @p cf_indices)
-    ClusterProxyKD computeBestClusterForCenter(Size i, std::vector<Size>& cf_indices, const std::vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const;
+    ClusterProxyKD computeBestClusterForCenter_(Size i, std::vector<Size>& cf_indices, const std::vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const;
 
     /// Construct consensus feature and add to out map
     void addConsensusFeature_(const std::vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const;
