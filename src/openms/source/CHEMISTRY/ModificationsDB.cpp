@@ -341,7 +341,7 @@ namespace OpenMS
 
           for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
           {
-            if (orig_it->size() == 1 && (*orig_it) != "X")
+            if (orig_it->size() == 1)
             {
               mod.setOrigin((*orig_it));
               all_mods.insert(make_pair(id, mod));
@@ -509,7 +509,7 @@ namespace OpenMS
 
       for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
       {
-        if (orig_it->size() == 1 && (*orig_it) != "X")
+        if (orig_it->size() == 1)
         {
           mod.setOrigin((*orig_it));
           all_mods.insert(make_pair(id, mod));
