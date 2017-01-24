@@ -186,6 +186,10 @@ protected:
     setValidFormats_("in_negative", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
     setValidFormats_("out", ListUtils::create<String>("txt"));
+    registerOutputFile_("out_oligo_params", "<file>", "", "output file with additional model parameters when using the OLIGO kernel", false);
+    setValidFormats_("out_oligo_params", ListUtils::create<String>("paramXML"));
+    registerOutputFile_("out_oligo_trainset", "<file>", "", "output file with the used training dataset when using the OLIGO kernel", false);
+    setValidFormats_("out_oligo_trainset", ListUtils::create<String>("paramXML"));
     registerStringOption_("svm_type", "<type>", "NU_SVR", "the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n", false);
     setValidStrings_("svm_type", ListUtils::create<String>("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);
@@ -367,7 +371,7 @@ protected:
 
     float total_gradient_time = getDoubleOption_("total_gradient_time");
     max_std = getDoubleOption_("max_std");
-    if (!separation_prediction && total_gradient_time   < 0)
+    if (!separation_prediction && total_gradient_time < 0)
     {
       writeLog_("No total gradient time given for RT prediction. Aborting!");
       printUsage_();
@@ -390,8 +394,8 @@ protected:
     }
     else
     {
-      writeLog_("Illegal svm type given. Svm type has to be either "
-                + String("NU_SVR or EPSILON_SVR for rt prediction and ")
+      writeLog_("Illegal SVM type given. SVM type has to be either "
+                + String("NU_SVR or EPSILON_SVR for RT prediction and ")
                 + "C_SVC for separation prediction. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
@@ -963,6 +967,7 @@ protected:
     // If the oligo-border kernel is used some additional information has to be stored
     if (temp_type == SVMWrapper::OLIGO)
     {
+      String param_outfile_name = getStringOption_("out");
       training_sample.store(outputfile_name + "_samples");
       additional_parameters.setValue("kernel_type", temp_type);
 
@@ -984,7 +989,7 @@ protected:
         additional_parameters.setValue("sigma", svm.getDoubleParameter(SVMWrapper::SIGMA));
       }
       ParamXMLFile paramFile;
-      paramFile.store(outputfile_name + "_additional_parameters", additional_parameters);
+      paramFile.store(param_outfile_name, additional_parameters);
     }
 
     return EXECUTION_OK;
