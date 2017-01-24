@@ -122,6 +122,10 @@ protected:
     setValidFormats_("in_id", ListUtils::create<String>("idXML"));
     registerInputFile_("in_text", "<file>", "", "Peptides as text-based file", false);
     setValidFormats_("in_text", ListUtils::create<String>("txt"));
+    registerInputFile_("in_oligo_params", "<file>", "", "input file with additional model parameters when using the OLIGO kernel", false);
+    setValidFormats_("in_oligo_params", ListUtils::create<String>("paramXML"));
+    registerInputFile_("in_oligo_trainset", "<file>", "", "input file with the used training dataset when using the OLIGO kernel", false);
+    setValidFormats_("in_oligo_trainset", ListUtils::create<String>("txt"));
 
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by RTModel)");
     setValidFormats_("svm_model", ListUtils::create<String>("txt"));
@@ -205,7 +209,7 @@ protected:
     pair<double, double> temp_point;
     vector<float> performance_retention_times;
     String svmfile_name = "";
-    float total_gradient_time = 1.f;
+    double total_gradient_time = 1.;
     bool separation_prediction = false;
     vector<PeptideIdentification> identifications_positive;
     vector<PeptideIdentification> identifications_negative;
@@ -283,11 +287,17 @@ protected:
     // additional parameters from additional files.
     if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
-      inputFileReadable_(svmfile_name + "_additional_parameters", "svm_model (derived)");
+      String in_params_name = getStringOption_("in_oligo_params");
+      if (in_params_name.empty())
+      {
+        in_params_name = svmfile_name + "_additional_parameters";
+        writeLog_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
+      }
+      inputFileReadable_(in_params_name, "in_oligo_params");
 
       Param additional_parameters;
       ParamXMLFile paramFile;
-      paramFile.load(svmfile_name + "_additional_parameters", additional_parameters);
+      paramFile.load(in_params_name, additional_parameters);
       if (additional_parameters.exists("first_dim_rt")
          && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
       {
@@ -321,7 +331,7 @@ protected:
         cout << "No sigma saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
+      sigma = ((String)additional_parameters.getValue("sigma")).toDouble();
       if (!separation_prediction && additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
       {
         writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
@@ -449,9 +459,15 @@ protected:
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        inputFileReadable_((svmfile_name + "_samples").c_str(), "svm_model (derived)");
+        String in_trainset_name = getStringOption_("in_oligo_trainset");
+        if (in_trainset_name.empty())
+        {
+          in_trainset_name = svmfile_name + "_samples";
+          writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
+        }
+        inputFileReadable_(in_trainset_name.c_str(), "in_oligo_trainset");
 
-        training_samples.load(svmfile_name + "_samples");
+        training_samples.load(in_trainset_name);
         svm.setTrainingSample(training_samples);
 
         svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);

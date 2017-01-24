@@ -189,7 +189,7 @@ protected:
     registerOutputFile_("out_oligo_params", "<file>", "", "output file with additional model parameters when using the OLIGO kernel", false);
     setValidFormats_("out_oligo_params", ListUtils::create<String>("paramXML"));
     registerOutputFile_("out_oligo_trainset", "<file>", "", "output file with the used training dataset when using the OLIGO kernel", false);
-    setValidFormats_("out_oligo_trainset", ListUtils::create<String>("paramXML"));
+    setValidFormats_("out_oligo_trainset", ListUtils::create<String>("txt"));
     registerStringOption_("svm_type", "<type>", "NU_SVR", "the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n", false);
     setValidStrings_("svm_type", ListUtils::create<String>("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);
@@ -845,6 +845,8 @@ protected:
 
     if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
     {
+      // TODO What happens if the sequence exceeds this size? No error, but does it impact performance?
+      // Why this magic number?
       UInt maximum_sequence_length = 50;
       encoded_training_sample =
         encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(training_peptides,
@@ -967,8 +969,22 @@ protected:
     // If the oligo-border kernel is used some additional information has to be stored
     if (temp_type == SVMWrapper::OLIGO)
     {
-      String param_outfile_name = getStringOption_("out");
-      training_sample.store(outputfile_name + "_samples");
+      String outfile_name = getStringOption_("out");
+      String param_outfile_name = getStringOption_("out_oligo_params");
+      String trainset_outfile_name = getStringOption_("out_oligo_trainset");
+
+      // Fallback to reasonable defaults if additional outfiles are not specified = empty.
+      if (param_outfile_name.empty())
+      {
+        param_outfile_name = outfile_name + "_additional_parameters";
+        writeLog_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
+      }
+      if (trainset_outfile_name.empty())
+      {
+        trainset_outfile_name = outfile_name + "_samples";
+        writeLog_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
+      }
+      training_sample.store(trainset_outfile_name);
       additional_parameters.setValue("kernel_type", temp_type);
 
       if (!separation_prediction)
