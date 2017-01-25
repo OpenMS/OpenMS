@@ -1054,9 +1054,13 @@ protected:
                   bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) > intensity_cutoff;
 
                   // check for same charge
-                  PeakSpectrum::IntegerDataArray s1_charges = s1.getIntegerDataArrays()[0];
-                  PeakSpectrum::IntegerDataArray s2_charges = s2.getIntegerDataArrays()[0];
-                  bool charge_fits = s1_charges[i - 1] == s2_charges[j - 1] || s2_charges[j - 1] == 0;
+//                  PeakSpectrum::IntegerDataArray s1_charges = s1.getIntegerDataArrays()[0];
+//                  PeakSpectrum::IntegerDataArray s2_charges = s2.getIntegerDataArrays()[0];
+//                  bool charge_fits = s1_charges[i - 1] == s2_charges[j - 1] || s2_charges[j - 1] == 0;
+//                  LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
+
+                  // TODO SET A CHARGE FOR EXPERIMENTAL SPECTRA, then use this again
+                  bool charge_fits = true;
 
 //                  LOG_DEBUG << "CHARGE FIT TEST 1### charge1 = " << charge1 << " ### charge2 = " << charge2 << " ### charge fits = " << charge_fits << endl;
 
@@ -2116,6 +2120,10 @@ protected:
           getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
           getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
 
+          LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_common_alpha.size() <<  " | " << theoretical_spec_common_beta.size()
+                                <<  " | " << theoretical_spec_xlinks_alpha.size() <<  " | " << theoretical_spec_xlinks_beta.size() << endl;
+          LOG_DEBUG << "Matched peaks: " << matched_spec_common_alpha.size() << " | " << matched_spec_common_beta.size()
+                                <<  " | " << matched_spec_xlinks_alpha.size() <<  " | " << matched_spec_xlinks_beta.size() << endl;
 
           // Pre-Score calculations
           Size matched_alpha_count = matched_spec_common_alpha.size() + matched_spec_xlinks_alpha.size();
