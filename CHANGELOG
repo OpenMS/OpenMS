@@ -10,36 +10,34 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.1                                        ----
 ------------------------------------------------------------------------------------------
-OpenMS 2.1 is the first release that provides an update notification functionality which 
-is also used to track usage statistics of OpenMS tools. 
-How it works:
-At most once a day - on tool execution - a REST request to our update server is sent. 
-The REST server returns the most current version of the tool. 
-If the returned version is newer than the local one, the tool notifies the user that a software
-update is available. By collecting this information we hope to improve the quality of OpenMS, 
-helps us to distribute development resources to e.g. heavily used tools
-and is needed to calculate metrics required by our funding agency.
-We will keep this information as confidential as possible and only provide summary 
-statistics to e.g. our funding agencies.
-If you feel uncomfortable with this you can disable the update/usage tracking by:
-1. disabling it in the build script (switch ENABLE_USAGE_STATISTICS to "OFF" ), or
-2. setting the environment variable (OPENMS_DISABLE_USAGE_STATISTICS to "ON")
+OpenMS 2.1 introduces a considerable number of new features and bug fixes.
 
-Notable changes are:
+Notable changes since version 2.0.1 are:
 
-File formats:
-  - Improved mzIdentML support (experimental)
-  - Improved pepXML support
-  - Improved support for indexed mzML files
-  - Improved TraML support
+New tools:
+  - ExternalCalibration -- Applies an external mass recalibration (TOPP)
+  - OpenSwathFileSplitter -- Splits SWATH files into n files, each containing one window (TOPP)
+  - MultiplexResolver -- Completes peptide multiplets and resolves conflicts within them (UTIL)
+  - TICCalculator -- Calculates the TIC from a mass spectrometric raw file (useful for benchmarking) (UTIL)
 
-Tools with major changes:
+Deprecated and removed tools:
+  - PILISIdentification -- performs a peptide/protein identification with the PILIS engine (TOPP)
+  - PILISModelCV -- Perform a cross validation of the PILIS model parameters (TOPP)
+  - PILISModelTrainer -- Train the PILIS model with a given set of spectra and identifications (TOPP)
+  - PILISSpectraGenerator -- Generate spectra given a list of peptides and a PILIS model (TOPP)
+
+Major changes in functionality:
+  - Update notification: starting with OpenMS 2.1 all TOPP tools will check for updated versions of the tools 
+      online and will print an information message if a newer version is available. This version check occurs only 
+      once per day and tool. Information on which tools are executed will be collected anonymously to identify which 
+      tools are no longer used and to optimally distribute development resources. If the feature causes problems or
+      concerns, it can be disabled through a command line switch or environment variable (see the documentation).
   - InternalCalibration:
     - supports calibration using a table of lock masses and peptide ids.
     - global or RT-chunked calibration
     - linear & quadratic models (with intensity weighting)
     - outlier removal via RANSAC
-    - reoccuring calibrations can be quickly applied to other files using the novel ExternalCalibration tool
+    - reoccurring calibrations can be quickly applied to other files using the novel ExternalCalibration tool
   - OpenSwathWorkflow
     - support for metabolites / small molecules
   - MapAlignerIdentification
@@ -51,17 +49,11 @@ Tools with major changes:
   - PeakPickerHiRes and MassTraceExtractor:
     - support for FWHM annotation
 
-Added tools:
-  - ExternalCalibration -- Applies an external mass recalibration (TOPP)
-  - OpenSwathFileSplitter -- Splits SWATH files into n files, each containing one window (TOPP)
-  - MultiplexResolver -- Completes peptide multiplets and resolves conflicts within them (UTIL)
-  - TICCalculator -- Calculates the TIC from a mass spectrometric raw file (useful for benchmarking) (UTIL)
-
-Removed tools:
-  - PILISIdentification -- performs a peptide/protein identification with the PILIS engine (TOPP)
-  - PILISModelCV -- Perform a cross validation of the PILIS model parameters (TOPP)
-  - PILISModelTrainer -- Train the PILIS model with a given set of spectra and identifications (TOPP)
-  - PILISSpectraGenerator -- Generate spectra given a list of peptides and a PILIS model (TOPP)
+File formats:
+  - Improved mzIdentML support (experimental)
+  - Improved pepXML support
+  - Improved support for indexed mzML files
+  - Improved TraML support
 
 Databases:
   - By default, decoy sequences are now denoted by a prefix 'DECOY_'.

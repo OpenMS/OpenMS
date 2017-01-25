@@ -397,14 +397,14 @@ namespace OpenMS
     }
 
     // enable / disable collection of usage statistics by build variable
-#ifdef ENABLE_USAGE_STATISTICS
+#ifdef ENABLE_UPDATE_CHECK
     // disable collection of usage statistics if environment variable is present
-    char* disable_usage = getenv("OPENMS_DISABLE_USAGE_STATISTICS");
+    char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
     if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
     {
-      UpdateCheck::run(tool_name_, version_);
+      UpdateCheck::run(tool_name_, version_, debug_level_);
     }
 #endif
 
@@ -2139,11 +2139,7 @@ namespace OpenMS
     tmp.update(tool_user_defaults);
 
     // 3rd stage, use OpenMS.ini from library to override settings
-    Param system_defaults(File::getSystemParameters());
-    // this currently writes to the wrong part of the ini-file (revise) or remove altogether:
-    //   there should be no section which already contains these params (-> thus a lot of warnings are emitted)
-    //   furthermore, entering those params will not allow us to change settings in OpenMS.ini and expect them to be effective, as they will be overridden by the tools' ini file
-    //tmp.update(system_defaults);
+    // -> currently disabled as we cannot write back those values to the params
 
     return tmp;
   }

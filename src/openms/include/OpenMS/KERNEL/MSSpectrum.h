@@ -389,7 +389,7 @@ public:
     */
     void sortByPosition()
     {
-      if (float_data_arrays_.empty())
+      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
         std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
       }
@@ -670,7 +670,6 @@ public:
       }
     }
 
-
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
@@ -726,7 +725,7 @@ public:
     }
 
 protected:
-
+   
     /// Retention time
     double retention_time_;
 
@@ -768,3 +767,4 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
+
