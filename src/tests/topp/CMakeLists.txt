@@ -1921,7 +1921,7 @@ add_test("UTILS_FeatureLinkerUnlabeledKD_2_out1" ${DIFF} -whitelist "id=" "href=
 set_tests_properties("UTILS_FeatureLinkerUnlabeledKD_2_out1" PROPERTIES DEPENDS "UTILS_FeatureLinkerUnlabeledKD_2")
 add_test("UTILS_FeatureLinkerUnlabeledKD_3" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input2.featureXML -out FeatureLinkerUnlabeledKD_3_output.tmp)
 add_test("UTILS_FeatureLinkerUnlabeledKD_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_3_output.consensusXML )
-set_tests_properties("UTILS_FeatureLinkerUnlabeledKD_3_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_3")
+set_tests_properties("UTILS_FeatureLinkerUnlabeledKD_3_out1" PROPERTIES DEPENDS "UTILS_FeatureLinkerUnlabeledKD_3")
 
 # MzMLSplitter test:
 # specify number of parts directly:
