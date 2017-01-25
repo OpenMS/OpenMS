@@ -2702,7 +2702,7 @@ protected:
 //              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
               peptide_id.setHits(phs);
-              peptide_id.setScoreType("OpenProXL:combined score");
+              peptide_id.setScoreType("OpenXQuest:combined score");
 
 #ifdef _OPENMP
 #pragma omp critical (peptides_ids_access)

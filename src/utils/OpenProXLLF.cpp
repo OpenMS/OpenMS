@@ -1779,11 +1779,26 @@ protected:
 
     double max_peptide_mass = max_precursor_mass - cross_link_mass + allowed_error;
 
-    for (vector<OpenProXLUtils::PeptideMass>::iterator a = peptide_masses.begin(); a != peptide_masses.end(); ++a)
+    cout << "Filtering peptides with precursors" << endl;
+
+    // TODO peptides are sorted!
+    // search for the closest one, cut off everything lager
+
+    // iterating over the vector, while changing its size
+    vector<OpenProXLUtils::PeptideMass>::iterator a = peptide_masses.begin();
+    while(true)
     {
       if ( a->peptide_mass > max_peptide_mass )
       {
         peptide_masses.erase(a);
+      }
+      else
+      {
+        ++a;
+      }
+      if (a == peptide_masses.end())
+      {
+        break;
       }
     }
 
@@ -2613,7 +2628,7 @@ protected:
 //              peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
 
               peptide_id.setHits(phs);
-              peptide_id.setScoreType("OpenProXL:combined score");
+              peptide_id.setScoreType("OpenXQuest:combined score");
 
 #ifdef _OPENMP
 #pragma omp critical (peptides_ids_access)
