@@ -522,7 +522,7 @@ namespace OpenMS
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
         if (!unitAcc.empty() && !unitName.empty())
         {
-          u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
+          u = CVTerm::Unit(unitAcc, unitName, unitCvRef);
           if (unitCvRef.empty())
           {
             LOG_WARN << "This mzid file uses a cv term with units, but without "
