@@ -1368,7 +1368,7 @@ protected:
     // one identification run
     vector<ProteinIdentification> protein_ids(1);
     protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngine("OpenMSOpenProXL");
+    protein_ids[0].setSearchEngine("OpenXQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
@@ -1382,9 +1382,9 @@ protected:
     search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_params.missed_cleavages = missed_cleavages;
     search_params.fragment_mass_tolerance = fragment_mass_tolerance;
-    search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
+    search_params.fragment_mass_tolerance_ppm =  fragment_mass_tolerance_unit_ppm;
     search_params.precursor_mass_tolerance = precursor_mass_tolerance;
-    search_params.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
+    search_params.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm;
 
     // As MetaValues
     search_params.setMetaValue("input_consensusXML", in_consensus);
