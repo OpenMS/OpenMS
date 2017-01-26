@@ -386,8 +386,7 @@ START_SECTION(([EXTRA] XLMS data labelled cross-linker))
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
   // Reading and writing
-  String filename = "/home/eugen/Development/OpenMS-build/Testing/Temporary/XLMS_labelled.mzid";
-  //NEW_TMP_FILE(filename)
+  NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
 
@@ -437,8 +436,7 @@ START_SECTION(([EXTRA] XLMS data unlabelled cross-linker))
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
   // Reading and writing
-  String filename = "/home/eugen/Development/OpenMS-build/Testing/Temporary/XLMS_unlabelled.mzid";
-  //NEW_TMP_FILE(filename)
+  NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
 
