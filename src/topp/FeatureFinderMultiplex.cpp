@@ -983,7 +983,8 @@ private:
 	double rt = it_rt->getRT();
 	std::cout << "RT = " << rt << "\n";
 	
-	HashedSpectrum spectrum(*it_rt, 1.0, true);
+	HashedSpectrum spectrum(*it_rt, 1000.0, true);    // 1000 ppm
+	//HashedSpectrum spectrum(*it_rt, 1.0, false);    // 1 Th
 	std::cout << "m/z (min) = " << spectrum.getMzMin() << "\n";
 	std::cout << "m/z (max) = " << spectrum.getMzMax() << "\n";
 	std::cout << "m/z bin   = " << spectrum.getMzBinSize() << "\n\n";

@@ -55,8 +55,15 @@ namespace OpenMS
     }
 	  
 	std::cout << "number of data points   = " << raw_spectrum.size() << "\n\n";
-	//std::cout << "m/z bin size            = " << mz_bin_size_ << "\n\n";
-	//std::cout << "m/z bin size unit ppm   = " << mz_bin_unit_ppm_ << "\n\n";
+	/*std::cout << "m/z bin size            = " << mz_bin_size_ << "\n\n";
+	if (mz_bin_unit_ppm_)
+	{
+		std::cout << "m/z unit is ppm.\n";
+	}
+	else
+	{
+		std::cout << "m/z unit is Da.\n";
+	}*/
 	    
     std::vector<double> mz;
     std::vector<double> intensity;
@@ -67,7 +74,16 @@ namespace OpenMS
     interval.last = &*raw_spectrum.begin();
     for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
     {
-		index = (int) floor((it->getMZ() - raw_spectrum.begin()->getMZ())/mz_bin_size_);			
+		if (mz_bin_unit_ppm_)
+		{
+			// m/z bins in ppm
+			index = (int) floor(log(it->getMZ()/raw_spectrum.begin()->getMZ())/log(1.0 + mz_bin_size_*1.0e-6));
+		}
+		else
+		{
+			// m/z bins in Da
+			index = (int) floor((it->getMZ() - raw_spectrum.begin()->getMZ())/mz_bin_size_);
+		}
 		
 		if (index > last_index)
 		{
@@ -86,7 +102,6 @@ namespace OpenMS
 			interval.first = &*it;
 			interval.last = &*it;
 			
-			//std::cout << "\n";
 			last_index = index;
 		}
 		else
