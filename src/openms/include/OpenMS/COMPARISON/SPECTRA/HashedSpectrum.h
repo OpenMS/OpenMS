@@ -52,7 +52,6 @@ namespace OpenMS
  * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
  * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
  *
- * @see SplinePackage
  * @see MSSpectrum<Peak1D>
  */
 class OPENMS_DLLAPI HashedSpectrum
@@ -72,6 +71,10 @@ class OPENMS_DLLAPI HashedSpectrum
     
     /**
      * @brief constructor taking an MSSpectrum
+     * 
+     * @param raw_spectrum    
+     * @param mz_bin
+     * @param mz_tolerance
      */
     HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm);
 

@@ -164,6 +164,27 @@ namespace OpenMS
 	  std::cout << "m/z start = " << intervals_[index].first->getMZ() << "\n";
 	  std::cout << "m/z end   = " << intervals_[index].last->getMZ() << "\n\n";
 	  
+	  MSSpectrum<Peak1D>::Iterator first_peak(intervals_[index].first);
+	  MSSpectrum<Peak1D>::Iterator last_peak(intervals_[index].last);
+	  
+	  MSSpectrum<Peak1D>::Iterator it_mz_closest = first_peak;
+	  double distance_closest = std::abs(first_peak->getMZ() - mz);
+	  for (MSSpectrum<Peak1D>::Iterator it_mz = first_peak; it_mz <= last_peak; ++it_mz)
+      {		  
+		  double distance = std::abs(it_mz->getMZ() - mz);
+		  
+		  if (distance < distance_closest)
+		  {
+			  it_mz_closest = it_mz;
+			  distance_closest = distance;
+		  }
+		  
+		  std::cout << "m/z = " << it_mz->getMZ() << "    distance = " << distance << "    closest distance = " << distance_closest << "\n";
+	  }
+	  
+	  // convert iterator to pointer for output
+	  //MSSpectrum<Peak1D>::pointer output(it_mz_closest);
+	  
 	  return NULL;
   }  
   
