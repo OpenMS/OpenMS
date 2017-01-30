@@ -983,11 +983,25 @@ private:
 	double rt = it_rt->getRT();
 	std::cout << "RT = " << rt << "\n";
 	
-	HashedSpectrum spectrum(*it_rt, 1000.0, true);    // 1000 ppm
-	//HashedSpectrum spectrum(*it_rt, 1.0, false);    // 1 Th
-	std::cout << "m/z (min) = " << spectrum.getMzMin() << "\n";
-	std::cout << "m/z (max) = " << spectrum.getMzMax() << "\n";
-	std::cout << "m/z bin   = " << spectrum.getMzBinSize() << "\n\n";
+	HashedSpectrum spectrum(*it_rt, 1000.0, 5.0, true);    // 1000 ppm
+	//HashedSpectrum spectrum(*it_rt, 1.0, 0.1, false);    // 1 Th
+	if (spectrum.getMzUnitPpm())
+	{
+		std::cout << "m/z bin         = " << spectrum.getMzBin() << " ppm\n";
+		std::cout << "m/z tolerance   = " << spectrum.getMzTolerance() << " ppm\n";
+	}
+	else
+	{
+		std::cout << "m/z bin         = " << spectrum.getMzBin() << " Th\n";
+		std::cout << "m/z tolerance   = " << spectrum.getMzTolerance() << " Th\n";
+	}
+	
+	MSSpectrum<Peak1D>::pointer peak = spectrum.getPeak(601.84);
+	if (peak == NULL)
+	{
+		std::cout << "No peak close-by.\n";
+	}
+	
 	
 	sleep(1000);
 	

@@ -73,7 +73,7 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief constructor taking an MSSpectrum
      */
-    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin_size, bool mz_bin_unit_ppm);
+    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm);
 
     /**
      * @brief destructor
@@ -81,24 +81,27 @@ class OPENMS_DLLAPI HashedSpectrum
     ~HashedSpectrum();
 
     /**
-     * @brief returns the minimum m/z of the spectrum
-     */
-    double getMzMin() const;
-
-    /**
-     * @brief returns the maximum m/z of the spectrum
-     */
-    double getMzMax() const;
-
-    /**
      * @brief returns the m/z bin size
      */
-    double getMzBinSize() const;
+    double getMzBin() const;
+    
+    /**
+     * @brief returns the m/z tolerance
+     */
+    double getMzTolerance() const;
     
     /**
      * @brief returns whether m/z bin unit ppm or Th
      */
-    bool getMzBinUnitPpm() const;
+    bool getMzUnitPpm() const;
+    
+    /**
+     * @brief returns pointer to the peak closest to m/z
+     * 
+     * @param mz    m/z position
+     * @return pointer to the peak closest to mz or NULL if difference between mz and closest peak m/z exceeds mz_tolerance_
+     */
+    MSSpectrum<Peak1D>::pointer getPeak(double mz);
     
   private:
 
@@ -106,25 +109,34 @@ class OPENMS_DLLAPI HashedSpectrum
     HashedSpectrum();
     
     /**
-     * @brief m/z limits of the spectrum
-     */
-    double mz_min_;
-    double mz_max_;
-
-    /**
      * @brief m/z bin size
      */
-    double mz_bin_size_;
+    double mz_bin_;
     
     /**
-     * @brief whether m/z bin unit is ppm or Th
+     * @brief m/z tolerance
      */
-    bool mz_bin_unit_ppm_;
+    double mz_tolerance_;
+    
+    /**
+     * @brief whether unit for mz_bin_ and mz_tolerance_ is ppm or Th
+     */
+    bool mz_unit_ppm_;
+        
+    /**
+     * @brief minimal m/z in the spectrum
+     */
+    double mz_min_;
         
     /**
      * @brief vector of all m/z intervals (hash table)
      */
     std::vector<MzInterval> intervals_;
+
+    /**
+     * @brief return index of the interval containing m/z
+     */
+    int getIndex_(double mz);
 
 };
 

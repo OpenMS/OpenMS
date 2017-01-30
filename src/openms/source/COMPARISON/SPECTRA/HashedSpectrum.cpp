@@ -46,14 +46,16 @@ using namespace std;
 namespace OpenMS
 {
 
-  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin_size, bool mz_bin_unit_ppm)
-  : mz_bin_size_(mz_bin_size), mz_bin_unit_ppm_(mz_bin_unit_ppm)
+  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm)
+  : mz_bin_(mz_bin), mz_tolerance_(mz_tolerance), mz_unit_ppm_(mz_unit_ppm)
   {
 	if (raw_spectrum.size() <= 2)
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, raw_spectrum.size());
     }
-	  
+	
+	mz_min_ = raw_spectrum.begin()->getMZ();
+	
 	std::cout << "number of data points   = " << raw_spectrum.size() << "\n\n";
 	/*std::cout << "m/z bin size            = " << mz_bin_size_ << "\n\n";
 	if (mz_bin_unit_ppm_)
@@ -73,17 +75,8 @@ namespace OpenMS
     interval.first = &*raw_spectrum.begin();
     interval.last = &*raw_spectrum.begin();
     for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
-    {
-		if (mz_bin_unit_ppm_)
-		{
-			// m/z bins in ppm
-			index = (int) floor(log(it->getMZ()/raw_spectrum.begin()->getMZ())/log(1.0 + mz_bin_size_*1.0e-6));
-		}
-		else
-		{
-			// m/z bins in Da
-			index = (int) floor((it->getMZ() - raw_spectrum.begin()->getMZ())/mz_bin_size_);
-		}
+    {		
+		index = getIndex_(it->getMZ());
 		
 		if (index > last_index)
 		{
@@ -120,9 +113,6 @@ namespace OpenMS
     //std::cout << "\n";
     
     //std::cout << "number of intervals = " << intervals_.size() << "\n\n";
-    
-    mz_min_ = mz.front();
-    mz_max_ = mz.back();
            
   }
 
@@ -130,24 +120,51 @@ namespace OpenMS
   {
   }
 
-  double HashedSpectrum::getMzMin() const
+  double HashedSpectrum::getMzBin() const
   {
-    return mz_min_;
-  }
-
-  double HashedSpectrum::getMzMax() const
-  {
-    return mz_max_;
-  }
-
-  double HashedSpectrum::getMzBinSize() const
-  {
-    return mz_bin_size_;
+    return mz_bin_;
   }
   
-  bool HashedSpectrum::getMzBinUnitPpm() const
+  double HashedSpectrum::getMzTolerance() const
   {
-    return mz_bin_unit_ppm_;
+    return mz_tolerance_;
   }
+  
+  bool HashedSpectrum::getMzUnitPpm() const
+  {
+    return mz_unit_ppm_;
+  }
+  
+  int HashedSpectrum::getIndex_(double mz)
+  {
+	if (mz_unit_ppm_)
+	{
+		// m/z bins in ppm
+		return (int) floor(log(mz/mz_min_)/log(1.0 + mz_bin_*1.0e-6));
+	}
+	else
+	{
+		// m/z bins in Da
+		return (int) floor((mz - mz_min_)/mz_bin_);
+	}
+  }
+  
+  MSSpectrum<Peak1D>::pointer HashedSpectrum::getPeak(double mz)
+  {
+	  std::cout << "m/z min = " << mz_min_ << "\n\n";
+	  
+	  int index = getIndex_(mz);
+	  std::cout << "index = " << index << "\n";
+	  
+	  if (index < 0 || index >= (int) intervals_.size())
+	  {
+		  return NULL;
+	  }
+	  
+	  std::cout << "m/z start = " << intervals_[index].first->getMZ() << "\n";
+	  std::cout << "m/z end   = " << intervals_[index].last->getMZ() << "\n\n";
+	  
+	  return NULL;
+  }  
   
 }
