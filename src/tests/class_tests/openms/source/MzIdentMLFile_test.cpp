@@ -39,6 +39,7 @@
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
 
 using namespace OpenMS;
@@ -411,10 +412,17 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids2[0].getHits().size(), 2)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_chain"), "MS:1002509") // XL donor
   TEST_EQUAL(peptide_ids2[0].getHits()[1].getMetaValue("xl_chain"), "MS:1002510") // XL acceptor
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_type"), "cross-link")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("spec_heavy_RT"), 2089.55329999998)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("spec_heavy_MZ"), 725.108947753906)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getScore(), peptide_ids2[0].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getScore(), peptide_ids2[1].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getSequence().toString(), "FIVKASSGPR")
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getSequence().toString(), "SAVIKTSTR")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_pos"), 3)
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos"), 4)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mass"), 138.0680796)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mod"), "DSS")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].charge, 1)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b2]")
@@ -461,8 +469,15 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[0].getHits().size(), 2)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_chain"), "MS:1002509") // XL donor
   TEST_EQUAL(peptide_ids2[0].getHits()[1].getMetaValue("xl_chain"), "MS:1002510") // XL acceptor
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_type"), "cross-link")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getScore(), peptide_ids2[0].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getScore(), peptide_ids2[1].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getSequence().toString(), "LM(Oxidation)VEMEKKLEK")
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getSequence().toString(), "KELLK")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_pos"), 7)
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos"), 0)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mass"), 138.0680796)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mod"), "DSS")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[0].charge, 1)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b3]")
@@ -470,6 +485,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[20].annotation, "[beta|xi$y6]")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[26].charge, 3)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[26].annotation, "[alpha|xi$y8]")
+
 
 END_SECTION
 

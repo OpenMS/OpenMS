@@ -45,6 +45,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
 #include <set>
 
@@ -914,10 +915,10 @@ namespace OpenMS
 //              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
-                ModificationsDB* mod_db = ModificationsDB::getInstance();
-                //std::set<const ResidueModification*> mods;
+//                ModificationsDB* xl_db = ModificationsDB::getInstance();
+                CrossLinksDB* xl_db = CrossLinksDB::getInstance();
                 std::vector<String> mods;
-                mod_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
+                xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
                 if (mods.size() > 0)
                 {
                   p += "\t\t<Modification location=\"" + String(i + 1);
@@ -949,17 +950,17 @@ namespace OpenMS
                     ResidueModification mod;
                     try
                     {
-                      mod = mod_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
+                      mod = xl_db->getModification(mods[s], jt->getSequence()[i].getOneLetterCode(), ResidueModification::ANYWHERE);
                     }
                     catch (...)
                     {
                       if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                       {
-                        mod = mod_db->getModification(mods[s], "", ResidueModification::N_TERM);
+                        mod = xl_db->getModification(mods[s], "", ResidueModification::N_TERM);
                       }
                       else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                       {
-                        mod = mod_db->getModification(mods[s], "", ResidueModification::C_TERM);
+                        mod = xl_db->getModification(mods[s], "", ResidueModification::C_TERM);
                       }
                     }
                     acc = mod.getPSIMODAccession();
@@ -972,7 +973,7 @@ namespace OpenMS
                 }
                 if ( acc.empty() && (mods.size() > 0) ) // If ambiguity can not be resolved by xl_mod, just take one with the same mass diff from the database
                 {
-                  ResidueModification mod = mod_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
+                  ResidueModification mod = xl_db->getModification( String(jt->getSequence()[i].getOneLetterCode()), mods[0], ResidueModification::ANYWHERE);
                   acc = mod.getPSIMODAccession();
                   name = mod.getId();
                 }
@@ -1381,7 +1382,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
-      os << "<cvList> \n "
+      os << "<cvList>\n"
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
          << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
          << "version=\"3.15.0\"></cv> \n "
