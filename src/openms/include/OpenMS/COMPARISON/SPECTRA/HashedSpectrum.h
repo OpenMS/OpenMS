@@ -69,11 +69,11 @@ class OPENMS_DLLAPI HashedSpectrum
 		MSSpectrum<Peak1D>::pointer first;
 		MSSpectrum<Peak1D>::pointer last;
 	};
-  
+    
     /**
      * @brief constructor taking an MSSpectrum
      */
-    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum);
+    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin_size, bool mz_bin_unit_ppm);
 
     /**
      * @brief destructor
@@ -93,7 +93,12 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief returns the m/z bin size
      */
-    double getMzBin() const;
+    double getMzBinSize() const;
+    
+    /**
+     * @brief returns whether m/z bin unit ppm or Th
+     */
+    bool getMzBinUnitPpm() const;
     
   private:
 
@@ -107,9 +112,14 @@ class OPENMS_DLLAPI HashedSpectrum
     double mz_max_;
 
     /**
-     * @brief m/z bin size [Th]
+     * @brief m/z bin size
      */
-    double mz_bin_;
+    double mz_bin_size_;
+    
+    /**
+     * @brief whether m/z bin unit is ppm or Th
+     */
+    bool mz_bin_unit_ppm_;
         
     /**
      * @brief vector of all m/z intervals (hash table)

@@ -46,17 +46,18 @@ using namespace std;
 namespace OpenMS
 {
 
-  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum)
+  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin_size, bool mz_bin_unit_ppm)
+  : mz_bin_size_(mz_bin_size), mz_bin_unit_ppm_(mz_bin_unit_ppm)
   {
 	if (raw_spectrum.size() <= 2)
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, raw_spectrum.size());
     }
 	  
-	//std::cout << "number of data points   = " << raw_spectrum.size() << "\n\n";
-	
-	mz_bin_ = 1.0;
-    
+	std::cout << "number of data points   = " << raw_spectrum.size() << "\n\n";
+	//std::cout << "m/z bin size            = " << mz_bin_size_ << "\n\n";
+	//std::cout << "m/z bin size unit ppm   = " << mz_bin_unit_ppm_ << "\n\n";
+	    
     std::vector<double> mz;
     std::vector<double> intensity;
     int index = 0;
@@ -66,7 +67,7 @@ namespace OpenMS
     interval.last = &*raw_spectrum.begin();
     for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
     {
-		index = (int) floor((it->getMZ() - raw_spectrum.begin()->getMZ())/mz_bin_);			
+		index = (int) floor((it->getMZ() - raw_spectrum.begin()->getMZ())/mz_bin_size_);			
 		
 		if (index > last_index)
 		{
@@ -124,9 +125,14 @@ namespace OpenMS
     return mz_max_;
   }
 
-  double HashedSpectrum::getMzBin() const
+  double HashedSpectrum::getMzBinSize() const
   {
-    return mz_bin_;
+    return mz_bin_size_;
+  }
+  
+  bool HashedSpectrum::getMzBinUnitPpm() const
+  {
+    return mz_bin_unit_ppm_;
   }
   
 }

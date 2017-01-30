@@ -978,24 +978,24 @@ private:
 
 	std::cout << "\n\nStart of the Pause.\n";
 	
-	/*MSExperiment<Peak1D>::Iterator it_rt = exp.begin();
+	MSExperiment<Peak1D>::Iterator it_rt = exp.begin();
 	it_rt = it_rt + 500;
 	double rt = it_rt->getRT();
 	std::cout << "RT = " << rt << "\n";
 	
-	HashedSpectrum spectrum(*it_rt);
+	HashedSpectrum spectrum(*it_rt, 1.0, true);
 	std::cout << "m/z (min) = " << spectrum.getMzMin() << "\n";
 	std::cout << "m/z (max) = " << spectrum.getMzMax() << "\n";
-	std::cout << "m/z bin   = " << spectrum.getMzBin() << "\n\n";
+	std::cout << "m/z bin   = " << spectrum.getMzBinSize() << "\n\n";
 	
-	sleep(1000);*/
+	sleep(1000);
 	
-	std::vector<HashedSpectrum> test;
+	/*std::vector<HashedSpectrum> test;
     for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it < exp.end(); ++it)
     {
 		HashedSpectrum spectrum(*it);
 		test.push_back(spectrum);
-	}
+	}*/
 	
 	std::cout << "End of the Pause.\n";
 
