@@ -37,21 +37,17 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {
 /**
  * @brief Auxiliary data structure for the quick access of peaks in MSSpectrum<Peak1D>
  *
- * Finding a peak in MSSpectrum<Peak1D> with a particular m/z can be slow. This data structure
+ * Finding a peak with a particular m/z in MSSpectrum<Peak1D> can be slow. This data structure
  * provides a hash index (bins_) for quick access. Given an m/z of interest, one can
- * quickly jump to the neighbouthood i.e. bin(s) where such a peak might be located.
+ * quickly jump in the relevant neighbouthood i.e. bin(s) where such a peak might be located.
  * The getPeak(double mz) method returns a pointer to the peak in MSSpectrum<Peak1D>.
  *
  * @see MSSpectrum<Peak1D>

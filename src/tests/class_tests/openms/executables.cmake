@@ -277,6 +277,7 @@ set(filtering_executables_list
   GaussFilter_test
   GaussFilterAlgorithm_test
   GoodDiffFilter_test
+  HashedSpectrum_test
   IDFilter_test
   IntensityBalanceFilter_test
   InternalCalibration_test
