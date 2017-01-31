@@ -75,14 +75,28 @@ START_SECTION(bool getMzUnitPpm() const)
     TEST_EQUAL(spectrum.getMzUnitPpm(), true);
 END_SECTION
 
+// There is a peak within the tolerance.
 START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
     HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
     TEST_REAL_SIMILAR(spectrum.getPeak(751.41)->getMZ(), 751.408386230469);
 END_SECTION
 
+// There is no peak within the tolerance.
 START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
     HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
-    //TEST_EQUAL(spectrum.getPeak(822.0), NULL);
+    TEST_EQUAL(spectrum.getPeak(822.0), NULL);
+END_SECTION
+
+// m/z outside the range of the spectrum
+START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
+    TEST_EQUAL(spectrum.getPeak(200.0), NULL);
+END_SECTION
+
+// m/z outside the range of the spectrum
+START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
+    TEST_EQUAL(spectrum.getPeak(3000.0), NULL);
 END_SECTION
 
 END_TEST

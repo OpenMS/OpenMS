@@ -176,12 +176,45 @@ namespace OpenMS
 		  index_upper_bound = bins_.size() - 1;		  
 	  }
 	  	  
-	  //std::cout << "index start = " << index_lower_bound << "    m/z start = " << bins_[index_lower_bound].first->getMZ() << "\n";
-	  //std::cout << "index end   = " << index_upper_bound << "    m/z end   = " << bins_[index_upper_bound].last->getMZ() << "\n\n";
+	  //std::cout << "index start = " << index_lower_bound << "\n";
+	  //std::cout << "index end   = " << index_upper_bound << "\n\n";
 	  
-	  MSSpectrum<Peak1D>::Iterator first_peak(bins_[index_lower_bound].first);
-	  MSSpectrum<Peak1D>::Iterator last_peak(bins_[index_upper_bound].last);
+	  // find first peak (i.e. the first non-empty bin)
+	  MSSpectrum<Peak1D>::pointer first = NULL;
+	  for (int index = index_lower_bound; index <= index_upper_bound; ++index)
+	  {
+		  if (bins_[index].first != NULL)
+		  {
+			  first = bins_[index].first;
+			  break;
+		  }
+	  }
+	  if (first == NULL)
+	  {
+		  return NULL;
+	  }
+	  MSSpectrum<Peak1D>::Iterator first_peak(first);
 	  
+	  // find last peak (i.e. the last non-empty bin)
+	  MSSpectrum<Peak1D>::pointer last = NULL;
+	  for (int index = index_upper_bound; index >= index_lower_bound; --index)
+	  {
+		  if (bins_[index].last != NULL)
+		  {
+			  last = bins_[index].last;
+			  break;
+		  }
+	  }
+	  if (last == NULL)
+	  {
+		  return NULL;
+	  }
+	  MSSpectrum<Peak1D>::Iterator last_peak(last);
+	  
+	  //std::cout << "m/z start = " << first_peak->getMZ() << "\n";
+	  //std::cout << "m/z end   = " << last_peak->getMZ() << "\n\n";
+	  
+	  // loop over relevant peaks
 	  MSSpectrum<Peak1D>::Iterator it_mz_closest = first_peak;
 	  double distance_closest = getDistance_(mz, first_peak->getMZ());
 	  for (MSSpectrum<Peak1D>::Iterator it_mz = first_peak; it_mz <= last_peak; ++it_mz)
@@ -199,15 +232,7 @@ namespace OpenMS
 		  }
 	  }
 	  
-	  if (distance_closest < mz_tolerance_)
-	  {
-		  return &(*it_mz_closest);
-	  }
-	  else
-	  {
-		  return NULL;
-	  }
-	  
+	  return &(*it_mz_closest);	  
   }  
   
 }

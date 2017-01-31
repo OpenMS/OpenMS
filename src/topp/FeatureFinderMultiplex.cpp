@@ -996,12 +996,12 @@ private:
 		std::cout << "m/z tolerance   = " << spectrum.getMzTolerance() << " Th\n";
 	}
 	
-	MSSpectrum<Peak1D>::pointer peak = spectrum.getPeak(601.84);
+	//MSSpectrum<Peak1D>::pointer peak = spectrum.getPeak(601.84);    // There is a peak.
+	MSSpectrum<Peak1D>::pointer peak = spectrum.getPeak(616.5);    // There is no peak.
 	if (peak == NULL)
 	{
 		std::cout << "No peak close-by.\n";
 	}
-	
 	
 	sleep(1000);
 	
