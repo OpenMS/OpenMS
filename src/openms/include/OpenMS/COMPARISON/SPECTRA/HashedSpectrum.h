@@ -71,9 +71,10 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief constructor taking an MSSpectrum
      * 
-     * @param raw_spectrum    
-     * @param mz_bin
-     * @param mz_tolerance
+     * @param raw_spectrum    raw MS1 spectrum to be indexed
+     * @param mz_bin    size of the m/z bins aka intervals
+     * @param mz_tolerance    maximal difference between m/z of interest and m/z of a valid peak
+     * @param mz_unit_ppm    unit for mz_bin and mz_tolerance
      */
     HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm);
 
