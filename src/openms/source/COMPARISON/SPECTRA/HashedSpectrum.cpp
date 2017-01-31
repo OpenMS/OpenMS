@@ -42,52 +42,50 @@ using namespace std;
 
 namespace OpenMS
 {
-
   HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm)
   : mz_bin_(mz_bin), mz_tolerance_(mz_tolerance), mz_unit_ppm_(mz_unit_ppm)
   {
-	if (raw_spectrum.size() <= 2)
+    if (raw_spectrum.size() <= 2)
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, raw_spectrum.size());
     }
-	
-	mz_min_ = raw_spectrum.begin()->getMZ();
-		    
+ 
+    mz_min_ = raw_spectrum.begin()->getMZ();
+      
     std::vector<double> mz;
     std::vector<double> intensity;
-    int index = 0;
     int last_index = 0;
     HashedSpectrum::MzInterval bin;
     bin.first = &(*raw_spectrum.begin());
     bin.last = &(*raw_spectrum.begin());
     for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
-    {		
-		index = getIndex_(it->getMZ());
-		
-		if (index > last_index)
-		{
-			// close previous interval
-			bins_.push_back(bin);
-			
-			// add empty interval
-			bin.first = NULL;
-			bin.last = NULL;
-			for (int i=0; i < (index - last_index -1); ++i)
-			{
-				bins_.push_back(bin);
-			}
-		  
-			// open new interval
-			bin.first = &*it;
-			bin.last = &*it;
-			
-			last_index = index;
-		}
-		else
-		{
-			bin.last = &*it;
-		}
-	  
+    {  
+      int index = getIndex_(it->getMZ());
+  
+      if (index > last_index)
+      {
+        // close previous interval
+        bins_.push_back(bin);
+   
+        // add empty interval
+        bin.first = NULL;
+        bin.last = NULL;
+        for (int i=0; i < (index - last_index -1); ++i)
+        {
+          bins_.push_back(bin);
+        }
+    
+        // open new interval
+        bin.first = &*it;
+        bin.last = &*it;
+
+        last_index = index;
+      }
+      else
+      {
+        bin.last = &*it;
+      }
+   
       mz.push_back(it->getMZ());
       intensity.push_back(it->getIntensity());
     }
@@ -117,122 +115,122 @@ namespace OpenMS
   
   int HashedSpectrum::getIndex_(double mz)
   {
-	if (mz_unit_ppm_)
-	{
-		// m/z intervals in ppm
-		return (int) floor(log(mz/mz_min_)/log(1.0 + mz_bin_*1.0e-6));
-	}
-	else
-	{
-		// m/z intervals in Da
-		return (int) floor((mz - mz_min_)/mz_bin_);
-	}
+    if (mz_unit_ppm_)
+    {
+      // m/z intervals in ppm
+      return (int) floor(log(mz/mz_min_)/log(1.0 + mz_bin_*1.0e-6));
+    }
+    else
+    {
+      // m/z intervals in Da
+     return (int) floor((mz - mz_min_)/mz_bin_);
+    }
   }
   
   double HashedSpectrum::getDistance_(double mz1, double mz2)
   {
-	if (mz_unit_ppm_)
-	{
-		// m/z tolerance in ppm
-		return std::abs(mz1 - mz2)/mz1*1.0e+6;
-	}
-	else
-	{
-		// m/z tolerance in Da
-		return std::abs(mz1 - mz2);
-	}
+    if (mz_unit_ppm_)
+    {
+      // m/z tolerance in ppm
+     return std::abs(mz1 - mz2)/mz1*1.0e+6;
+    }
+    else
+    {
+      // m/z tolerance in Da
+      return std::abs(mz1 - mz2);
+    }
   }
   
   MSSpectrum<Peak1D>::pointer HashedSpectrum::getPeak(double mz)
   {
-	  // find range of bins in which possible peaks may lie
-	  int index_lower_bound;
-	  int index_upper_bound;
-	  if (mz_unit_ppm_)
-	  {
-		// m/z tolerance in ppm
-		index_lower_bound = getIndex_(mz * (1 - mz_tolerance_*1.0e-6));
-		index_upper_bound = getIndex_(mz * (1 + mz_tolerance_*1.0e-6));
-	  }
-	  else
-	  {
-		// m/z tolerance in Da
-		index_lower_bound = getIndex_(mz - mz_tolerance_);
-		index_upper_bound = getIndex_(mz + mz_tolerance_);
-	  }
-	  
-	  if (index_upper_bound < 0 || index_lower_bound >= (int) bins_.size())
-	  {
-		  return NULL;
-	  }	  
-	  
-	  if (index_lower_bound < 0)
-	  {
-		  index_lower_bound = 0;		  
-	  }
-	  
-	  if (index_upper_bound >= (int) bins_.size())
-	  {
-		  index_upper_bound = bins_.size() - 1;		  
-	  }
-	  	  
-	  //std::cout << "index start = " << index_lower_bound << "\n";
-	  //std::cout << "index end   = " << index_upper_bound << "\n\n";
-	  
-	  // find first peak (i.e. the first non-empty bin)
-	  MSSpectrum<Peak1D>::pointer first = NULL;
-	  for (int index = index_lower_bound; index <= index_upper_bound; ++index)
-	  {
-		  if (bins_[index].first != NULL)
-		  {
-			  first = bins_[index].first;
-			  break;
-		  }
-	  }
-	  if (first == NULL)
-	  {
-		  return NULL;
-	  }
-	  MSSpectrum<Peak1D>::Iterator first_peak(first);
-	  
-	  // find last peak (i.e. the last non-empty bin)
-	  MSSpectrum<Peak1D>::pointer last = NULL;
-	  for (int index = index_upper_bound; index >= index_lower_bound; --index)
-	  {
-		  if (bins_[index].last != NULL)
-		  {
-			  last = bins_[index].last;
-			  break;
-		  }
-	  }
-	  if (last == NULL)
-	  {
-		  return NULL;
-	  }
-	  MSSpectrum<Peak1D>::Iterator last_peak(last);
-	  
-	  //std::cout << "m/z start = " << first_peak->getMZ() << "\n";
-	  //std::cout << "m/z end   = " << last_peak->getMZ() << "\n\n";
-	  
-	  // loop over relevant peaks
-	  MSSpectrum<Peak1D>::Iterator it_mz_closest = first_peak;
-	  double distance_closest = getDistance_(mz, first_peak->getMZ());
-	  for (MSSpectrum<Peak1D>::Iterator it_mz = first_peak; it_mz <= last_peak; ++it_mz)
-      {		  
-		  double distance = getDistance_(mz, it_mz->getMZ());
-		  
-		  if (distance <= distance_closest)
-		  {
-			  it_mz_closest = it_mz;
-			  distance_closest = distance;
-		  }
-		  else
-		  {
-			  break;
-		  }
-	  }
-	  
-	  return &(*it_mz_closest);	  
+    // find range of bins in which possible peaks may lie
+    int index_lower_bound;
+    int index_upper_bound;
+    if (mz_unit_ppm_)
+    {
+      // m/z tolerance in ppm
+      index_lower_bound = getIndex_(mz * (1 - mz_tolerance_*1.0e-6));
+      index_upper_bound = getIndex_(mz * (1 + mz_tolerance_*1.0e-6));
+    }
+    else
+    {
+      // m/z tolerance in Da
+      index_lower_bound = getIndex_(mz - mz_tolerance_);
+      index_upper_bound = getIndex_(mz + mz_tolerance_);
+    }
+   
+    if (index_upper_bound < 0 || index_lower_bound >= (int) bins_.size())
+    {
+      return NULL;
+    }   
+   
+    if (index_lower_bound < 0)
+    {
+      index_lower_bound = 0;    
+    }
+   
+    if (index_upper_bound >= (int) bins_.size())
+    {
+      index_upper_bound = bins_.size() - 1;    
+    }
+      
+    //std::cout << "index start = " << index_lower_bound << "\n";
+    //std::cout << "index end   = " << index_upper_bound << "\n\n";
+   
+    // find first peak (i.e. the first non-empty bin)
+    MSSpectrum<Peak1D>::pointer first = NULL;
+    for (int index = index_lower_bound; index <= index_upper_bound; ++index)
+    {
+      if (bins_[index].first != NULL)
+      {
+        first = bins_[index].first;
+        break;
+      }
+    }
+    if (first == NULL)
+    {
+      return NULL;
+    }
+    MSSpectrum<Peak1D>::Iterator first_peak(first);
+   
+    // find last peak (i.e. the last non-empty bin)
+    MSSpectrum<Peak1D>::pointer last = NULL;
+    for (int index = index_upper_bound; index >= index_lower_bound; --index)
+    {
+      if (bins_[index].last != NULL)
+      {
+        last = bins_[index].last;
+        break;
+      }
+    }
+    if (last == NULL)
+    {
+      return NULL;
+    }
+    MSSpectrum<Peak1D>::Iterator last_peak(last);
+   
+    //std::cout << "m/z start = " << first_peak->getMZ() << "\n";
+    //std::cout << "m/z end   = " << last_peak->getMZ() << "\n\n";
+   
+    // loop over relevant peaks
+    MSSpectrum<Peak1D>::Iterator it_mz_closest = first_peak;
+    double distance_closest = getDistance_(mz, first_peak->getMZ());
+    for (MSSpectrum<Peak1D>::Iterator it_mz = first_peak; it_mz <= last_peak; ++it_mz)
+    {    
+      double distance = getDistance_(mz, it_mz->getMZ());
+    
+      if (distance <= distance_closest)
+      {
+        it_mz_closest = it_mz;
+        distance_closest = distance;
+      }
+      else
+      {
+        break;
+      }
+    }
+   
+    return &(*it_mz_closest);   
   }  
   
 }
