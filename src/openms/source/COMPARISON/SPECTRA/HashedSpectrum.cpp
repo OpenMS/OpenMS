@@ -149,6 +149,20 @@ namespace OpenMS
 	}
   }
   
+  double HashedSpectrum::getDistance_(double mz1, double mz2)
+  {
+	if (mz_unit_ppm_)
+	{
+		// m/z tolerance in ppm
+		return std::abs(mz1 - mz2)/mz1*1.0e+6;
+	}
+	else
+	{
+		// m/z tolerance in Da
+		return std::abs(mz1 - mz2);
+	}
+  }
+  
   MSSpectrum<Peak1D>::pointer HashedSpectrum::getPeak(double mz)
   {
 	  std::cout << "m/z min = " << mz_min_ << "\n\n";
@@ -168,24 +182,38 @@ namespace OpenMS
 	  MSSpectrum<Peak1D>::Iterator last_peak(intervals_[index].last);
 	  
 	  MSSpectrum<Peak1D>::Iterator it_mz_closest = first_peak;
-	  double distance_closest = std::abs(first_peak->getMZ() - mz);
+	  double distance_closest = getDistance_(mz, first_peak->getMZ());
 	  for (MSSpectrum<Peak1D>::Iterator it_mz = first_peak; it_mz <= last_peak; ++it_mz)
       {		  
-		  double distance = std::abs(it_mz->getMZ() - mz);
+		  double distance = getDistance_(mz, it_mz->getMZ());
 		  
-		  if (distance < distance_closest)
+		  if (distance <= distance_closest)
 		  {
 			  it_mz_closest = it_mz;
 			  distance_closest = distance;
+		  }
+		  else
+		  {
+			  break;
 		  }
 		  
 		  std::cout << "m/z = " << it_mz->getMZ() << "    distance = " << distance << "    closest distance = " << distance_closest << "\n";
 	  }
 	  
 	  // convert iterator to pointer for output
-	  //MSSpectrum<Peak1D>::pointer output(it_mz_closest);
+	  MSSpectrum<Peak1D>::pointer output = &(*it_mz_closest);
+	  std::cout << "\n" << "closest distance = " << distance_closest << "\n";
+	  std::cout << "target distance = " << mz_tolerance_ << "\n";
 	  
-	  return NULL;
+	  if (distance_closest < mz_tolerance_)
+	  {
+		  return &(*it_mz_closest);
+	  }
+	  else
+	  {
+		  return NULL;
+	  }
+	  
   }  
   
 }

@@ -141,6 +141,11 @@ class OPENMS_DLLAPI HashedSpectrum
      */
     int getIndex_(double mz);
 
+    /**
+     * @brief return distance between two m/z in either Th or ppm (depending on mz_unit_ppm_)
+     */
+    double getDistance_(double mz1, double mz2);
+
 };
 
 }
