@@ -80,7 +80,7 @@ namespace OpenMS
     // check that the number of maps is ok:
     if (input_maps.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "At least two maps must be given!");
     }
 
