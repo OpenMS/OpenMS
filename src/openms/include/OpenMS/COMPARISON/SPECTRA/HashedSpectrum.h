@@ -47,10 +47,12 @@
 namespace OpenMS
 {
 /**
- * @brief Data structure for spline interpolation of MS1 spectra
+ * @brief Auxiliary data structure for the quick access of peaks in MSSpectrum<Peak1D>
  *
- * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
- * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
+ * Finding a peak in MSSpectrum<Peak1D> with a particular m/z can be slow. This data structure
+ * provides a hash index (bins_) for quick access. Given an m/z of interest, one can
+ * quickly jump to the neighbouthood i.e. bin(s) where such a peak might be located.
+ * The getPeak(double mz) method returns a pointer to the peak in MSSpectrum<Peak1D>.
  *
  * @see MSSpectrum<Peak1D>
  */
@@ -61,7 +63,8 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief m/z interval containing pointers to the first and last data points
      * If there are no data points in this interval, both pointers are null.
-     * Boundaries of the interval implicitly given by mz_min, mz_bin and hash table index.
+     * Boundaries of the interval implicitly given by mz_min, mz_bin, mz_unit_ppm_
+     * and the hash table index.
      */
     struct MzInterval
     {
@@ -134,7 +137,7 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief vector of all m/z intervals (hash table)
      */
-    std::vector<MzInterval> intervals_;
+    std::vector<MzInterval> bins_;
 
     /**
      * @brief return index of the interval containing m/z
