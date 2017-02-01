@@ -55,7 +55,7 @@ double mz_bin = 1000.0;
 double mz_tolerance = 5.0;
 bool mz_unit_ppm = true;
 
-START_SECTION(HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm))
+/*START_SECTION(HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm))
     HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
     TEST_REAL_SIMILAR(spectrum.getMzBin(), 1000.0);
 END_SECTION
@@ -97,6 +97,6 @@ END_SECTION
 START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
     HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
     TEST_EQUAL(spectrum.getPeak(3000.0), NULL);
-END_SECTION
+END_SECTION*/
 
 END_TEST

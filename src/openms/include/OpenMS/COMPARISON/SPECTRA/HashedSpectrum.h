@@ -73,10 +73,9 @@ class OPENMS_DLLAPI HashedSpectrum
      * 
      * @param raw_spectrum    raw MS1 spectrum to be indexed
      * @param mz_bin    size of the m/z bins aka intervals
-     * @param mz_tolerance    maximal difference between m/z of interest and m/z of a valid peak
-     * @param mz_unit_ppm    unit for mz_bin and mz_tolerance
+     * @param mz_unit_ppm    unit for mz_bin 
      */
-    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm);
+    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, bool mz_unit_ppm);
 
     /**
      * @brief destructor
@@ -89,22 +88,19 @@ class OPENMS_DLLAPI HashedSpectrum
     double getMzBin() const;
     
     /**
-     * @brief returns the m/z tolerance
-     */
-    double getMzTolerance() const;
-    
-    /**
      * @brief returns whether m/z bin unit ppm or Th
      */
     bool getMzUnitPpm() const;
     
     /**
-     * @brief returns pointer to the peak closest to m/z
+     * @brief find the peak closest to m/z
      * 
      * @param mz    m/z position
-     * @return pointer to the peak closest to mz or NULL if difference between mz and closest peak m/z exceeds mz_tolerance_
+     * @param mz_tolerance    m/z tolerance between mz and peak
+     * @param mz_unit_ppm    unit for mz_tolerance (ppm or Th)
+     * @return pointer to the peak closest to mz or NULL if difference between mz and closest peak exceeds the tolerance
      */
-    MSSpectrum<Peak1D>::pointer getPeak(double mz);
+    MSSpectrum<Peak1D>::pointer findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const;
     
   private:
 
@@ -117,12 +113,7 @@ class OPENMS_DLLAPI HashedSpectrum
     double mz_bin_;
     
     /**
-     * @brief m/z tolerance
-     */
-    double mz_tolerance_;
-    
-    /**
-     * @brief whether unit for mz_bin_ and mz_tolerance_ is ppm or Th
+     * @brief unit for mz_bin_ (ppm or Th)
      */
     bool mz_unit_ppm_;
         
@@ -139,12 +130,12 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief return index of the interval containing m/z
      */
-    int getIndex_(double mz);
+    int getIndex_(const double mz) const;
 
     /**
      * @brief return distance between two m/z in either Th or ppm (depending on mz_unit_ppm_)
      */
-    double getDistance_(double mz1, double mz2);
+    double getDistance_(const double mz1, const double mz2) const;
 
 };
 

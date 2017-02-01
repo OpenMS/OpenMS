@@ -42,8 +42,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm)
-  : mz_bin_(mz_bin), mz_tolerance_(mz_tolerance), mz_unit_ppm_(mz_unit_ppm)
+  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, bool mz_unit_ppm)
+  : mz_bin_(mz_bin), mz_unit_ppm_(mz_unit_ppm)
   {
     if (raw_spectrum.size() <= 2)
     {
@@ -98,17 +98,12 @@ namespace OpenMS
     return mz_bin_;
   }
   
-  double HashedSpectrum::getMzTolerance() const
-  {
-    return mz_tolerance_;
-  }
-  
   bool HashedSpectrum::getMzUnitPpm() const
   {
     return mz_unit_ppm_;
   }
   
-  int HashedSpectrum::getIndex_(double mz)
+  int HashedSpectrum::getIndex_(const double mz) const
   {
     if (mz_unit_ppm_)
     {
@@ -122,7 +117,7 @@ namespace OpenMS
     }
   }
   
-  double HashedSpectrum::getDistance_(double mz1, double mz2)
+  double HashedSpectrum::getDistance_(const double mz1, const double mz2) const
   {
     if (mz_unit_ppm_)
     {
@@ -136,22 +131,22 @@ namespace OpenMS
     }
   }
   
-  MSSpectrum<Peak1D>::pointer HashedSpectrum::getPeak(double mz)
+  MSSpectrum<Peak1D>::pointer HashedSpectrum::findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const
   {
     // find range of bins in which possible peaks may lie
     int index_lower_bound;
     int index_upper_bound;
-    if (mz_unit_ppm_)
+    if (mz_unit_ppm)
     {
       // m/z tolerance in ppm
-      index_lower_bound = getIndex_(mz * (1 - mz_tolerance_*1.0e-6));
-      index_upper_bound = getIndex_(mz * (1 + mz_tolerance_*1.0e-6));
+      index_lower_bound = getIndex_(mz * (1 - mz_tolerance*1.0e-6));
+      index_upper_bound = getIndex_(mz * (1 + mz_tolerance*1.0e-6));
     }
     else
     {
       // m/z tolerance in Da
-      index_lower_bound = getIndex_(mz - mz_tolerance_);
-      index_upper_bound = getIndex_(mz + mz_tolerance_);
+      index_lower_bound = getIndex_(mz - mz_tolerance);
+      index_upper_bound = getIndex_(mz + mz_tolerance);
     }
    
     if (index_upper_bound < 0 || index_lower_bound >= (int) bins_.size())
