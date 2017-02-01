@@ -64,8 +64,8 @@ class OPENMS_DLLAPI HashedSpectrum
      */
     struct MzInterval
     {
-		MSSpectrum<Peak1D>::pointer begin;
-		MSSpectrum<Peak1D>::pointer end;
+		MSSpectrum<Peak1D>::Iterator begin;
+		MSSpectrum<Peak1D>::Iterator end;
 	};
     
     /**
@@ -100,7 +100,7 @@ class OPENMS_DLLAPI HashedSpectrum
      * @param mz_unit_ppm    unit for mz_tolerance (ppm or Th)
      * @return pointer to the peak closest to mz or NULL if difference between mz and closest peak exceeds the tolerance
      */
-    MSSpectrum<Peak1D>::pointer findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const;
+    MSSpectrum<Peak1D>::Iterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const;
     
   private:
 
