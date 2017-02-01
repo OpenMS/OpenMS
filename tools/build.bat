@@ -52,15 +52,15 @@ if not exist %SLN% (
 )
 
 REM
-REM MSBUild is usually found in C:\Windows\Microsoft.NET\Framework\v4.0.30319\
+REM MSBuild is usually found in C:\Windows\Microsoft.NET\Framework\v4.0.30319\
 REM
 where /q MSBuild.exe
 if not %ERRORLEVEL%==0 (
   ECHO.
-  ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this .bat file to point to the correct location or make it available in $PATH.
+  ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this .bat file to point to the correct location or make it available in %%PATH%%.
   goto end
 )
-MSBuild.exe %SLN% /target:%TARGET% /p:Configuration=%CFG%
+MSBuild.exe %SLN% /maxcpucount /target:%TARGET% /p:Configuration=%CFG%
 
 
 :end
