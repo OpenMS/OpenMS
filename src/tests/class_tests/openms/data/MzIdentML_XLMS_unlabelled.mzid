@@ -36,6 +36,12 @@
 	<DBSequence accession="sp|P50524|RPN12_SCHPO" searchDatabase_ref="SDB_11010071141208104472" id="PROT_13226678954291849490">
 		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="sp|P50524|RPN12_SCHPO"/>
 	</DBSequence>
+	<DBSequence accession="sp|O14250|PSA1_SCHPO" searchDatabase_ref="SDB_12783487239383946728" id="PROT_16821959189890053089">
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="sp|O14250|PSA1_SCHPO"/>
+	</DBSequence>
+	<DBSequence accession="sp|P41836|PRS8_SCHPO" searchDatabase_ref="SDB_12783487239383946728" id="PROT_4426201265923238472">
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="sp|P41836|PRS8_SCHPO"/>
+	</DBSequence>
 
  	<Peptide id="PEP_5055749177268909412"> 
 		<PeptideSequence>FIVKASSGPR</PeptideSequence> 
@@ -66,11 +72,29 @@
 			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="7259119189301972185"/>
 		</Modification> 
 	</Peptide> 
+ 	<Peptide id="PEP_572389597653180018"> 
+		<PeptideSequence>THAVLVALKR</PeptideSequence> 
+		<Modification location="9" residues="K"> 
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+		</Modification> 
+	</Peptide> 
+ 	<Peptide id="PEP_5289862969058935696"> 
+		<PeptideSequence>VLVKVHPEGKYVVDISPDIDIK</PeptideSequence> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8559939152762218259"/>
+		</Modification> 
+		<Modification location="10" residues="K" monoisotopicMassDelta="0"> 
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="8559939152762218259"/>
+		</Modification> 
+	</Peptide> 
 
 	<PeptideEvidence id="PEV_15657786144867756068" peptide_ref="PEP_5055749177268909412" dBSequence_ref="PROT_15375997440471745443" post="Y" pre="R" start="67" end="76" isDecoy="0"/> 
 	<PeptideEvidence id="PEV_400462175358511730" peptide_ref="PEP_9940586724599806790" dBSequence_ref="PROT_11038797577913232065" post="Q" pre="K" start="119" end="127" isDecoy="0"/> 
 	<PeptideEvidence id="PEV_13168377631915502341" peptide_ref="PEP_16117466574459042045" dBSequence_ref="PROT_16043654824918713191" post="G" pre="K" start="358" end="368" isDecoy="0"/> 
 	<PeptideEvidence id="PEV_10215254305368873460" peptide_ref="PEP_15031242664987904104" dBSequence_ref="PROT_13226678954291849490" post="L" pre="K" start="22" end="26" isDecoy="0"/> 
+	<PeptideEvidence id="PEV_13055272582868563727" peptide_ref="PEP_572389597653180018" dBSequence_ref="PROT_16821959189890053089" post="N" pre="K" start="41" end="50" isDecoy="0"/> 
+	<PeptideEvidence id="PEV_11099545102730003352" peptide_ref="PEP_5289862969058935696" dBSequence_ref="PROT_4426201265923238472" post="E" pre="K" start="80" end="101" isDecoy="0"/> 
 </SequenceCollection>
 
 <AnalysisCollection>
@@ -374,6 +398,150 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47579999998" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_530820131994261273" spectrumID="controllerType=0 controllerNumber=1 scan=4613" id="SIR_8839658378262063123"> 
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_572389597653180018" calculatedMassToCharge="467.953657084704" experimentalMassToCharge="421.927154541016" chargeState="3" id="SII_15521902996958764072"> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_13055272582868563727"/> 
+					<Fragmentation>
+						<IonType charge="1" index="2 5 7 8">
+							<FragmentArray measure_ref="Measure_mz" values="239.222717285156 522.43701171875 693.533752441406 806.464904785156"/>
+							<FragmentArray measure_ref="Measure_int" values="0.00459180120378733 0.0227125976234674 0.00444782897830009 0.0022454597055912"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
+							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
+						</IonType>
+						<IonType charge="1" index="1">
+							<FragmentArray measure_ref="Measure_mz" values="176.152038574219"/>
+							<FragmentArray measure_ref="Measure_int" values="0.0135997980833054"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
+							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
+						</IonType>
+						<IonType charge="2" index="2 4 9">
+							<FragmentArray measure_ref="Measure_mz" values="120.204238891602 205.222198486328 545.296997070312"/>
+							<FragmentArray measure_ref="Measure_int" values="0.00100770511198789 0.00227574887685478 0.632718324661255"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi"/>
+							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
+						</IonType>
+						<IonType charge="2" index="2 3 4 5 7 9">
+							<FragmentArray measure_ref="Measure_mz" values="230.124435424805 287.211273193359 322.277282714844 372.411285400391 478.349761962891 581.570190429688"/>
+							<FragmentArray measure_ref="Measure_int" values="0.000252569792792201 0.00131865369621664 0.0195304863154888 0.0182349197566509 0.000453849206678569 0.0112527385354042"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi xi xi"/>
+							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
+						</IonType>
+						<IonType charge="3" index="4 5 8 9">
+							<FragmentArray measure_ref="Measure_mz" values="215.600830078125 248.198181152344 342.261077880859 388.058624267578"/>
+							<FragmentArray measure_ref="Measure_int" values="0.00703414669260383 0.005074224434793 0.00728001724928617 0.0142432237043977"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi"/>
+							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
+						</IonType>
+					</Fragmentation>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="58.8272579536923"/>
+					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="5914410136933399364"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="21.0114387954807"/>
+					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.133526713924736"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="7.90187374736331"/>
+					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.768274093628861"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.119760117052278"/>
+					<userParam name="OpenProXL:HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:HyperXlink" unitName="xsd:double" value="1.67491698909288"/>
+					<userParam name="OpenProXL:HyperAlpha" unitName="xsd:double" value="1.711972985188"/>
+					<userParam name="OpenProXL:HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:HyperBoth" unitName="xsd:double" value="1.711972985188"/>
+					<userParam name="OpenProXL:AndroCommon" unitName="xsd:double" value="6.14768183506941"/>
+					<userParam name="OpenProXL:AndroXlink" unitName="xsd:double" value="7.91093571526872"/>
+					<userParam name="OpenProXL:AndroAlpha" unitName="xsd:double" value="7.44931532600216"/>
+					<userParam name="OpenProXL:AndroBeta" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:AndroBoth" unitName="xsd:double" value="7.44931532600216"/>
+					<userParam name="OpenProXL:HyperABMulti" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:HyperABAddi" unitName="xsd:double" value="1.711972985188"/>
+					<userParam name="OpenProXL:HyperCXMulti" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:HyperCXAddi" unitName="xsd:double" value="1.67491698909288"/>
+					<userParam name="OpenProXL:AndroABMulti" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:AndroABAddi" unitName="xsd:double" value="7.44931532600216"/>
+					<userParam name="OpenProXL:AndroCXMulti" unitName="xsd:double" value="48.6339157951593"/>
+					<userParam name="OpenProXL:AndroCXAddi" unitName="xsd:double" value="14.0586175503381"/>
+					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2493.31519999998" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+				</SpectrumIdentificationItem>
+            </SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="SDAT_530820131994261273" spectrumID="controllerType=0 controllerNumber=1 scan=8471" id="SIR_2212706496979945736"> 
+				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_5289862969058935696" calculatedMassToCharge="867.822794321871" experimentalMassToCharge="867.824279785156" chargeState="3" id="SII_6971027276331760004"> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11099545102730003352"/> 
+					<Fragmentation>
+						<IonType charge="1" index="3">
+							<FragmentArray measure_ref="Measure_mz" values="312.337890625"/>
+							<FragmentArray measure_ref="Measure_int" values="0.00741861294955015"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci"/>
+							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
+						</IonType>
+						<IonType charge="1" index="11 12 2 3 4 7 8 9">
+							<FragmentArray measure_ref="Measure_mz" values="1214.63647460938 1376.80944824219 259.998443603516 376.357482910156 489.194396972656 787.435485839844 900.440734863281 1016.44451904297"/>
+							<FragmentArray measure_ref="Measure_int" values="0.0504911169409752 0.00485631171613932 0.00307590235024691 0.0080919936299324 0.00460143014788628 1 0.11826903373003 0.252615362405777"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci ci"/>
+							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
+						</IonType>
+						<IonType charge="2" index="10 11 13 14 15 16 19 20 21">
+							<FragmentArray measure_ref="Measure_mz" values="613.365539550781 695.104064941406 793.710754394531 851.760437011719 908.500244140625 952.065490722656 1114.39599609375 1171.95935058594 1228.00146484375"/>
+							<FragmentArray measure_ref="Measure_int" values="0.0621599294245243 0.483659237623215 0.211118191480637 0.719468474388123 0.616498529911041 0.678167998790741 0.685790300369263 0.0715266838669777 0.19345697760582"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi xi xi xi xi xi"/>
+							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
+						</IonType>
+						<IonType charge="2" index="11 12 7 8 9 19 20 21">
+							<FragmentArray measure_ref="Measure_mz" values="607.715515136719 688.791076660156 394.244903564453 451.335998535156 508.689697265625 1146.09594726562 1195.67028808594 1251.52954101562"/>
+							<FragmentArray measure_ref="Measure_int" values="0.0329711958765984 0.103141017258167 0.012414712458849 0.011982386931777 0.0159874316304922 0.0381415188312531 0.0935735702514648 0.0182637944817543"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci xi xi xi"/>
+							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
+						</IonType>
+						<IonType charge="3" index="10 11 12 14 15 18 19">
+							<FragmentArray measure_ref="Measure_mz" values="409.044677734375 463.401428222656 496.380737304688 568.124084472656 605.578491210938 705.499267578125 743.219543457031"/>
+							<FragmentArray measure_ref="Measure_int" values="0.00331737566739321 0.00661097979173064 0.00714237336069345 0.0210060924291611 0.0192029178142548 0.0406616218388081 0.0321220047771931"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha alpha alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi xi xi xi xi xi"/>
+							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
+						</IonType>
+						<IonType charge="3" index="19">
+							<FragmentArray measure_ref="Measure_mz" values="764.479431152344"/>
+							<FragmentArray measure_ref="Measure_int" values="0.0425954163074493"/>
+							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
+							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
+							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
+						</IonType>
+					</Fragmentation>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="15.9350941113131"/>
+					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="8559939152762218259"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.649609925963174"/>
+					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.0938003012060007"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="11.5104545765259"/>
+					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.67040049703792"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0752296869462455"/>
+					<userParam name="OpenProXL:HyperCommon" unitName="xsd:double" value="2.48607166173003"/>
+					<userParam name="OpenProXL:HyperXlink" unitName="xsd:double" value="3.71263192983501"/>
+					<userParam name="OpenProXL:HyperAlpha" unitName="xsd:double" value="3.26787493798731"/>
+					<userParam name="OpenProXL:HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:HyperBoth" unitName="xsd:double" value="3.26787493798731"/>
+					<userParam name="OpenProXL:AndroCommon" unitName="xsd:double" value="9.2539554854183"/>
+					<userParam name="OpenProXL:AndroXlink" unitName="xsd:double" value="14.922227596354"/>
+					<userParam name="OpenProXL:AndroAlpha" unitName="xsd:double" value="19.6924712139967"/>
+					<userParam name="OpenProXL:AndroBeta" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:AndroBoth" unitName="xsd:double" value="19.6924712139967"/>
+					<userParam name="OpenProXL:HyperABMulti" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:HyperABAddi" unitName="xsd:double" value="3.26787493798731"/>
+					<userParam name="OpenProXL:HyperCXMulti" unitName="xsd:double" value="9.22986903119689"/>
+					<userParam name="OpenProXL:HyperCXAddi" unitName="xsd:double" value="6.19870359156504"/>
+					<userParam name="OpenProXL:AndroABMulti" unitName="xsd:double" value="0"/>
+					<userParam name="OpenProXL:AndroABAddi" unitName="xsd:double" value="19.6924712139967"/>
+					<userParam name="OpenProXL:AndroCXMulti" unitName="xsd:double" value="138.089629919941"/>
+					<userParam name="OpenProXL:AndroCXAddi" unitName="xsd:double" value="24.1761830817723"/>
+					<userParam name="xl_pos2" unitName="xsd:integer" value="9"/>
+					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="3890.29759999998" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+				</SpectrumIdentificationItem>
 			</SpectrumIdentificationResult>
 		</SpectrumIdentificationList>
 	</AnalysisData>
