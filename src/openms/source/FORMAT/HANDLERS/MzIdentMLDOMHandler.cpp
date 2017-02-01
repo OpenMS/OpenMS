@@ -1702,7 +1702,6 @@ namespace OpenMS
 
       ph_alpha.setFragmentAnnotations(frag_annotations);
 
-      //cout << "xl_type: " << xl_type << endl;
       if (xl_type == "loop-link")
       {
         Size pos2 = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[alpha[0]]));
@@ -2337,13 +2336,13 @@ namespace OpenMS
                       }
                     }
                   }
-                  if (!donor_acceptor_found && xlink_mod_found) // mono-link, here using pep_id also as the CV value, since mono-links dont have a cross-linking CV term
-                  {
-                    xl_id_donor_map_.insert(make_pair(pep_id, pep_id));
-                    xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
-                  }
                 }
                 cvp = cvp->getNextElementSibling();
+              }
+              if ( (!donor_acceptor_found) && (xlink_mod_found) ) // mono-link, here using pep_id also as the CV value, since mono-links dont have a cross-linking CV term
+              {
+                xl_id_donor_map_.insert(make_pair(pep_id, pep_id));
+                xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
               }
             }
             else //  general case
