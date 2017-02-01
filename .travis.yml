@@ -1,5 +1,3 @@
-## default dist: precise (with Cmake 2.8.7 -- too old)
-dist: trusty
 sudo: false
 language: cpp
 os:
@@ -31,7 +29,7 @@ addons:
          - libqt4-gui
          - libsvm-dev
          - libsvm3
-         - libglpk-dev
+         - glpk
          - subversion
          - doxygen 
          - graphviz
