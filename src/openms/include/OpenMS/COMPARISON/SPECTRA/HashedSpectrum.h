@@ -64,18 +64,18 @@ class OPENMS_DLLAPI HashedSpectrum
      */
     struct MzInterval
     {
-		MSSpectrum<Peak1D>::pointer first;
-		MSSpectrum<Peak1D>::pointer last;
+		MSSpectrum<Peak1D>::pointer begin;
+		MSSpectrum<Peak1D>::pointer end;
 	};
     
     /**
      * @brief constructor taking an MSSpectrum
      * 
-     * @param raw_spectrum    raw MS1 spectrum to be indexed
+     * @param spectrum    MS spectrum to be indexed
      * @param mz_bin    size of the m/z bins aka intervals
      * @param mz_unit_ppm    unit for mz_bin 
      */
-    HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, bool mz_unit_ppm);
+    HashedSpectrum(MSSpectrum<Peak1D>& spectrum, double mz_bin, bool mz_unit_ppm);
 
     /**
      * @brief destructor
@@ -122,6 +122,11 @@ class OPENMS_DLLAPI HashedSpectrum
      */
     double mz_min_;
         
+    /**
+     * @brief MS spectrum to be indexed
+     */
+    MSSpectrum<Peak1D>& spectrum_;
+
     /**
      * @brief vector of all m/z intervals (hash table)
      */

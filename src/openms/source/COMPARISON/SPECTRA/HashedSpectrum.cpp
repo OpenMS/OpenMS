@@ -42,21 +42,21 @@ using namespace std;
 
 namespace OpenMS
 {
-  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, bool mz_unit_ppm)
-  : mz_bin_(mz_bin), mz_unit_ppm_(mz_unit_ppm)
+  HashedSpectrum::HashedSpectrum(MSSpectrum<Peak1D>& spectrum, double mz_bin, bool mz_unit_ppm)
+  : mz_bin_(mz_bin), mz_unit_ppm_(mz_unit_ppm), spectrum_(spectrum)
   {
-    if (raw_spectrum.size() <= 2)
+    if (spectrum_.size() <= 2)
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, raw_spectrum.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spectrum_.size());
     }
  
-    mz_min_ = raw_spectrum.begin()->getMZ();
+    mz_min_ = spectrum_.begin()->getMZ();
       
     int last_index = 0;
     HashedSpectrum::MzInterval bin;
-    bin.first = &(*raw_spectrum.begin());
-    bin.last = &(*raw_spectrum.begin());
-    for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    bin.begin = &(*spectrum_.begin());
+    bin.end = &(*spectrum_.begin());
+    for (MSSpectrum<Peak1D>::Iterator it = spectrum_.begin(); it != spectrum_.end(); ++it)
     {  
       int index = getIndex_(it->getMZ());
   
@@ -66,22 +66,22 @@ namespace OpenMS
         bins_.push_back(bin);
    
         // add empty interval
-        bin.first = NULL;
-        bin.last = NULL;
+        bin.begin = NULL;
+        bin.end = NULL;
         for (int i=0; i < (index - last_index -1); ++i)
         {
           bins_.push_back(bin);
         }
     
         // open new interval
-        bin.first = &*it;
-        bin.last = &*it;
+        bin.begin = &*it;
+        bin.end = &*it;
 
         last_index = index;
       }
       else
       {
-        bin.last = &*it;
+        bin.end = &*it;
       }   
     }
     
@@ -168,36 +168,36 @@ namespace OpenMS
     //std::cout << "index end   = " << index_upper_bound << "\n\n";
    
     // find first peak (i.e. the first non-empty bin)
-    MSSpectrum<Peak1D>::pointer first = NULL;
+    MSSpectrum<Peak1D>::pointer begin = NULL;
     for (int index = index_lower_bound; index <= index_upper_bound; ++index)
     {
-      if (bins_[index].first != NULL)
+      if (bins_[index].begin != NULL)
       {
-        first = bins_[index].first;
+        begin = bins_[index].begin;
         break;
       }
     }
-    if (first == NULL)
+    if (begin == NULL)
     {
       return NULL;
     }
-    MSSpectrum<Peak1D>::Iterator first_peak(first);
+    MSSpectrum<Peak1D>::Iterator first_peak(begin);
    
     // find last peak (i.e. the last non-empty bin)
-    MSSpectrum<Peak1D>::pointer last = NULL;
+    MSSpectrum<Peak1D>::pointer end = NULL;
     for (int index = index_upper_bound; index >= index_lower_bound; --index)
     {
-      if (bins_[index].last != NULL)
+      if (bins_[index].end != NULL)
       {
-        last = bins_[index].last;
+        end = bins_[index].end;
         break;
       }
     }
-    if (last == NULL)
+    if (end == NULL)
     {
       return NULL;
     }
-    MSSpectrum<Peak1D>::Iterator last_peak(last);
+    MSSpectrum<Peak1D>::Iterator last_peak(end);
    
     //std::cout << "m/z start = " << first_peak->getMZ() << "\n";
     //std::cout << "m/z end   = " << last_peak->getMZ() << "\n\n";

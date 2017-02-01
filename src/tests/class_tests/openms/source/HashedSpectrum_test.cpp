@@ -65,11 +65,6 @@ START_SECTION(double getMzBin() const)
     TEST_REAL_SIMILAR(spectrum.getMzBin(), 1000.0);
 END_SECTION
 
-START_SECTION(double getMzTolerance() const)
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
-    TEST_REAL_SIMILAR(spectrum.getMzTolerance(), 5.0);
-END_SECTION
-
 START_SECTION(bool getMzUnitPpm() const)
     HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
     TEST_EQUAL(spectrum.getMzUnitPpm(), true);
