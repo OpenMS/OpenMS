@@ -52,8 +52,6 @@ namespace OpenMS
  
     mz_min_ = raw_spectrum.begin()->getMZ();
       
-    std::vector<double> mz;
-    std::vector<double> intensity;
     int last_index = 0;
     HashedSpectrum::MzInterval bin;
     bin.first = &(*raw_spectrum.begin());
@@ -84,10 +82,7 @@ namespace OpenMS
       else
       {
         bin.last = &*it;
-      }
-   
-      mz.push_back(it->getMZ());
-      intensity.push_back(it->getIntensity());
+      }   
     }
     
     // close last interval

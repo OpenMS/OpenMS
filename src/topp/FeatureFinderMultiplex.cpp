@@ -67,6 +67,8 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
+#include <OpenMS/COMPARISON/SPECTRA/HashedSpectrum.h>
+
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -970,6 +972,64 @@ private:
     {
       centroided = false;
     }
+
+
+
+
+
+
+
+
+
+
+
+    std::cout << "\n\nStart of the Pause.\n";
+    
+    MSExperiment<Peak1D>::Iterator it_rt = exp.begin();
+    it_rt = it_rt + 500;
+    double rt = it_rt->getRT();
+    std::cout << "RT = " << rt << "\n";
+ 
+    HashedSpectrum spectrum(*it_rt, 1000.0, 5.0, true);    // 1000 ppm
+    //HashedSpectrum spectrum(*it_rt, 1.0, 0.1, false);    // 1 Th
+    if (spectrum.getMzUnitPpm())
+    {
+        std::cout << "m/z bin         = " << spectrum.getMzBin() << " ppm\n";
+        std::cout << "m/z tolerance   = " << spectrum.getMzTolerance() << " ppm\n";
+    }
+    else
+    {
+        std::cout << "m/z bin         = " << spectrum.getMzBin() << " Th\n";
+        std::cout << "m/z tolerance   = " << spectrum.getMzTolerance() << " Th\n";
+    }
+ 
+    //MSSpectrum<Peak1D>::pointer peak = spectrum.getPeak(601.84);    // There is a peak.
+    MSSpectrum<Peak1D>::pointer peak = spectrum.getPeak(616.5);    // There is no peak.
+    if (peak == NULL)
+    {
+        std::cout << "No peak close-by.\n";
+    }
+    
+    sleep(1000);
+    
+    /*std::vector<HashedSpectrum> test;
+    for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it < exp.end(); ++it)
+    {
+        HashedSpectrum spectrum(*it);
+        test.push_back(spectrum);
+    }*/
+ 
+    std::cout << "End of the Pause.\n";
+
+
+
+
+
+
+
+
+
+
 
     /**
      * pick peaks
