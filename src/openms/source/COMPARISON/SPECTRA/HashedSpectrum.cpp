@@ -45,12 +45,14 @@ namespace OpenMS
   HashedSpectrum::HashedSpectrum(const MSSpectrum<Peak1D>& spectrum, const double mz_bin, const bool mz_unit_ppm)
   : mz_bin_(mz_bin), mz_unit_ppm_(mz_unit_ppm), spectrum_(spectrum)
   {
-    if (spectrum_.size() <= 2)
+    if (spectrum_.size() == 0)
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spectrum_.size());
+      mz_min_ = 0;
     }
- 
-    mz_min_ = spectrum_.begin()->getMZ();
+    else
+    {
+      mz_min_ = spectrum_.begin()->getMZ();
+    }
       
     int last_index = 0;
     HashedSpectrum::MzInterval bin;
