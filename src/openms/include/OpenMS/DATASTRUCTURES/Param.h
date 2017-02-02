@@ -435,10 +435,18 @@ protected:
     /**
       @brief Rescue parameter <b>values</b> from @p old_version to current param
 
-      See ::update() for details. LOG_WARN is used as stream here.
+      Calls ::update(old_version, true, add_unknown, false, false, LOG_WARN) and returns its value.
     */
-    void update(const Param& old_version, const bool add_unknown = false);
+    bool update(const Param& old_version, const bool add_unknown = false);
 
+    /**
+      @brief Rescue parameter <b>values</b> from @p old_version to current param
+
+      Calls ::update(old_version, true, add_unknown, false, false, stream) and returns its value.
+    */
+    bool update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream);
+   
+   
     /**
       @brief Rescue parameter <b>values</b> from @p old_version to current param
 
@@ -446,15 +454,20 @@ protected:
       <ul>
         <li>the name is equal</li>
         <li>the type is equal</li>
-        <li>the restrictions are equal</li>
+        <li>the old value meets the new restrictions</li>
       </ul>
 
-      Not transferred are parameters with name "version" (to preserve the new version) or "type" (to preserve layout).
+      Not transferred are values from parameter "version" (to preserve the new version) or "type" (to preserve layout).
 
-      @param add_unknown Add unknown parameters to the param object. Default is false.
+      @param old_version Old param object, whose values are used to update this object
+      @param verbose Print information about expected value updates
+      @param add_unknown Add unknown parameters from @old_version to the param object.
+      @param fail_on_invalid_values Return false if old parameters hold invalid values
+      @param fail_on_unknown_parameters Return false if old parameters contains unknown parameters (takes precedence over @p add_unknown)
       @param stream The stream where all the output is send to.
+      @return true on success, false on failure
     */
-    void update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream);
+    bool Param::update(const Param& old_version, bool verbose, bool add_unknown, bool fail_on_invalid_values, bool fail_on_unknown_parameters, Logger::LogStream& stream);
 
     /**
       @brief Adds missing parameters from the given Param to the param object. Existing parameters will not be modified.

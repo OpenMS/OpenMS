@@ -1128,17 +1128,25 @@ namespace OpenMS
     return this->end();
   }
 
-  void Param::update(const Param& old_version, const bool add_unknown)
+  bool Param::update(const Param& old_version, const bool add_unknown)
   {
-    update(old_version, add_unknown, LOG_WARN);
+    return update(old_version, add_unknown, LOG_WARN);
   }
 
-  void Param::update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)
+  bool Param::update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)
   {
+    bool fail_on_invalid_values = false;
+    bool fail_on_unknown_parameters = false;
+    return update(old_version, true, add_unknown, fail_on_invalid_values, fail_on_unknown_parameters, stream);
+  }
+
+  
+  bool Param::update(const Param& old_version, bool verbose, const bool add_unknown, bool fail_on_invalid_values, bool fail_on_unknown_parameters, Logger::LogStream& stream)
+  {
+    bool is_update_success(true);
     // augment
     for (Param::ParamIterator it = old_version.begin(); it != old_version.end(); ++it)
     {
-
       Param::ParamEntry new_entry; // entry of new location (used to retain new description)
       String target_name; // fully qualified name in new param
 
@@ -1191,9 +1199,14 @@ namespace OpenMS
 
         if (target_name.empty()) // no mapping was found
         {
-          if (add_unknown)
+          if (fail_on_unknown_parameters)
           {
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file!" << std::endl;
+            is_update_success = false;
+          }
+          else if (add_unknown)
+          {
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set." << std::endl;
             Param::ParamEntry local_entry = old_version.getEntry(it.getName());
             String prefix = "";
             if (it.getName().has(':'))
@@ -1204,7 +1217,7 @@ namespace OpenMS
           }
           else
           {
-            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Ignoring ..." << std::endl;
+            stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Ignoring parameter. " << std::endl;
           }
           continue;
         }
@@ -1216,17 +1229,28 @@ namespace OpenMS
         if (new_entry.value != it->value)
         {
           // check entry for consistency (in case restrictions have changed)
+          DataValue default_value = new_entry.value;
           new_entry.value = it->value;
-          String s;
-          if (new_entry.isValid(s))
+          String validation_result;
+          if (new_entry.isValid(validation_result))
           {
             // overwrite default value
-            stream << "Overriding Default-Parameter '" << target_name << "' with new value '" << it->value << "'!" << std::endl;
+            if (verbose) stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
           else
           {
-            stream << "Parameter '" << target_name << "' does not fit into new restriction settings! Ignoring...";
+            stream << validation_result;
+            if (fail_on_invalid_values)
+            {
+              stream << " Updating failed!" << std::endl;
+              is_update_success = false;
+            }
+            else
+            {
+              stream << " Ignoring invalid value (using new default '" << default_value << "')!" << std::endl;
+              new_entry.value = default_value;
+            }
           }
         }
         else
@@ -1236,10 +1260,21 @@ namespace OpenMS
       }
       else
       {
-        stream << "Parameter '" << it.getName() << "' has changed value type! Ignoring...\n";
+        stream << "Parameter '" << it.getName() << "' has changed value type!\n";
+        if (fail_on_invalid_values)
+        {
+          stream << " Updating failed!" << std::endl;
+          is_update_success = false;
+        } 
+        else
+        {
+          stream << " Ignoring invalid value (using new default)!" << std::endl;
+        }
       }
 
     } // next param in old tree
+
+    return is_update_success;
   }
 
   void Param::merge(const OpenMS::Param& toMerge)

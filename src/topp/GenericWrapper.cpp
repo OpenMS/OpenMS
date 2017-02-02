@@ -337,7 +337,7 @@ protected:
 
   Param getSubsectionDefaults_(const String & /*section*/) const
   {
-    String type = getStringOption_("type");
+    String type = getStringOption_("type"); // this will throw() if not set in param_
     // find params for 'type'
     Internal::ToolDescription gw = ToolHandler::getTOPPToolList(true)[toolName_()];
     for (Size i = 0; i < gw.types.size(); ++i)
@@ -347,7 +347,8 @@ protected:
         return gw.external_details[i].param;
       }
     }
-    return Param();
+    // requested TDD is not found -- might be a custom TTD
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of 'Type' is invalid! Are you missing a TTD?", type);
   }
 
   ExitCodes main_(int, const char **)
