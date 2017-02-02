@@ -57,10 +57,13 @@ class OPENMS_DLLAPI HashedSpectrum
   public:
   
     /**
-     * @brief m/z interval containing pointers to the first and last data points
-     * If there are no data points in this interval, both pointers are null.
-     * Boundaries of the interval implicitly given by mz_min, mz_bin, mz_unit_ppm_
+     * @brief m/z interval (aka bin) containing iterators pointing to the first and last data points
+     * Boundaries of the interval are implicitly given by mz_min, mz_bin, mz_unit_ppm_
      * and the hash table index.
+     * 
+     * empty m/z interval:                         both begin and end point to spectrum_.end()
+     * one data point in m/z interval:             both begin and end point to this data point
+     * two or more data points in m/z interval:    begin points to the first data point, end to the last one
      */
     struct MzInterval
     {
