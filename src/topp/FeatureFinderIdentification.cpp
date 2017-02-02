@@ -222,8 +222,8 @@ protected:
 
     // parameters for model fitting (via ElutionModelFitter):
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
-    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
-    registerStringOption_("model:type", "<choice>", models[1], "Type of elution model to fit to features", false);
+    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
+    registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
     Param emf_params;
     emf_params.insert("model:", ElutionModelFitter().getParameters());
