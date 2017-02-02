@@ -248,7 +248,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
 
     if (cells.size() < 3)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
     }
 
     // parse metadata section

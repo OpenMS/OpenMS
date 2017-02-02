@@ -85,7 +85,7 @@ namespace OpenMS
   {
     if (!chromatogram.isSorted())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Chromatogram must be sorted by position");
     }
 
@@ -301,7 +301,7 @@ namespace OpenMS
 #else
   void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
 #endif
@@ -423,14 +423,14 @@ namespace OpenMS
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Method needs to be one of: crawdad, corrected, legacy");
     }
 
 #ifndef WITH_CRAWDAD
     if (method_ == "crawdad")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
     }
 #endif

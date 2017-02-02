@@ -142,7 +142,7 @@ namespace OpenMS
 
     if (mt_length != tr.getSize())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
     }
 

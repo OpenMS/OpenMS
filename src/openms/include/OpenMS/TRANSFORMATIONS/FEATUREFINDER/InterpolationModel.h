@@ -155,13 +155,13 @@ public:
     /// "center" of the model, particular definition (depends on the derived model)
     virtual CoordinateType getCenter() const
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /// set sample/supporting points of interpolation wrt params.
     virtual void setSamples()
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**

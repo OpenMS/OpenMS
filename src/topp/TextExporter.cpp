@@ -710,7 +710,7 @@ protected:
           if (!consensus_centroids_file)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__,
+                                                OPENMS_PRETTY_FUNCTION,
                                                 consensus_centroids);
           }
 
@@ -738,7 +738,7 @@ protected:
           if (!consensus_elements_file)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__,
+                                                OPENMS_PRETTY_FUNCTION,
                                                 consensus_elements);
           }
 
@@ -778,7 +778,7 @@ protected:
           if (!consensus_features_file)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__,
+                                                OPENMS_PRETTY_FUNCTION,
                                                 consensus_features);
           }
 
@@ -924,7 +924,7 @@ protected:
           if (!outstr)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__, out);
+                                                OPENMS_PRETTY_FUNCTION, out);
           }
 
           SVOutStream output(outstr, sep, replacement, quoting_method);
@@ -1106,7 +1106,7 @@ protected:
         bool peptides_only = getFlag_("id:peptides_only");
         if (proteins_only && peptides_only)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
         }
 
         String what = peptides_only ? "" : "PEPTIDE";

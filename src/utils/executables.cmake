@@ -6,11 +6,13 @@ set(UTILS_executables
 AccurateMassSearch
 CVInspector
 DecoyDatabase
+DatabaseFilter
 DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
 FeatureFinderSuperHirn
+FeatureLinkerUnlabeledKD
 FFEval
 FuzzyDiff
 IDDecoyProbability
@@ -40,6 +42,7 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
+RNPxlSearch
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
@@ -50,8 +53,6 @@ TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
-#SimpleSearchEngine
-#RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)

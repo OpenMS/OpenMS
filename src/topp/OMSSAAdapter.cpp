@@ -560,7 +560,7 @@ protected:
       {
         if (split.size() < 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "parse mapping file line: '" + *it + "'", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "parse mapping file line: '" + *it + "'", "");
         }
         for (Size i = 2; i != split.size(); ++i)
         {

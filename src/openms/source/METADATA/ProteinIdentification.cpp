@@ -366,7 +366,7 @@ namespace OpenMS
       const Size protein_length = protein_hits_[i].getSequence().length();
       if (protein_length == 0)
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
       vector<bool> covered_amino_acids(protein_length, false);
       
@@ -374,7 +374,7 @@ namespace OpenMS
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
       {
-        const set<PeptideEvidence> & evidences = map_acc_2_evidence.at(accession);
+        const set<PeptideEvidence> & evidences = map_acc_2_evidence.find(accession)->second;
         for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
         {
           int start = sit->getStart();
@@ -382,7 +382,7 @@ namespace OpenMS
           
           if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
           }
           
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);

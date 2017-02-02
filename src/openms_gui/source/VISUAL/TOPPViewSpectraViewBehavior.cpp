@@ -226,8 +226,9 @@ namespace OpenMS
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present
+    // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
     if (widget_1d == 0) return;
+    if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     widget_1d->canvas()->activateSpectrum(index);
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
@@ -237,8 +238,10 @@ namespace OpenMS
     // new spectrum.
     if (layer.chromatogram_flag_set())
     {
-      // first get chromatogram data
+      // first get raw data (the full experiment with all chromatograms), we
+      // only need to grab the ones with the desired indices
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+
       const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
       String fname = layer.filename;
       String lname = layer.name;
@@ -261,6 +264,15 @@ namespace OpenMS
         peak1d.setIntensity(cpeak.getIntensity());
         spectrum.push_back(peak1d);
       }
+
+      // Add at least one data point to the chromatogram, otherwise
+      // "addLayer" will fail and a segfault occurs later
+      if (current_chrom.empty()) 
+      {
+        Peak1D peak1d(-1, 0);
+        spectrum.push_back(peak1d);
+      }
+
       chrom_exp_sptr->addSpectrum(spectrum);
       caption = lname + "[" + index + "]";
       //add chromatogram data as peak spectrum
@@ -290,8 +302,9 @@ namespace OpenMS
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present
+    // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
     if (widget_1d == 0) return;
+    if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -301,7 +314,8 @@ namespace OpenMS
     if (layer.chromatogram_flag_set())
     {
 
-      // first get chromatogram data
+      // first get raw data (the full experiment with all chromatograms), we
+      // only need to grab the ones with the desired indices
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
 
       Size layercount = widget_1d->canvas()->getLayerCount();
@@ -324,6 +338,15 @@ namespace OpenMS
           peak1d.setIntensity(cpeak.getIntensity());
           spectrum.push_back(peak1d);
         }
+        
+        // Add at least one data point to the chromatogram, otherwise
+        // "addLayer" will fail and a segfault occurs later
+        if (current_chrom.empty()) 
+        {
+          Peak1D peak1d(-1, 0);
+          spectrum.push_back(peak1d);
+        }
+
         chrom_exp_sptr->addSpectrum(spectrum);
         caption = fname + "[" + indices[index] + "]";
         if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))

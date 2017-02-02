@@ -37,6 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <iostream>
 
 namespace OpenMS
 {

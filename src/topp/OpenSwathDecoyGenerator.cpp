@@ -164,7 +164,7 @@ protected:
 
     if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No valid decoy generation method selected!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No valid decoy generation method selected!");
     }
 
     TraMLFile traml;

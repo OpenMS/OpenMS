@@ -102,7 +102,7 @@ namespace OpenMS
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the parameters 'p_value_threshold' must be >= 0 and <=1 !");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the parameters 'p_value_threshold' must be >= 0 and <=1 !");
     }
 
     // if no p_values were computed take all peptides
@@ -183,7 +183,7 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
     while (getline(result_file, line)) // skip all lines until the one with '---'
@@ -245,7 +245,7 @@ namespace OpenMS
         error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
         result_file.close();
         result_file.clear();
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str(), result_filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str(), result_filename);
       }
 
       // check whether there are multiple proteins that belong to this peptide
@@ -363,7 +363,7 @@ namespace OpenMS
              error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
              result_file.close();
              result_file.clear();
-             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , result_filename);
+             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str() , result_filename);
              }*/
             line.erase(0, 3);
 
@@ -499,7 +499,7 @@ namespace OpenMS
     ifstream database_file(database_filename.c_str());
     if (!database_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
     }
 
     String line, accession, accession_type, sequence;
@@ -735,7 +735,7 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
     String line, buffer;
@@ -761,7 +761,7 @@ namespace OpenMS
         {
           result_file.close();
           result_file.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!", result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No Sequest version found!", result_filename);
         }
         if (!line.empty() && (line[line.length() - 1] < 33))
         {
@@ -779,7 +779,7 @@ namespace OpenMS
         {
           result_file.close();
           result_file.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!", result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No Sequest version found!", result_filename);
         }
         // the search engine
         String::size_type pos(0), pos1(0);
@@ -861,38 +861,38 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No time found!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No time found!", result_filename);
     }
     if (sequest.empty())
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No Sequest version found!", result_filename);
     }
     if (sequest_version.empty())
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No Sequest version found!", result_filename);
     }
     if (!precursor_mz_value)
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No precursor mass found found!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No precursor mass found found!", result_filename);
     }
     if (!charge)
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No charge found!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No charge found!", result_filename);
     }
 
     if (!line.hasPrefix("#")) // check whether the header line was found
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough lines in file (no table header found)!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough lines in file (no table header found)!", result_filename);
     }
 
     // retrieve the number of lines and get the needed column numbers
@@ -980,7 +980,7 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#', 'Rank/Sp', 'Id#', '(M+H)+', 'deltCn', 'XCorr', 'Sp', 'Ions', 'Reference' or 'Peptide' is missing!", result_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "at least one of the columns '#', 'Rank/Sp', 'Id#', '(M+H)+', 'deltCn', 'XCorr', 'Sp', 'Ions', 'Reference' or 'Peptide' is missing!", result_filename);
     }
 
     score_column = (sf_column == -1) ? sp_column : sf_column;
@@ -1054,7 +1054,7 @@ namespace OpenMS
 //          ifstream out_file(out_filename.c_str());
 //          if ( !out_file )
 //          {
-//              throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, out_filename);
+//              throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_filename);
 //          }
 //
 //          while ( getline(out_file, line) ) // skip all lines until the one with '---'
@@ -1082,7 +1082,7 @@ namespace OpenMS
 //              {
 //                  stringstream error_message;
 //                  error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
-//                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, error_message.str().c_str() , out_filename);
+//                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str() , out_filename);
 //              }
 //              delta_cns.push_back(substrings[delta_cn_column].toFloat());
 //              xcorr = substrings[xcorr_column].toFloat();

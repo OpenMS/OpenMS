@@ -142,7 +142,7 @@ public:
     ConstIterator it = this->find(key);
     if (it == Base::end())
     {
-      throw IllegalKey(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw IllegalKey(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else
     {

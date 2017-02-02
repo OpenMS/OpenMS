@@ -57,7 +57,7 @@ namespace OpenMS
       if (id->getScoreType() != "Posterior Error Probability")
       {
         String msg = "Score type must be 'Posterior Error Probablity'";
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, id->getScoreType());
       }
     }

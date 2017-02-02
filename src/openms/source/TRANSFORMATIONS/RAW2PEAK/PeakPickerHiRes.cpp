@@ -63,10 +63,10 @@ namespace OpenMS
 
     defaults_.setValue("report_FWHM", "false", "Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.");
     defaults_.setValidStrings("report_FWHM", ListUtils::create<String>("true,false"));
-    defaults_.setValue("report_FWHM_unit", "relative(ppm)", "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
-    defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("absolute,relative(ppm)"));
+    defaults_.setValue("report_FWHM_unit", "relative", "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
+    defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));
 
-    // parameters for SNT estimator
+    // parameters for STN estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
 
     // write defaults into Param object param_

@@ -143,6 +143,7 @@ set(kernel_executables_list
   RichPeak1D_test
   RichPeak2D_test
   StandardTypes_test
+  SpectrumHelper_test
 )
 
 set(format_executables_list
@@ -389,6 +390,7 @@ set(analysis_executables_list
   AScore_test
   BaseGroupFinder_test
   BaseSuperimposer_test
+  ClusterProxyKD_test
   CompNovoIdentificationBase_test
   CompNovoIdentificationCID_test
   CompNovoIdentification_test
@@ -414,6 +416,7 @@ set(analysis_executables_list
   FeatureDeconvolution_test
   FeatureDistance_test
   FeatureGroupingAlgorithmIdentification_test
+  FeatureGroupingAlgorithmKD_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
   FeatureGroupingAlgorithmUnlabeled_test
@@ -438,11 +441,14 @@ set(analysis_executables_list
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
   ItraqQuantifier_test
+  KDTreeFeatureMaps_test
+  KDTreeFeatureNode_test
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
   MRMFragmentSelection_test
   MapAlignmentAlgorithmIdentification_test
+  MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
   MapAlignmentEvaluationAlgorithmPrecision_test
