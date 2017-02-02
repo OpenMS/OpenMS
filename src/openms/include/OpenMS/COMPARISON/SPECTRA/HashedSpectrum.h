@@ -64,8 +64,8 @@ class OPENMS_DLLAPI HashedSpectrum
      */
     struct MzInterval
     {
-		MSSpectrum<Peak1D>::Iterator begin;
-		MSSpectrum<Peak1D>::Iterator end;
+		MSSpectrum<Peak1D>::ConstIterator begin;
+		MSSpectrum<Peak1D>::ConstIterator end;
 	};
     
     /**
@@ -75,7 +75,7 @@ class OPENMS_DLLAPI HashedSpectrum
      * @param mz_bin    size of the m/z bins aka intervals
      * @param mz_unit_ppm    unit for mz_bin 
      */
-    HashedSpectrum(MSSpectrum<Peak1D>& spectrum, double mz_bin, bool mz_unit_ppm);
+    HashedSpectrum(const MSSpectrum<Peak1D>& spectrum, const double mz_bin, const bool mz_unit_ppm);
 
     /**
      * @brief destructor
@@ -100,7 +100,7 @@ class OPENMS_DLLAPI HashedSpectrum
      * @param mz_unit_ppm    unit for mz_tolerance (ppm or Th)
      * @return pointer to the peak closest to mz or NULL if difference between mz and closest peak exceeds the tolerance
      */
-    MSSpectrum<Peak1D>::Iterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const;
+    MSSpectrum<Peak1D>::ConstIterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const;
     
   private:
 
@@ -110,12 +110,12 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief m/z bin size
      */
-    double mz_bin_;
+    const double mz_bin_;
     
     /**
      * @brief unit for mz_bin_ (ppm or Th)
      */
-    bool mz_unit_ppm_;
+    const bool mz_unit_ppm_;
         
     /**
      * @brief minimal m/z in the spectrum
@@ -125,7 +125,7 @@ class OPENMS_DLLAPI HashedSpectrum
     /**
      * @brief MS spectrum to be indexed
      */
-    MSSpectrum<Peak1D>& spectrum_;
+    const MSSpectrum<Peak1D>& spectrum_;
 
     /**
      * @brief vector of all m/z intervals (hash table)

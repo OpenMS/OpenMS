@@ -1001,9 +1001,9 @@ private:
         std::cout << "m/z bin         = " << spectrum.getMzBin() << " Th\n";
     }
  
-    MSSpectrum<Peak1D>::Iterator peak = spectrum.findNearest(601.84, 5, true);    // There is a peak.
-    //MSSpectrum<Peak1D>::Iterator peak = spectrum.findNearest(616.5, 5, true);    // There is no peak.
-    //MSSpectrum<Peak1D>::Iterator peak = spectrum.findNearest(616.5, 0.1, false);    // There is no peak.
+    MSSpectrum<Peak1D>::ConstIterator peak = spectrum.findNearest(601.84, 5, true);    // There is a peak.
+    //MSSpectrum<Peak1D>::ConstIterator peak = spectrum.findNearest(616.5, 5, true);    // There is no peak.
+    //MSSpectrum<Peak1D>::ConstIterator peak = spectrum.findNearest(616.5, 0.1, false);    // There is no peak.
     if (peak == it_rt->end())
     {
         std::cout << "No peak close-by.\n";
