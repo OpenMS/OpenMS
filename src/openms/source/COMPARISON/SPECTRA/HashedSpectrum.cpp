@@ -64,7 +64,6 @@ namespace OpenMS
     int last_index = 0;
     HashedSpectrum::MzInterval bin;
     bin.begin = spectrum_.begin();
-    bin.end = spectrum_.begin();
     for (MSSpectrum<Peak1D>::ConstIterator it = spectrum_.begin(); it != spectrum_.end(); ++it)
     {  
       int index = getIndex_(it->getMZ());
@@ -72,6 +71,7 @@ namespace OpenMS
       if (index > last_index)
       {
         // close previous interval
+        bin.end = it;
         bins_.push_back(bin);
    
         // add empty interval(s) if necessary
@@ -84,17 +84,13 @@ namespace OpenMS
     
         // open new interval
         bin.begin = it;
-        bin.end = it;
 
         last_index = index;
       }
-      else
-      {
-        bin.end = it;
-      }   
     }
     
     // close last interval
+    bin.end = spectrum_.end();
     bins_.push_back(bin);              
   }
 
@@ -216,7 +212,7 @@ namespace OpenMS
     // loop over relevant peaks
     MSSpectrum<Peak1D>::ConstIterator it_mz_closest = first_peak;
     double distance_closest = getDistance_(mz, first_peak->getMZ());
-    for (MSSpectrum<Peak1D>::ConstIterator it_mz = first_peak; it_mz <= last_peak; ++it_mz)
+    for (MSSpectrum<Peak1D>::ConstIterator it_mz = first_peak; it_mz < last_peak; ++it_mz)
     {    
       double distance = getDistance_(mz, it_mz->getMZ());
     

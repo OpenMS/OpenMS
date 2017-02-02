@@ -973,67 +973,6 @@ private:
       centroided = false;
     }
 
-
-
-
-
-
-
-
-
-
-
-    /*std::cout << "\n\nStart of the Pause.\n";
-    
-    MSExperiment<Peak1D>::Iterator it_rt = exp.begin();
-    it_rt = it_rt + 500;
-    double rt = it_rt->getRT();
-    std::cout << "RT = " << rt << "\n";
- 
-    HashedSpectrum spectrum(*it_rt, 1000.0, true);    // 1000 ppm
-    //HashedSpectrum spectrum(*it_rt, 1.0, false);    // 1 Th
-    if (spectrum.getMzUnitPpm())
-    {
-        std::cout << "m/z bin         = " << spectrum.getMzBin() << " ppm\n";
-    }
-    else
-    {
-        std::cout << "m/z bin         = " << spectrum.getMzBin() << " Th\n";
-    }
- 
-    MSSpectrum<Peak1D>::ConstIterator peak = spectrum.findNearest(601.84, 5, true);    // There is a peak.
-    //MSSpectrum<Peak1D>::ConstIterator peak = spectrum.findNearest(616.5, 5, true);    // There is no peak.
-    //MSSpectrum<Peak1D>::ConstIterator peak = spectrum.findNearest(616.5, 0.1, false);    // There is no peak.
-    if (peak == it_rt->end())
-    {
-        std::cout << "No peak close-by.\n";
-    }
-    else
-    {
-        std::cout << "m/z = " << peak->getMZ() << "\n";
-    }
-    
-    sleep(1000);*/
-    
-    /*std::vector<HashedSpectrum> test;
-    for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it < exp.end(); ++it)
-    {
-        HashedSpectrum spectrum(*it);
-        test.push_back(spectrum);
-    }*/
- 
-    //std::cout << "End of the Pause.\n";
-
-
-
-
-
-
-
-
-
-
-
     /**
      * pick peaks
      */

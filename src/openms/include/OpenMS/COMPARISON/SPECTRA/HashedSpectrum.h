@@ -62,8 +62,8 @@ class OPENMS_DLLAPI HashedSpectrum
      * and the hash table index.
      * 
      * empty m/z interval:                         both begin and end point to spectrum_.end()
-     * one data point in m/z interval:             both begin and end point to this data point
-     * two or more data points in m/z interval:    begin points to the first data point, end to the last one
+     * one data point in m/z interval:             begin points to this data point, end points to following data point (i.e. the first data point in the next non-empty m/z interval)
+     * two or more data points in m/z interval:    begin points to the first data point in this m/z interval, end points to the first data point in the next non-empty m/z interval
      */
     struct MzInterval
     {
