@@ -48,8 +48,9 @@ endif()
 set(zip_file "${PAYLOAD_FOLDER}/binaries_${PLATFORM}_${ARCH}.zip")
 file(TO_NATIVE_PATH ${zip_file} native_zip)
 
-## Only set to Off for debugging purposes
-set(COMPRESS On)
+## For the first file/folder we need to create the zip with jar -c
+## Otherwise add files by updating the zip with jar -u
+set(INITIALLY_CREATE_ZIP On)
 file(GLOB payload_content "${PAYLOAD_FOLDER}/*")
 foreach(file ${payload_content})
 	string(REPLACE "${PAYLOAD_FOLDER}/" "" trimmed_file ${file})
@@ -57,10 +58,11 @@ foreach(file ${payload_content})
 	## This means basically "just zip the files" (TODO we could think of using a lighter zip program instead)
 	## Generates no new Manifests
 	set(JAR_ARGS "fM") 
-	if(NOT COMPRESS)
+	if(NOT INITIALLY_CREATE_ZIP)
 		set(JAR_ARGS "u${JAR_ARGS}")
 	else()
 		set(JAR_ARGS "c${JAR_ARGS}")
+		set(INITIALLY_CREATE_ZIP Off)
 	endif()
 
 	message(STATUS "${Java_JAR_EXECUTABLE} ${JAR_ARGS} ${native_zip} ${trimmed_file}")
