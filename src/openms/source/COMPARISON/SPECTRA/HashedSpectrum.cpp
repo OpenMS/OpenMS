@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/COMPARISON/SPECTRA/HashedSpectrum.h>
 
 #include <vector>
@@ -73,7 +74,7 @@ namespace OpenMS
         // close previous interval
         bins_.push_back(bin);
    
-        // add empty interval
+        // add empty interval(s) if necessary
         bin.begin = spectrum_.end();
         bin.end = spectrum_.end();
         for (int i=0; i < (index - last_index -1); ++i)
@@ -130,7 +131,7 @@ namespace OpenMS
     if (mz_unit_ppm_)
     {
       // m/z tolerance in ppm
-     return std::abs(mz1 - mz2)/mz1*1.0e+6;
+      return Math::getPPMAbs(mz2, mz1);
     }
     else
     {
