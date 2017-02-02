@@ -48,7 +48,7 @@ namespace OpenMS
  * Finding a peak with a particular m/z in MSSpectrum<Peak1D> can be slow. This data structure
  * provides a hash index (bins_) for quick access. Given an m/z of interest, one can
  * quickly jump in the relevant neighbouthood i.e. bin(s) where such a peak might be located.
- * The getPeak(double mz) method returns a pointer to the peak in MSSpectrum<Peak1D>.
+ * The findNearest(mz, mz_tolerance, mz_unit_ppm) method returns an iterator to the peak in MSSpectrum<Peak1D>.
  *
  * @see MSSpectrum<Peak1D>
  */
@@ -101,7 +101,7 @@ class OPENMS_DLLAPI HashedSpectrum
      * @param mz    m/z position
      * @param mz_tolerance    m/z tolerance between mz and peak
      * @param mz_unit_ppm    unit for mz_tolerance (ppm or Th)
-     * @return pointer to the peak closest to mz or NULL if difference between mz and closest peak exceeds the tolerance
+     * @return iterator to the peak closest to mz or NULL if difference between mz and closest peak exceeds the tolerance
      */
     MSSpectrum<Peak1D>::ConstIterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const;
     

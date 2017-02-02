@@ -55,43 +55,43 @@ double mz_bin = 1000.0;
 double mz_tolerance = 5.0;
 bool mz_unit_ppm = true;
 
-/*START_SECTION(HashedSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double mz_bin, double mz_tolerance, bool mz_unit_ppm))
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
+START_SECTION(HashedSpectrum(const MSSpectrum<Peak1D>& raw_spectrum, const double mz_bin, const bool mz_unit_ppm))
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
     TEST_REAL_SIMILAR(spectrum.getMzBin(), 1000.0);
 END_SECTION
 
 START_SECTION(double getMzBin() const)
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
     TEST_REAL_SIMILAR(spectrum.getMzBin(), 1000.0);
 END_SECTION
 
 START_SECTION(bool getMzUnitPpm() const)
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
     TEST_EQUAL(spectrum.getMzUnitPpm(), true);
 END_SECTION
 
 // There is a peak within the tolerance.
-START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
-    TEST_REAL_SIMILAR(spectrum.getPeak(751.41)->getMZ(), 751.408386230469);
+START_SECTION(MSSpectrum<Peak1D>::ConstIterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const)
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
+    TEST_REAL_SIMILAR(spectrum.findNearest(751.41, mz_tolerance, mz_unit_ppm)->getMZ(), 751.408386230469);
 END_SECTION
 
 // There is no peak within the tolerance.
-START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
-    TEST_EQUAL(spectrum.getPeak(822.0), NULL);
+START_SECTION(MSSpectrum<Peak1D>::ConstIterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const)
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
+    TEST_EQUAL(spectrum.findNearest(822.0, mz_tolerance, mz_unit_ppm) == it_rt->end(), true);
 END_SECTION
 
 // m/z outside the range of the spectrum
-START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
-    TEST_EQUAL(spectrum.getPeak(200.0), NULL);
+START_SECTION(MSSpectrum<Peak1D>::ConstIterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const)
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
+    TEST_EQUAL(spectrum.findNearest(200.0, mz_tolerance, mz_unit_ppm) == it_rt->end(), true);
 END_SECTION
 
 // m/z outside the range of the spectrum
-START_SECTION(MSSpectrum<Peak1D>::pointer getPeak(double mz))
-    HashedSpectrum spectrum(*it_rt, mz_bin, mz_tolerance, mz_unit_ppm);
-    TEST_EQUAL(spectrum.getPeak(3000.0), NULL);
-END_SECTION*/
+START_SECTION(MSSpectrum<Peak1D>::ConstIterator findNearest(const double mz, const double mz_tolerance, const bool mz_unit_ppm) const)
+    HashedSpectrum spectrum(*it_rt, mz_bin, mz_unit_ppm);
+    TEST_EQUAL(spectrum.findNearest(3000.0, mz_tolerance, mz_unit_ppm) == it_rt->end(), true);
+END_SECTION
 
 END_TEST

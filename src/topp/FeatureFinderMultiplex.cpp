@@ -983,7 +983,7 @@ private:
 
 
 
-    std::cout << "\n\nStart of the Pause.\n";
+    /*std::cout << "\n\nStart of the Pause.\n";
     
     MSExperiment<Peak1D>::Iterator it_rt = exp.begin();
     it_rt = it_rt + 500;
@@ -1013,7 +1013,7 @@ private:
         std::cout << "m/z = " << peak->getMZ() << "\n";
     }
     
-    sleep(1000);
+    sleep(1000);*/
     
     /*std::vector<HashedSpectrum> test;
     for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it < exp.end(); ++it)
@@ -1022,7 +1022,7 @@ private:
         test.push_back(spectrum);
     }*/
  
-    std::cout << "End of the Pause.\n";
+    //std::cout << "End of the Pause.\n";
 
 
 
