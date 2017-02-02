@@ -41,7 +41,7 @@ set(required_variables "ARCH;PLATFORM;PAYLOAD_FOLDER")
 check_variables(required_variables)
 
 find_package(Java REQUIRED)
-if (NOT ${Java_JAR_EXECUTABLE})
+if (NOT Java_JAR_EXECUTABLE)
 	message(FATAL_ERROR "Jar executable not found. It is needed to bundle the sources for the KNIME package. Make sure you have the Java SDK installed and in PATH.")
 endif()
 

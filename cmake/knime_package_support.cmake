@@ -28,16 +28,16 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer$
+# $Authors: Stephan Aiche, Julianus Pfeuffer$
 # --------------------------------------------------------------------------
 
 # path were the CTDs will be stored
 set(KNIME_PLUGIN_DIRECTORY ${PROJECT_BINARY_DIR}/ctds CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
 set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
 
-# path were the executables can be found
-if(${CMAKE_CONFIGURATION_TYPES})
+# path where the executables can be found
+if(CMAKE_CONFIGURATION_TYPES)
   set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/${CMAKE_CFG_INTDIR})
 else()
   set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
