@@ -199,17 +199,11 @@ public:
 
 protected:
 
-    /// Stores the modifications from UniMod
+    /// Stores the modifications
     std::vector<ResidueModification*> mods_;
 
-    /// Stores additional modifications from PSI-MOD and XLMOD
-    std::vector<ResidueModification*> mods2_;
-
-    /// Stores the mappings of (unique) names to the modifications from UniMod
+    /// Stores the mappings of (unique) names to the modifications
     Map<String, std::set<const ResidueModification*> > modification_names_;
-
-    /// Stores the mappings of (unique) names to the modifications from PSI-MOD and XLMOD
-    Map<String, std::set<const ResidueModification*> > modification_names2_;
 
     /// Helper function to check if a residue matches the origin for a modification
     bool residuesMatch_(const String& residue, const String& origin) const;
