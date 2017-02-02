@@ -269,7 +269,7 @@ protected:
     }
 
     // get version of first section
-    String version = "Unknown";
+    String version_old = "Unknown";
     if (!p.exists(sections[0] + ":version"))
     {
       writeLog_("No OpenMS version information found in file " + infile + "! Cannot update!");
@@ -278,7 +278,7 @@ protected:
     }
     else
     {
-      version = p.getValue(sections[0] + ":version");
+      version_old = p.getValue(sections[0] + ":version");
       // TODO: return on newer version?!
     }
 
@@ -292,7 +292,7 @@ protected:
       // check for default instance
       if (!p.exists(sec_inst + "debug"))
       {
-        writeLog_("Update for file " + infile + " failed because the instance section '" + sec_inst + "' does not exist. Use -instance or check INI file for corruption!");
+        writeLog_("Update for file '" + infile + "' failed because the instance section '" + sec_inst + "' does not exist. Use -instance or check INI file for corruption!");
         update_success = false;
         break;
       }
@@ -303,7 +303,7 @@ protected:
       if (!updater.getNewToolName(sections[s], ttype, new_tool))
       {
         String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
-        writeLog_("Update for file " + infile + " failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
+        writeLog_("Update for file '" + infile + "' failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
       }
@@ -317,7 +317,7 @@ protected:
       pr.start((path + "/" + new_tool).toQString(), arguments);
       if (!pr.waitForFinished(-1))
       {
-        writeLog_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
+        writeLog_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
         break;
       }
@@ -343,10 +343,10 @@ protected:
     if (outfile.empty()) // create a backup
     {
       QFileInfo fi(infile.toQString());
-      String new_name = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version + ".ini";
-      QFile::rename(infile.toQString(), new_name.toQString());
-      std::cerr << "new name: " << new_name << "\n";
-      // write new file
+      String backup_filename = String(fi.path()) + "/" + fi.completeBaseName() + "_v" + version_old + ".ini";
+      QFile::rename(infile.toQString(), backup_filename.toQString());
+      std::cout << "Backup of input file created: " << backup_filename << std::endl;
+      // write updated/new file
       paramFile.store(infile, p);
     }
     else
@@ -365,17 +365,20 @@ protected:
     if (out.empty() && !inplace)
     {
       writeLog_("Cannot write output files, as neither -out nor -i are given. Use either of them, but not both!");
+      printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (out.size() > 0 && inplace)
     {
       writeLog_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
+      printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (!inplace && out.size() != in.size())
     {
       writeLog_("Output and input file list length must be equal!");
+      printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
