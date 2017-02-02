@@ -117,11 +117,13 @@ namespace OpenMS
     if (mz_unit_ppm_)
     {
       // m/z intervals in ppm
+      // mz = mz_min_(1 + ppm)^index
       return (int) floor(log(mz/mz_min_)/log(1.0 + mz_bin_*1.0e-6));
     }
     else
     {
       // m/z intervals in Da
+      // mz = mz_min + index * Da
      return (int) floor((mz - mz_min_)/mz_bin_);
     }
   }
