@@ -45,6 +45,12 @@ namespace OpenMS
   HashedSpectrum::HashedSpectrum(const MSSpectrum<Peak1D>& spectrum, const double mz_bin, const bool mz_unit_ppm)
   : mz_bin_(mz_bin), mz_unit_ppm_(mz_unit_ppm), spectrum_(spectrum)
   {
+	// check whether m/z are sorted
+	if (!spectrum_.isSorted())
+	{
+	  throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The m/z in the MS spectrum are not sorted. Please sort the spectrum before constructing the HashedSpectrum data structure.");
+	}
+	  
     if (spectrum_.size() == 0)
     {
       mz_min_ = 0;
