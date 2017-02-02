@@ -97,7 +97,7 @@ using namespace std;
 
    The situation becomes more complicated when several LC-MS/MS runs from related samples of a label-free experiment are considered. In order to quantify a larger fraction of the peptides/proteins in the samples, it is desirable to infer peptide identifications across runs. Ideally, all peptides identified in any of the runs should be quantified in each and every run. However, for feature detection of inferred ("external") IDs, the following problems arise: First, retention times may be shifted between the run being quantified and the run that gave rise to the ID. Such shifts can be corrected (see @ref TOPP_MapAlignerIdentification), but only to an extent. Thus, the RT location of the inferred ID may not necessarily lie within the RT range of the correct feature. Second, since the peptide in question was not directly identified in the run being quantified, it may not actually be present in detectable amounts in that sample, e.g. due to differential regulation of the corresponding protein. There is thus a risk of introducing false-positive features.
 
-   FeatureFinderIdentification deals with these challenges by explicitly distinguishing between internal IDs (derived from the LC-MS/MS run being quantified) and external IDs (inferred from related runs). Features derived from internal IDs give rise to a training dataset for an SVM classifier. The SVM is then used to predict whether features derived from external IDs are correct or incorrect (and which of several candidates is the most likely to be correct). See steps 4 and 5 below for more details.
+   FeatureFinderIdentification deals with these challenges by explicitly distinguishing between internal IDs (derived from the LC-MS/MS run being quantified) and external IDs (inferred from related runs). Features derived from internal IDs give rise to a training dataset for an SVM classifier. The SVM is then used to predict which feature candidates derived from external IDs are most likely to be correct. See steps 4 and 5 below for more details.
 
    <B>1. Assay generation</B>
 
@@ -117,11 +117,11 @@ using namespace std;
 
    <B>4. Feature classification</B>
 
-   Feature candidates derived from assays with "internal" IDs are classed as "negative" (candidates without matching internal IDs), "positive" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a support vector machine (SVM) is trained on the "positive" and "negative" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores. After parameter optimization by cross-validation, the resulting SVM is used to predict the probability of "unknown" feature candidates being positives.
+   Feature candidates derived from assays with "internal" IDs are classed as "negative" (candidates without matching internal IDs), "positive" (the single best candidate per assay with matching internal IDs), and "ambiguous" (other candidates with matching internal IDs). If "external" IDs were given as input, features based on them are initially classed as "unknown". Also in this case, a support vector machine (SVM) is trained on the "positive" and "negative" candidates, to distinguish between the two classes based on the different OpenSWATH quality scores (plus an RT deviation score). After parameter optimization by cross-validation, the resulting SVM is used to predict the probability of "unknown" feature candidates being positives.
 
    <B>5. Feature filtering</B>
 
-   Feature candidates are filtered so that at most one feature per assay remains. For assays with internal IDs, only candidates previously classed as "positive" are kept. For assays based solely on external IDs, the feature candidate with the highest SVM probability is selected and kept if it passes the @p svm:min_prob threshold.
+   Feature candidates are filtered so that at most one feature per peptide and charge state remains. For assays with internal IDs, only candidates previously classed as "positive" are kept. For assays based solely on external IDs, the feature candidate with the highest SVM probability is selected and kept (possibly subject to the @p svm:min_prob threshold).
 
    <B>6. Elution model fitting</B>
 
@@ -196,7 +196,7 @@ protected:
     setMinFloat_("extract:rt_window", 0.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Expected elution peak width in seconds, for smoothing (Gauss filter)", false);
+    registerDoubleOption_("detect:peak_width", "<value>", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extration window, unless set explicitly via 'extract:rt_window'.", false);
     setMinFloat_("detect:peak_width", 0.0);
     registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
     setMinFloat_("detect:min_peak_width", 0.0);
