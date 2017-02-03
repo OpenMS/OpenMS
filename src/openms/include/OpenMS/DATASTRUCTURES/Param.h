@@ -467,7 +467,7 @@ protected:
       @param stream The stream where all the output is send to.
       @return true on success, false on failure
     */
-    bool Param::update(const Param& old_version, bool verbose, bool add_unknown, bool fail_on_invalid_values, bool fail_on_unknown_parameters, Logger::LogStream& stream);
+    bool update(const Param& old_version, bool verbose, bool add_unknown, bool fail_on_invalid_values, bool fail_on_unknown_parameters, Logger::LogStream& stream);
 
     /**
       @brief Adds missing parameters from the given Param to the param object. Existing parameters will not be modified.
