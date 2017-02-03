@@ -153,29 +153,29 @@ set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEI
 ## Test if invalid arguments or values (from INI or CLI) lead to immediate exit
 ##
 ## PARAM-VALUES:
-add_test("TOPP_INI_INVALIDVALUE" ${TOPP_BIN_PATH}/PeakPickerHires -ini ${DATA_DIR_TOPP}/degenerate_cases/PPHiRes_invalidValue.ini )
+add_test("TOPP_INI_INVALIDVALUE" ${TOPP_BIN_PATH}/PeakPickerHiRes -ini ${DATA_DIR_TOPP}/degenerate_cases/PPHiRes_invalidValue.ini )
 # > Invalid string parameter value 'THISVALUEISINVALID' for parameter 'processOption' given! Valid values are: 'inmemory,lowmemory'. Updating failed!
 # > Parameters passed to 'PeakPickerHiRes' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!
 set_tests_properties("TOPP_INI_INVALIDVALUE" PROPERTIES WILL_FAIL 1)
 ## ... the same as explicit command line option (instead of INI)
-add_test("TOPP_CLI_INVALIDVALUE" ${TOPP_BIN_PATH}/PeakPickerHires -processOption THISVALUEISINVALID )
+add_test("TOPP_CLI_INVALIDVALUE" ${TOPP_BIN_PATH}/PeakPickerHiRes -processOption THISVALUEISINVALID )
 set_tests_properties("TOPP_CLI_INVALIDVALUE" PROPERTIES WILL_FAIL 1)
  
 ## test algorithm section parameters (not directly registered in TOPPBase); they should fail just the same
-add_test("TOPP_INI_INVALIDVALUE_SECTION" ${TOPP_BIN_PATH}/PeakPickerHires -ini ${DATA_DIR_TOPP}/degenerate_cases/PPHiRes_invalidValueSection.ini )
+add_test("TOPP_INI_INVALIDVALUE_SECTION" ${TOPP_BIN_PATH}/PeakPickerHiRes -ini ${DATA_DIR_TOPP}/degenerate_cases/PPHiRes_invalidValueSection.ini )
 set_tests_properties("TOPP_INI_INVALIDVALUE_SECTION" PROPERTIES WILL_FAIL 1)
 ## ... the same as explicit command line option (instead of INI)
-add_test("TOPP_CLI_INVALIDVALUE_SECTION" ${TOPP_BIN_PATH}/PeakPickerHires -algorithm:report_FWHM_unit THISVALUEISINVALID )
+add_test("TOPP_CLI_INVALIDVALUE_SECTION" ${TOPP_BIN_PATH}/PeakPickerHiRes -algorithm:report_FWHM_unit THISVALUEISINVALID )
 set_tests_properties("TOPP_CLI_INVALIDVALUE_SECTION" PROPERTIES WILL_FAIL 1)
 
 ## PARAM-NAMES:
-add_test("TOPP_INI_INVALIDNAME" ${TOPP_BIN_PATH}/PeakPickerHires -ini ${DATA_DIR_TOPP}/degenerate_cases/PPHiRes_invalidParamName.ini )
+add_test("TOPP_INI_INVALIDNAME" ${TOPP_BIN_PATH}/PeakPickerHiRes -ini ${DATA_DIR_TOPP}/degenerate_cases/PPHiRes_invalidParamName.ini )
 # > Unknown (or deprecated) Parameter 'INVALIDPARAMNAME_BASE' given in old parameter file! Update failed!
 # > Unknown (or deprecated) Parameter 'algorithm:invalidParamName' given in old parameter file! Update failed!
 # > Parameters passed to 'PeakPickerHiRes' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!
 set_tests_properties("TOPP_INI_INVALIDNAME" PROPERTIES WILL_FAIL 1)
 ## ... the same as explicit command line option (instead of INI)
-add_test("TOPP_CLI_INVALIDNAME" ${TOPP_BIN_PATH}/PeakPickerHires -algorithm:invalidParamName somevalue )
+add_test("TOPP_CLI_INVALIDNAME" ${TOPP_BIN_PATH}/PeakPickerHiRes -algorithm:invalidParamName somevalue )
 set_tests_properties("TOPP_CLI_INVALIDNAME" PROPERTIES WILL_FAIL 1) 
  
 #------------------------------------------------------------------------------
@@ -1915,7 +1915,7 @@ set_tests_properties("UTILS_DatabaseFilter_4_out" PROPERTIES DEPENDS "UTILS_Data
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp)
 add_test("UTILS_DecoyDatabase_1_out" ${DIFF} -in1 DecoyDatabase_1.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_1_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_1_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_1")
-add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -append)
+add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix")
 add_test("UTILS_DecoyDatabase_2_out" ${DIFF} -in1 DecoyDatabase_2.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_2_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_2")
 
