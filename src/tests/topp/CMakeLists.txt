@@ -734,7 +734,7 @@ add_test("TOPP_IDFileConverter_14_out1" ${DIFF} -in1 IDFileConverter_14_output.t
 set_tests_properties("TOPP_IDFileConverter_14_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_14")
 # mzIdentML to idXML with RT look-up in mzML:
 add_test("TOPP_IDFileConverter_15" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_15_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML)
-add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" "db=")
+add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" "db=" "spectra_data")
 set_tests_properties("TOPP_IDFileConverter_15_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_15")
 # pepXML (from iProphet) to idXML:
 add_test("TOPP_IDFileConverter_16" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_16_input.pepXML -out IDFileConverter_16_output.tmp -out_type idXML)
