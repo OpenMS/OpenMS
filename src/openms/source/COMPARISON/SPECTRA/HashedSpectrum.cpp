@@ -46,12 +46,12 @@ namespace OpenMS
   HashedSpectrum::HashedSpectrum(const MSSpectrum<Peak1D>& spectrum, const double mz_bin, const bool mz_unit_ppm)
   : mz_bin_(mz_bin), mz_unit_ppm_(mz_unit_ppm), spectrum_(spectrum)
   {
-	// check whether m/z are sorted
-	if (!spectrum_.isSorted())
-	{
-	  throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The m/z in the MS spectrum are not sorted. Please sort the spectrum before constructing the HashedSpectrum data structure.");
-	}
-	  
+    // check whether m/z are sorted
+    if (!spectrum_.isSorted())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The m/z in the MS spectrum are not sorted. Please sort the spectrum before constructing the HashedSpectrum data structure.");
+    }
+  
     if (spectrum_.size() == 0)
     {
       mz_min_ = 0;
@@ -212,7 +212,7 @@ namespace OpenMS
     // loop over relevant peaks
     MSSpectrum<Peak1D>::ConstIterator it_mz_closest = first_peak;
     double distance_closest = getDistance_(mz, first_peak->getMZ());
-    for (MSSpectrum<Peak1D>::ConstIterator it_mz = first_peak; it_mz < last_peak; ++it_mz)
+    for (MSSpectrum<Peak1D>::ConstIterator it_mz = first_peak; it_mz != last_peak; ++it_mz)
     {    
       double distance = getDistance_(mz, it_mz->getMZ());
     
