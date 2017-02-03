@@ -191,10 +191,10 @@ namespace OpenMS
     p.start(program, arguments);
     if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-		String msg = String("Error! Call to '") + program + "' '" + String(arguments.join("' '")) +
-			" returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
-			"\noutput:\n" + String(QString(p.readAll())) +
-			"\n";
+      String msg = String("Error! Call to '") + program + "' '" + String(arguments.join("' '")) +
+          " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
+          "\noutput:\n" + String(QString(p.readAll())) +
+          "\n";
       if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;

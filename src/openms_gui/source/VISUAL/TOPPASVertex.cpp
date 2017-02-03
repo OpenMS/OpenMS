@@ -47,57 +47,55 @@ namespace OpenMS
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
 
-  	int TOPPASVertex::TOPPASFilenames::size() const
-	{
-		return filenames_.size();
-	}
+    int TOPPASVertex::TOPPASFilenames::size() const
+  {
+    return filenames_.size();
+  }
 
-	const QStringList& TOPPASVertex::TOPPASFilenames::get() const
-	{
-		return filenames_;
-	}
-	const QString& TOPPASVertex::TOPPASFilenames::operator[](int i) const
-	{
-		return filenames_[i];
-	}
+  const QStringList& TOPPASVertex::TOPPASFilenames::get() const
+  {
+    return filenames_;
+  }
+  const QString& TOPPASVertex::TOPPASFilenames::operator[](int i) const
+  {
+    return filenames_[i];
+  }
 
-	void TOPPASVertex::TOPPASFilenames::set(const QStringList& filenames)
-	{
-		filenames_.clear();
-		this->append(filenames);
-	}
+  void TOPPASVertex::TOPPASFilenames::set(const QStringList& filenames)
+  {
+    filenames_.clear();
+    this->append(filenames);
+  }
 
-	void TOPPASVertex::TOPPASFilenames::set(const QString& filename, int i)
-	{
-		check_(filename);
-		filenames_[i] = filename;
-	}
+  void TOPPASVertex::TOPPASFilenames::set(const QString& filename, int i)
+  {
+    check_(filename);
+    filenames_[i] = filename;
+  }
 
-	void TOPPASVertex::TOPPASFilenames::push_back(const QString& filename)
-	{
-		check_(filename);
-		filenames_.push_back(filename);
-	}
+  void TOPPASVertex::TOPPASFilenames::push_back(const QString& filename)
+  {
+    check_(filename);
+    filenames_.push_back(filename);
+  }
 
-	void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
-	{
-		foreach(const QString& fn, filenames)
-		{
-			check_(fn);
-			push_back(fn);
-		}
-	}
+  void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
+  {
+    foreach(const QString& fn, filenames)
+    {
+      check_(fn);
+      push_back(fn);
+    }
+  }
 
-	void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
-	{
-		const int max_filename_length = 255; // the usual NTFS and Ext2/3/4 limit
-		if (filename.count() >= max_filename_length)
-		{
-			throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("'")
-				+ String(filename) 
-				+ " [too long (>" + max_filename_length + " characters) - please use shorter filenames and/or less sub-directories]'");
-		}
-	}
+  void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
+  {
+    const int max_filename_length = 255; // the usual NTFS and Ext2/3/4 limit
+    if (filename.count() >= max_filename_length)
+    {
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename.toStdString(), max_filename_length);
+    }
+  }
 
 
   TOPPASVertex::TOPPASVertex() :

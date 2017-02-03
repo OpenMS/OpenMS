@@ -202,9 +202,9 @@ namespace OpenMS
           std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
           continue;
         }
-		QString new_file = full_dir.toQString()
-			+ QDir::separator()
-			+ File::basename(f).toQString();
+        QString new_file = full_dir.toQString()
+            + QDir::separator()
+            + File::basename(f).toQString();
 
         // remove "_tmp<number>" if its a suffix
         QRegExp rx("_tmp\\d+$");
