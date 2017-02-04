@@ -188,7 +188,6 @@ namespace OpenMS
     {
       return spectrum_.end();
     }
-    MSSpectrum<Peak1D>::ConstIterator first_peak(begin);
    
     // find last peak (i.e. the last non-empty bin)
     MSSpectrum<Peak1D>::ConstIterator end = spectrum_.end();
@@ -204,30 +203,32 @@ namespace OpenMS
     {
       return spectrum_.end();
     }
-    MSSpectrum<Peak1D>::ConstIterator last_peak(end);
    
     //std::cout << "m/z start = " << first_peak->getMZ() << "\n";
     //std::cout << "m/z end   = " << last_peak->getMZ() << "\n\n";
-   
-    // loop over relevant peaks
-    MSSpectrum<Peak1D>::ConstIterator it_mz_closest = first_peak;
-    double distance_closest = getDistance_(mz, first_peak->getMZ());
-    for (MSSpectrum<Peak1D>::ConstIterator it_mz = first_peak; it_mz != last_peak; ++it_mz)
-    {    
-      double distance = getDistance_(mz, it_mz->getMZ());
+  
+    // binary search
+    Peak1D peak;
+    peak.setPosition(mz);
+    MSSpectrum<Peak1D>::ConstIterator it = lower_bound(begin, end, peak, typename Peak1D::PositionLess());
     
-      if (distance <= distance_closest)
-      {
-        it_mz_closest = it_mz;
-        distance_closest = distance;
-      }
-      else
-      {
-        break;
-      }
+    if (it == spectrum_.begin())
+    {
+      return it;
+	}
+    
+    // either the current peak or the peak before are closest
+    MSSpectrum<Peak1D>::ConstIterator it_before = it;
+    --it_before;
+    if (std::abs(it->getMZ() - mz) < std::abs(it_before->getMZ() - mz))
+    {
+	  return it;
     }
-   
-    return it_mz_closest;   
+    else
+    {
+	  return it_before;
+    }
+
   }  
   
 }
