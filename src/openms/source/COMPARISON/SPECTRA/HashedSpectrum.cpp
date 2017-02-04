@@ -215,18 +215,18 @@ namespace OpenMS
     if (it == spectrum_.begin())
     {
       return it;
-	}
+    }
     
     // either the current peak or the peak before are closest
     MSSpectrum<Peak1D>::ConstIterator it_before = it;
     --it_before;
     if (std::abs(it->getMZ() - mz) < std::abs(it_before->getMZ() - mz))
     {
-	  return it;
+      return it;
     }
     else
     {
-	  return it_before;
+      return it_before;
     }
 
   }  
