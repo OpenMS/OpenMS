@@ -85,8 +85,7 @@ SimpleSVM::~SimpleSVM()
 }
 
 
-void SimpleSVM::setup(map<String, vector<double> >& predictors, 
-                      const map<Size, Int>& labels)
+void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 {
   if (predictors.empty() || predictors.begin()->second.empty())
   {
@@ -235,9 +234,9 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 }
 
 
-void SimpleSVM::scaleData_(map<String, vector<double> >& predictors) const
+void SimpleSVM::scaleData_(PredictorMap& predictors) const
 {
-  for (map<String, vector<double> >::iterator pred_it = predictors.begin();
+  for (PredictorMap::iterator pred_it = predictors.begin();
        pred_it != predictors.end(); ++pred_it)
   {
     // if (pred_it->second.empty()) continue;
@@ -261,15 +260,15 @@ void SimpleSVM::scaleData_(map<String, vector<double> >& predictors) const
 }
 
 
-void SimpleSVM::convertData_(const map<String, vector<double> >& predictors)
+void SimpleSVM::convertData_(const PredictorMap& predictors)
 {
   Size n_obs = predictors.begin()->second.size();
   nodes_.clear();
   nodes_.resize(n_obs);
   predictor_names_.clear();
   int pred_index = 0; // "int" for use by LIBSVM
-  for (map<String, vector<double> >::const_iterator pred_it = 
-         predictors.begin(); pred_it != predictors.end(); ++pred_it)
+  for (PredictorMap::const_iterator pred_it = predictors.begin();
+       pred_it != predictors.end(); ++pred_it)
   {
     if (pred_it->second.empty()) continue; // uninformative predictor
     pred_index++; // LIBSVM counts observations from 1
