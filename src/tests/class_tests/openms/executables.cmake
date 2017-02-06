@@ -479,6 +479,7 @@ set(analysis_executables_list
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
+  SimpleSVM_test
   StablePairFinder_test
   #TargetedExperimentHelper_test
   TransformationDescription_test
@@ -505,6 +506,7 @@ set(transformations_executables_list
   ContinuousWaveletTransformNumIntegration_test
   ContinuousWaveletTransform_test
   EGHTraceFitter_test
+  ElutionModelFitter_test
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test

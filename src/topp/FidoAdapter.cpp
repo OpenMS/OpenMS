@@ -57,9 +57,9 @@ using namespace std;
 
 /**
  @page TOPP_FidoAdapter FidoAdapter
- 
+
  @brief Runs the protein inference engine Fido.
- 
+
  <CENTER>
    <table>
      <tr>
@@ -79,28 +79,28 @@ using namespace std;
     </tr>
    </table>
  </CENTER>
- 
+
  This tool wraps the protein inference algorithm Fido (http://noble.gs.washington.edu/proj/fido/). Fido uses a Bayesian probabilistic model to group and score proteins based on peptide-spectrum matches. It was published in:
- 
+
  Serang <em>et al.</em>: <a href="http://pubs.acs.org/doi/abs/10.1021/pr100594k">Efficient marginalization to compute protein posterior probabilities from shotgun mass spectrometry data</a> (J. Proteome Res., 2010).
- 
+
  By default, this adapter runs the Fido variant with parameter estimation (@p FidoChooseParameters), as recommended by the authors of Fido. However, it is also possible to run "pure" Fido by setting the @p prob:protein, @p prob:peptide and @p prob:spurious parameters, if appropriate values are known (e.g. from a previous Fido run). Other parameters, except for @p log2_states, are not applicable in this case.
- 
+
  Depending on the @p separate_runs setting, data from input files containing multiple protein identification runs (e.g. several replicates or different search engines) will be merged (default) or annotated separately.
- 
+
  <b>Input format:</b>
- 
+
  Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer.@n
  In addition, the scores for peptide hits in the input data have to be posterior probabilities - as produced e.g. by PeptideProphet in the TPP or by @ref TOPP_IDPosteriorErrorProbability (with the @p prob_correct option switched on) in OpenMS. If scores are found to be posterior error probabilities (PEPs, lower is better), they are converted to posterior probabilities (higher is better) using "1 - PEP".@n
  If the posterior (error) probabilities are stored in user parameters ("UserParam") in the idXML instead of in the score fields, @ref UTILS_IDScoreSwitcher can be used to rewrite the scores. (This may be the case e.g. if @ref TOPP_FalseDiscoveryRate and @ref TOPP_IDFilter were applied for FDR filtering prior to protein inference.)
- 
+
  <b>Output format:</b>
- 
+
  The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the protein identification run(s) of the input data. Also attached are meta values recording the Fido parameters (@p Fido_prob_protein, @p Fido_prob_peptide, @p Fido_prob_spurious).@n
  The result can be passed to @ref TOPP_ProteinQuantifier via its @p protein_groups parameter, to have the protein grouping taken into account during quantification.@n
  Note that if the input contains multiple identification runs and @p separate_runs is @e not set (the default), the identification data from all runs will be pooled for the Fido analysis and the result will only contain one (merged) identification run. This is the desired behavior if the protein grouping should be used by ProteinQuantifier.
  When the @p greedy_group_resolution flag is set, "peptide to indistinguishable proteins" mappings will be unique in the output and the actual resolved groups are added as "protein groups", attached to the protein identification run(s) of the input data (in addition to the "indistinguishable protein groups").
- 
+
  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
  <B>The command line parameters of this tool are:</B>
@@ -122,13 +122,13 @@ public:
   TOPPBase("FidoAdapter", "Runs the protein inference engine Fido.")
   {
   }
-  
+
 protected:
-  
+
   typedef boost::bimap<String, String> StringBimap;
-  
+
   StringBimap sanitized_accessions_; // protein accessions
-  
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
@@ -157,7 +157,7 @@ protected:
     registerDoubleOption_("prob:spurious", "<value>", 0.0, "Spurious peptide identification probability ('beta' parameter)", false);
     setMinFloat_("prob:spurious", 0.0);
   }
-  
+
   // write a PSM graph file for Fido based on the given peptide identifications;
   // optionally only use IDs with given identifier (filter by protein ID run):
   void writePSMGraph_(vector<PeptideIdentification>& peptides,
@@ -179,7 +179,7 @@ protected:
       {
         continue;
       }
-      
+
       double score = hit.getScore();
       String score_type = pep_it->getScoreType();
       bool higher_better = pep_it->isHigherScoreBetter();
@@ -207,7 +207,7 @@ protected:
       if (!higher_better)
       {
         error_reason = "lower scores are better";
-      }     
+      }
       else if (score < 0.0)
       {
         error_reason = "score < 0";
@@ -216,7 +216,7 @@ protected:
       {
         error_reason = "score > 1";
       }
-      
+
       if (!error_reason.empty())
       {
         String msg = "Error: Unsuitable score type for peptide-spectrum "
@@ -227,7 +227,7 @@ protected:
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
-      
+
       // Remove modifications before writing to input graph file
       graph_out << "e " << hit.getSequence().toUnmodifiedString() << endl;
       const set<String>& accessions = hit.extractProteinAccessions();
@@ -242,8 +242,8 @@ protected:
     }
     graph_out.close();
   }
-  
-  
+
+
   // write the list of target and decoy proteins for Fido:
   void writeProteinLists_(const ProteinIdentification& protein,
                           const String& out_path)
@@ -274,7 +274,7 @@ protected:
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
     }
-    
+
     if (targets.empty())
     {
       String msg = "Error: No target proteins found. Fido needs both targets "
@@ -291,7 +291,7 @@ protected:
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
-    
+
     // write sets to file:
     ofstream proteins_out(out_path.c_str());
     proteins_out << "{ ";
@@ -309,8 +309,8 @@ protected:
     proteins_out << " }" << endl;
     proteins_out.close();
   }
-  
-  
+
+
   // run Fido(ChooseParameters) and read output:
   bool runFido_(ProteinIdentification& protein,
                 vector<PeptideIdentification>& peptides, bool choose_params,
@@ -323,7 +323,7 @@ protected:
     // create a copy of the params so the templates can be overwritten with
     // different values:
     QStringList current_fido_params = QStringList(fido_params);
-    
+
     LOG_INFO << "Generating temporary files for Fido..." << endl;
     String num = counter ? "." + String(counter) : "";
     String input_graph = temp_dir + "fido_input_graph" + num + ".txt";
@@ -340,10 +340,10 @@ protected:
       LOG_INFO << "Running Fido with parameter estimation..." << endl;
     }
     else LOG_INFO << "Running Fido with fixed parameters..." << endl;
-    
+
     QProcess fido;
     fido.start(exe.toQString(), current_fido_params);
-    
+
     if (!fido.waitForFinished(-1))
     {
       String cmd = exe + " \"" + String(current_fido_params.join("\" \"")) +
@@ -352,7 +352,7 @@ protected:
                 << "Does the Fido executable exist?" << endl;
       return false;
     }
-    
+
     // success! parse output:
     vector<String> lines;
     if (choose_params) // get relevant parts of parameter search output
@@ -386,7 +386,7 @@ protected:
         }
       }
     }
-    
+
     LOG_INFO << "Parsing Fido results and writing output..." << endl;
     String output = QString(fido.readAllStandardOutput());
     if (debug_level_ > 1)
@@ -397,16 +397,16 @@ protected:
       results.close();
     }
     output.split("\n", lines);
-    
+
     // edit ProteinIdentification with Fido information and scores but save old
     // information and scores in MetaInfo:
     const String old_scoretype = protein.getScoreType();
     protein.setScoreType("Posterior Probability");
     protein.setHigherScoreBetter(true);
     protein.setDateTime(DateTime::now());
-    
+
     Size protein_counter = 0, zero_proteins = 0;
-    
+
     // add protein groups to ProteinIdentification:
     vector<ProteinIdentification::ProteinGroup> groups;
     for (vector<String>::iterator line_it = lines.begin();
@@ -417,7 +417,7 @@ protected:
       istringstream line(*line_it);
       ProteinIdentification::ProteinGroup group;
       line >> group.probability;
-      
+
       // parse accessions:
       String accession;
       while (line)
@@ -430,10 +430,10 @@ protected:
             ++zero_proteins;
             if (!keep_zero_group) continue;
           }
-          
+
           // de-sanitize:
           accession = sanitized_accessions_.right.find(accession)->second;
-          
+
           // look up corresponding hits and update scores...
           std::vector<ProteinHit>::iterator hit = protein.findHit(accession);
 
@@ -452,7 +452,7 @@ protected:
             }
             hit->removeMetaValue("old_score_type");
           }
-          
+
           hit->setScore(group.probability);
           group.accessions.push_back(accession);
         }
@@ -464,7 +464,7 @@ protected:
         groups.push_back(group);
       }
     }
-    
+
     // Sort groups by probability and add the finally used Fido params
     // as meta values
     sort(groups.begin(), groups.end());
@@ -478,7 +478,7 @@ protected:
              << zero_proteins << " proteins with probability zero"
              << ((keep_zero_group || !zero_proteins) ? ")." : " not included).")
              << endl;
-    
+
     // Do post-processing on groups if specified
     if (greedy_flag)
     {
@@ -491,7 +491,7 @@ protected:
     return true;
   }
 
-  
+
   ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
@@ -506,22 +506,22 @@ protected:
     double prob_spurious = getDoubleOption_("prob:spurious");
     bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
                           (prob_spurious == 0.0)); // use FidoChooseParameters?
-    
+
     if (fido_executable.empty()) // expect executables in PATH
     {
       fido_executable = "Fido";
     }
-    
+
     if (fidocp_executable.empty()) // expect executables in PATH
     {
       fidocp_executable = "FidoChooseParameters";
     }
     String executable = choose_params ? fidocp_executable : fido_executable;
-    
+
     // input data:
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
-    
+
     LOG_INFO << "Reading input data..." << endl;
     IdXMLFile().load(in, proteins, peptides);
     if (proteins.empty() || peptides.empty())
@@ -530,7 +530,7 @@ protected:
                 << "' should contain both protein and peptide data." << endl;
       return INPUT_FILE_EMPTY;
     }
-    
+
     // remove protein hits that shouldn't be there:
     IDFilter::removeUnreferencedProteins(proteins, peptides);
 
@@ -555,7 +555,7 @@ protected:
       String sanitized = it->substr(0, pos) + "_" + String(acc_counter);
       sanitized_accessions_.insert(StringBimap::value_type(*it, sanitized));
     }
-    
+
     // create temporary directory:
     String temp_dir = File::getTempDirectory() + "/" + File::getUniqueName() +
       "/";
@@ -564,7 +564,7 @@ protected:
       QDir d;
       d.mkpath(temp_dir.toQString());
     }
-    
+
     // Fido parameters (use placeholders for paths - replace them later):
     QStringList fido_params;
     Int log2_states = getIntOption_("log2_states");
@@ -595,8 +595,8 @@ protected:
                   << QString::number(prob_spurious);
     }
     if (log2_states) fido_params << QString::number(log2_states);
-    
-    
+
+
     // actually run Fido now and process its output:
     bool fido_success = false;
 
@@ -619,7 +619,7 @@ protected:
       ProteinIdentification all_proteins; // one ID run to merge all hits
       // set search engine to Fido since they might disagree for different runs:
       all_proteins.setSearchEngine("Fido");
-      
+
       // make sure identifiers match (otherwise "IdXMLFile::store" complains):
       all_proteins.setIdentifier("");
       for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
@@ -627,7 +627,7 @@ protected:
       {
         pep_it->setIdentifier("");
       }
-      
+
       // for every protein (accession), save the first occurrence:
       map<String, ProteinHit*> hit_map; // protein hits by accession
       for (vector<ProteinIdentification>::reverse_iterator prot_it =
@@ -650,20 +650,20 @@ protected:
       {
         all_proteins.insertHit(*(map_it->second));
       }
-      
+
       fido_success = runFido_(all_proteins, peptides, choose_params, executable,
                               fido_params, prob_protein, prob_peptide,
                               prob_spurious, temp_dir, keep_zero_group,
                               greedy_flag);
-      
+
       // replace proteins with merged variant:
       proteins.clear();
       proteins.push_back(all_proteins);
     }
-    
+
     // write output:
     IdXMLFile().store(out, proteins, peptides);
-    
+
     // clean up temporary files:
     if (debug_level_ > 1)
     {
@@ -681,7 +681,7 @@ protected:
         LOG_DEBUG << msg << endl;
       }
     }
-    
+
     return fido_success ? EXECUTION_OK : EXTERNAL_PROGRAM_ERROR;
   }
 };
@@ -689,7 +689,7 @@ protected:
 int main(int argc, const char** argv)
 {
   TOPPFidoAdapter tool;
-  
+
   return tool.main(argc, argv);
 }
 
