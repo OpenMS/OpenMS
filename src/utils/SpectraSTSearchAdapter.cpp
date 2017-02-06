@@ -76,6 +76,7 @@ class TOPPSpectraSTSearchAdapter :
   static const String param_sequence_database_file;
   static const String param_sequence_database_type;
   static const String param_search_file;
+  static const String param_params_file;
   static const String param_precursor_mz_tolerance;
   static const String param_use_isotopically_averaged_mass;
   static const String param_use_all_charge_states;
@@ -128,6 +129,11 @@ protected:
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_search_file, "<search_file>", "", "Only search a subset of the query spectra in the search file", false, false);
       setValidFormats_(TOPPSpectraSTSearchAdapter::param_search_file, ListUtils::create<String>("txt,dat"), false);
 
+      // params file
+      registerInputFile_(TOPPSpectraSTSearchAdapter::param_params_file, "<params_file>", "", "Read search options from file. All options set in the file will be overridden by command-line options, if specified.",false,false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_params_file, ListUtils::create<String>("params"), false);
+
+
       // Precursor m/z tolerance
       registerDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance, "<precursor_mz_tolerance>", 10, "m/z tolerance within which candidate entries are compared to the query", false, false);
 
@@ -153,6 +159,13 @@ protected:
      if (executable.empty())
      {
          executable = "spectrast";
+     }
+
+     // Set the parameter file if present
+     String params_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_params_file);
+     if(! params_file.empty())
+     {
+         arguments << params_file.toQString().prepend("-sF");
      }
 
      // Add library file argument, terminate if the corresponding spidx is not present
@@ -339,6 +352,7 @@ const String TOPPSpectraSTSearchAdapter::param_library_file = "library_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_file = "sequence_database_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_type = "sequence_database_type";
 const String TOPPSpectraSTSearchAdapter::param_search_file = "search_file";
+const String TOPPSpectraSTSearchAdapter::param_params_file = "params_file";
 const String TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance = "precursor_mz_tolerance";
 const String TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass = "use_isotopically_averaged_mass";
 const String TOPPSpectraSTSearchAdapter::param_use_all_charge_states = "use_all_charge_states";
@@ -346,8 +360,6 @@ const String TOPPSpectraSTSearchAdapter::param_output_files = "output_files";
 const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
 const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
-
-
 
 
 
