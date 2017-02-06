@@ -281,7 +281,7 @@ namespace OpenMS
 
         // check if ini parameters are applicable to this tool
         checkIfIniParametersAreApplicable_(ini_params);
-        // update default params with old params given in -ini and be verbose
+        // update default params with outdated params given in -ini and be verbose
         default_params.update(ini_params, false);
       }
       ParamXMLFile paramFile;
@@ -386,7 +386,7 @@ namespace OpenMS
       checkParam_(param_common_, (String)value_ini, "common:");
 
       // check if the version of the parameters file matches the version of this tool
-      // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the old INI
+      // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the outdated INI
       String file_version = "";
       if (param_inifile_.exists(tool_name_ + ":version"))
       {
