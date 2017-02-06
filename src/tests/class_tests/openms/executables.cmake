@@ -506,6 +506,7 @@ set(transformations_executables_list
   ContinuousWaveletTransformNumIntegration_test
   ContinuousWaveletTransform_test
   EGHTraceFitter_test
+  ElutionModelFitter_test
   EmgFitter1D_test
   EmgModel_test
   ExtendedIsotopeFitter1D_test
