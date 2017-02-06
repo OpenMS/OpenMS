@@ -93,7 +93,9 @@ if (label_file.is_open())
   while (label_file.good())
   {
     Size index;
-    label_file >> index >> labels[index];
+    Int label;
+    label_file >> index >> label;
+    labels[index] = label;
   }
   label_file.close();
 }
@@ -181,6 +183,9 @@ START_SECTION((void writeXvalResults(const String& path) const))
   string xval_file;
   NEW_TMP_FILE(xval_file);
   svm.writeXvalResults(xval_file);
+  // cross-validation results are somewhat random, so don't be too strict:
+  TOLERANCE_ABSOLUTE(0.2);
+  TOLERANCE_RELATIVE(1.2);
   TEST_FILE_SIMILAR(xval_file,
                     OPENMS_GET_TEST_DATA_PATH("SimpleSVM_test_xval.txt"));
 }
