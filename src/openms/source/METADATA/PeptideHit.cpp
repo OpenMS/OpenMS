@@ -247,7 +247,6 @@ namespace OpenMS
 
   std::vector<PeptideHit::FragmentAnnotation> PeptideHit::getFragmentAnnotations() const
   {
-    static std::vector<PeptideHit::FragmentAnnotation> empty;
     return fragment_annotations_;
   }
 

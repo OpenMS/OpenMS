@@ -390,9 +390,10 @@ namespace OpenMS
       String inputs_element;
       std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;
       std::set<String> sen_set, sof_set, sip_set;
-      std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids, pep_pairs_ppxl;
+      std::map<String, String> sdb_ids, sen_ids, sof_ids, sdat_ids, pep_ids;
+      //std::map<String, String> pep_pairs_ppxl;
       std::map<String, double> pp_identifier_2_thresh;
-      std::vector< std::pair<String, String> > pepid_pairs_ppxl;
+      //std::vector< std::pair<String, String> > pepid_pairs_ppxl;
 
       // file type-specific definitions needed for SpectraData element:
       std::map<FileTypes::Type, std::pair<String, String> > formats_map;
@@ -835,7 +836,7 @@ namespace OpenMS
                 p += "\" name=\"" + n_term_mod->getId();
                 if (unimod)
                 {
-               	  p += "\" cvRef=\"UNIMOD\"/>";
+                  p += "\" cvRef=\"UNIMOD\"/>";
                 }
                 else
                 {

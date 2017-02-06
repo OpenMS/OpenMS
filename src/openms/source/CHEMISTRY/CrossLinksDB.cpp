@@ -257,7 +257,7 @@ namespace OpenMS
         {
           mod.setDiffMonoMass(val_split[1].toDouble());
         }
-        else if(val.hasPrefix("specificities:"))
+        else if (val.hasPrefix("specificities:"))
         {
           // TODO cross-linker specificities can be different for both chain sides, right now the union of both sides is used
           // Input parameters of the cross-link search tool make sure, that the chemistry is not violated

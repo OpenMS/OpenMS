@@ -1233,7 +1233,7 @@ namespace OpenMS
                   ++index_counter;
                 }
 
-                for (set<String>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); set_it++)
+                for (set<String>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); ++set_it)
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
                 }
@@ -1713,7 +1713,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
         ph_alpha.setMetaValue("xl_mass",DataValue(xl_mass_map_.at(peptides[alpha[0]])));
       }
-      else if( xl_mod_map_.find(peptides[alpha[0]]) != xl_mod_map_.end() )
+      else if ( xl_mod_map_.find(peptides[alpha[0]]) != xl_mod_map_.end() )
       {
         ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
       }
