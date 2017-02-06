@@ -119,13 +119,14 @@ protected:
 
       // Sequence database file
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, "<sequencedb_file>.fasta", "", "Specify a sequence database file",false,false);
-      setValidFormats_(TOPPSpectraSTSearchAdapter::param_sequence_database_file,ListUtils::create<String>("fasta"),false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, ListUtils::create<String>("fasta"),false);
 
       registerStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_type, "<sequencedb_type>", "", "Specify type of sequence database",false, false);
       setValidStrings_(TOPPSpectraSTSearchAdapter::param_sequence_database_type,ListUtils::create<String>("DNA,AA"));
 
       // Search file
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_search_file, "<search_file>", "", "Only search a subset of the query spectra in the search file", false, false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_search_file, ListUtils::create<String>("txt,dat"), false);
 
       // Precursor m/z tolerance
       registerDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance, "<precursor_mz_tolerance>", 10, "m/z tolerance within which candidate entries are compared to the query", false, false);
@@ -293,23 +294,22 @@ protected:
       arguments << input_file.toQString();
      }
 
-
-     // Echoing the command
-     cout << "COMMAND: " << executable;
+     // Writing the final spectrast command to the DEBUG LOG
+     LOG_DEBUG << "COMMAND: " << executable;
      for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
      {
-         cout << " " << it->toStdString();
+         LOG_DEBUG << " " << it->toStdString();
      }
-     cout << endl;
+     LOG_DEBUG << endl;
 
 
-     // Run specteast
+     // Run spectrast
      QProcess spectrast_process;
      spectrast_process.start(executable.toQString(), arguments);
 
      if (! spectrast_process.waitForFinished(-1))
      {
-         LOG_ERROR << "Fatal error running SpectraST\n" << "Does the spectrast executable exist?" << endl;
+         LOG_ERROR << "Fatal error running SpectraST\nDoes the spectrast executable exist?" << endl;
          return EXTERNAL_PROGRAM_ERROR;
      }
 
@@ -334,7 +334,7 @@ protected:
 // Definition of static members
 const String TOPPSpectraSTSearchAdapter::param_executable = "executable";
 const String TOPPSpectraSTSearchAdapter::param_spectra_files = "spectra_files";
-const String TOPPSpectraSTSearchAdapter::param_spectra_files_formats = "mzXML,mzData,dta,msp,mzML";
+const String TOPPSpectraSTSearchAdapter::param_spectra_files_formats = "mzML,mzXML,mzData,dta,msp";
 const String TOPPSpectraSTSearchAdapter::param_library_file = "library_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_file = "sequence_database_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_type = "sequence_database_type";
