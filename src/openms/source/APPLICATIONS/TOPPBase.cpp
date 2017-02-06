@@ -194,8 +194,8 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
+      writeLog_("Invalid parameter values (" + String(e.getName()) + "): " + String(e.getMessage()) + ". Aborting!");
       printUsage_();
-      writeLog_("Invalid parameter values: " + String(e.getMessage()) + ". Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -281,7 +281,7 @@ namespace OpenMS
 
         // check if ini parameters are applicable to this tool
         checkIfIniParametersAreApplicable_(ini_params);
-        // update default params with old params given in -ini and be verbose
+        // update default params with outdated params given in -ini and be verbose
         default_params.update(ini_params, false);
       }
       ParamXMLFile paramFile;
@@ -316,7 +316,9 @@ namespace OpenMS
       DataValue value_ini;
 
       if (param_cmdline_.exists("ini"))
+      {
         value_ini = param_cmdline_.getValue("ini");
+      }
       if (!value_ini.isEmpty())
       {
         writeDebug_("INI file: " + (String)value_ini, 1);
@@ -360,15 +362,23 @@ namespace OpenMS
       writeDebug_("Merging common section without tool name into param:", param_common_, 2);
       finalParam.merge(param_common_);
 
-      // finally validate and augment everything with the default values of this tool
+
+      finalParam.remove("ini"); // not contained in default params; remove to avoid "unknown param" in update()
+
+      // finally: augment default values with INI/CLI values
       // note the copy(getIniLocation_(),..) as we want the param tree without instance
       // information
       param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-      Logger::LogStream noOutput(new Logger::LogStreamBuf("NO_OUTPUT"), true);
-      param_.update(finalParam, true, noOutput);
+      if (!param_.update(finalParam, false, false, true, true, LOG_WARN))
+      {
+        LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
 
       if (finalParam.exists("type"))
+      {
         param_.setValue("type", finalParam.getValue("type"));
+      }
 
       // check if all parameters are registered and have the correct type
       checkParam_(param_instance_, (String)value_ini, getIniLocation_());
@@ -376,13 +386,15 @@ namespace OpenMS
       checkParam_(param_common_, (String)value_ini, "common:");
 
       // check if the version of the parameters file matches the version of this tool
+      // the parameters and values are all ok, but there might be more valid values now or new parameters which are currently not visible in the outdated INI
       String file_version = "";
       if (param_inifile_.exists(tool_name_ + ":version"))
       {
         file_version = param_inifile_.getValue(tool_name_ + ":version");
         if (file_version != version_)
         {
-          writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").");
+          writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").\n"
+                    "Your current parameters are still valid, but there might be new valid values or even new parameters. Upgrading the INI might be useful.");
         }
       }
     }
@@ -1243,7 +1255,7 @@ namespace OpenMS
     // if required or set by user, do some validity checks
     if (p.required || (!getParam_(name).isEmpty() && tmp != p.default_value))
     {
-      //check if files are readable/writable
+      // check if files are readable/writable
       if (p.type == ParameterInformation::INPUT_FILE)
       {
         if (!ListUtils::contains(p.tags, "skipexists"))
@@ -1254,7 +1266,7 @@ namespace OpenMS
         outputFileWritable_(tmp, name);
       }
 
-      //check restrictions
+      // check restrictions
       if (p.valid_strings.size() != 0)
       {
         if (p.type == ParameterInformation::STRING)
@@ -2496,6 +2508,22 @@ namespace OpenMS
   {
     Param cmd_params;
 
+    // current state:
+    // 'parameters_' contains all commandline params which were registered using 'registerOptionsAndFlags_()' + the common ones (-write_ini etc)
+    // .. they are empty/default at this point
+    // We now fetch the (so-far unknown) subsection parameters (since they can be addressed on command line as well)
+
+    // special case of GenericWrapper: since we need the subSectionDefaults before pushing the cmd arguments in there
+    //                                 but the 'type' is empty currently,
+    //                                 we extract and set it beforehand
+    StringList sl_args = StringList(argv, argv + argc);
+    StringList::iterator it_type = std::find(sl_args.begin(), sl_args.end(), "-type");
+    if (it_type != sl_args.end())
+    { // found it
+      ++it_type; // advance to next argument -- this should be the value of -type
+      if (it_type != sl_args.end()) param_.setValue("type", *it_type);
+    }
+
     // prepare map of parameters:
     typedef map<String, vector<ParameterInformation>::const_iterator> ParamMap;
     ParamMap param_map;
@@ -2515,8 +2543,8 @@ namespace OpenMS
       }
     }
     catch (BaseException& e)
-    {
-      writeLog_("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool.");
+    { // this only happens for GenericWrapper, if 'type' is not given or invalid (then we do not have subsection params) -- enough to issue a warning
+      writeLog_(String("Warning: Unable to fetch subsection parameters! Addressing subsection parameters will not work for this tool (did you forget to specify '-type'?)."));
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ")!", 1);
     }
 
@@ -2603,7 +2631,7 @@ namespace OpenMS
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
-          LOG_DEBUG << "Setting parameter value: " << pos->second->name << " to " << value << std::endl;
+          LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
           cmd_params.setValue(pos->second->name, value);
         }
         else // unknown argument -> append to "unknown" list
