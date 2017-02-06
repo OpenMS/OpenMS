@@ -122,6 +122,7 @@ protected:
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, "<sequencedb_file>.fasta", "", "Specify a sequence database file",false,false);
       setValidFormats_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, ListUtils::create<String>("fasta"),false);
 
+
       registerStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_type, "<sequencedb_type>", "", "Specify type of sequence database",false, false);
       setValidStrings_(TOPPSpectraSTSearchAdapter::param_sequence_database_type,ListUtils::create<String>("DNA,AA"));
 
@@ -167,6 +168,7 @@ protected:
      {
          arguments << params_file.toQString().prepend("-sF");
      }
+
 
      // Add library file argument, terminate if the corresponding spidx is not present
      String library_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_library_file);
@@ -360,7 +362,6 @@ const String TOPPSpectraSTSearchAdapter::param_output_files = "output_files";
 const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
 const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
-
 
 
 
