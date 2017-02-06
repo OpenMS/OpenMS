@@ -11,7 +11,13 @@
 \usepackage{float}
 \usepackage{alltt}
 \usepackage{newtxtext, newtxmath}
-\usepackage[full]{textcomp} %Careful: newtxttext also loads textcomp. Option full needs to match.
+% newtxtext loads textcomp only in newer versions and with differing options between versions
+% @commands need to be enclosed by makeatletter and makeatother
+\makeatletter
+\@ifpackageloaded{textcomp} 
+  {} % do nothing if loaded by the previous package to avoid option clashes
+  {\usepackage{textcomp}} % otherwise load the package
+\makeatother
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,

@@ -33,23 +33,18 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li>have a Visual Studio 2005/2008/2010[SP1]/2012/2013 installed (The C++ Express editions should work as well, we tested VSE2008, VSE2012 and VSE2013).
+      <li>have a Visual Studio 2005/2008/2010[SP1]/2012/2013/2015 installed (The C++ Express editions should work as well, we tested VSE2008, VSE2012 and VSE2013).
         <br>Visual C++ Express 2012 and above support Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the internet.
         <br>If you work with VS2008, installation of the Service Pack 1 (SP1) is required,
             otherwise VS might crash during the compilation of the contrib package.
         <br><b>Not supported are MinGW (g++ based compiler) and VS2003 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
-             [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2]
-      <li>If you work with the Git (= nightly) version of %OpenMS (instead of the Release package), we recommend downloading
-        the pre-compiled binaries <a href="http://ftp.mi.fu-berlin.de/pub/OpenMS/nightly_binaries/">here</a>. There are multiple binary distributions out there. Pick the one you like.
-        Binaries including "Head" or "head" include the latest updates and fixes but might be unstable.
-      <li>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
+      <li>Have CMake 2.8.10 or greater installed (see http://www.cmake.org).<br>
+	      CMake's Generator (-G flag) must support your version of Visual Studio.<br>
+          [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2, etc...]
+      <li>To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
-      <li>To build the contrib-package you will need <tt>patch</tt> (see http://gnuwin32.sourceforge.net/packages/patch.htm)
-        <br>patch.exe is searched in "C:/Program Files/gnuwin32/bin" and "C:/Program Files/patch/bin". Make sure it is in either of these locations or add
-        the installation directory to your PATH. <tt>patch</tt> might be installed with your "Git for Windows" installation if present.
     </ul>
 
 
@@ -57,58 +52,7 @@
 
     %OpenMS depends on several other libraries. On a windows system, these are usually not present.
 
-  @subsection install_qt QT installation
-
-    We require Qt version 4.5 or higher.<br>
-    <b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
-    VS2012 and VS2013 require at least Qt 4.8.4 with some additional fix (see below).
-
-    Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
-    Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
-    32bit compilations. If you are compiling for 32bit as well, you can download these and save a lot of time. They are incompatible for 64bit builds -
-    compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
-    they are incompatible with Visual Studio binaries.
-
-    Follow this procedure if you want to compile Qt yourself:
-    <ol>
-      <li>non-commercial:
-        <ol>
-          <li>download Qt <b>source</b> from http://qt-project.org/downloads as .zip or .tar.gz (or use the prebuild binaries exactly matching your compiler!)
-          <li>extract zip file to a temp location (called <path-to-tmp-qt> henceforth)
-                    <li>[VS2012 and VS2013 only] there is a bug in the latest Qt (4.8.4 and 4.8.5) preventing compilation. Look at http://stackoverflow.com/questions/12113400/compiling-qt-4-8-x-for-visual-studio-2012 for a fix.
-                            It's meant for 4.8.3 though. For 4.8.4 and 4.8.5 you only need to fix HashSet.h!
-                            If you use VS2013 you additionally need to remove three functions from <path-to-tmp-qt>\src\3rdparty\webkit\Source\JavaScriptCore\wtf\MathExtras.h,
-                            which are already defined by VS2013 (round(), roundf and signbit()).
-          <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-          <li>
-            \code
-            $ cd <path-to-tmp-qt>
-            \endcode
-          <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-		  <li>[VS2013 only] Qt 4.8.5 does not support VS2013 out of the box. You need to change QMAKE_COMPILER_DEFINES to <tt>+= _MSC_VER=<b>1800</b> WIN32</tt> in <tt>&lt;qt&gt;\mkspecs\win32-msvc2012</tt> and call configure.exe with <tt>-platform win32-msvc2012</tt>.
-          <li>
-            \code
-            $ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>  ...[more options, e.g. -graphicssystem opengl]
-            \endcode
-          <li>
-            \code
-            $ nmake
-            \endcode
-          <li>
-          \code
-          $ nmake install
-          \endcode
-          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories. You can delete <tt><path-to-tmp-qt></tt> (since it will consume quite a lot of disk space)
-          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
-        </ol>
-      <li>commercial:
-        <ol>
-          <li>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
-        </ol>
-      <li>add the <tt>&lt;Qt&gt;/bin</tt> (!) directory to your PATH Environment Variable
-        </ol>
-
-    @subsection install_win_contrib Contrib installation
+  @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
         "contrib-package" containing the libraries Boost, Eigen, WildMagic, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
@@ -120,7 +64,7 @@
             <li>We applied some patches to the libraries to fix some bugs. <BR><b>These bugs may be fatal if you do not use the contrib package.</b></li>
         </ul>
 
-  @b Download:
+    @b Download:
 
     The contrib package is contained in the %OpenMS release package.
 
@@ -130,15 +74,14 @@
     \endcode
     to obtain the latest developer version (potentially unstable).
 
-  @b Installation:
+    @b Installation:
 
-    On Vista/Win7/Win8 some programs using during contrib creation (e.g. <tt>patch.exe</tt>) require elevation, otherwise the contrib will not build.
-    Thus, you need an admin account with disabled UAC (User Account Control) or alternatively you can start a command line by right-clicking on its link and choosing "Run as administrator", while UAC is still enabled.
-
-    After you got the source code for the contrib package open a VisualStudio Command line (see Start-Menu).
+    After you got the source code for the contrib package follow these steps:
 
     <ol>
-      <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <li>Open a <b>VisualStudio Developer Command prompt<b> (use the x64 version if you want 64 bit apps!)<br>
+					VS2015 does not provide a commandline shortcut for a 64bit Command Prompt.<br>
+					Call <b>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64'</b> to get one!
       <li>Create a build directory for the %OpenMS contrib <br>
         -e.g. <tt>$ mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
@@ -157,11 +100,64 @@
         Example:
         \code
         cd c:\dev\contrib_win64_build
-        cmake -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
+        cmake -DBUILD_TYPE=ALL -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
         \endcode
 
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
     </ol>
+   
+	@subsection install_qt QT installation
+
+    Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
+    Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
+    32bit compilations. If you are compiling for 32bit as well, you can download these and save a lot of time. They are incompatible for 64bit builds -
+    compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
+    they are incompatible with Visual Studio binaries.
+
+    To build Qt from sources, download Qt 4.8.7, which supports all VS versions up to VS 2015!
+    <b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
+
+    Follow this procedure if you want to compile Qt yourself:
+    <ol>
+      <li>non-commercial:
+        <ol>
+          <li>download <b>Qt 4.8.7 source</b> from https://download.qt.io/official_releases/qt/4.8/ as .zip or .tar.gz
+          <li>extract zip file to a temp location (called <path-to-tmp-qt> henceforth)
+					<li>[VS2015 only] Qt 4.8.7 will not compile with VS2015 out of the box (previous VS version should be fine).
+							We have included a patch file in our contrib (see above) which should be applied to the extracted Qt sources, i.e.
+							\code
+								$ cd <path-to-tmp-qt>
+  							$ <path_to_contrib>\tools\patch.exe -p0 -b -N -l -i <path_to_contrib>\patches\qt\qt4.8.7_build_with_msvc2015.diff
+							\endcode
+          <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+          <li>
+            \code
+            $ cd <path-to-tmp-qt>
+            \endcode
+          <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
+          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <path-to-qt>, e.g. "c:/dev/Qt4.8.7/").
+            \code
+            $ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>
+            \endcode
+          <li>
+            \code
+            $ nmake
+            \endcode
+          <li>
+						\code
+						$ nmake install
+						\endcode
+          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories. You can delete <tt><path-to-tmp-qt></tt> (since it will consume quite a lot of disk space)
+          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
+        </ol>
+      <li>commercial:
+        <ol>
+          <li>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
+        </ol>
+      <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable
+        </ol>
+
+ 
 
 @section create_doc Building the documentation (optional)
 
@@ -236,7 +232,7 @@
 
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
     If you choose another generator (e.g. Eclipse) you will find something equivalent. If you want to work on only a
-    subset of OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the src/ folder of your
+    subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the src/ folder of your
     build folder and below (e.g., src/openms_gui/OpenMS_GUI.sln).
 
     In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
