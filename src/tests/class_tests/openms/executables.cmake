@@ -479,6 +479,7 @@ set(analysis_executables_list
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
+  SimpleSVM_test
   StablePairFinder_test
   #TargetedExperimentHelper_test
   TransformationDescription_test
