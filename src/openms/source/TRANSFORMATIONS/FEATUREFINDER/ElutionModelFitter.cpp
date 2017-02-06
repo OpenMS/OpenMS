@@ -91,7 +91,7 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
   double rt_end = min(fitter->getUpperRTBound(), 
                       traces[0].peaks.back().first);
-  
+
   for (MassTraces::const_iterator tr_it = traces.begin();
        tr_it != traces.end(); ++tr_it)
   {
@@ -374,7 +374,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     // median absolute deviation (constant factor to approximate std. dev.):
     double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
                                             abs_diffs.end());
-    
+
     for (Size i = 0; i < features.size(); ++i)
     {
       double asym = asym_all[i];
@@ -396,7 +396,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   TransformationModel::DataPoints quant_values;
   vector<FeatureMap::Iterator> failed_models;
   Size model_successes = 0, model_failures = 0;
-  
+
   for (FeatureMap::Iterator feat_it = features.begin(); 
        feat_it != features.end(); ++feat_it, ++index)
   {
@@ -439,4 +439,3 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     }
   }
 }
-
