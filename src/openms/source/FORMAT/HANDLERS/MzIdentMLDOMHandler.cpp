@@ -1653,7 +1653,7 @@ namespace OpenMS
       {
         ++alpha_pos;
       }
-      else if (alpha_pos == (*pep_map_.find(peptides[alpha[0]])).second.size())
+      else if (alpha_pos == static_cast<SignedSize>((*pep_map_.find(peptides[alpha[0]])).second.size()))
       {
         --alpha_pos;
       }
@@ -1730,7 +1730,7 @@ namespace OpenMS
         {
           ++beta_pos;
         }
-        else if (beta_pos == (*pep_map_.find(peptides[beta[0]])).second.size())
+        else if (beta_pos == static_cast<SignedSize>((*pep_map_.find(peptides[beta[0]])).second.size()))
         {
           --beta_pos;
         }
