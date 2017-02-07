@@ -47,6 +47,57 @@ namespace OpenMS
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
 
+    int TOPPASVertex::TOPPASFilenames::size() const
+  {
+    return filenames_.size();
+  }
+
+  const QStringList& TOPPASVertex::TOPPASFilenames::get() const
+  {
+    return filenames_;
+  }
+  const QString& TOPPASVertex::TOPPASFilenames::operator[](int i) const
+  {
+    return filenames_[i];
+  }
+
+  void TOPPASVertex::TOPPASFilenames::set(const QStringList& filenames)
+  {
+    filenames_.clear();
+    this->append(filenames);
+  }
+
+  void TOPPASVertex::TOPPASFilenames::set(const QString& filename, int i)
+  {
+    check_(filename);
+    filenames_[i] = filename;
+  }
+
+  void TOPPASVertex::TOPPASFilenames::push_back(const QString& filename)
+  {
+    check_(filename);
+    filenames_.push_back(filename);
+  }
+
+  void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
+  {
+    foreach(const QString& fn, filenames)
+    {
+      check_(fn);
+      push_back(fn);
+    }
+  }
+
+  void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
+  {
+    const int max_filename_length = 255; // the usual NTFS and Ext2/3/4 limit
+    if (filename.count() >= max_filename_length)
+    {
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename.toStdString(), max_filename_length);
+    }
+  }
+
+
   TOPPASVertex::TOPPASVertex() :
     QObject(),
     QGraphicsItem(),
@@ -222,7 +273,7 @@ namespace OpenMS
         {
           upstream_round %= tv_upstream->round_total_;
         }
-        rpg.filenames = tv_upstream->getFileNames(param_index_src_out, upstream_round);
+        rpg.filenames.set(tv_upstream->getFileNames(param_index_src_out, upstream_round));
 
         // hack for merger vertices, as they have multiple incoming edges with -1 as index
         while (pkg[round].count(param_index_tgt_in))
@@ -248,7 +299,7 @@ namespace OpenMS
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
     }
     //String s = String(rp[param_index].filenames.join("\" \""));
-    return rp[param_index].filenames;
+    return rp[param_index].filenames.get();
   }
 
   QStringList TOPPASVertex::getFileNames() const
@@ -262,7 +313,7 @@ namespace OpenMS
            it != output_files_[r].end();
            ++it)
       {
-        fl.append(it->second.filenames);
+        fl.append(it->second.filenames.get());
       }
     }
     return fl;

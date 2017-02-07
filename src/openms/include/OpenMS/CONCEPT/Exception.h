@@ -557,6 +557,21 @@ public:
     };
 
     /**
+    @brief Filename is too long to be writable/readable by the filesystem
+
+    This exception usually occurs when output filenames are automatically generated 
+    and are found to be too long. Usually 255 characters is the limit (NTFS, Ext2/3/4,...).
+
+    @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI FileNameTooLong :
+      public BaseException
+    {
+    public:
+      FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) throw();
+    };
+
+    /**
       @brief General IOException.
 
       General error for IO operations, that can not be associated to the more specific exceptions (e.g. FileNotWritable)
