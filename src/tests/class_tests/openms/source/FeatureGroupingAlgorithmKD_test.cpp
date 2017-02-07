@@ -32,56 +32,52 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-namespace OpenMS
-{
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
-KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
-  data_(data),
-  idx_(idx)
-{
-}
+using namespace OpenMS;
+using namespace std;
 
-KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
-  data_(rhs.data_),
-  idx_(rhs.idx_)
-{
-}
+START_TEST(FeatureGroupingAlgorithmKD, "$Id$")
 
-KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
-{
-  data_ = rhs.data_;
-  idx_ = rhs.idx_;
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-  return *this;
-}
+FeatureGroupingAlgorithmKD* ptr = 0;
+FeatureGroupingAlgorithmKD* nullPointer = 0;
+START_SECTION((FeatureGroupingAlgorithmKD()))
+  ptr = new FeatureGroupingAlgorithmKD();
+  TEST_NOT_EQUAL(ptr, nullPointer)
+END_SECTION
 
-KDTreeFeatureNode::~KDTreeFeatureNode()
-{
-}
+START_SECTION((virtual ~FeatureGroupingAlgorithmKD()))
+  delete ptr;
+END_SECTION
 
-Size KDTreeFeatureNode::getIndex() const
-{
-  return idx_;
-}
+START_SECTION((static FeatureGroupingAlgorithm* create()))
+  FeatureGroupingAlgorithm* ptr2 = 0;
+  FeatureGroupingAlgorithm* base_NullPointer = 0;
+  ptr2 = FeatureGroupingAlgorithmKD::create();
+  TEST_NOT_EQUAL(ptr2, base_NullPointer)
+END_SECTION
 
-KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
-{
-  if (i == 0)
-  {
-    return data_->rt(idx_);
-  }
-  else if (i == 1)
-  {
-    return data_->mz(idx_);
-  }
-  else
-  {
-    const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, err_msg);
-  }
-}
+START_SECTION((static String getProductName()))
+  TEST_EQUAL(FeatureGroupingAlgorithmKD::getProductName(), "unlabeled_kd")
+END_SECTION
 
-}
+START_SECTION((virtual void group(const std::vector<FeatureMap>& maps, ConsensusMap& out)))
+  // This is tested in the UTILS test
+  NOT_TESTABLE;
+END_SECTION
+
+START_SECTION((virtual void group(const std::vector<ConsensusMap>& maps, ConsensusMap& out)))
+  // This is tested in the UTILS test
+  NOT_TESTABLE;
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST

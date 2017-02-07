@@ -32,56 +32,89 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
-namespace OpenMS
-{
+using namespace OpenMS;
+using namespace std;
 
-KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
-  data_(data),
-  idx_(idx)
-{
-}
+START_TEST(KDTreeFeatureNode, "$Id$")
 
-KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
-  data_(rhs.data_),
-  idx_(rhs.idx_)
-{
-}
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
-{
-  data_ = rhs.data_;
-  idx_ = rhs.idx_;
+Feature f1;
+f1.setCharge(2);
+f1.setIntensity(100);
+f1.setMZ(400);
+f1.setRT(1000);
 
-  return *this;
-}
+Feature f2;
+f2.setCharge(3);
+f2.setIntensity(1000);
+f2.setMZ(500);
+f2.setRT(2000);
 
-KDTreeFeatureNode::~KDTreeFeatureNode()
-{
-}
+FeatureMap fmap;
+fmap.push_back(f1);
+fmap.push_back(f2);
 
-Size KDTreeFeatureNode::getIndex() const
-{
-  return idx_;
-}
+vector<FeatureMap> fmaps;
+fmaps.push_back(fmap);
 
-KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
-{
-  if (i == 0)
-  {
-    return data_->rt(idx_);
-  }
-  else if (i == 1)
-  {
-    return data_->mz(idx_);
-  }
-  else
-  {
-    const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, err_msg);
-  }
-}
+Param p;
+p.setValue("rt_tol", 100);
+p.setValue("mz_tol", 10);
+p.setValue("mz_unit", "ppm");
 
-}
+KDTreeFeatureMaps* kd_data_ptr = new KDTreeFeatureMaps(fmaps, p);
+
+KDTreeFeatureNode* ptr = 0;
+KDTreeFeatureNode* nullPointer = 0;
+
+START_SECTION((KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx)))
+  ptr = new KDTreeFeatureNode(kd_data_ptr, 0);
+  TEST_NOT_EQUAL(ptr, nullPointer)
+END_SECTION
+
+START_SECTION((virtual ~KDTreeFeatureNode()))
+  delete ptr;
+END_SECTION
+
+KDTreeFeatureNode node_1(kd_data_ptr, 1);
+
+START_SECTION((KDTreeFeatureNode(const KDTreeFeatureNode& rhs)))
+  ptr = new KDTreeFeatureNode(node_1);
+  TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_EQUAL(ptr->getIndex(), node_1.getIndex())
+  TEST_REAL_SIMILAR((*ptr)[0], node_1[0])
+  TEST_REAL_SIMILAR((*ptr)[1], node_1[1])
+  delete ptr;
+END_SECTION
+
+START_SECTION((KDTreeFeatureNode& operator=(KDTreeFeatureNode const& rhs)))
+  KDTreeFeatureNode node_2 = node_1;
+  TEST_EQUAL(node_2.getIndex(), node_1.getIndex())
+  TEST_REAL_SIMILAR(node_2[0], node_1[0])
+  TEST_REAL_SIMILAR(node_2[1], node_1[1])
+END_SECTION
+
+START_SECTION((Size getIndex() const))
+  TEST_EQUAL(node_1.getIndex(), 1)
+END_SECTION
+
+START_SECTION((value_type operator[](Size i) const))
+  TEST_REAL_SIMILAR(node_1[0], 2000)
+  TEST_REAL_SIMILAR(node_1[1], 500)
+END_SECTION
+
+delete kd_data_ptr;
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST

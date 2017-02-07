@@ -101,6 +101,7 @@ namespace OpenMS
       PSQ,                ///< NCBI binary blast db
       MRM,                ///< SpectraST MRM List
       PSMS,               ///< Percolator tab-delimited output (PSM level)
+      PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

@@ -389,7 +389,7 @@ public:
     */
     void sortByPosition()
     {
-      if (float_data_arrays_.empty())
+      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
         std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
       }
