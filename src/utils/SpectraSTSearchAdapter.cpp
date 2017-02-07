@@ -164,7 +164,7 @@ protected:
 
      // Set the parameter file if present
      String params_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_params_file);
-     if(! params_file.empty())
+     if (! params_file.empty())
      {
          arguments << params_file.toQString().prepend("-sF");
      }
