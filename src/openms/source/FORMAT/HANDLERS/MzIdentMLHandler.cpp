@@ -898,7 +898,7 @@ namespace OpenMS
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
                 // Failsafe, if someone uses a new cross-linker (given these conditions, there MUST be a linker at this position, but it does not have a Unimod or XLMOD entry)
-                else if (jt->metaValueExists("xl_mod") && (jt->getMetaValue("xl_pos").toString().toInt() == i) && (jt->getMetaValue("xl_type").toString() == "mono-link") )
+                else if (jt->metaValueExists("xl_mod") && (static_cast<Size>(jt->getMetaValue("xl_pos").toString().toInt()) == i) && (jt->getMetaValue("xl_type").toString() == "mono-link") )
                 {
                   p += "\t\t<Modification location=\"" + String(i + 1);
                   p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
