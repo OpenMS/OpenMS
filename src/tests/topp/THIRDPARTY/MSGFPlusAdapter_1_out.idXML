@@ -64,7 +64,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="520.262817382812" RT="2655.0957" spectrum_reference="spectrum=0" >
-			<PeptideHit score="4.6521305e-19" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" start="1" end="14">
+			<PeptideHit score="4.6521305e-19" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" start="1" end="14" >
 				<UserParam type="float" name="MS:1002049" value="123"/>
 				<UserParam type="float" name="MS:1002050" value="125"/>
 				<UserParam type="float" name="MS:1002052" value="4.6521305e-19"/>
