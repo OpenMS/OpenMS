@@ -251,8 +251,9 @@ protected:
       at.name = "precursors"; ///< Name
     }
 
-    at.colTypes.push_back("MS:1000894_[sec]"); //RT
-    at.colTypes.push_back("MS:1000040"); //MZ
+    at.colTypes.push_back("MS:1000894_[sec]");  // RT
+    at.colTypes.push_back("MS:1000040");  // MZ
+    at.colTypes.push_back("MS:1000041");  // charge
     for (Size i = 0; i < exp.size(); ++i)
     {
       mslevelcounts[exp[i].getMSLevel()]++;
@@ -269,6 +270,7 @@ protected:
         std::vector<String> row;
         row.push_back(exp[i].getRT());
         row.push_back(exp[i].getPrecursors().front().getMZ());
+        row.push_back(exp[i].getPrecursors().front().getCharge());
         at.tableRows.push_back(row);
       }
     }
@@ -413,40 +415,74 @@ protected:
           break;//what if there are more than one? should generally not be though ...
         }
       }
-    }
-    else // reconstructed TIC or RIC from the MS1 intensities
-    {
-      for (Size i = 0; i < exp.size(); ++i)
+      qcmlfile.addRunAttachment(base_name, at);
+
+      qp = QcMLFile::QualityParameter();
+      qp.id = base_name + "_ticslump"; ///< Identifier
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000023";
+      qp.value = String((100 / exp.size()) * below_10k);
+      try
       {
-        if (exp[i].getMSLevel() == 1)
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
+        qp.name = term.name; ///< Name
+      }
+      catch (...)
+      {
+        qp.name = "percentage of tic slumps"; ///< Name
+      }
+      qcmlfile.addRunQualityParameter(base_name, qp);
+    }
+
+    // -- reconstructed TIC or RIC from the MS1 intensities
+    at = QcMLFile::Attachment();
+    at.cvRef = "QC"; ///< cv reference
+    at.cvAcc = "QC:0000056";
+    at.qualityRef = msaq_ref;
+    at.id = base_name + "_rics"; ///< Identifier
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
+      at.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      at.name = "MS RICs"; ///< Name
+    }
+
+    at.colTypes.push_back("MS:1000894_[sec]");
+    at.colTypes.push_back("MS:1000285");
+    max = 0;
+    below_10k = 0;
+    for (Size i = 0; i < exp.size(); ++i)
+    {
+      if (exp[i].getMSLevel() == 1)
+      {
+        UInt sum = 0;
+        for (Size j = 0; j < exp[i].size(); ++j)
         {
-          UInt sum = 0;
-          for (Size j = 0; j < exp[i].size(); ++j)
-          {
-            sum += exp[i][j].getIntensity();
-          }
-          if (sum > max)
-          {
-            max = sum;
-          }
-          if (sum < 10000)
-          {
-            ++below_10k;
-          }
-          std::vector<String> row;
-          row.push_back(exp[i].getRT());
-          row.push_back(sum);
-          at.tableRows.push_back(row);
+          sum += exp[i][j].getIntensity();
         }
+        if (sum > max)
+        {
+          max = sum;
+        }
+        if (sum < 10000)
+        {
+          ++below_10k;
+        }
+        std::vector<String> row;
+        row.push_back(exp[i].getRT());
+        row.push_back(sum);
+        at.tableRows.push_back(row);
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
 
-
     qp = QcMLFile::QualityParameter();
-    qp.id = base_name + "_ticslump"; ///< Identifier
+    qp.id = base_name + "_ricslump"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
-    qp.cvAcc = "QC:0000023";
+    qp.cvAcc = "QC:0000057";
     qp.value = String((100 / exp.size()) * below_10k);
     try
     {
@@ -901,6 +937,7 @@ protected:
       at.colTypes.push_back("FWHM");
       at.colTypes.push_back("IDs");
       UInt fiter = 0;
+      UInt ided = 0;
       map.sortByRT();
       //ofstream out(outputfile_name.c_str());
       while (fiter < map.size())
@@ -913,10 +950,31 @@ protected:
         row.push_back(map[fiter].getOverallQuality());
         row.push_back(map[fiter].getWidth());
         row.push_back(map[fiter].getPeptideIdentifications().size());
+        if (map[fiter].getPeptideIdentifications().size() > 0)
+        {
+          ++ided;
+        }
         fiter++;
         at.tableRows.push_back(row);
       }     
       qcmlfile.addRunAttachment(base_name, at);
+
+      qp = QcMLFile::QualityParameter();
+      qp.cvRef = "QC"; ///< cv reference
+      qp.cvAcc = "QC:0000058"; ///< cv accession
+      qp.id = base_name + "_idfeature_count"; ///< Identifier
+      qp.value = ided;
+      try
+      {
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
+        qp.name = term.name; ///< Name
+      }
+      catch (...)
+      {
+         qp.name = "number of identified features"; ///< Name
+      }
+      qcmlfile.addRunQualityParameter(base_name, qp);
+
     }
     else if (inputfile_feature != "" && remove_duplicate_features)
     {
