@@ -508,7 +508,7 @@ namespace OpenMS
     {
       mono_weight_ = mod.getMonoMass();
     }
-    // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DIffMonoMass is
+    // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
     // as in the case of XLMOD.obo modifications
     if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
     {
