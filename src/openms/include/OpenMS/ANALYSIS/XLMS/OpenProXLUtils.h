@@ -74,7 +74,7 @@ namespace OpenMS
         return LOOP;
       }
 
-    }__attribute__((packed));
+    };
 
 struct CrossLinkSpectrumMatch
   {
@@ -169,7 +169,7 @@ struct CrossLinkSpectrumMatch
       {
         return precursor_mass < other;
       }
-  } __attribute__((packed));
+  };
 
   enum PeptidePosition
   {
@@ -193,7 +193,7 @@ struct CrossLinkSpectrumMatch
     {
       return peptide_mass < other;
     }
-  } __attribute__((packed));
+  };
 
 
 
