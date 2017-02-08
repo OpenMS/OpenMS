@@ -1849,7 +1849,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (Size scan_index = 0; scan_index < spectra.size(); ++scan_index)
+    for (SignedSize scan_index = 0; scan_index < static_cast<SignedSize>(spectra.size()); ++scan_index)
     {
 
       const PeakSpectrum& spectrum = spectra[scan_index];
