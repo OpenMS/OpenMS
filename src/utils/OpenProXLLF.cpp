@@ -429,11 +429,11 @@ protected:
 
 //    double threshold_multiplier = 1.5;
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
-    {
+//#ifdef _OPENMP
+//#pragma omp parallel for
+//#endif
+//    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
+//    {
 //#ifdef _OPENMP
 //#pragma omp critical
 //#endif
@@ -583,7 +583,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size exp_index = 0; exp_index < exp.size(); ++exp_index)
+    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
       vector<Precursor> precursor = exp[exp_index].getPrecursors();
       bool process_this_spectrum = false;
