@@ -1537,7 +1537,8 @@ private:
               const Size& scan_index = low_it->second;
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
+              //double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
+              double score = 0;
             
               #ifdef DEBUG_RNPXLSEARCH
                 cout << "scan index: " << scan_index << " achieved score: " << score << endl;
