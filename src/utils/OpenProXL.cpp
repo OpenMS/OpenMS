@@ -347,7 +347,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size exp_index = 0; exp_index < exp.size(); ++exp_index)
+    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
 //      // sort by mz
       exp[exp_index].sortByPosition();
@@ -384,7 +384,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
+    for (SignedSize pair_index = 0; pair_index < static_cast<SignedSize>(spectrum_pairs.size()); ++pair_index)
     {
       Size scan_index = spectrum_pairs[pair_index].first;
       const PeakSpectrum& spectrum_light = spectra[scan_index];
@@ -1700,7 +1700,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (Size pair_index = 0; pair_index < spectrum_pairs.size(); ++pair_index)
+    for (SignedSize pair_index = 0; pair_index < static_cast<SignedSize>(spectrum_pairs.size()); ++pair_index)
     {
 
 #ifdef _OPENMP
