@@ -429,7 +429,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size exp_index = 0; exp_index < exp.size(); ++exp_index)
+    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
 //#ifdef _OPENMP
 //#pragma omp critical
@@ -1826,7 +1826,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (Size scan_index = 0; scan_index < spectra.size(); ++scan_index)
+    for (SignedSize scan_index = 0; scan_index < static_cast<SignedSize>(spectra.size()); ++scan_index)
     {
 
       const RichPeakSpectrum& spectrum = spectra[scan_index];
