@@ -367,7 +367,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (Size p1 = 0; p1 < peptides.size(); ++p1)
+    for (SignedSize p1 = 0; p1 < static_cast<SignedSize>(peptides.size()); ++p1)
     {
       // get the amino acid sequence of this peptide as a character string
       String seq_first = peptides[p1].peptide_seq.toUnmodifiedString();
