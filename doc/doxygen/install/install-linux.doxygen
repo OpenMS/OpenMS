@@ -155,8 +155,9 @@
       \endcode
 
   To avoid problems while building the libraries contained in the contrib package,
-  the path to your contrib-build directory should not have any spaces in it. Just in case
-  you still have problems after building , try building ALL
+  the path to your contrib-build directory should not have any spaces in it. In case your distribution   
+  does not provide some of the packages (or in different versions than expected), it is sometimes easier 
+  to build all dependencies manually which can solve issues with incompatible versions:
       \code
           cmake -DBUILD_TYPE=ALL ../contrib
       \endcode
@@ -207,14 +208,6 @@
   cd OpenMS-build
   \endcode
   
-  Install the qt4-webkit, qt4-dev-tools and libqtwebkit-dev
-
-   \code
-   sudo apt-get install qt4-webkit
-   sudo apt-get qt4-deb-tools
-   sudo apt-get libqtwebkit-dev
-   \endcode
-
   In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
   should substitute <tt>/PATH/TO/contrib/</tt> with the above path to the build
   contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
