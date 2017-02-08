@@ -299,6 +299,7 @@ namespace OpenMS
       SignedSize scan_index = distance<SimTypes::MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
       pi.setMetaValue("RT_index", scan_index);
       pi.setRT(f.getRT());
+      pi.setMZ(f.getMZ());
     }
 
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
