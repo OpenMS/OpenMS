@@ -108,21 +108,20 @@ public:
      */
     //@{
     /// returns a spectrum with b and y peaks
-    virtual void getCommonIonSpectrum(PeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1, bool fragment_alpha_chain = true) const;
+    virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0) const;
+
+    /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
+    virtual void addCommonPeaks(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge = 1, Size link_pos_2 = 0) const;
+
 
     // TODO generate theoretical spectrum by fragmenting one chain of a cross-link, using the experimental precursor (should be agnostic to cross- or mono-link)
     // will not work for loop links? would need 2 link_pos for that
-    virtual void getXLinkIonSpectrum(PeakSpectrum & spec, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge) const;
+    virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
-    /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    //virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;
-    //virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
-    virtual void addCommonPeaks(PeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1, bool fragment_alpha_chain = true) const;
+    // TODO
+    virtual void addXLinkIonPeaks(PeakSpectrum& spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2 = 0) const;
 
-    // TODO cross-links, mono-links
-    virtual void addXLinkIonPeaks(PeakSpectrum spec, PeakSpectrum::FloatDataArray float_array, PeakSpectrum::StringDataArray string_array, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge) const;
-    // TODO loop-links
-    virtual void addXLinkIonPeaks(PeakSpectrum spec, PeakSpectrum::FloatDataArray float_array, PeakSpectrum::StringDataArray string_array, AASequence peptide, Size link_pos1, Size link_pos2, double precursor_mass, Residue::ResidueType res_type, int charge) const;
+    //virtual void addXLinkIonPeaks(PeakSpectrum spectrum, PeakSpectrum::IntegerDataArray integer_array, PeakSpectrum::StringDataArray string_array, AASequence peptide, Size link_pos1, Size link_pos2, double precursor_mass, Residue::ResidueType res_type, int charge) const;
 
     /// overwrite
     void updateMembers_();
@@ -134,7 +133,7 @@ public:
 //      void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence ion, const AASequence other_peptide, double cross_linker_mass, Residue::ResidueType res_type, Int charge, double intensity, String ion_type) const;
 
       /// helper to add a single peak to a spectrum
-      void addPeak_(PeakSpectrum & spectrum, PeakSpectrum::FloatDataArray float_array, PeakSpectrum::StringDataArray string_array, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
+      void addPeak_(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
 
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;

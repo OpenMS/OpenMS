@@ -129,7 +129,7 @@ struct OPENMS_DLLAPI PScore
    * @param mz_window window in Thomson centered at each peak
    */ 
   template <typename SpectrumType>
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, SpectrumType>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window = 100.0)
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, SpectrumType>& peak_level_spectra, const std::vector<PeakSpectrum>& theo_spectra, double mz_window = 100.0)
   {
 //    OpenMS::AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -137,7 +137,7 @@ struct OPENMS_DLLAPI PScore
 
     for (typename std::vector<SpectrumType>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
     {
-      const RichPeakSpectrum& theo_spectrum = *theo_spectra_it;
+      const PeakSpectrum& theo_spectrum = *theo_spectra_it;
 
       // number of theoretical ions for current spectrum
       Size N = theo_spectrum.size();
@@ -148,7 +148,7 @@ struct OPENMS_DLLAPI PScore
         const PeakSpectrum& exp_spectrum = l_it->second;
 
         Size matched_peaks(0);
-        for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+        for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
         {
           const double& theo_mz = theo_peak_it->getMZ();
 
@@ -186,7 +186,7 @@ struct OPENMS_DLLAPI PScore
    * @param mz_window window in Thomson centered at each peak
    */ 
   template <typename SpectrumType>
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, SpectrumType>& peak_level_spectra, const RichPeakSpectrum& theo_spectrum, double mz_window = 100.0)
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, SpectrumType>& peak_level_spectra, const PeakSpectrum& theo_spectrum, double mz_window = 100.0)
   {
 //    AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -201,7 +201,7 @@ struct OPENMS_DLLAPI PScore
       const SpectrumType& exp_spectrum = l_it->second;
 
       Size matched_peaks(0);
-      for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
       {
         const double& theo_mz = theo_peak_it->getMZ();
 

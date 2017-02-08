@@ -248,6 +248,9 @@ START_SECTION(([EXTRA] multiple runs))
   TEST_EQUAL(protein_ids[0].getHits().size(),protein_ids2[0].getHits().size())
   TEST_EQUAL(protein_ids[1].getHits().size(),protein_ids2[1].getHits().size())
   TEST_EQUAL(protein_ids[2].getHits().size(),protein_ids2[2].getHits().size())
+
+  TEST_EQUAL(protein_ids[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
+
 END_SECTION
 
 START_SECTION(([EXTRA] psm ranking))
@@ -325,6 +328,8 @@ END_SECTION
 START_SECTION(([EXTRA] regression test for file loading on example files))
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
+
+  // TODO create artificial example data,
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
   input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
@@ -370,6 +375,103 @@ END_SECTION
 
 //  PeptideEvidence without reference to the positional in originating sequence found. #will always occurr when reading idxml  no start end positional arguments
 //END_SECTION
+
+START_SECTION(([EXTRA] XLMS data labelled cross-linker))
+  vector<ProteinIdentification> protein_ids;
+  vector<PeptideIdentification> peptide_ids;
+  vector<ProteinIdentification> protein_ids2;
+  vector<PeptideIdentification> peptide_ids2;
+
+  String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+
+  // Reading and writing
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+
+  // parameters from written and reloaded file
+  // ProteinIdentification
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().fragment_mass_tolerance_ppm, false)
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue1"), "[K]")
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue2"), "[K]")
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass"), "138.0680796")
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass_isoshift"), "12.075321")
+  TEST_EQUAL(protein_ids[0].getMetaValue("SpectrumIdentificationProtocol"), "MS:1002494") // cross-linking search
+
+  // PeptideIdentification
+  TEST_EQUAL(peptide_ids2.size(), 2)
+  TEST_EQUAL(peptide_ids2[0].getRT(), peptide_ids[1].getRT())
+  TEST_REAL_SIMILAR(peptide_ids2[0].getRT(), 2132.4757)
+  TEST_REAL_SIMILAR(peptide_ids2[0].getMZ(), 721.0845)
+  TEST_EQUAL(peptide_ids2[0].getMetaValue("spectrum_reference"), peptide_ids2[1].getMetaValue("spectrum_reference"))
+  TEST_EQUAL(peptide_ids2[0].getMetaValue("spectrum_reference"), "controllerType=0 controllerNumber=1 scan=3647,controllerType=0 controllerNumber=1 scan=3539")
+
+  // PeptideHit
+  TEST_EQUAL(peptide_ids2[0].getHits().size(), 2)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_chain"), "MS:1002509") // XL donor
+  TEST_EQUAL(peptide_ids2[0].getHits()[1].getMetaValue("xl_chain"), "MS:1002510") // XL acceptor
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("spec_heavy_RT"), 2089.55329999998)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("spec_heavy_MZ"), 725.108947753906)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getScore(), peptide_ids2[0].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getScore(), peptide_ids2[1].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[8].annotation, "[alpha|ci$y4]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[20].annotation, "[alpha|xi$b5]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[25].charge, 2)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[25].annotation, "[beta|xi$b6]")
+
+END_SECTION
+
+START_SECTION(([EXTRA] XLMS data unlabelled cross-linker))
+  vector<ProteinIdentification> protein_ids;
+  vector<PeptideIdentification> peptide_ids;
+  vector<ProteinIdentification> protein_ids2;
+  vector<PeptideIdentification> peptide_ids2;
+
+  String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
+  MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
+
+  // Reading and writing
+  NEW_TMP_FILE(filename)
+  MzIdentMLFile().store(filename, protein_ids, peptide_ids);
+  MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
+
+  // parameters from written and reloaded file
+  // ProteinIdentification
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().fragment_mass_tolerance_ppm, true)
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue1"), "[K]")
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:residue2"), "[K]")
+  TEST_EQUAL(protein_ids2[0].getSearchParameters().getMetaValue("cross_link:mass"), "138.0680796")
+  TEST_EQUAL(protein_ids[0].getMetaValue("SpectrumIdentificationProtocol"), "MS:1002494") // cross-linking search
+
+  // PeptideIdentification
+  TEST_EQUAL(peptide_ids2.size(), 2)
+  TEST_EQUAL(peptide_ids2[0].getRT(), peptide_ids[1].getRT())
+  TEST_REAL_SIMILAR(peptide_ids2[0].getRT(), 2132.4757)
+  TEST_REAL_SIMILAR(peptide_ids2[0].getMZ(), 721.0845)
+  TEST_EQUAL(peptide_ids2[0].getMetaValue("spectrum_reference"), peptide_ids2[1].getMetaValue("spectrum_reference"))
+  TEST_EQUAL(peptide_ids2[0].getMetaValue("spectrum_reference"), "controllerType=0 controllerNumber=1 scan=3647")
+
+  // PeptideHit
+  TEST_EQUAL(peptide_ids2[0].getHits().size(), 2)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_chain"), "MS:1002509") // XL donor
+  TEST_EQUAL(peptide_ids2[0].getHits()[1].getMetaValue("xl_chain"), "MS:1002510") // XL acceptor
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getScore(), peptide_ids2[0].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getScore(), peptide_ids2[1].getHits()[1].getScore())
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b3]")
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[8].annotation, "[alpha|ci$y5]")
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[20].annotation, "[beta|xi$y6]")
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[26].charge, 3)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getFragmentAnnotations()[26].annotation, "[alpha|xi$y8]")
+
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

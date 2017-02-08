@@ -519,9 +519,9 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
 
         CVTerm::Unit u; // TODO @mths : make DataValue usage safe!
-        if (!unitAcc.empty() && unitCvRef.empty() && unitName.empty())
+        if (!unitAcc.empty() && !unitCvRef.empty() && !unitName.empty())
         {
-          u = CVTerm::Unit(unitAcc, unitCvRef, unitName);
+          u = CVTerm::Unit(unitAcc, unitName, unitCvRef);
         }
         return CVTerm(accession, name, cvRef, value, u);
       }
@@ -1591,8 +1591,6 @@ namespace OpenMS
       vector<Size> beta;
       for (Size i = 0; i < peptides.size(); ++i)
       {
-        cout << "current peptide: " << peptides[i] << endl;
-        cout << "current peptide sequence: " << pep_map_[peptides[i]].toString() << endl;
         try
         {
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
@@ -2233,7 +2231,6 @@ namespace OpenMS
       }
       //3. Modifications
       as.trim();
-      cout << "Current parsePeptideSiblings peptide sequence: " << as << " TEST" << endl;
       AASequence aas = AASequence::fromString(as);
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
