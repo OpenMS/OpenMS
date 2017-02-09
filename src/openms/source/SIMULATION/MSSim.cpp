@@ -420,6 +420,18 @@ namespace OpenMS
     return peak_map_;
   }
 
+  void MSSim::getIdentifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
+  {
+    if (param_.getValue("RawTandemSignal:status") == "disabled")
+    {
+      getFeatureIdentifications(proteins, peptides);
+    }
+    else
+    {
+      getMS2Identifications(proteins, peptides);
+    }
+  }
+
   void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
   {
     // test if we have a feature map at all .. if not, no simulation was performed
@@ -497,6 +509,31 @@ namespace OpenMS
           proteins[0].insertHit(*prot_it);
         }
       }
+    }
+  }
+
+  void MSSim::getFeatureIdentifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
+  {
+    // test if we have a feature map at all .. if not, no simulation was performed
+    if (feature_maps_.empty()) return;
+
+    // clear incoming vectors
+    proteins.clear();
+    peptides.clear();
+
+    // protein IDs
+    const FeatureMap& fmap = feature_maps_[0];
+    const vector<ProteinIdentification>& prot_ids = fmap.getProteinIdentifications();
+    proteins.reserve(prot_ids.size());
+    proteins.insert(proteins.end(), prot_ids.begin(), prot_ids.end());
+
+    // peptide IDs
+    for (FeatureMap::ConstIterator it = fmap.begin(); it != fmap.end(); ++it)
+    {
+      const Feature& f = *it;
+      const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
+      peptides.reserve(peptides.size() + pep_ids.size());
+      peptides.insert(peptides.end(), pep_ids.begin(), pep_ids.end());
     }
   }
 
