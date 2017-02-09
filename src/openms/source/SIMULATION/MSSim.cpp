@@ -299,7 +299,10 @@ namespace OpenMS
       SignedSize scan_index = distance<SimTypes::MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
       pi.setMetaValue("RT_index", scan_index);
       pi.setRT(f.getRT());
-      pi.setMZ(f.getMZ());
+      if (!pi.hasMZ())
+      {
+        pi.setMZ(f.getMZ());
+      }
     }
 
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
@@ -434,12 +437,12 @@ namespace OpenMS
 
   void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
   {
-    // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
-
     // clear incoming vectors
     proteins.clear();
     peptides.clear();
+
+    // test if we have a feature map at all .. if not, no simulation was performed
+    if (feature_maps_.empty()) return;
 
     // we need to keep track of the proteins we write out
     set<String> accessions;
@@ -514,12 +517,12 @@ namespace OpenMS
 
   void MSSim::getFeatureIdentifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
   {
-    // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
-
     // clear incoming vectors
     proteins.clear();
     peptides.clear();
+
+    // test if we have a feature map at all .. if not, no simulation was performed
+    if (feature_maps_.empty()) return;
 
     // protein IDs
     const FeatureMap& fmap = feature_maps_[0];
