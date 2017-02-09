@@ -89,7 +89,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 {
   if (predictors.empty() || predictors.begin()->second.empty())
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Predictors for SVM must not be empty.");
   }
   Size n_obs = predictors.begin()->second.size();
@@ -110,7 +110,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
     {
       String msg = "Invalid training index; there are only " + String(n_obs) +
         " observations.";
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, String(it->first));
     }
     data_.x[index] = &(nodes_[it->first][0]);
@@ -119,7 +119,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
   }
   if (label_table.size() < 2)
   {
-    throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "Need at least two classes (distinct "
                                         "labels) for SVM classification.");
   }
@@ -132,7 +132,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
       msg = "Not enough observations of class " + String(it->first) + " for " +
         String(n_parts_) + "-fold cross-validation.";
       throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
     }
     msg += "\n- '" + String(it->first) + "': " + String(it->second) +
       " observations";
@@ -163,7 +163,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
 {
   if (model_ == 0)
   {
-    throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "SVM model has not been trained (use the "
                                   "'setup' method)");
   }
@@ -186,7 +186,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
     {
       String msg = "Invalid index for prediction; there are only " + 
         String(n_obs) + " observations.";
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, String(*it));
     }
     Prediction pred;
@@ -205,14 +205,14 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 {
   if (model_ == 0)
   {
-    throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "SVM model has not been trained (use the "
                                   "'setup' method)");
   }
   Size k = model_->nr_class;
   if (k > 2)
   {
-    throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Output of feature weights is currently only "
                                   "supported for two-class classification");
   }
