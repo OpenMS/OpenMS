@@ -164,12 +164,12 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
 
     if (feat_it->getSubordinates().empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No subordinate features for mass traces available.");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No subordinate features for mass traces available.");
     }
     const Feature& sub = feat_it->getSubordinates()[0];
     if (sub.getConvexHulls().empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No hull points for mass trace in subordinate feature available.");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No hull points for mass trace in subordinate feature available.");
     }
 
     vector<Peak1D> peaks;
