@@ -528,12 +528,10 @@ namespace OpenMS
     proteins.insert(proteins.end(), prot_ids.begin(), prot_ids.end());
 
     // peptide IDs
+    peptides.reserve(fmap.size());
     for (FeatureMap::ConstIterator it = fmap.begin(); it != fmap.end(); ++it)
     {
-      const Feature& f = *it;
-      const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
-      peptides.reserve(peptides.size() + pep_ids.size());
-      peptides.insert(peptides.end(), pep_ids.begin(), pep_ids.end());
+      peptides.push_back(it->getPeptideIdentifications()[0]);
     }
   }
 
