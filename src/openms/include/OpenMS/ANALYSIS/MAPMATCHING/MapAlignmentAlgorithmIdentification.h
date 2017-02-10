@@ -88,7 +88,7 @@ public:
       computeMedians_(rt_data, reference_, sorted);
       if (reference_.empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not extract retention time information from the reference file");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not extract retention time information from the reference file");
       }
     }
 
@@ -97,6 +97,7 @@ public:
 
       @param data Vector of input data (FeatureMap, ConsensusMap, MSExperiment<> or @p vector<PeptideIdentification>) that should be aligned.
       @param transformations Vector of RT transformations that will be computed.
+      @param reference_index Index in @p data of the reference to align to, if any
     */
     template <typename DataType>
     void align(std::vector<DataType>& data,
@@ -114,7 +115,7 @@ public:
         if (reference_index >= data.size())
         {
           throw Exception::IndexOverflow(__FILE__, __LINE__,
-                                         __PRETTY_FUNCTION__, reference_index,
+                                         OPENMS_PRETTY_FUNCTION, reference_index,
                                          data.size());
         }
         setReference(data[reference_index]);

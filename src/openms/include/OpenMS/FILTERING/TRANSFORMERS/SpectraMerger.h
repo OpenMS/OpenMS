@@ -226,7 +226,7 @@ public:
           BaseFeature bf;
           bf.setRT(exp[i].getRT());
           std::vector<Precursor> pcs = exp[i].getPrecursors();
-          if (pcs.empty()) throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+          if (pcs.empty()) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
           if (pcs.size() > 1) LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
           bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
@@ -494,7 +494,7 @@ protected:
       SpectrumAlignment sas;
       Param p;
       p.setValue("tolerance", mz_binning_width);
-      if (!(mz_binning_unit == "Da" || mz_binning_unit == "ppm")) throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);  // sanity check
+      if (!(mz_binning_unit == "Da" || mz_binning_unit == "ppm")) throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);  // sanity check
       // TODO : SpectrumAlignment does not implement is_relative_tolerance
       p.setValue("is_relative_tolerance", mz_binning_unit == "Da" ? "false" : "true");
       sas.setParameters(p);

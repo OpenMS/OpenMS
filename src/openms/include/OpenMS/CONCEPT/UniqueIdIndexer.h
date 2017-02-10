@@ -146,7 +146,7 @@ public:
         ss << "Duplicate valid unique ids detected!   RandomAccessContainer has size()==" << getBase_().size();
         ss << ", num_valid_unique_id==" << num_valid_unique_id;
         ss << ", uniqueid_to_index_.size()==" << uniqueid_to_index_.size();
-        throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, ss.str());
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ss.str());
       }
       return;
     }

@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <fstream>
 
@@ -345,8 +346,21 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
       //set identifier
       String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      prot_id_.setIdentifier(identifier);
-      id_identifier_[attributeAsString_(attributes, "id")] = identifier;
+      String id = attributeAsString_(attributes, "id");
+
+      if (!id_identifier_.has(id))
+      {
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
+      else
+      {
+        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
+        UInt64 uid = UniqueIdGenerator::getUniqueId();
+        identifier = identifier + String(uid);
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
     }
     else if (tag == "SearchParameters")
     {
@@ -624,7 +638,7 @@ namespace OpenMS
     if (!consensus_map.isMapConsistent(&LOG_WARN))
     {
       // Currently it is possible that FeatureLinkerUnlabeledQT triggers this exception
-      // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
+      // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
       std::cerr << "The ConsensusXML file contains invalid maps or references thereof. Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file! Note that this warning will be a fatal error in the next version of OpenMS!" << std::endl;
     }
 
@@ -657,7 +671,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     os.precision(writtenDigits<double>(0.0));
@@ -900,7 +914,7 @@ namespace OpenMS
     if (!map.isMapConsistent(&LOG_WARN)) // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
-      // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
+      // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
 
     }
 

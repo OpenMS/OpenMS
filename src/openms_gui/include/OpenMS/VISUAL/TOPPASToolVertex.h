@@ -45,6 +45,8 @@
 
 namespace OpenMS
 {
+  class TOPPASScene;
+
   /**
       @brief A vertex representing a TOPP tool
 
@@ -238,6 +240,10 @@ protected:
     //@{
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
     //@}
+	
+
+    /// get parent Scene
+    TOPPASScene* getScene_() const;
 
     /// determines if according to current status_, a parameter change would invalidate the pipeline status (e.g., because this node was already processed)
     bool doesParamChangeInvalidate_();

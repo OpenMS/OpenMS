@@ -389,7 +389,7 @@ public:
     */
     void sortByPosition()
     {
-      if (float_data_arrays_.empty())
+      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
         std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
       }
@@ -444,7 +444,7 @@ public:
     Size findNearest(CoordinateType mz) const
     {
       // no peak => no search
-      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one peak to determine the nearest peak!");
+      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
 
       // search for position for inserting
       ConstIterator it = MZBegin(mz);
@@ -670,7 +670,6 @@ public:
       }
     }
 
-
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
@@ -726,7 +725,7 @@ public:
     }
 
 protected:
-
+   
     /// Retention time
     double retention_time_;
 
@@ -768,3 +767,4 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
+

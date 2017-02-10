@@ -274,7 +274,7 @@ protected:
     //check if the input maps have the same number of spectra
     if ((UInt)distance(first, last) != ms_exp.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Raw and peak map do not have the same number of spectra");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Two2Optimization: Raw and peak map do not have the same number of spectra");
     }
     //do nothing if there are no scans
     if (ms_exp.empty())
@@ -287,7 +287,7 @@ protected:
       //check if enough meta data arrays are present
       if (ms_exp[i].getFloatDataArrays().size() < 6)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Not enough meta data arrays present (1:area, 5:shape, 3:left width, 4:right width)");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Two2Optimization: Not enough meta data arrays present (1:area, 5:shape, 3:left width, 4:right width)");
       }
       bool area = ms_exp[i].getFloatDataArrays()[1].getName() == "maximumIntensity";
       bool wleft = ms_exp[i].getFloatDataArrays()[3].getName() == "leftWidth";
@@ -296,7 +296,7 @@ protected:
 
       if (!area || !wleft || !wright || !shape)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: One or several meta data arrays missing (1:intensity, 5:shape, 3:left width, 4:right width)");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Two2Optimization: One or several meta data arrays missing (1:intensity, 5:shape, 3:left width, 4:right width)");
       }
     }
     real_2D_ = real2D;
@@ -669,7 +669,7 @@ protected:
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-TwoDOptimization:", "Could not fit the data: Error " + String(status));
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-TwoDOptimization:", "Could not fit the data: Error " + String(status));
       }
 
       Int peak_idx = 0;

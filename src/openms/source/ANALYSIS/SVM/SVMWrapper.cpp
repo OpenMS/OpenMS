@@ -456,11 +456,11 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, model_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_filename);
     }
     if (status == -1)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, model_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, model_filename);
     }
   }
 
@@ -886,13 +886,13 @@ namespace OpenMS
 
       map<SVM_parameter_type, double>::const_iterator it = step_sizes_map.find(start_values_iterator->first);
       if (it == step_sizes_map.end())
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No step size given for svm parameter grid search");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No step size given for svm parameter grid search");
       else
         step_sizes[actual_index] = it->second;
 
       it = end_values_map.find(start_values_iterator->first);
       if (it == end_values_map.end())
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No end value given for svm parameter grid search");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No end value given for svm parameter grid search");
       else
         end_values[actual_index] = it->second;
 
@@ -946,7 +946,7 @@ namespace OpenMS
         {
           // testing whether actual parameters are in the defined range
           if (actual_values[v] > end_values[v])
-            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "RTModel CV parameters are out of range!");
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTModel CV parameters are out of range!");
           setParameter(actual_types[v], actual_values[v]);
         }
 

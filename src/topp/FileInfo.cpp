@@ -396,19 +396,30 @@ protected:
 
       // Charge distribution and TIC
       Map<UInt, UInt> charges;
+      Map<UInt, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         charges[feat[i].getCharge()]++;
         tic += feat[i].getIntensity();
+        const vector<PeptideIdentification>& peptide_ids = feat[i].getPeptideIdentifications();
+        numberofids[peptide_ids.size()]++;
       }
 
       os << "Total ion current in features: " << tic << "\n";
-      os << "Charge distribution:" << "\n";
+      os << "\n" << "Charge distribution:" << "\n";
       for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
+
+      os << "\n" << "Distribution of peptide identifications (IDs) per feature:\n";
+      for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
+      {
+        os << "  " << it->first << " IDs: " << it->second << "\n";
+      }
+
+      os << "\n" << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {

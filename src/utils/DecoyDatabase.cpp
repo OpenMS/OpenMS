@@ -56,14 +56,14 @@ using namespace std;
   To get a 'contaminants' database have a look at http://www.thegpm.org/crap/index.html or find/create your own contaminant database.
 
   Multiple databases can be provided as input, which will internally be concatenated before being used for decoy generation.
-  This allows you to specify your target database plus a contaminant file and (upon using the @p append flag) obtain a concatenated
-  target-decoy database using a single call, e.g., DecoyDatabase -in human.fasta crap.fasta -out human_TD.fasta -append
+  This allows you to specify your target database plus a contaminant file and obtain a concatenated
+  target-decoy database using a single call, e.g., DecoyDatabase -in human.fasta crap.fasta -out human_TD.fasta
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_DecoyDatabase.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_DecoyDatabase.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_DecoyDatabase.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_DecoyDatabase.html
 */
 
 // We do not want this class to show up in the docu:
@@ -74,7 +74,7 @@ class TOPPDecoyDatabase :
 {
 public:
   TOPPDecoyDatabase() :
-    TOPPBase("DecoyDatabase", "Create decoy peptide databases from normal ones.", false)
+    TOPPBase("DecoyDatabase", "Create decoy protein DB from forward protein DB.", false)
   {
 
   }
@@ -89,8 +89,7 @@ protected:
     registerStringOption_("decoy_string", "<string>", "DECOY_", "String that is combined with the accession of the protein identifier to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<enum>", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
     setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
-    registerStringOption_("append", "<enum>", "true", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.", false);
-    setValidStrings_("append", ListUtils::create<String>("true,false"));
+    registerFlag_("only_decoy", "Write only decoy proteins to the output database instead of a combined database.", false);
     registerStringOption_("method", "<enum>", "reverse", "Method by which decoy sequences are generated from target sequences.", false);
     setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
   }
@@ -108,7 +107,7 @@ protected:
     //-------------------------------------------------------------
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
-    bool append = (getStringOption_("append") == "true");
+    bool append = (!getFlag_("only_decoy"));
     bool shuffle = (getStringOption_("method") == "shuffle");
 
     //-------------------------------------------------------------

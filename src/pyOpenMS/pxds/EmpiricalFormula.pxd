@@ -35,8 +35,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # @brief returns the fragment isotope distribution of this conditioned
         # on a precursor formula and a list of isolated precursor isotopes.
         # @param precursor: the empirical formula of the precursor
-        # @param precursor_isotopes: the list of precursor isotopes that were isolated
-        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_vector[ unsigned int ]& precursor_isotopes) nogil except +
+        # @param precursor_isotopes: the set of precursor isotopes that were isolated
+        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
         # returns the number of atoms
         Size getNumberOf(Element * element) nogil except +

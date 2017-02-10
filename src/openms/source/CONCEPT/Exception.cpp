@@ -274,6 +274,17 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
 
+    FileNameTooLong::FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) throw() :
+      BaseException(file, line, function, "FileNameTooLong", "")
+    {
+      stringstream ss;
+      ss << "the file '" << filename << "' is too long (" << filename.size() << " chars) "
+         << "and exceeds the allowed limit of " << max_length << ". "
+         << "Use shorter filenames and/or less sub-directories.";
+      what_ = ss.str();
+      GlobalExceptionHandler::getInstance().setMessage(what_);
+    }
+
     IOException::IOException(const char* file, int line, const char* function, const std::string& filename) throw() :
       BaseException(file, line, function, "IOException", "")
     {

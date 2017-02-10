@@ -130,6 +130,15 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
   delete chaining_consumer;
+
+  // note how the transforming consumer still works as deleting the chaining
+  // consumer does not take ownership of the consumers
+  transforming_consumer->consumeSpectrum(exp.getSpectrum(0) );
+
+  TEST_EQUAL(first_spectrum.isSorted(), true)
+  TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
+
+  delete transforming_consumer;
 }
 END_SECTION
 

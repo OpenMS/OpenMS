@@ -96,7 +96,7 @@ namespace OpenMS
   void Spectrum3DCanvas::showLegend(bool show)
   {
     legend_shown_ = show;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   bool Spectrum3DCanvas::isLegendShown() const
@@ -136,7 +136,7 @@ namespace OpenMS
     emit layerActivated(this);
     openglwidget()->recalculateDotGradient_(current_layer_);
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
 
     return true;
   }
@@ -149,7 +149,7 @@ namespace OpenMS
     }
     current_layer_ = layer_index;
     emit layerActivated(this);
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum3DCanvas::removeLayer(Size layer_index)
@@ -171,7 +171,7 @@ namespace OpenMS
     {
       overall_data_range_ = DRange<3>::empty;
       update_buffer_ = true;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
       return;
     }
 
@@ -186,7 +186,7 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
   void Spectrum3DCanvas::update_(const char * caller)
   {
-    cout << "BEGIN " << __PRETTY_FUNCTION__ << " caller: " << caller << endl;
+    cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << " caller: " << caller << endl;
 #else
   void Spectrum3DCanvas::update_(const char * /* caller */)
   {
@@ -239,7 +239,7 @@ namespace OpenMS
     recalculateRanges_(0, 1, 2);
 
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum3DCanvas::contextMenuEvent(QContextMenuEvent * e)
