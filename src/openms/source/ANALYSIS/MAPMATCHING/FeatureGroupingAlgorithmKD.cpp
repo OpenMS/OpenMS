@@ -49,6 +49,7 @@ namespace OpenMS
     feature_distance_(FeatureDistance())
   {
     setName("FeatureGroupingAlgorithmKD");
+
     defaults_.setValue("rt_tol", 60.0, "width of RT tolerance window (sec)");
     defaults_.setValue("mz_tol", 15.0, "m/z tolerance (in ppm or Da)");
     defaults_.setValue("mz_unit", "ppm", "unit of m/z tolerance");
@@ -63,12 +64,16 @@ namespace OpenMS
     defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
 
+    // FeatureDistance defaults
     defaults_.insert("", feature_distance_.getDefaults());
 
+    // override some of them
     defaults_.setValue("distance_intensity:weight", 1.0);
     defaults_.setValue("distance_intensity:log_transform", "enabled");
+    defaults_.addTag("distance_intensity:weight", "advanced");
+    defaults_.addTag("distance_intensity:log_transform", "advanced");
 
-    // we expose these more prominently above (rt_tol / mz_tol / mz_unit), so don't show them here
+    // these are exposed more prominently above (rt_tol, mz_tol, mz_unit), so don't show them here
     defaults_.remove("distance_RT:max_difference");
     defaults_.remove("distance_MZ:max_difference");
     defaults_.remove("distance_MZ:unit");
