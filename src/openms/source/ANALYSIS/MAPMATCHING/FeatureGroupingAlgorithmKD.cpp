@@ -131,7 +131,7 @@ namespace OpenMS
     distance_params.setValue("distance_RT:max_difference", rt_tol_secs_);
     distance_params.setValue("distance_MZ:max_difference", mz_tol_);
     distance_params.setValue("distance_MZ:unit", (mz_ppm_ ? "ppm" : "Da"));
-    feature_distance_ = FeatureDistance(max_intensity, true);
+    feature_distance_ = FeatureDistance(max_intensity, false);
     feature_distance_.setParameters(distance_params);
 
     // partition at boundaries -> this should be safe because there cannot be
