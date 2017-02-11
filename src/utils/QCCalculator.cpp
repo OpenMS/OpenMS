@@ -154,20 +154,26 @@ protected:
     // TODO
   }
 
-  void calculateSNmedian (MSSpectrum<Peak1D>& spec)
+  float calculateSNmedian (MSSpectrum<Peak1D>& spec, bool norm = true)
   {
     float median = 0;
     float maxi = 0;
     spec.sortByIntensity();
     if(spec.size() % 2 == 0)
     {
-      median = (spec[new_spec.size()/2 - 1].getIntensity() + spec[spec.size()/2].getIntensity()) / 2;
+      median = (spec[spec.size()/2 - 1].getIntensity() + spec[spec.size()/2].getIntensity()) / 2;
     }
     else
     {
       median = spec[spec.size()/2].getIntensity();
     }
     maxi = spec.back().getIntensity();
+    if (!norm)
+    {
+      float sn_by_max2median = maxi/median;
+      return sn_by_max2median;
+    }
+
     float sign_int= 0;
     float nois_int = 0;
     size_t sign_cnt= 0;
@@ -185,8 +191,8 @@ protected:
         sign_int += pt->getIntensity();
       }
     }
-    float sn_by_max2median_norm = (sign_int/sign_cnt)/(nois_int/nois_cnt);  // TODO what about peak count normalization
-    float sn_by_max2median = maxi/median;
+    float sn_by_max2median_norm = (sign_int/sign_cnt)/(nois_int/nois_cnt);
+
     return sn_by_max2median_norm;
   }
 
@@ -198,11 +204,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_id               = getStringOption_("id");
-    String inputfile_feature       = getStringOption_("feature");
-    String inputfile_consensus  = getStringOption_("consensus");
-    String inputfile_raw            = getStringOption_("in");
-    String outputfile_name       = getStringOption_("out");
+    String inputfile_id = getStringOption_("id");
+    String inputfile_feature = getStringOption_("feature");
+    String inputfile_consensus = getStringOption_("consensus");
+    String inputfile_raw = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
 
     //~ bool Ms1(getFlag_("MS1"));
     //~ bool Ms2(getFlag_("MS2"));
@@ -435,7 +441,6 @@ protected:
 
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
-    UInt max = 0;
     Size below_10k = 0;
     std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
     if (!chroms.empty()) //real TIC from the mzML
@@ -456,7 +461,7 @@ protected:
             row.push_back(sum);
             at.tableRows.push_back(row);
           }
-          break;//what if there are more than one? should generally not be though ...
+          break;  // what if there are more than one? should generally not be though ...
         }
       }
       qcmlfile.addRunAttachment(base_name, at);
@@ -496,8 +501,11 @@ protected:
 
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
-    max = 0;
+    Size prev = 0;
     below_10k = 0;
+    Size jumps = 0;
+    Size drops = 0;
+    Size fact = 10;
     for (Size i = 0; i < exp.size(); ++i)
     {
       if (exp[i].getMSLevel() == 1)
@@ -507,14 +515,19 @@ protected:
         {
           sum += exp[i][j].getIntensity();
         }
-        if (sum > max)
+        if (prev > 0 && sum > fact*prev)  // no jumps after complete drops (or [re]starts)
         {
-          max = sum;
+          ++jumps;
+        }
+        else if (sum < fact*prev)
+        {
+          ++drops;
         }
         if (sum < 10000)
         {
           ++below_10k;
         }
+        prev = sum;
         std::vector<String> row;
         row.push_back(exp[i].getRT());
         row.push_back(sum);
@@ -535,10 +548,41 @@ protected:
     }
     catch (...)
     {
-      qp.name = "percentage of tic slumps"; ///< Name
+      qp.name = "percentage of ric slumps"; ///< Name
     }
     qcmlfile.addRunQualityParameter(base_name, qp);
 
+    qp = QcMLFile::QualityParameter();
+    qp.id = base_name + "_ricjump"; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000059";
+    qp.value = String(jumps);
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
+      qp.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      qp.name = "IS-1A"; ///< Name
+    }
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter();
+    qp.id = base_name + "_ricjump"; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000060";
+    qp.value = String(jumps);
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
+      qp.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      qp.name = "IS-1B"; ///< Name
+    }
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
     //---injection times MSn
     at = QcMLFile::Attachment();
