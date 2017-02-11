@@ -169,6 +169,7 @@ protected:
     /// Maximum intensity of features (for normalization)
     double max_intensity_;
 
+    /// Log-transform intensities when computing intensity distance?
     bool log_transform_;
 
     /// Compute a distance even if charge states don't match?
