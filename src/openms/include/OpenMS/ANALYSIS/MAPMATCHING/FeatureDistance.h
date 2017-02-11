@@ -133,7 +133,7 @@ protected:
         {
           max_diff_ppm = (param.getValue("unit") == "ppm");
         }
-        else 
+        else
         {
           max_diff_ppm = false;
         }
@@ -168,6 +168,8 @@ protected:
 
     /// Maximum intensity of features (for normalization)
     double max_intensity_;
+
+    bool log_transform_;
 
     /// Compute a distance even if charge states don't match?
     bool ignore_charge_;
