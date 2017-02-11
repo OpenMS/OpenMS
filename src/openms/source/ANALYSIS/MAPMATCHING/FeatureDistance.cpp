@@ -77,7 +77,7 @@ namespace OpenMS
     defaults_.setMinFloat("distance_intensity:exponent", 0.0);
     defaults_.setValue("distance_intensity:weight", 0.0, "Final intensity distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_intensity:weight", 0.0);
-    defaults_.setValue("distance_intensity:log_transform", "disabled", "enabled [default]: d = |int_f2 - int_f1| / int_max; disabled: d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))", ListUtils::create<String>("advanced"));
+    defaults_.setValue("distance_intensity:log_transform", "disabled", "disabled [default]: d = |int_f2 - int_f1| / int_max; enabled: d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("distance_intensity:log_transform", ListUtils::create<String>("enabled,disabled"));
     defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)");
     defaults_.setValue("ignore_charge", "false", "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state");

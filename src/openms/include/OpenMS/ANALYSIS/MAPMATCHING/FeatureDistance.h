@@ -117,7 +117,7 @@ public:
        violated and @ref force_constraints_ is true).
     */
     std::pair<bool, double> operator()(const BaseFeature & left,
-                                           const BaseFeature & right);
+                                       const BaseFeature & right);
 
 protected:
 
@@ -169,14 +169,14 @@ protected:
     /// Maximum intensity of features (for normalization)
     double max_intensity_;
 
-    /// Log-transform intensities when computing intensity distance?
-    bool log_transform_;
-
     /// Compute a distance even if charge states don't match?
     bool ignore_charge_;
 
     /// Always return @ref infinity if "max. difference" constraints are not met?
     bool force_constraints_;
+
+    /// Log-transform intensities when computing intensity distance?
+    bool log_transform_;
   };
 
 } // namespace OpenMS
