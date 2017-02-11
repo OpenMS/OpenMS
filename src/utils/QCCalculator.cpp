@@ -301,6 +301,7 @@ protected:
     at.colTypes.push_back("MS:1000894_[sec]");  // RT
     at.colTypes.push_back("MS:1000040");  // MZ
     at.colTypes.push_back("MS:1000041");  // charge
+    at.colTypes.push_back("S/N");  // S/N
     for (Size i = 0; i < exp.size(); ++i)
     {
       mslevelcounts[exp[i].getMSLevel()]++;
@@ -318,10 +319,9 @@ protected:
         row.push_back(exp[i].getRT());
         row.push_back(exp[i].getPrecursors().front().getMZ());
         row.push_back(exp[i].getPrecursors().front().getCharge());
+        row.push_back(calculateSNmedian(exp[i]));
         at.tableRows.push_back(row);
 
-        // S/N
-        calculateSNmedian(exp[i]);
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
