@@ -149,6 +149,47 @@ protected:
     return error;
   }
 
+  void calculateSNident (PeptideHit& hit, MSSpectrum<Peak1D>& spec)
+  {
+    // TODO
+  }
+
+  void calculateSNmedian (MSSpectrum<Peak1D>& spec)
+  {
+    float median = 0;
+    float maxi = 0;
+    spec.sortByIntensity();
+    if(spec.size() % 2 == 0)
+    {
+      median = (spec[new_spec.size()/2 - 1].getIntensity() + spec[spec.size()/2].getIntensity()) / 2;
+    }
+    else
+    {
+      median = spec[spec.size()/2].getIntensity();
+    }
+    maxi = spec.back().getIntensity();
+    float sign_int= 0;
+    float nois_int = 0;
+    size_t sign_cnt= 0;
+    size_t nois_cnt = 0;
+    for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+    {
+      if (pt->getIntensity() <= median)
+      {
+        ++nois_cnt;
+        nois_int += pt->getIntensity();
+      }
+      else
+      {
+        ++sign_cnt;
+        sign_int += pt->getIntensity();
+      }
+    }
+    float sn_by_max2median_norm = (sign_int/sign_cnt)/(nois_int/nois_cnt);  // TODO what about peak count normalization
+    float sn_by_max2median = maxi/median;
+    return sn_by_max2median_norm;
+  }
+
   ExitCodes main_(int, const char**)
   {
     vector<ProteinIdentification> prot_ids;
@@ -177,7 +218,7 @@ protected:
      QcMLFile qcmlfile;
 
     //-------------------------------------------------------------
-    // MS  aqiusition
+    // MS acquisition
     //------------------------------------------------------------
     String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
 
@@ -235,7 +276,7 @@ protected:
     qp.value = exp.getDateTime().getDate();
     qcmlfile.addRunQualityParameter(base_name, qp);
 
-    //---precursors at
+    //---precursors and SN
     QcMLFile::Attachment at;
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000044";
@@ -272,6 +313,9 @@ protected:
         row.push_back(exp[i].getPrecursors().front().getMZ());
         row.push_back(exp[i].getPrecursors().front().getCharge());
         at.tableRows.push_back(row);
+
+        // S/N
+        calculateSNmedian(exp[i]);
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
@@ -770,7 +814,7 @@ protected:
           std::vector<String> row;
           row.push_back(it->getRT());
           row.push_back(it->getMZ());
-          PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort
+          PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort -> documentation: input must be accepted PSM first sorted
           vector<UInt> pep_mods;
           for (UInt w = 0; w < var_mods.size(); ++w)
           {
@@ -806,6 +850,9 @@ protected:
             row.push_back(pep_mods[w]);
           }
           at.tableRows.push_back(row);
+
+          // S/N calc
+          // TODO calcSNident
         }
       }
       qcmlfile.addRunAttachment(base_name, at);
