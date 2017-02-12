@@ -104,7 +104,8 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
     {
       LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT and m/z tolerance, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
     }
-    transformations_[i] = new TransformationModelLowess(fit_data_[i], Param());
+    const Param& lowess_param = param_.copy("LOWESS:", true);
+    transformations_[i] = new TransformationModelLowess(fit_data_[i], lowess_param);
   }
 }
 

@@ -56,10 +56,10 @@ namespace OpenMS
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
     defaults_.setValue("warp", "true", "whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
     defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
-    defaults_.setValue("min_rel_cc_size", 0.5, "only relevant during RT transformation: only connected components containing at least (warp_min_occur * number_of_input_maps) features are considered for computing the warping function");
+    defaults_.setValue("min_rel_cc_size", 0.5, "only relevant during RT transformation: only connected components containing at least (warp_min_occur * number_of_input_maps) features are considered for computing the warping function", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("min_rel_cc_size", 0.0);
     defaults_.setMaxFloat("min_rel_cc_size", 1.0);
-    defaults_.setValue("max_nr_conflicts", 0, "only relevant during RT transformation: allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)");
+    defaults_.setValue("max_nr_conflicts", 0, "only relevant during RT transformation: allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("max_nr_conflicts", -1);
     defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
@@ -72,11 +72,20 @@ namespace OpenMS
     defaults_.setValue("distance_intensity:log_transform", "enabled");
     defaults_.addTag("distance_intensity:weight", "advanced");
     defaults_.addTag("distance_intensity:log_transform", "advanced");
-
-    // these are exposed more prominently above (rt_tol, mz_tol, mz_unit), so don't show them here
     defaults_.remove("distance_RT:max_difference");
     defaults_.remove("distance_MZ:max_difference");
     defaults_.remove("distance_MZ:unit");
+    defaults_.remove("ignore_charge");
+
+    // LOWESS defaults
+    Param lowess_defaults;
+    TransformationModelLowess::getDefaultParameters(lowess_defaults);
+    for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
+    {
+      const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
+    }
+    defaults_.insert("LOWESS:", lowess_defaults);
+    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp' is set to 'true')");
 
     defaultsToParam_();
     setLogType(CMD);
