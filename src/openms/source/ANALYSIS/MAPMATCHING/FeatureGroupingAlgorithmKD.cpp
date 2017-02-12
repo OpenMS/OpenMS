@@ -50,18 +50,21 @@ namespace OpenMS
   {
     setName("FeatureGroupingAlgorithmKD");
 
-    defaults_.setValue("rt_tol", 60.0, "width of RT tolerance window (sec)");
+    defaults_.setValue("rt_tol", 60.0, "Width of RT tolerance window (sec)");
+    defaults_.setMinFloat("rt_tol", 0.0);
     defaults_.setValue("mz_tol", 15.0, "m/z tolerance (in ppm or Da)");
-    defaults_.setValue("mz_unit", "ppm", "unit of m/z tolerance");
+    defaults_.setMinFloat("mz_tol", 0.0);
+    defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
-    defaults_.setValue("warp", "true", "whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
+    defaults_.setValue("warp", "true", "Whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
     defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
-    defaults_.setValue("min_rel_cc_size", 0.5, "only relevant during RT transformation: only connected components containing at least (warp_min_occur * number_of_input_maps) features are considered for computing the warping function", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_pairwise_log_fc", 0.5, "Only relevant during RT alignment ('warp' set to 'true'): Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_rel_cc_size", 0.5, "Only relevant during RT alignment ('warp' set to 'true'): Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("min_rel_cc_size", 0.0);
     defaults_.setMaxFloat("min_rel_cc_size", 1.0);
-    defaults_.setValue("max_nr_conflicts", 0, "only relevant during RT transformation: allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_nr_conflicts", 0, "Only relevant during RT alignment ('warp' set to 'true'): Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("max_nr_conflicts", -1);
-    defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
+    defaults_.setValue("nr_partitions", 100, "Number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
 
     // FeatureDistance defaults
