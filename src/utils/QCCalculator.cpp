@@ -569,7 +569,7 @@ protected:
     qcmlfile.addRunQualityParameter(base_name, qp);
 
     qp = QcMLFile::QualityParameter();
-    qp.id = base_name + "_ricjump"; ///< Identifier
+    qp.id = base_name + "_ricdump"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000060";
     qp.value = String(jumps);
