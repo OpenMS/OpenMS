@@ -44,8 +44,12 @@ MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, const Param& par
   fit_data_(num_maps),
   transformations_(num_maps),
   param_(param),
-  max_pairwise_log_fc_(param.getValue("max_pairwise_log_fc"))
+  max_pairwise_log_fc_(-1)
 {
+  if (param.exists("max_pairwise_log_fc"))
+  {
+    max_pairwise_log_fc_ = param.getValue("max_pairwise_log_fc");
+  }
 }
 
 MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
