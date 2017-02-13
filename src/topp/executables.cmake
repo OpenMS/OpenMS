@@ -22,6 +22,7 @@ FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
+FeatureLinkerUnlabeledKD
 FeatureLinkerUnlabeledQT
 FidoAdapter
 FileConverter
