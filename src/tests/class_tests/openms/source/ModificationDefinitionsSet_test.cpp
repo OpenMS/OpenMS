@@ -137,7 +137,6 @@ START_SECTION((void addModification(const ModificationDefinition& mod_def)))
   mod_def.setModification("Phospho (Y)");
   mod_def.setFixedModification(true);
 
-
   ModificationDefinitionsSet mod_set;
   mod_set.addModification(mod_def);
 
@@ -214,11 +213,11 @@ START_SECTION((std::set<ModificationDefinition> getModifications() const ))
   {
     if (it->isFixedModification())
     {
-      TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
+      TEST_EQUAL(fixed_mods.find(it->getModificationName()) != fixed_mods.end(), true)
     }
     else
     {
-      TEST_EQUAL(var_mods.find(it->getModification()) != var_mods.end(), true)
+      TEST_EQUAL(var_mods.find(it->getModificationName()) != var_mods.end(), true)
     }
   }
 
@@ -238,7 +237,7 @@ START_SECTION(const std::set<ModificationDefinition>& getFixedModifications() co
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {
     TEST_EQUAL(it->isFixedModification(), true)
-    TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
+    TEST_EQUAL(fixed_mods.find(it->getModificationName()) != fixed_mods.end(), true)
   }
 }
 END_SECTION
@@ -255,7 +254,7 @@ START_SECTION(const std::set<ModificationDefinition>& getVariableModifications()
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {
     TEST_EQUAL(it->isFixedModification(), false)
-    TEST_EQUAL(mods.find(it->getModification()) != mods.end(), true)
+    TEST_EQUAL(mods.find(it->getModificationName()) != mods.end(), true)
   }
 }
 END_SECTION

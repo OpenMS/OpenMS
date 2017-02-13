@@ -129,26 +129,20 @@ namespace OpenMS
     fixed_mods_.clear();
     variable_mods_.clear();
 
-    if (!fixed_modifications.empty())
+    for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
     {
-      for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
-      {
-        ModificationDefinition def;
-        def.setModification(*it);
-        def.setFixedModification(true);
-        fixed_mods_.insert(def);
-      }
+      ModificationDefinition def;
+      def.setModification(*it);
+      def.setFixedModification(true);
+      fixed_mods_.insert(def);
     }
 
-    if (!variable_modifications.empty())
+    for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
-      for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
-      {
-        ModificationDefinition def;
-        def.setModification(*it);
-        def.setFixedModification(false);
-        variable_mods_.insert(def);
-      }
+      ModificationDefinition def;
+      def.setModification(*it);
+      def.setFixedModification(false);
+      variable_mods_.insert(def);
     }
   }
 
@@ -168,11 +162,11 @@ namespace OpenMS
     set<String> mod_names;
     for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     return mod_names;
   }
@@ -192,7 +186,7 @@ namespace OpenMS
     set<String> mod_names;
     for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     return mod_names;
   }
@@ -202,7 +196,7 @@ namespace OpenMS
     set<String> mod_names;
     for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     return mod_names;
   }
@@ -228,36 +222,33 @@ namespace OpenMS
     }
 
     // check whether the fixed modifications are fulfilled
-    if (!fixed_names.empty())
+    for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
     {
-      for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
+      String origin = ModificationsDB::getInstance()->getModification(*it1).getOrigin();
+      // only single 1lc amino acids are allowed
+      if (origin.size() != 1)
       {
-        String origin = ModificationsDB::getInstance()->getModification(*it1).getOrigin();
-        // only single 1lc amino acids are allowed
-        if (origin.size() != 1)
+        continue;
+      }
+      for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
+      {
+        if (origin == it2->getOneLetterCode())
         {
-          continue;
-        }
-        for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
-        {
-          if (origin == it2->getOneLetterCode())
+          // check whether the residue is modified (has to be)
+          if (!it2->isModified())
           {
-            // check whether the residue is modified (has to be)
-            if (!it2->isModified())
-            {
-              return false;
-            }
-            // check whether the modification is the same
-            if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModificationName())
-            {
-              return false;
-            }
+            return false;
+          }
+          // check whether the modification is the same
+          if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModificationName())
+          {
+            return false;
           }
         }
       }
     }
 
-    // check wether other modifications than the variable are present
+    // check whether other modifications than the variable are present
     for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it)
     {
       if (it->isModified())
