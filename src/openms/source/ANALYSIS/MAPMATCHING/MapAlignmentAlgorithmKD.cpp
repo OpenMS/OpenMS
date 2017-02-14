@@ -54,6 +54,11 @@ MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, const Param& par
 
 MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 {
+  for (vector<TransformationModelLowess*>::iterator it = transformations_.begin();
+       it != transformations_.end(); ++it)
+  {
+    delete *it;
+  }
 }
 
 void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
