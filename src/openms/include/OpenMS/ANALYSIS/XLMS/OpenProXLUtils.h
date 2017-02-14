@@ -245,6 +245,10 @@ struct CrossLinkSpectrumMatch
 
     static std::vector<OpenProXLUtils::PeptideMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false);
 
+    static std::vector <ProteinProteinCrossLink> buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::PeptideMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker);
+
+    static void createFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
+
     // Sum of matched ion intensity, for Intsum score and %TIC score
     template <typename SpectrumType1>
     static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const SpectrumType1& spectrum_common_peaks, const SpectrumType1& spectrum_xlink_peaks)

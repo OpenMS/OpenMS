@@ -1636,18 +1636,18 @@ protected:
     double max_precursor_mass = spectrum_precursors[spectrum_precursors.size()-1];
 
     // compute absolute tolerance from relative, if necessary
-    double allowed_error = 0;
+    double max_peptide_allowed_error = 0;
     if (precursor_mass_tolerance_unit_ppm) // ppm
     {
-      allowed_error = max_precursor_mass * precursor_mass_tolerance * 1e-6;
+      max_peptide_allowed_error = max_precursor_mass * precursor_mass_tolerance * 1e-6;
     }
     else // Dalton
     {
-      allowed_error = precursor_mass_tolerance;
+      max_peptide_allowed_error = precursor_mass_tolerance;
     }
 
     // maximal possible peptide mass given the largest precursor
-    double max_peptide_mass = max_precursor_mass - cross_link_mass_light + allowed_error;
+    double max_peptide_mass = max_precursor_mass - cross_link_mass_light + max_peptide_allowed_error;
 
     cout << "Filtering peptides with precursors" << endl;
 
@@ -1803,238 +1803,238 @@ protected:
       cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <ProteinProteinCrossLink> cross_link_candidates;
-      for (Size i = 0; i != candidates.size(); ++i)
-      {
-        OpenProXLUtils::XLPrecursor candidate = candidates[i];
-        vector <SignedSize> link_pos_first;
-        vector <SignedSize> link_pos_second;
-        AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
-        OpenProXLUtils::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
-        AASequence peptide_second;
-        OpenProXLUtils::PeptidePosition peptide_pos_second = OpenProXLUtils::INTERNAL;
-        if (candidate.beta_index)
-        {
-          peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
-          peptide_pos_second = peptide_masses[candidate.beta_index].position;
-        }
-        String seq_first = peptide_first.toUnmodifiedString();
-        String seq_second =  peptide_second.toUnmodifiedString();
+      vector <ProteinProteinCrossLink> cross_link_candidates = OpenProXLUtils::buildCandidates(candidates, peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
+//      for (Size i = 0; i != candidates.size(); ++i)
+//      {
+//        OpenProXLUtils::XLPrecursor candidate = candidates[i];
+//        vector <SignedSize> link_pos_first;
+//        vector <SignedSize> link_pos_second;
+//        AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
+//        OpenProXLUtils::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
+//        AASequence peptide_second;
+//        OpenProXLUtils::PeptidePosition peptide_pos_second = OpenProXLUtils::INTERNAL;
+//        if (candidate.beta_index)
+//        {
+//          peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
+//          peptide_pos_second = peptide_masses[candidate.beta_index].position;
+//        }
+//        String seq_first = peptide_first.toUnmodifiedString();
+//        String seq_second =  peptide_second.toUnmodifiedString();
 
-        // TODO mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
-        // Find out which is the case. But it should not happen often enough to slow down the tool significantly.
-        bool is_loop = abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_light)) <= allowed_error;
+//        // TODO mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
+//        // Find out which is the case. But it should not happen often enough to slow down the tool significantly.
+//        bool is_loop = abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_light)) <= allowed_error;
 
-        for (Size k = 0; k < seq_first.size()-1; ++k)
-        {
-          for (Size x = 0; x < cross_link_residue1.size(); ++x)
-          {
-            if (seq_first.substr(k, 1) == cross_link_residue1[x]) link_pos_first.push_back(k);
-          }
-        }
-        if (candidate.beta_index)
-        {
-          for (Size k = 0; k < seq_second.size()-1; ++k)
-          {
-            for (Size x = 0; x < cross_link_residue2.size(); ++x)
-            {
-              if (seq_second.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
-            }
-          }
-        } else
-        {
-          // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
-          if (!is_loop)
-          {
-            link_pos_second.push_back(-1);
-          }
-          else
-          {
-            for (Size k = 0; k < seq_first.size()-1; ++k)
-            {
-              for (Size x = 0; x < cross_link_residue2.size(); ++x)
-              {
-                if (seq_first.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
-              }
-            }
-          }
-        }
+//        for (Size k = 0; k < seq_first.size()-1; ++k)
+//        {
+//          for (Size x = 0; x < cross_link_residue1.size(); ++x)
+//          {
+//            if (seq_first.substr(k, 1) == cross_link_residue1[x]) link_pos_first.push_back(k);
+//          }
+//        }
+//        if (candidate.beta_index)
+//        {
+//          for (Size k = 0; k < seq_second.size()-1; ++k)
+//          {
+//            for (Size x = 0; x < cross_link_residue2.size(); ++x)
+//            {
+//              if (seq_second.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
+//            }
+//          }
+//        } else
+//        {
+//          // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
+//          if (!is_loop)
+//          {
+//            link_pos_second.push_back(-1);
+//          }
+//          else
+//          {
+//            for (Size k = 0; k < seq_first.size()-1; ++k)
+//            {
+//              for (Size x = 0; x < cross_link_residue2.size(); ++x)
+//              {
+//                if (seq_first.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
+//              }
+//            }
+//          }
+//        }
 
-          // Determine larger peptide (alpha) by sequence length, use mass as tie breaker
-        bool alpha_first = true;
+//          // Determine larger peptide (alpha) by sequence length, use mass as tie breaker
+//        bool alpha_first = true;
 
-        if (seq_second.size() > seq_first.size())
-        {
-          alpha_first = false;
-        } else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
-        {
-          alpha_first = false;
-        }
+//        if (seq_second.size() > seq_first.size())
+//        {
+//          alpha_first = false;
+//        } else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
+//        {
+//          alpha_first = false;
+//        }
 
-        // TODO remodel this, there should be a simpler way, e.g. the peptides were sorted so "second" is always heavier?
-        // generate cross_links for all valid combinations
-        for (Size x = 0; x < link_pos_first.size(); ++x)
-        {
-          for (Size y = 0; y < link_pos_second.size(); ++y)
-          {
-            ProteinProteinCrossLink cross_link_candidate;
-            cross_link_candidate.cross_linker_name = cross_link_name;
-            // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
-            if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
-            {
-              continue;
-            }
-            if (alpha_first)
-            {
-              cross_link_candidate.alpha = peptide_first;
-              cross_link_candidate.beta = peptide_second;
-              cross_link_candidate.cross_link_position.first = link_pos_first[x];
-              cross_link_candidate.cross_link_position.second = link_pos_second[y];
-              cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
-              cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
-            }
-            else
-            {
-              cross_link_candidate.alpha = peptide_second;
-              cross_link_candidate.beta = peptide_first;
-              cross_link_candidate.cross_link_position.first = link_pos_second[y];
-              cross_link_candidate.cross_link_position.second = link_pos_first[x];
-              cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
-              cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
-            }
-            // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
-            if (link_pos_second[y] != -1)
-            {
-              cross_link_candidate.cross_linker_mass = cross_link_mass_light;
-              cross_link_candidates.push_back(cross_link_candidate);
-            }
-            else
-            {
-              for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
-              {
-                // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
-                if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
-                {
-                  cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];;
-                  cross_link_candidates.push_back(cross_link_candidate);
-                }
-              }
-            }
-          }
-        }
+//        // TODO remodel this, there should be a simpler way, e.g. the peptides were sorted so "second" is always heavier?
+//        // generate cross_links for all valid combinations
+//        for (Size x = 0; x < link_pos_first.size(); ++x)
+//        {
+//          for (Size y = 0; y < link_pos_second.size(); ++y)
+//          {
+//            ProteinProteinCrossLink cross_link_candidate;
+//            cross_link_candidate.cross_linker_name = cross_link_name;
+//            // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
+//            if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
+//            {
+//              continue;
+//            }
+//            if (alpha_first)
+//            {
+//              cross_link_candidate.alpha = peptide_first;
+//              cross_link_candidate.beta = peptide_second;
+//              cross_link_candidate.cross_link_position.first = link_pos_first[x];
+//              cross_link_candidate.cross_link_position.second = link_pos_second[y];
+//              cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
+//              cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
+//            }
+//            else
+//            {
+//              cross_link_candidate.alpha = peptide_second;
+//              cross_link_candidate.beta = peptide_first;
+//              cross_link_candidate.cross_link_position.first = link_pos_second[y];
+//              cross_link_candidate.cross_link_position.second = link_pos_first[x];
+//              cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
+//              cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
+//            }
+//            // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
+//            if (link_pos_second[y] != -1)
+//            {
+//              cross_link_candidate.cross_linker_mass = cross_link_mass_light;
+//              cross_link_candidates.push_back(cross_link_candidate);
+//            }
+//            else
+//            {
+//              for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
+//              {
+//                // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
+//                if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
+//                {
+//                  cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];;
+//                  cross_link_candidates.push_back(cross_link_candidate);
+//                }
+//              }
+//            }
+//          }
+//        }
 
-        if (peptide_pos_second != OpenProXLUtils::INTERNAL)
-        {
-          ResidueModification::Term_Specificity second_spec;
-          Size mod_pos;
-          bool compatible = false;
-          if (n_term_linker && (peptide_pos_second == OpenProXLUtils::N_TERM))
-          {
-            second_spec = ResidueModification::N_TERM;
-            mod_pos = 0;
-            compatible = true;
-          }
-          if (c_term_linker && (peptide_pos_second == OpenProXLUtils::C_TERM))
-          {
-            second_spec = ResidueModification::C_TERM;
-            mod_pos = peptide_second.size()-1;
-            compatible = true;
-          }
-          if (compatible)
-          {
-            for (Size x = 0; x < link_pos_first.size(); ++x)
-            {
-              ProteinProteinCrossLink cross_link_candidate;
-              if (alpha_first)
-              {
-                cross_link_candidate.alpha = peptide_first;
-                cross_link_candidate.beta = peptide_second;
-                cross_link_candidate.cross_link_position.first = link_pos_first[x];
-                cross_link_candidate.cross_link_position.second = mod_pos;
-                cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
-                cross_link_candidate.term_spec_beta = second_spec;
-              }
-              else
-              {
-                cross_link_candidate.alpha = peptide_second;
-                cross_link_candidate.beta = peptide_first;
-                cross_link_candidate.cross_link_position.first = mod_pos;
-                cross_link_candidate.cross_link_position.second = link_pos_first[x];
-                cross_link_candidate.term_spec_alpha = second_spec;
-                cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
-              }
-              // If second peptide has a term specificity, there must be a second peptide, so we don't have to consider mono or loop-links
-              cross_link_candidate.cross_linker_mass = cross_link_mass_light;
-              cross_link_candidate.cross_linker_name = cross_link_name;
-              cross_link_candidates.push_back(cross_link_candidate);
+//        if (peptide_pos_second != OpenProXLUtils::INTERNAL)
+//        {
+//          ResidueModification::Term_Specificity second_spec;
+//          Size mod_pos;
+//          bool compatible = false;
+//          if (n_term_linker && (peptide_pos_second == OpenProXLUtils::N_TERM))
+//          {
+//            second_spec = ResidueModification::N_TERM;
+//            mod_pos = 0;
+//            compatible = true;
+//          }
+//          if (c_term_linker && (peptide_pos_second == OpenProXLUtils::C_TERM))
+//          {
+//            second_spec = ResidueModification::C_TERM;
+//            mod_pos = peptide_second.size()-1;
+//            compatible = true;
+//          }
+//          if (compatible)
+//          {
+//            for (Size x = 0; x < link_pos_first.size(); ++x)
+//            {
+//              ProteinProteinCrossLink cross_link_candidate;
+//              if (alpha_first)
+//              {
+//                cross_link_candidate.alpha = peptide_first;
+//                cross_link_candidate.beta = peptide_second;
+//                cross_link_candidate.cross_link_position.first = link_pos_first[x];
+//                cross_link_candidate.cross_link_position.second = mod_pos;
+//                cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
+//                cross_link_candidate.term_spec_beta = second_spec;
+//              }
+//              else
+//              {
+//                cross_link_candidate.alpha = peptide_second;
+//                cross_link_candidate.beta = peptide_first;
+//                cross_link_candidate.cross_link_position.first = mod_pos;
+//                cross_link_candidate.cross_link_position.second = link_pos_first[x];
+//                cross_link_candidate.term_spec_alpha = second_spec;
+//                cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
+//              }
+//              // If second peptide has a term specificity, there must be a second peptide, so we don't have to consider mono or loop-links
+//              cross_link_candidate.cross_linker_mass = cross_link_mass_light;
+//              cross_link_candidate.cross_linker_name = cross_link_name;
+//              cross_link_candidates.push_back(cross_link_candidate);
 
-            }
-          }
-        }
+//            }
+//          }
+//        }
 
-        if (peptide_pos_first != OpenProXLUtils::INTERNAL)
-        {
-          ResidueModification::Term_Specificity first_spec;
-          Size mod_pos;
-          bool compatible = false;
-          if (n_term_linker && (peptide_pos_first == OpenProXLUtils::N_TERM))
-          {
-            first_spec = ResidueModification::N_TERM;
-            mod_pos = 0;
-            compatible = true;
-          }
-          if (c_term_linker && (peptide_pos_first == OpenProXLUtils::C_TERM))
-          {
-            first_spec = ResidueModification::C_TERM;
-            mod_pos = peptide_first.size()-1;
-            compatible = true;
-          }
-          if (compatible)
-          {
-            for (Size x = 0; x < link_pos_second.size(); ++x)
-            {
-              ProteinProteinCrossLink cross_link_candidate;
-              cross_link_candidate.cross_linker_name = cross_link_name;
-              if (alpha_first)
-              {
-                cross_link_candidate.alpha = peptide_first;
-                cross_link_candidate.beta = peptide_second;
-                cross_link_candidate.cross_link_position.first = mod_pos;
-                cross_link_candidate.cross_link_position.second = link_pos_second[x];
-                cross_link_candidate.term_spec_alpha = first_spec;
-                cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;;
-              }
-              else
-              {
-                cross_link_candidate.alpha = peptide_second;
-                cross_link_candidate.beta = peptide_first;
-                cross_link_candidate.cross_link_position.first = link_pos_second[x];
-                cross_link_candidate.cross_link_position.second = mod_pos;
-                cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;;
-                cross_link_candidate.term_spec_beta = first_spec;
-              }
-              // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
-              if (link_pos_second[x] != -1)
-              {
-                cross_link_candidate.cross_linker_mass = cross_link_mass_light;
-                cross_link_candidates.push_back(cross_link_candidate);
-              }
-              else
-              {
-                for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
-                {
-                  // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
-                  if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
-                  {
-                    cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
-                    cross_link_candidates.push_back(cross_link_candidate);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+//        if (peptide_pos_first != OpenProXLUtils::INTERNAL)
+//        {
+//          ResidueModification::Term_Specificity first_spec;
+//          Size mod_pos;
+//          bool compatible = false;
+//          if (n_term_linker && (peptide_pos_first == OpenProXLUtils::N_TERM))
+//          {
+//            first_spec = ResidueModification::N_TERM;
+//            mod_pos = 0;
+//            compatible = true;
+//          }
+//          if (c_term_linker && (peptide_pos_first == OpenProXLUtils::C_TERM))
+//          {
+//            first_spec = ResidueModification::C_TERM;
+//            mod_pos = peptide_first.size()-1;
+//            compatible = true;
+//          }
+//          if (compatible)
+//          {
+//            for (Size x = 0; x < link_pos_second.size(); ++x)
+//            {
+//              ProteinProteinCrossLink cross_link_candidate;
+//              cross_link_candidate.cross_linker_name = cross_link_name;
+//              if (alpha_first)
+//              {
+//                cross_link_candidate.alpha = peptide_first;
+//                cross_link_candidate.beta = peptide_second;
+//                cross_link_candidate.cross_link_position.first = mod_pos;
+//                cross_link_candidate.cross_link_position.second = link_pos_second[x];
+//                cross_link_candidate.term_spec_alpha = first_spec;
+//                cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;;
+//              }
+//              else
+//              {
+//                cross_link_candidate.alpha = peptide_second;
+//                cross_link_candidate.beta = peptide_first;
+//                cross_link_candidate.cross_link_position.first = link_pos_second[x];
+//                cross_link_candidate.cross_link_position.second = mod_pos;
+//                cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;;
+//                cross_link_candidate.term_spec_beta = first_spec;
+//              }
+//              // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
+//              if (link_pos_second[x] != -1)
+//              {
+//                cross_link_candidate.cross_linker_mass = cross_link_mass_light;
+//                cross_link_candidates.push_back(cross_link_candidate);
+//              }
+//              else
+//              {
+//                for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
+//                {
+//                  // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
+//                  if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
+//                  {
+//                    cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
+//                    cross_link_candidates.push_back(cross_link_candidate);
+//                  }
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< CrossLinkSpectrumMatch > all_csms_spectrum;
@@ -2386,71 +2386,76 @@ protected:
 
           // TODO extract correct arrays and write annotations based on these
           // TODO for now we only expect one array per type, as we do not create any other arrays anywhere, (but some could be read in from mzML?)
-          PeakSpectrum::IntegerDataArray common_alpha_charges = theoretical_spec_common_alpha.getIntegerDataArrays()[0];
-          PeakSpectrum::StringDataArray common_alpha_names = theoretical_spec_common_alpha.getStringDataArrays()[0];
-          for (Size k = 0; k < matched_spec_common_alpha.size(); ++k)
-          {
-            PeptideHit::FragmentAnnotation frag_anno;
-//            frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("z"));
-            frag_anno.mz = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_alpha[k].second].getMZ();
-            frag_anno.intensity = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_alpha[k].second].getIntensity();
-//            frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("IonName");
+          OpenProXLUtils::createFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, preprocessed_pair_spectra.spectra_common_peaks[pair_index]);
+          OpenProXLUtils::createFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index]);
+          OpenProXLUtils::createFragmentAnnotations(frag_annotations, matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+          OpenProXLUtils::createFragmentAnnotations(frag_annotations, matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
 
-            frag_anno.charge = common_alpha_charges[matched_spec_common_alpha[k].first];
-            frag_anno.annotation = common_alpha_names[matched_spec_common_alpha[k].first];
-            frag_annotations.push_back(frag_anno);
-          }
+//          PeakSpectrum::IntegerDataArray common_alpha_charges = theoretical_spec_common_alpha.getIntegerDataArrays()[0];
+//          PeakSpectrum::StringDataArray common_alpha_names = theoretical_spec_common_alpha.getStringDataArrays()[0];
+//          for (Size k = 0; k < matched_spec_common_alpha.size(); ++k)
+//          {
+//            PeptideHit::FragmentAnnotation frag_anno;
+////            frag_anno.charge = static_cast<int>(theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("z"));
+//            frag_anno.mz = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_alpha[k].second].getMZ();
+//            frag_anno.intensity = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_alpha[k].second].getIntensity();
+////            frag_anno.annotation = theoretical_spec_common_alpha[matched_spec_common_alpha[k].first].getMetaValue("IonName");
 
-          if (theoretical_spec_common_beta.getIntegerDataArrays().size() > 0)
-          {
-            PeakSpectrum::IntegerDataArray common_beta_charges = theoretical_spec_common_beta.getIntegerDataArrays()[0];
-            PeakSpectrum::StringDataArray common_beta_names = theoretical_spec_common_beta.getStringDataArrays()[0];
-            for (Size k = 0; k < matched_spec_common_beta.size(); ++k)
-            {
-              PeptideHit::FragmentAnnotation frag_anno;
-  //            frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("z"));
-              frag_anno.mz = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_beta[k].second].getMZ();
-              frag_anno.intensity = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_beta[k].second].getIntensity();
-  //            frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
+//            frag_anno.charge = common_alpha_charges[matched_spec_common_alpha[k].first];
+//            frag_anno.annotation = common_alpha_names[matched_spec_common_alpha[k].first];
+//            frag_annotations.push_back(frag_anno);
+//          }
 
-              frag_anno.charge = common_beta_charges[matched_spec_common_beta[k].first];
-              frag_anno.annotation = common_beta_names[matched_spec_common_beta[k].first];
-              frag_annotations.push_back(frag_anno);
-            }
-          }
+//          if (theoretical_spec_common_beta.getIntegerDataArrays().size() > 0)
+//          {
+//            PeakSpectrum::IntegerDataArray common_beta_charges = theoretical_spec_common_beta.getIntegerDataArrays()[0];
+//            PeakSpectrum::StringDataArray common_beta_names = theoretical_spec_common_beta.getStringDataArrays()[0];
+//            for (Size k = 0; k < matched_spec_common_beta.size(); ++k)
+//            {
+//              PeptideHit::FragmentAnnotation frag_anno;
+//  //            frag_anno.charge = static_cast<int>(theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("z"));
+//              frag_anno.mz = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_beta[k].second].getMZ();
+//              frag_anno.intensity = preprocessed_pair_spectra.spectra_common_peaks[pair_index][matched_spec_common_beta[k].second].getIntensity();
+//  //            frag_anno.annotation = theoretical_spec_common_beta[matched_spec_common_beta[k].first].getMetaValue("IonName");
 
-          PeakSpectrum::IntegerDataArray xlinks_alpha_charges = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
-          PeakSpectrum::StringDataArray xlinks_alpha_names = theoretical_spec_xlinks_alpha.getStringDataArrays()[0];
-          for (Size k = 0; k < matched_spec_xlinks_alpha.size(); ++k)
-          {
-            PeptideHit::FragmentAnnotation frag_anno;
-//            frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("z"));
-            frag_anno.mz = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_alpha[k].second].getMZ();
-            frag_anno.intensity = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_alpha[k].second].getIntensity();
-//            frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("IonName");
+//              frag_anno.charge = common_beta_charges[matched_spec_common_beta[k].first];
+//              frag_anno.annotation = common_beta_names[matched_spec_common_beta[k].first];
+//              frag_annotations.push_back(frag_anno);
+//            }
+//          }
 
-            frag_anno.charge = xlinks_alpha_charges[matched_spec_xlinks_alpha[k].first];
-            frag_anno.annotation = xlinks_alpha_names[matched_spec_xlinks_alpha[k].first];
-            frag_annotations.push_back(frag_anno);
-          }
+//          PeakSpectrum::IntegerDataArray xlinks_alpha_charges = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
+//          PeakSpectrum::StringDataArray xlinks_alpha_names = theoretical_spec_xlinks_alpha.getStringDataArrays()[0];
+//          for (Size k = 0; k < matched_spec_xlinks_alpha.size(); ++k)
+//          {
+//            PeptideHit::FragmentAnnotation frag_anno;
+////            frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("z"));
+//            frag_anno.mz = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_alpha[k].second].getMZ();
+//            frag_anno.intensity = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_alpha[k].second].getIntensity();
+////            frag_anno.annotation = theoretical_spec_xlinks_alpha[matched_spec_xlinks_alpha[k].first].getMetaValue("IonName");
 
-          if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
-          {
-            PeakSpectrum::IntegerDataArray xlinks_beta_charges = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
-            PeakSpectrum::StringDataArray xlinks_beta_names = theoretical_spec_xlinks_beta.getStringDataArrays()[0];
-            for (Size k = 0; k < matched_spec_xlinks_beta.size(); ++k)
-            {
-              PeptideHit::FragmentAnnotation frag_anno;
-  //            frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("z"));
-              frag_anno.mz = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_beta[k].second].getMZ();
-              frag_anno.intensity = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_beta[k].second].getIntensity();
-  //            frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
+//            frag_anno.charge = xlinks_alpha_charges[matched_spec_xlinks_alpha[k].first];
+//            frag_anno.annotation = xlinks_alpha_names[matched_spec_xlinks_alpha[k].first];
+//            frag_annotations.push_back(frag_anno);
+//          }
 
-              frag_anno.charge = xlinks_beta_charges[matched_spec_xlinks_beta[k].first];
-              frag_anno.annotation = xlinks_beta_names[matched_spec_xlinks_beta[k].first];
-              frag_annotations.push_back(frag_anno);
-            }
-          }
+//          if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
+//          {
+//            PeakSpectrum::IntegerDataArray xlinks_beta_charges = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
+//            PeakSpectrum::StringDataArray xlinks_beta_names = theoretical_spec_xlinks_beta.getStringDataArrays()[0];
+//            for (Size k = 0; k < matched_spec_xlinks_beta.size(); ++k)
+//            {
+//              PeptideHit::FragmentAnnotation frag_anno;
+//  //            frag_anno.charge = static_cast<int>(theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("z"));
+//              frag_anno.mz = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_beta[k].second].getMZ();
+//              frag_anno.intensity = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][matched_spec_xlinks_beta[k].second].getIntensity();
+//  //            frag_anno.annotation = theoretical_spec_xlinks_beta[matched_spec_xlinks_beta[k].first].getMetaValue("IonName");
+
+//              frag_anno.charge = xlinks_beta_charges[matched_spec_xlinks_beta[k].first];
+//              frag_anno.annotation = xlinks_beta_names[matched_spec_xlinks_beta[k].first];
+//              frag_annotations.push_back(frag_anno);
+//            }
+//          }
           LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 
           // make annotations unique

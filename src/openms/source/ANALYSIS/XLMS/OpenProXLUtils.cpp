@@ -1424,4 +1424,261 @@ namespace OpenMS
     return peptide_masses;
   }
 
+  vector <ProteinProteinCrossLink> OpenProXLUtils::buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::PeptideMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker)
+  {
+    vector <ProteinProteinCrossLink> cross_link_candidates;
+    for (Size i = 0; i < candidates.size(); ++i)
+    {
+      OpenProXLUtils::XLPrecursor candidate = candidates[i];
+      vector <SignedSize> link_pos_first;
+      vector <SignedSize> link_pos_second;
+      AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
+      OpenProXLUtils::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
+      AASequence peptide_second;
+      OpenProXLUtils::PeptidePosition peptide_pos_second = OpenProXLUtils::INTERNAL;
+      if (candidate.beta_index)
+      {
+        peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
+        peptide_pos_second = peptide_masses[candidate.beta_index].position;
+      }
+      String seq_first = peptide_first.toUnmodifiedString();
+      String seq_second =  peptide_second.toUnmodifiedString();
+
+      // TODO mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
+      // Find out which is the case. But it should not happen often enough to slow down the tool significantly.
+      bool is_loop = abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass)) <= allowed_error;
+
+      for (Size k = 0; k < seq_first.size()-1; ++k)
+      {
+        for (Size x = 0; x < cross_link_residue1.size(); ++x)
+        {
+          if (seq_first.substr(k, 1) == cross_link_residue1[x]) link_pos_first.push_back(k);
+        }
+      }
+      if (candidate.beta_index)
+      {
+        for (Size k = 0; k < seq_second.size()-1; ++k)
+        {
+          for (Size x = 0; x < cross_link_residue2.size(); ++x)
+          {
+            if (seq_second.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
+          }
+        }
+      } else
+      {
+        // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
+        if (!is_loop)
+        {
+          link_pos_second.push_back(-1);
+        }
+        else
+        {
+          for (Size k = 0; k < seq_first.size()-1; ++k)
+          {
+            for (Size x = 0; x < cross_link_residue2.size(); ++x)
+            {
+              if (seq_first.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
+            }
+          }
+        }
+      }
+
+        // Determine larger peptide (alpha) by sequence length, use mass as tie breaker
+      bool alpha_first = true;
+
+      if (seq_second.size() > seq_first.size())
+      {
+        alpha_first = false;
+      } else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
+      {
+        alpha_first = false;
+      }
+
+      // TODO remodel this, there should be a simpler way, e.g. the peptides were sorted so "second" is always heavier?
+      // generate cross_links for all valid combinations
+      for (Size x = 0; x < link_pos_first.size(); ++x)
+      {
+        for (Size y = 0; y < link_pos_second.size(); ++y)
+        {
+          ProteinProteinCrossLink cross_link_candidate;
+          cross_link_candidate.cross_linker_name = cross_link_name;
+          // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
+          if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
+          {
+            continue;
+          }
+          if (alpha_first)
+          {
+            cross_link_candidate.alpha = peptide_first;
+            cross_link_candidate.beta = peptide_second;
+            cross_link_candidate.cross_link_position.first = link_pos_first[x];
+            cross_link_candidate.cross_link_position.second = link_pos_second[y];
+            cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
+            cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
+          }
+          else
+          {
+            cross_link_candidate.alpha = peptide_second;
+            cross_link_candidate.beta = peptide_first;
+            cross_link_candidate.cross_link_position.first = link_pos_second[y];
+            cross_link_candidate.cross_link_position.second = link_pos_first[x];
+            cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
+            cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
+          }
+          // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
+          if (link_pos_second[y] != -1)
+          {
+            cross_link_candidate.cross_linker_mass = cross_link_mass;
+            cross_link_candidates.push_back(cross_link_candidate);
+          }
+          else
+          {
+            for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
+            {
+              // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
+              if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
+              {
+                cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];;
+                cross_link_candidates.push_back(cross_link_candidate);
+              }
+            }
+          }
+        }
+      }
+
+      if (peptide_pos_second != OpenProXLUtils::INTERNAL)
+      {
+        ResidueModification::Term_Specificity second_spec;
+        Size mod_pos;
+        bool compatible = false;
+        if (n_term_linker && (peptide_pos_second == OpenProXLUtils::N_TERM))
+        {
+          second_spec = ResidueModification::N_TERM;
+          mod_pos = 0;
+          compatible = true;
+        }
+        if (c_term_linker && (peptide_pos_second == OpenProXLUtils::C_TERM))
+        {
+          second_spec = ResidueModification::C_TERM;
+          mod_pos = peptide_second.size()-1;
+          compatible = true;
+        }
+        if (compatible)
+        {
+          for (Size x = 0; x < link_pos_first.size(); ++x)
+          {
+            ProteinProteinCrossLink cross_link_candidate;
+            if (alpha_first)
+            {
+              cross_link_candidate.alpha = peptide_first;
+              cross_link_candidate.beta = peptide_second;
+              cross_link_candidate.cross_link_position.first = link_pos_first[x];
+              cross_link_candidate.cross_link_position.second = mod_pos;
+              cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;
+              cross_link_candidate.term_spec_beta = second_spec;
+            }
+            else
+            {
+              cross_link_candidate.alpha = peptide_second;
+              cross_link_candidate.beta = peptide_first;
+              cross_link_candidate.cross_link_position.first = mod_pos;
+              cross_link_candidate.cross_link_position.second = link_pos_first[x];
+              cross_link_candidate.term_spec_alpha = second_spec;
+              cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;
+            }
+            // If second peptide has a term specificity, there must be a second peptide, so we don't have to consider mono or loop-links
+            cross_link_candidate.cross_linker_mass = cross_link_mass;
+            cross_link_candidate.cross_linker_name = cross_link_name;
+            cross_link_candidates.push_back(cross_link_candidate);
+
+          }
+        }
+      }
+
+      if (peptide_pos_first != OpenProXLUtils::INTERNAL)
+      {
+        ResidueModification::Term_Specificity first_spec;
+        Size mod_pos;
+        bool compatible = false;
+        if (n_term_linker && (peptide_pos_first == OpenProXLUtils::N_TERM))
+        {
+          first_spec = ResidueModification::N_TERM;
+          mod_pos = 0;
+          compatible = true;
+        }
+        if (c_term_linker && (peptide_pos_first == OpenProXLUtils::C_TERM))
+        {
+          first_spec = ResidueModification::C_TERM;
+          mod_pos = peptide_first.size()-1;
+          compatible = true;
+        }
+        if (compatible)
+        {
+          for (Size x = 0; x < link_pos_second.size(); ++x)
+          {
+            ProteinProteinCrossLink cross_link_candidate;
+            cross_link_candidate.cross_linker_name = cross_link_name;
+            if (alpha_first)
+            {
+              cross_link_candidate.alpha = peptide_first;
+              cross_link_candidate.beta = peptide_second;
+              cross_link_candidate.cross_link_position.first = mod_pos;
+              cross_link_candidate.cross_link_position.second = link_pos_second[x];
+              cross_link_candidate.term_spec_alpha = first_spec;
+              cross_link_candidate.term_spec_beta = ResidueModification::ANYWHERE;;
+            }
+            else
+            {
+              cross_link_candidate.alpha = peptide_second;
+              cross_link_candidate.beta = peptide_first;
+              cross_link_candidate.cross_link_position.first = link_pos_second[x];
+              cross_link_candidate.cross_link_position.second = mod_pos;
+              cross_link_candidate.term_spec_alpha = ResidueModification::ANYWHERE;;
+              cross_link_candidate.term_spec_beta = first_spec;
+            }
+            // Cross-linker mass is only one of the mono-link masses, if there is no second position (second == -1), otherwise the normal linker mass
+            if (link_pos_second[x] != -1)
+            {
+              cross_link_candidate.cross_linker_mass = cross_link_mass;
+              cross_link_candidates.push_back(cross_link_candidate);
+            }
+            else
+            {
+              for (Size k = 0; k < cross_link_mass_mono_link.size(); ++k)
+              {
+                // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
+                if (abs(precursor_mass - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error)
+                {
+                  cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
+                  cross_link_candidates.push_back(cross_link_candidate);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return cross_link_candidates;
+  }
+
+  void OpenProXLUtils::createFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
+  {
+    if (theoretical_spectrum.empty() || experiment_spectrum.empty())
+    {
+      return;
+    }
+    PeakSpectrum::IntegerDataArray charges = theoretical_spectrum.getIntegerDataArrays()[0];
+    PeakSpectrum::StringDataArray names = theoretical_spectrum.getStringDataArrays()[0];
+    for (Size k = 0; k < matching.size(); ++k)
+    {
+      PeptideHit::FragmentAnnotation frag_anno;
+      frag_anno.mz = experiment_spectrum[matching[k].second].getMZ();
+      frag_anno.intensity = experiment_spectrum[matching[k].second].getIntensity();
+
+      frag_anno.charge = charges[matching[k].first];
+      frag_anno.annotation = names[matching[k].first];
+      frag_annotations.push_back(frag_anno);
+    }
+  }
+
 }
