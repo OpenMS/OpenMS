@@ -88,8 +88,8 @@ using namespace std;
     The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
     The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
     
-    - @p id produces quality parameter values for the identification file;
-    - @p feature produces quality parameter values for the feature file;
+    - @p id produces quality parameter values for the identification file; this file should contain either only the final psm to each spectrum (1 PeptideHit per identified spectrum) or have the PeptideHits sorted to 'best' first, where 'best' depends on the use case.
+    - @p feature produces quality parameter values for the feature file; this file can be either mapped or unmapped, the latter reulting in less metrics available.
     - @p consensus produces quality parameter values for the consensus file;
     some quality parameter calculation are only available if both feature and ids are given.
     - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
@@ -161,16 +161,16 @@ protected:
     spec.sortByIntensity();
     if(spec.size() % 2 == 0)
     {
-      median = (spec[spec.size()/2 - 1].getIntensity() + spec[spec.size()/2].getIntensity()) / 2;
+      median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
     }
     else
     {
-      median = spec[spec.size()/2].getIntensity();
+      median = spec[spec.size() / 2].getIntensity();
     }
     maxi = spec.back().getIntensity();
     if (!norm)
     {
-      float sn_by_max2median = maxi/median;
+      float sn_by_max2median = maxi / median;
       return sn_by_max2median;
     }
 
@@ -191,7 +191,7 @@ protected:
         sign_int += pt->getIntensity();
       }
     }
-    float sn_by_max2median_norm = (sign_int/sign_cnt)/(nois_int/nois_cnt);
+    float sn_by_max2median_norm = (sign_int / sign_cnt) / (nois_int / nois_cnt);
 
     return sn_by_max2median_norm;
   }
@@ -458,7 +458,7 @@ protected:
               ++below_10k;
             }
             std::vector<String> row;
-            row.push_back(chroms[t][i].getRT()*60);
+            row.push_back(chroms[t][i].getRT() * 60);
             row.push_back(sum);
             at.tableRows.push_back(row);
           }
@@ -518,7 +518,7 @@ protected:
         {
           sum += exp[i][j].getIntensity();
         }
-        if (prev > 0 && sum > fact*prev)  // no jumps after complete drops (or [re]starts)
+        if (prev > 0 && sum > fact * prev)  // no jumps after complete drops (or [re]starts)
         {
           ++jumps;
         }
@@ -864,7 +864,7 @@ protected:
           std::vector<String> row;
           row.push_back(it->getRT());
           row.push_back(it->getMZ());
-          PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort -> documentation: input must be accepted PSM first sorted
+          PeptideHit tmp = it->getHits().front();  //N.B.: depends on score & sort
           vector<UInt> pep_mods;
           for (UInt w = 0; w < var_mods.size(); ++w)
           {
