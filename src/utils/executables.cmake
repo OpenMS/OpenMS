@@ -12,7 +12,6 @@ Digestor
 DigestorMotif
 ERPairFinder
 FeatureFinderSuperHirn
-FeatureLinkerUnlabeledKD
 FFEval
 FuzzyDiff
 IDDecoyProbability
