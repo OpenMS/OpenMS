@@ -33,8 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/Base64.h>
 #include <boost/math/special_functions/binomial.hpp>
 #include <fstream>
+
+// preprocessing and filtering
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+//#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
 using namespace std;
 
@@ -871,6 +882,546 @@ namespace OpenMS
     {
       spectrum.getIntegerDataArrays()[i].resize(peak_count);
     }
+  }
+
+  void OpenProXLUtils::wrap_(const String& input, Size width, String & output)
+  {
+    Size start = 0;
+
+    while (start + width < input.size())
+    {
+      output += input.substr(start, width) + "\n";
+      start += width;
+    }
+
+    if (start < input.size())
+    {
+      output += input.substr(start, input.size() - start) + "\n";
+    }
+  }
+
+  String OpenProXLUtils::getxQuestBase64EncodedSpectrum(const PeakSpectrum& spec, String header)
+  {
+    vector<String> in_strings;
+    StringList sl;
+
+    double precursor_mz = spec.getPrecursors()[0].getMZ();
+    double precursor_z = spec.getPrecursors()[0].getCharge();
+
+    // header lines
+    if (!header.empty()) // common or xlinker spectrum will be reported
+    {
+      sl.push_back(header + "\n"); // e.g. GUA1372-S14-A-LRRK2_DSS_1A3.03873.03873.3.dta,GUA1372-S14-A-LRRK2_DSS_1A3.03863.03863.3.dta
+      sl.push_back(String(precursor_mz) + "\n");
+      sl.push_back(String(precursor_z) + "\n");
+    }
+    else // light or heavy spectrum will be reported
+    {
+      sl.push_back(String(precursor_mz) + "\t" + String(precursor_z) + "\n");
+    }
+
+    // write peaks
+    for (Size i = 0; i != spec.size(); ++i)
+    {
+      String s;
+      s += String(spec[i].getMZ()) + "\t";
+      s += String(spec[i].getIntensity()) + "\t";
+
+      // add fragment charge if meta value exists (must be present for 'common' and 'xlinker'.
+//      if (spec[i].metaValueExists("z"))
+//      {
+//        s += String(spec[i].getMetaValue("z"));
+//      }
+      s += "0";
+
+      s += "\n";
+
+      sl.push_back(s);
+    }
+
+    String out;
+    out.concatenate(sl.begin(), sl.end(), "");
+    in_strings.push_back(out);
+
+    String out_encoded;
+    Base64().encodeStrings(in_strings, out_encoded, false, false);
+    String out_wrapped;
+    wrap_(out_encoded, 76, out_wrapped);
+    return out_wrapped;
+  }
+
+  vector<ResidueModification> OpenProXLUtils::getModificationsFromStringList(StringList modNames)
+  {
+    vector<ResidueModification> modifications;
+
+    // iterate over modification names and add to vector
+    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+    {
+      String modification(*mod_it);
+      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+    }
+
+    return modifications;
+  }
+
+  void OpenProXLUtils::preprocessSpectraLabeled(PeakMap& exp)
+  {
+    // filter MS2 map
+    // remove 0 intensities
+    ThresholdMower threshold_mower_filter;
+    threshold_mower_filter.filterPeakMap(exp);
+    // TODO perl code filters by dynamic range (1000), meaning everything below max_intensity / 1000 is filtered out additionally to 0 int, before scaling / normalizing
+
+    Normalizer normalizer;
+    normalizer.filterPeakMap(exp);
+    // TODO perl code scales to 0-100: int / max_int * 100
+
+    // sort by rt
+    exp.sortSpectra(false);
+
+    // filter settings
+//    WindowMower window_mower_filter;
+//    Param filter_param = window_mower_filter.getParameters();
+//    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+//    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+//    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
+//    window_mower_filter.setParameters(filter_param);
+//    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
+    {
+//      // sort by mz
+      exp[exp_index].sortByPosition();
+      PeakSpectrum::IntegerDataArray charges;
+      PeakSpectrum::StringDataArray annotations;
+      charges.assign(exp[exp_index].size(), 0);
+      annotations.assign(exp[exp_index].size(), "");
+      charges.setName("charges");
+      annotations.setName("annotations");
+      exp[exp_index].getIntegerDataArrays().push_back(charges);
+      exp[exp_index].getStringDataArrays().push_back(annotations);
+//      nlargest_filter.filterSpectrum(exp[exp_index]);
+//      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+//      // sort (nlargest changes order)
+//      exp[exp_index].sortByPosition();
+     }
+  }
+
+  PeakSpectrum OpenProXLUtils::getToleranceWindowPeaks(PeakSpectrum spec, double mz, double tolerance, bool relative_tolerance)
+  {
+    PeakSpectrum peaks;
+    double max_dist;
+
+    if (relative_tolerance)
+    {
+      max_dist = mz + (mz * tolerance * 1e-6);
+    } else
+    {
+      max_dist = tolerance;
+    }
+
+    bool inside = true;
+    while (inside)
+    {
+      Size index = spec.findNearest(mz);
+      double peak_mz = spec[index].getMZ();
+      double dist = abs(mz - peak_mz);
+
+      if (dist <= max_dist)
+      {
+        peaks.push_back(spec[index]);
+        spec.erase(spec.begin() + index);
+      } else
+      {
+        inside = false;
+      }
+    }
+    return peaks;
+  }
+
+  void OpenProXLUtils::getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff)
+  {
+    if (!s1.isSorted() || !s2.isSorted())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
+    }
+
+    // clear result
+    alignment.clear();
+    //double tolerance = (double)param_.getValue("tolerance");
+
+    if (!(relative_tolerance))
+    {
+      std::map<Size, std::map<Size, std::pair<Size, Size> > > traceback;
+      std::map<Size, std::map<Size, double> > matrix;
+
+      // init the matrix with "gap costs" tolerance
+      matrix[0][0] = 0;
+      for (Size i = 1; i <= s1.size(); ++i)
+      {
+        matrix[i][0] = i * tolerance;
+        traceback[i][0]  = std::make_pair(i - 1, 0);
+      }
+      for (Size j = 1; j <= s2.size(); ++j)
+      {
+        matrix[0][j] = j * tolerance;
+        traceback[0][j] = std::make_pair(0, j - 1);
+      }
+
+      // fill in the matrix
+      Size left_ptr(1);
+      Size last_i(0), last_j(0);
+
+      //Size off_band_counter(0);
+      for (Size i = 1; i <= s1.size(); ++i)
+      {
+        double pos1(s1[i - 1].getMZ());
+
+        for (Size j = left_ptr; j <= s2.size(); ++j)
+        {
+          bool off_band(false);
+          // find min of the three possible directions
+          double pos2(s2[j - 1].getMZ());
+          double diff_align = fabs(pos1 - pos2);
+
+          // running off the right border of the band?
+          if (pos2 > pos1 && diff_align >= tolerance)
+          {
+            if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2)
+            {
+              off_band = true;
+            }
+          }
+
+          // can we tighten the left border of the band?
+          if (pos1 > pos2 && diff_align >= tolerance && j > left_ptr + 1)
+          {
+            ++left_ptr;
+          }
+
+          double score_align = diff_align;
+
+          if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j - 1) != matrix[i - 1].end())
+          {
+            score_align += matrix[i - 1][j - 1];
+          }
+          else
+          {
+            score_align += (i - 1 + j - 1) * tolerance;
+          }
+
+          double score_up = tolerance;
+          if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
+          {
+            score_up += matrix[i][j - 1];
+          }
+          else
+          {
+            score_up += (i + j - 1) * tolerance;
+          }
+
+          double score_left = tolerance;
+          if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
+          {
+            score_left += matrix[i - 1][j];
+          }
+          else
+          {
+            score_left += (i - 1 + j) * tolerance;
+          }
+
+          // check for similar intensity values
+          double intensity1(s1[i - 1].getIntensity());
+          double intensity2(s2[j - 1].getIntensity());
+          bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) > intensity_cutoff;
+
+          // check for same charge
+          PeakSpectrum::IntegerDataArray s1_charges = s1.getIntegerDataArrays()[0];
+          PeakSpectrum::IntegerDataArray s2_charges = s2.getIntegerDataArrays()[0];
+          bool charge_fits = s1_charges[i - 1] == s2_charges[j - 1] || s1_charges[i - 1] == 0 || s2_charges[j - 1] == 0;
+          LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
+
+          // TODO SET A CHARGE FOR EXPERIMENTAL SPECTRA, then use this again
+//          bool charge_fits = true;
+
+          if (score_align <= score_up && score_align <= score_left && diff_align < tolerance && diff_int_clear)
+          {
+            matrix[i][j] = score_align;
+            traceback[i][j] = std::make_pair(i - 1, j - 1);
+            last_i = i;
+            last_j = j;
+          }
+          else
+          {
+            if (score_up <= score_left)
+            {
+              matrix[i][j] = score_up;
+              traceback[i][j] = std::make_pair(i, j - 1);
+            }
+            else
+            {
+              matrix[i][j] = score_left;
+              traceback[i][j] = std::make_pair(i - 1, j);
+            }
+          }
+
+          if (off_band)
+          {
+            break;
+          }
+        }
+      }
+
+      // do traceback
+      Size i = last_i;
+      Size j = last_j;
+
+      while (i >= 1 && j >= 1)
+      {
+        if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
+        {
+          alignment.push_back(std::make_pair(i - 1, j - 1));
+        }
+        Size new_i = traceback[i][j].first;
+        Size new_j = traceback[i][j].second;
+
+        i = new_i;
+        j = new_j;
+      }
+
+      std::reverse(alignment.begin(), alignment.end());
+
+    }
+    else  // relative alignment (ppm tolerance)
+    {
+      for (Size i = 0; i != s1.size(); ++i)
+      {
+        const double& theo_mz = s1[i].getMZ();
+        double max_dist_dalton = theo_mz * tolerance * 1e-6;
+
+        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+        Size j = s2.findNearest(theo_mz);
+        double exp_mz = s2[j].getMZ();
+
+        // check for similar intensity values
+        double intensity1(s1[i - 1].getIntensity());
+        double intensity2(s2[j - 1].getIntensity());
+        bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) > intensity_cutoff;
+
+        // found peak match
+        if (std::abs(theo_mz - exp_mz) <= max_dist_dalton && diff_int_clear)
+        {
+          alignment.push_back(std::make_pair(i, j));
+        } else if (std::abs(theo_mz - exp_mz) <= max_dist_dalton && !diff_int_clear)
+        {
+//          s2.erase(s2.begin() + s2.findNearest(theo_mz));
+          if (i > 0)
+          {
+            i--;
+          }
+        }
+      }
+    }
+  }
+
+
+
+  void OpenProXLUtils::getSpectrumIntensityMatching(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff)
+  {
+    if (!(s1.isSorted() && s2.isSorted()))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
+    }
+    PeakSpectrum spec1copy = s1;
+    PeakSpectrum spec2copy = s2;
+
+    // clear result
+    alignment.clear();
+
+    spec1copy.sortByIntensity(true);
+
+    for (Size i = 0; i != spec1copy.size(); ++i)
+    {
+      const double& spec1copy_mz = spec1copy[i].getMZ();
+
+      PeakSpectrum peaks = getToleranceWindowPeaks(spec2copy, spec1copy_mz, tolerance, relative_tolerance);
+      if (peaks.size() > 1)
+      {
+        LOG_DEBUG << "SpectrumIntensityMatch: Peaks in tolerance window: " << peaks.size() << endl;
+      }
+
+      if (peaks.size() > 0)
+      {
+        peaks.sortByIntensity();
+        double intensity1(spec1copy[i].getIntensity());
+
+        for (Size j = 0; j < peaks.size(); ++j)
+        {
+          // check for similar intensity values
+          double intensity2(peaks[j].getIntensity());
+          double high_cutoff = 1 / intensity_cutoff;
+          //bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) >= intensity_cutoff;
+          bool diff_int_clear = (intensity1 / intensity2) >= intensity_cutoff && (intensity1 / intensity2) <= high_cutoff;
+
+          // check for same charge
+//          PeakSpectrum::IntegerDataArray s1_charges = s1.getIntegerDataArrays()[0];
+//           PeakSpectrum::IntegerDataArray s2_charges = s2.getIntegerDataArrays()[0];
+//           bool charge_fits = s1_charges[i - 1] == s2_charges[j - 1] || s2_charges[j - 1] == 0;
+//           LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
+
+          // TODO SET A CHARGE FOR EXPERIMENTAL SPECTRA, then use this again
+          bool charge_fits = true;
+
+          // found peak match. if intensity similar enough, update alignment and remove peak, so that it will not get matched again to another peak
+          if (diff_int_clear && charge_fits)
+          {
+            Size s2_index = s2.findNearest(peaks[j].getMZ());
+            Size s1_index = s1.findNearest(spec1copy_mz);
+            alignment.push_back(std::make_pair(s1_index, s2_index));
+            // remove peak from temporary spectrum copy to avoid multiple mappings
+            Size spec2copy_index = spec2copy.findNearest(peaks[j].getMZ());
+            spec2copy.erase(spec2copy.begin() + spec2copy_index);
+            break;
+          } else
+          {
+            // erase the most intense peak, because it does not fulfill the similarity or charge constraints and try with the rest of the peaks
+            peaks.erase(peaks.begin() + j);
+            --j;
+          }
+        }
+      }
+    }
+  }
+
+  std::vector<OpenProXLUtils::PeptideMass> OpenProXLUtils::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
+  {
+    multimap<StringView, AASequence> processed_peptides;
+    vector<OpenProXLUtils::PeptideMass> peptide_masses;
+//#ifdef _OPENMP
+//#pragma omp parallel for
+//#endif
+    // digest and filter database
+    for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_db.size()); ++fasta_index)
+    {
+//#ifdef _OPENMP
+//#pragma omp atomic
+//#endif
+      ++count_proteins;
+
+      // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
+      vector<StringView> current_digest;
+      digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
+
+      for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      {
+        // skip peptides with invalid AAs // TODO is this necessary?
+        if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
+
+        OpenProXLUtils::PeptidePosition position = OpenProXLUtils::INTERNAL;
+        if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
+        {
+          position = OpenProXLUtils::N_TERM;
+        } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        {
+          position = OpenProXLUtils::C_TERM;
+        }
+
+        // skip if no cross-linked residue
+        bool skip = true;
+        for (Size k = 0; k < cross_link_residue1.size(); k++)
+        {
+          if (cit->getString().find(cross_link_residue1[k]) < cit->getString().size()-1)
+          {
+            skip = false;
+          }
+          if (n_term_linker && position == OpenProXLUtils::N_TERM)
+          {
+            skip = false;
+          }
+          if (c_term_linker && position == OpenProXLUtils::C_TERM)
+          {
+            skip = false;
+          }
+        }
+        for (Size k = 0; k < cross_link_residue2.size(); k++)
+        {
+          if (cit->getString().find(cross_link_residue2[k]) < cit->getString().size()-1)
+          {
+            skip = false;
+          }
+          if (n_term_linker && position == OpenProXLUtils::N_TERM)
+          {
+            skip = false;
+          }
+          if (c_term_linker && position == OpenProXLUtils::C_TERM)
+          {
+            skip = false;
+          }
+        }
+        if (skip) continue;
+
+        bool already_processed = false;
+//#ifdef _OPENMP
+//#pragma omp critical (processed_peptides_access)
+//#endif
+        {
+          if (processed_peptides.find(*cit) != processed_peptides.end())
+          {
+            // peptide (and all modified variants) already processed so skip it
+            already_processed = true;
+          }
+        }
+
+        if (already_processed)
+        {
+          continue;
+        }
+//        if (cit->getString().find('K') >= cit->getString().size()-1)
+//        {
+//          continue;
+//        }
+
+
+
+//#ifdef _OPENMP
+//#pragma omp atomic
+//#endif
+        ++count_peptides;
+
+        vector<AASequence> all_modified_peptides;
+
+        // generate all modified variants of a peptide
+        // Note: no critial section is needed despite ResidueDB not beeing thread sage.
+        //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
+        {
+          AASequence aas = AASequence::fromString(cit->getString());
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+        }
+
+        for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
+        {
+          const AASequence& candidate = all_modified_peptides[mod_pep_idx];
+          OpenProXLUtils::PeptideMass pep_mass;
+          pep_mass.peptide_mass = candidate.getMonoWeight();
+          pep_mass.peptide_seq = candidate;
+          pep_mass.position = position;
+
+//#ifdef _OPENMP
+//#pragma omp critical (processed_peptides_access)
+//#endif
+          {
+            processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+            peptide_masses.push_back(pep_mass);
+          }
+        }
+      }
+    }
+    sort(peptide_masses.begin(), peptide_masses.end());
+    return peptide_masses;
   }
 
 }

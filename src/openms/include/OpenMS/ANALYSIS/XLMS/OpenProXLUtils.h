@@ -37,6 +37,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <numeric>
 
 namespace OpenMS
@@ -227,8 +229,23 @@ struct CrossLinkSpectrumMatch
 
     static void nLargestSpectrumFilter(PeakSpectrum spectrum, int peak_count);
 
+    static void wrap_(const String& input, Size width, String & output);
 
-    // Sum of matched ion intesity, for Intsum score and %TIC score
+    static String getxQuestBase64EncodedSpectrum(const PeakSpectrum& spec, String header);
+
+    static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
+
+    static void preprocessSpectraLabeled(PeakMap& exp);
+
+    static PeakSpectrum getToleranceWindowPeaks(PeakSpectrum spec, double mz, double tolerance, bool relative_tolerance);
+
+    static void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
+
+    static void getSpectrumIntensityMatching(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
+
+    static std::vector<OpenProXLUtils::PeptideMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false);
+
+    // Sum of matched ion intensity, for Intsum score and %TIC score
     template <typename SpectrumType1>
     static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const SpectrumType1& spectrum_common_peaks, const SpectrumType1& spectrum_xlink_peaks)
     {
