@@ -143,14 +143,15 @@ void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices
     for (vector<Size>::const_iterator it = tmp_result.begin(); it != tmp_result.end(); ++it)
     {
       double int_2 = features_[*it]->getIntensity();
-      double fc = int_2 / int_1;
-      if (fc > 0.0)
+      double abs_log_fc = fabs(log10(int_2 / int_1));
+
+      // abs_log_fc could assume +nan or +inf if negative
+      // or zero intensity features were present, but
+      // this shouldn't cause a problem. they just wouldn't
+      // be used.
+      if (abs_log_fc <= max_pairwise_log_fc)
       {
-        double abs_log_fc = fabs(log10(fc));
-        if (abs_log_fc <= max_pairwise_log_fc)
-        {
-          result_indices.push_back(*it);
-        }
+        result_indices.push_back(*it);
       }
     }
   }
