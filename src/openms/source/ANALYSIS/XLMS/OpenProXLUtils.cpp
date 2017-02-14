@@ -1661,7 +1661,7 @@ namespace OpenMS
     return cross_link_candidates;
   }
 
-  void OpenProXLUtils::createFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
+  void OpenProXLUtils::buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
   {
     if (theoretical_spectrum.empty() || experiment_spectrum.empty())
     {
@@ -1678,6 +1678,257 @@ namespace OpenMS
       frag_anno.charge = charges[matching[k].first];
       frag_anno.annotation = names[matching[k].first];
       frag_annotations.push_back(frag_anno);
+    }
+  }
+
+  void OpenProXLUtils::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
+  {
+    Size all_top_csms_current_index = 0;
+#ifdef _OPENMP
+#pragma omp critical (all_top_csms_access)
+#endif
+    {
+      all_top_csms_current_index = all_top_csms.size()-1;
+    }
+
+    for (Size i = 0; i < top_csms_spectrum.size(); ++i)
+    {
+      PeptideIdentification peptide_id;
+
+      const PeakSpectrum& spectrum_light = spectra[scan_index];
+      double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
+      double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
+
+      String xltype = "cross-link";
+      SignedSize alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first;
+      SignedSize beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second;
+
+      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
+      {
+        xltype = "mono-link";
+      }
+      else if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::LOOP)
+      {
+        xltype = "loop-link";
+      }
+
+      PeptideHit ph_alpha, ph_beta;
+      // Set monolink as a modification or add MetaValue for cross-link identity and mass
+      AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
+      ResidueModification::Term_Specificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
+      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
+      {
+        //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
+        vector< String > mods;
+        const String residue = seq_alpha[alpha_pos].getOneLetterCode();
+        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001);
+        LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
+        bool mod_set = false;
+        if (mods.size() > 0) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
+        {
+          for (Size s = 0; s < mods.size(); ++s)
+          {
+            if (mods[s].hasSubstring(top_csms_spectrum[i].cross_link.cross_linker_name))
+            {
+              LOG_DEBUG << "applied modification: " << mods[s] << endl;
+              seq_alpha.setModification(alpha_pos, mods[s]);
+              mod_set = true;
+              break;
+            }
+          }
+        }
+        else if (mods.size() == 0 && (alpha_pos == 0 || alpha_pos == seq_alpha.size()-1))
+        {
+          ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, alpha_term_spec);
+          if (mods.size() > 0)
+          {
+            Size mod_index = 0;
+            for (Size s = 0; s < mods.size(); ++s)
+            {
+              if (mods[s].hasSubstring(top_csms_spectrum[i].cross_link.cross_linker_name))
+              {
+                mod_index = s;
+              }
+            }
+//            cout << "Terminal Mod Test; mod: " << mod_index <<  " | " << mods[mod_index] << " | term_spec: " << alpha_term_spec << endl;
+            if (alpha_term_spec == ResidueModification::N_TERM)
+            {
+              seq_alpha.setNTerminalModification(mods[mod_index]);
+            }
+            else
+            {
+              seq_alpha.setCTerminalModification(mods[mod_index]);
+            }
+            mod_set = true;
+          }
+        }
+
+        if ( (mods.size() > 0) && (!mod_set) ) // If resolving by name did not work, use any with matching diff mass
+        {
+          seq_alpha.setModification(alpha_pos, mods[0]);
+          mod_set = true;
+        }
+        if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
+        {
+          String mod_name = String("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          //seq_alpha.setModification(alpha_pos, mod_name);
+          LOG_DEBUG << "unknown mono-link" << endl;
+          ph_alpha.setMetaValue("xl_mod", mod_name);
+          ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+        }
+      }
+      else
+      {
+        ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+        ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+      }
+
+
+      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::LOOP)
+      {
+        ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
+      }
+
+
+
+      String alpha_term = "ANYWHERE";
+      if (alpha_term_spec == ResidueModification::N_TERM)
+      {
+        alpha_term = "N_TERM";
+      }
+      else if (alpha_term_spec == ResidueModification::C_TERM)
+      {
+        alpha_term = "C_TERM";
+      }
+
+      ResidueModification::Term_Specificity beta_term_spec = top_csms_spectrum[i].cross_link.term_spec_beta;
+      String beta_term = "ANYWHERE";
+      if (beta_term_spec == ResidueModification::N_TERM)
+      {
+        beta_term = "N_TERM";
+      }
+      else if (beta_term_spec == ResidueModification::C_TERM)
+      {
+        beta_term = "C_TERM";
+      }
+
+      vector<PeptideHit> phs;
+
+      ph_alpha.setSequence(seq_alpha);
+      ph_alpha.setCharge(precursor_charge);
+      ph_alpha.setScore(top_csms_spectrum[i].score);
+      ph_alpha.setRank(DataValue(i+1));
+      ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
+      ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
+      ph_alpha.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+      ph_alpha.setMetaValue("xl_type", xltype);
+      ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
+      ph_alpha.setMetaValue("xl_term_spec", alpha_term);
+
+      if (scan_index_heavy)
+      {
+        ph_alpha.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+        ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+        ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+      }
+
+      ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
+      ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
+      ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
+      ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
+      ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+
+      ph_alpha.setMetaValue("OpenProXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
+      ph_alpha.setMetaValue("OpenProXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
+      ph_alpha.setMetaValue("OpenProXL:HyperAlpha", top_csms_spectrum[i].HyperAlpha);
+      ph_alpha.setMetaValue("OpenProXL:HyperBeta", top_csms_spectrum[i].HyperBeta);
+      ph_alpha.setMetaValue("OpenProXL:HyperBoth",top_csms_spectrum[i].HyperBoth);
+
+      ph_alpha.setMetaValue("OpenProXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+      ph_alpha.setMetaValue("OpenProXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+      ph_alpha.setMetaValue("OpenProXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
+      ph_alpha.setMetaValue("OpenProXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
+      ph_alpha.setMetaValue("OpenProXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+
+      ph_alpha.setMetaValue("selected", "false");
+
+      ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
+      LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
+      phs.push_back(ph_alpha);
+
+      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::CROSS)
+      {
+        ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
+        ph_beta.setCharge(precursor_charge);
+        ph_beta.setScore(top_csms_spectrum[i].score);
+        ph_beta.setRank(DataValue(i+1));
+        ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
+        ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
+        ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+        ph_beta.setMetaValue("xl_term_spec", beta_term);
+
+        if (scan_index_heavy)
+        {
+          ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+          ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+          ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+        }
+
+        ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
+        ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
+        ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
+        ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
+        ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+
+        ph_beta.setMetaValue("OpenProXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
+        ph_beta.setMetaValue("OpenProXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
+        ph_beta.setMetaValue("OpenProXL:HyperAlpha",top_csms_spectrum[i].HyperAlpha);
+        ph_beta.setMetaValue("OpenProXL:HyperBeta",top_csms_spectrum[i].HyperBeta);
+        ph_beta.setMetaValue("OpenProXL:HyperBoth",top_csms_spectrum[i].HyperBoth);
+
+        ph_beta.setMetaValue("OpenProXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+        ph_beta.setMetaValue("OpenProXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+        ph_beta.setMetaValue("OpenProXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
+        ph_beta.setMetaValue("OpenProXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
+        ph_beta.setMetaValue("OpenProXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+
+        ph_beta.setMetaValue("selected", "false");
+
+        phs.push_back(ph_beta);
+      }
+
+      peptide_id.setRT(spectrum_light.getRT());
+      peptide_id.setMZ(precursor_mz);
+      String specIDs;
+      if (scan_index_heavy)
+      {
+        specIDs = spectra[scan_index].getNativeID() + "," + spectra[scan_index_heavy].getNativeID();
+      }
+      else
+      {
+        specIDs = spectra[scan_index].getNativeID();
+      }
+
+      peptide_id.setMetaValue("spectrum_reference", specIDs);
+//      peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
+//      peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
+//      peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+//      peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+//      peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
+//      peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
+
+      peptide_id.setHits(phs);
+      peptide_id.setScoreType("OpenXQuest:combined score");
+
+#ifdef _OPENMP
+#pragma omp critical (peptides_ids_access)
+#endif
+      peptide_ids.push_back(peptide_id);
+
+#ifdef _OPENMP
+#pragma omp critical (all_top_csms_access)
+#endif
+      all_top_csms[all_top_csms_current_index][i].peptide_id_index = peptide_ids.size()-1;
     }
   }
 
