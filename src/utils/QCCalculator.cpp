@@ -149,10 +149,10 @@ protected:
     return error;
   }
 
-  void calculateSNident (PeptideHit& hit, MSSpectrum<Peak1D>& spec)
-  {
+//  void calculateSNident (PeptideHit& hit, MSSpectrum<Peak1D>& spec)
+//  {
     // TODO
-  }
+//  }
 
   float calculateSNmedian (MSSpectrum<Peak1D>& spec, bool norm = true)
   {
@@ -302,6 +302,7 @@ protected:
     at.colTypes.push_back("MS:1000040");  // MZ
     at.colTypes.push_back("MS:1000041");  // charge
     at.colTypes.push_back("S/N");  // S/N
+    at.colTypes.push_back("peak count");  // peak count
     for (Size i = 0; i < exp.size(); ++i)
     {
       mslevelcounts[exp[i].getMSLevel()]++;
@@ -320,8 +321,8 @@ protected:
         row.push_back(exp[i].getPrecursors().front().getMZ());
         row.push_back(exp[i].getPrecursors().front().getCharge());
         row.push_back(calculateSNmedian(exp[i]));
+        row.push_back(exp[i].size());
         at.tableRows.push_back(row);
-
       }
     }
     qcmlfile.addRunAttachment(base_name, at);
@@ -501,6 +502,8 @@ protected:
 
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
+    at.colTypes.push_back("S/N");
+    at.colTypes.push_back("peak count");
     Size prev = 0;
     below_10k = 0;
     Size jumps = 0;
@@ -531,6 +534,8 @@ protected:
         std::vector<String> row;
         row.push_back(exp[i].getRT());
         row.push_back(sum);
+        row.push_back(calculateSNmedian(exp[i]));
+        row.push_back(exp[i].size());
         at.tableRows.push_back(row);
       }
     }
@@ -572,7 +577,7 @@ protected:
     qp.id = base_name + "_ricdump"; ///< Identifier
     qp.cvRef = "QC"; ///< cv reference
     qp.cvAcc = "QC:0000060";
-    qp.value = String(jumps);
+    qp.value = String(drops);
     try
     {
       const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
@@ -844,6 +849,7 @@ protected:
       at.colTypes.push_back("Charge");
       at.colTypes.push_back("TheoreticalWeight");
       at.colTypes.push_back("delta_ppm");
+//      at.colTypes.push_back("S/N");
       for (UInt w = 0; w < var_mods.size(); ++w)
       {
         at.colTypes.push_back(String(var_mods[w]).substitute(' ', '_'));
@@ -882,21 +888,20 @@ protected:
               }
             }
           }
+
           row.push_back(tmp.getScore());
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
           row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
           double dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), it->getMZ(), true));
           row.push_back(String(dppm));
+//          row.push_back(String(calculateSNident(tmp)));
           deltas.push_back(dppm);
           for (UInt w = 0; w < var_mods.size(); ++w)
           {
             row.push_back(pep_mods[w]);
           }
           at.tableRows.push_back(row);
-
-          // S/N calc
-          // TODO calcSNident
         }
       }
       qcmlfile.addRunAttachment(base_name, at);
