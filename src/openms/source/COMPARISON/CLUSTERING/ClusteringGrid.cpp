@@ -101,7 +101,7 @@ ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
     if (position.getX() < range_x_.first || position.getX() > range_x_.second || position.getY() < range_y_.first || position.getY() > range_y_.second)
     {
         std::stringstream stream;
-        stream << "This position (x,y)=(" << position.getX() << "," << position.getY() << ") is outside the range of the grid. (" << range_x_.first << " < x < " << range_x_.second << ", " << range_y_.first << " < y < " << range_y_.second << ")";
+        stream << "This position (x,y)=(" << position.getX() << "," << position.getY() << ") is outside the range of the grid. (" << range_x_.first << " <= x <= " << range_x_.second << ", " << range_y_.first << " <= y <= " << range_y_.second << ")";
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
     
