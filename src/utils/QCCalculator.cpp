@@ -159,7 +159,7 @@ protected:
     float median = 0;
     float maxi = 0;
     spec.sortByIntensity();
-    if(spec.size() % 2 == 0)
+    if (spec.size() % 2 == 0)
     {
       median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
     }
