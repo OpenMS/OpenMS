@@ -74,10 +74,10 @@ namespace OpenMS
     double rt_max = exp_profile.getMaxRT();
     
     // extend the grid by a small machine-epsilon-dependent margin
-    mz_min -= 2 * mz_min * std::numeric_limits<double>::epsilon();
-    mz_max += 2 * mz_max * std::numeric_limits<double>::epsilon();
-    rt_min -= 2 * rt_min * std::numeric_limits<double>::epsilon();
-    rt_max += 2 * rt_max * std::numeric_limits<double>::epsilon();
+    mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
+    mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
+    rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
+    rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
     
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
@@ -122,10 +122,10 @@ namespace OpenMS
     double rt_max = exp.getMaxRT();
     
     // extend the grid by a small machine-epsilon-dependent margin
-    mz_min -= 2 * mz_min * std::numeric_limits<double>::epsilon();
-    mz_max += 2 * mz_max * std::numeric_limits<double>::epsilon();
-    rt_min -= 2 * rt_min * std::numeric_limits<double>::epsilon();
-    rt_max += 2 * rt_max * std::numeric_limits<double>::epsilon();
+    mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
+    mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
+    rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
+    rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
     
     // generate grid spacing
     // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.
