@@ -244,6 +244,7 @@ protected:
 
       // needed later for writing in ms file
       int int_charge(1);
+      cout << IonSource::Polarity::POSITIVE << endl;
       if (p == IonSource::Polarity::POSITIVE)
       {
         int_charge = +1;
@@ -446,9 +447,10 @@ protected:
           // fill indentification structure containing all candidate hits for a single spectrum
           CSIFingerIDIdentification csi_id;
 
-          if (number > compounds.rowCount())
+          // ?? comparison of int and unsigned long
+          if (number > (int)compounds.rowCount())
           {
-            number = compounds.rowCount();
+            number = (int)compounds.rowCount();
           }
 
           for (Size j = 1; j < number; ++j)
@@ -477,28 +479,28 @@ protected:
 
           csi_result.identifications.push_back(csi_id);
 
-          //clean up temporary input files and output folder
-          //     if (getIntOption_("debug") < 2)
-          //     {
-          //      writeDebug_("Removing temporary files", 1);
+          // clean up temporary input files and output folder
+               if (getIntOption_("debug") < 2)
+               {
+                writeDebug_("Removing temporary files", 1);
 
-          //      // remove temporary input file
-          //      if (File::exists(tmp_filename) && !File::remove(tmp_filename))
-          //      {
-          //       LOG_WARN << "Unable to remove temporary file: " << tmp_filename << endl;
-          //      }
+                // remove temporary input file
+                if (File::exists(tmp_filename) && !File::remove(tmp_filename))
+                {
+                 LOG_WARN << "Unable to remove temporary file: " << tmp_filename << endl;
+                }
 
-          //      // remove temporary output folder
-          //      if (File::exists(tmp_dir) && !File::removeDirRecursively(tmp_dir))
-          //      {
-          //       LOG_WARN << "Unable to remove temporary folder: " << tmp_dir << endl;
-          //      }
-          //     }
-          //     else
-          //     {
-          //      writeDebug_(String("Input to sirius kept for inspection at ") + tmp_filename + "\n", 2);
-          //      writeDebug_(String("Output folder kept for inspection at ") + tmp_dir + "\n", 2);
-          //     }
+                // remove temporary output folder
+                if (File::exists(tmp_dir) && !File::removeDirRecursively(tmp_dir))
+                {
+                 LOG_WARN << "Unable to remove temporary folder: " << tmp_dir << endl;
+                }
+               }
+               else
+               {
+                writeDebug_(String("Input to sirius kept for inspection at ") + tmp_filename + "\n", 2);
+                writeDebug_(String("Output folder kept for inspection at ") + tmp_dir + "\n", 2);
+               }
         }
         else
         {
