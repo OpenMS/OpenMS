@@ -1932,4 +1932,100 @@ namespace OpenMS
     }
   }
 
+  void OpenProXLUtils::writeXQuestXMLSpec(String out_file, String base_name, const PreprocessedPairSpectra& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  {
+    //String spec_xml_filename = base_name + "_matched.spec.xml";
+    // XML Header
+    ofstream spec_xml_file;
+    cout << "Writing spec.xml to " << out_file << endl;
+    spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
+    // TODO write actual data
+    spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
+
+    for (Size i = 0; i < spectrum_pairs.size(); ++i)
+    {
+      if (!all_top_csms[i].empty())
+      {
+        Size scan_index_light = spectrum_pairs[i].first;
+        Size scan_index_heavy = spectrum_pairs[i].second;
+        // TODO more correct alternative
+        String spectrum_light_name = base_name + ".light." + scan_index_light;
+        String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
+//        String spectrum_light_name = String("spectrumlight") + scan_index_light;
+//        String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
+        String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+
+        // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
+        spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[scan_index_light], String(""));
+        spec_xml_file << "</spectrum>" << endl;
+
+        spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[scan_index_heavy], String(""));
+        spec_xml_file << "</spectrum>" << endl;
+
+        String spectrum_common_name = spectrum_name + String("_common.txt");
+        spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << "</spectrum>" << endl;
+
+        String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
+        spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << "</spectrum>" << endl;
+      }
+    }
+
+    spec_xml_file << "</xquest_spectra>" << endl;
+    spec_xml_file.close();
+
+    return;
+  }
+
+  void OpenProXLUtils::writeXQuestXMLSpec(String out_file, String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  {
+    // String spec_xml_filename = base_name + "_matched.spec.xml";
+    // XML Header
+    ofstream spec_xml_file;
+    cout << "Writing spec.xml to " << out_file << endl;
+    spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
+    // TODO write actual data
+    spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
+
+    for (Size i = 0; i < spectra.size(); ++i)
+    {
+      if (!all_top_csms[i].empty())
+      {
+        String spectrum_light_name = base_name + ".light." + i;
+        String spectrum_heavy_name = base_name + ".heavy." + i;
+
+        String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+
+        // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
+        spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], String(""));
+        spec_xml_file << "</spectrum>" << endl;
+
+        spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], String(""));
+        spec_xml_file << "</spectrum>" << endl;
+
+        String spectrum_common_name = spectrum_name + String("_common.txt");
+        spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << "</spectrum>" << endl;
+
+        String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
+        spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
+        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << "</spectrum>" << endl;
+      }
+    }
+
+    spec_xml_file << "</xquest_spectra>" << endl;
+    spec_xml_file.close();
+
+    return;
+  }
+
 }

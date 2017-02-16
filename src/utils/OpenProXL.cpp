@@ -226,28 +226,28 @@ protected:
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
-  struct PreprocessedPairSpectra_
-  {
-    // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra.
-    PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-    PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
-    PeakMap spectra_all_peaks;
+//  struct PreprocessedPairSpectra_
+//  {
+//    // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra.
+//    PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
+//    PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+//    PeakMap spectra_all_peaks;
 
-    PreprocessedPairSpectra_(Size size)
-    {
-      for (Size i = 0; i != size; ++i)
-      {
-        spectra_common_peaks.addSpectrum(PeakSpectrum());
-        spectra_xlink_peaks.addSpectrum(PeakSpectrum());
-        spectra_all_peaks.addSpectrum(PeakSpectrum());
-      }
-    }
-  };
+//    PreprocessedPairSpectra_(Size size)
+//    {
+//      for (Size i = 0; i != size; ++i)
+//      {
+//        spectra_common_peaks.addSpectrum(PeakSpectrum());
+//        spectra_xlink_peaks.addSpectrum(PeakSpectrum());
+//        spectra_all_peaks.addSpectrum(PeakSpectrum());
+//      }
+//    }
+//  };
 
   // create common / shifted peak spectra for all pairs
-  PreprocessedPairSpectra_ preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
+  OpenProXLUtils::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
   {
-    PreprocessedPairSpectra_ preprocessed_pair_spectra(spectrum_pairs.size());
+    OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
  
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -414,55 +414,55 @@ protected:
     return preprocessed_pair_spectra;
   }
 
-    void writeXQuestXMLSpec(String out_file, String base_name, const PreprocessedPairSpectra_& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
-    {
-      //String spec_xml_filename = base_name + "_matched.spec.xml";
-      // XML Header
-      ofstream spec_xml_file;
-      cout << "Writing spec.xml to " << out_file << endl;
-      spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
-      // TODO write actual data
-      spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
+//    void writeXQuestXMLSpec(String out_file, String base_name, const OpenProXLUtils::PreprocessedPairSpectra& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+//    {
+//      //String spec_xml_filename = base_name + "_matched.spec.xml";
+//      // XML Header
+//      ofstream spec_xml_file;
+//      cout << "Writing spec.xml to " << out_file << endl;
+//      spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
+//      // TODO write actual data
+//      spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
 
-      for (Size i = 0; i < spectrum_pairs.size(); ++i)
-      {
-        if (!all_top_csms[i].empty())
-        {
-          Size scan_index_light = spectrum_pairs[i].first;
-          Size scan_index_heavy = spectrum_pairs[i].second;
-          // TODO more correct alternative
-          String spectrum_light_name = base_name + ".light." + scan_index_light;
-          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-//          String spectrum_light_name = String("spectrumlight") + scan_index_light;
-//          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
-          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+//      for (Size i = 0; i < spectrum_pairs.size(); ++i)
+//      {
+//        if (!all_top_csms[i].empty())
+//        {
+//          Size scan_index_light = spectrum_pairs[i].first;
+//          Size scan_index_heavy = spectrum_pairs[i].second;
+//          // TODO more correct alternative
+//          String spectrum_light_name = base_name + ".light." + scan_index_light;
+//          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
+////          String spectrum_light_name = String("spectrumlight") + scan_index_light;
+////          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
+//          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
-          // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
-          spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
-          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(spectra[scan_index_light], String(""));
-          spec_xml_file << "</spectrum>" << endl;
+//          // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
+//          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(spectra[scan_index_light], String(""));
+//          spec_xml_file << "</spectrum>" << endl;
 
-          spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
-          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(spectra[scan_index_heavy], String(""));
-          spec_xml_file << "</spectrum>" << endl;
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
+//          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(spectra[scan_index_heavy], String(""));
+//          spec_xml_file << "</spectrum>" << endl;
 
-          String spectrum_common_name = spectrum_name + String("_common.txt");
-          spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
-          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-          spec_xml_file << "</spectrum>" << endl;
+//          String spectrum_common_name = spectrum_name + String("_common.txt");
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
+//          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+//          spec_xml_file << "</spectrum>" << endl;
 
-          String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
-          spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
-          spec_xml_file <<OpenProXLUtils::getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-          spec_xml_file << "</spectrum>" << endl;
-        }
-      }
+//          String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
+//          spec_xml_file <<OpenProXLUtils::getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+//          spec_xml_file << "</spectrum>" << endl;
+//        }
+//      }
 
-      spec_xml_file << "</xquest_spectra>" << endl;
-      spec_xml_file.close();
+//      spec_xml_file << "</xquest_spectra>" << endl;
+//      spec_xml_file.close();
 
-      return;
-    }
+//      return;
+//    }
 
   ExitCodes main_(int, const char**)
   {
@@ -688,7 +688,7 @@ protected:
     // create common peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
 //    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass_light, cross_link_mass_heavy);
-    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
+    OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
     progresslogger.endProgress();
 
 
@@ -1359,7 +1359,15 @@ protected:
       Size found;
       found = out_xquest.find_last_of("/\\");
       // TODO "/" is Unix specific
-      String matched_spec_xml_name = out_xquest.substr(0, found) + "/" + base_name + "_matched.spec.xml";
+      String matched_spec_xml_name;
+      if (found == out_xquest.size())
+      {
+        matched_spec_xml_name = out_xquest.substr(0, found) + "/" + base_name + "_matched.spec.xml";
+      }
+      else
+      {
+        matched_spec_xml_name = base_name + "_matched.spec.xml";
+      }
 
       //String spec_xml_filename = spec_xml_name + ".spec.xml";
       String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
@@ -1367,7 +1375,7 @@ protected:
       OpenProXLUtils::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
                                                             precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
                                                             cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
-      writeXQuestXMLSpec(matched_spec_xml_name, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
+      OpenProXLUtils::writeXQuestXMLSpec(matched_spec_xml_name, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 

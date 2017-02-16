@@ -197,6 +197,24 @@ struct CrossLinkSpectrumMatch
     }
   };
 
+  struct PreprocessedPairSpectra
+  {
+    // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra.
+    PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
+    PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+    PeakMap spectra_all_peaks;
+
+    PreprocessedPairSpectra(Size size)
+    {
+      for (Size i = 0; i != size; ++i)
+      {
+        spectra_common_peaks.addSpectrum(PeakSpectrum());
+        spectra_xlink_peaks.addSpectrum(PeakSpectrum());
+        spectra_all_peaks.addSpectrum(PeakSpectrum());
+      }
+    }
+  };
+
 
 
 
@@ -224,6 +242,10 @@ struct CrossLinkSpectrumMatch
     static void writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
                                                   String precursor_mass_tolerance_unit, String fragment_mass_tolerance_unit, double precursor_mass_tolerance, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, String cross_link_name,
                                                   double cross_link_mass_light, DoubleList cross_link_mass_mono_link, String in_fasta, String in_decoy_fasta, StringList cross_link_residue1, StringList cross_link_residue2, double cross_link_mass_iso_shift, String enzyme_name, Size missed_cleavages);
+
+    static void writeXQuestXMLSpec(String out_file, String base_name, const PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+
+    static void writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
 
     static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum);
 

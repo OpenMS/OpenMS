@@ -1388,51 +1388,51 @@ protected:
 //      return;
 //    }
 
-    void writeXQuestXMLSpec(String out_file, String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
-    {
-      // String spec_xml_filename = base_name + "_matched.spec.xml";
-      // XML Header
-      ofstream spec_xml_file;
-      cout << "Writing spec.xml to " << out_file << endl;
-      spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
-      // TODO write actual data
-      spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
+//    void writeXQuestXMLSpec(String out_file, String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+//    {
+//      // String spec_xml_filename = base_name + "_matched.spec.xml";
+//      // XML Header
+//      ofstream spec_xml_file;
+//      cout << "Writing spec.xml to " << out_file << endl;
+//      spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
+//      // TODO write actual data
+//      spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
 
-      for (Size i = 0; i < spectra.size(); ++i)
-      {
-        if (!all_top_csms[i].empty())
-        {
-          String spectrum_light_name = base_name + ".light." + i;
-          String spectrum_heavy_name = base_name + ".heavy." + i;
+//      for (Size i = 0; i < spectra.size(); ++i)
+//      {
+//        if (!all_top_csms[i].empty())
+//        {
+//          String spectrum_light_name = base_name + ".light." + i;
+//          String spectrum_heavy_name = base_name + ".heavy." + i;
 
-          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+//          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
-          // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
-          spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
-          spec_xml_file << TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
-          spec_xml_file << "</spectrum>" << endl;
+//          // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
+//          spec_xml_file << TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
+//          spec_xml_file << "</spectrum>" << endl;
 
-          spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
-          spec_xml_file << TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
-          spec_xml_file << "</spectrum>" << endl;
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
+//          spec_xml_file << TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
+//          spec_xml_file << "</spectrum>" << endl;
 
-          String spectrum_common_name = spectrum_name + String("_common.txt");
-          spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
-          spec_xml_file << TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-          spec_xml_file << "</spectrum>" << endl;
+//          String spectrum_common_name = spectrum_name + String("_common.txt");
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
+//          spec_xml_file << TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+//          spec_xml_file << "</spectrum>" << endl;
 
-          String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
-          spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
-          spec_xml_file <<TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-          spec_xml_file << "</spectrum>" << endl;
-        }
-      }
+//          String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
+//          spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
+//          spec_xml_file <<TOPPOpenProXLLF::getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+//          spec_xml_file << "</spectrum>" << endl;
+//        }
+//      }
 
-      spec_xml_file << "</xquest_spectra>" << endl;
-      spec_xml_file.close();
+//      spec_xml_file << "</xquest_spectra>" << endl;
+//      spec_xml_file.close();
 
-      return;
-    }
+//      return;
+//    }
 
   ExitCodes main_(int, const char**)
   {
@@ -2711,7 +2711,7 @@ protected:
                                                             precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
                                                             cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
 
-      writeXQuestXMLSpec(matched_spec_xml_name, base_name, all_top_csms, spectra);
+      OpenProXLUtils::writeXQuestXMLSpec(matched_spec_xml_name, base_name, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 
