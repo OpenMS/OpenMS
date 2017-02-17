@@ -1253,13 +1253,16 @@ namespace OpenMS
     writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
     // if required or set by user, do some validity checks
-    if (p.required || (!getParam_(name).isEmpty() && tmp != p.default_value))
+    if (p.required || (!getParam_(name).isEmpty() && (tmp != p.default_value) &&
+                       !tmp.empty()))
     {
       // check if files are readable/writable
       if (p.type == ParameterInformation::INPUT_FILE)
       {
         if (!ListUtils::contains(p.tags, "skipexists"))
+        {
           inputFileReadable_(tmp, name);
+        }
       }
       else if (p.type == ParameterInformation::OUTPUT_FILE)
       {
