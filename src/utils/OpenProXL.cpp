@@ -245,7 +245,7 @@ protected:
 //  };
 
   // create common / shifted peak spectra for all pairs
-  OpenProXLUtils::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift)
+  OpenProXLUtils::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
     OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
  
@@ -263,7 +263,7 @@ protected:
       vector< pair< Size, Size > > matched_fragments_without_shift;
       //ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
       //getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
-      OpenProXLUtils::getSpectrumIntensityMatching(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
+      OpenProXLUtils::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 0.3);
 
       // different fragments may carry light or heavy cross-linker.
       PeakSpectrum spectrum_heavy_different;
@@ -299,6 +299,8 @@ protected:
       // assume different charged MS2 fragments
       PeakSpectrum spectrum_heavy_to_light;
       PeakSpectrum xlink_peaks;
+//      PeakSpectrum::IntegerDataArray charges;
+      xlink_peaks.getIntegerDataArrays().push_back(PeakSpectrum::IntegerDataArray());
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
       {
         spectrum_heavy_to_light.clear(false);
@@ -312,6 +314,12 @@ protected:
           p.setMZ(p.getMZ() - mass_shift);
           spectrum_heavy_to_light.push_back(p);
         }
+//        PeakSpectrum::IntegerDataArray charges;
+//        PeakSpectrum::StringDataArray annotations;
+//        charges.assign(spectrum_heavy_to_light.size(), 0);
+//        annotations.assign(spectrum_heavy_to_light.size(), "");
+//        spectrum_heavy_to_light.getIntegerDataArrays().push_back(charges);
+//        spectrum_heavy_to_light.getStringDataArrays().push_back(annotations);
 
         // align potentially shifted peaks from light MS2 with potentially shifted peaks from heavy (after transformation to resemble the light MS2)
         // matching fragments are potentially carrying the cross-linker
@@ -322,13 +330,16 @@ protected:
         if (spectrum_light_different.size() > 0 && spectrum_heavy_to_light.size() > 0)
         {
           //getSpectrumIntensityMatching(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light, 0.3, false, 0.3); // OLD maybe better version
-          OpenProXLUtils::getSpectrumIntensityMatching(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, 0.3, false, 0.3); // xQuest Perl does not remove common peaks from xlink search
+          OpenProXLUtils::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3); // xQuest Perl does not remove common peaks from xlink search
+//          OpenProXLUtils::updateChargesConstant(matched_fragments_with_shift, spectrum_light, charge);
 
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
           {
             //xlink_peaks.push_back(spectrum_light_different[matched_fragments_with_shift[i].first]);
             xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
+            xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
           }
+
           // make sure to not include the same peaks more than once with a different charge
 //          for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
 //          {
@@ -350,18 +361,35 @@ protected:
       {
         common_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
       }
+
+      // TODO TEST
+      // deisotope common_peaks, xlink_peaks already have charges assigned
+      common_peaks.sortByPosition();
+      common_peaks = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(common_peaks, 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+
 #ifdef DEBUG_OPENPROXL
         LOG_DEBUG << "Peaks to match: " << common_peaks.size() << endl;
 #endif
       // TODO make this a tool parameter
       Size max_peak_number = 250;
-      NLargest nlargest_filter = NLargest(max_peak_number);
-      nlargest_filter.filterSpectrum(common_peaks);
-      nlargest_filter.filterSpectrum(xlink_peaks);
+      OpenProXLUtils::nLargestSpectrumFilter(common_peaks, max_peak_number);
+      OpenProXLUtils::nLargestSpectrumFilter(xlink_peaks, max_peak_number);
 
-      PeakSpectrum all_peaks;
-      all_peaks.insert(all_peaks.end(), common_peaks.begin(), common_peaks.end());
-      all_peaks.insert(all_peaks.end(), xlink_peaks.begin(), xlink_peaks.end());
+
+      PeakSpectrum::IntegerDataArray charges;
+      charges.assign(common_peaks.size(), 0);
+      common_peaks.getIntegerDataArrays().push_back(charges);
+
+
+      PeakSpectrum all_peaks = OpenProXLUtils::mergeAnnotatedSpectra(common_peaks, xlink_peaks);
+
+      common_peaks.setPrecursors(spectrum_light.getPrecursors());
+      xlink_peaks.setPrecursors(spectrum_light.getPrecursors());
+      all_peaks.setPrecursors(spectrum_light.getPrecursors());
+
+      common_peaks.sortByPosition();
+      xlink_peaks.sortByPosition();
+      all_peaks.sortByPosition();
 
 #ifdef _OPENMP
 #pragma omp critical (preprocessed_pair_spectra_access)
@@ -369,37 +397,7 @@ protected:
       {
         swap(preprocessed_pair_spectra.spectra_common_peaks[pair_index], common_peaks);
         swap(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], xlink_peaks);
-
-        PeakSpectrum exp_spec;
-        exp_spec.reserve(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() + preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size());
-        exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_common_peaks[pair_index].end());
-        exp_spec.insert(exp_spec.end(), preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].begin(), preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].end());
         swap(preprocessed_pair_spectra.spectra_all_peaks[pair_index], all_peaks);
-
-        preprocessed_pair_spectra.spectra_common_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
-        preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
-        preprocessed_pair_spectra.spectra_all_peaks[pair_index].setPrecursors(spectrum_light.getPrecursors());
-
-        preprocessed_pair_spectra.spectra_common_peaks[pair_index].sortByPosition();
-        preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].sortByPosition();
-        preprocessed_pair_spectra.spectra_all_peaks[pair_index].sortByPosition();
-
-        PeakSpectrum::IntegerDataArray charges;
-        PeakSpectrum::StringDataArray annotations;
-        charges.assign(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size(), 0);
-        annotations.assign(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size(), "");
-        preprocessed_pair_spectra.spectra_common_peaks[pair_index].getIntegerDataArrays().push_back(charges);
-        preprocessed_pair_spectra.spectra_common_peaks[pair_index].getStringDataArrays().push_back(annotations);
-
-        charges.assign(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size(), 0);
-        annotations.assign(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size(), "");
-        preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].getIntegerDataArrays().push_back(charges);
-        preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].getStringDataArrays().push_back(annotations);
-
-        charges.assign(preprocessed_pair_spectra.spectra_all_peaks[pair_index].size(), 0);
-        annotations.assign(preprocessed_pair_spectra.spectra_all_peaks[pair_index].size(), "");
-        preprocessed_pair_spectra.spectra_all_peaks[pair_index].getIntegerDataArrays().push_back(charges);
-        preprocessed_pair_spectra.spectra_all_peaks[pair_index].getStringDataArrays().push_back(annotations);
       }
 
 #ifdef DEBUG_OPENPROXL
@@ -501,6 +499,12 @@ protected:
 
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
+    if (fragment_mass_tolerance_xlinks < fragment_mass_tolerance)
+    {
+      fragment_mass_tolerance_xlinks = fragment_mass_tolerance;
+    }
+    cout << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks << endl;
+
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
     SpectrumAlignment ms2_aligner;
@@ -688,7 +692,7 @@ protected:
     // create common peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
 //    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass_light, cross_link_mass_heavy);
-    OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift);
+    OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
 
 
@@ -1300,19 +1304,19 @@ protected:
         }
       }
 
-//      Size all_top_csms_current_index = 0;
+      Size all_top_csms_current_index = 0;
 #ifdef _OPENMP
 #pragma omp critical (all_top_csms_access)
 #endif
       {
         all_top_csms.push_back(top_csms_spectrum);
-//        all_top_csms_current_index = all_top_csms.size()-1;
+        all_top_csms_current_index = all_top_csms.size()-1;
       }
 
 
 
       // Write PeptideIdentifications and PeptideHits for n top hits
-      OpenProXLUtils::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, spectra, scan_index, scan_index_heavy);
+      OpenProXLUtils::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
 
       LOG_DEBUG << "Next Spectrum ################################## \n";
     }
