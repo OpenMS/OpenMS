@@ -35,6 +35,7 @@ DTA2DFile.h
 DTAFile.h
 EDTAFile.h
 FASTAFile.h
+FASTQFile.h
 FastaIterator.h
 FastaIteratorIntern.h
 FeatureXMLFile.h

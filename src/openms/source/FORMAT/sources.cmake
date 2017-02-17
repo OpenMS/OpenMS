@@ -16,6 +16,7 @@ DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
 FASTAFile.cpp
+FASTQFile.cpp
 FastaIterator.cpp
 FastaIteratorIntern.cpp
 FeatureXMLFile.cpp

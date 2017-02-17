@@ -161,6 +161,7 @@ set(format_executables_list
   DTAFile_test
   EDTAFile_test
   FASTAFile_test
+  FASTQFile_test
   FeatureFileOptions_test
   FeatureXMLFile_test
   FileHandler_test
