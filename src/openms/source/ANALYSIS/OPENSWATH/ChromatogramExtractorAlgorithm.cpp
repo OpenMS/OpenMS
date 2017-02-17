@@ -97,7 +97,7 @@ namespace OpenMS
 
     // (i) Walk to the left one step and then keep walking left until we go
     // outside the window. Note for the first step to the left we have to
-    // check for the walker becoming zero.
+    // check for the walker becoming equal to the first data point.
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_start)
