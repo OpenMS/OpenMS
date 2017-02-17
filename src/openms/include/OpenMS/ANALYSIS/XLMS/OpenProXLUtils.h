@@ -215,9 +215,6 @@ struct CrossLinkSpectrumMatch
     }
   };
 
-
-
-
     //bool operator< (const double other, const XLPrecursor& pre) {return other < pre.precursor_mass;}
 
     static float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta);
@@ -259,11 +256,9 @@ struct CrossLinkSpectrumMatch
 
     static void preprocessSpectraLabeled(PeakMap& exp);
 
-    static PeakSpectrum getToleranceWindowPeaks(PeakSpectrum spec, double mz, double tolerance, bool relative_tolerance);
-
     static void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
 
-    static void getSpectrumIntensityMatching(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
+    static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false);
 
     static std::vector<OpenProXLUtils::PeptideMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false);
 
@@ -271,7 +266,7 @@ struct CrossLinkSpectrumMatch
 
     static void buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
 
-    static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, const PeakMap & spectra, Size scan_index, Size scan_index_heavy = NULL);
+    static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy = NULL);
 
     // Sum of matched ion intensity, for Intsum score and %TIC score
     template <typename SpectrumType1>

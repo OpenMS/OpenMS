@@ -844,16 +844,6 @@ namespace OpenMS
       }
     }
 
-//    PeakSpectrum::StringDataArray names;
-//    PeakSpectrum::IntegerDataArray charges;
-//    names.insert(names.end(), first_spectrum.getStringDataArrays()[0].begin(), first_spectrum.getStringDataArrays()[0].end());
-//    names.insert(names.end(), second_spectrum.getStringDataArrays()[0].begin(), second_spectrum.getStringDataArrays()[0].end());
-//    resulting_spectrum.getStringDataArrays().push_back(names);
-
-//    charges.insert(charges.end(), first_spectrum.getIntegerDataArrays()[0].begin(), first_spectrum.getIntegerDataArrays()[0].end());
-//    charges.insert(charges.end(), second_spectrum.getIntegerDataArrays()[0].begin(), second_spectrum.getIntegerDataArrays()[0].end());
-//    resulting_spectrum.getIntegerDataArrays().push_back(charges);
-
     // Spectra were simply concatenated, so they are not sorted by position anymore
     resulting_spectrum.sortByPosition();
     return resulting_spectrum;
@@ -979,15 +969,6 @@ namespace OpenMS
     // sort by rt
     exp.sortSpectra(false);
 
-    // filter settings
-//    WindowMower window_mower_filter;
-//    Param filter_param = window_mower_filter.getParameters();
-//    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-//    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
-//    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps or jumping window window size steps) should be used.");
-//    window_mower_filter.setParameters(filter_param);
-//    NLargest nlargest_filter = NLargest(250);   // De-noising in xQuest: Dynamic range = 1000, 250 most intense peaks?
-
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -995,51 +976,7 @@ namespace OpenMS
     {
 //      // sort by mz
       exp[exp_index].sortByPosition();
-      PeakSpectrum::IntegerDataArray charges;
-      PeakSpectrum::StringDataArray annotations;
-      charges.assign(exp[exp_index].size(), 0);
-      annotations.assign(exp[exp_index].size(), "");
-      charges.setName("charges");
-      annotations.setName("annotations");
-      exp[exp_index].getIntegerDataArrays().push_back(charges);
-      exp[exp_index].getStringDataArrays().push_back(annotations);
-//      nlargest_filter.filterSpectrum(exp[exp_index]);
-//      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
-//      // sort (nlargest changes order)
-//      exp[exp_index].sortByPosition();
      }
-  }
-
-  PeakSpectrum OpenProXLUtils::getToleranceWindowPeaks(PeakSpectrum spec, double mz, double tolerance, bool relative_tolerance)
-  {
-    PeakSpectrum peaks;
-    double max_dist;
-
-    if (relative_tolerance)
-    {
-      max_dist = mz + (mz * tolerance * 1e-6);
-    } else
-    {
-      max_dist = tolerance;
-    }
-
-    bool inside = true;
-    while (inside)
-    {
-      Size index = spec.findNearest(mz);
-      double peak_mz = spec[index].getMZ();
-      double dist = abs(mz - peak_mz);
-
-      if (dist <= max_dist)
-      {
-        peaks.push_back(spec[index]);
-        spec.erase(spec.begin() + index);
-      } else
-      {
-        inside = false;
-      }
-    }
-    return peaks;
   }
 
   void OpenProXLUtils::getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff)
@@ -1051,23 +988,38 @@ namespace OpenMS
 
     // clear result
     alignment.clear();
-    //double tolerance = (double)param_.getValue("tolerance");
 
-    if (!(relative_tolerance))
-    {
+    // the weight of the intensity ratio term of the alignment score, and the gap penalty (since the ratio will always be between 0 and 1)
+    // TODO this weight should somehow be proportional to the tolerance, since the tolerance penalty varies, maybe 1/2 of absolute tol?
+    double intensity_weight = 0.1;
+
+//    if (!(relative_tolerance))
+//    {
       std::map<Size, std::map<Size, std::pair<Size, Size> > > traceback;
       std::map<Size, std::map<Size, double> > matrix;
 
-      // init the matrix with "gap costs" tolerance
+      // initialize to tolerance, will not change if tolerance is absolute (Da), updated for each position if tol is relative (ppm)
+      double max_dist = tolerance;
+
+      // init the matrix with "gap costs" tolerance + 1 for worst intensity ratio
       matrix[0][0] = 0;
       for (Size i = 1; i <= s1.size(); ++i)
       {
-        matrix[i][0] = i * tolerance;
+        // update relative max_dist at new position
+        if (relative_tolerance)
+        {
+          max_dist = s1[i-1].getMZ() * tolerance * 1e-6;
+        }
+        matrix[i][0] = i * max_dist + i;
         traceback[i][0]  = std::make_pair(i - 1, 0);
       }
       for (Size j = 1; j <= s2.size(); ++j)
       {
-        matrix[0][j] = j * tolerance;
+        if (relative_tolerance)
+        {
+          max_dist = s2[j-1].getMZ() * tolerance * 1e-6;
+        }
+        matrix[0][j] = j * max_dist + j;
         traceback[0][j] = std::make_pair(0, j - 1);
       }
 
@@ -1080,6 +1032,12 @@ namespace OpenMS
       {
         double pos1(s1[i - 1].getMZ());
 
+        // update relative max_dist at new position
+        if (relative_tolerance)
+        {
+          max_dist = pos1 * tolerance * 1e-6;
+        }
+
         for (Size j = left_ptr; j <= s2.size(); ++j)
         {
           bool off_band(false);
@@ -1088,7 +1046,7 @@ namespace OpenMS
           double diff_align = fabs(pos1 - pos2);
 
           // running off the right border of the band?
-          if (pos2 > pos1 && diff_align >= tolerance)
+          if (pos2 > pos1 && diff_align >= max_dist)
           {
             if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2)
             {
@@ -1097,7 +1055,7 @@ namespace OpenMS
           }
 
           // can we tighten the left border of the band?
-          if (pos1 > pos2 && diff_align >= tolerance && j > left_ptr + 1)
+          if (pos1 > pos2 && diff_align >= max_dist && j > left_ptr + 1)
           {
             ++left_ptr;
           }
@@ -1110,45 +1068,51 @@ namespace OpenMS
           }
           else
           {
-            score_align += (i - 1 + j - 1) * tolerance;
+            score_align += (i - 1 + j - 1) * max_dist + (i - 1 + j - 1) * intensity_weight;
           }
 
-          double score_up = tolerance;
+          double score_up = max_dist + intensity_weight;
           if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
           {
             score_up += matrix[i][j - 1];
           }
           else
           {
-            score_up += (i + j - 1) * tolerance;
+            score_up += (i + j - 1) * max_dist + (i + j - 1) / 10;
           }
 
-          double score_left = tolerance;
+          double score_left = max_dist + intensity_weight;
           if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
           {
             score_left += matrix[i - 1][j];
           }
           else
           {
-            score_left += (i - 1 + j) * tolerance;
+            score_left += (i - 1 + j) * max_dist + (i - 1 + j) * intensity_weight;
           }
 
           // check for similar intensity values
           double intensity1(s1[i - 1].getIntensity());
           double intensity2(s2[j - 1].getIntensity());
-          bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) > intensity_cutoff;
+          double int_ratio = min(intensity1, intensity2) / max(intensity1, intensity2);
+          bool diff_int_clear = int_ratio > intensity_cutoff;
 
-          // check for same charge
-          PeakSpectrum::IntegerDataArray s1_charges = s1.getIntegerDataArrays()[0];
-          PeakSpectrum::IntegerDataArray s2_charges = s2.getIntegerDataArrays()[0];
-          bool charge_fits = s1_charges[i - 1] == s2_charges[j - 1] || s1_charges[i - 1] == 0 || s2_charges[j - 1] == 0;
-          LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
-
-          // TODO SET A CHARGE FOR EXPERIMENTAL SPECTRA, then use this again
-//          bool charge_fits = true;
-
-          if (score_align <= score_up && score_align <= score_left && diff_align < tolerance && diff_int_clear)
+          // check for same charge (loose restriction, only excludes matches if both charges are known but unequal)
+          bool charge_fits = true;
+          if (s1.getIntegerDataArrays().size() > 0 && s2.getIntegerDataArrays().size() > 0)
           {
+            int s1_charge = s1.getIntegerDataArrays()[0][i - 1];
+            int s2_charge = s2.getIntegerDataArrays()[0][j - 1];
+            charge_fits = s1_charge == s2_charge || s1_charge == 0 || s2_charge == 0;
+//          LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
+          }
+
+          // int_ratio is between 0 and 1, multiply with intensity_weight for penalty
+          score_align += (1 - int_ratio) * intensity_weight;
+
+          if (score_align <= score_up && score_align <= score_left && diff_align < max_dist && diff_int_clear && charge_fits)
+          {
+//            cout << "Aligning peaks | score_align = " << score_align << "\t| int_ratio = " << int_ratio << "\t| score_up = " << score_up << "\t| score_left = " << score_left << endl;
             matrix[i][j] = score_align;
             traceback[i][j] = std::make_pair(i - 1, j - 1);
             last_i = i;
@@ -1193,108 +1157,177 @@ namespace OpenMS
       }
 
       std::reverse(alignment.begin(), alignment.end());
+  }
 
-    }
-    else  // relative alignment (ppm tolerance)
+    PeakSpectrum OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped, Size min_isopeaks, Size max_isopeaks, bool make_single_charged)
     {
-      for (Size i = 0; i != s1.size(); ++i)
+
+      // Input Spectrum originally called "in"
+      //PeakSpectrum old_spectrum = in;
+      PeakSpectrum out;
+      PeakSpectrum::IntegerDataArray charge_array;
+
+      vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+      if (old_spectrum.empty())
       {
-        const double& theo_mz = s1[i].getMZ();
-        double max_dist_dalton = theo_mz * tolerance * 1e-6;
+        return out;
+      }
 
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size j = s2.findNearest(theo_mz);
-        double exp_mz = s2[j].getMZ();
+      // determine charge seeds and extend them
+      vector<Int> features(old_spectrum.size(), -1);
+      Int feature_number = 0;
 
-        // check for similar intensity values
-        double intensity1(s1[i - 1].getIntensity());
-        double intensity2(s2[j - 1].getIntensity());
-        bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) > intensity_cutoff;
+      for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+      {
+        double current_mz = old_spectrum[current_peak].getMZ();
 
-        // found peak match
-        if (std::abs(theo_mz - exp_mz) <= max_dist_dalton && diff_int_clear)
+        for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
         {
-          alignment.push_back(std::make_pair(i, j));
-        } else if (std::abs(theo_mz - exp_mz) <= max_dist_dalton && !diff_int_clear)
-        {
-//          s2.erase(s2.begin() + s2.findNearest(theo_mz));
-          if (i > 0)
+          // try to extend isotopes from mono-isotopic peak
+          // if extension larger then min_isopeaks possible:
+          //   - save charge q in mono_isotopic_peak[]
+          //   - annotate all isotopic peaks with feature number
+          if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
           {
-            i--;
+            bool has_min_isopeaks = true;
+            vector<Size> extensions;
+            for (Size i = 0; i < max_isopeaks; ++i)
+            {
+              double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+              Size p = old_spectrum.findNearest(expected_mz);
+              double tolerance_dalton = fragment_tolerance_unit_ppm ? fragment_tolerance * old_spectrum[p].getMZ() * 1e-6 : fragment_tolerance;
+              if (fabs(old_spectrum[p].getMZ() - expected_mz) > tolerance_dalton)   // test for missing peak
+              {
+                if (i < min_isopeaks)
+                {
+                  has_min_isopeaks = false;
+                }
+                break;
+              }
+              else
+              {
+                // TODO: include proper averagine model filtering. assuming the intensity gets lower for heavier peaks does not work for the high masses of cross-linked peptides
+//                Size n_extensions = extensions.size();
+//                if (n_extensions != 0)
+//                {
+//                  if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
+//                  {
+//                    if (i < min_isopeaks)
+//                    {
+//                      has_min_isopeaks = false;
+//                    }
+//                    break;
+//                  }
+//                }
+
+                // averagine check passed
+                extensions.push_back(p);
+              }
+            }
+
+            if (has_min_isopeaks)
+            {
+              //LOG_DEBUG << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
+              mono_isotopic_peak[current_peak] = q;
+              for (Size i = 0; i != extensions.size(); ++i)
+              {
+                features[extensions[i]] = feature_number;
+              }
+              feature_number++;
+            }
           }
         }
       }
-    }
-  }
 
 
+      // creating PeakSpectrum containing charges
+      //out.clear(false);
 
-  void OpenProXLUtils::getSpectrumIntensityMatching(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff)
-  {
-    if (!(s1.isSorted() && s2.isSorted()))
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
-    }
-    PeakSpectrum spec1copy = s1;
-    PeakSpectrum spec2copy = s2;
-
-    // clear result
-    alignment.clear();
-
-    spec1copy.sortByIntensity(true);
-
-    for (Size i = 0; i != spec1copy.size(); ++i)
-    {
-      const double& spec1copy_mz = spec1copy[i].getMZ();
-
-      PeakSpectrum peaks = getToleranceWindowPeaks(spec2copy, spec1copy_mz, tolerance, relative_tolerance);
-      if (peaks.size() > 1)
+      for (Size i = 0; i != old_spectrum.size(); ++i)
       {
-        LOG_DEBUG << "SpectrumIntensityMatch: Peaks in tolerance window: " << peaks.size() << endl;
-      }
-
-      if (peaks.size() > 0)
-      {
-        peaks.sortByIntensity();
-        double intensity1(spec1copy[i].getIntensity());
-
-        for (Size j = 0; j < peaks.size(); ++j)
+        Int z = mono_isotopic_peak[i];
+        if (keep_only_deisotoped)
         {
-          // check for similar intensity values
-          double intensity2(peaks[j].getIntensity());
-          double high_cutoff = 1 / intensity_cutoff;
-          //bool diff_int_clear = (min(intensity1, intensity2) / max(intensity1, intensity2)) >= intensity_cutoff;
-          bool diff_int_clear = (intensity1 / intensity2) >= intensity_cutoff && (intensity1 / intensity2) <= high_cutoff;
-
-          // check for same charge
-//          PeakSpectrum::IntegerDataArray s1_charges = s1.getIntegerDataArrays()[0];
-//           PeakSpectrum::IntegerDataArray s2_charges = s2.getIntegerDataArrays()[0];
-//           bool charge_fits = s1_charges[i - 1] == s2_charges[j - 1] || s2_charges[j - 1] == 0;
-//           LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
-
-          // TODO SET A CHARGE FOR EXPERIMENTAL SPECTRA, then use this again
-          bool charge_fits = true;
-
-          // found peak match. if intensity similar enough, update alignment and remove peak, so that it will not get matched again to another peak
-          if (diff_int_clear && charge_fits)
+          if (z == 0)
           {
-            Size s2_index = s2.findNearest(peaks[j].getMZ());
-            Size s1_index = s1.findNearest(spec1copy_mz);
-            alignment.push_back(std::make_pair(s1_index, s2_index));
-            // remove peak from temporary spectrum copy to avoid multiple mappings
-            Size spec2copy_index = spec2copy.findNearest(peaks[j].getMZ());
-            spec2copy.erase(spec2copy.begin() + spec2copy_index);
-            break;
-          } else
+            continue;
+          }
+
+          // if already single charged or no decharging selected keep peak as it is
+          if (!make_single_charged)
           {
-            // erase the most intense peak, because it does not fulfill the similarity or charge constraints and try with the rest of the peaks
-            peaks.erase(peaks.begin() + j);
-            --j;
+            RichPeak1D p;
+            p.setMZ(old_spectrum[i].getMZ());
+            p.setIntensity(old_spectrum[i].getIntensity());
+//            p.setMetaValue("z", z);
+            charge_array.push_back(z);
+            out.push_back(p);
+          }
+          else
+          {
+            RichPeak1D p;
+            p.setIntensity(old_spectrum[i].getIntensity());
+            p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+//            p.setMetaValue("z", 1);
+            charge_array.push_back(1);
+            out.push_back(p);
+          }
+        }
+        else
+        {
+          // keep all unassigned peaks
+          if (features[i] < 0)
+          {
+            RichPeak1D p;
+            p.setMZ(old_spectrum[i].getMZ());
+            p.setIntensity(old_spectrum[i].getIntensity());
+//            p.setMetaValue("z", 0);
+            charge_array.push_back(0);
+            out.push_back(p);
+            continue;
+          }
+
+          // convert mono-isotopic peak with charge assigned by deisotoping
+          if (z != 0)
+          {
+            if (!make_single_charged)
+            {
+              RichPeak1D p;
+              p.setMZ(old_spectrum[i].getMZ());
+              p.setIntensity(old_spectrum[i].getIntensity());
+//              p.setMetaValue("z", z);
+              charge_array.push_back(z);
+              out.push_back(p);
+            }
+            else
+            {
+              RichPeak1D p;
+              p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+              p.setIntensity(old_spectrum[i].getIntensity());
+//              p.setMetaValue("z", z);
+              charge_array.push_back(z);
+              out.push_back(p);
+            }
           }
         }
       }
+      out.setPrecursors(old_spectrum.getPrecursors());
+      out.setRT(old_spectrum.getRT());
+
+      out.setNativeID(old_spectrum.getNativeID());
+      out.setInstrumentSettings(old_spectrum.getInstrumentSettings());
+      out.setAcquisitionInfo(old_spectrum.getAcquisitionInfo());
+      out.setSourceFile(old_spectrum.getSourceFile());
+      out.setDataProcessing(old_spectrum.getDataProcessing());
+      out.setType(old_spectrum.getType());
+      out.setMSLevel(old_spectrum.getMSLevel());
+      out.setName(old_spectrum.getName());
+
+      out.getIntegerDataArrays().push_back(charge_array);
+
+//      out.sortByPosition();
+      return out;
     }
-  }
 
   std::vector<OpenProXLUtils::PeptideMass> OpenProXLUtils::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
   {
@@ -1681,15 +1714,8 @@ namespace OpenMS
     }
   }
 
-  void OpenProXLUtils::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
+  void OpenProXLUtils::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
   {
-    Size all_top_csms_current_index = 0;
-#ifdef _OPENMP
-#pragma omp critical (all_top_csms_access)
-#endif
-    {
-      all_top_csms_current_index = all_top_csms.size()-1;
-    }
 
     for (Size i = 0; i < top_csms_spectrum.size(); ++i)
     {
@@ -1923,12 +1949,10 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical (peptides_ids_access)
 #endif
-      peptide_ids.push_back(peptide_id);
-
-#ifdef _OPENMP
-#pragma omp critical (all_top_csms_access)
-#endif
-      all_top_csms[all_top_csms_current_index][i].peptide_id_index = peptide_ids.size()-1;
+      {
+        peptide_ids.push_back(peptide_id);
+        all_top_csms[all_top_csms_current_index][i].peptide_id_index = peptide_ids.size()-1;
+      }
     }
   }
 
