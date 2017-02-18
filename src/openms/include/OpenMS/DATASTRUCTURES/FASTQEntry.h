@@ -47,7 +47,6 @@
 #define OPENMS_DATASTRUCTURES_FASTQENTRY_H
 
 #include <seqan/basic.h>
-//s#include <seqan/stream.h>
 #include <seqan/sequence.h>
 
 #include <algorithm>
