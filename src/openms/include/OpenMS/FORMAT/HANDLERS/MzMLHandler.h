@@ -271,7 +271,8 @@ protected:
       template <typename ContainerT>
       void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
       {
-
+        // Intensity is the same for chromatograms and spectra, the second
+        // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
         bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
         if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
@@ -355,7 +356,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
         }
 
@@ -413,7 +414,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
 
         }
@@ -693,24 +694,39 @@ protected:
           //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
           if (default_arr_length != 0)
           {
-            warning(LOAD, String("The m/z or intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+            warning(LOAD, String("The m/z or intensity array of chromatogram '") +
+                inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
           }
           return;
         }
 
-        //Warn if the decoded data has a different size than the defaultArrayLength
+        // Warn if the decoded data has a different size than the defaultArrayLength
         Size rt_size = rt_precision_64 ? input_data[rt_index].floats_64.size() : input_data[rt_index].floats_32.size();
+        Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
+        // Check if int-size and rt-size are equal
+        if (rt_size != int_size)
+        {
+          fatalError(LOAD, String("The length of RT and intensity values of chromatogram '") + inp_chromatogram.getNativeID() + "' differ (rt-size: " + rt_size + ", int-size: " + int_size + "! Not reading chromatogram!");
+        }
+        bool repair_array_length = false;
         if (default_arr_length != rt_size)
         {
           warning(LOAD, String("The base64-decoded rt array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+          repair_array_length = true;
         }
-        Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
         if (default_arr_length != int_size)
         {
           warning(LOAD, String("The base64-decoded intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+          repair_array_length = true;
+        }
+        // repair size of array, accessing memory that is beyond int_size will lead to segfaults later
+        if (repair_array_length)
+        {
+          default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)
+          warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
         }
 
-        //create meta data arrays and reserve enough space for the content
+        // Create meta data arrays and reserve enough space for the content
         if (input_data.size() > 2)
         {
           for (Size i = 0; i < input_data.size(); i++)
@@ -748,8 +764,8 @@ protected:
           }
         }
 
-        //copy meta data from time and intensity binary
-        //We don't have this as a separate location => store it in spectrum
+        // Copy meta data from time and intensity binary
+        // We don't have this as a separate location => store it directly in spectrum meta data
         for (Size i = 0; i < input_data.size(); i++)
         {
           if (input_data[i].meta.getName() == "time array" || input_data[i].meta.getName() == "intensity array")
@@ -763,7 +779,7 @@ protected:
           }
         }
 
-        //add the peaks and the meta data to the container (if they pass the restrictions)
+        // Add the peaks and the meta data to the container (if they pass the restrictions)
         inp_chromatogram.reserve(default_arr_length);
         ChromatogramPeakType tmp;
         for (Size n = 0; n < default_arr_length; n++)
@@ -853,7 +869,7 @@ protected:
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown array type", array_type);
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown array type", array_type);
         }
 
         // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
@@ -1184,7 +1200,7 @@ protected:
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserveSpaceSpectra(count);
@@ -1198,7 +1214,7 @@ protected:
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserveSpaceChromatograms(count);

@@ -254,14 +254,14 @@ private:
   bool matchDeltaMasses_(const ConsensusMap::ConstIterator consensus, const std::vector<MultiplexDeltaMasses::DeltaMass>& pattern, double theoretical_delta_mass_at_label_set, std::vector<bool>& delta_mass_matched)
   {
     double first_mass = consensus->getFeatures().begin()->getMZ() * consensus->getFeatures().begin()->getCharge();
-    if (!consensus->getPeptideIdentifications()[0].metaValueExists("map index"))
+    if (!consensus->getPeptideIdentifications()[0].metaValueExists("map_index"))
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The meta value 'map index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map_index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
     }
-    double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map index"));
+    double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map_index"));
     if (boost::math::isnan(detected_delta_mass_at_label_set))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No delta mass with this map index could be found.", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No delta mass with this map_index could be found.", "");
     }
     
     // loop over features in consensus    
@@ -346,7 +346,7 @@ private:
     std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift;
     std::vector<bool>::const_iterator it_delta_mass_matched;
     for (it_mass_shift = pattern.begin(), it_delta_mass_matched = delta_mass_matched.begin();
-         it_mass_shift != pattern.end(), it_delta_mass_matched != delta_mass_matched.end();
+         it_mass_shift != pattern.end() && it_delta_mass_matched != delta_mass_matched.end();
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       // find the first match
@@ -380,7 +380,7 @@ private:
     
     if (pattern.size() != delta_mass_matched.size())
     {
-       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, delta_mass_matched.size());
+       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, delta_mass_matched.size());
     }
     
     // new complete consensus feature
@@ -399,14 +399,14 @@ private:
     consensus_complete.setIntensity(consensus.getIntensity());    // Alternatively, reduce intensity due to new zero-intensity dummy features.
     consensus_complete.setQuality(consensus.getQuality());
     consensus_complete.setPeptideIdentifications(consensus.getPeptideIdentifications());
-    consensus_complete.getPeptideIdentifications()[0].getHits()[0].setMetaValue("map index", index_label_set);
+    consensus_complete.getPeptideIdentifications()[0].getHits()[0].setMetaValue("map_index", index_label_set);
     
     // loop over delta masses in theoretical pattern
     std::vector<MultiplexDeltaMasses::DeltaMass>::const_iterator it_mass_shift;
     std::vector<bool>::const_iterator it_delta_mass_matched;
     ConsensusFeature::HandleSetType::const_iterator it_feature;
     for (it_mass_shift = pattern.begin(), it_delta_mass_matched = delta_mass_matched.begin(), it_feature = consensus.getFeatures().begin();
-         it_mass_shift != pattern.end(), it_delta_mass_matched != delta_mass_matched.end();
+         it_mass_shift != pattern.end() && it_delta_mass_matched != delta_mass_matched.end();
          ++it_mass_shift, ++it_delta_mass_matched)
     {
       

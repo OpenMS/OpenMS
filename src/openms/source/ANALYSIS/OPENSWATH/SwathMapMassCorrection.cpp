@@ -208,7 +208,7 @@ namespace OpenMS
     }
     else 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Unknown correction type " + corr_type);
     }
 

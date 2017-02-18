@@ -38,8 +38,10 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
+#include <sstream>
 
 ///////////////////////////
 
@@ -138,7 +140,6 @@ START_SECTION((static void getModelTypes(StringList& result)))
 }
 END_SECTION
 
-
 START_SECTION((void fitModel(const String& model_type, const Param& params=Param())))
 {
 	TransformationDescription td(data);
@@ -155,7 +156,6 @@ START_SECTION((void fitModel(const String& model_type, const Param& params=Param
 	TEST_REAL_SIMILAR(td.apply(0.0), 1.064201730);
 	TEST_REAL_SIMILAR(td.apply(0.5), 1.957836652);
 	TEST_REAL_SIMILAR(td.apply(1.0), 2.927541901);
-
 
   // non-linear model (lowess)
 	td.fitModel("lowess", params);
@@ -193,13 +193,11 @@ START_SECTION((void fitModel(const String& model_type, const Param& params=Param
     TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.58423913043478);
     TEST_REAL_SIMILAR(td_nl.apply(1.0), 2.0);
   }
-
 }
 END_SECTION
 
 START_SECTION(([EXTRA]void fitModel(const String& model_type, const Param& params=Param())))
 {
-
   // Check whether we can change the parameters and get different behavior
 	TransformationDescription td(data);
 	Param params;
@@ -274,7 +272,6 @@ END_SECTION
 
 START_SECTION((void invert()))
 {
-
 	// test null transformation:
 	TransformationDescription td;
 	td.fitModel("none", Param());
@@ -287,7 +284,6 @@ START_SECTION((void invert()))
   td1.invert();
   td1.invert();
   TEST_EQUAL(td1.getDataPoints() == data, true);
-
 
 	// test linear transformation:
   TransformationDescription td2;
@@ -311,8 +307,6 @@ START_SECTION((void invert()))
 	TEST_REAL_SIMILAR(td3.apply(4.0), 1.5);//control interpolation values
 	TEST_REAL_SIMILAR(td3.apply(5.0), 2.0);//control interpolation values
 
-
-
 	// test interpolated-linear transformation:
 	TransformationDescription td4;
 	td4.setDataPoints(data);
@@ -329,6 +323,72 @@ START_SECTION((void invert()))
 }
 END_SECTION
 
+START_SECTION((void getDeviations(std::vector<double>& diffs, bool do_apply = false, bool do_sort = true) const))
+{
+  vector<double> diffs;
+	TransformationDescription td(data_nonlinear);
+  td.fitModel("linear");
+  td.getDeviations(diffs);
+  TEST_EQUAL(diffs.size(), 4);
+  TEST_REAL_SIMILAR(diffs[0], 0.75);
+  TEST_REAL_SIMILAR(diffs[1], 0.8125);
+  TEST_REAL_SIMILAR(diffs[2], 1.0);
+  TEST_REAL_SIMILAR(diffs[3], 1.0);
+
+  td.getDeviations(diffs, true, false);
+  TEST_EQUAL(diffs.size(), 4);
+  TEST_REAL_SIMILAR(diffs[0], 0.125);
+  TEST_REAL_SIMILAR(diffs[1], 0.0714286);
+  TEST_REAL_SIMILAR(diffs[2], 0.142857);
+  TEST_REAL_SIMILAR(diffs[3], 0.0892857);
+}
+END_SECTION
+
+START_SECTION((void printSummary(std::ostream& os = std::cout) const))
+{
+  stringstream ss;
+	TransformationDescription td(data_nonlinear);
+  td.printSummary(ss);
+  string expected = 
+    "Number of data points (x/y pairs): 4\n"
+    "Data range (x): 0 to 1\n"
+    "Data range (y): 1 to 2\n"
+    "Summary of x/y deviations:\n"
+    "- 100% of data points within (+/-)1\n"
+    "-  99% of data points within (+/-)1\n"
+    "-  95% of data points within (+/-)1\n"
+    "-  90% of data points within (+/-)1\n"
+    "-  75% of data points within (+/-)1\n"
+    "-  50% of data points within (+/-)0.8125\n"
+    "-  25% of data points within (+/-)0.75\n\n";
+  TEST_STRING_EQUAL(ss.str(), expected);
+
+  ss.str("");
+	td.fitModel("linear");
+  td.printSummary(ss);
+  expected = 
+    "Number of data points (x/y pairs): 4\n"
+    "Data range (x): 0 to 1\n"
+    "Data range (y): 1 to 2\n"
+    "Summary of x/y deviations before transformation:\n"
+    "- 100% of data points within (+/-)1\n"
+    "-  99% of data points within (+/-)1\n"
+    "-  95% of data points within (+/-)1\n"
+    "-  90% of data points within (+/-)1\n"
+    "-  75% of data points within (+/-)1\n"
+    "-  50% of data points within (+/-)0.8125\n"
+    "-  25% of data points within (+/-)0.75\n"
+    "Summary of x/y deviations after applying 'linear' transformation:\n"
+    "- 100% of data points within (+/-)0.142857\n"
+    "-  99% of data points within (+/-)0.125\n"
+    "-  95% of data points within (+/-)0.125\n"
+    "-  90% of data points within (+/-)0.125\n"
+    "-  75% of data points within (+/-)0.125\n"
+    "-  50% of data points within (+/-)0.0892857\n"
+    "-  25% of data points within (+/-)0.0714286\n\n";
+  TEST_STRING_EQUAL(ss.str(), expected);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

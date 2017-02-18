@@ -176,7 +176,7 @@ protected:
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
       }
     }
 

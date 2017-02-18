@@ -435,3 +435,23 @@ remark: TIC plot is MS:1000235
  def: "This plot visualizes the intensities on RT vs mz." [PXS:QC]
  is_a: QC:0000050 ! image plot
  
+
+[Term]
+ id: QC:0000056
+ name: RICs
+ def: "The reconstructed ion currents (from MS1) detected in each of a series of mass spectra recorded." [PXS:QC]
+ is_a: QC:0000048 ! value table
+
+
+[Term]
+ id: QC:0000057
+ name: RIC slump
+ def: "The percentage of ric slumps below 10k." [PXS:QC]
+ is_a: QC:0000004 ! MS aquisition result details
+
+[Term]
+ id: QC:0000058
+ name: number of identified features
+ def: "The number of identified features reported." [PXS:QC]
+ is_a: QC:0000045 ! MS quantification result details
+ is_a: QC:0000025 ! MS identification result details

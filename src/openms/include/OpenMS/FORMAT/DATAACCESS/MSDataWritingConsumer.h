@@ -167,7 +167,7 @@ namespace OpenMS
       {
         if (writing_chromatograms_)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Cannot write spectra after writing chromatograms.");
         }
 

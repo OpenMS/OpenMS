@@ -64,12 +64,12 @@ namespace OpenMS
   {
     if (charge_ == 0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Charge of 0 is not allowed for an adduct (" + ef_.toString() + ")");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Charge of 0 is not allowed for an adduct (" + ef_.toString() + ")");
     }
     if (adduct.getCharge() != 0)
     { // EF will add Proton weights for positive charges, and do nothing for negative ones ...
       // we just use the uncharged formula and take care of electrons ourselves
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "EmpiricalFormula must not have a charge (" + ef_.toString() + "), since the internal weight computation of EF is currently unreliable.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "EmpiricalFormula must not have a charge (" + ef_.toString() + "), since the internal weight computation of EF is currently unreliable.");
     }
     mass_ = ef_.getMonoWeight();
   }
@@ -144,13 +144,13 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not detect molecular ion; charge in '" + cp_str + "'. Got semicolon right?", cp_str);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not detect molecular ion; charge in '" + cp_str + "'. Got semicolon right?", cp_str);
     }
 
     // check if charge string is formatted correctly
     if ((!charge_str.hasSuffix("+")) && (!charge_str.hasSuffix("-")))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Charge sign +/- in the end of the string is missing! ", charge_str);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Charge sign +/- in the end of the string is missing! ", charge_str);
     }
 
     // get charge and sign (throws ConversionError if not an integer)
@@ -176,14 +176,14 @@ namespace OpenMS
     op_str.substitute('-', '+');
     if (op_str.hasSubstring("++") || op_str.hasSuffix("+") || op_str.hasPrefix("+"))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "+/- operator must be surrounded by a chemical formula. Offending string: ", mol_formula);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "+/- operator must be surrounded by a chemical formula. Offending string: ", mol_formula);
     }
 
     // split by + and -
     op_str = mol_formula;
     if (op_str.has('%'))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Character '%' not allowed within chemical formula. Offending string: ", mol_formula);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Character '%' not allowed within chemical formula. Offending string: ", mol_formula);
     }
     // ... we want to keep the - and +, so we add extra chars around, which we use as splitter later
     op_str.substitute("-", "%-%");
@@ -197,7 +197,7 @@ namespace OpenMS
 
     if (!m_part.hasSuffix("M"))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "First term of adduct string must contain the molecular entity 'M', optionally prefixed by a multiplier (e.g. '2M'); not found in ", m_part);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "First term of adduct string must contain the molecular entity 'M', optionally prefixed by a multiplier (e.g. '2M'); not found in ", m_part);
     }
 
     int mol_multiplier(1);
@@ -237,9 +237,8 @@ namespace OpenMS
         formula_str = formula_str.substr(idx, formula_str.size());
       }
 
-      // std::cout << stoichio_factor << "*" << formula_str << " ";
       EmpiricalFormula ef_part(formula_str);
-      // std::cout << part_formula.getMonoWeight() << std::endl;
+      LOG_DEBUG << "Adducts: " << stoichio_factor << "*" << formula_str << " == " << stoichio_factor * ef_part.getMonoWeight() << std::endl;
 
       if (op_plus)
       {
@@ -561,7 +560,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
     // Depending on ion_mode_internal_, either positive or negative adducts are used
@@ -578,7 +577,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
     std::pair<Size, Size> hit_idx;
@@ -679,7 +678,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
     std::vector<AccurateMassSearchResult> results_part;
@@ -716,7 +715,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
     std::vector<AccurateMassSearchResult> results_part;
@@ -776,7 +775,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
     
     String ion_mode_internal(ion_mode_);
@@ -863,13 +862,13 @@ namespace OpenMS
       { // mapping ok?
         if (!hmdb_properties_mapping_.count(it_row->getMatchingHMDBids()[i]))
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' not found in struct file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
         HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(it_row->getMatchingHMDBids()[i]);
         if  (entry == hmdb_properties_mapping_.end())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
         names.push_back(entry->second[0]);
       }
@@ -886,7 +885,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
 
     String ion_mode_internal(ion_mode_);
@@ -1323,7 +1322,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
           }
         }
         else if (line_count == 2)
@@ -1337,7 +1336,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
           }
         }
 
@@ -1376,7 +1375,7 @@ namespace OpenMS
 
         if (entry.massIDs.empty())
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line " + line_count + " as '" + line + "' cannot be parsed. Found " + word_count + " entries, expected at least three!");
         }
         mass_mappings_.push_back(entry);
       }
@@ -1419,13 +1418,13 @@ namespace OpenMS
 
           if (hmdb_properties_mapping_.count(hmdb_id_key))
           {
-            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. The ID entry was already used (see above)!");
           }
           std::copy(parts.begin() + 1, parts.end(), std::back_inserter(hmdb_properties_mapping_[hmdb_id_key]));
         }
         else
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("File '") + filename + "' in line '" + line + "' cannot be parsed. Expected four entries separated by tab. Found " + parts.size() + " entries!");
         }
 
       }
@@ -1466,7 +1465,7 @@ namespace OpenMS
     // binary search for formulas which are within diff_mz distance
     if (mass_mappings_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There are no entries found in mass-to-ids mapping file! Aborting... ", "0");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are no entries found in mass-to-ids mapping file! Aborting... ", "0");
     }
 
     std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mass, CompareEntryAndMass_()); // first element equal or larger

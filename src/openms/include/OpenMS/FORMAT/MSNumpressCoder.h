@@ -94,7 +94,7 @@ public:
         
         if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value '" + compression + "' is not a valid Numpress compression scheme.");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + compression + "' is not a valid Numpress compression scheme.");
         }
         
         np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);

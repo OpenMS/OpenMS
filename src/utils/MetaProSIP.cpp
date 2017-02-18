@@ -43,7 +43,6 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -72,6 +71,8 @@
 
 #include <math.h>
 
+//#define DEBUG_METAPROSIP
+
 using namespace OpenMS;
 using namespace std;
 using boost::math::normal;
@@ -94,8 +95,9 @@ struct SIPIncorporation
   double correlation; ///< correlation coefficient
 
   double abundance; ///< abundance of isotopologue
-
-  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution
+#ifdef DEBUG_METAPROSIP
+  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution. Large memory consumption.
+#endif
 };
 
 /// datastructure for reporting a peptide with one or more incorporation rates
@@ -149,7 +151,9 @@ struct SIPPeptide
 
   IsotopePatterns patterns;
 
+#ifdef DEBUG_METAPROSIP
   vector<PeakSpectrum> pattern_spectra;
+#endif
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
@@ -257,7 +261,7 @@ public:
 class MetaProSIPClustering
 {
 public:
-  static vector<double> getRIAClusterCenter(const vector<SIPPeptide>& sip_peptides)
+  static vector<double> getRIAClusterCenter(const vector<SIPPeptide>& sip_peptides, bool debug = false)
   {
     vector<double> cluster;
     MapRateToScoreType hist;
@@ -298,16 +302,7 @@ public:
       ria_density[i] = density[i];
     }
 
-    /*
-    TextFile t;
-    for (MapRateToScoreType::const_iterator mit = ria_density.begin(); mit != ria_density.end(); ++mit)
-    {
-      t.addLine(String(mit->second));
-    }
-    t.store("/abi-data/sachsenb/OpenMS_IDE/dump.txt");
-    */
-
-    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density, true);
+    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density, debug);
 
     // return cluster centers
     for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
@@ -362,7 +357,7 @@ public:
 class MetaProSIPReporting
 {
 public:
-  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
+  static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String filename = String("heatmap") + file_suffix + "." + file_extension;
     String script_filename = String("heatmap") + file_suffix + String(".R");
@@ -445,7 +440,7 @@ public:
       qparam << "--quiet";
     }
     qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-    p.start("R", qparam);
+    p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
 
@@ -465,7 +460,7 @@ public:
     }
   }
 
-  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+  static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
     String script_filename = String("spectrum_plot") + file_suffix + String(".R");
@@ -523,7 +518,7 @@ public:
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
+      p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
 
@@ -664,7 +659,7 @@ public:
     current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
   }
 
-  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0)
+  static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0, const QString& executable = QString("R"))
   {
     String score_filename = String("score_plot") + file_suffix + file_extension;
     String script_filename = String("score_plot") + file_suffix + String(".R");
@@ -744,7 +739,7 @@ public:
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
+      p.start(executable, qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
 
@@ -764,7 +759,15 @@ public:
     }
   }
 
-  static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, const vector<vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
+  static void createQualityReport(String tmp_path, 
+                                  String qc_output_directory, 
+                                  String file_suffix, 
+                                  const String& file_extension, 
+                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster, 
+                                  Size n_heatmap_bins, 
+                                  double score_plot_y_axis_min, 
+                                  bool report_natural_peptides, 
+                                  const QString& executable = QString("R"))
   {
     vector<SIPPeptide> sip_peptides;
     for (vector<vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -785,13 +788,13 @@ public:
     vector<vector<double> > binned_peptide_ria;
     vector<String> class_labels;
     createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
-    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
+    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels, 0, executable);
 
     LOG_INFO << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
+    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, 0, executable);
 
     LOG_INFO << "Plotting correlation score and weight distribution" << endl;
-    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
+    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min, 0, executable);
 
     if (file_extension != "pdf") // html doesn't support pdf as image
     {
@@ -1938,7 +1941,7 @@ class RIntegration
 {
 public:
   // Perform a simple check if R and all R dependencies are thereget
-  static bool checkRDependencies(String tmp_path, StringList package_names)
+  static bool checkRDependencies(String tmp_path, StringList package_names, const QString& executable = QString("R"))
   {
     String random_name = String::random(8);
     String script_filename = tmp_path + String("/") + random_name + String(".R");
@@ -1958,7 +1961,7 @@ public:
 
       QStringList checkRinPathQParam;
       checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-      p.start("R", checkRinPathQParam);
+      p.start(executable, checkRinPathQParam);
       p.waitForFinished(-1);
 
       if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
@@ -2002,7 +2005,7 @@ public:
 
     QStringList qparam;
     qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-    p.start("R", qparam);
+    p.start(executable, qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
 
@@ -2057,6 +2060,8 @@ protected:
 
     registerInputFile_("in_featureXML", "<file>", "", "Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
+
+    registerInputFile_("r_executable", "<file>", "R", "Path to the R executable (default: 'R')", false);
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
@@ -2193,7 +2198,10 @@ protected:
   {
     double min_observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
-    LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
+    if (debug_level_ > 0)
+    {
+      cout << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
+    }
 
     double TIC_threshold(0.0);
     
@@ -2645,8 +2653,9 @@ protected:
             closest_idx = i;
           }
         }
+#ifdef DEBUG_METAPROSIP
         sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
-
+#endif
         if (int_sum > 1e-4)
         {
           sip_incorporations.push_back(sip_incorporation);
@@ -2830,7 +2839,10 @@ protected:
           closest_idx = i;
         }
       }
+
+#ifdef DEBUG_METAPROSIP
       sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
+#endif
 
       sip_incorporations.push_back(sip_incorporation);
     }
@@ -2912,6 +2924,7 @@ protected:
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
+    QString executable = getStringOption_("r_executable").toQString();
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double rt_tolerance_s = getDoubleOption_("rt_tolerance_s");
 
@@ -2920,19 +2933,37 @@ protected:
     double decomposition_threshold = getDoubleOption_("decomposition_threshold");
 
     Size min_consecutive_isotopes = (Size)getIntOption_("min_consecutive_isotopes");
+
     String qc_output_directory = getStringOption_("qc_output_directory");
+
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
-    QDir qc_dir(qc_output_directory.toQString());
+    String tmp_path = File::getTempDirectory();
+    tmp_path.substitute('\\', '/');
 
-    // convert relative paths into absolute path
-    qc_output_directory = String(qc_dir.absolutePath());
-
-    // trying to create qc_output_directory if not present
-    if (!qc_dir.exists())
+    // Do we want to create a qc report?  
+    if (!qc_output_directory.empty())
     {
-      qc_dir.mkpath(qc_output_directory.toQString());
+      // convert path to absolute path
+      QDir qc_dir(qc_output_directory.toQString());
+      qc_output_directory = String(qc_dir.absolutePath());
+
+      // trying to create qc_output_directory if not present
+      if (!qc_dir.exists())
+      {
+        qc_dir.mkpath(qc_output_directory.toQString());
+      }
+      // check if R and dependencies are installed    
+      StringList package_names;
+      package_names.push_back("gplots");
+
+      bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
+      if (!R_is_working)
+      {
+        LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
     }
 
     String out_csv = getStringOption_("out_csv");
@@ -2957,19 +2988,6 @@ protected:
     double xic_threshold = getDoubleOption_("xic_threshold");
 
     double min_correlation_distance_to_averagine = getDoubleOption_("min_correlation_distance_to_averagine");
-
-    String tmp_path = File::getTempDirectory();
-    tmp_path.substitute('\\', '/');
-
-    // check if R and dependencies are installed
-    StringList package_names;
-    package_names.push_back("gplots");
-    bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names);
-    if (!R_is_working)
-    {
-      LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
-      return EXTERNAL_PROGRAM_ERROR;
-    }
 
     bool cluster_flag = getFlag_("cluster");
 
@@ -3375,7 +3393,11 @@ protected:
           ++non_zero_isotopic_intensities;
         }
       }
-      cout << "isotopic intensities missing / total: " << isotopic_intensities.size() - non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
+
+      if (debug_level > 0)
+      {
+        cout << "Isotopic intensities found / total: " << non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
+      }
 
       LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
 
@@ -3425,7 +3447,9 @@ protected:
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);
+#ifdef DEBUG_METAPROSIP
         sip_peptide.pattern_spectra.push_back(p);
+#endif
       }
 
       // calculate decomposition into isotopic patterns
@@ -3580,20 +3604,11 @@ protected:
       MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix, report_natural_peptides);
     }
 
-    // plot debug spectra
-    /*
-    if (!debug_patterns_name.empty())
-    {
-      MzMLFile mtest;
-      mtest.store(debug_patterns_name, debug_exp);
-    }
-    */
-
     // quality report
-    if (!qc_output_directory.empty() && R_is_working)
+    if (!qc_output_directory.empty())
     {
       // TODO plot merged is now passed as false
-      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides);
+      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);
     }
 
     return EXECUTION_OK;

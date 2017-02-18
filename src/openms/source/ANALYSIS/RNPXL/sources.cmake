@@ -6,9 +6,11 @@ set(sources_list
 HyperScore.cpp
 ModifiedPeptideGenerator.cpp
 PScore.cpp
+RNPxlReport.cpp
 RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
-RNPxlReport.cpp
+HyperScore.cpp
+PScore.cpp
 )
 
 ### add path to the filenames

@@ -134,7 +134,7 @@ namespace OpenMS
   {
     if (!File::writable(filename))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     ofstream os(filename.c_str());
     store(os, filename, experiment, compact);
@@ -309,7 +309,7 @@ namespace OpenMS
     {
       String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
         " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
     double mz(precursor.getMZ()), rt(spec.getRT());

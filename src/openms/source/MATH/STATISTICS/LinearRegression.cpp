@@ -32,6 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -107,6 +108,10 @@ namespace OpenMS
 
     void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
     {
+      OPENMS_PRECONDITION(static_cast<unsigned>(points.size()) > 2, 
+          "Cannot compute goodness of fit for regression with less than 3 data points");
+      // specifically, boost throws an exception for a t-distribution with zero df
+
       unsigned N = static_cast<unsigned>(points.size());
       std::vector<double> X; X.reserve(N);
       std::vector<double> Y; Y.reserve(N);
@@ -156,7 +161,7 @@ namespace OpenMS
       boost::math::students_t tdist(N - 2);
       t_star_ = boost::math::quantile(tdist, P);
 
-      //Compute the asymmetric 95% confidence intervall of around the X-intercept
+      //Compute the asymmetric 95% confidence interval of around the X-intercept
       double g = (t_star_ / (slope_ / stand_error_slope_));
       g *= g;
       double left = (x_intercept_ - x_mean) * g;
@@ -164,7 +169,7 @@ namespace OpenMS
       double d = (x_intercept_ - x_mean);
       double right = t_star_ * (stand_dev_residuals_ / slope_) * sqrt((d * d) / s_XX + (bottom / N));
 
-      // Confidence intervall lower_ <= X_intercept <= upper_
+      // Confidence interval lower_ <= X_intercept <= upper_
       lower_ = x_intercept_ + (left + right) / bottom;
       upper_ = x_intercept_ + (left - right) / bottom;
 
@@ -214,3 +219,4 @@ namespace OpenMS
 
   }
 }
+

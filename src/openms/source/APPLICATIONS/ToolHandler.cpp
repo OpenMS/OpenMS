@@ -70,6 +70,7 @@ namespace OpenMS
     tools_map["FeatureFinderSuperHirn"] = Internal::ToolDescription("FeatureFinderSuperHirn", "Quantitation");
     tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", "Map Alignment");
+    tools_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", "Map Alignment");
     tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", "Map Alignment");
     tools_map["FidoAdapter"] = Internal::ToolDescription("FidoAdapter", "ID Processing");
     tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", "File Handling");
@@ -168,7 +169,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
       }
     }
 
@@ -190,6 +191,7 @@ namespace OpenMS
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
+    util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
@@ -224,6 +226,7 @@ namespace OpenMS
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
+    util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);
@@ -268,7 +271,7 @@ namespace OpenMS
         return tools[toolname].types;
       }
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested tool '" + toolname + "' does not exist!", toolname);
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Requested tool '" + toolname + "' does not exist!", toolname);
   }
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()
