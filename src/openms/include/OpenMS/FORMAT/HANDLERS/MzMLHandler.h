@@ -2030,19 +2030,14 @@ protected:
         else if (accession == "MS:1002476") //ion mobility drift time
         {
           // Drift time may be a property of the precursor (in case we are
-          // acquiring a fragment ion spectrum) which is consistent with the CV
-          // annotation which lists MS:1002476 with the relation "is_a:
-          // MS:1000455" which is an ion selection attribute. Consequently,
-          // this property should thus go into the selectedIon tag inside a
-          // <precursor>
+          // acquiring a fragment ion spectrum) or of the spectrum itself.
+          // According to the updated OBO, it can be a precursor or a scan
+          // attribute.
           //
-          // However, actual files (e.g. written by ProteoWizard msconvert.exe) also
-          // put the information inside the <scan> tag which relate the
-          // spectrum as such and not to a particular precursor. This is why
-          // MSSpectrum also stores drift time and allows us to handle cases
-          // where there is no precursor. Here, we still set the spectrum drift
-          // time, assuming that in most cases there is a single precursor with
-          // a single drift time.
+          // If we find here, this relates to a particular precursor. We still
+          // also store it in MSSpectrum in case a client only checks there.
+          // In most cases, there is a single precursor with a single drift
+          // time.
           //
           // Note that only milliseconds are valid units
 
@@ -2362,17 +2357,12 @@ protected:
         else if (accession == "MS:1002476") //ion mobility drift time
         {
           // Drift time may be a property of the precursor (in case we are
-          // acquiring a fragment ion spectrum) which is consistent with the CV
-          // annotation which lists MS:1002476 with the relation "is_a:
-          // MS:1000455" which is an ion selection attribute. Consequently,
-          // this property should thus go into the selectedIon tag inside a
-          // <precursor>
+          // acquiring a fragment ion spectrum) or of the spectrum itself.
+          // According to the updated OBO, it can be a precursor or a scan
+          // attribute.
           //
-          // However, actual files (e.g. written by ProteoWizard msconvert.exe) also
-          // put the information inside the <scan> tag which relate the
-          // spectrum as such and not to a particular precursor. This is why
-          // MSSpectrum also stores drift time and allows us to handle cases
-          // where there is no precursor.
+          // If we find it here, it relates to the scan or spectrum itself and
+          // not to a particular precursor.
           //
           // Note that only milliseconds are valid units
           spec_.setDriftTime(value.toDouble());
@@ -5216,7 +5206,8 @@ protected:
         if (j == 0)
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-          if (spec.getDriftTime() > 0.0)
+          // if drift time was never set, dont report it
+          if (spec.getDriftTime() >= 0.0)
           {
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
           }
