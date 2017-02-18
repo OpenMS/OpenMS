@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
+//                       OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2016.
@@ -32,50 +32,65 @@
 // $Authors: Marie Hoffmann $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FASTQFILE_H
-#define OPENMS_FORMAT_FASTQFILE_H
+/**
+  @brief FASTQ entry type (identifier, description, sequence, quality)
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/FASTQEntry.h>
+  The first string corresponds to the identifier that is written after 
+  the @ in the FASTQ file. The part after the first whitespace is stored 
+  as a description and the text from the next line until the next linebreak is stored
+  as a sequence string. A newline starting with + (and optionally an identifier) is then 
+  followed by a quality score of the same length as the sequence.
+*/
+
+
+#ifndef OPENMS_DATASTRUCTURES_FASTQENTRY_H
+#define OPENMS_DATASTRUCTURES_FASTQENTRY_H
 
 #include <seqan/basic.h>
-#include <seqan/stream.h>
+//s#include <seqan/stream.h>
 #include <seqan/sequence.h>
 
-#include <vector>
+#include <algorithm>
 
-namespace OpenMS
+struct FASTQEntry
 {
-  /**
-    @brief This class serves for reading in FASTQ files
-  */
-class OPENMS_DLLAPI FASTQFile
-{
- public:
-    
-    /// Copy constructor
-    FASTQFile();
+  seqan::CharString identifier;
+  seqan::CharString description;
+  seqan::CharString sequence;
+  seqan::CharString quality;
 
-    /// Destructor
-    virtual ~FASTQFile();
+  FASTQEntry() :
+    identifier(""),
+    description(""),
+    sequence(""),
+    quality("")
+  {
+  }
 
-    /**
-      @brief loads a FASTQ file given by 'filename' and stores the information in 'data'
+  FASTQEntry(seqan::CharString id, seqan::CharString desc, seqan::CharString seq, seqan::CharString qual) :
+    identifier(id),
+    description(desc),
+    sequence(seq),
+    quality(qual)
+  {
+  }
 
-      @exception Exception::FileNotFound is thrown if the file does not exists.
-      @exception Exception::ParseError is thrown if the file does not suit to the standard.
-    */
-    void load(const String& filename, std::vector<FASTQEntry>& data);
-
-    /**
-      @brief stores the data given by 'data' at the file 'filename'
-
-      @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
-    */
-    void store(const String& filename, const std::vector<FASTQEntry>& data) const;
+  bool operator==(const FASTQEntry& rhs) const
+  {
+    return identifier == rhs.identifier
+           && description == rhs.description
+           && sequence == rhs.sequence
+           && quality == rhs.quality;
+  }
+  
+  // Illumina 1.8+ Phred+33 with score ranges ['!', 'J'] corresponding to [0, 41] 
+  std::vector<int> qual2phred()
+  {
+    std::vector<int> ps;
+    std::transform(begin(this->quality), end(this->quality), std::back_inserter(ps), std::bind2nd(std::minus<int>(), '!'));
+    return ps;
+  }
+  
 };
 
-}  // namespace OpenMS
-
-#endif  // OPENMS_FORMAT_FASTQFILE_H
+#endif  // OPENMS_DATASTRUCTURES_FASTQENTRY_H

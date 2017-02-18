@@ -28,5 +28,5 @@ cdef extern from "<OpenMS/FORMAT/FASTQFile.h>" namespace "OpenMS::FASTQFile":
         String identifier
         String description
         String sequence
-		String quality
+        String quality
 		

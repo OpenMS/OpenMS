@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
+//                       OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2016.
@@ -35,12 +35,7 @@
 #include <OpenMS/FORMAT/FASTQFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <fstream>
-#include <iostream>
-#include <ios>
 
 #include <seqan/basic.h>
 #include <seqan/stream.h>
@@ -48,24 +43,27 @@
 #include <seqan/seq_io/read_fasta_fastq.h>
 #include <seqan/sequence.h>
 
+#include <string>
+#include <vector>
+#include <fstream>
+#include <iostream>
+#include <ios>
+
+
 namespace OpenMS
 {
-  using namespace std;
 
   FASTQFile::FASTQFile()
   {
-
   }
 
   FASTQFile::~FASTQFile()
   {
-
   }
 
-  
-  void FASTQFile::load(const String& filename, vector<FASTQEntry>& data)
+  void FASTQFile::load(const String& filename, std::vector<FASTQEntry>& data)
   {
-	  data.clear();
+    data.clear();
 
     if (!File::exists(filename))
     {
@@ -84,73 +82,74 @@ namespace OpenMS
     seqan::CharString qual;
     String::size_type position = String::npos;
     Size size_read(0);
-	
-	while (!atEnd(reader))
-    {
-		if (readRecord(id, seq, qual, reader, seqan::Fastq()) != 0)
-      	{
-			String msg;
-        	
-			if (data.empty()) msg = "The first entry could not be read!";
-			
-			else msg = "The last successful FASTQ record was: '@" + std::string(toCString(data.back().identifier)) + "'. The record after failed.";
-			throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTQ file '" + filename + "'! " + msg +  " Please check the file!");
-      }
-	  
-	  FASTQEntry newEntry;
-      newEntry.sequence = seq;
-      
-	  // handle id
-	  String id_tmp = String(toCString(id)).trim();
 
-	  position = id_tmp.find_first_of(" \v\t");
-	  if (position == String::npos)
+    while (!atEnd(reader))
+    {
+      if (readRecord(id, seq, qual, reader, seqan::Fastq()) != 0)
+      {
+        String msg;
+        if (data.empty())
+          msg = "The first entry could not be read!";
+        else
+          msg = "The last successful FASTQ record was: '@" + std::string(toCString(data.back().identifier)) +
+                  "'. The record after failed.";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTQ file '" +
+             filename + "'! " + msg +  " Please check the file!");
+      }
+
+      FASTQEntry newEntry;
+      newEntry.sequence = seq;
+
+      // handle id
+      String id_tmp = String(toCString(id)).trim();
+
+      position = id_tmp.find_first_of(" \v\t");
+      if (position == String::npos)
       {
         newEntry.identifier = seqan::CharString(id_tmp.c_str());
         newEntry.description = "";
-      }
-      else
+      } else
       {
-        newEntry.identifier = seqan::CharString(id_tmp.substr(0, position).c_str()); 
+        newEntry.identifier = seqan::CharString(id_tmp.substr(0, position).c_str());
         newEntry.description = seqan::CharString(id_tmp.suffix(id_tmp.size() - position - 1).c_str());
       }
-	   
-	  // handle quality
-	  newEntry.quality = seqan::CharString(qual);
-	  id_tmp.clear(); 
-	  seqan::clear(id);
+
+      // handle quality
+      newEntry.quality = seqan::CharString(qual);
+      id_tmp.clear();
+      seqan::clear(id);
       seqan::clear(seq);
-	  seqan::clear(qual); 
+      seqan::clear(qual);
       data.push_back(newEntry);
-	  size_read += seqan::length(newEntry.sequence);
-	  
+      size_read += seqan::length(newEntry.sequence);
     }
-	
+
     in.close();
 
     if (size_read > 0 && data.empty())
-      LOG_WARN << "No entries from FASTQ file read. Does the file have MacOS "
-               << "line endings? Convert to Unix or Windows line endings to"
-               << " fix!" << std::endl;
+    {
+      LOG_WARN << "No entries from FASTQ file read. Does the file have MacOS line endings? "
+      << "Convert to Unix or Windows line endings to fix!" << std::endl;
+    }
     return;
   }
 
-  
-  void FASTQFile::store(const String& filename, const vector<FASTQEntry>& data) const
+
+  void FASTQFile::store(const String& filename, const std::vector<FASTQEntry>& data) const
   {
-	ofstream outfile;
-    outfile.open(filename.c_str(), ofstream::out);
-	if (!outfile.good())
+    std::ofstream outfile;
+    outfile.open(filename.c_str(), std::ofstream::out);
+    if (!outfile.good())
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    for (vector<FASTQEntry>::const_iterator it = data.begin(); it != data.end(); ++it)
+    for (std::vector<FASTQEntry>::const_iterator it = data.begin(); it != data.end(); ++it)
     {
       outfile << "@" << it->identifier << " " << it->description << "\n";
-	  outfile << it->sequence << "\n+\n" << it->quality << "\n";
+      outfile << it->sequence << "\n+\n" << it->quality << "\n";
     }
     outfile.close();
   }
 
-} // namespace OpenMS
+}  // namespace OpenMS
