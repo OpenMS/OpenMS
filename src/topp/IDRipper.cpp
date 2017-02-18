@@ -130,7 +130,7 @@ protected:
     //if neither 'out' nor 'out_dir' is set throw an exception
     if (out_dir.empty() && out_dir_.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Please specify an output directory! There are two options to do so. Use 'out' to specify the directory and basename of the resulting files, or use 'out_path' to specify a path");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please specify an output directory! There are two options to do so. Use 'out' to specify the directory and basename of the resulting files, or use 'out_path' to specify a path");
     }
 
     QString dir_path = (!out_dir.empty() ?
@@ -139,7 +139,7 @@ protected:
 
     if (!QDir(dir_path).exists())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Specified path does not exist");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Specified path does not exist");
     }
     output_directory = dir_path.toStdString();
 
@@ -155,7 +155,7 @@ protected:
     //ensure protein and peptide identifications are presented, otherwise we don't have to rip anything anyhow
     if (proteins.empty() || peptides.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "idXML file has to store protein and peptide identifications!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "idXML file has to store protein and peptide identifications!");
     }
 
     map<String, pair<vector<ProteinIdentification>, vector<PeptideIdentification> > > ripped;

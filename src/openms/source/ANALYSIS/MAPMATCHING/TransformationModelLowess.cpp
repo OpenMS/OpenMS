@@ -61,7 +61,7 @@ namespace OpenMS
 
     if (data_.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "'lowess' model requires more data");
     }
 

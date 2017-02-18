@@ -133,7 +133,7 @@ namespace OpenMS
       if (status == Eigen::LevenbergMarquardtSpace::ImproperInputParameters ||
           status == Eigen::LevenbergMarquardtSpace::TooManyFunctionEvaluation)
       {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the Gaussian to the data: Error " + String(status));
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GaussFitter", "Could not fit the Gaussian to the data: Error " + String(status));
       }
       
       x_init(2) = fabs(x_init(2)); // sigma can be negative, but |sigma| would actually be the correct solution

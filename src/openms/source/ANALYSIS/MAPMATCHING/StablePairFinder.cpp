@@ -87,7 +87,7 @@ namespace OpenMS
     // sanity checks:
     if (input_maps.size() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "exactly two input maps required");
     }
     checkIds_(input_maps);

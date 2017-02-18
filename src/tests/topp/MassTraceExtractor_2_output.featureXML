@@ -213,6 +213,7 @@
 			<UserParam type="float" name="FWHM" value="8.67510032653809"/>
 			<UserParam type="float" name="SD" value="0.0556145771784038"/>
 			<UserParam type="float" name="SD_ppm" value="31.7348920119436"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_474525871221756682">
 			<position dim="0">2441.7406</position>
@@ -299,6 +300,7 @@
 			<UserParam type="float" name="FWHM" value="6.92749977111816"/>
 			<UserParam type="float" name="SD" value="0.0435848854489741"/>
 			<UserParam type="float" name="SD_ppm" value="29.2500017522844"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_16907355690727166316">
 			<position dim="0">2408.4245</position>
@@ -318,6 +320,7 @@
 			<UserParam type="float" name="FWHM" value="6.94600009918213"/>
 			<UserParam type="float" name="SD" value="0.051668121940396"/>
 			<UserParam type="float" name="SD_ppm" value="29.9317297450761"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_10306100746905639127">
 			<position dim="0">2260.6347</position>
@@ -549,6 +552,7 @@
 			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
 			<UserParam type="float" name="SD" value="0.0256082025435881"/>
 			<UserParam type="float" name="SD_ppm" value="14.6100536198824"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_16250062551099875712">
 			<position dim="0">2264.0944</position>
@@ -593,6 +597,7 @@
 			<UserParam type="float" name="FWHM" value="8.53400039672852"/>
 			<UserParam type="float" name="SD" value="0.00841527518333686"/>
 			<UserParam type="float" name="SD_ppm" value="4.49075917679844"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_7276556891837796968">
 			<position dim="0">2420.7039</position>
@@ -717,6 +722,7 @@
 			<UserParam type="float" name="FWHM" value="8.66269969940186"/>
 			<UserParam type="float" name="SD" value="0.0433890066027768"/>
 			<UserParam type="float" name="SD_ppm" value="29.3393368018851"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_17092894204355333314">
 			<position dim="0">2293.6847</position>
@@ -736,6 +742,7 @@
 			<UserParam type="float" name="FWHM" value="6.89849996566772"/>
 			<UserParam type="float" name="SD" value="0.0326997838825244"/>
 			<UserParam type="float" name="SD_ppm" value="21.1389403488886"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_3491056946625602141">
 			<position dim="0">2387.5374</position>
@@ -898,6 +905,7 @@
 			<UserParam type="float" name="FWHM" value="6.92269992828369"/>
 			<UserParam type="float" name="SD" value="0.0378693976422487"/>
 			<UserParam type="float" name="SD_ppm" value="29.9712568261837"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_893904610286969204">
 			<position dim="0">2231.2626</position>
@@ -1030,6 +1038,7 @@
 			<UserParam type="float" name="FWHM" value="6.90220022201538"/>
 			<UserParam type="float" name="SD" value="0.0121988311431363"/>
 			<UserParam type="float" name="SD_ppm" value="6.95913844335795"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_3713543811689521337">
 			<position dim="0">2269.2999</position>
@@ -1156,6 +1165,7 @@
 			<UserParam type="float" name="FWHM" value="10.5071001052856"/>
 			<UserParam type="float" name="SD" value="0.0479772040356368"/>
 			<UserParam type="float" name="SD_ppm" value="31.2922428118539"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_14317784148091680644">
 			<position dim="0">2398.0174</position>
@@ -1198,6 +1208,7 @@
 			<UserParam type="float" name="FWHM" value="8.6939001083374"/>
 			<UserParam type="float" name="SD" value="0.0147349539351471"/>
 			<UserParam type="float" name="SD_ppm" value="12.8420903436559"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_1196373166564353753">
 			<position dim="0">2489.7476</position>
@@ -1255,6 +1266,7 @@
 			<UserParam type="float" name="FWHM" value="7.42700004577637"/>
 			<UserParam type="float" name="SD" value="0.031965993064079"/>
 			<UserParam type="float" name="SD_ppm" value="20.5604656828625"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_13113514917555180171">
 			<position dim="0">2323.1737</position>
@@ -1293,6 +1305,7 @@
 			<UserParam type="float" name="FWHM" value="8.5241003036499"/>
 			<UserParam type="float" name="SD" value="0.0312126392002769"/>
 			<UserParam type="float" name="SD_ppm" value="25.4653113920323"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_6182960951962378739">
 			<position dim="0">2115.1782</position>
@@ -1375,6 +1388,7 @@
 			<UserParam type="float" name="FWHM" value="8.99650001525879"/>
 			<UserParam type="float" name="SD" value="0.0774569177497138"/>
 			<UserParam type="float" name="SD_ppm" value="46.2822837866461"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_17287849381738438716">
 			<position dim="0">2438.2814</position>
@@ -1438,6 +1452,7 @@
 			<UserParam type="float" name="FWHM" value="7.08449983596802"/>
 			<UserParam type="float" name="SD" value="0.0134252730488444"/>
 			<UserParam type="float" name="SD_ppm" value="8.10676327105272"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_4143272592559840046">
 			<position dim="0">2113.3173</position>
@@ -1499,6 +1514,7 @@
 			<UserParam type="float" name="FWHM" value="7.41429996490479"/>
 			<UserParam type="float" name="SD" value="0.0436958100835435"/>
 			<UserParam type="float" name="SD_ppm" value="26.9826556061268"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_11399299100673837381">
 			<position dim="0">2269.2999</position>
@@ -1518,6 +1534,7 @@
 			<UserParam type="float" name="FWHM" value="6.94449996948242"/>
 			<UserParam type="float" name="SD" value="0.0188104292348954"/>
 			<UserParam type="float" name="SD_ppm" value="16.048408847941"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_16164338904207598736">
 			<position dim="0">2222.456</position>
@@ -1537,6 +1554,7 @@
 			<UserParam type="float" name="FWHM" value="8.91269969940186"/>
 			<UserParam type="float" name="SD" value="0.011149163498635"/>
 			<UserParam type="float" name="SD_ppm" value="6.54816241619849"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_4410447320637600518">
 			<position dim="0">2159.018</position>
@@ -1575,6 +1593,7 @@
 			<UserParam type="float" name="FWHM" value="7.05649995803833"/>
 			<UserParam type="float" name="SD" value="0.0294378876362279"/>
 			<UserParam type="float" name="SD_ppm" value="25.5188361113547"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_8795943655088158336">
 			<position dim="0">2387.5374</position>
@@ -1598,6 +1617,7 @@
 			<UserParam type="float" name="FWHM" value="10.5071001052856"/>
 			<UserParam type="float" name="SD" value="0.0365662187822118"/>
 			<UserParam type="float" name="SD_ppm" value="28.5023028259112"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_6878260161865568505">
 			<position dim="0">2077.5722</position>
@@ -1617,6 +1637,7 @@
 			<UserParam type="float" name="FWHM" value="9.34000015258789"/>
 			<UserParam type="float" name="SD" value="0.0178943825574434"/>
 			<UserParam type="float" name="SD_ppm" value="14.4533416281513"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_4021463513649428920">
 			<position dim="0">2224.2378</position>
@@ -1674,6 +1695,7 @@
 			<UserParam type="float" name="FWHM" value="9.2564001083374"/>
 			<UserParam type="float" name="SD" value="0.0371993743925293"/>
 			<UserParam type="float" name="SD_ppm" value="23.9280154685398"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="3"/>
 		</feature>
 		<feature id="f_3689406389503231823">
 			<position dim="0">2391.0357</position>
@@ -1693,6 +1715,7 @@
 			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
 			<UserParam type="float" name="SD" value="0.0478793812058152"/>
 			<UserParam type="float" name="SD_ppm" value="26.8623668969906"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_11106716189850669289">
 			<position dim="0">2385.791</position>
@@ -1771,6 +1794,7 @@
 			<UserParam type="float" name="FWHM" value="5.33050012588501"/>
 			<UserParam type="float" name="SD" value="0.048214530543606"/>
 			<UserParam type="float" name="SD_ppm" value="30.1322388440513"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_11586291247413769442">
 			<position dim="0">2387.5374</position>
@@ -1828,6 +1852,7 @@
 			<UserParam type="float" name="FWHM" value="8.93610000610352"/>
 			<UserParam type="float" name="SD" value="0.0315252235325958"/>
 			<UserParam type="float" name="SD_ppm" value="28.8509650175495"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_3395379003172100421">
 			<position dim="0">2146.596</position>
@@ -1908,6 +1933,7 @@
 			<UserParam type="float" name="FWHM" value="8.67580032348633"/>
 			<UserParam type="float" name="SD" value="0.0356756415176259"/>
 			<UserParam type="float" name="SD_ppm" value="34.4559385704705"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_13641829453453140763">
 			<position dim="0">2175.0676</position>
@@ -1927,6 +1953,7 @@
 			<UserParam type="float" name="FWHM" value="5.47650003433228"/>
 			<UserParam type="float" name="SD" value="0.0107672341296384"/>
 			<UserParam type="float" name="SD_ppm" value="7.87219073066347"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
 		</feature>
 		<feature id="f_12388384985798314387">
 			<position dim="0">2103.9472</position>
@@ -2007,6 +2034,7 @@
 			<UserParam type="float" name="FWHM" value="6.97989988327026"/>
 			<UserParam type="float" name="SD" value="0.0187375841137358"/>
 			<UserParam type="float" name="SD_ppm" value="19.0013991892579"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_18390135059454481268">
 			<position dim="0">2314.4472</position>
@@ -2026,6 +2054,7 @@
 			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
 			<UserParam type="float" name="SD" value="0.0145789805268371"/>
 			<UserParam type="float" name="SD_ppm" value="15.5068501389947"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
 		</feature>
 		<feature id="f_15721057298497490036">
 			<position dim="0">2115.1782</position>

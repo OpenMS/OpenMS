@@ -126,7 +126,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GumbelDistributionFitter", "Could not fit the gumbel distribution to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-GumbelDistributionFitter", "Could not fit the gumbel distribution to the data");
       }
 
 #ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE

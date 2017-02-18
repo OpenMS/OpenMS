@@ -64,7 +64,7 @@ namespace OpenMS
   {
     if (exp_profile_.size() != exp_picked_.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Profile and centroided data do not contain same number of spectra.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Profile and centroided data do not contain same number of spectra.");
     }
 
     if (exp_picked_.size() != boundaries_.size())
@@ -75,7 +75,7 @@ namespace OpenMS
       stream << "!=";
       stream << boundaries_.size();
       stream << ")";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
 
     blacklist_.reserve(exp_picked_.getNrSpectra());
@@ -156,7 +156,7 @@ namespace OpenMS
         
         if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of peaks and number of peak boundaries differ.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Number of peaks and number of peak boundaries differ.");
         }
 
         setProgress(++progress);

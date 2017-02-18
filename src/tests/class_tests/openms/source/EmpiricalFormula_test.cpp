@@ -226,6 +226,45 @@ START_SECTION(double getAverageWeight() const)
   TEST_REAL_SIMILAR(ef.getAverageWeight(), e->getAverageWeight() * 2)
 END_SECTION
 
+START_SECTION(bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
+    // Same stoichiometry as the averagine model
+    EmpiricalFormula ef("C494H776N136O148S4");
+    EmpiricalFormula ef_approx;
+    Int return_flag;
+    return_flag = ef_approx.estimateFromWeightAndComp(ef.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    // average mass should be the same when using the same stoichiometry
+    TOLERANCE_ABSOLUTE(1);
+    TEST_REAL_SIMILAR(ef.getAverageWeight(), ef_approx.getAverageWeight());
+    // # of elements should be the same when using the same stoichiometry
+    for (EmpiricalFormula::ConstIterator itr = ef.begin(); itr != ef.end(); ++itr)
+    {
+      TEST_EQUAL(itr->second, ef_approx.getNumberOf(itr->first));
+    }
+    TEST_EQUAL(return_flag, true);
+
+    // Very different stoichiometry than the averagine model
+    EmpiricalFormula ef2("C100H100N100O100S100P100");
+    return_flag = ef_approx.estimateFromWeightAndComp(ef2.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    // average mass should be the same when using a different stoichiometry
+    TEST_REAL_SIMILAR(ef2.getAverageWeight(), ef_approx.getAverageWeight());
+    // # of elements should be different when using a very different stoichiometry
+    for (EmpiricalFormula::ConstIterator itr = ef2.begin(); itr != ef2.end(); ++itr)
+    {
+      TEST_NOT_EQUAL(itr->second, ef_approx.getNumberOf(itr->first));
+    }
+    TEST_EQUAL(return_flag, true);
+
+    // Small mass that the model can't fit without using a negative # of hydrogens
+    return_flag = ef_approx.estimateFromWeightAndComp(50, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    // The same mass can't be achieved because the # hydrogens needed to compensate is negative
+    TEST_EQUAL(ef_approx.getAverageWeight() - 50 > 1, true);
+    // Don't allow the EmpiricalFormula to have a negative # of hydrogens
+    TEST_EQUAL(ef_approx.getNumberOf(db->getElement("H")) >= 0, true);
+    // The return flag should now indicate that the estimated formula did not succeed without requesting a negative # of hydrogens
+    TEST_EQUAL(return_flag, false);
+
+END_SECTION
+
 START_SECTION(double getMonoWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");
@@ -293,12 +332,12 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   }
 END_SECTION
 
-START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const)
+START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const)
   EmpiricalFormula precursor("C2");
   EmpiricalFormula fragment("C");
-  std::vector<UInt> precursor_isotopes;
+  std::set<UInt> precursor_isotopes;
 
-  precursor_isotopes.push_back(0);
+  precursor_isotopes.insert(0);
   // isolated precursor isotope is M0
   IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   double result[] = { 1.0 };
@@ -308,8 +347,8 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result[i])
   }
 
-  precursor_isotopes.pop_back();
-  precursor_isotopes.push_back(1);
+  precursor_isotopes.clear();
+  precursor_isotopes.insert(1);
   // isolated precursor isotope is M+1
   iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   double result2[] = { 0.5, 0.5};
@@ -319,7 +358,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result2[i])
   }
 
-  precursor_isotopes.push_back(0);
+  precursor_isotopes.insert(0);
   // isolated precursor isotopes are M0 and M+1
   iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   double result3[] = { 0.98941, 0.01059};
@@ -329,7 +368,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result3[i])
   }
 
-  precursor_isotopes.push_back(2);
+  precursor_isotopes.insert(2);
   // isolated precursor isotopes are M0, M+1, and M+2
   // This is the example found in the comments of the getConditionalFragmentIsotopeDist function.
   // Since we're isolating all the possible precursor isotopes, the fragment isotope distribution
@@ -342,7 +381,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->second, result4[i])
   }
 
-  precursor_isotopes.push_back(3);
+  precursor_isotopes.insert(3);
   // isolated precursor isotopes are M0, M+1, M+2, and M+3
   // It's impossible for precursor C2 to have 3 extra neutrons (assuming only natural stable isotopes)
   // Invalid precursor isotopes are ignored and should give the answer as if they were not there
@@ -358,7 +397,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   EmpiricalFormula small_fragment = EmpiricalFormula("C1H1N1O1S1");
 
   precursor_isotopes.clear();
-  precursor_isotopes.push_back(1);
+  precursor_isotopes.insert(1);
   // isolated precursor isotope is M+1
   IsotopeDistribution big_iso = big_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
   IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);

@@ -272,7 +272,7 @@ protected:
           Int tmp = in.toInt();
           if (tmp < 0)
           {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "");
+            throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
           }
           res = UInt(tmp);
         }

@@ -5937,7 +5937,7 @@
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_65.5468_-24.57_y1-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_65.5468_-24.57_y1-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -5959,7 +5959,7 @@
       <userParam name="annotation" type="xsd:string" value="y1-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_543.7373_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_543.7373_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6003,7 +6003,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_544.2293_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_544.2293_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6047,7 +6047,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_552.7426_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_552.7426_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6089,7 +6089,7 @@
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_74.06_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_74.06_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6131,7 +6131,7 @@
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_101.0653_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_101.0653_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6153,7 +6153,7 @@
       <userParam name="annotation" type="xsd:string" value="y2-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_109.5786_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_109.5786_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6195,7 +6195,7 @@
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_411.517_182.597_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_411.517_182.597_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6239,7 +6239,7 @@
       <userParam name="annotation" type="xsd:string" value="y3-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_411.517_191.1103_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_411.517_191.1103_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6281,7 +6281,7 @@
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_411.517_234.1016_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_411.517_234.1016_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6325,7 +6325,7 @@
       <userParam name="annotation" type="xsd:string" value="y4-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_411.517_242.6149_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_411.517_242.6149_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6367,7 +6367,7 @@
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_298.1309_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_298.1309_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6411,7 +6411,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_298.6229_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_298.6229_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6455,7 +6455,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_307.1362_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_307.1362_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6497,7 +6497,7 @@
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_366.6603_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_366.6603_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6541,7 +6541,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_367.1523_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_367.1523_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6585,7 +6585,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_375.6656_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_375.6656_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6627,7 +6627,7 @@
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_415.1867_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_415.1867_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6671,7 +6671,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_415.6787_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_415.6787_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6715,7 +6715,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_424.192_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_424.192_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6757,7 +6757,7 @@
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_472.7002_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_472.7002_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6801,7 +6801,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_473.1922_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_473.1922_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6845,7 +6845,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_481.7055_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_481.7055_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6887,7 +6887,7 @@
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_508.2187_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_508.2187_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6931,7 +6931,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_508.7107_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_508.7107_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -6975,7 +6975,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_411.517_517.224_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_517.224_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7017,7 +7017,7 @@
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_65.5468_-24.57_y1-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_65.5468_-24.57_y1-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7039,7 +7039,7 @@
       <userParam name="annotation" type="xsd:string" value="y1-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_543.7373_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_543.7373_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7083,7 +7083,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_544.2293_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_544.2293_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7127,7 +7127,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_552.7426_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_552.7426_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7169,7 +7169,7 @@
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_74.06_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_74.06_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7211,7 +7211,7 @@
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_101.0653_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_101.0653_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7233,7 +7233,7 @@
       <userParam name="annotation" type="xsd:string" value="y2-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_109.5786_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_109.5786_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7275,7 +7275,7 @@
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_616.7719_182.597_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_616.7719_182.597_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7319,7 +7319,7 @@
       <userParam name="annotation" type="xsd:string" value="y3-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_616.7719_191.1103_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_616.7719_191.1103_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7361,7 +7361,7 @@
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_616.7719_234.1016_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_616.7719_234.1016_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7405,7 +7405,7 @@
       <userParam name="annotation" type="xsd:string" value="y4-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_616.7719_242.6149_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_616.7719_242.6149_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7447,7 +7447,7 @@
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_298.1309_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_298.1309_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7491,7 +7491,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_298.6229_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_298.6229_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7535,7 +7535,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_307.1362_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_307.1362_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7577,7 +7577,7 @@
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_366.6603_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_366.6603_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7621,7 +7621,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_367.1523_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_367.1523_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7665,7 +7665,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_375.6656_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_375.6656_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7707,7 +7707,7 @@
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_415.1867_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_415.1867_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7751,7 +7751,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_415.6787_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_415.6787_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7795,7 +7795,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_424.192_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_424.192_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7837,7 +7837,7 @@
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_472.7002_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_472.7002_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7881,7 +7881,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_473.1922_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_473.1922_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7925,7 +7925,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_481.7055_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_481.7055_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -7967,7 +7967,7 @@
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_508.2187_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_508.2187_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -8011,7 +8011,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_508.7107_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_508.7107_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -8055,7 +8055,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UIS_{(Carbamidomethyl)AAADPHECYAK}_616.7719_517.224_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_517.224_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13017,7 +13017,7 @@
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_411.517_560.2116_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_560.2116_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13063,7 +13063,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_411.517_560.7036_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_560.7036_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13109,7 +13109,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_411.517_569.2169_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_569.2169_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13153,7 +13153,7 @@
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_122.5682_-24.57_y2-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_122.5682_-24.57_y2-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13199,7 +13199,7 @@
       <userParam name="annotation" type="xsd:string" value="y2-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_123.0602_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_123.0602_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13222,7 +13222,7 @@
       <userParam name="annotation" type="xsd:string" value="y2-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_131.5735_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_131.5735_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13266,7 +13266,7 @@
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_204.0999_-24.57_y3-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_204.0999_-24.57_y3-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13312,7 +13312,7 @@
       <userParam name="annotation" type="xsd:string" value="y3-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_204.5919_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_204.5919_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13358,7 +13358,7 @@
       <userParam name="annotation" type="xsd:string" value="y3-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_213.1052_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_213.1052_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13402,7 +13402,7 @@
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_255.6045_-24.57_y4-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_255.6045_-24.57_y4-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13448,7 +13448,7 @@
       <userParam name="annotation" type="xsd:string" value="y4-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_256.0965_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_256.0965_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13494,7 +13494,7 @@
       <userParam name="annotation" type="xsd:string" value="y4-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_264.6098_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_264.6098_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13538,7 +13538,7 @@
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_320.1258_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_320.1258_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13584,7 +13584,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_320.6178_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_320.6178_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13630,7 +13630,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_329.1311_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_329.1311_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13674,7 +13674,7 @@
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_388.6552_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_388.6552_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13697,7 +13697,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_417.166_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_417.166_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13720,7 +13720,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_389.1472_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_389.1472_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13743,7 +13743,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_417.658_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_417.658_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13766,7 +13766,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_397.6605_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_397.6605_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13788,7 +13788,7 @@
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_426.1713_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_426.1713_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13810,7 +13810,7 @@
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_417.166_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_417.166_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13856,7 +13856,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_417.658_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_417.658_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13902,7 +13902,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_426.1713_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_426.1713_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13946,7 +13946,7 @@
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_411.517_474.6794_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_474.6794_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13969,7 +13969,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_503.1902_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_503.1902_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -13992,7 +13992,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_411.517_475.1715_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_475.1715_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14015,7 +14015,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_503.6822_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_503.6822_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14038,7 +14038,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_411.517_483.6847_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_483.6847_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14060,7 +14060,7 @@
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_512.1955_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_512.1955_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14082,7 +14082,7 @@
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_503.1902_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_503.1902_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14128,7 +14128,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_503.6822_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_503.6822_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14174,7 +14174,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_512.1955_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_512.1955_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14218,7 +14218,7 @@
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_616.7719_560.2116_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_560.2116_-24.57_y10-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14264,7 +14264,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_616.7719_560.7036_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_560.7036_-24.57_y10-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14310,7 +14310,7 @@
       <userParam name="annotation" type="xsd:string" value="y10-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_616.7719_569.2169_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_569.2169_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14354,7 +14354,7 @@
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_122.5682_-24.57_y2-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_122.5682_-24.57_y2-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14400,7 +14400,7 @@
       <userParam name="annotation" type="xsd:string" value="y2-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_123.0602_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_123.0602_-24.57_y2-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14423,7 +14423,7 @@
       <userParam name="annotation" type="xsd:string" value="y2-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_131.5735_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_131.5735_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14467,7 +14467,7 @@
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_204.0999_-24.57_y3-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_204.0999_-24.57_y3-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14513,7 +14513,7 @@
       <userParam name="annotation" type="xsd:string" value="y3-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_204.5919_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_204.5919_-24.57_y3-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14559,7 +14559,7 @@
       <userParam name="annotation" type="xsd:string" value="y3-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_213.1052_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_213.1052_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14603,7 +14603,7 @@
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_255.6045_-24.57_y4-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_255.6045_-24.57_y4-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14649,7 +14649,7 @@
       <userParam name="annotation" type="xsd:string" value="y4-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_256.0965_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_256.0965_-24.57_y4-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14695,7 +14695,7 @@
       <userParam name="annotation" type="xsd:string" value="y4-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_264.6098_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_264.6098_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14739,7 +14739,7 @@
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_320.1258_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_320.1258_-24.57_y5-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14785,7 +14785,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_320.6178_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_320.6178_-24.57_y5-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14831,7 +14831,7 @@
       <userParam name="annotation" type="xsd:string" value="y5-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_329.1311_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_329.1311_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14875,7 +14875,7 @@
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_388.6552_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_388.6552_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14898,7 +14898,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_417.166_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_417.166_-24.57_y6-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14921,7 +14921,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_389.1472_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_389.1472_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14944,7 +14944,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_417.658_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_417.658_-24.57_y6-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14967,7 +14967,7 @@
       <userParam name="annotation" type="xsd:string" value="y6-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_397.6605_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_397.6605_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -14989,7 +14989,7 @@
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_426.1713_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_426.1713_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15011,7 +15011,7 @@
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_417.166_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_417.166_-24.57_y7-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15057,7 +15057,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_417.658_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_417.658_-24.57_y7-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15103,7 +15103,7 @@
       <userParam name="annotation" type="xsd:string" value="y7-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_426.1713_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_426.1713_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15147,7 +15147,7 @@
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_616.7719_474.6794_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_474.6794_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15170,7 +15170,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_503.1902_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_503.1902_-24.57_y8-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15193,7 +15193,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_616.7719_475.1715_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_475.1715_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15216,7 +15216,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_503.6822_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_503.6822_-24.57_y8-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15239,7 +15239,7 @@
       <userParam name="annotation" type="xsd:string" value="y8-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK}_616.7719_483.6847_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_483.6847_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15261,7 +15261,7 @@
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_512.1955_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_512.1955_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15283,7 +15283,7 @@
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_503.1902_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_503.1902_-24.57_y9-H2O1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15329,7 +15329,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H2O1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_503.6822_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_503.6822_-24.57_y9-H3N1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -15375,7 +15375,7 @@
       <userParam name="annotation" type="xsd:string" value="y9-H3N1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
     </Transition>
-    <Transition id="UISDECOY_{(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_512.1955_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
+    <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_512.1955_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>

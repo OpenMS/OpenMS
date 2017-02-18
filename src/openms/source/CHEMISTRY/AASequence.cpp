@@ -86,7 +86,7 @@ namespace OpenMS
   {
     if (index >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
     return *peptide_[index];
   }
@@ -444,7 +444,7 @@ namespace OpenMS
   {
     if (index >= size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
     return *peptide_[index];
   }
@@ -473,7 +473,7 @@ namespace OpenMS
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "given residue");
     }
     AASequence seq = *this;
     seq += residue;
@@ -484,7 +484,7 @@ namespace OpenMS
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "given residue");
     }
     peptide_.push_back(residue);
     return *this;
@@ -499,7 +499,7 @@ namespace OpenMS
   {
     if (index > size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
     if (index == size())
     {
@@ -516,7 +516,7 @@ namespace OpenMS
   {
     if (index > size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
 
     if (index == size())
@@ -534,11 +534,11 @@ namespace OpenMS
   {
     if (index >= size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, size());
     }
     if (index + num > size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index + num, size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index + num, size());
     }
 
     AASequence seq;
@@ -716,7 +716,7 @@ namespace OpenMS
   {
     if (peptide.n_term_mod_ != 0)
     {
-      os << "(" << peptide.n_term_mod_->getId() << ")";
+      os << ".(" << peptide.n_term_mod_->getId() << ")";
     }
 
     for (Size i = 0; i != peptide.size(); ++i)
@@ -760,17 +760,17 @@ namespace OpenMS
         }
       }
     }
-
+    
     if (peptide.c_term_mod_ != 0)
     {
-      os << "(" << peptide.c_term_mod_->getId() << ")";
+      os << ".(" << peptide.c_term_mod_->getId() << ")";
     }
     return os;
   }
 
 
   String::ConstIterator AASequence::parseModRoundBrackets_(
-    const String::ConstIterator str_it, const String& str, AASequence& aas)
+    const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal)
   {
     OPENMS_PRECONDITION(*str_it == '(', "Modification must start with '('.");
     String::ConstIterator mod_start = str_it;
@@ -786,16 +786,17 @@ namespace OpenMS
     std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
           "Cannot convert string to peptide modification: missing ')'");
     }
     ModificationsDB* mod_db = ModificationsDB::getInstance();
-    if (aas.peptide_.empty()) // start of peptide -> N-terminal mod.
+    if (aas.peptide_.empty()) // start of peptide -> N-terminal modification?
     {
       aas.n_term_mod_ = &(mod_db->getModification(mod, "",
                                                   ResidueModification::N_TERM));
       return mod_end;
     }
+
     const String& res = aas.peptide_.back()->getOneLetterCode();
     try
     {
@@ -806,10 +807,28 @@ namespace OpenMS
     {
       if (std::distance(mod_end, str.end()) == 1) // C-terminal mod.?
       {
-        // this might throw ElementNotFound, but so be it:
-        const ResidueModification* term_mod =
-          &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
-        aas.c_term_mod_ = term_mod;
+        if (dot_notation)
+        {
+          if (dot_terminal)
+          {
+            const ResidueModification* term_mod = 
+              &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+            aas.c_term_mod_ = term_mod;
+          }
+        }
+        else // old ambigous notation: Modification might be at last amino acid or at C-terminus
+        {
+          try
+          {
+            // this might throw ElementNotFound, but so be it:
+            const ResidueModification* term_mod = 
+              &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+            aas.c_term_mod_ = term_mod;
+          }
+          catch (Exception::ElementNotFound& /* e */)
+          { // just do nothing, the mod is presumably a non-terminal one
+          }
+        }
       }
       else throw; // re-throw the InvalidValue
     }
@@ -828,7 +847,7 @@ namespace OpenMS
     std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
           "Cannot convert string to peptide modification: missing ']'");
     }
 
@@ -882,7 +901,7 @@ namespace OpenMS
       residue = aas.peptide_.back();
       if (delta_mass && (residue->getMonoWeight() <= 0.0)) // not allowed
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str,
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
             "Using a mass difference to specify a modification on a residue of unknown mass is not supported in '" + \
             residue->getOneLetterCode() + "[" + mod +  "]'");
       }
@@ -1029,24 +1048,39 @@ namespace OpenMS
     String peptide(pep);
     peptide.trim();
 
+    if (peptide.empty()) return;
+
     // remove optional n and c at start end end of string
-    if (!peptide.empty() && peptide[0] == 'n') 
+    if (peptide[0] == 'n') 
     {
       peptide.erase(0,1);
     }
 
-    if (!peptide.empty() && peptide[peptide.size()-1] == 'c') 
+    if (peptide.empty()) return;
+
+    if (peptide[peptide.size()-1] == 'c') 
     {
-      peptide.erase(peptide.size()-1,1);
+      peptide.erase(peptide.size()-1, 1);
     }
 
     if (peptide.empty()) return;
+    
+    // detect if this is the new dot notation containing dots for termini and track if last char denoted a terminus
+    bool dot_terminal(false), dot_notation(false);
 
     static ResidueDB* rdb = ResidueDB::getInstance();
 
     for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
     {
+      // skip (optional) terminal delimiters
+      if (*str_it == '.') 
+      {
+        dot_notation = true;
+        dot_terminal = true;
+        continue;
+      }
+
       // 1. default case: add unmodified, standard residue
       const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
       if (r)
@@ -1079,7 +1113,7 @@ namespace OpenMS
      
       if (*str_it == '(')
       {
-        str_it = parseModRoundBrackets_(str_it, peptide, aas);
+        str_it = parseModRoundBrackets_(str_it, peptide, aas, dot_notation, dot_terminal);
       }
       else if (*str_it == '[')
       {
@@ -1098,10 +1132,12 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide,
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, peptide,
               "Cannot convert string to amino acid sequence: unexpected character '" + String(*str_it) + "'");
         }
       }
+      
+      dot_terminal = false; // previous char was no dot
     }
   }
 
@@ -1119,7 +1155,7 @@ namespace OpenMS
   {
     if (index >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, peptide_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, peptide_.size());
     }
 
     if (!modification.empty()) 

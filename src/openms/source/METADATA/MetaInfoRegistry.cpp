@@ -168,7 +168,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
       }
     }
   }
@@ -185,7 +185,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered name!", name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered name!", name);
       }
     }
   }
@@ -202,7 +202,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
       }
     }
   }
@@ -219,7 +219,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered name!", name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered name!", name);
       }
     }
   }
@@ -246,7 +246,7 @@ namespace OpenMS
       map<UInt, String>::const_iterator it = index_to_description_.find(index);
       if (it == index_to_description_.end())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
       }
       result = it->second;
     }
@@ -259,7 +259,7 @@ namespace OpenMS
     UInt index = getIndex(name); // this has to be outside the OpenMP "critical" block!
     if (index == UInt(-1)) // not found
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered Name!", name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered Name!", name);
     }
     else
     {
@@ -279,7 +279,7 @@ namespace OpenMS
       map<UInt, String>::const_iterator it = index_to_unit_.find(index);
       if (it == index_to_unit_.end())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
       }
       result = it->second;
     }
@@ -292,7 +292,7 @@ namespace OpenMS
     UInt index = getIndex(name); // this has to be outside the OpenMP "critical" block!
     if (index == UInt(-1)) // not found
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered Name!", name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered Name!", name);
     }
     else
     {
@@ -316,7 +316,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unregistered index!", String(index));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
       }
     }
     return rv;

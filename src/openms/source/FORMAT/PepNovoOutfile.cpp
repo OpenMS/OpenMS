@@ -106,7 +106,7 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
     Size line_number(0);     // used to report in which line an error occurred
@@ -176,7 +176,7 @@ namespace OpenMS
         //String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
         if (substrings.size() < 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
         }
 
         try
@@ -185,7 +185,7 @@ namespace OpenMS
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
         }
 
         //cout<<"INDEX: "<<index<<endl;
@@ -199,7 +199,7 @@ namespace OpenMS
             peptide_identification.setMZ(index_to_precursor.find(index)->second.second);
             success = true;
           }
-          else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+          else throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
 
         if (!success)
@@ -221,7 +221,7 @@ namespace OpenMS
           {
 
           }
-          if (!success) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
+          if (!success) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
         peptide_identification.setScoreType(score_type);
@@ -256,7 +256,7 @@ namespace OpenMS
           {
             result_file.close();
             result_file.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
           }
         }
         while (getline(result_file, line))
@@ -276,7 +276,7 @@ namespace OpenMS
             {
               result_file.close();
               result_file.clear();
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
             }
             if (substrings[columns["RnkScr"]].toFloat() >= score_threshold)
             {
@@ -328,7 +328,7 @@ namespace OpenMS
     ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
     if (!pepnovo_output_without_parameters)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, pepnovo_output_without_parameters_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pepnovo_output_without_parameters_filename);
     }
 
     ProteinIdentification::SearchParameters search_param;

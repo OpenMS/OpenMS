@@ -89,7 +89,7 @@ namespace OpenMS
 
     if (!(mz.size() == intensity.size() && mz.size() > 2))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors either not of the same size or too short.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z and intensity vectors either not of the same size or too short.");
     }
 
     const double new_package = 2; // start a new package if delta m/z is greater than new_package times previous one
@@ -207,7 +207,7 @@ namespace OpenMS
   {
     if (packages_.empty())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
     return Navigator(&packages_, mz_min_, mz_max_);
   }

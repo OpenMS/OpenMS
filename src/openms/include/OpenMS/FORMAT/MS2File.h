@@ -80,11 +80,11 @@ public:
 
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
       if (!File::readable(filename))
       {
-        throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       exp.reset();
@@ -137,7 +137,7 @@ public:
           line.split(' ', split);
           if (split.size() != 4)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line (" + String(line_number) + ") '" + line  + "' should contain four values, got " + String(split.size()) + "!", "");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + String(line_number) + ") '" + line  + "' should contain four values, got " + String(split.size()) + "!", "");
           }
           spec.getPrecursors().resize(1);
           spec.getPrecursors()[0].setMZ(split[3].toDouble());
@@ -168,7 +168,7 @@ public:
         line.split(' ', split);
         if (split.size() != 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line (" + String(line_number) + ") '" + line  + "' should contain two values, got " + String(split.size()) + "!", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + String(line_number) + ") '" + line  + "' should contain two values, got " + String(split.size()) + "!", "");
         }
 
         try
@@ -178,7 +178,7 @@ public:
         }
         catch (Exception::ConversionError /*&e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
         }
         spec.push_back(p);
       }

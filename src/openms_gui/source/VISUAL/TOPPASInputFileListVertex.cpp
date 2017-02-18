@@ -264,7 +264,7 @@ namespace OpenMS
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
     for (int f = 0; f < files.size(); ++f)
     {
-      output_files_[f][-1].filenames << QDir::toNativeSeparators(files[f]);
+      output_files_[f][-1].filenames.push_back(QDir::toNativeSeparators(files[f]));
     }
 
     setToolTip(files.join("\n"));

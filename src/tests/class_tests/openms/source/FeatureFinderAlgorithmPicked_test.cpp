@@ -103,24 +103,24 @@ START_SECTION((virtual void run()))
 	TEST_EQUAL(output.size(), 8);
 
 	TOLERANCE_ABSOLUTE(0.001);
-	TEST_REAL_SIMILAR(output[0].getOverallQuality(), 0.8819);
-	TEST_REAL_SIMILAR(output[1].getOverallQuality(), 0.8673);
-	TEST_REAL_SIMILAR(output[2].getOverallQuality(), 0.9079);
-	TEST_REAL_SIMILAR(output[3].getOverallQuality(), 0.9271);
-	TEST_REAL_SIMILAR(output[4].getOverallQuality(), 0.9401);
-	TEST_REAL_SIMILAR(output[5].getOverallQuality(), 0.9094);
+	TEST_REAL_SIMILAR(output[0].getOverallQuality(), 0.8826);
+	TEST_REAL_SIMILAR(output[1].getOverallQuality(), 0.8680);
+	TEST_REAL_SIMILAR(output[2].getOverallQuality(), 0.9077);
+	TEST_REAL_SIMILAR(output[3].getOverallQuality(), 0.9270);
+	TEST_REAL_SIMILAR(output[4].getOverallQuality(), 0.9398);
+	TEST_REAL_SIMILAR(output[5].getOverallQuality(), 0.9098);
 	TEST_REAL_SIMILAR(output[6].getOverallQuality(), 0.9403);
-	TEST_REAL_SIMILAR(output[7].getOverallQuality(), 0.9243);
+	TEST_REAL_SIMILAR(output[7].getOverallQuality(), 0.9245);
 
 	TOLERANCE_ABSOLUTE(20.0);
-	TEST_REAL_SIMILAR(output[0].getIntensity(), 51393.3);
-	TEST_REAL_SIMILAR(output[1].getIntensity(), 44786.0);
-	TEST_REAL_SIMILAR(output[2].getIntensity(), 34704.7);
-	TEST_REAL_SIMILAR(output[3].getIntensity(), 19479.9);
-	TEST_REAL_SIMILAR(output[4].getIntensity(), 12565.2);
-	TEST_REAL_SIMILAR(output[5].getIntensity(), 8535.44);
-	TEST_REAL_SIMILAR(output[6].getIntensity(), 7315.13);
-	TEST_REAL_SIMILAR(output[7].getIntensity(), 5041.12);
+	TEST_REAL_SIMILAR(output[0].getIntensity(), 51366.2);
+	TEST_REAL_SIMILAR(output[1].getIntensity(), 44767.6);
+	TEST_REAL_SIMILAR(output[2].getIntensity(), 34731.1);
+	TEST_REAL_SIMILAR(output[3].getIntensity(), 19494.2);
+	TEST_REAL_SIMILAR(output[4].getIntensity(), 12570.2);
+	TEST_REAL_SIMILAR(output[5].getIntensity(), 8532.26);
+	TEST_REAL_SIMILAR(output[6].getIntensity(), 7318.62);
+	TEST_REAL_SIMILAR(output[7].getIntensity(), 5038.81);
 
 END_SECTION
 
