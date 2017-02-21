@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_10306100746905639127" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_12524258085768770586" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathWorkflow" version="version_string" />
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="2">
-		<feature id="f_15916652588957785155">
+		<feature id="f_15157403601844400700">
 			<position dim="0">25.0000004768372</position>
 			<position dim="1">0</position>
 			<intensity>140913</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>-2.06236</overallquality>
+			<overallquality>-1.58769</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_15916652588957785155_15157403601844400700">
+				<feature id="f_15157403601844400700_6408859317243173796">
 					<position dim="0">25.0000004768372</position>
 					<position dim="1">100.01</position>
 					<intensity>24543</intensity>
@@ -28,7 +28,7 @@
 					<UserParam type="float" name="peak_apex_int" value="945"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15916652588957785155_6408859317243173796">
+				<feature id="f_15157403601844400700_474525871221756682">
 					<position dim="0">25.0000004768372</position>
 					<position dim="1">101.01</position>
 					<intensity>46971</intensity>
@@ -41,7 +41,7 @@
 					<UserParam type="float" name="peak_apex_int" value="1845"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_15916652588957785155_474525871221756682">
+				<feature id="f_15157403601844400700_12999979801269632061">
 					<position dim="0">25.0000004768372</position>
 					<position dim="1">102.02</position>
 					<intensity>69399</intensity>
@@ -85,13 +85,13 @@
 			<UserParam type="float" name="xx_lda_prelim_score" value="5.14437675900855"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.0261521045358941"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
-			<UserParam type="float" name="var_massdev_score" value="32.5798903028477"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="28.1219635927763"/>
+			<UserParam type="float" name="var_massdev_score" value="27.1945494817822"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="20.3108685980962"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.602724778636096"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.961743689676094"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-2.06235593368011"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.58769183215118"/>
 			<UserParam type="float" name="var_sonar_lag" value="0"/>
 			<UserParam type="float" name="var_sonar_shape" value="0.999910678869981"/>
 			<UserParam type="float" name="var_sonar_sn" value="6.18333349164327"/>
@@ -100,16 +100,16 @@
 			<UserParam type="float" name="var_sonar_rsq" value="1"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
-		<feature id="f_12999979801269632061">
+		<feature id="f_17413765565443951891">
 			<position dim="0">9.99999952316284</position>
 			<position dim="1">0</position>
 			<intensity>152415</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>-0.440915</overallquality>
+			<overallquality>-0.714893</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_12999979801269632061_17413765565443951891">
+				<feature id="f_17413765565443951891_2927519776102075938">
 					<position dim="0">9.99999952316284</position>
 					<position dim="1">300.01</position>
 					<intensity>25402.5</intensity>
@@ -122,7 +122,7 @@
 					<UserParam type="float" name="peak_apex_int" value="900"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_12999979801269632061_2927519776102075938">
+				<feature id="f_17413765565443951891_16907355690727166316">
 					<position dim="0">9.99999952316284</position>
 					<position dim="1">301.01</position>
 					<intensity>50805</intensity>
@@ -135,7 +135,7 @@
 					<UserParam type="float" name="peak_apex_int" value="1800"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_12999979801269632061_16907355690727166316">
+				<feature id="f_17413765565443951891_10306100746905639127">
 					<position dim="0">9.99999952316284</position>
 					<position dim="1">302.01</position>
 					<intensity>76207.5</intensity>
@@ -177,15 +177,15 @@
 			<UserParam type="float" name="rt_score" value="6.66133814775094e-16"/>
 			<UserParam type="float" name="var_norm_rt_score" value="6.66133814775094e-18"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="4.96579223436568"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.120611199453035"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.135147817700222"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
-			<UserParam type="float" name="var_massdev_score" value="13.1449021149054"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="14.2625236173978"/>
+			<UserParam type="float" name="var_massdev_score" value="16.3566522647397"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="17.7471993510744"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.760113850844455"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.692137991827565"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.440915185780429"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.779355965797236"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.676057216007074"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.714893183335581"/>
 			<UserParam type="float" name="var_sonar_lag" value="0"/>
 			<UserParam type="float" name="var_sonar_shape" value="1"/>
 			<UserParam type="float" name="var_sonar_sn" value="6.0000001525879"/>
