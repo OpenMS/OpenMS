@@ -153,6 +153,18 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,protein_ids2[0].getSearchParameters().fragment_mass_tolerance)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,protein_ids2[0].getSearchParameters().precursor_mass_tolerance)
 
+  TEST_EQUAL(protein_ids[0].getSearchParameters().variable_modifications.size(),protein_ids2[0].getSearchParameters().variable_modifications.size())
+  for (size_t i = 0; i < protein_ids[0].getSearchParameters().variable_modifications.size(); ++i)
+  {
+    TEST_STRING_EQUAL(protein_ids[0].getSearchParameters().variable_modifications[i],protein_ids2[0].getSearchParameters().variable_modifications[i])
+  }
+  TEST_STRING_EQUAL(protein_ids[0].getSearchParameters().variable_modifications.back(),"Acetyl (N-term)")
+  TEST_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications.size(),protein_ids2[0].getSearchParameters().fixed_modifications.size())
+  for (size_t i = 0; i < protein_ids[0].getSearchParameters().fixed_modifications.size(); ++i)
+  {
+    TEST_STRING_EQUAL(protein_ids[0].getSearchParameters().fixed_modifications[i],protein_ids2[0].getSearchParameters().fixed_modifications[i])
+  }
+
   //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
 //  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
 //  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 0);
@@ -327,8 +339,8 @@ START_SECTION(([EXTRA] regression test for file loading on example files))
   std::vector<PeptideIdentification> peptide_ids;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
-  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
-  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
+//  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
+//  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
   input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
   input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");

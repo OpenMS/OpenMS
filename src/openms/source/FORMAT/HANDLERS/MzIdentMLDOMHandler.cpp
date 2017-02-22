@@ -881,40 +881,71 @@ namespace OpenMS
 //                    LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
 //                }
 
+                String mname;
                 CVTermList specificity_rules;
                 DOMElement* sub = sm->getFirstElementChild();
                 while (sub)
                 {
                   if ((std::string)XMLString::transcode(sub->getTagName()) == "cvParam")
                   {
-                    String mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
-//                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname);
-//                    String mod = m.getName();
-
-                    String mod = mname;
-                    if (residues != ".")
-                    {
-                      mod += " (" + residues + ")";
-                    }
-                    if (fixedMod)
-                    {
-                      fix.push_back(mod);
-                    }
-                    else
-                    {
-                      var.push_back(mod);
-                    }
+                    mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
                   }
                   else if ((std::string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
                   {
                     specificity_rules.consumeCVTerms(parseParamGroup_(sub->getChildNodes()).first.getCVTerms());
-                    // this is further ignored for now - nowhere to store
+                    // let's press them where all other SearchengineAdapters press them in
                   }
                   else
                   {
                     LOG_ERROR << "Misplaced information in 'ModificationParams' ignored." << endl;
                   }
                   sub = sub->getNextElementSibling();
+                }
+
+                if (!mname.empty())
+                {
+                  String mod;
+                  String r = (residues!=".")?residues:"";
+                  if (!specificity_rules.empty())
+                  {
+                    for (map<String, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
+                    {
+                      if (spci->second.front().getAccession() == "MS:1001189")  // nterm
+                      {
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
+                        mod = m.getFullId();
+                      }
+                      else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
+                      {
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
+                        mod = m.getFullId();
+                      }
+                      else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
+                      {
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        mod = m.getFullId();
+                      }
+                      else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
+                      {
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        mod = m.getFullId();
+                      }
+                    }
+                  }
+                  else  // anywhere
+                  {
+                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r);
+                    mod = m.getFullId();
+                  }
+
+                  if (fixedMod)
+                  {
+                    fix.push_back(mod);
+                  }
+                  else
+                  {
+                    var.push_back(mod);
+                  }
                 }
                 sm = sm->getNextElementSibling();
               }
