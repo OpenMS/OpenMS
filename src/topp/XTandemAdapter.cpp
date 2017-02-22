@@ -32,19 +32,19 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/FORMAT/XTandemInfile.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/XTandemInfile.h>
+#include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -62,7 +62,7 @@ using namespace std;
 /**
     @page TOPP_XTandemAdapter XTandemAdapter
 
-    @brief Identifies peptides in MS/MS spectra via XTandem.
+    @brief Identifies peptides in MS/MS spectra via the search engine X! Tandem.
 
 <CENTER>
     <table>
@@ -78,27 +78,23 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em X! Tandem must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with several versions of X! Tandem.
-    The last known version to work is 2009-04-01. We encountered problems with
-    later versions (namely 2010-01-01).
+    @em X! Tandem must be installed before this wrapper can be used.
+    This wrapper has been successfully tested with several versions of X! Tandem.
+    The earliest version known to work is "PILEDRIVER" (2015-04-01). The latest is "ALANINE" (2017-02-01).
 
-    To speed up computations, FASTA databases can be compressed using the fasta_pro.exe
-    tool of @em X! Tandem. It is contained in the "bin" folder of the @em X! Tandem installation.
-    Refer to the docu of @em X! Tandem for further information about settings.
+    To speed up computations, FASTA databases can be compressed using the fasta_pro.exe tool of @em X! Tandem.
+    It is contained in the "bin" folder of the @em X! Tandem installation.
+    Refer to the documentation of @em X! Tandem for further information about settings.
 
-    This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
-    the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+    This adapter supports relative database filenames.
+    If a database is not found in the current working directory, it is looked up in the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    X! Tandem settings not exposed by this adapter can be directly adjusted using an XML configuration file.
+    @em X! Tandem settings not exposed by this adapter (especially refinement settings) can be directly adjusted using an XML configuration file.
     By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
-    The parameter "default_config_file" can be used to specify such a custom configuration.
-    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the
-    @em X! Tandem installation and the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
-    The latter is loaded by default.
-    If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the '-ignore_adapter_param'
-    flag. Then, the config given in '-default_config_file' is used exclusively and only '-in', '-out', '-database' and '-xtandem_executable' are
-    taken from this adapter.
+    The parameter @p default_config_file can be used to specify such a custom configuration.
+    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X! Tandem installation and in the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
+    If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
+    Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -125,10 +121,12 @@ protected:
   void registerOptionsAndFlags_()
   {
 
-    registerInputFile_("in", "<file>", "", "Input file");
+    registerInputFile_("in", "<file>", "", "Input file containing MS2 spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "Output file");
+    registerOutputFile_("out", "<file>", "", "Output file containing search results");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("xml_out", "<file>", "", "Raw output file directly from X! Tandem", false, true);
+    setValidFormats_("xml_out", ListUtils::create<String>("xml"));
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("xtandem_executable", "<executable>",
@@ -140,57 +138,49 @@ protected:
       "tandem.exe",
 #endif
       "X! Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerInputFile_("default_config_file", "<file>",
-                       "CHEMISTRY/XTandem_default_input.xml", 
-                       "Default parameters input file, defaulting to the ones in the OpenMS/share folder."
-                         "All parameters of this adapter take precedence over this file! Use it for parameters not available here!",
-                       false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_input.xml'.", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_config_file", ListUtils::create<String>("xml"));
-    registerFlag_("ignore_adapter_param", "The config given in 'default_config_file' is used exclusively! No matter what other parameters "
-                                          "(apart from -in,-out,-database,-xtandem_executable) are saying.");
-
+    registerFlag_("ignore_adapter_param", "Set this to use the configuration given in 'default_config_file' exclusively, ignoring other parameters (apart from 'in', 'out', 'database', 'xtandem_executable') set via this adapter.");
 
     addEmptyLine_();
     //
     // Optional parameters (if '-ignore_adapter_param' is set)
     //
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<value>", 10.0, "Precursor mass tolerance", false);
+    registerDoubleOption_("fragment_mass_tolerance", "<value>", 0.3, "Fragment mass error", false);
 
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
-    registerIntOption_("min_precursor_charge", "<charge>", 2, "Minimum precursor charge", false);
-    registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
 
-    registerStringOption_("allow_isotope_error", "<error>", "yes", "If set, misassignment to the first and second isotopic 13C peak are also considered.", false);
-    setValidStrings_("allow_isotope_error", ListUtils::create<String>("yes,no", ','));
+    registerIntOption_("max_precursor_charge", "<number>", 0, "Maximum precursor charge ('0' to omit setting a value)", false);
+    setMinInt_("max_precursor_charge", 0);
 
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerFlag_("no_isotope_error", "By default, misassignment to the first and second isotopic 13C peak are also considered. Set this flag to disable.", false);
+
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
-    registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
-
-    addEmptyLine_();
     
-    registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
+    registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment mz", false);
+
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
-    registerStringOption_("cleavage_site", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
-    setValidStrings_("cleavage_site", all_enzymes);
-    registerStringOption_("output_results", "<result reporting>", "all", "Which hits should be reported. All, valid ones (passing the E-Value threshold), or stochastic (failing the threshold)", false);
+    registerStringOption_("enzyme", "<choice>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("enzyme", all_enzymes);
+    registerIntOption_("missed_cleavages", "<number>", 1, "Number of possible cleavage sites missed by the enzyme", false);
+    registerFlag_("semi_cleavage", "Require only peptide end to have a valid cleavage site, not both.");
+
+    registerStringOption_("output_results", "<choice>", "all", "Which hits should be reported. All, valid ones (passing the E-Value threshold), or stochastic (failing the threshold)", false);
     valid_strings = ListUtils::create<String>("all,valid,stochastic", ',');
     setValidStrings_("output_results", valid_strings);
 
-    registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic'", false);
-    registerFlag_("refinement", "Enable the refinement. For most applications (especially when using FDR, PEP approaches) it is NOT recommended to set this flag.");
-    registerFlag_("use_noise_suppression", "Enable the use of the noise suppression routines.");
-    registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
+    registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
   }
 
   ExitCodes main_(int, const char**)
@@ -200,43 +190,15 @@ protected:
     //-------------------------------------------------------------
 
     String inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
-    if (inputfile_name == "")
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
     String outputfile_name = getStringOption_("out");
-    writeDebug_(String("Output file: ") + outputfile_name, 1);
-    if (outputfile_name == "")
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
+    String xml_out = getStringOption_("xml_out");
 
     // write input xml file
-    String temp_directory = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
-    {
-      QDir d;
-      d.mkpath(temp_directory.toQString());
-    }
-
-    String input_filename(temp_directory + "_tandem_input_file.xml");
-    String tandem_input_filename(temp_directory + "_tandem_input_file.mzData");
-    String tandem_output_filename(temp_directory + "_tandem_output_file.xml");
-    String tandem_taxonomy_filename(temp_directory + "_tandem_taxonomy_file.xml");
-
-    //-------------------------------------------------------------
-    // Validate user parameters
-    //-------------------------------------------------------------
-    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
-    {
-      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
-      return ILLEGAL_PARAMETERS;
-    }
+    String temp_directory = makeTempDirectory_();
+    String input_filename = temp_directory + "tandem_input.xml";
+    String tandem_input_filename = inputfile_name;
+    String tandem_output_filename = temp_directory + "tandem_output.xml";
+    String tandem_taxonomy_filename = temp_directory + "tandem_taxonomy.xml";
 
     //-------------------------------------------------------------
     // reading input
@@ -258,10 +220,9 @@ protected:
       db_name = full_db_name;
     }
 
-
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2
+    mzml_file.getOptions().addMSLevel(2); // only load MS level 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -280,21 +241,6 @@ protected:
         throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
-
-    // we need to replace the native id with a simple numbering schema, to be able to
-    // map the IDs back to the spectra (RT, and MZ information)
-    Size native_id(0);
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
-    {
-      it->setNativeID(++native_id);
-    }
-
-    // We store the file in mzData file format, because MGF files somehow produce in most
-    // of the cases IDs with charge 2+. We do not use the input file directly
-    // because XTandem sometimes stumbles over misleading substrings in the filename,
-    // e.g. mzXML ...
-    MzDataFile mzdata_outfile;
-    mzdata_outfile.store(tandem_input_filename, exp);
 
     ofstream tax_out(tandem_taxonomy_filename.c_str());
     tax_out << "<?xml version=\"1.0\"?>" << "\n";
@@ -331,32 +277,30 @@ protected:
       infile.setFragmentMassErrorUnit(XTandemInfile::PPM);
     }
 
-    infile.setPrecursorMassTolerancePlus(getDoubleOption_("precursor_mass_tolerance"));
-    infile.setPrecursorMassToleranceMinus(getDoubleOption_("precursor_mass_tolerance"));
+    double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    infile.setPrecursorMassTolerancePlus(precursor_mass_tolerance);
+    infile.setPrecursorMassToleranceMinus(precursor_mass_tolerance);
     infile.setFragmentMassTolerance(getDoubleOption_("fragment_mass_tolerance"));
     infile.setMaxPrecursorCharge(getIntOption_("max_precursor_charge"));
     infile.setNumberOfThreads(getIntOption_("threads"));
     infile.setModifications(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
     infile.setTaxon("OpenMS_dummy_taxonomy");
-    infile.setOutputResults(getStringOption_("output_results"));
-    infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
-    String enzyme_name = getStringOption_("cleavage_site");
+    String output_results = getStringOption_("output_results");
+    infile.setOutputResults(output_results);
+    double max_evalue = getDoubleOption_("max_valid_expect");
+    infile.setMaxValidEValue(max_evalue);
+    String enzyme_name = getStringOption_("enzyme");
     infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTANDEMid());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
-    infile.setRefine(getFlag_("refinement"));
-    infile.setNoiseSuppression(getFlag_("use_noise_suppression"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
-    bool allow_isotope_error = getStringOption_("allow_isotope_error") == "yes" ? true : false;
-    infile.setAllowIsotopeError(allow_isotope_error);
+    infile.setAllowIsotopeError(!getFlag_("no_isotope_error"));
 
-    // load default config (this will NOT overwrite the parameters already set, but rather augment them)
     String default_XML_config = getStringOption_("default_config_file");
     if (!default_XML_config.empty())
     {
       // augment with absolute path. If absolute filename is already given, this is a no-op.
       default_XML_config = File::find(default_XML_config);
-      infile.load(default_XML_config);
-      //infile.setDefaultParametersFilename(default_XML_config);
+      infile.setDefaultParametersFilename(default_XML_config);
     }
 
     infile.write(input_filename, getFlag_("ignore_adapter_param"));
@@ -371,15 +315,7 @@ protected:
     {
       writeLog_("X! Tandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the X! Tandem executable exist?");
       // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
-      }
+      removeTempDirectory_(temp_directory);
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -391,31 +327,27 @@ protected:
     // read the output of X! Tandem and write it to idXML
     XTandemXMLFile tandem_output;
     tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
-    // find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
-    StringList files;
-    File::fileList(temp_directory, "_tandem_output_file*.xml", files);
-    if (files.size() != 1)
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tandem_output_filename);
-    }
-    tandem_output.load(temp_directory + files[0], protein_id, peptide_ids);
+    tandem_output.load(tandem_output_filename, protein_id, peptide_ids);
 
-    // now put the RTs into the peptide_ids from the spectrum ids
+    // add RT and precursor m/z to the peptide IDs (look them up in the spectra):
+    SpectrumLookup lookup;
+    lookup.readSpectra(exp);
+
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
-      UInt id = (Int)it->getMetaValue("spectrum_id");
-      --id; // native IDs were written 1-based
-      if (id < exp.size())
+      String ref = it->getMetaValue("spectrum_reference");
+      Size index = lookup.findByNativeID(ref);
+      if (index < exp.size())
       {
-        it->setRT(exp[id].getRT());
-        double pre_mz(0.0);
-        if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
-        it->setMZ(pre_mz);
-        //it->removeMetaValue("spectrum_id");
+        it->setRT(exp[index].getRT());
+        if (!exp[index].getPrecursors().empty())
+        {
+          it->setMZ(exp[index].getPrecursors()[0].getMZ());
+        }
       }
       else
       {
-        LOG_ERROR << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
+        LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
       }
     }
 
@@ -423,10 +355,26 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    if (!xml_out.empty())
+    {
+      // existing file? Qt won't overwrite, so try to remove it:
+      if (QFile::exists(xml_out.toQString()) &&
+          !QFile::remove(xml_out.toQString()))
+      {
+        writeLog_("Fatal error: Could not overwrite existing file '" + xml_out + "'");
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
+      // move the temporary file to the actual destination:
+      if (!QFile::rename(tandem_output_filename.toQString(), xml_out.toQString()))
+      {
+        writeLog_("Fatal error: Could not move temporary X! Tandem XML file to '" + xml_out + "'");
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
+    }
+
     // handle the search parameters
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = getStringOption_("database");
-    search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
 
     ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.mass_type = mass_type;
@@ -447,19 +395,19 @@ protected:
     IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
 
     /// Deletion of temporary files
-    if (this->debug_level_ < 2)
-    {
-      File::removeDirRecursively(temp_directory);
-      LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
-    }
+    removeTempDirectory_(temp_directory);
 
-    // some stats
+    // some stats (note that only MS2 spectra were loaded into "exp"):
+    Int percent = peptide_ids.size() * 100.0 / exp.size();
     LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size()) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
+             << "- identified MS2 spectra: " << peptide_ids.size() << " / "
+             << exp.size() << " = " << percent << "%";
+    if (output_results != "all")
+    {
+      LOG_INFO << " (with E-value " << (output_results == "valid" ? "< " : "> ")
+               << String(max_evalue) << ")";
+    }
+    LOG_INFO << std::endl;
 
     return EXECUTION_OK;
   }
