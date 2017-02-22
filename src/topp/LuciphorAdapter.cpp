@@ -513,30 +513,9 @@ protected:
     
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
-    FileTypes::Type in_type_mzml = fh.getType(in);
 
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
-
-    // check if mz/intenisty precision have different values - set them to 64-bit
-    if (in_type_mzml == FileTypes::MZML)
-    {
-      MzMLFile f;
-
-      if ((f.getOptions().getMz32Bit() == false && f.getOptions().getIntensity32Bit() == true) || (f.getOptions().getMz32Bit() == true && f.getOptions().getIntensity32Bit() == false))
-      {
-        writeLog_("Warning: M/z and intensity precision values differ (32 and 64-bit float). Precision is automtically converted to 64-bit float.");
-
-        if (f.getOptions().getMz32Bit() == true)
-        {
-            f.getOptions().setMz32Bit(false);
-        }
-        if (f.getOptions().getIntensity32Bit() == true)
-        {
-            f.getOptions().setIntensity32Bit(false);
-        }
-      }
-    }
 
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
@@ -619,7 +598,22 @@ protected:
     f.getOptions() = options;
     f.load(in, exp);
     exp.sortSpectra(true);
-    
+
+    // check if mz/intenisty precision have different values - set them to 64-bit
+    if ((f.getOptions().getMz32Bit() == false && f.getOptions().getIntensity32Bit() == true) || (f.getOptions().getMz32Bit() == true && f.getOptions().getIntensity32Bit() == false))
+    {
+      writeLog_("Warning: M/z and intensity precision values differ (32 and 64-bit float). Precision is automtically converted to 64-bit float.");
+
+      if (f.getOptions().getMz32Bit() == true)
+      {
+          f.getOptions().setMz32Bit(false);
+      }
+      if (f.getOptions().getIntensity32Bit() == true)
+      {
+          f.getOptions().setIntensity32Bit(false);
+      }
+    }
+
     SpectrumLookup lookup;
     lookup.rt_tolerance = 0.05;
     lookup.readSpectra(exp.getSpectra());
