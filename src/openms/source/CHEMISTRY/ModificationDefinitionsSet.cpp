@@ -35,6 +35,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 using namespace std;
 
@@ -295,6 +296,63 @@ namespace OpenMS
   bool ModificationDefinitionsSet::operator!=(const ModificationDefinitionsSet& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  void ModificationDefinitionsSet::addMatches_(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, const set<ModificationDefinition>& source, bool is_delta, double tolerance)
+  {
+    for (set<ModificationDefinition>::const_iterator it = source.begin();
+         it != source.end(); ++it)
+    {
+      const ResidueModification& mod = it->getModification();
+      // do the residues match?
+      if (!(residue.empty() || (residue == "X") || (residue == ".") ||
+            mod.getOrigin().empty() || (residue == mod.getOrigin()))) continue;
+      // do the term specificities match?
+      if (!((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+            (term_spec == mod.getTermSpecificity()))) continue;
+      // do the masses match?
+      double mass_error = tolerance;
+      if (is_delta)
+      {
+        mass_error = fabs(mod.getDiffMonoMass() - mass);
+        if (mass_error > tolerance) continue;
+      }
+      else
+      {
+        double mod_mass = mod.getMonoMass();
+        if ((mod_mass <= 0) && !residue.empty())
+        {
+          // no absolute mass stored? - calculate it based on the residue
+          // (see 'ModificationsDB::getBestModificationByMonoMass'):
+          const Residue* res = ResidueDB::getInstance()->getResidue(residue);
+          if (res == 0) continue;
+          double weight = (res->getMonoWeight() - 
+                           res->getInternalToFull().getMonoWeight());
+          mod_mass = mod.getDiffMonoMass() + weight;
+        }
+        mass_error = fabs(mod_mass - mass);
+        if (mass_error > tolerance) continue;
+      }
+      matches.insert(make_pair(mass_error, *it));
+    }
+  }
+
+  void ModificationDefinitionsSet::findMatches(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const
+  {
+    if (!consider_variable && !consider_fixed)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No modifications to consider - set 'consider_variable' and/or 'consider_fixed' to true.");
+    }
+
+    matches.clear();
+    if (consider_fixed)
+    {
+      addMatches_(matches, mass, residue, term_spec, fixed_mods_, is_delta, tolerance);
+    }
+    if (consider_variable)
+    {
+      addMatches_(matches, mass, residue, term_spec, variable_mods_, is_delta, tolerance);
+    }
   }
 
 } // namespace OpenMS

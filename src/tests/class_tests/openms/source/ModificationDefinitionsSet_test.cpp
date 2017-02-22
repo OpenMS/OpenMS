@@ -401,9 +401,38 @@ START_SECTION((bool isCompatible(const AASequence &peptide) const))
 }
 END_SECTION
 
+START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const))
+{
+  ModificationDefinitionsSet mod_set;
+  mod_set.setModifications("Gln->pyro-Glu (N-term Q)", "Glu->pyro-Glu (N-term E),Oxidation (M)");
+  multimap<double, ModificationDefinition> matches;
+  // nothing to consider:
+  TEST_EXCEPTION(Exception::IllegalArgument, mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, false, false, true, 0.1));
+  // wrong term. spec.:
+  mod_set.findMatches(matches, -18, "E", ResidueModification::ANYWHERE, true, true, true, 0.1);
+  TEST_EQUAL(matches.empty(), true);
+  // wrong residue:
+  mod_set.findMatches(matches, -18, "Q", ResidueModification::N_TERM, true, true, true, 0.1);
+  TEST_EQUAL(matches.empty(), true);
+  // wrong fixed/variable:
+  mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, true, false, true, 0.1);
+  TEST_EQUAL(matches.empty(), true);
+  // residue, low tolerance:
+  mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, true, true, true, 0.1);
+  TEST_EQUAL(matches.size(), 1);
+  TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
+  // no residue, low tolerance:
+  mod_set.findMatches(matches, -18, "", ResidueModification::N_TERM, true, true, true, 0.1);
+  TEST_EQUAL(matches.size(), 1); 
+  TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
+  // no residue, high tolerance:
+  mod_set.findMatches(matches, -18, "", ResidueModification::N_TERM, true, true, true, 2);
+  TEST_EQUAL(matches.size(), 2);
+  TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
+  TEST_EQUAL((++matches.begin())->second.getModificationName(), "Gln->pyro-Glu (N-term Q)");
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-
