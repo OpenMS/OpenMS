@@ -599,20 +599,24 @@ protected:
     f.load(in, exp);
     exp.sortSpectra(true);
 
-    // check if mz/intenisty precision have different values - set them to 64-bit
-    if ((f.getOptions().getMz32Bit() == false && f.getOptions().getIntensity32Bit() == true) || (f.getOptions().getMz32Bit() == true && f.getOptions().getIntensity32Bit() == false))
-    {
-      writeLog_("Warning: M/z and intensity precision values differ (32 and 64-bit float). Precision is automtically converted to 64-bit float.");
+    cout << f.getOptions().getMz32Bit() << endl;
 
-      if (f.getOptions().getMz32Bit() == true)
-      {
-          f.getOptions().setMz32Bit(false);
-      }
-      if (f.getOptions().getIntensity32Bit() == true)
-      {
-          f.getOptions().setIntensity32Bit(false);
-      }
+    // check if mz/intenisty precision have different values - set them to 64-bit - see issue #2381
+    if (f.getOptions().getMz32Bit() != f.getOptions().getIntensity32Bit() )
+    {
+        writeLog_("Warning: Due to the program structure of LuciPhor mz and intensity precision have to be the same (either 32 or 64-bit float). Precision is automtically converted to 64-bit float.");
+
+        if (f.getOptions().getMz32Bit() )
+        {
+            f.getOptions().setMz32Bit(false);
+        }
+        if (f.getOptions().getIntensity32Bit() )
+        {
+            f.getOptions().setIntensity32Bit(false);
+        }
     }
+
+    cout << f.getOptions().getMz32Bit() << endl;
 
     SpectrumLookup lookup;
     lookup.rt_tolerance = 0.05;
