@@ -155,7 +155,7 @@ protected:
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
 
-    registerIntOption_("max_precursor_charge", "<number>", 0, "Maximum precursor charge ('0' to omit setting a value)", false);
+    registerIntOption_("max_precursor_charge", "<number>", 4, "Maximum precursor charge ('0' to use X! Tandem default)", false);
     setMinInt_("max_precursor_charge", 0);
 
     registerFlag_("no_isotope_error", "By default, misassignment to the first and second isotopic 13C peak are also considered. Set this flag to disable.", false);

@@ -57,7 +57,7 @@ namespace OpenMS
     precursor_mass_error_unit_(XTandemInfile::DALTONS),
     fragment_mass_type_(XTandemInfile::MONOISOTOPIC),
     precursor_mass_type_(XTandemInfile::MONOISOTOPIC),
-    max_precursor_charge_(0),
+    max_precursor_charge_(4),
     precursor_lower_mz_(500.0),
     fragment_lower_mz_(200.0),
     number_of_threads_(1),
@@ -239,10 +239,7 @@ namespace OpenMS
       //writeNote_(os, "spectrum, total peaks", String(total_number_peaks_);
 
       //<note type="input" label="spectrum, maximum parent charge">4</note>
-      if (max_precursor_charge_ > 0)
-      {
-        writeNote_(os, "spectrum, maximum parent charge", String(max_precursor_charge_));
-      }
+      writeNote_(os, "spectrum, maximum parent charge", String(max_precursor_charge_));
 
       // <note type="input" label="spectrum, use noise suppression">yes</note>
       //writeNote_(os, "spectrum, use noise suppression", noise_supression_);
