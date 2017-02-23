@@ -42,6 +42,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 #include <cmath>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 // #define DEBUG_SONAR
 
@@ -276,7 +277,7 @@ namespace OpenMS
       std::vector<double> xvals;
       for (Size pr_idx = 0; pr_idx < sonar_profile_pos.size(); pr_idx++) {xvals.push_back(pr_idx);}
       double rsq = OpenSwath::cor_pearson( xvals.begin(), xvals.end(), sonar_profile_pos.begin() );
-      if (isnan(rsq)) rsq = 0.0; // check for nan
+      if (boost::math::isnan(rsq)) rsq = 0.0; // check for nan
 
       // try to find largest diff
       double sonar_largediff = 0.0;
