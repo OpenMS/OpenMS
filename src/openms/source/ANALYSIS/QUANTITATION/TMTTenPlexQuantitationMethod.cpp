@@ -52,7 +52,7 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
     setName("TMTTenPlexQuantitationMethod");
 
-    correction_map_ = "correction_map_1";
+    mass_mapping_ = "mass_mapping_1";
 
     // create channel map (1)
     channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, -1, -1, 2, 3));
@@ -78,7 +78,6 @@ TMTTenPlexQuantitationMethod::~TMTTenPlexQuantitationMethod()
 
 void TMTTenPlexQuantitationMethod::setDefaultParams_()
 {
-
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
     defaults_.setValue("channel_127N_description", "", "Description for the content of the 127N channel.");
     defaults_.setValue("channel_127C_description", "", "Description for the content of the 127C channel.");
@@ -90,8 +89,8 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("channel_130C_description", "", "Description for the content of the 130C channel.");
     defaults_.setValue("channel_131_description", "", "Description for the content of the 131 channel.");
 
-    defaults_.setValue("correction_map", "correction_map_1", "Correction Map to be used (correction_map_1, correction_map_2). Please check the tool description and your product data sheet to learn which map to choose.");
-    defaults_.setValidStrings("correction_map", ListUtils::create<String>("correction_map_1,correction_map_2"));
+    defaults_.setValue("mass_mapping", "mass_mapping_1", "Correction Map to be used (mass_mapping_1, mass_mapping_2). Please check the tool description and your product data sheet to learn which map to choose.");
+    defaults_.setValidStrings("mass_mapping", ListUtils::create<String>("mass_mapping_1,mass_mapping_2"));
 
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131).");
     defaults_.setValidStrings("reference_channel", TMTTenPlexQuantitationMethod::channel_names_);
@@ -115,12 +114,11 @@ void TMTTenPlexQuantitationMethod::updateMembers_()
 {
     channels_.clear();
 
-    correction_map_ = param_.getValue("correction_map");
+    mass_mapping_ = param_.getValue("mass_mapping");
 
-    if(correction_map_ == "correction_map_1")
+    if (mass_mapping_ == "mass_mapping_1")
     {
-
-        //    // correction map outline (1):
+        //    //mass map outline (1):
         //    "126", 126.127726, x, x, 127C, 128N
         //    "127N", 127.124761, x, x, 128N, 128C
         //    "127C", 127.131081, x, 126, 128C, 129N
@@ -144,9 +142,9 @@ void TMTTenPlexQuantitationMethod::updateMembers_()
         channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138180, 5, 7, -1, -1));
     }
 
-    else if (correction_map_ == "correction_map_2")
+    else if (mass_mapping_ == "mass_mapping_2")
     {
-        //    // correction map outline (2):
+        //    // mass map outline (2)
         //    "126", 126.127726, x, x, 127C, 128C
         //    "127N", 127.124761, x, x, 128N, 129N
         //    "127C", 127.131081, x, 126, 128C, 129C

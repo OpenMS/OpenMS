@@ -106,9 +106,9 @@ using namespace std;
   After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications, obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set suitably small RT and m/z tolerances for the mapping, since the identifications will come from the very same MS2 scans that are now represented by consensus features. In general it should be possible to achieve a perfect one-to-one matching of every identification to a single consensus feature.@n
   Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities, you can use @ref TOPP_TextExporter to obtain a simple text format which you can feed to other software tools (e.g., R), or you can apply @ref TOPP_ProteinQuantifier.
 
-  Correction map outlines:
+  For TMT 10-plex, Mass mapping can be performed differently, please check your sample data sheet.
 
-            Correction map outline (1):
+            Mass mapping outline (1):
             "126", 126.127726, x, x, 127C, 128N
             "127N", 127.124761, x, x, 128N, 128C
             "127C", 127.131081, x, 126, 128C, 129N
@@ -120,7 +120,7 @@ using namespace std;
             "130C", 130.141145, 128C, 129C, x, x
             "131", 131.138180, 129N, 130N, x, x
 
-            Correction map outline (2):
+            Mass mapping outline (2):
             "126", 126.127726, x, x, 127C, 128C
             "127N", 127.124761, x, x, 128N, 129N
             "127C", 127.131081, x, 126, 128C, 129C
