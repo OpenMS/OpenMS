@@ -52,7 +52,7 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
     setName("TMTTenPlexQuantitationMethod");
 
-    String correction_map_ = "correction_map_1";
+    correction_map_ = "correction_map_1";
 
     // create channel map (1)
     channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, -1, -1, 2, 3));
@@ -115,7 +115,7 @@ void TMTTenPlexQuantitationMethod::updateMembers_()
 {
     channels_.clear();
 
-    String correction_map_ = param_.getValue("correction_map");
+    correction_map_ = param_.getValue("correction_map");
 
     if(correction_map_ == "correction_map_1")
     {
