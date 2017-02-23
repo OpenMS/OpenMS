@@ -50,9 +50,9 @@ const std::vector<String> TMTTenPlexQuantitationMethod::channel_names_ = list_of
 
 TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
-    setName("TMTTenPlexQuantitation");
+    setName("TMTTenPlexQuantitationMethod");
 
-    correction_map_ = "correction_map_1";
+    String correction_map_ = "correction_map_1";
 
     // create channel map (1)
     channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, -1, -1, 2, 3));
@@ -115,7 +115,7 @@ void TMTTenPlexQuantitationMethod::updateMembers_()
 {
     channels_.clear();
 
-    correction_map_ = param_.getValue("correction_map");
+    String correction_map_ = param_.getValue("correction_map");
 
     if(correction_map_ == "correction_map_1")
     {

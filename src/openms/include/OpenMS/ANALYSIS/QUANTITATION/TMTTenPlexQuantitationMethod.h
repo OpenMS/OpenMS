@@ -88,7 +88,7 @@ public:
     Size reference_channel_;
 
     /// The correction map to be choosen
-    String correction_map_;
+    static String correction_map_;
 
     /// List of available channel names as they are presented to the user
     static const std::vector<String> channel_names_;
