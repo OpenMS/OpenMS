@@ -46,22 +46,12 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-//#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 // TESTING SCORES
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 
-// preprocessing and filtering
-//#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-//#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLinks.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 
 // results
@@ -71,12 +61,8 @@
 #include <cmath>
 #include <numeric>
 
-#include <boost/unordered_map.hpp>
-#include <boost/math/special_functions/binomial.hpp>
-
 using namespace std;
 using namespace OpenMS;
-
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -84,7 +70,6 @@ using namespace OpenMS;
 #else
 #define NUMBER_OF_THREADS (1)
 #endif
-
 
 /**
     @page UTILS_OpenProXL OpenProXL
@@ -261,8 +246,6 @@ protected:
 
       const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
       vector< pair< Size, Size > > matched_fragments_without_shift;
-      //ms2_aligner.getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy);
-      //getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, 0.2, false, 0.3);
       OpenProXLUtils::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 0.3);
 
       // different fragments may carry light or heavy cross-linker.
@@ -325,13 +308,11 @@ protected:
         // matching fragments are potentially carrying the cross-linker
         vector< pair< Size, Size > > matched_fragments_with_shift;
 
-        //ms2_aligner_xlinks.getSpectrumAlignment(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light);
         spectrum_heavy_to_light.sortByPosition();
         if (spectrum_light_different.size() > 0 && spectrum_heavy_to_light.size() > 0)
         {
           //getSpectrumIntensityMatching(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light, 0.3, false, 0.3); // OLD maybe better version
           OpenProXLUtils::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3); // xQuest Perl does not remove common peaks from xlink search
-//          OpenProXLUtils::updateChargesConstant(matched_fragments_with_shift, spectrum_light, charge);
 
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
           {
@@ -412,56 +393,6 @@ protected:
     return preprocessed_pair_spectra;
   }
 
-//    void writeXQuestXMLSpec(String out_file, String base_name, const OpenProXLUtils::PreprocessedPairSpectra& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
-//    {
-//      //String spec_xml_filename = base_name + "_matched.spec.xml";
-//      // XML Header
-//      ofstream spec_xml_file;
-//      cout << "Writing spec.xml to " << out_file << endl;
-//      spec_xml_file.open(out_file.c_str(), ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
-//      // TODO write actual data
-//      spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << endl;
-
-//      for (Size i = 0; i < spectrum_pairs.size(); ++i)
-//      {
-//        if (!all_top_csms[i].empty())
-//        {
-//          Size scan_index_light = spectrum_pairs[i].first;
-//          Size scan_index_heavy = spectrum_pairs[i].second;
-//          // TODO more correct alternative
-//          String spectrum_light_name = base_name + ".light." + scan_index_light;
-//          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-////          String spectrum_light_name = String("spectrumlight") + scan_index_light;
-////          String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
-//          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
-
-//          // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
-//          spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
-//          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(spectra[scan_index_light], String(""));
-//          spec_xml_file << "</spectrum>" << endl;
-
-//          spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
-//          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(spectra[scan_index_heavy], String(""));
-//          spec_xml_file << "</spectrum>" << endl;
-
-//          String spectrum_common_name = spectrum_name + String("_common.txt");
-//          spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
-//          spec_xml_file << OpenProXLUtils::getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-//          spec_xml_file << "</spectrum>" << endl;
-
-//          String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
-//          spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
-//          spec_xml_file <<OpenProXLUtils::getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-//          spec_xml_file << "</spectrum>" << endl;
-//        }
-//      }
-
-//      spec_xml_file << "</xquest_spectra>" << endl;
-//      spec_xml_file.close();
-
-//      return;
-//    }
-
   ExitCodes main_(int, const char**)
   {
 //#################  TEST AREA ############################
@@ -506,19 +437,6 @@ protected:
     cout << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks << endl;
 
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
-
-    SpectrumAlignment ms2_aligner;
-    Param ms2_alinger_param = ms2_aligner.getParameters();
-    String ms2_relative_tolerance = fragment_mass_tolerance_unit_ppm ? "true" : "false";
-    ms2_alinger_param.setValue("is_relative_tolerance", ms2_relative_tolerance);
-    ms2_alinger_param.setValue("tolerance", fragment_mass_tolerance);
-    ms2_aligner.setParameters(ms2_alinger_param);
-
-    SpectrumAlignment ms2_aligner_xlinks;
-    Param ms2_aligner_xlinks_param = ms2_aligner_xlinks.getParameters();
-    ms2_aligner_xlinks_param.setValue("is_relative_tolerance", ms2_relative_tolerance);
-    ms2_aligner_xlinks_param.setValue("tolerance", fragment_mass_tolerance_xlinks);
-    ms2_aligner_xlinks.setParameters(ms2_aligner_xlinks_param);
 
     StringList cross_link_residue1 = getStringList_("cross_linker:residue1");
     StringList cross_link_residue2 = getStringList_("cross_linker:residue2");
@@ -787,17 +705,17 @@ protected:
     }
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    multimap<StringView, AASequence> processed_peptides;
+//    multimap<StringView, AASequence> processed_peptides;
     vector<OpenProXLUtils::PeptideMass> peptide_masses;
 
     Size count_proteins = 0;
     Size count_peptides = 0;
 
+    progresslogger.startProgress(0, 1, "Digesting peptides...");
     peptide_masses = OpenProXLUtils::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications,  variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides, n_term_linker, c_term_linker);
+    progresslogger.endProgress();
 
     // create spectrum generator
-    TheoreticalSpectrumGenerator spectrum_generator;
-    TheoreticalSpectrumGeneratorXLinks specGen_old;
     TheoreticalSpectrumGeneratorXLMS specGen;
 
     // Set parameters for cross-link fragmentation
@@ -821,9 +739,9 @@ protected:
     // TODO constant binsize for HashGrid computation
     double tolerance_binsize = 0.2;
 
-    LOG_DEBUG << "Peptide candidates: " << processed_peptides.size() << endl;
+    LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
     search_params = protein_ids[0].getSearchParameters();
-    search_params.setMetaValue("MS:1001029", processed_peptides.size()); // number of sequences searched = MS:1001029
+    search_params.setMetaValue("MS:1001029", peptide_masses.size()); // number of sequences searched = MS:1001029
     protein_ids[0].setSearchParameters(search_params);
 
     // Initialize enumeration mode
@@ -852,10 +770,9 @@ protected:
 
     cout << "Filtering peptides with precursors" << endl;
 
-    // search for the first mass greater than the maximim, cut off everything lager
+    // search for the first mass greater than the maximim, cut off everything larger
     vector<OpenProXLUtils::PeptideMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass);
     peptide_masses.assign(peptide_masses.begin(), last);
-
 
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
     enumerated_cross_link_masses = OpenProXLUtils::enumerateCrossLinksAndMasses_(peptide_masses, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
@@ -902,10 +819,6 @@ protected:
 
       // If this spectra pair has less than 5 common peaks, then ignore it.
       //TODO is a xquest.def parameter in perl xQuest, set to 25 usually
-      if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() < peptide_min_size)
-      {
-        continue;
-      }
 
       Size scan_index = spectrum_pairs[pair_index].first;
       Size scan_index_heavy = spectrum_pairs[pair_index].second;
@@ -915,15 +828,17 @@ protected:
       const double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
 
-      // needed farther down in the scoring, but only needs to be computed once for a spectrum
-      vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum_light, spectrum_light, 5, 0.3);
-      vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum_light, spectrum_light, 5, 0.2);
-
       const PeakSpectrum& common_peaks = preprocessed_pair_spectra.spectra_common_peaks[pair_index];
+      const PeakSpectrum& xlink_peaks = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index];
+      const PeakSpectrum& all_peaks = preprocessed_pair_spectra.spectra_all_peaks[pair_index];
+
+      // needed farther down in the scoring, but only needs to be computed once for a spectrum
+      vector< double > aucorrx = OpenProXLUtils::xCorrelation(all_peaks, all_peaks, 5, 0.3);
+      vector< double > aucorrc = OpenProXLUtils::xCorrelation(all_peaks, all_peaks, 5, 0.2);
 
       vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
-      if (common_peaks.size() <= 1 && preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() <= 1)
+      if (all_peaks.size() < peptide_min_size)
       {
         continue;
       }
@@ -1026,15 +941,15 @@ protected:
         vector< pair< Size, Size > > matched_spec_xlinks_alpha;
         vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
-        if (preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() > 0)
+        if (common_peaks.size() > 0)
         {
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_common_alpha, theoretical_spec_common_alpha, preprocessed_pair_spectra.spectra_common_peaks[pair_index], fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index], fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          OpenProXLUtils::getSpectrumAlignment(matched_spec_common_alpha, theoretical_spec_common_alpha, common_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          OpenProXLUtils::getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, common_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
         }
-        if (preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0)
+        if (xlink_peaks.size() > 0)
         {
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+          OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+          OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
         }
 
 
@@ -1068,19 +983,19 @@ protected:
           if (pre_score > pScoreMax) pScoreMax = pre_score;
 
           // compute intsum score
-          double intsum = OpenProXLUtils::total_matched_current(matched_spec_common_alpha, matched_spec_common_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index], preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+          double intsum = OpenProXLUtils::total_matched_current(matched_spec_common_alpha, matched_spec_common_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, common_peaks, xlink_peaks);
 
 
           // Total ion intensity of light spectrum
           // sum over common and xlink ion spectra instead of unfiltered
           double total_current = 0;
-          for (SignedSize j = 0; j < static_cast<SignedSize>(preprocessed_pair_spectra.spectra_common_peaks[pair_index].size()); ++j)
+          for (SignedSize j = 0; j < static_cast<SignedSize>(common_peaks.size()); ++j)
           {
-            total_current += preprocessed_pair_spectra.spectra_common_peaks[pair_index][j].getIntensity();
+            total_current += common_peaks[j].getIntensity();
           }
-          for (SignedSize j = 0; j < static_cast<SignedSize>(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size()); ++j)
+          for (SignedSize j = 0; j < static_cast<SignedSize>(xlink_peaks.size()); ++j)
           {
-            total_current += preprocessed_pair_spectra.spectra_xlink_peaks[pair_index][j].getIntensity();
+            total_current += xlink_peaks[j].getIntensity();
           }
           double TIC = intsum / total_current;
 
@@ -1090,11 +1005,11 @@ protected:
           if (TIC > TICMax) TICMax = TIC;
 
           // TIC_alpha and _beta
-          double intsum_alpha = OpenProXLUtils::matched_current_chain(matched_spec_common_alpha, matched_spec_xlinks_alpha, preprocessed_pair_spectra.spectra_common_peaks[pair_index], preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+          double intsum_alpha = OpenProXLUtils::matched_current_chain(matched_spec_common_alpha, matched_spec_xlinks_alpha, common_peaks, xlink_peaks);
           double intsum_beta = 0;
           if (type_is_cross_link)
           {
-            intsum_beta = OpenProXLUtils::matched_current_chain(matched_spec_common_beta, matched_spec_xlinks_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index], preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+            intsum_beta = OpenProXLUtils::matched_current_chain(matched_spec_common_beta, matched_spec_xlinks_beta, common_peaks, xlink_peaks);
           }
 
           // normalize TIC_alpha and  _beta
@@ -1163,8 +1078,8 @@ protected:
             theoretical_spec_beta = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_common_beta, theoretical_spec_xlinks_beta);
           }
 
-          vector< double > xcorrc = OpenProXLUtils::xCorrelation(preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common, 5, 0.2);
-          vector< double > xcorrx = OpenProXLUtils::xCorrelation(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks, 5, 0.3);
+          vector< double > xcorrc = OpenProXLUtils::xCorrelation(common_peaks, theoretical_spec_common, 5, 0.2);
+          vector< double > xcorrx = OpenProXLUtils::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.3);
 
           // TODO save time: only needs to be done once per light spectrum, here it is repeated for each cross-link candidate
 
@@ -1179,26 +1094,26 @@ protected:
 
 //############################# TESTING SCORES ##############################################
 
-          csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_common_peaks[pair_index], theoretical_spec_common);
-          map<Size, PeakSpectrum> peak_level_spectra_common = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_common_peaks[pair_index], rankMap_common[pair_index]);
+          csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, common_peaks, theoretical_spec_common);
+          map<Size, PeakSpectrum> peak_level_spectra_common = PScore::calculatePeakLevelSpectra(common_peaks, rankMap_common[pair_index]);
           csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_common, theoretical_spec_common);
 
-          csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec_alpha);
-          csm.HyperBeta = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec_beta);
+          csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec_alpha);
+          csm.HyperBeta = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec_beta);
 
           // TODO this is ensured for "common" and tehrefore also for "all" but in some cases the "xlink" case could have 0 peaks
-          if (preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() > 0)
+          if (xlink_peaks.size() > 0)
           {
-            csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], theoretical_spec_xlinks);
-            map<Size, PeakSpectrum> peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], rankMap_xlink[pair_index]);
+            csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, xlink_peaks, theoretical_spec_xlinks);
+            map<Size, PeakSpectrum> peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(xlink_peaks, rankMap_xlink[pair_index]);
             csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_xlinks, theoretical_spec_xlinks);
           } else
           {
             csm.HyperXlink = 0;
             csm.PScoreXlink = 0;
           }
-          csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, preprocessed_pair_spectra.spectra_all_peaks[pair_index], theoretical_spec);
-          map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(preprocessed_pair_spectra.spectra_all_peaks[pair_index], rankMap_all[pair_index]);
+          csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec);
+          map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(all_peaks, rankMap_all[pair_index]);
           csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
           csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
           csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
@@ -1251,10 +1166,10 @@ protected:
 
           // TODO extract correct arrays and write annotations based on these
           // TODO for now we only expect one array per type, as we do not create any other arrays anywhere, (but some could be read in from mzML?)
-          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, preprocessed_pair_spectra.spectra_common_peaks[pair_index]);
-          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, preprocessed_pair_spectra.spectra_common_peaks[pair_index]);
-          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
-          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, preprocessed_pair_spectra.spectra_xlink_peaks[pair_index]);
+          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, common_peaks);
+          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, common_peaks);
+          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks);
+          OpenProXLUtils::buildFragmentAnnotations(frag_annotations, matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks);
           LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 
           // make annotations unique
