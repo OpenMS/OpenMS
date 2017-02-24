@@ -1616,7 +1616,7 @@ namespace OpenMS
       }
       String xl_type = "mono-link";
 
-      Size alpha_pos = xl_donor_pos_map_.at(xl_id_donor_map_.at(peptides[alpha[0]]));
+      SignedSize alpha_pos = xl_donor_pos_map_.at(xl_id_donor_map_.at(peptides[alpha[0]]));
       vector<String> spectrumIDs;
       spectrumID.split(",", spectrumIDs);
 
@@ -1653,7 +1653,7 @@ namespace OpenMS
       {
         ++alpha_pos;
       }
-      else if (alpha_pos == (*pep_map_.find(peptides[alpha[0]])).second.size())
+      else if (alpha_pos == static_cast<SignedSize>((*pep_map_.find(peptides[alpha[0]])).second.size()))
       {
         --alpha_pos;
       }
@@ -1723,14 +1723,14 @@ namespace OpenMS
       if (xl_type == "cross-link")
       {
         PeptideHit ph_beta;
-        Size beta_pos = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
+        SignedSize beta_pos = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
 
         // correction for terminal modifications
         if (beta_pos == -1)
         {
           ++beta_pos;
         }
-        else if (beta_pos == (*pep_map_.find(peptides[beta[0]])).second.size())
+        else if (beta_pos == static_cast<SignedSize>((*pep_map_.find(peptides[beta[0]])).second.size()))
         {
           --beta_pos;
         }
