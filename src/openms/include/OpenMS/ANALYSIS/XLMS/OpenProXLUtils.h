@@ -220,6 +220,7 @@ struct CrossLinkSpectrumMatch
     static float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta);
     static float preScore(Size matchedAlpha, Size ionsAlpha);
 
+//    static double binomialCoefficient(int n, int k);
     static double cumulativeBinomial(Size n, Size k, double p);
 
     static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenProXLUtils::PeptideMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
@@ -269,136 +270,16 @@ struct CrossLinkSpectrumMatch
     static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy = NULL);
 
     // Sum of matched ion intensity, for Intsum score and %TIC score
-    template <typename SpectrumType1>
-    static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const SpectrumType1& spectrum_common_peaks, const SpectrumType1& spectrum_xlink_peaks)
-    {
-      double intsum = 0;
-      for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
-      {
-        intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
-      }
-      for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
-      {
-        intsum += spectrum_xlink_peaks[matched_spec_xlinks[j].second].getIntensity();
-      }
-      return intsum;
-    }
+    static double matched_current_chain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
+
 
 //    static double total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
-    template <typename SpectrumType1>
-    static double total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const SpectrumType1& spectrum_common_peaks, const SpectrumType1& spectrum_xlink_peaks)
-    {
-      // make vectors of matched peak indices
-      double intsum = 0;
-      std::vector< Size > indices_common;
-      std::vector< Size > indices_xlinks;
-      for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
-      {
-        indices_common.push_back(matched_spec_common_alpha[j].second);
-      }
-      for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
-      {
-        indices_common.push_back(matched_spec_common_beta[j].second);
-      }
-      for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
-      {
-        indices_xlinks.push_back(matched_spec_xlinks_alpha[j].second);
-      }
-      for (Size j = 0; j < matched_spec_xlinks_beta.size(); ++j)
-      {
-        indices_xlinks.push_back(matched_spec_xlinks_beta[j].second);
-      }
-
-      // make the indices in the vectors unique
-      sort(indices_common.begin(), indices_common.end());
-      sort(indices_xlinks.begin(), indices_xlinks.end());
-      std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
-      std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
-      indices_common.erase(last_unique_common, indices_common.end());
-      indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
-
-      // sum over intensities under the unique indices
-      for (Size j = 0; j < indices_common.size(); ++j)
-      {
-        intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
-      }
-      for (Size j = 0; j < indices_xlinks.size(); ++j)
-      {
-        intsum += spectrum_xlink_peaks[indices_xlinks[j]].getIntensity();
-      }
-
-      return intsum;
-    }
+    static double total_matched_current(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
     // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, a constant binsize)
-    template <typename SpectrumType1, typename SpectrumType2>
-    static std::vector< double > xCorrelation(const SpectrumType1 & spec1, const SpectrumType2 & spec2, Int maxshift, double tolerance)
-    {
-      // generate vector of results, filled with zeroes
-      std::vector< double > results(maxshift * 2 + 1, 0);
+    static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
-      // return 0 = no correlation, either positive nor negative, when one of the spectra is empty (e.g. when no common ions or xlink ions could be matched between light and heavy spectra)
-      if (spec1.size() == 0 || spec2.size() == 0) {
-        return results;
-      }
-
-      double maxionsize = std::max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
-      Int table_size = ceil(maxionsize / tolerance)+1;
-      std::vector< double > ion_table1(table_size, 0);
-      std::vector< double > ion_table2(table_size, 0);
-
-      // Build tables of the same size, each bin has the size of the tolerance
-      for (Size i = 0; i < spec1.size(); ++i)
-      {
-        Size pos = static_cast<Size>(ceil(spec1[i].getMZ() / tolerance));
-        // TODO this line leads to using real intensities
-  //      ion_table1[pos] = spec1[i].getIntensity();
-        // TODO this line leads to using intensities normalized to 10
-        ion_table1[pos] = 10.0;
-      }
-      for (Size i = 0; i < spec2.size(); ++i)
-      {
-        Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
-        // TODO this line leads to using real intensities
-  //      ion_table2[pos] = spec2[i].getIntensity();
-        // TODO this line leads to using intensities normalized to 10
-        ion_table2[pos] = 10.0;
-      }
-
-      // Compute means for real intensities
-      double mean1 = (std::accumulate(ion_table1.begin(), ion_table1.end(), 0.0)) / table_size;
-      double mean2 = (std::accumulate(ion_table2.begin(), ion_table2.end(), 0.0)) / table_size;
-
-      // Compute denominator
-      double s1 = 0;
-      double s2 = 0;
-      for (Int i = 0; i < table_size; ++i)
-      {
-        s1 += pow((ion_table1[i] - mean1), 2);
-        s2 += pow((ion_table2[i] - mean2), 2);
-      }
-      double denom = sqrt(s1 * s2);
-
-      // Calculate correlation for each shift
-      for (Int shift = -maxshift; shift <= maxshift; ++shift)
-      {
-        double s = 0;
-        for (Int i = 0; i < table_size; ++i)
-        {
-          Int j = i + shift;
-          if ( (j >= 0) && (j < table_size))
-          {
-            s += (ion_table1[i] - mean1) * (ion_table2[j] - mean2);
-          }
-        }
-        if (denom > 0)
-        {
-          results[shift + maxshift] = s / denom;
-        }
-      }
-      return results;
-    }
 
   };
 
