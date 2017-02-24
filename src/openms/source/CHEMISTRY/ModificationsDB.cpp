@@ -600,7 +600,7 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
-      if ((*it)->getUniModAccession() != "")
+      if ((*it)->getUniModAccession() != "" || (*it)->getPSIMODAccession() != "")
       {
         modifications.push_back((*it)->getFullId());
       }
