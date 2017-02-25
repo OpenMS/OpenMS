@@ -36,6 +36,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -82,7 +83,7 @@ public:
     static const String param_uniquexl; // calculate statistics based on unique IDs
     static const String param_qtransform; // transform simple FDR to q-FDR values
     static const String param_minscore; // minscore 0 # minimum ld-score to be considered
-
+    static const String param_verbose; // Whether or not the output of the tool should be verbose.
 
     // Number of ranks used
     static const Int n_rank;
@@ -99,6 +100,9 @@ protected:
     // it gets automatically called on tool execution
     void registerOptionsAndFlags_()
     {
+      // Verbose Flag
+      registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
+
       // File input
       registerOutputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
       setValidFormats_(TOPPXFDR::param_in_xquestxml, ListUtils::create<String>("xml"));
@@ -147,7 +151,7 @@ protected:
       Int arg_maxborder = getIntOption_(TOPPXFDR::param_maxborder);
       Int arg_minionsmatched = getIntOption_(TOPPXFDR::param_minionsmatched);
       Int arg_minscore = getIntOption_(TOPPXFDR::param_minscore);
-
+      bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
       bool arg_uniquex = getFlag_(TOPPXFDR::param_uniquexl);
 
       //-------------------------------------------------------------
@@ -173,27 +177,45 @@ protected:
       }
       if (arg_uniquex)
       {
-        LOG_INFO << "Error model is generated based on unique cross-links.";
+        LOG_INFO << "Error model is generated based on unique cross-links.\n";
       }
       else
       {
-        LOG_INFO << "Error model is generated based on redundant cross-links.";
+        LOG_INFO << "Error model is generated based on redundant cross-links.\n";
       }
-      LOG_INFO << endl;
+      if(arg_verbose)
+      {
+        LOG_INFO << "Output will be verbose.\n";
+      }
+      else
+      {
+        LOG_INFO << "Output will not be verbose\n";
+      }
+      LOG_INFO << "-----------------------------------------\n" << endl;
 
       //-------------------------------------------------------------
       // Parsing XML file of xQuest
       //-------------------------------------------------------------
       String arg_in_xquestxml = getStringOption_(TOPPXFDR::param_in_xquestxml);
       LOG_INFO << "Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
-        //-------------------------------------------------------------
-        // calculations
-        //-------------------------------------------------------------
+      XQuestResultMeta meta;
+      XQuestResultXMLFile().load(arg_in_xquestxml, meta);
+
+      // LOG MetaData if verbose
+      if(arg_verbose)
+      {
+        LOG_INFO << "Meta values found in " << arg_in_xquestxml << ":\n";
+        StringList keys;
+        meta.getKeys(keys);
+        for(StringList::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+            LOG_INFO << (*it) << ": " << meta.getMetaValue(*it).toString() << endl;
+        }
+      }
 
 
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
+
+
 
 
       return EXECUTION_OK;
@@ -208,10 +230,9 @@ const String TOPPXFDR::param_minionsmatched = "minionsmatched";
 const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_qtransform = "qtransform";
 const String TOPPXFDR::param_minscore = "minscore";
+const String TOPPXFDR::param_verbose = "verbose";
 
-const Int    TOPPXFDR::n_rank = 1; //
-
-// Number of ranks used
+const Int    TOPPXFDR::n_rank = 1; //  Number of ranks used
 
 
 

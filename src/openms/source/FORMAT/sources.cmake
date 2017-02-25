@@ -72,6 +72,7 @@ MzIdentMLFile.cpp
 MzQuantMLFile.cpp
 QcMLFile.cpp
 TraMLFile.cpp
+XQuestResultXMLFile.cpp
 )
 
 ### add path to the filenames
