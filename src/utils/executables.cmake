@@ -53,6 +53,7 @@ TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
+XFDR
 )
 
 if(NOT DISABLE_OPENSWATH)
