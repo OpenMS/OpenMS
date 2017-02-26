@@ -243,30 +243,45 @@ protected:
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
       // Preallocate
       std::vector< std::vector< double >* > delta_scores(csms.size());
+      std::vector< size_t > n_min_ions_matched(csms.size());
       for(size_t i = 0; i < delta_scores.size(); ++i)
       {
           size_t n_hits = csms[i].size();
           delta_scores[i] = new std::vector<double>(n_hits);
           vector<double> * current = delta_scores[i];
 
-          if (n_hits > 1)
+          if (n_hits > 0)
           {
-            for (size_t j = 0; j < n_hits - 1; ++j)
+          // calculate n_min_ions_matched
+          CrossLinkSpectrumMatch * csm1 = &csms[i][0];
+
+          if( csm1->cross_link.getType() == ProteinProteinCrossLink::CROSS)
+          {
+              n_min_ions_matched[i] = std::min(csm1->num_of_matched_ions_alpha, csm1->num_of_matched_ions_beta);
+          }
+          else
+          {
+              n_min_ions_matched[i] = csm1->num_of_matched_ions_alpha;
+          }
+             // Calculate delta score
+            if (n_hits > 1)
             {
-               CrossLinkSpectrumMatch * csm1 = &csms[i][j];
-               for (size_t k = 1; k < n_hits; ++k )
-               {
-                   CrossLinkSpectrumMatch * csm2 = &csms[i][j+k];
-                   if(csm1->structure != csm2->structure)
-                   {
-                     (*current)[j] = csm2->score / csm1->score;
-                     break;
-                   }
-               }
+              for (size_t j = 0; j < n_hits - 1; ++j)
+              {
+                 csm1 = &csms[i][j];
+                 for (size_t k = 1; k < n_hits; ++k )
+                 {
+                     CrossLinkSpectrumMatch * csm2 = &csms[i][j+k];
+                     if(csm1->structure != csm2->structure)
+                     {
+                       (*current)[j] = csm2->score / csm1->score;
+                       break;
+                     }
+                 }
+              }
             }
           }
       }
-
 
       /*
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end();
@@ -278,11 +293,14 @@ protected:
           cout << *it2 << endl;
         }
       }
+
+      for(vector< size_t >::const_iterator it = n_min_ions_matched.begin(); it != n_min_ions_matched.end(); it++)
+      {
+        cout << *it << endl;
+      }
       */
 
-
       // Delete Delta Scores
-
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
       {
         delete *it;

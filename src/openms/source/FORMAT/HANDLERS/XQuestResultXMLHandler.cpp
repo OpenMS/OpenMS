@@ -207,12 +207,19 @@ namespace OpenMS
           csm.score = this->attributeAsDouble_(attributes, "score");
           csm.error_rel = this->attributeAsDouble_(attributes, "error_rel");
           csm.structure = this->attributeAsString_(attributes, "structure");
-          //csm.num_of_matched_ions_alpha = this->attributeAsInt_(attributes, "num_of_matched_ions_alpha");
-          //csm.num_of_matched_ions_beta = this->attributeAsInt_(attributes, "num_of_matched_ions_beta");
+          csm.num_of_matched_ions_alpha = this->attributeAsInt_(attributes, "num_of_matched_ions_alpha");
 
+          // Missing number for beta is indicated with '-'
+          try
+          {
+            csm.num_of_matched_ions_beta = this->attributeAsInt_(attributes, "num_of_matched_ions_beta");
+          }
+          catch (...)
+          {
+            csm.num_of_matched_ions_beta  = -1;
+          }
           this->current_spectrum_search.push_back(csm);
       }
-
     }
     void XQuestResultXMLHandler::characters(const XMLCh * const chars, const XMLSize_t)
     {
