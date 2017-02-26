@@ -210,7 +210,6 @@ protected:
         LOG_INFO << "Total number of hits: " << xquest_result_file.get_n_hits() << endl;
       }
 
-
       // LOG MetaData if verbose
       /*
       if(arg_verbose)
@@ -223,33 +222,67 @@ protected:
             LOG_INFO << (*it) << ": " << meta.getMetaValue(*it).toString() << endl;
         }
       }
+
       for(vector< vector < CrossLinkSpectrumMatch > >::const_iterator it = csms.begin(); it != csms.end(); ++it)
       {
         vector< CrossLinkSpectrumMatch > csm = *it;
+        cout << csm.size() << endl;
+
         for(vector< CrossLinkSpectrumMatch >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
         {
-            cout << it2->rank << endl;
+            cout << it2->id << endl;
         }
       }
       */
 
+
       //-------------------------------------------------------------
       // Calculate the delta score for each hit
+      // Calculate n_min_ions_matched
       //-------------------------------------------------------------
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
       // Preallocate
       std::vector< std::vector< double >* > delta_scores(csms.size());
       for(size_t i = 0; i < delta_scores.size(); ++i)
       {
-          delta_scores[i] = new std::vector<double>(csms[i].size());
+          size_t n_hits = csms[i].size();
+          delta_scores[i] = new std::vector<double>(n_hits);
+          vector<double> * current = delta_scores[i];
+
+          if (n_hits > 1)
+          {
+            for (size_t j = 0; j < n_hits - 1; ++j)
+            {
+               CrossLinkSpectrumMatch * csm1 = &csms[i][j];
+               for (size_t k = 1; k < n_hits; ++k )
+               {
+                   CrossLinkSpectrumMatch * csm2 = &csms[i][j+k];
+                   if(csm1->structure != csm2->structure)
+                   {
+                     (*current)[j] = csm2->score / csm1->score;
+                     break;
+                   }
+               }
+            }
+          }
       }
 
 
-
-
+      /*
+      for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end();
+           it++)
+      {
+        std::vector< double > current = **it;
+        for(std::vector< double >::const_iterator it2 = current.begin(); it2 != current.end(); it2++)
+        {
+          cout << *it2 << endl;
+        }
+      }
+      */
 
 
       // Delete Delta Scores
+
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
       {
         delete *it;
@@ -257,6 +290,7 @@ protected:
 
       return EXECUTION_OK;
     }
+
 
 };
 const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";

@@ -85,6 +85,8 @@ struct CrossLinkSpectrumMatch
     Size scan_index_light;
     Size scan_index_heavy;
 
+    // Structure of the hit according to xQuest
+    String structure;
     /// final score
     double score;
 
@@ -103,6 +105,10 @@ struct CrossLinkSpectrumMatch
     double xcorrc_max;
     Size matched_common_alpha;
     Size matched_common_beta;
+
+    Size num_of_matched_ions_alpha; // These are not common and not cross-links
+    Size num_of_matched_ions_beta;
+
     Size matched_xlink_alpha;
     Size matched_xlink_beta;
     double HyperCommon;

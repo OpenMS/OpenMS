@@ -206,6 +206,9 @@ namespace OpenMS
           csm.rank = this->attributeAsInt_(attributes, "search_hit_rank");
           csm.score = this->attributeAsDouble_(attributes, "score");
           csm.error_rel = this->attributeAsDouble_(attributes, "error_rel");
+          csm.structure = this->attributeAsString_(attributes, "structure");
+          //csm.num_of_matched_ions_alpha = this->attributeAsInt_(attributes, "num_of_matched_ions_alpha");
+          //csm.num_of_matched_ions_beta = this->attributeAsInt_(attributes, "num_of_matched_ions_beta");
 
           this->current_spectrum_search.push_back(csm);
       }
