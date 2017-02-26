@@ -37,21 +37,54 @@
 
 namespace OpenMS
 {
-
   XQuestResultXMLFile::XQuestResultXMLFile() :
-    XMLFile("/SCHEMAS/xQuest_1_0.xsd", "1.0")
+    XMLFile("/SCHEMAS/xQuest_1_0.xsd", "1.0"),
+    n_hits_(-1),
+    cum_hits_(NULL)
   {
+  }
+  XQuestResultXMLFile::~XQuestResultXMLFile()
+  {
+    delete this->cum_hits_;
   }
 
   void XQuestResultXMLFile::load(const String & filename, std::vector< XQuestResultMeta > & metas,
-                                 std::vector< std::vector < CrossLinkSpectrumMatch > > & csms)
+                                 std::vector< std::vector < CrossLinkSpectrumMatch > > & csms,
+                                 bool calc_cum_hits)
   {
    for(std::vector< XQuestResultMeta >::iterator it = metas.begin(); it != metas.end(); it++)
    {
      it->clearMetaInfo();
    }
+   this->n_hits_ = 0;
+   delete this->cum_hits_;
 
-   Internal::XQuestResultXMLHandler handler(filename, metas, csms);
+   if (calc_cum_hits)
+   {
+     this->cum_hits_ = new std::vector< int >;
+   }
+   else
+   {
+     this->cum_hits_ = NULL;
+   }
+
+   Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_);
    this->parse_(filename, &handler);
+  }
+
+  void XQuestResultXMLFile::delete_cum_hits()
+  {
+    delete this->cum_hits_;
+    this->cum_hits_ = NULL;
+  }
+
+  int XQuestResultXMLFile::get_n_hits() const
+  {
+    return this->n_hits_;
+  }
+
+  std::vector< int > * XQuestResultXMLFile::get_cum_hits() const
+  {
+    return this->cum_hits_;
   }
 }

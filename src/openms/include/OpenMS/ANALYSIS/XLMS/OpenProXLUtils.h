@@ -116,6 +116,10 @@ struct CrossLinkSpectrumMatch
     double PScoreBeta;
     double PScoreBoth;
 
+    // Added in a second step for reading the xQuest file for furhter processing in xProphet
+    double error_rel;   // This is error_rel like it appears in the xQuest result file. CAUTION: xProphet simply calls this 'error' internally
+
+
    // std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
 
     Size peptide_id_index;

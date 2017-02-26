@@ -48,10 +48,14 @@ namespace OpenMS
 
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
-                                                   std::vector< std::vector< CrossLinkSpectrumMatch > > & csms) :
+                                                   std::vector< std::vector< CrossLinkSpectrumMatch > > & csms,
+                                                   int & n_hits_,
+                                                   std::vector< int > * cum_hits) :
       XMLHandler(filename, "1.0"),
       metas_(metas),
-      csms_(csms)
+      csms_(csms),
+      n_hits_(n_hits_),
+      cum_hits_(cum_hits)
     {
     }
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
@@ -65,8 +69,25 @@ namespace OpenMS
 
       if (tag == "spectrum_search")
       {
-          this->csms_.push_back(this->current_spectrum_search);
+          // Push back spectrum search vector and ensure that the hits are sorted by their rank within the vector
+          vector< CrossLinkSpectrumMatch > newvec(this->current_spectrum_search.size());
+          for(vector< CrossLinkSpectrumMatch>::const_iterator it = this->current_spectrum_search.begin();
+              it != this->current_spectrum_search.end(); ++it)
+          {
+            if (newvec[it->rank - 1].rank != 0)
+            {
+              LOG_ERROR << "ERROR: At least two hits with the same rank within the same spectrum" << endl;
+              throw std::exception();
+            }
+            newvec[it->rank - 1] = *it;
+          }
+          this->csms_.push_back(newvec);
           this->current_spectrum_search.clear();
+          // Might be NULL if we do not want to calculate the cum_hits in the first place
+          if(this->cum_hits_ != NULL)
+          {
+            this->cum_hits_->push_back(this->n_hits_);\
+          }
       }
       else if (tag == "xquest_results")
       {
@@ -96,6 +117,7 @@ namespace OpenMS
       else if (tag == "search_hit")
       {
           // New CrossLinkSpectrumMatchEntry
+          this->n_hits_++;
           CrossLinkSpectrumMatch csm;
           ProteinProteinCrossLink cross_link;
 
@@ -182,6 +204,8 @@ namespace OpenMS
           csm.xcorrx_max = this->attributeAsDouble_(attributes, "xcorrx");
           csm.xcorrc_max = this->attributeAsDouble_(attributes, "xcorrb"); // ?????????
           csm.rank = this->attributeAsInt_(attributes, "search_hit_rank");
+          csm.score = this->attributeAsDouble_(attributes, "score");
+          csm.error_rel = this->attributeAsDouble_(attributes, "error_rel");
 
           this->current_spectrum_search.push_back(csm);
       }

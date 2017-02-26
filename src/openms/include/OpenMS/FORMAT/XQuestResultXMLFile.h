@@ -46,8 +46,17 @@ namespace OpenMS
   {
 public:
     XQuestResultXMLFile();
+    ~XQuestResultXMLFile();
 
-    void load(const String &, std::vector< XQuestResultMeta >  &, std::vector< std::vector< CrossLinkSpectrumMatch > > &);
+    void load(const String &, std::vector< XQuestResultMeta >  &, std::vector< std::vector< CrossLinkSpectrumMatch > > &, bool = false);
+    int get_n_hits() const;
+    std::vector < int > * get_cum_hits() const;
+
+    void delete_cum_hits();
+
+private:
+    int n_hits_; // Total number of hits within the result file
+    std::vector< int > * cum_hits_; // Points to vector with cumulated the number of hits per spectrum in the order they appear in the file
   };
 } // namespace OpenMS
 #endif // OPENMS_FORMAT_XQUESTRESULTXMLFILE_H

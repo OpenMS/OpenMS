@@ -201,7 +201,15 @@ protected:
       LOG_INFO << "Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
       vector< XQuestResultMeta > metas;
       vector< vector < CrossLinkSpectrumMatch > > csms;
-      XQuestResultXMLFile().load(arg_in_xquestxml, metas, csms);
+
+      XQuestResultXMLFile xquest_result_file;
+      xquest_result_file.load(arg_in_xquestxml, metas, csms);
+
+      if (arg_verbose)
+      {
+        LOG_INFO << "Total number of hits: " << xquest_result_file.get_n_hits() << endl;
+      }
+
 
       // LOG MetaData if verbose
       /*
@@ -215,24 +223,37 @@ protected:
             LOG_INFO << (*it) << ": " << meta.getMetaValue(*it).toString() << endl;
         }
       }
-      */
-
-      /* Control print
       for(vector< vector < CrossLinkSpectrumMatch > >::const_iterator it = csms.begin(); it != csms.end(); ++it)
       {
         vector< CrossLinkSpectrumMatch > csm = *it;
         for(vector< CrossLinkSpectrumMatch >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
         {
-            cout << it2->cross_link.getType() << endl;
+            cout << it2->rank << endl;
         }
       }
       */
-      cout << metas.size() << endl;
-      cout << csms.size() << endl;
+
+      //-------------------------------------------------------------
+      // Calculate the delta score for each hit
+      //-------------------------------------------------------------
+      // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
+      // Preallocate
+      std::vector< std::vector< double >* > delta_scores(csms.size());
+      for(size_t i = 0; i < delta_scores.size(); ++i)
+      {
+          delta_scores[i] = new std::vector<double>(csms[i].size());
+      }
 
 
 
 
+
+
+      // Delete Delta Scores
+      for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
+      {
+        delete *it;
+      }
 
       return EXECUTION_OK;
     }
