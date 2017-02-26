@@ -62,8 +62,8 @@ namespace OpenMS
       std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
       double cross_linker_mass;
       String cross_linker_name;
-      ResidueModification::Term_Specificity term_spec_alpha;
-      ResidueModification::Term_Specificity term_spec_beta;
+      ResidueModification::TermSpecificity term_spec_alpha;
+      ResidueModification::TermSpecificity term_spec_beta;
 
       ProteinProteinCrossLinkType getType() const
       {
@@ -116,7 +116,7 @@ struct CrossLinkSpectrumMatch
     double PScoreBeta;
     double PScoreBoth;
 
-    std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
+   // std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
 
     Size peptide_id_index;
 //    PeptideIdentification *peptide_id = NULL;

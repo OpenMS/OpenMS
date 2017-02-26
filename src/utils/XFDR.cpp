@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -198,10 +199,12 @@ protected:
       //-------------------------------------------------------------
       String arg_in_xquestxml = getStringOption_(TOPPXFDR::param_in_xquestxml);
       LOG_INFO << "Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
-      XQuestResultMeta meta;
-      XQuestResultXMLFile().load(arg_in_xquestxml, meta);
+      vector< XQuestResultMeta > metas;
+      vector< vector < CrossLinkSpectrumMatch > > csms;
+      XQuestResultXMLFile().load(arg_in_xquestxml, metas, csms);
 
       // LOG MetaData if verbose
+      /*
       if(arg_verbose)
       {
         LOG_INFO << "Meta values found in " << arg_in_xquestxml << ":\n";
@@ -212,7 +215,20 @@ protected:
             LOG_INFO << (*it) << ": " << meta.getMetaValue(*it).toString() << endl;
         }
       }
+      */
 
+      /* Control print
+      for(vector< vector < CrossLinkSpectrumMatch > >::const_iterator it = csms.begin(); it != csms.end(); ++it)
+      {
+        vector< CrossLinkSpectrumMatch > csm = *it;
+        for(vector< CrossLinkSpectrumMatch >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
+        {
+            cout << it2->cross_link.getType() << endl;
+        }
+      }
+      */
+      cout << metas.size() << endl;
+      cout << csms.size() << endl;
 
 
 

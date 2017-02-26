@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 
 namespace OpenMS
 {
@@ -42,10 +43,15 @@ namespace OpenMS
   {
   }
 
-  void XQuestResultXMLFile::load(const String & filename, XQuestResultMeta & meta)
+  void XQuestResultXMLFile::load(const String & filename, std::vector< XQuestResultMeta > & metas,
+                                 std::vector< std::vector < CrossLinkSpectrumMatch > > & csms)
   {
-   meta.clearMetaInfo();
-   Internal::XQuestResultXMLHandler handler(filename, meta);
+   for(std::vector< XQuestResultMeta >::iterator it = metas.begin(); it != metas.end(); it++)
+   {
+     it->clearMetaInfo();
+   }
+
+   Internal::XQuestResultXMLHandler handler(filename, metas, csms);
    this->parse_(filename, &handler);
   }
 }

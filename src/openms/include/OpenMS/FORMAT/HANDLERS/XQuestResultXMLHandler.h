@@ -37,7 +37,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
-
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 
 namespace OpenMS
 {
@@ -51,7 +51,9 @@ namespace OpenMS
     {
     public:
 
-      XQuestResultXMLHandler(const String & filename, XQuestResultMeta & meta);
+      XQuestResultXMLHandler(const String & /* filename */,
+                             std::vector< XQuestResultMeta > & /* metas */,
+                             std::vector< std::vector< CrossLinkSpectrumMatch > > & /* csms */ );
       virtual ~XQuestResultXMLHandler();
 
       // Docu in base class
@@ -65,11 +67,12 @@ namespace OpenMS
 
     private:
 
-      XQuestResultMeta & meta_;
-
-      // Tag considered at present
-      String tag_;
-
+      std::vector< XQuestResultMeta > & metas_;
+      std::vector< std::vector< CrossLinkSpectrumMatch > > & csms_;
+      // The current spectrum search
+      std::vector< CrossLinkSpectrumMatch > current_spectrum_search;
+      // The current meta value
+      XQuestResultMeta current_meta_;
     };
   } // namespace Internal
 } // namespace OpenMS

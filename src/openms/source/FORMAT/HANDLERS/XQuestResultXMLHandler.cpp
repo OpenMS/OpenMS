@@ -36,6 +36,7 @@
 #include <xercesc/sax2/Attributes.hpp>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <iostream>
+#include <utility>
 
 using namespace std;
 using namespace xercesc;
@@ -45,9 +46,12 @@ namespace OpenMS
   namespace Internal
   {
 
-    XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename, XQuestResultMeta & meta) :
+    XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
+                                                   vector< XQuestResultMeta> & metas,
+                                                   std::vector< std::vector< CrossLinkSpectrumMatch > > & csms) :
       XMLHandler(filename, "1.0"),
-      meta_(meta)
+      metas_(metas),
+      csms_(csms)
     {
     }
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
@@ -57,21 +61,129 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
     {
+      String tag = XMLString::transcode(qname);
+
+      if (tag == "spectrum_search")
+      {
+          this->csms_.push_back(this->current_spectrum_search);
+          this->current_spectrum_search.clear();
+      }
+      else if (tag == "xquest_results")
+      {
+          this->metas_.push_back(this->current_meta_);
+          this->current_meta_.clearMetaInfo();
+      }
     }
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
 
-      this->tag_ = XMLString::transcode(qname);
+      String tag = XMLString::transcode(qname);
 
       // Extract meta information
-      if (this->tag_ == "xquest_results")
+      if (tag == "xquest_results")
       {
         // For now, put each of the key value pair as DataValue into the meta interface
         for(XMLSize_t i = 0; i < attributes.getLength(); ++i)
         {
-            this->meta_.setMetaValue(XMLString::transcode(attributes.getQName(i)),
+            this->current_meta_.setMetaValue(XMLString::transcode(attributes.getQName(i)),
                                      DataValue(XMLString::transcode(attributes.getValue(i))));
         }
+      }
+      else if (tag == "spectrum_search")
+      {
+        // TODO Store information of spectrum search
+      }
+      else if (tag == "search_hit")
+      {
+          // New CrossLinkSpectrumMatchEntry
+          CrossLinkSpectrumMatch csm;
+          ProteinProteinCrossLink cross_link;
+
+          // XL Type, determined by "type"
+          ProteinProteinCrossLink::ProteinProteinCrossLinkType xlink_type;
+          String xlink_type_string = this->attributeAsString_(attributes, "type");
+
+          if (xlink_type_string == "xlink")
+          {
+
+              xlink_type = ProteinProteinCrossLink::CROSS;
+          }
+          else if (xlink_type_string == "monolink")
+          {
+
+              xlink_type = ProteinProteinCrossLink::MONO;
+          }
+          else if (xlink_type_string == "intralink")
+          {
+
+              xlink_type = ProteinProteinCrossLink::LOOP;
+          }
+          else
+          {
+            LOG_ERROR << "ERROR: Unsupported Cross-Link type: " << xlink_type_string << endl;
+            throw std::exception();
+
+          }
+
+
+          // Switch on the type of XLINK
+          if (xlink_type == ProteinProteinCrossLink::CROSS)
+          {
+
+            AASequence seq1 = AASequence::fromString(this->attributeAsString_(attributes, "seq1"));
+            AASequence seq2 = AASequence::fromString(this->attributeAsString_(attributes, "seq2"));
+
+            // Ensure that alpha is not shorter than beta
+            if (seq1.size() > seq2.size())
+            {
+              cross_link.alpha = seq1;
+              cross_link.beta = seq2;
+            }
+            else
+            {
+              cross_link.alpha = seq2;
+              cross_link.beta = seq1;
+            }
+          }
+          else
+          {
+            cross_link.alpha = AASequence::fromString(this->attributeAsString_(attributes, "seq1"));
+            assert(cross_link.beta.empty());
+          }
+
+          if (xlink_type == ProteinProteinCrossLink::MONO)
+          {
+              // Important: (cross_link_position.second == -1)
+              cross_link.cross_link_position = std::make_pair(this->attributeAsInt_(attributes, "xlinkposition"), -1);
+          }
+          else
+          {
+              String xlink_position = this->attributeAsString_(attributes, "xlinkposition");
+              StringList xlink_position_split;
+              StringUtils::split(xlink_position, "," ,xlink_position_split);
+              if (xlink_position_split.size() != 2)
+              {
+                String message = "ERROR: Nonsense specification of cross-link position: " + xlink_position;
+                LOG_ERROR << message << endl;
+                throw std::exception();
+              }
+              cross_link.cross_link_position = std::make_pair(xlink_position_split[0].toInt(),
+                                                              xlink_position_split[1].toInt());
+          }
+
+          cross_link.cross_linker_mass = this->attributeAsDouble_(attributes, "xlinkermass");
+          cross_link.cross_linker_name = "NA";   // Cross-Linker name cannot be recovered from XQuest Result XML
+
+          csm.cross_link = cross_link;
+          csm.percTIC = this->attributeAsDouble_(attributes, "TIC");
+          csm.wTIC = this->attributeAsDouble_(attributes, "wTIC");
+          csm.int_sum = this->attributeAsDouble_(attributes, "intsum") / 100;
+          csm.match_odds = this->attributeAsDouble_(attributes, "match_odds");
+          csm.xcorrx_max = this->attributeAsDouble_(attributes, "xcorrx");
+          csm.xcorrc_max = this->attributeAsDouble_(attributes, "xcorrb"); // ?????????
+          csm.rank = this->attributeAsInt_(attributes, "search_hit_rank");
+
+          this->current_spectrum_search.push_back(csm);
       }
 
     }
@@ -82,9 +194,6 @@ namespace OpenMS
 
   }   // namespace Internal
 } // namespace OpenMS
-
-
-
 
 
 

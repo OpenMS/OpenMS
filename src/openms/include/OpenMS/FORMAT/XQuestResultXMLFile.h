@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
+#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 
 namespace OpenMS
 {
@@ -46,7 +47,7 @@ namespace OpenMS
 public:
     XQuestResultXMLFile();
 
-    void load(const String & filename, XQuestResultMeta & meta);
+    void load(const String &, std::vector< XQuestResultMeta >  &, std::vector< std::vector< CrossLinkSpectrumMatch > > &);
   };
 } // namespace OpenMS
 #endif // OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
