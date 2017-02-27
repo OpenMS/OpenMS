@@ -52,7 +52,7 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
     setName("TMTTenPlexQuantitationMethod");
 
-    //    // mass map outline (2)
+    //    // mass map outline - for further details please see #2427
     //    "126", 126.127726, x, x, 127C, 128C
     //    "127N", 127.124761, x, x, 128N, 129N
     //    "127C", 127.131081, x, 126, 128C, 129C
