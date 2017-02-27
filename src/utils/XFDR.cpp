@@ -37,8 +37,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
-
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -73,28 +73,33 @@ using namespace std;
 
 
 
-bool compareCrossLinkSpectrumMatchByScore(CrossLinkSpectrumMatch* a,
-                                          CrossLinkSpectrumMatch* b)
+bool comparePeptideIdentificationByScore(PeptideIdentification* a,
+                                          PeptideIdentification* b)
 {
-  return (a->score > b->score);
+  double a_score = (double) a->getMetaValue("OpenXQuest:score");
+  double b_score = (double) b->getMetaValue("OpenXQuest:score");
+  return (a_score > b_score);
 }
+
 
 
 // Ensures that the provided vectors of pointers in  sorted with respect to the score in
 // descending order
-bool isSortedDescending(vector<CrossLinkSpectrumMatch * > & csm)
+
+bool isSortedDescending(vector<PeptideIdentification * > & pep_ids)
 {
-  for (size_t i = 0; i < csm.size() -1; ++i)
+  for (size_t i = 0; i < pep_ids.size() -1; ++i)
   {
-      if(csm[i]->score < csm[i+1]->score)
+      double a_score = (double) pep_ids[i]->getMetaValue("OpenXQuest:score");
+      double b_score = (double) pep_ids[i+1]->getMetaValue("OpenXQuest:score");
+
+      if(a_score < b_score)
       {
        return false;
       }
   }
   return true;
 }
-
-//std::sort(_children.begin(), _children.end(), comparePtrToNode);
 
 
 
@@ -227,101 +232,96 @@ protected:
       String arg_in_xquestxml = getStringOption_(TOPPXFDR::param_in_xquestxml);
       LOG_INFO << "Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
       vector< XQuestResultMeta > metas;
-      vector< vector < CrossLinkSpectrumMatch > > csms;
+      vector< vector < PeptideIdentification > > spectra;
 
       XQuestResultXMLFile xquest_result_file;
-      xquest_result_file.load(arg_in_xquestxml, metas, csms, false, 1); // We do not load 'empty' spectra here
+      xquest_result_file.load(arg_in_xquestxml, metas, spectra, false, 1); // We do not load 'empty' spectra here
 
       if (arg_verbose)
       {
         LOG_INFO << "Total number of hits: " << xquest_result_file.get_n_hits() << endl;
       }
 
-      // LOG MetaData if verbose
-      /*
-      if(arg_verbose)
-      {
-        LOG_INFO << "Meta values found in " << arg_in_xquestxml << ":\n";
-        StringList keys;
-        meta.getKeys(keys);
-        for(StringList::const_iterator it = keys.begin(); it != keys.end(); ++it)
-        {
-            LOG_INFO << (*it) << ": " << meta.getMetaValue(*it).toString() << endl;
-        }
-      }
+//      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
+//      {
+//        vector< PeptideIdentification > csm = *it;
+//        cout << csm.size() << endl;
+//        for(vector< PeptideIdentification >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
+//        {
+//            cout << it2->getHits().size() << endl;
+//        }
+//      }
 
-      for(vector< vector < CrossLinkSpectrumMatch > >::const_iterator it = csms.begin(); it != csms.end(); ++it)
-      {
-        vector< CrossLinkSpectrumMatch > csm = *it;
-        cout << csm.size() << endl;
-
-        for(vector< CrossLinkSpectrumMatch >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
-        {
-            cout << it2->id << endl;
-        }
-      }
-      */
       //-------------------------------------------------------------
       // Calculate the delta score for each hit
       // Calculate n_min_ions_matched
       //-------------------------------------------------------------
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
       // Preallocate
-      std::vector< std::vector< double >* > delta_scores(csms.size());
-      std::vector< size_t > n_min_ions_matched(csms.size());
-      std::vector< CrossLinkSpectrumMatch * > hits_first_rank(csms.size()); // Points to the first rank hits for each spectrum
+
+      std::vector< std::vector< double >* > delta_scores(spectra.size());
+      std::vector< size_t > n_min_ions_matched(spectra.size());
+      std::vector< PeptideIdentification * > hits_first_rank(spectra.size()); // Points to the first rank hits for each spectrum
       for(size_t i = 0; i < delta_scores.size(); ++i)
       {
-          size_t n_hits = csms[i].size();
+          size_t n_hits = spectra[i].size();
           delta_scores[i] = new std::vector<double>(n_hits);
           vector<double> * current = delta_scores[i];
 
           assert(n_hits > 0); // because we initially do not load 'empty' spectra
           // calculate n_min_ions_matched
-          CrossLinkSpectrumMatch * csm1 = &csms[i][0];
-          assert(csm1->rank == 1); // because hits are sorted according to their rank within the spectrum
-          hits_first_rank[i] = csm1;
+          PeptideIdentification * pep_id1 = &spectra[i][0];
+          assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
 
-          if( csm1->cross_link.getType() == ProteinProteinCrossLink::CROSS)
+          hits_first_rank[i] = pep_id1;
+          vector<PeptideHit> pep_hits = pep_id1->getHits();
+
+          if( pep_id1->getMetaValue("xl_type") == "cross-link")
           {
-              n_min_ions_matched[i] = std::min(csm1->num_of_matched_ions_alpha, csm1->num_of_matched_ions_beta);
+              n_min_ions_matched[i] = std::min((int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions"),
+                                               (int) pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions"));
           }
           else
           {
-              n_min_ions_matched[i] = csm1->num_of_matched_ions_alpha;
+              n_min_ions_matched[i] = (int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions");
           }
+
+
           // Calculate delta score
           if (n_hits > 1)
           {
             for (size_t j = 0; j < n_hits - 1; ++j)
             {
-              csm1 = &csms[i][j];
-              for (size_t k = 1; k < n_hits; ++k )
+              pep_id1 = &spectra[i][j];
+              for (size_t k = 1; j+k < n_hits; ++k )
               {
-                CrossLinkSpectrumMatch * csm2 = &csms[i][j+k];
-                if(csm1->structure != csm2->structure)
-                {
-                  (*current)[j] = csm2->score / csm1->score;
-                   break;
+                PeptideIdentification * pep_id2 = &spectra[i][j+k];
+                if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
+                {                 
+                  (*current)[j] =  ((double) pep_id2->getMetaValue("OpenXQuest:score"))
+                                 / ((double) pep_id1->getMetaValue("OpenXQuest:score"));
+                  break;
                 }
               }
             }
           }
       }
+
       // Sort pointers in hits_first_rank in descending order according to their respective score
-      std::sort(hits_first_rank.begin(),hits_first_rank.end(),compareCrossLinkSpectrumMatchByScore);
-      assert(isSortedDescending(hits_first_rank));
-
-
-
+      std::sort(hits_first_rank.begin(),hits_first_rank.end(),comparePeptideIdentificationByScore);
+      //assert(isSortedDescending(hits_first_rank));
 
       // Control Output
+
       /*
       for(vector<CrossLinkSpectrumMatch *>::const_iterator it = hits_first_rank.begin(); it != hits_first_rank.end(); ++it)
       {
         cout << "Final Score: "<< (*it)->score << endl;
       }
+      */
 
+
+      /*
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end();
            it++)
       {
@@ -331,12 +331,15 @@ protected:
           cout << "Delta Score: " <<  *it2 << endl;
         }
       }
+      */
 
+      /*
       for(vector< size_t >::const_iterator it = n_min_ions_matched.begin(); it != n_min_ions_matched.end(); it++)
       {
         cout << "N_min_ions_matched: " <<  *it << endl;
       }
       */
+
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
@@ -347,8 +350,6 @@ protected:
 
       return EXECUTION_OK;
     }
-
-
 };
 const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";
 const String TOPPXFDR::param_minborder = "minborder";

@@ -29,17 +29,24 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lukas Zimmermann $
-// $Authors:  $
+// $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <xercesc/sax2/Attributes.hpp>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>
 #include <utility>
 
 using namespace std;
 using namespace xercesc;
+
+// TODO Switch to Debug mode in CMake and remove this undef
+#undef NDEBUG
+#include <assert.h>
 
 namespace OpenMS
 {
@@ -60,21 +67,36 @@ namespace OpenMS
 
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
-                                                   std::vector< std::vector< CrossLinkSpectrumMatch > > & csms,
+                                                   std::vector< std::vector< PeptideIdentification > > & csms,
                                                    int & n_hits_,
                                                    std::vector< int > * cum_hits,
-                                                   size_t min_n_ions_per_spectrum) :
+                                                   size_t min_n_ions_per_spectrum,
+                                                   bool load_to_peptideHit) :
       XMLHandler(filename, "1.0"),
       metas_(metas),
       csms_(csms),
       n_hits_(n_hits_),
       cum_hits_(cum_hits),
-      min_n_ions_per_spectrum_(min_n_ions_per_spectrum)
+      min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
+      load_to_peptideHit_(load_to_peptideHit)
     {
     }
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
     {
 
+    }
+
+
+    // Extracts the position of the Cross-Link for intralinks and crosslinks
+    void XQuestResultXMLHandler::getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair)
+    {
+      String xlink_position = this->attributeAsString_(attributes, "xlinkposition");
+      StringList xlink_position_split;
+      StringUtils::split(xlink_position, "," ,xlink_position_split);
+      assert(xlink_position_split.size() == 2);
+
+      pair.first = xlink_position_split[0].toInt();
+      pair.second = xlink_position_split[1].toInt();
     }
 
 
@@ -88,16 +110,18 @@ namespace OpenMS
           size_t current_spectrum_size = this->current_spectrum_search.size();
           if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
           {
-            vector< CrossLinkSpectrumMatch > newvec(current_spectrum_size);
-            for(vector< CrossLinkSpectrumMatch>::const_iterator it = this->current_spectrum_search.begin();
+            vector< PeptideIdentification > newvec(current_spectrum_size);
+            for(vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
                 it != this->current_spectrum_search.end(); ++it)
             {
-              if (newvec[it->rank - 1].rank != 0)
+              int index = (int) it->getMetaValue("xl_rank") - 1;
+
+              if (newvec[index].metaValueExists("xl_rank"))
               {
                 LOG_ERROR << "ERROR: At least two hits with the same rank within the same spectrum" << endl;
                 throw std::exception();
               }
-              newvec[it->rank - 1] = *it;
+              newvec[index] = *it;
             }
             this->csms_.push_back(newvec);
             if(this->cum_hits_ != NULL)
@@ -135,121 +159,150 @@ namespace OpenMS
       {
           // New CrossLinkSpectrumMatchEntry
           this->n_hits_++;
-          CrossLinkSpectrumMatch csm;
-          ProteinProteinCrossLink cross_link;
-
+          PeptideIdentification peptide_identification;
+          PeptideHit peptide_hit_alpha;
+          vector<PeptideHit> peptide_hits;
           // XL Type, determined by "type"
-          ProteinProteinCrossLink::ProteinProteinCrossLinkType xlink_type;
           String xlink_type_string = this->attributeAsString_(attributes, "type");
+          //String prot1 = this->attributeAsString_(attributes, "prot1");
 
-          cross_link.isDecoy = false;
-          String prot1 = this->attributeAsString_(attributes, "prot1");
 
+          /* TODO Determine Decoy and intra/inter cross links
           if (prot1.hasSubstring("decoy"))
           {
-              cross_link.isDecoy = true;
+              peptide_hit_alpha.setMetaValue("OpenXQuest:is_decoy", DataValue());
           }
-          // That is a bit hacky. Maybe use a regular expression instead.
+          // That is a bit hacky. Maybe use a regular expressions instead.
           removeSubstring(prot1, "reverse_");
           removeSubstring(prot1, "decoy_");
+          */
 
+          // Get Attributes of Peptide Identification
+          DataValue xquest_xlinkermass = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
+          DataValue xquest_wtic = DataValue(this->attributeAsDouble_(attributes, "wTIC"));
+          DataValue xquest_perctic = DataValue(this->attributeAsDouble_(attributes, "TIC"));
+          DataValue xquest_intsum = DataValue(this->attributeAsDouble_(attributes, "intsum")/100);
+          DataValue xquest_match_odds = DataValue(this->attributeAsDouble_(attributes, "match_odds"));
+          DataValue xquest_xl_rank = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
+          DataValue xquest_score = DataValue(this->attributeAsDouble_(attributes, "score"));
+          DataValue xquest_error_rel = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
+          DataValue structure = DataValue(this->attributeAsString_(attributes, "structure"));
+
+          assert(xquest_xlinkermass != DataValue::EMPTY);
+          assert(xquest_wtic  != DataValue::EMPTY);
+          assert(xquest_perctic != DataValue::EMPTY);
+          assert(xquest_intsum != DataValue::EMPTY);
+          assert(xquest_match_odds != DataValue::EMPTY);
+          assert(xquest_xl_rank != DataValue::EMPTY);
+          assert(xquest_score != DataValue::EMPTY);
+          assert(xquest_error_rel != DataValue::EMPTY);
+          assert(structure != DataValue::EMPTY);
+
+
+          // Store attributes in Peptide Identification
+          peptide_identification.setMetaValue("xl_rank", xquest_xl_rank);
+          peptide_identification.setMetaValue("OpenXQuest:xlinkermass", xquest_xlinkermass);
+          peptide_identification.setMetaValue("OpenXQuest:wTIC", xquest_wtic);
+          peptide_identification.setMetaValue("OpenXQuest:percTIC", xquest_perctic);
+          peptide_identification.setMetaValue("OpenXQuest:intsum", xquest_intsum);
+          peptide_identification.setMetaValue("OpenXQuest:match-odds", xquest_match_odds);
+          peptide_identification.setMetaValue("OpenXQuest:score", xquest_score);
+          peptide_identification.setMetaValue("OpenXQuest:error_rel", xquest_error_rel);
+          peptide_identification.setMetaValue("OpenXQuest:structure", structure);
+
+          // If requested, also write to the peptide_hit_alpha
+          if (this->load_to_peptideHit_)
+          {
+              peptide_hit_alpha.setMetaValue("xl_rank", xquest_xl_rank);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:xlinkermass", xquest_xlinkermass);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:wTIC", xquest_wtic);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:percTIC", xquest_perctic);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:intsum", xquest_intsum);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:match-odds", xquest_match_odds);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:score", xquest_score);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:error_rel", xquest_error_rel);
+              peptide_hit_alpha.setMetaValue("OpenXQuest:structure", structure);
+          }
+
+          // Figure out cross-link type
           if (xlink_type_string == "xlink")
           {
-              String prot2 = this->attributeAsString_(attributes, "prot2");
+              PeptideHit peptide_hit_beta;
 
-              // Figure out if intra or inter
+              // If requested, also write to the peptide_hit_beta
+              if (this->load_to_peptideHit_)
+              {
+                  peptide_hit_beta.setMetaValue("xl_rank", xquest_xl_rank);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:xlinkermass", xquest_xlinkermass);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:wTIC", xquest_wtic);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:percTIC", xquest_perctic);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:intsum", xquest_intsum);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:match-odds", xquest_match_odds);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:score", xquest_score);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:error_rel", xquest_error_rel);
+                  peptide_hit_beta.setMetaValue("OpenXQuest:structure", structure);
+              }
 
-              xlink_type = ProteinProteinCrossLink::CROSS;
-          }
-          else if (xlink_type_string == "monolink")
-          {
+              peptide_identification.setMetaValue("xl_type", "cross-link");
+              std::pair<SignedSize, SignedSize> positions;
+              this->getLinkPosition_(attributes, positions);
+              peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
+              peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.second));
 
-              xlink_type = ProteinProteinCrossLink::MONO;
+              // Number of matched ions
+              peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
+                                             DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
+              peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
+                                            DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_beta")));
+              if (this->load_to_peptideHit_)
+              {
+                peptide_hit_alpha.setMetaValue("xl_type", "cross-link");
+                peptide_hit_beta.setMetaValue("xl_type", "cross-link");
+              }
+              peptide_hits.push_back(peptide_hit_beta);
           }
           else if (xlink_type_string == "intralink")
           {
+              peptide_identification.setMetaValue("xl_type", "loop-link");
 
-              xlink_type = ProteinProteinCrossLink::LOOP;
+              std::pair<SignedSize, SignedSize> positions;
+              this->getLinkPosition_(attributes, positions);
+              peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
+              peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second));
+
+              if (this->load_to_peptideHit_)
+              {
+                peptide_hit_alpha.setMetaValue("xl_type", "loop-link");
+              }
+
+              // Number of matched ions
+              peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
+                                             DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
+
+          }
+          else if (xlink_type_string == "monolink")
+          {
+             peptide_identification.setMetaValue("xl_type", "mono-link");
+             peptide_hit_alpha.setMetaValue("xl_pos", DataValue((SignedSize)this->attributeAsInt_(attributes, "xlinkposition")));
+
+             if (this->load_to_peptideHit_)
+             {
+               peptide_hit_alpha.setMetaValue("xl_type", "mono-link");
+             }
+             // Number of matched ions
+             peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
+                                            DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
+
           }
           else
           {
             LOG_ERROR << "ERROR: Unsupported Cross-Link type: " << xlink_type_string << endl;
             throw std::exception();
-
           }
 
-
-          // Switch on the type of XLINK
-          if (xlink_type == ProteinProteinCrossLink::CROSS)
-          {
-
-            AASequence seq1 = AASequence::fromString(this->attributeAsString_(attributes, "seq1"));
-            AASequence seq2 = AASequence::fromString(this->attributeAsString_(attributes, "seq2"));
-
-            // Ensure that alpha is not shorter than beta
-            if (seq1.size() > seq2.size())
-            {
-              cross_link.alpha = seq1;
-              cross_link.beta = seq2;
-            }
-            else
-            {
-              cross_link.alpha = seq2;
-              cross_link.beta = seq1;
-            }
-          }
-          else
-          {
-            cross_link.alpha = AASequence::fromString(this->attributeAsString_(attributes, "seq1"));
-            assert(cross_link.beta.empty());
-          }
-
-          if (xlink_type == ProteinProteinCrossLink::MONO)
-          {
-              // Important: (cross_link_position.second == -1)
-              cross_link.cross_link_position = std::make_pair(this->attributeAsInt_(attributes, "xlinkposition"), -1);
-          }
-          else
-          {
-              String xlink_position = this->attributeAsString_(attributes, "xlinkposition");
-              StringList xlink_position_split;
-              StringUtils::split(xlink_position, "," ,xlink_position_split);
-              if (xlink_position_split.size() != 2)
-              {
-                String message = "ERROR: Nonsense specification of cross-link position: " + xlink_position;
-                LOG_ERROR << message << endl;
-                throw std::exception();
-              }
-              cross_link.cross_link_position = std::make_pair(xlink_position_split[0].toInt(),
-                                                              xlink_position_split[1].toInt());
-          }
-
-          cross_link.cross_linker_mass = this->attributeAsDouble_(attributes, "xlinkermass");
-          cross_link.cross_linker_name = "NA";   // Cross-Linker name cannot be recovered from XQuest Result XML
-
-          csm.cross_link = cross_link;
-          csm.percTIC = this->attributeAsDouble_(attributes, "TIC");
-          csm.wTIC = this->attributeAsDouble_(attributes, "wTIC");
-          csm.int_sum = this->attributeAsDouble_(attributes, "intsum") / 100;
-          csm.match_odds = this->attributeAsDouble_(attributes, "match_odds");
-          csm.xcorrx_max = this->attributeAsDouble_(attributes, "xcorrx");
-          csm.xcorrc_max = this->attributeAsDouble_(attributes, "xcorrb"); // ?????????
-          csm.rank = this->attributeAsInt_(attributes, "search_hit_rank");
-          csm.score = this->attributeAsDouble_(attributes, "score");
-          csm.error_rel = this->attributeAsDouble_(attributes, "error_rel");
-          csm.structure = this->attributeAsString_(attributes, "structure");
-          csm.num_of_matched_ions_alpha = this->attributeAsInt_(attributes, "num_of_matched_ions_alpha");
-
-          // Missing number for beta is indicated with '-'
-          try
-          {
-            csm.num_of_matched_ions_beta = this->attributeAsInt_(attributes, "num_of_matched_ions_beta");
-          }
-          catch (...)
-          {
-            csm.num_of_matched_ions_beta  = -1;
-          }
-          this->current_spectrum_search.push_back(csm);
+          peptide_hits.push_back(peptide_hit_alpha);
+          peptide_identification.setHits(peptide_hits);
+          this->current_spectrum_search.push_back(peptide_identification);
       }
     }
     void XQuestResultXMLHandler::characters(const XMLCh * const chars, const XMLSize_t)

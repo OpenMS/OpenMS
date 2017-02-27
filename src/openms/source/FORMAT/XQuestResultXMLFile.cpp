@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
@@ -48,9 +48,12 @@ namespace OpenMS
     delete this->cum_hits_;
   }
 
-  void XQuestResultXMLFile::load(const String & filename, std::vector< XQuestResultMeta > & metas,
-                                 std::vector< std::vector < CrossLinkSpectrumMatch > > & csms,
-                                 bool calc_cum_hits, size_t min_n_ions_per_spectrum)
+  void XQuestResultXMLFile::load(const String & filename,
+                                 std::vector< XQuestResultMeta > & metas,
+                                 std::vector< std::vector < PeptideIdentification > > & csms,
+                                 bool calc_cum_hits,
+                                 size_t min_n_ions_per_spectrum,
+                                 bool load_to_peptideHit)
   {
    for(std::vector< XQuestResultMeta >::iterator it = metas.begin(); it != metas.end(); it++)
    {
@@ -68,7 +71,7 @@ namespace OpenMS
      this->cum_hits_ = NULL;
    }
 
-   Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_, min_n_ions_per_spectrum);
+   Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_, min_n_ions_per_spectrum, load_to_peptideHit);
    this->parse_(filename, &handler);
   }
 

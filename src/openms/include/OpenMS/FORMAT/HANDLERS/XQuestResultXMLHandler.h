@@ -37,8 +37,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
-
+#include <OpenMS/METADATA/PeptideIdentification.h>
 namespace OpenMS
 {
   namespace Internal
@@ -53,10 +52,11 @@ namespace OpenMS
 
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
-                             std::vector< std::vector< CrossLinkSpectrumMatch > > & /* csms */,
+                             std::vector< std::vector< PeptideIdentification > > & /* csms */,
                              int & n_hits,
                              std::vector< int > * cum_hits,
-                             size_t min_n_ions_per_spectrum);
+                             size_t min_n_ions_per_spectrum,
+                             bool load_to_peptideHit_);
       virtual ~XQuestResultXMLHandler();
 
       // Docu in base class
@@ -71,14 +71,19 @@ namespace OpenMS
     private:
 
       std::vector< XQuestResultMeta > & metas_;
-      std::vector< std::vector< CrossLinkSpectrumMatch > > & csms_;
+      std::vector< std::vector< PeptideIdentification > > & csms_;
       // The current spectrum search
-      std::vector< CrossLinkSpectrumMatch > current_spectrum_search;
+      std::vector< PeptideIdentification > current_spectrum_search;
       // The current meta value
       XQuestResultMeta current_meta_;
       int & n_hits_; // Total no. of hits found in the result XML file
       std::vector< int > * cum_hits_;
       size_t min_n_ions_per_spectrum_;
+      bool load_to_peptideHit_;
+
+      // Helper Methods
+      void getLinkPosition_(const xercesc::Attributes &, std::pair<SignedSize, SignedSize> &);
+
     };
   } // namespace Internal
 } // namespace OpenMS
