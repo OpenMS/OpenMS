@@ -161,6 +161,7 @@ namespace OpenMS
     // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
     for (Size index = 0; index < quant_method->getNumberOfChannels(); ++index)
     {
+      std::cout << "Here is the matrix: " << m_x << std::endl;
       if (x(index) < 0.0)
       {
         ++s_negative;
@@ -174,6 +175,7 @@ namespace OpenMS
 
     if (s_negative == 0 && s_different_count > 0) // solutions are inconsistent, despite being positive! This should not happen!
     {
+
       throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!");
     }
 

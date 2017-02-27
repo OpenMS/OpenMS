@@ -52,19 +52,29 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
 {
     setName("TMTTenPlexQuantitationMethod");
 
-    mass_mapping_ = "mass_mapping_1";
+    //    // mass map outline (2)
+    //    "126", 126.127726, x, x, 127C, 128C
+    //    "127N", 127.124761, x, x, 128N, 129N
+    //    "127C", 127.131081, x, 126, 128C, 129C
+    //    "128N", 128.128116, x, 127N, 129N, 130N
+    //    "128C", 128.134436, 126, 127C, 129C, 130C
+    //    "129N", 129.131471, 127N, 128N, 130N, 131
+    //    "129C", 129.137790, 127C, 128C, 130C, x
+    //    "130N", 130.134825, 128N, 129N, 131, x
+    //    "130C", 130.141145, 128C, 129C, x, x
+    //    "131", 131.138180, 129N, 130N, x, x
 
-    // create channel map (1)
-    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, -1, -1, 2, 3));
-    channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124760, -1, -1, 3, 4));
-    channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131079, -1, 0, 4, 5));
-    channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128114, -1, 1, 5, 6));
-    channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134433, 0, 2, 6, 7));
-    channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131468, 1, 3, 7, 8));
-    channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137787, 2, 4, 8, 9));
-    channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134822, 3, 6, 9, -1));
-    channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141141, 4, 6, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138176, 5, 7, -1, -1));
+    // create the channel map
+    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127726, -1, -1, 2, 4));
+    channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124761, -1, -1, 3, 5));
+    channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131081, -1, 0, 4, 6));
+    channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128116, -1, 2, 5, 7));
+    channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134436, 0, 2, 6, 8));
+    channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131471, 1, 3, 7, 9));
+    channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137790, 2, 4, 8, -1));
+    channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134825, 3, 5, 9, -1));
+    channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141145, 4, 6, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138180, 5, 7, -1, -1));
 
     // we assume 126 to be the reference
     reference_channel_ = 0;
@@ -89,9 +99,6 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
     defaults_.setValue("channel_130C_description", "", "Description for the content of the 130C channel.");
     defaults_.setValue("channel_131_description", "", "Description for the content of the 131 channel.");
 
-    defaults_.setValue("mass_mapping", "mass_mapping_1", "Correction Map to be used (mass_mapping_1, mass_mapping_2). Please check the tool description and your product data sheet to learn which map to choose.");
-    defaults_.setValidStrings("mass_mapping", ListUtils::create<String>("mass_mapping_1,mass_mapping_2"));
-
     defaults_.setValue("reference_channel", "126", "The reference channel (126, 127N, 127C, 128N, 128C, 129N, 129C, 130N, 130C, 131).");
     defaults_.setValidStrings("reference_channel", TMTTenPlexQuantitationMethod::channel_names_);
 
@@ -112,63 +119,6 @@ void TMTTenPlexQuantitationMethod::setDefaultParams_()
 
 void TMTTenPlexQuantitationMethod::updateMembers_()
 {
-    channels_.clear();
-
-    mass_mapping_ = param_.getValue("mass_mapping");
-
-    if (mass_mapping_ == "mass_mapping_1")
-    {
-        //    //mass map outline (1):
-        //    "126", 126.127726, x, x, 127C, 128N
-        //    "127N", 127.124761, x, x, 128N, 128C
-        //    "127C", 127.131081, x, 126, 128C, 129N
-        //    "128N", 128.128116, x, 127N, 129N, 129C
-        //    "128C", 128.134436, 126, 127C, 129C, 130N
-        //    "129N", 129.131471, 127N, 128N, 130N, 130C
-        //    "129C", 129.137790, 127C, 128C, 130C, 131
-        //    "130N", 130.134825, 128N, 129N, 131, x
-        //    "130C", 130.141145, 128C, 129C, x, x
-        //    "131", 131.138180, 129N, 130N, x, x
-
-        channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127726, -1, -1, 2, 3));
-        channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124761, -1, -1, 3, 4));
-        channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131081, -1, 0, 4, 5));
-        channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128116, -1, 1, 5, 6));
-        channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134436, 0, 2, 6, 7));
-        channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131471, 1, 3, 7, 8));
-        channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137790, 2, 4, 8, 9));
-        channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134825, 3, 6, 9, -1));
-        channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141145, 4, 6, -1, -1));
-        channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138180, 5, 7, -1, -1));
-    }
-
-    else if (mass_mapping_ == "mass_mapping_2")
-    {
-        //    // mass map outline (2)
-        //    "126", 126.127726, x, x, 127C, 128C
-        //    "127N", 127.124761, x, x, 128N, 129N
-        //    "127C", 127.131081, x, 126, 128C, 129C
-        //    "128N", 128.128116, x, 127N, 129N, 130N
-        //    "128C", 128.134436, 126, 127C, 129C, 130C
-        //    "129N", 129.131471, 127N, 128N, 130N, 131
-        //    "129C", 129.137790, 127C, 128C, 130C, x
-        //    "130N", 130.134825, 128N, 129N, 131, x
-        //    "130C", 130.141145, 128C, 129C, x, x
-        //    "131", 131.138180, 129N, 130N, x, x
-
-        // create channel map (2)
-        channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127726, -1, -1, 2, 4));
-        channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124761, -1, -1, 3, 5));
-        channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131081, -1, 0, 4, 6));
-        channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128116, -1, 2, 5, 7));
-        channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134436, 0, 2, 6, 8));
-        channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131471, 1, 3, 7, 9));
-        channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137790, 2, 4, 8, -1));
-        channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134825, 3, 5, 9, -1));
-        channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141145, 4, 6, -1, -1));
-        channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138180, 5, 7, -1, -1));
-    }
-
     channels_[0].description = param_.getValue("channel_126_description");
     channels_[1].description = param_.getValue("channel_127N_description");
     channels_[2].description = param_.getValue("channel_127C_description");
@@ -186,7 +136,6 @@ void TMTTenPlexQuantitationMethod::updateMembers_()
                                                          (String) param_.getValue("reference_channel"));
 
     reference_channel_ = t_it - TMTTenPlexQuantitationMethod::channel_names_.begin();
-
 }
 
 TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other)

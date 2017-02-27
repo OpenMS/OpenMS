@@ -87,9 +87,6 @@ public:
     /// The reference channel for this experiment.
     Size reference_channel_;
 
-    /// The mass mapping to be choosen
-    String mass_mapping_;
-
     /// List of available channel names as they are presented to the user
     static const std::vector<String> channel_names_;
 
