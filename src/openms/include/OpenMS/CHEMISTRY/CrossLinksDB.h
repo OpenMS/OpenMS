@@ -44,23 +44,26 @@ namespace OpenMS
   {
   public:
 
-      /// Returns a pointer to the modifications DB (singleton)
-      inline static CrossLinksDB* getInstance()
+    /// Returns a pointer to the modifications DB (singleton)
+    inline static CrossLinksDB* getInstance()
+    {
+      static CrossLinksDB* db_ = 0;
+      if (db_ == 0)
       {
-        static CrossLinksDB* db_ = 0;
-        if (db_ == 0)
-        {
-          db_ = new CrossLinksDB;
-        }
-        return db_;
+        db_ = new CrossLinksDB;
       }
+      return db_;
+    }
 
-      /**
-        @brief Adds modifications from a given file in OBO format
+    /**
+      @brief Adds modifications from a given file in OBO format
 
-        @throw Exception::ParseError if the file cannot be parsed correctly
-      */
-      void readFromOBOFile(const String& filename);
+      @throw Exception::ParseError if the file cannot be parsed correctly
+    */
+    void readFromOBOFile(const String& filename);
+
+    /// Collects all modifications that can be used for identification searches
+    void getAllSearchModifications(std::vector<String>& modifications) const;
 
   private:
 

@@ -350,4 +350,18 @@ namespace OpenMS
     }
   }
 
+  void CrossLinksDB::getAllSearchModifications(vector<String>& modifications) const
+  {
+    modifications.clear();
+
+    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+    {
+      if ((*it)->getPSIMODAccession() != "")
+      {
+        modifications.push_back((*it)->getFullId());
+      }
+    }
+    sort(modifications.begin(), modifications.end());
+  }
+
 }
