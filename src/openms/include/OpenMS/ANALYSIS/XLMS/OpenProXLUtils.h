@@ -51,10 +51,12 @@ namespace OpenMS
       */
       enum ProteinProteinCrossLinkType
       {
-        CROSS = 0,
+        CROSS = 0,    // Unknown whether intra or inter
         MONO = 1,
         LOOP = 2,
-        NUMBER_OF_TERM_SPECIFICITY
+        CROSS_INTRA = 4,   // Known that cross-link is within one protein
+        CROSS_INTER = 5,    // Known that cross-link connects two distinct proteins
+        NUMBER_OF_TERM_SPECIFICITY // TODO Rename to NUMBER_OF_CROSSLINK_TYPES
       };
 
       AASequence alpha; // longer peptide
@@ -65,6 +67,21 @@ namespace OpenMS
       ResidueModification::TermSpecificity term_spec_alpha;
       ResidueModification::TermSpecificity term_spec_beta;
 
+      bool isDecoy; // Whether this PPXL matched to a sequence in a decoy database (alpha or beta or both)
+
+      /*
+       * Returns true if the cross-link is a real cross-link (intra or inter) and
+       * false if it is a mono- or loop-link
+       *
+       */
+      bool isCross() const
+      {
+        ProteinProteinCrossLinkType type = this->getType();
+        return type == CROSS
+            || type == CROSS_INTER
+            || type == CROSS_INTRA;
+      }
+
       ProteinProteinCrossLinkType getType() const
       {
         if (!beta.empty()) return CROSS;
@@ -73,7 +90,6 @@ namespace OpenMS
 
         return LOOP;
       }
-
     };
 
 struct CrossLinkSpectrumMatch

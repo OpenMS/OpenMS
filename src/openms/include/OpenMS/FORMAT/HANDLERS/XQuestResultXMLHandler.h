@@ -55,7 +55,8 @@ namespace OpenMS
                              std::vector< XQuestResultMeta > & /* metas */,
                              std::vector< std::vector< CrossLinkSpectrumMatch > > & /* csms */,
                              int & n_hits,
-                             std::vector< int > * cum_hits);
+                             std::vector< int > * cum_hits,
+                             size_t min_n_ions_per_spectrum);
       virtual ~XQuestResultXMLHandler();
 
       // Docu in base class
@@ -77,6 +78,7 @@ namespace OpenMS
       XQuestResultMeta current_meta_;
       int & n_hits_; // Total no. of hits found in the result XML file
       std::vector< int > * cum_hits_;
+      size_t min_n_ions_per_spectrum_;
     };
   } // namespace Internal
 } // namespace OpenMS

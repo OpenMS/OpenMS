@@ -39,8 +39,14 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 
+
 using namespace OpenMS;
 using namespace std;
+
+
+// TODO Switch to Debug mode in CMake and remove this undef
+#undef NDEBUG
+#include <assert.h>
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -67,7 +73,28 @@ using namespace std;
 
 
 
+bool compareCrossLinkSpectrumMatchByScore(CrossLinkSpectrumMatch* a,
+                                          CrossLinkSpectrumMatch* b)
+{
+  return (a->score > b->score);
+}
 
+
+// Ensures that the provided vectors of pointers in  sorted with respect to the score in
+// descending order
+bool isSortedDescending(vector<CrossLinkSpectrumMatch * > & csm)
+{
+  for (size_t i = 0; i < csm.size() -1; ++i)
+  {
+      if(csm[i]->score < csm[i+1]->score)
+      {
+       return false;
+      }
+  }
+  return true;
+}
+
+//std::sort(_children.begin(), _children.end(), comparePtrToNode);
 
 
 
@@ -203,7 +230,7 @@ protected:
       vector< vector < CrossLinkSpectrumMatch > > csms;
 
       XQuestResultXMLFile xquest_result_file;
-      xquest_result_file.load(arg_in_xquestxml, metas, csms);
+      xquest_result_file.load(arg_in_xquestxml, metas, csms, false, 1); // We do not load 'empty' spectra here
 
       if (arg_verbose)
       {
@@ -234,8 +261,6 @@ protected:
         }
       }
       */
-
-
       //-------------------------------------------------------------
       // Calculate the delta score for each hit
       // Calculate n_min_ions_matched
@@ -244,16 +269,18 @@ protected:
       // Preallocate
       std::vector< std::vector< double >* > delta_scores(csms.size());
       std::vector< size_t > n_min_ions_matched(csms.size());
+      std::vector< CrossLinkSpectrumMatch * > hits_first_rank(csms.size()); // Points to the first rank hits for each spectrum
       for(size_t i = 0; i < delta_scores.size(); ++i)
       {
           size_t n_hits = csms[i].size();
           delta_scores[i] = new std::vector<double>(n_hits);
           vector<double> * current = delta_scores[i];
 
-          if (n_hits > 0)
-          {
+          assert(n_hits > 0); // because we initially do not load 'empty' spectra
           // calculate n_min_ions_matched
           CrossLinkSpectrumMatch * csm1 = &csms[i][0];
+          assert(csm1->rank == 1); // because hits are sorted according to their rank within the spectrum
+          hits_first_rank[i] = csm1;
 
           if( csm1->cross_link.getType() == ProteinProteinCrossLink::CROSS)
           {
@@ -263,40 +290,51 @@ protected:
           {
               n_min_ions_matched[i] = csm1->num_of_matched_ions_alpha;
           }
-             // Calculate delta score
-            if (n_hits > 1)
+          // Calculate delta score
+          if (n_hits > 1)
+          {
+            for (size_t j = 0; j < n_hits - 1; ++j)
             {
-              for (size_t j = 0; j < n_hits - 1; ++j)
+              csm1 = &csms[i][j];
+              for (size_t k = 1; k < n_hits; ++k )
               {
-                 csm1 = &csms[i][j];
-                 for (size_t k = 1; k < n_hits; ++k )
-                 {
-                     CrossLinkSpectrumMatch * csm2 = &csms[i][j+k];
-                     if(csm1->structure != csm2->structure)
-                     {
-                       (*current)[j] = csm2->score / csm1->score;
-                       break;
-                     }
-                 }
+                CrossLinkSpectrumMatch * csm2 = &csms[i][j+k];
+                if(csm1->structure != csm2->structure)
+                {
+                  (*current)[j] = csm2->score / csm1->score;
+                   break;
+                }
               }
             }
           }
       }
+      // Sort pointers in hits_first_rank in descending order according to their respective score
+      std::sort(hits_first_rank.begin(),hits_first_rank.end(),compareCrossLinkSpectrumMatchByScore);
+      assert(isSortedDescending(hits_first_rank));
 
+
+
+
+      // Control Output
       /*
+      for(vector<CrossLinkSpectrumMatch *>::const_iterator it = hits_first_rank.begin(); it != hits_first_rank.end(); ++it)
+      {
+        cout << "Final Score: "<< (*it)->score << endl;
+      }
+
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end();
            it++)
       {
         std::vector< double > current = **it;
         for(std::vector< double >::const_iterator it2 = current.begin(); it2 != current.end(); it2++)
         {
-          cout << *it2 << endl;
+          cout << "Delta Score: " <<  *it2 << endl;
         }
       }
 
       for(vector< size_t >::const_iterator it = n_min_ions_matched.begin(); it != n_min_ions_matched.end(); it++)
       {
-        cout << *it << endl;
+        cout << "N_min_ions_matched: " <<  *it << endl;
       }
       */
 
@@ -305,6 +343,7 @@ protected:
       {
         delete *it;
       }
+
 
       return EXECUTION_OK;
     }

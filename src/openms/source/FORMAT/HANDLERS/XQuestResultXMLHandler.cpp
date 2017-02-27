@@ -46,22 +46,37 @@ namespace OpenMS
   namespace Internal
   {
 
+    /*
+     *  Helper functions
+     */
+    void removeSubstring(String &  large, const String & small)
+    {
+      std::string::size_type i = large.find(small);
+      if (i != std::string::npos)
+      {
+        large.erase(i, small.length());
+      }
+    }
+
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
                                                    std::vector< std::vector< CrossLinkSpectrumMatch > > & csms,
                                                    int & n_hits_,
-                                                   std::vector< int > * cum_hits) :
+                                                   std::vector< int > * cum_hits,
+                                                   size_t min_n_ions_per_spectrum) :
       XMLHandler(filename, "1.0"),
       metas_(metas),
       csms_(csms),
       n_hits_(n_hits_),
-      cum_hits_(cum_hits)
+      cum_hits_(cum_hits),
+      min_n_ions_per_spectrum_(min_n_ions_per_spectrum)
     {
     }
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
     {
 
     }
+
 
     void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
     {
@@ -70,24 +85,27 @@ namespace OpenMS
       if (tag == "spectrum_search")
       {
           // Push back spectrum search vector and ensure that the hits are sorted by their rank within the vector
-          vector< CrossLinkSpectrumMatch > newvec(this->current_spectrum_search.size());
-          for(vector< CrossLinkSpectrumMatch>::const_iterator it = this->current_spectrum_search.begin();
-              it != this->current_spectrum_search.end(); ++it)
+          size_t current_spectrum_size = this->current_spectrum_search.size();
+          if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
           {
-            if (newvec[it->rank - 1].rank != 0)
+            vector< CrossLinkSpectrumMatch > newvec(current_spectrum_size);
+            for(vector< CrossLinkSpectrumMatch>::const_iterator it = this->current_spectrum_search.begin();
+                it != this->current_spectrum_search.end(); ++it)
             {
-              LOG_ERROR << "ERROR: At least two hits with the same rank within the same spectrum" << endl;
-              throw std::exception();
+              if (newvec[it->rank - 1].rank != 0)
+              {
+                LOG_ERROR << "ERROR: At least two hits with the same rank within the same spectrum" << endl;
+                throw std::exception();
+              }
+              newvec[it->rank - 1] = *it;
             }
-            newvec[it->rank - 1] = *it;
-          }
-          this->csms_.push_back(newvec);
-          this->current_spectrum_search.clear();
-          // Might be NULL if we do not want to calculate the cum_hits in the first place
-          if(this->cum_hits_ != NULL)
-          {
-            this->cum_hits_->push_back(this->n_hits_);\
-          }
+            this->csms_.push_back(newvec);
+            if(this->cum_hits_ != NULL)
+            {
+              this->cum_hits_->push_back(this->n_hits_);\
+            }
+        }
+        this->current_spectrum_search.clear();
       }
       else if (tag == "xquest_results")
       {
@@ -97,7 +115,6 @@ namespace OpenMS
     }
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
-
       String tag = XMLString::transcode(qname);
 
       // Extract meta information
@@ -125,8 +142,22 @@ namespace OpenMS
           ProteinProteinCrossLink::ProteinProteinCrossLinkType xlink_type;
           String xlink_type_string = this->attributeAsString_(attributes, "type");
 
+          cross_link.isDecoy = false;
+          String prot1 = this->attributeAsString_(attributes, "prot1");
+
+          if (prot1.hasSubstring("decoy"))
+          {
+              cross_link.isDecoy = true;
+          }
+          // That is a bit hacky. Maybe use a regular expression instead.
+          removeSubstring(prot1, "reverse_");
+          removeSubstring(prot1, "decoy_");
+
           if (xlink_type_string == "xlink")
           {
+              String prot2 = this->attributeAsString_(attributes, "prot2");
+
+              // Figure out if intra or inter
 
               xlink_type = ProteinProteinCrossLink::CROSS;
           }

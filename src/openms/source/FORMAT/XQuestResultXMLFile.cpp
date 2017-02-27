@@ -50,7 +50,7 @@ namespace OpenMS
 
   void XQuestResultXMLFile::load(const String & filename, std::vector< XQuestResultMeta > & metas,
                                  std::vector< std::vector < CrossLinkSpectrumMatch > > & csms,
-                                 bool calc_cum_hits)
+                                 bool calc_cum_hits, size_t min_n_ions_per_spectrum)
   {
    for(std::vector< XQuestResultMeta >::iterator it = metas.begin(); it != metas.end(); it++)
    {
@@ -68,7 +68,7 @@ namespace OpenMS
      this->cum_hits_ = NULL;
    }
 
-   Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_);
+   Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_, min_n_ions_per_spectrum);
    this->parse_(filename, &handler);
   }
 

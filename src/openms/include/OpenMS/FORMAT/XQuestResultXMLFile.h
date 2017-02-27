@@ -48,7 +48,8 @@ public:
     XQuestResultXMLFile();
     ~XQuestResultXMLFile();
 
-    void load(const String &, std::vector< XQuestResultMeta >  &, std::vector< std::vector< CrossLinkSpectrumMatch > > &, bool = false);
+    // TODO Refactor to PeptideHit
+    void load(const String &, std::vector< XQuestResultMeta >  &, std::vector< std::vector< CrossLinkSpectrumMatch > > &, bool = false, size_t = 0);
     int get_n_hits() const;
     std::vector < int > * get_cum_hits() const;
 
