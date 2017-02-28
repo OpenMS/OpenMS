@@ -820,14 +820,14 @@ protected:
       String msg = "Not enough positive observations for " + 
         String(n_parts_) + "-fold cross-validation" + note + ".";
       throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
     }
     if (n_neg < n_parts_)
     {
       String msg = "Not enough negative observations for " + 
         String(n_parts_) + "-fold cross-validation" + note + ".";
       throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
     }
   }
 
@@ -849,7 +849,7 @@ protected:
     {
       String msg = "Not enough observations for intensity-bias filtering.";
       throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
     }
     srand(time(0)); // seed random number generator
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
@@ -1299,7 +1299,7 @@ protected:
           " (parameter 'svm:samples') is not enough for " + String(n_parts_) +
           "-fold cross-validation (parameter 'svm:xval').";
         throw Exception::InvalidParameter(__FILE__, __LINE__,
-                                          __PRETTY_FUNCTION__, msg);
+                                          OPENMS_PRETTY_FUNCTION, msg);
       }
 
       //-------------------------------------------------------------

@@ -100,7 +100,11 @@ if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 if (WITH_CRAWDAD)
-  list(APPEND OPENMS_DEP_LIBRARIES Crawdad)
+  # find archive (static) version and add it to the OpenMS library
+  find_library(Crawdad_LIBRARY
+   NAMES Crawdad.a Crawdad
+    HINTS ${Crawdad_DIR})
+  list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
 openms_add_library(TARGET_NAME  OpenMS

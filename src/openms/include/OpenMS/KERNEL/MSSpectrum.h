@@ -163,6 +163,7 @@ public:
       RangeManager<1>(),
       SpectrumSettings(),
       retention_time_(-1),
+      drift_time_(-1),
       ms_level_(1),
       name_(),
       float_data_arrays_(),
@@ -176,6 +177,7 @@ public:
       RangeManager<1>(source),
       SpectrumSettings(source),
       retention_time_(source.retention_time_),
+      drift_time_(source.drift_time_),
       ms_level_(source.ms_level_),
       name_(source.name_),
       float_data_arrays_(source.float_data_arrays_),
@@ -197,6 +199,7 @@ public:
       SpectrumSettings::operator=(source);
 
       retention_time_ = source.retention_time_;
+      drift_time_ = source.drift_time_;
       ms_level_ = source.ms_level_;
       name_ = source.name_;
       float_data_arrays_ = source.float_data_arrays_;
@@ -216,6 +219,7 @@ public:
              RangeManager<1>::operator==(rhs) &&
              SpectrumSettings::operator==(rhs) &&
              retention_time_ == rhs.retention_time_ &&
+             drift_time_ == rhs.drift_time_ &&
              ms_level_ == rhs.ms_level_ &&
              float_data_arrays_ == rhs.float_data_arrays_ &&
              string_data_arrays_ == rhs.string_data_arrays_ &&
@@ -239,16 +243,37 @@ public:
 
     ///@name Accessors for meta information
     ///@{
-    /// Returns the absolute retention time (is seconds)
+    /// Returns the absolute retention time (in seconds)
     inline double getRT() const
     {
       return retention_time_;
     }
 
-    /// Sets the absolute retention time (is seconds)
+    /// Sets the absolute retention time (in seconds)
     inline void setRT(double rt)
     {
       retention_time_ = rt;
+    }
+
+    /**
+      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+
+      @note Drift times may be stored directly as an attribute of the spectrum
+      (if they relate to the spectrum as a whole). In case of ion mobility
+      spectra, the drift time of the spectrum will always be set here while the
+      drift times attribute in the Precursor class may often be unpopulated.
+    */
+    inline double getDriftTime() const
+    {
+      return drift_time_;
+    }
+
+    /**
+      @brief Returns the ion mobility drift time in milliseconds
+    */
+    inline void setDriftTime(double dt)
+    {
+      drift_time_ = dt;
     }
 
     /**
@@ -662,6 +687,7 @@ public:
         clearRanges();
         this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
         retention_time_ = -1.0;
+        drift_time_ = -1.0;
         ms_level_ = 1;
         name_.clear();
         float_data_arrays_.clear();
@@ -728,6 +754,9 @@ protected:
    
     /// Retention time
     double retention_time_;
+
+    /// Drift time
+    double drift_time_;
 
     /// MS level
     UInt ms_level_;

@@ -98,7 +98,7 @@ class TOPPFeatureLinkerUnlabeledKD :
 
 public:
   TOPPFeatureLinkerUnlabeledKD() :
-    TOPPFeatureLinkerBase("FeatureLinkerUnlabeledKD", "Groups corresponding features from multiple maps.", false)
+    TOPPFeatureLinkerBase("FeatureLinkerUnlabeledKD", "Groups corresponding features from multiple maps.")
   {
     setLogType(CMD);
   }

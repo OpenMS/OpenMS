@@ -70,6 +70,7 @@ namespace OpenMS
     tools_map["FeatureFinderSuperHirn"] = Internal::ToolDescription("FeatureFinderSuperHirn", "Quantitation");
     tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", "Map Alignment");
+    tools_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", "Map Alignment");
     tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", "Map Alignment");
     tools_map["FidoAdapter"] = Internal::ToolDescription("FidoAdapter", "ID Processing");
     tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", "File Handling");
@@ -195,7 +196,6 @@ namespace OpenMS
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
-    util_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
     util_map["IDDecoyProbability"] = Internal::ToolDescription("IDDecoyProbability", util_category);

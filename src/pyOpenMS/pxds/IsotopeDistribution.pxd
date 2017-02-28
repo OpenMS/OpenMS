@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
 
         # Estimate fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, a set of isolated precursor isotopes, and average composition
-        void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, libcpp_set unsigned int ]& precursor_isotopes, double C, double H, double N, double O, double S, double P) nogil except +
+        void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes, double C, double H, double N, double O, double S, double P) nogil except +
 
         # Calculate isotopic distribution for a fragment molecule
 

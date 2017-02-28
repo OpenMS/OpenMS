@@ -5,6 +5,8 @@ set(directory include/OpenMS/FORMAT/DATAACCESS)
 set(sources_list_h
 MSDataWritingConsumer.h
 MSDataTransformingConsumer.h
+MSDataAggregatingConsumer.h
+MSDataStoringConsumer.h
 MSDataCachedConsumer.h
 MSDataChainingConsumer.h
 NoopMSDataConsumer.h
