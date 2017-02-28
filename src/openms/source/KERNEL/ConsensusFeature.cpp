@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ namespace OpenMS
     if (!(handles_.insert(handle).second))
     {
       String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The set already contained an element with this key.", key);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
 
@@ -120,7 +120,13 @@ namespace OpenMS
   void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
-    peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
+    // annotate map index to peptide identification
+    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    for (std::vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    {
+      it->setMetaValue("map_index", map_index);
+    }
+    peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }
 
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
@@ -282,7 +288,7 @@ namespace OpenMS
       double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, fm.size());
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, fm.size());
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
       {
         adduct_mass = (double) fm[index].getMetaValue("dc_charge_adduct_mass");

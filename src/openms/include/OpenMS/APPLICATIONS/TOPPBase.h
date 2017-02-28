@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -609,8 +609,10 @@ protected:
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+       @param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
+              Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
      */
-    void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
     /**
        @brief Registers a list of output files option.

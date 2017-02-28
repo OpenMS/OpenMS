@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <cmath>
+#include <utility>
 
 namespace OpenMS
 {
@@ -279,7 +280,38 @@ namespace OpenMS
       return std::fabs(ppmToMass(ppm, mz_ref));
     }
 
-  }   // namespace Math
+    /*
+      @brief Return tolerance window around @p val given tolerance @p tol
+
+      Note that when ppm is used, the window is not symmetric. In this case,
+      (right - @p val) > (@p val - left), i.e., the tolerance window also
+      includes the largest value x which still has @p val in *its* tolerance
+      window for the given ppms, so the compatibility relation is symmetric.
+
+      @param val Value
+      @param tol Tolerance
+      @param ppm Whether @p tol is in ppm or absolute
+      @return Tolerance window boundaries
+    */
+    inline static std::pair<double, double> getTolWindow(double val, double tol, bool ppm)
+    {
+      double left, right;
+
+      if (ppm)
+      {
+        left = val - val * tol * 1e-6;
+        right = val / (1.0 - tol * 1e-6);
+      }
+      else
+      {
+        left = val - tol;
+        right = val + tol;
+      }
+
+      return std::make_pair(left, right);
+    }
+
+  } // namespace Math
 } // namespace OpenMS
 
 #endif // OPENMS_MATH_MISC_MATHFUNCTIONS_H

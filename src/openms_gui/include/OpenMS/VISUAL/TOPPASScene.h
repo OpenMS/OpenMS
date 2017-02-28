@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -192,9 +192,9 @@ public:
     /// Performs a topological sort of all vertices
     void topoSort();
     /// Returns the name of the directory for output files
-    const QString & getOutDir();
+    const QString & getOutDir() const;
     /// Returns the name of the directory for temporary files
-    const QString & getTempDir();
+    const QString & getTempDir() const;
     /// Sets the name of the directory for output files
     void setOutDir(const QString & dir);
     /// Saves the pipeline if it has been changed since the last save.
@@ -231,6 +231,10 @@ public:
     bool wasChanged();
     /// Refreshes the parameters of the TOPP tools in this workflow
     RefreshStatus refreshParameters();
+    
+    /// is TOPPASScene run in GUI or non-GUI (ExecutePipeline) mode, i.e. are MessageBoxes allowed?
+    bool isGUIMode() const;
+
     /// determine dry run status (are tools actually called?)
     bool isDryRun() const;
     /// workflow description (to be displayed in TOPPAS window)

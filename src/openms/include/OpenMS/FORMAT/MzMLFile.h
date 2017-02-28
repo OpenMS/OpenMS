@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -237,4 +237,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZMLFILE_H
+#endif // OPENMS_FORMAT_MZMLFILE_H
+

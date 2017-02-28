@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -271,6 +271,17 @@ namespace OpenMS
       BaseException(file, line, function, "FileNotWritable", "")
     {
       what_ = "the file '" + filename + "' is not writable for the current user";
+      GlobalExceptionHandler::getInstance().setMessage(what_);
+    }
+
+    FileNameTooLong::FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) throw() :
+      BaseException(file, line, function, "FileNameTooLong", "")
+    {
+      stringstream ss;
+      ss << "the file '" << filename << "' is too long (" << filename.size() << " chars) "
+         << "and exceeds the allowed limit of " << max_length << ". "
+         << "Use shorter filenames and/or less sub-directories.";
+      what_ = ss.str();
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
 

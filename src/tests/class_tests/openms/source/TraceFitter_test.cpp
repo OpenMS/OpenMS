@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -53,62 +53,62 @@ public:
 
     void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces&)
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getLowerRTBound() const
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getUpperRTBound() const
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getHeight() const
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getCenter() const
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getFWHM() const
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getValue(double /* rt */) const
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     bool checkMinimalRTSpan(const std::pair<double, double>&, const double)
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     bool checkMaximalRTSpan(const double)
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     double getArea()
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace&, const char, const double, const double)
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
     void getOptimizedParameters_(const Eigen::VectorXd&)
     {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+        throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
     }
 
 };

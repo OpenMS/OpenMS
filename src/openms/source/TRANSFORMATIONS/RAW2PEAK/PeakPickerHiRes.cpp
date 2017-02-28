@@ -28,7 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Author: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg$
 // --------------------------------------------------------------------------
 //
 
@@ -60,7 +61,12 @@ namespace OpenMS
     defaults_.setValue("ms_levels", ListUtils::create<Int>("1,2"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
     defaults_.setMinInt("ms_levels", 1);
 
-    // parameters for SNT estimator
+    defaults_.setValue("report_FWHM", "false", "Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.");
+    defaults_.setValidStrings("report_FWHM", ListUtils::create<String>("true,false"));
+    defaults_.setValue("report_FWHM_unit", "relative", "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
+    defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));
+
+    // parameters for STN estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
 
     // write defaults into Param object param_
@@ -82,6 +88,8 @@ namespace OpenMS
     missing_ = param_.getValue("missing");
 
     ms_levels_ = getParameters().getValue("ms_levels");
+    report_FWHM_ = getParameters().getValue("report_FWHM").toBool();
+    report_FWHM_as_ppm_ = getParameters().getValue("report_FWHM_unit")!="absolute";
   }
 
 }

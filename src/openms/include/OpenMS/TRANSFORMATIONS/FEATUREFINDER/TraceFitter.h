@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -193,4 +193,4 @@ protected:
 
 }
 
-#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKED_RTFITTING_H
+#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H

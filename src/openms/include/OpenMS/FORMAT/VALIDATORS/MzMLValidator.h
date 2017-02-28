@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -56,9 +56,9 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
-            */
+        @param mapping The mapping rules
+        @param cv @em All controlled vocabularies required for the mapping
+      */
       MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor

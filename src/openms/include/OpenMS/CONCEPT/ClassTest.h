@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -39,9 +39,10 @@
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
 // Includes in the C-file are ok...
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/OpenMSConfig.h>

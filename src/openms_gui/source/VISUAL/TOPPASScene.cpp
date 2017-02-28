@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -1150,16 +1150,15 @@ namespace OpenMS
 
   void TOPPASScene::include(TOPPASScene* tmp_scene, QPointF pos)
   {
-    QRectF new_bounding_rect = tmp_scene->itemsBoundingRect();
-    QRectF our_bounding_rect = itemsBoundingRect();
     qreal x_offset, y_offset;
-    if (pos == QPointF())
+    if (pos == QPointF()) // pasted via Ctrl-V (no mouse position given)
     {
-      y_offset = our_bounding_rect.bottom() - new_bounding_rect.top() + 40.0;
-      x_offset = our_bounding_rect.left() - new_bounding_rect.left();
+      x_offset = 30.0; // move just a tad (in relation to old content)
+      y_offset = 30.0;
     }
     else
     {
+      QRectF new_bounding_rect = tmp_scene->itemsBoundingRect();
       x_offset = pos.x() - new_bounding_rect.left();
       y_offset = pos.y() - new_bounding_rect.top();
     }
@@ -1229,11 +1228,11 @@ namespace OpenMS
     // add all edges (are not copied by copy constructors of vertices)
     for (EdgeIterator it = tmp_scene->edgesBegin(); it != tmp_scene->edgesEnd(); ++it)
     {
-      TOPPASEdge* new_e = new TOPPASEdge();
       TOPPASVertex* old_source = (*it)->getSourceVertex();
       TOPPASVertex* old_target = (*it)->getTargetVertex();
       TOPPASVertex* new_source = vertex_map[old_source];
       TOPPASVertex* new_target = vertex_map[old_target];
+      TOPPASEdge* new_e = new TOPPASEdge();
       new_e->setSourceVertex(new_source);
       new_e->setTargetVertex(new_target);
       new_e->setSourceOutParam((*it)->getSourceOutParam());
@@ -1246,17 +1245,11 @@ namespace OpenMS
       addEdge(new_e);
     }
 
-    if (!views().empty())
+    // select new items (so the user can move them); edges do not need to be selected, only vertices
+    unselectAll();
+    for (Map<TOPPASVertex*, TOPPASVertex*>::Iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
     {
-      TOPPASWidget* tw = qobject_cast<TOPPASWidget*>(views().first());
-      if (tw)
-      {
-        QRectF scene_rect = itemsBoundingRect();
-
-        tw->fitInView(scene_rect, Qt::KeepAspectRatio);
-        tw->scale(0.75, 0.75);
-        setSceneRect(tw->mapToScene(tw->rect()).boundingRect());
-      }
+      it->second->setSelected(true);
     }
 
     topoSort();
@@ -1528,12 +1521,12 @@ namespace OpenMS
     update(sceneRect());
   }
 
-  const QString& TOPPASScene::getOutDir()
+  const QString& TOPPASScene::getOutDir() const
   {
     return out_dir_;
   }
 
-  const QString& TOPPASScene::getTempDir()
+  const QString& TOPPASScene::getTempDir() const
   {
     return tmp_path_;
   }
@@ -2162,7 +2155,10 @@ namespace OpenMS
       if (allowUserOverride)
       {
         QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges", QString("Node") + (strange_vertices.size() > 1 ? "s " : " ") + strange_vertices.join(", ") + (strange_vertices.size() > 1 ? " have " : " has ") + "no outgoing edges.\n\nDo you still want to run the pipeline?", QMessageBox::Yes | QMessageBox::No);
+        ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges", QString("Node") +
+                                   (strange_vertices.size() > 1 ? "s " : " ") + strange_vertices.join(", ") +
+                                   (strange_vertices.size() > 1 ? " have " : " has ") +
+                                   "no outgoing edges.\n\nDo you still want to run the pipeline?", QMessageBox::Yes | QMessageBox::No);
         if (ret == QMessageBox::No)
         {
           return false;
@@ -2351,11 +2347,16 @@ namespace OpenMS
     allowed_threads_ = num_jobs;
   }
 
+  bool TOPPASScene::isGUIMode() const
+  {
+    return gui_;
+  }
+
   bool TOPPASScene::isDryRun() const
   {
     return dry_run_;
   }
-
+  
   void TOPPASScene::quitWithError()
   {
     exit(1);

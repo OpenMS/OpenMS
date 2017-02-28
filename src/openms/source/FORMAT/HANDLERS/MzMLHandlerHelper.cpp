@@ -63,7 +63,7 @@ namespace OpenMS
       //
       // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
       //
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
     }
 
     if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)
@@ -185,11 +185,15 @@ namespace OpenMS
       {
         if (data_[i].np_compression != MSNumpressCoder::NONE)
         {
-          // If its numpress, we don't care about 32 / 64 bit but the numpress
-          // decoder expects std::vector<double> which are 64 bit.
+          // If its numpress, we don't distinguish 32 / 64 bit as the numpress
+          // decoder always works with 64 bit (takes std::vector<double>)
           MSNumpressCoder::NumpressConfig config;
           config.np_compression = data_[i].np_compression;
           MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
+
+          // Next, ensure that we only look at the float array even if the
+          // mzML tags say 32 bit data (I am looking at you, proteowizard)
+          data_[i].precision = BinaryData::PRE_64;
         }
         else if (data_[i].precision == BinaryData::PRE_64)
         {

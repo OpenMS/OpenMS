@@ -4,8 +4,7 @@ set(directory include/OpenMS/CHEMISTRY)
 ### list all header files of the directory here
 set(sources_list_h
 AASequence.h
-EdwardsLippertIterator.h
-EdwardsLippertIteratorTryptic.h
+CrossLinksDB.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h

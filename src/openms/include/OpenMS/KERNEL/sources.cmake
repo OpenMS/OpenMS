@@ -32,6 +32,7 @@ RangeUtils.h
 RichPeak1D.h
 RichPeak2D.h
 StandardTypes.h
+SpectrumHelper.h
 )
 
 ### add path to the filenames

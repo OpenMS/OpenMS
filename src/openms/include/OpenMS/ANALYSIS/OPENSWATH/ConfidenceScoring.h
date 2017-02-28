@@ -180,7 +180,7 @@ public:
       Size n_assays = library_.getPeptides().size();
       if (n_assays < 2)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "There need to be at least 2 assays in the library for ConfidenceScoring.");
 
       }

@@ -132,13 +132,13 @@ namespace OpenMS
 
   CalibrationData::CalDataType::CoordinateType CalibrationData::getRefMZ( Size i ) const
   {
-    if (!data_[i].metaValueExists("mz_ref")) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "getRefMz() received invalid point without meta data!");
+    if (!data_[i].metaValueExists("mz_ref")) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "getRefMz() received invalid point without meta data!");
     return data_[i].getMetaValue("mz_ref");
   }
 
   CalibrationData::CalDataType::CoordinateType CalibrationData::getWeight( Size i ) const
   {
-    if (!data_[i].metaValueExists("weight")) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "getWeight() received invalid point without meta data!");
+    if (!data_[i].metaValueExists("weight")) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "getWeight() received invalid point without meta data!");
     return data_[i].getMetaValue("weight");
   }
 

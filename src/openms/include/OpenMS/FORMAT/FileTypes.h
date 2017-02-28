@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ namespace OpenMS
       TOPPAS,             ///< %OpenMS parameters file with workflow information (.toppas)
       TRANSFORMATIONXML,  ///< Transformation description file (.trafoXML)
       MZML,               ///< MzML file (.mzML)
+      CACHEDMZML,         ///< CachedMzML file (.cachedmzML)
       MS2,                ///< MS2 file (.ms2)
       PEPXML,             ///< TPP pepXML file (.pepXML)
       PROTXML,            ///< TPP protXML file (.protXML)
@@ -100,6 +101,7 @@ namespace OpenMS
       PSQ,                ///< NCBI binary blast db
       MRM,                ///< SpectraST MRM List
       PSMS,               ///< Percolator tab-delimited output (PSM level)
+      PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

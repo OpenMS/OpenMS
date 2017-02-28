@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ namespace OpenMS
       std::vector<Wm5::Vector2d> points;
       if (size == 0) // no data
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "no data points for 'linear' model");
       }
       else if (size == 1) // degenerate case, but we can still do something
@@ -77,7 +77,7 @@ namespace OpenMS
         }
         if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
         {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }
       }
       // update params
@@ -100,7 +100,7 @@ namespace OpenMS
     if (slope_ == 0)
     {
       throw Exception::DivisionByZero(__FILE__, __LINE__,
-                                      __PRETTY_FUNCTION__);
+                                      OPENMS_PRETTY_FUNCTION);
     }
     intercept_ = -intercept_ / slope_;
     slope_ = 1.0 / slope_;

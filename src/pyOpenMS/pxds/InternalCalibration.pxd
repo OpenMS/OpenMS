@@ -7,6 +7,7 @@ from Peak1D cimport *
 from PeptideIdentification cimport *
 from ProgressLogger cimport *
 from Types cimport *
+from Precursor cimport *
 
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS":
 
@@ -15,17 +16,51 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         #    ProgressLogger
 
         InternalCalibration()      nogil except +
-        InternalCalibration(InternalCalibration) nogil except + 
-        
-        Size fillCalibrants(MSExperiment[Peak1D,ChromatogramPeak], libcpp_vector[InternalCalibration::LockMass], double tol_ppm, bool, bool, bool) nogil except +
+        InternalCalibration(InternalCalibration) nogil except +
+
+
+        Size fillCalibrants(MSExperiment[Peak1D,ChromatogramPeak],
+                            libcpp_vector[InternalCalibration_LockMass],
+                            double tol_ppm,
+                            bool lock_require_mono,
+                            bool lock_require_iso,
+                            CalibrationData& failed_lock_masses,
+                            bool verbose) nogil except +
         Size fillCalibrants(FeatureMap, double) nogil except +
         Size fillCalibrants(libcpp_vector[PeptideIdentification], double) nogil except +
         CalibrationData getCalibrationPoints() nogil except +
-        bool calibrate(MSExperiment[Peak1D,ChromatogramPeak], libcpp_vector[int], MZTrafoModel::MODELTYPE, double, bool, double, double, String, String) nogil except +
-                                     
-                      
+        bool calibrate(MSExperiment[Peak1D,ChromatogramPeak],
+                       libcpp_vector[int],
+                       MZTrafoModel_MODELTYPE,
+                       double rt_chunk,
+                       bool use_RANSAC,
+                       double post_ppm_median,
+                       double post_ppm_MAD,
+                       String file_models,
+                       String file_models_plot,
+                       String file_residuals,
+                       String file_residuals_plot,
+                       String rscript_executable) nogil except +
+
+
+
+## wrap static methods
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
-    
-    # static members               
-    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo) nogil except +
-    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo) nogil except +
+
+    void applyTransformation(libcpp_vector[Precursor]& pcs,
+                             MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
+    void applyTransformation(MSSpectrum[Peak1D] & spec, IntList& target_mslvl,
+                             MZTrafoModel & trafo) nogil except + # wrap-attach:InternalCalibration
+    void applyTransformation(MSExperiment[Peak1D, ChromatogramPeak] & exp,
+                             IntList& target_mslvl, MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
+
+cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":
+
+    cdef cppclass InternalCalibration_LockMass "OpenMS::InternalCalibration::LockMass":
+        #InternalCalibration_LockMass() nogil except +
+        InternalCalibration_LockMass(InternalCalibration_LockMass) nogil except + # wrap-ignore
+        InternalCalibration_LockMass(double mz_, int lvl_, int charge_) nogil except +
+        double mz # m/z of the lock mass (incl. adducts)
+        unsigned int ms_level # MS level where it occurs
+        int charge # charge of the ion (to find isotopes)
+

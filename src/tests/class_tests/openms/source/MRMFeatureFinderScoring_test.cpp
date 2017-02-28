@@ -100,7 +100,9 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 #ifdef USE_SP_INTERFACE
   OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
+  std::vector< OpenSwath::SwathMap > swath_maps(1);
+  swath_maps[0].sptr = swath_ptr;
+  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_maps, transition_group_map);
 #else
   ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
 #endif
@@ -258,7 +260,9 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 #ifdef USE_SP_INTERFACE
   OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
+  std::vector< OpenSwath::SwathMap > swath_maps(1);
+  swath_maps[0].sptr = swath_ptr;
+  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_maps, transition_group_map);
 #else
   ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
 #endif

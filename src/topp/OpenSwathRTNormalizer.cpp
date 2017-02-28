@@ -147,38 +147,6 @@ protected:
     return Param();
   }
 
-  bool computeBinnedCoverage(const std::pair<double,double> & rtRange, 
-      const std::vector<std::pair<double, double> > & pairs, int nrBins, 
-      int minPeptidesPerBin, int minBinsFilled)
-  {
-    std::vector<int> binCounter(nrBins, 0);
-    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
-    {
-      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
-      normRT *= nrBins;
-      int bin = (int)normRT;
-      if (bin >= nrBins)
-      {
-        // this should never happen, but just to make sure
-        std::cerr << "MRMRTNormalizer::countPeptidesInBins : computed bin was too large (" << bin << "), setting it to the maximum of " << nrBins << std::endl;
-        bin = nrBins - 1;
-      }
-      binCounter[ bin ]++;
-    }
-
-    int binsFilled = 0;
-    for (Size i = 0; i < binCounter.size(); i++)
-    {
-      std::cout <<" In bin " << i << " out of " << binCounter.size() << " we have " << binCounter[i] << " peptides " << std::endl;
-      if (binCounter[i] >= minPeptidesPerBin) 
-      {
-        binsFilled++;
-      }
-    }
-
-    return (binsFilled >= minBinsFilled);
-  }
-
   ExitCodes main_(int, const char **)
   {
 
@@ -213,9 +181,9 @@ protected:
 
     // 2. Store the peptide retention times in an intermediate map
     std::map<std::string, double> PeptideRTMap;
-    for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
+    for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
-      PeptideRTMap[targeted_exp.getPeptides()[i].id] = targeted_exp.getPeptides()[i].rt; 
+      PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt; 
     }
 
     MzMLFile f;
@@ -261,10 +229,11 @@ protected:
       featureFinder.setParameters(scoring_params);
       featureFinder.setStrictFlag(false);
       
-      OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+      std::vector< OpenSwath::SwathMap > swath_maps(1);
+      swath_maps[0].sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      featureFinder.pickExperiment(chromatogram_ptr, featureFile, targeted_exp, trafo, swath_ptr, transition_group_map);
+      featureFinder.pickExperiment(chromatogram_ptr, featureFile, targeted_exp, trafo, swath_maps, transition_group_map);
 
       // add all the chromatograms to the output
       for (Size k = 0; k < xic_map->getChromatograms().size(); k++)
@@ -307,19 +276,19 @@ protected:
     }
     else 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
     // 5. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
-    bool enoughPeptides = computeBinnedCoverage(RTRange, pairs_corrected,
+    bool enoughPeptides = MRMRTNormalizer::computeBinnedCoverage(RTRange, pairs_corrected,
       pepEstimationParams.getValue("NrRTBins"),
       pepEstimationParams.getValue("MinPeptidesPerBin"),
       pepEstimationParams.getValue("MinBinsFilled") );
     if (estimateBestPeptides && !enoughPeptides)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "There were not enough bins with the minimal number of peptides");
     }
 

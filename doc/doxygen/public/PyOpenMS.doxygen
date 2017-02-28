@@ -53,11 +53,7 @@ PyOpenMS offers Python bindings to a large part of the %OpenMS API.
 
 We offer pre-built packages on <a href="https://pypi.python.org/pypi/pyopenms">PyPI (pyopenms package)</a>,
 which does not require compilation. If you want to use pyOpenMS in production,
-we recommend to follow the instruction from the linked website and install pyOpenMS through easy_install: 
-
-@code
-$ easy_install pyopenms
-@endcode
+we recommend to follow the binary installation instructions specific for your platform on <a href="https://pypi.python.org/pypi/pyopenms">PyPI</a>.
 
 <H1 id="build" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Build Instructions</H1>
 
@@ -215,13 +211,16 @@ not build any more.  Thus, find the corresponding file in the @c pyOpenMS/pxds/
 folder and adjust the function declaration accordingly.</p>
 
 <H2 id="wrap-new" style="margin-top:40px; border-top:4px solid grey; text-align:left;">How to wrap new classes</H2>
+
+<H3 id="wrap-simple" style="margin-top:40px; border-top:4px solid grey; text-align:left;">A simple example</H3>
+
 To wrap a new %OpenMS class: Create a new "pxd" file in the folder <code>./pxds</code>. As
 a small example, look at the <code>CVTerm.pxd</code> to get you started. Start with the
 following structure:
 
 @code
 from xxx cimport *
-cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS":
 
     cdef cppclass ClassName(DefaultParamHandler):
         # wrap-inherits:
@@ -247,6 +246,145 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
   header file) since Cython will need it for certain operations. Otherwise you
   might see error messages like <code>item0.inst = shared_ptr[_ClassName](new _ClassName(deref(it_terms))) Call with wrong number of arguments</code> 
 
+<H3 id="wrap-complicated" style="margin-top:40px; border-top:4px solid grey; text-align:left;">A further example</H3>
+
+A slightly more complicated class could look like this, where we demonstrate how to handle templated classes and static methods:
+
+@code
+from xxx cimport *
+from AbstractBaseClass cimport *
+from AbstractBaseClassImpl1 cimport *
+from AbstractBaseClassImpl2 cimport *
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS":
+
+    cdef cppclass ClassName[T](DefaultParamHandler):
+        # wrap-inherits:
+        #    DefaultParamHandler
+        # 
+        # wrap-instances:
+        #   ClassName := ClassName[X]
+        #   ClassNameY := ClassName[Y]
+
+        ClassName() nogil except +
+        ClassName(ClassName[T]) nogil except + # wrap-ignore
+
+        void method_name(int param1, double param2) nogil except +
+        T method_returns_template_param() nogil except +
+
+        size_t size() nogil except +
+        T operator[](int) nogil except + # wrap-upper-limit:size()
+
+        libcpp_vector[T].iterator begin() nogil except +  # wrap-iter-begin:__iter__(T)
+        libcpp_vector[T].iterator end()   nogil except +  # wrap-iter-end:__iter__(T)
+
+        void getWidgets(libcpp_vector[String] & keys) nogil except +
+        void getWidgets(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getWidgetsAsIntegers
+
+        # C++ signature: void process(AbstractBaseClass * widget)
+        void process(AbstractBaseClassImpl1 * widget) nogil except +
+        void process(AbstractBaseClassImpl2 * widget) nogil except +
+
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS::Classname<OpenMS::X>":
+
+    void static_method_name(int param1, double param2) nogil except + # wrap-attach:ClassName
+
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS::Classname<OpenMS::Y>":
+
+    void static_method_name(int param1, double param2) nogil except + # wrap-attach:ClassNameY
+
+@endcode
+
+Here the copy constructor will not be wrapped but the Cython parser will import
+it from C++ so that is is present (using wrap-ignore). The <tt>operator[]</tt>
+will return an object of type <tt>X</tt> or <t>Y</t> depending on the template
+argument and contain a guard that the number may not be exceed <tt>size()</tt>.
+
+The wrapping of iterators allows for iteration over the objects inside the
+<tt>Classname</tt> container using the appropriate Python function (here
+<tt>__iter__</tt> with the indicated return type <t>T</t>).
+
+The <tt>wrap-as</tt> keyword allows the Python function to assume a different
+name. 
+
+Note that pointers to abstract base classes can be passed as arguments but the
+classes have to be known at compile time, e.g. the function <tt>process</tt>
+takes a pointer to <tt>AbstractBaseClass</tt> which has two known
+implementations <tt>AbstractBaseClassImpl1</tt> and
+<tt>AbstractBaseClassImpl2</tt>. Then, the function needs to declared and
+overloaded with both implementations as arguments as shown above.
+
+<H3 id="wrap-complicated" style="margin-top:40px; border-top:4px solid grey; text-align:left;">An example with handwritten addon code</H3>
+
+A more complex examples requires some hand-written wrapper code
+(pxds/Classname.pxd), for example for singletons that implement a <tt>getInstance()</tt>
+method that returns a pointer to the singleton resource. Note that in this case
+it is quite important to not let autowrap take over the pointer and possibly
+delete it when the lifetime of the Python object ends (leading to Segfaults in
+Python).
+
+@code
+from xxx cimport *
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS":
+
+    cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
+        # wrap-manual-memory
+        # wrap-hash:
+        #   getFullId().c_str()
+
+        ClassName(ClassName[T]) nogil except + # wrap-ignore
+
+        void method_name(int param1, double param2) nogil except +
+
+        int process(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) nogil except + # wrap-ignore
+
+cdef extern from "<OpenMS/path/to/header/Classname.h>" namespace "OpenMS::Classname":
+
+    const ClassName* getInstance() nogil except + # wrap-ignore
+
+@endcode
+
+Here the <tt>wrap-manual-memory</tt> keywords indicates that memory management
+will be handled manually and autowrap can assume that a member called
+<tt>inst</tt> will be provided that implements a <tt>gets()</tt> method to
+obtain a pointer to an object of C++ type <tt>Classname</tt>.
+
+We then have to provide such an object (addons/Classname.pyx):
+
+@code
+# This will go into the header
+# NOTE: _Classname is the C++ class while Classname is the Python class
+from Classname cimport Classname as _Classname
+cdef class ClassnameWrapper:
+    # A small utility class holding a ptr and implementing get()
+    cdef const _Classname* wrapped
+    cdef setptr(self, const _Classname* wrapped): self.wrapped = wrapped
+    cdef const _Classname* get(self) except *: return self.wrapped
+
+    # This will go into the class
+    # NOTE: using shared_ptr for a singleton will lead to segfaults, use raw ptr instead
+    cdef ClassnameWrapper inst
+
+    def __init__(self):
+      self.inst = ClassnameWrapper()
+      self.inst.setptr(_getInstance_Classname()) # calls the import getInstance method to obtain raw ptr
+
+    def __dealloc__(self):
+      # Careful here, the wrapped ptr is a single instance and we should not
+      # reset it, therefore use 'wrap-manual-dealloc'
+      pass
+
+    def process(self, Container c):
+        return self.inst.get().process(c.inst.get().begin(), c.inst.get().end())
+
+@endcode
+
+Note how the manual <tt>wrapping</tt> of the process functions allows us to
+access the <tt>inst</tt> pointer of the argument as well as of the object
+itself, allowing us to call C++ functions on both pointers. This makes it easy
+to generate the required iterators and process the container efficiently.
+
+<H3 id="wrap-complicated" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Considerations and limitations</H3>
+
 Further considerations and limitations:
 
 - Inheritance: there are some limitations, see for example @c Precursor.pxd
@@ -266,13 +404,19 @@ Further considerations and limitations:
 
 - shared pointers: is handled automatically, check DataAccessHelper using <code>shared_ptr[Spectrum]</code>. Use <code>from smart_ptr cimport shared_ptr</code> as import statement
 
-These hints can be given to autowrap (also check the autowrap documentation):
+These hints can be given to autowrap classes (also check the autowrap documentation):
+- wrap-ignore: is a hint for autowrap to not wrap the class (but the declaration might still be important for Cython to know about) 
+- wrap-instances: for templated classes (see MSSpectrum.pxd)
+- wrap-hash: hash function to use for <tt>__hash__</tt> (see Residue.pxd)
+- wrap-manual-memory: hint that memory management will be done manually
+
+These hints can be given to autowrap functions (also check the autowrap documentation):
 - wrap-ignore: is a hint for autowrap to not wrap the function (but the declaration might still be important for Cython to know about) 
 - wrap-as: see for example AASequence ":"
 - wrap-iter-begin, wrap-iter-end (see ConsensusMap.pxd)
-- wrap-instances - for templated classes (see MSSpectrum.pxd)
 - wrap-attach: enums, static methods (see for example VersionInfo.pxd)
 - wrap-upper-limit:size or size() (see MSSpectrum.pxd)
+
 
 <H3 id="wrap-addons" style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping code yourself in ./addons </H3>
 
@@ -281,7 +425,6 @@ name in the addons folder (e.g. myClass.px in pxds/ and myClass.pyx in addons)
 and leave two lines empty on the top (this is important). Start with 4 spaces
 of indent and write your additional wrapper functions, adding a wrap-ignore
 comment to the pxd file. For some examples, look into the src/pyOpenMS/addons/ folder:
-
 
 
 - IDRipper.pyx 
@@ -299,7 +442,7 @@ comment to the pxd file. For some examples, look into the src/pyOpenMS/addons/ f
   - for a vector< vector<String> > to get returned
 
 - ChromatogramExtractorAlgorithm.h 
-  - for an example of a abstract base class (ISpectrumAccess), to see how it is handled please refer to the ./addons folder
+  - for an example of an abstract base class (ISpectrumAccess), to see how it is handled please refer to the ./addons folder
 
 Make sure that you _always_ declare your objects (all C++ and all Cython
 objects need to be declared) using @c cdef Type name. Otherwise you get <code>Cannot

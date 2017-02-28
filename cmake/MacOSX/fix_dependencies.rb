@@ -81,12 +81,14 @@ def cleanOtoolEntry(otool_line)
 end
 
 ###############################################################################
-def getId(otool_output)
-  id = otool_output.delete_at(0).strip
+def extractInstallName(otool_output)
+  # Skip file basename
+  otool_output.delete_at(0).strip
+  # Save install name (id)
   id = otool_output.delete_at(0).strip
   # clean id
   id = cleanOtoolEntry(id)
-#  debug "Found ID: #{id}"  
+  # return id and remaining otool output = dependencies
   return id, otool_output
 end
 
@@ -201,13 +203,14 @@ def handleFramework(frameworkPath, targetPath)
   if not $handledLibraries.include?(libname)
     # run otool
     otool_out=`otool -L #{frameworkPath}`.strip.split(/\n/)
-    id, otool_out = getId(otool_out)
-    debug "Handle FW #{frameworkPath} -> #{id}"
-  
-    # update the id
+    # strips first two lines
+    id, otool_out = extractInstallName(otool_out)
+    
+    # update the install_name (-id)
     fixId(newFrameWorkPath,libname)
+    debug "Handle FW #{frameworkPath} -> #{id}"
 
-    # check the actual dependencies
+    # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newFrameWorkPath)
   
     # mark as processed
@@ -226,19 +229,22 @@ end
 def handleDyLib(dylibPath, targetPath)
   $currentIndent+=1
 
+  
+
   # copy if necessary
   newDyLibPath,libname=copyLib(dylibPath, targetPath)
   
   if not $handledLibraries.include?(libname)
     # run otool
     otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
-    id, otool_out = getId(otool_out)
-    debug "Handle DYLIB #{dylibPath} -> #{id}"
+    # strips first two lines
+    id, otool_out = extractInstallName(otool_out)
   
-    # fixId
+    # update install_name (-id) of current DyLib
     fixId(newDyLibPath,libname)
-  
-    # check the actual dependencies
+    debug "Handle DYLIB #{dylibPath} --> #{id}"
+
+    # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newDyLibPath)
   
     # mark as processed
@@ -257,7 +263,7 @@ end
 def handleBinary(binaryPath, targetPath)
   $currentIndent+=1
   
-  debug "Fixing #{binaryPath}"
+  debug "Fixing binary #{binaryPath}"
   
   # no copy, no id change; juts run otool
   otool_out=`otool -L #{binaryPath}`.strip.split(/\n/)
@@ -310,7 +316,7 @@ opts.each do |opt, arg|
       lib = Pathname.new(arg).realpath
     when '--bin-path'
       bin = Pathname.new(arg).realpath
-    when '-v'
+    when '--verbose'
       $DEBUG = true
   end
 end
@@ -335,6 +341,7 @@ end
 # fix binary references
 for content in Dir.entries(bin)
   if fixable(content)
+    debug "Handle binary #{bin + content}"
     handleBinary(bin + content, lib)
   end
 end

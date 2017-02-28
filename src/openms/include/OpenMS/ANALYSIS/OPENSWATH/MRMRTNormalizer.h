@@ -167,7 +167,27 @@ public:
       @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
     */
     static bool chauvenet(std::vector<double>& residuals, int pos);
+
+    /**
+      * @brief Computes coverage of the RT normalization peptides over the whole RT range, ensuring that each bin has enough peptides
+      *
+      * @param rtRange The (estimated) full RT range in iRT space (theoretical RT)
+      * @param pairs The RT normalization peptide pairs (pair = experimental RT / theoretical RT)
+      * @param nrBins The number of bins to be used
+      * @param minPeptidesPerBin The minimal number of peptides per bin to be used to be considered full
+      * @param minBinsFilled The minimal number of bins needed to be full
+      *
+      * @return Whether more than the minimal number of bins are covered
+      *
+    */
+    static bool computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+                                      const std::vector<std::pair<double, double> > & pairs,
+                                      int nrBins, 
+                                      int minPeptidesPerBin,
+                                      int minBinsFilled);
+
   };
 
 }
 #endif // OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
+

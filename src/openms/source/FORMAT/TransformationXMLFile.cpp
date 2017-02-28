@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -73,14 +73,14 @@ namespace OpenMS
   {
     if (transformation.getModelType() == "")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "will not write a transformation with empty name");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "will not write a transformation with empty name");
     }
 
     //open stream
     std::ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     os.precision(writtenDigits<double>(0.0));
 

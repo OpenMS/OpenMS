@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -100,6 +100,7 @@ namespace OpenMS
     targetMap[FileTypes::TOPPAS] = "toppas";
     targetMap[FileTypes::TRANSFORMATIONXML] = "trafoXML";
     targetMap[FileTypes::MZML] = "mzML";
+    targetMap[FileTypes::CACHEDMZML] = "cachedMzML";
     targetMap[FileTypes::MS2] = "ms2";
     targetMap[FileTypes::PEPXML] = "pepXML";
     targetMap[FileTypes::PROTXML] = "protXML";
@@ -129,6 +130,7 @@ namespace OpenMS
     targetMap[FileTypes::PSQ] = "psq";
     targetMap[FileTypes::MRM] = "mrm";
     targetMap[FileTypes::PSMS] = "psms";
+    targetMap[FileTypes::PARAMXML] = "paramXML";
 
     return targetMap;
   }

@@ -64,7 +64,7 @@ namespace OpenMS
   {
     if (exp_picked.size() != boundaries.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
     
     // ranges of the experiment
@@ -72,6 +72,12 @@ namespace OpenMS
     double mz_max = exp_profile.getMaxMZ();
     double rt_min = exp_profile.getMinRT();
     double rt_max = exp_profile.getMaxRT();
+    
+    // extend the grid by a small machine-epsilon-dependent margin
+    mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
+    mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
+    rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
+    rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
     
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
@@ -114,6 +120,12 @@ namespace OpenMS
     double mz_max = exp.getMaxMZ();
     double rt_min = exp.getMinRT();
     double rt_max = exp.getMaxRT();
+    
+    // extend the grid by a small machine-epsilon-dependent margin
+    mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
+    mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
+    rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
+    rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
     
     // generate grid spacing
     // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.

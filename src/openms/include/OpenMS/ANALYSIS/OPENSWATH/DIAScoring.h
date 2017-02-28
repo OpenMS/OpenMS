@@ -88,8 +88,6 @@ namespace OpenMS
     typedef OpenSwath::SpectrumPtr SpectrumPtrType;
     /// Transition interface (Transition, Peptide, Protein)
     typedef OpenSwath::LightTransition TransitionType;
-    typedef OpenSwath::LightPeptide PeptideType;
-    typedef OpenSwath::LightProtein ProteinType;
     //@}
 
 public:
@@ -136,10 +134,9 @@ public:
     bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
                                 double& ppm_score);
 
-    /// Precursor isotope scores
+    /// Precursor isotope scores for precursors (peptides and metabolites)
     void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
-                                double& isotope_corr, double& isotope_overlap);
-
+                                double& isotope_corr, double& isotope_overlap, std::string sum_formula = "");
 
     /// b/y ion scores
     void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
@@ -200,7 +197,8 @@ private:
       model. The returned value is a Pearson correlation between the
       experimental and theoretical pattern.
     */
-    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, int putative_fragment_charge);
+    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, 
+                                int putative_fragment_charge, std::string sum_formula = "");
 
     // Parameters
     double dia_extract_window_;
@@ -213,4 +211,5 @@ private:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
+

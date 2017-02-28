@@ -66,6 +66,9 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
         # returns the PSI id
         String getPSIid() nogil except +
 
+        void setXTANDEMid(String value) nogil except +
+        String getXTANDEMid() nogil except +
+
         # sets the OMSSA id
         void setOMSSAid(int value) nogil except +
 

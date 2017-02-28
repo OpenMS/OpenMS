@@ -208,13 +208,13 @@ protected:
       std::copy(search_params.variable_modifications.begin(), search_params.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
       StringList spectra_data = it_prot_ids->getPrimaryMSRunPath();
       std::copy(spectra_data.begin(), spectra_data.end(), std::inserter(merged_spectra_data, merged_spectra_data.end()));
-    }    
+    }
     ProteinIdentification::SearchParameters search_params;
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
     search_params.fixed_modifications    = fixed_mods;
     search_params.variable_modifications = var_mods;
-    
+
     prot_ids.clear();
     prot_ids.resize(1);
     prot_ids[0].setDateTime(DateTime::now());
@@ -229,7 +229,7 @@ protected:
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
-  
+
   template <typename MapType>
   void processFeatureOrConsensusMap_(MapType& input_map,
                                      ConsensusIDAlgorithm* consensus)

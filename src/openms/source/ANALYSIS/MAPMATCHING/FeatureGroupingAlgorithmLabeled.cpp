@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -58,9 +58,9 @@ namespace OpenMS
   {
     //check that the number of maps is ok
     if (maps.size() != 1)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Exactly one map must be given!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Exactly one map must be given!");
     if (out.getFileDescriptions().size() != 2)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Two file descriptions must be set in 'out'!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Two file descriptions must be set in 'out'!");
 
     //initialize LabeledPairFinder
     LabeledPairFinder pm;

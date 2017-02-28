@@ -153,7 +153,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="909.8467250319" RT="4508.88" >
-			<PeptideHit score="0.1714" sequence="(Glu->pyro-Glu)EAM(Oxidation)APKHK" charge="1" aa_before="K" aa_after="E" protein_refs="PH_9" >
+			<PeptideHit score="0.1714" sequence=".(Glu->pyro-Glu)EAM(Oxidation)APKHK" charge="1" aa_before="K" aa_after="E" protein_refs="PH_9" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="1203.9053250319" RT="4525.09" >
@@ -181,7 +181,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="570.3051250319" RT="4684.67" >
-			<PeptideHit score="-3" sequence="(Pyro-carbamidomethyl)C(Carbamidomethyl)STSPLLEAC(Carbamidomethyl)AFLTR" charge="3" aa_before="K" aa_after="-" protein_refs="PH_10" >
+			<PeptideHit score="-3" sequence=".(Pyro-carbamidomethyl)C(Carbamidomethyl)STSPLLEAC(Carbamidomethyl)AFLTR" charge="3" aa_before="K" aa_after="-" protein_refs="PH_10" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="620.601258365233" RT="4698.91" >

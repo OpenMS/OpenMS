@@ -62,7 +62,7 @@ namespace OpenMS
         String msg = "Score types '" + ids[0].getScoreType() + "' and '" +
           pep_it->getScoreType() + "' have different orientations (" + hi_lo +
           " is better) and cannot be compared meaningfully.";
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, higher_better ? "false" : "true");
       }
       score_types.insert(pep_it->getScoreType());
@@ -99,7 +99,7 @@ namespace OpenMS
                                    vector<double>(1, hit_it->getScore()));
         }
         else // previously seen sequence
-        { 
+        {
           compareChargeStates_(pos->second.first, hit_it->getCharge(),
                                pos->first);
           pos->second.second.push_back(hit_it->getScore());
@@ -114,7 +114,13 @@ namespace OpenMS
          res_it != results.end(); ++res_it)
     {
       double score = getAggregateScore_(res_it->second.second, higher_better);
-      double support = (res_it->second.second.size() - 1.0) / n_other_ids;
+      // if 'count_empty' is false, 'n_other_ids' may be zero, in which case
+      // we define the support to be one to avoid a NaN:
+      double support = 1.0;
+      if (n_other_ids > 0) // the normal case
+      {
+        support = (res_it->second.second.size() - 1.0) / n_other_ids;
+      }
       res_it->second.second.resize(2);
       res_it->second.second[0] = score;
       res_it->second.second[1] = support;

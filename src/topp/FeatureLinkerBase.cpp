@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 
@@ -66,8 +66,8 @@ class TOPPFeatureLinkerBase :
 {
 
 public:
-  TOPPFeatureLinkerBase(String name, String description) :
-    TOPPBase(name, description)
+  TOPPFeatureLinkerBase(String name, String description, bool official = true) :
+    TOPPBase(name, description, official)
   {
   }
 

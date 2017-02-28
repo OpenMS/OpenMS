@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -46,6 +46,57 @@ namespace OpenMS
 #ifdef TOPPAS_DEBUG
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
+
+    int TOPPASVertex::TOPPASFilenames::size() const
+  {
+    return filenames_.size();
+  }
+
+  const QStringList& TOPPASVertex::TOPPASFilenames::get() const
+  {
+    return filenames_;
+  }
+  const QString& TOPPASVertex::TOPPASFilenames::operator[](int i) const
+  {
+    return filenames_[i];
+  }
+
+  void TOPPASVertex::TOPPASFilenames::set(const QStringList& filenames)
+  {
+    filenames_.clear();
+    this->append(filenames);
+  }
+
+  void TOPPASVertex::TOPPASFilenames::set(const QString& filename, int i)
+  {
+    check_(filename);
+    filenames_[i] = filename;
+  }
+
+  void TOPPASVertex::TOPPASFilenames::push_back(const QString& filename)
+  {
+    check_(filename);
+    filenames_.push_back(filename);
+  }
+
+  void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
+  {
+    foreach(const QString& fn, filenames)
+    {
+      check_(fn);
+      push_back(fn);
+    }
+  }
+
+  void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
+  {
+    const int max_filename_length = 255; // the usual NTFS and Ext2/3/4 limit
+    if (filename.count() >= max_filename_length)
+    {
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename.toStdString(), max_filename_length);
+    }
+  }
+
 
   TOPPASVertex::TOPPASVertex() :
     QObject(),
@@ -208,7 +259,7 @@ namespace OpenMS
     // all incoming edges should have the same number of rounds!
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex* tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv_upstream = (*it)->getSourceVertex();
 
       // fill files for each round
       int param_index_src_out = (*it)->getSourceOutParam();
@@ -218,16 +269,16 @@ namespace OpenMS
         VertexRoundPackage rpg;
         rpg.edge = *it;
         int upstream_round = round;
-        if (tv->allow_output_recycling_ && upstream_round >= tv->round_total_)
+        if (tv_upstream->allow_output_recycling_ && upstream_round >= tv_upstream->round_total_)
         {
-          upstream_round %= tv->round_total_;
+          upstream_round %= tv_upstream->round_total_;
         }
-        rpg.filenames = tv->getFileNames(param_index_src_out, upstream_round);
+        rpg.filenames.set(tv_upstream->getFileNames(param_index_src_out, upstream_round));
 
         // hack for merger vertices, as they have multiple incoming edges with -1 as index
         while (pkg[round].count(param_index_tgt_in))
         {
-          --param_index_tgt_in;
+          --param_index_tgt_in; // find free slot, i.e. -2, -3 ....
         }
 
         pkg[round][param_index_tgt_in] = rpg; // index by incoming edge number
@@ -240,15 +291,15 @@ namespace OpenMS
   {
     if ((Size)round >= output_files_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, round, output_files_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, round, output_files_.size());
     }
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
     }
     //String s = String(rp[param_index].filenames.join("\" \""));
-    return rp[param_index].filenames;
+    return rp[param_index].filenames.get();
   }
 
   QStringList TOPPASVertex::getFileNames() const
@@ -262,7 +313,7 @@ namespace OpenMS
            it != output_files_[r].end();
            ++it)
       {
-        fl.append(it->second.filenames);
+        fl.append(it->second.filenames.get());
       }
     }
     return fl;
@@ -487,7 +538,7 @@ namespace OpenMS
 
   void TOPPASVertex::run()
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
   bool TOPPASVertex::invertRecylingMode()

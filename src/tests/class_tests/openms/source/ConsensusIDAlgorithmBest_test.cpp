@@ -183,6 +183,38 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 }
 END_SECTION
 
+START_SECTION([EXTRA] void apply(std::vector<PeptideIdentification>& ids))
+{
+  // test edge cases for consensus support calculation (issue #2020):
+  ConsensusIDAlgorithmBest consensus;
+
+  vector<PeptideIdentification> id(1);
+  id[0].getHits().resize(2);
+  id[0].getHits()[0].setSequence(AASequence::fromString("PEPTIDE"));
+  id[0].getHits()[1] = id[0].getHits()[0]; // duplicated peptide hit
+
+  consensus.apply(id, 2); // two runs, but one produced no hits
+
+  TEST_EQUAL(id.size(), 1);
+  TEST_EQUAL(id[0].getHits().size(), 1);
+  TEST_EQUAL(id[0].getHits()[0].getSequence().toString(), "PEPTIDE");
+  TEST_REAL_SIMILAR(id[0].getHits()[0].getMetaValue("consensus_support"), 1.0);
+
+  // change parameter:
+  Param param;
+  param.setValue("filter:count_empty", "true");
+  consensus.setParameters(param);
+
+  id[0].getHits().push_back(id[0].getHits()[0]);
+  consensus.apply(id, 2);
+
+  TEST_EQUAL(id.size(), 1);
+  TEST_EQUAL(id[0].getHits().size(), 1);
+  TEST_EQUAL(id[0].getHits()[0].getSequence().toString(), "PEPTIDE");
+  TEST_REAL_SIMILAR(id[0].getHits()[0].getMetaValue("consensus_support"), 0.0);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

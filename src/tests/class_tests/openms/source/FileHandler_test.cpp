@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -155,8 +155,8 @@ TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp), true)
 TEST_EQUAL(exp.size(), 4)
-TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "ad860a7bf719bc0b2f709bfccaf9a56beaf2ea63")
-TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)  
+TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "310e4e89e3caa41ff6d79ee578522f47514ba9d6")
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)

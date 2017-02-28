@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -212,4 +212,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_VSLIDATORS_SEMANTICVALIDATOR_H
+#endif // OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
+

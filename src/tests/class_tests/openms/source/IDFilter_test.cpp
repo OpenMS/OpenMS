@@ -57,7 +57,7 @@
 struct IsEven
 {
   typedef int argument_type;
-  
+
   bool operator()(int i) const
   {
     return (i % 2 == 0);
@@ -129,7 +129,7 @@ START_SECTION((template <class IdentificationType> static Size countHits(const v
   peptides[1].getHits().resize(3);
   // no hits in peptides[2]
   peptides[3].getHits().resize(2);
-  
+
   TEST_EQUAL(IDFilter::countHits(peptides), 6);
 }
 END_SECTION
@@ -147,7 +147,6 @@ START_SECTION((template <class IdentificationType> static bool getBestHit(const 
   TEST_REAL_SIMILAR(best_hit.getScore(), 10);
   TEST_EQUAL(best_hit.getSequence().toString(),
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
-  
   ProteinHit best_hit2;
   IDFilter::getBestHit(global_proteins, false, best_hit2);
   TEST_REAL_SIMILAR(best_hit2.getScore(), 32.3);
@@ -161,10 +160,11 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
   IDFilter::extractPeptideSequences(global_peptides, seqs);
   TEST_EQUAL(seqs.size(), 11);
   vector<String> expected = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<String> expected_unmodified = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
   Size counter = 0;
   for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
-  {  
+  {
     TEST_EQUAL(*it, expected[counter]);
   }
 
@@ -174,9 +174,9 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
   counter = 0;
   for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
-  {  
+  {
     if (counter == 6) counter++; // skip the modified sequence
-    TEST_EQUAL(*it, expected[counter]);
+    TEST_EQUAL(*it, expected_unmodified[counter]);
   }
 }
 END_SECTION
@@ -271,7 +271,7 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
   TEST_EQUAL(valid, true);
   TEST_EQUAL(groups_copy.size(), 2);
   TEST_EQUAL(groups_copy == groups, true);
-  
+
   // remove full protein group:
   hits.pop_back();
   valid = IDFilter::updateProteinGroups(groups_copy, hits);
@@ -281,7 +281,7 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
   TEST_EQUAL(groups_copy[0].accessions[0], "B");
   TEST_EQUAL(groups_copy[0].accessions[1], "C");
   TEST_EQUAL(groups_copy[0].probability, 0.2);
-  
+
   // remove part of a protein group:
   hits.pop_back();
   valid = IDFilter::updateProteinGroups(groups_copy, hits);
@@ -528,7 +528,7 @@ START_SECTION((static void filterPeptidesByLength(vector<PeptideIdentification>&
   peptides[0].insertHit(PeptideHit(99.99, 1, 2, niner));
   peptides[0].insertHit(PeptideHit(99.99, 1, 2, tener));
   TEST_EQUAL(peptides[0].getHits().size(), 14);
-  
+
   vector<PeptideIdentification> peptides2 = peptides;
   vector<PeptideHit>& peptide_hits = peptides2[0].getHits();
   IDFilter::filterPeptidesByLength(peptides2, 10);
@@ -698,7 +698,7 @@ START_SECTION((static void keepPeptidesWithMatchingModifications(vector<PeptideI
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
 
   // terminal mods:
-  AASequence seq = AASequence::fromString("(Acetyl)PEPTIDER(Arg-loss)");
+  AASequence seq = AASequence::fromString("(Acetyl)PEPTIDER.(Arg-loss)");
   peptides[0].getHits().resize(2);
   peptides[0].getHits()[1].setSequence(seq);
   mods.insert("Acetyl (N-term)");
@@ -820,7 +820,7 @@ START_SECTION((static void keepUniquePeptidesPerProtein(vector<PeptideIdentifica
 }
 END_SECTION
 
-START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentification>& peptides)))
+START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentification>& peptides, bool seq_only)))
 {
   vector<PeptideIdentification> peptides(1, global_peptides[0]);
   vector<PeptideHit>& hits = peptides[0].getHits();
@@ -848,6 +848,12 @@ START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentificati
   TEST_EQUAL(hits[3].getCharge(), 2);
   TEST_EQUAL(hits[4].getSequence().toString(), "DFPIANGEK");
   TEST_EQUAL(hits[4].getCharge(), 5);
+
+  IDFilter::removeDuplicatePeptideHits(peptides, true);
+  TEST_EQUAL(hits.size(), 2);
+  TEST_EQUAL(hits[0].getSequence().toString(), "DFPIANGER");
+  TEST_EQUAL(hits[0].getScore(), 0.3);
+  TEST_EQUAL(hits[1].getSequence().toString(), "DFPIANGEK");
 }
 END_SECTION
 

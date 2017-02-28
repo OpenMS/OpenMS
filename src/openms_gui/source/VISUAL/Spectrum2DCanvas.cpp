@@ -106,6 +106,8 @@ namespace OpenMS
     setName("Spectrum2DCanvas");
     setParameters(preferences);
 
+    linear_gradient_.fromString(param_.getValue("dot:gradient"));
+
     projection_mz_.resize(1);
     projection_rt_.resize(1);
 
@@ -156,7 +158,7 @@ namespace OpenMS
       //TODO IDENT
     }
 
-    //paint highlighed peak
+    // paint highlighted peak
     painter.save();
     painter.setPen(QPen(Qt::red, 2));
 
@@ -1048,8 +1050,18 @@ namespace OpenMS
 
   void Spectrum2DCanvas::intensityModeChange_()
   {
+    String gradient_str;
+    if (intensity_mode_ == IM_LOG)
+    {
+      gradient_str = MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString();
+    }
+    else // linear
+    {
+      gradient_str = linear_gradient_.toString();
+    }
     for (Size i = 0; i < layers_.size(); ++i)
     {
+      layers_[i].param.setValue("dot:gradient", gradient_str);
       recalculateDotGradient_(i);
     }
     SpectrumCanvas::intensityModeChange_();
@@ -1060,12 +1072,11 @@ namespace OpenMS
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
     {
-      double min_intensity = getMinIntensity(layer);
-      getLayer_(layer).gradient.activatePrecalculationMode(std::log(min_intensity + 1), std::log(overall_data_range_.maxPosition()[2]) + 1, param_.getValue("interpolation_steps"));
+      getLayer_(layer).gradient.activatePrecalculationMode(0.0, std::log(overall_data_range_.maxPosition()[2] + 1), param_.getValue("interpolation_steps"));
     }
     else
     {
-      getLayer_(layer).gradient.activatePrecalculationMode(getMinIntensity(layer), overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
+      getLayer_(layer).gradient.activatePrecalculationMode(0.0, overall_data_range_.maxPosition()[2], param_.getValue("interpolation_steps"));
     }
   }
 
@@ -1351,7 +1362,7 @@ namespace OpenMS
     {
       overall_data_range_ = DRange<3>::empty;
       update_buffer_ = true;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
       return;
     }
 
@@ -1379,7 +1390,7 @@ namespace OpenMS
     current_layer_ = layer_index;
     emit layerActivated(this);
 
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum2DCanvas::recalculateSnapFactor_()
@@ -1485,7 +1496,7 @@ namespace OpenMS
       new_area.setMinX(value);
       new_area.setMaxX(value + (visible_area_.width()));
     }
-    //cout << __PRETTY_FUNCTION__ << endl;
+    //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(new_area);
     emit layerZoomChanged(this);
   }
@@ -1507,7 +1518,7 @@ namespace OpenMS
       new_area.setMinY(value);
       new_area.setMaxY(value + (visible_area_.height()));
     }
-    //cout << __PRETTY_FUNCTION__ << endl;
+    //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(new_area);
     emit layerZoomChanged(this);
   }
@@ -1526,7 +1537,7 @@ namespace OpenMS
     }
 
 #ifdef DEBUG_TOPPVIEW
-    cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+    cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
     cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " rt: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
     cout << "  Overall area -- m/z: " << overall_data_range_.minPosition()[0] << " - " << overall_data_range_.maxPosition()[0] << " rt: " << overall_data_range_.minPosition()[1] << " - " << overall_data_range_.maxPosition()[1] << endl;
 #endif
@@ -1629,7 +1640,7 @@ namespace OpenMS
       painter.setPen(Qt::black);
 
       QPoint line_begin, line_end;
-
+      // start of line
       if (selected_peak_.isValid())
       {
         if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1654,6 +1665,7 @@ namespace OpenMS
         line_begin = last_mouse_pos_;
       }
 
+      // end of line
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
       {
         dataToWidget_(measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getMZ(), measurement_start_.getFeature(*getCurrentLayer().getFeatureMap()).getRT(), line_end);
@@ -1675,7 +1687,7 @@ namespace OpenMS
       highlightPeak_(painter, measurement_start_);
     }
 
-    //draw convex hulls or consensus feature elements
+    // draw convex hulls or consensus feature elements
     if (selected_peak_.isValid())
     {
       if (getCurrentLayer().type == LayerData::DT_FEATURE)
@@ -1698,7 +1710,7 @@ namespace OpenMS
       highlightPeak_(painter, selected_peak_);
     }
 
-    //draw delta for measuring
+    // draw delta for measuring
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       drawDeltas_(painter, measurement_start_, selected_peak_);
@@ -1710,7 +1722,7 @@ namespace OpenMS
 
     painter.end();
 #ifdef DEBUG_TOPPVIEW
-    cout << "END   " << __PRETTY_FUNCTION__ << endl;
+    cout << "END   " << OPENMS_PRETTY_FUNCTION << endl;
 #endif
     if (show_timing_)
     {
@@ -1943,7 +1955,7 @@ namespace OpenMS
       else if (action_mode_ == AM_ZOOM)
       {
         //translate (if not moving features)
-        if (!getCurrentLayer().type == LayerData::DT_FEATURE || !selected_peak_.isValid())
+        if ( !(getCurrentLayer().type == LayerData::DT_FEATURE) || !selected_peak_.isValid())
         {
           rubber_band_.setGeometry(QRect(e->pos(), QSize()));
           rubber_band_.show();
@@ -1966,7 +1978,7 @@ namespace OpenMS
     {
       //highlight peak
       selected_peak_ = near_peak;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
 
       //show meta data in status bar (if available)
       if (selected_peak_.isValid())
@@ -2043,7 +2055,7 @@ namespace OpenMS
     {
       //Zoom mode => no peak should be selected
       selected_peak_.clear();
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
 
     if (action_mode_ == AM_MEASURE)
@@ -2058,7 +2070,7 @@ namespace OpenMS
         rubber_band_.setGeometry(QRect(last_mouse_pos_, pos).normalized());
         rubber_band_.show();         //if the mouse button is pressed before the zoom key is pressed
 
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
       }
     }
     else if (action_mode_ == AM_TRANSLATE)
@@ -2081,7 +2093,7 @@ namespace OpenMS
           (*getCurrentLayer_().getFeatureMap())[selected_peak_.peak].setMZ(mz);
 
           update_buffer_ = true;
-          update_(__PRETTY_FUNCTION__);
+          update_(OPENMS_PRETTY_FUNCTION);
           modificationStatus_(activeLayerIndex(), true);
         }
         else         //translate
@@ -2122,7 +2134,7 @@ namespace OpenMS
 
           //change area
           //cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
-          //cout << __PRETTY_FUNCTION__ << endl;
+          //cout << OPENMS_PRETTY_FUNCTION << endl;
           changeVisibleArea_(AreaType(newLoX, newLoY, newHiX, newHiY));
           emit layerZoomChanged(this);
           last_mouse_pos_ = pos;
@@ -2142,7 +2154,7 @@ namespace OpenMS
           measurement_start_.clear();
         }
         measurement_start_.clear();
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
       }
       else if (action_mode_ == AM_ZOOM)
       {
@@ -2151,7 +2163,7 @@ namespace OpenMS
         if (rect.width() != 0 && rect.height() != 0)
         {
           AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
-          //cout << __PRETTY_FUNCTION__ << endl;
+          //cout << OPENMS_PRETTY_FUNCTION << endl;
           changeVisibleArea_(area, true, true);
           emit layerZoomChanged(this);
         }
@@ -2685,7 +2697,7 @@ namespace OpenMS
     recalculateDotGradient_(activeLayerIndex());
 
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum2DCanvas::saveCurrentLayer(bool visible)
@@ -2898,7 +2910,7 @@ namespace OpenMS
       {
         emit sendStatusMessage(status_changed, 0);
         update_buffer_ = true; // full repaint
-        update_(__PRETTY_FUNCTION__); // schedule repaint
+        update_(OPENMS_PRETTY_FUNCTION); // schedule repaint
         return;
       }
     }
@@ -2910,7 +2922,7 @@ namespace OpenMS
       layer.getFeatureMap()->erase(layer.getFeatureMap()->begin() + selected_peak_.peak);
       selected_peak_.clear();
       update_buffer_ = true;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
       modificationStatus_(activeLayerIndex(), true);
       return;
     }
@@ -2936,7 +2948,7 @@ namespace OpenMS
     else if (action_mode_ == AM_MEASURE)
     {
       measurement_start_.clear();
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
 
     // do the normal stuff
@@ -2983,7 +2995,7 @@ namespace OpenMS
       else // just repaint to show the changes
       {
         update_buffer_ = true;
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
       }
 
       modificationStatus_(activeLayerIndex(), true);

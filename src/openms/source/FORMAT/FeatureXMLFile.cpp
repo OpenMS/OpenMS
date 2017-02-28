@@ -138,7 +138,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     if (Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId))
@@ -384,12 +384,12 @@ namespace OpenMS
     else if (tag == "featureList")
     {
       if (options_.getMetadataOnly())
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       Size count = attributeAsInt_(attributes, "count");
       if (size_only_) // true if loadSize() was used instead of load()
       {
         expected_size_ = count;
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
       startProgress(0, count, "Loading featureXML file");
@@ -519,8 +519,21 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
       //set identifier
       String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      prot_id_.setIdentifier(identifier);
-      id_identifier_[attributeAsString_(attributes, "id")] = identifier;
+      String id = attributeAsString_(attributes, "id");
+
+      if (!id_identifier_.has(id))
+      {
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
+      else
+      {
+        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
+        UInt64 uid = UniqueIdGenerator::getUniqueId();
+        identifier = identifier + String(uid);
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
     }
     else if (tag == "SearchParameters")
     {

@@ -196,7 +196,7 @@ namespace OpenMS
           while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
           {
             pep_pos = (pseudoRNG() % shuffled_sequence.size());
-            if (shuffled_sequence.isModified(pep_pos) || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
+            if (shuffled_sequence[pep_pos].isModified() || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
             {
               pep_pos = -1;
             }
@@ -361,7 +361,7 @@ namespace OpenMS
         if (!exclude_similar)
         {
           std::cout << "Target sequence: " << original_sequence << " Decoy sequence: " << peptide.sequence  << " Sequence identity: " << MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) << " Identity threshold: " << identity_threshold << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences are too similar. Either decrease identity_threshold and increase max_attempts for the shuffle method or set flag exclude_similar.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AA Sequences are too similar. Either decrease identity_threshold and increase max_attempts for the shuffle method or set flag exclude_similar.");
         }
         else
         {
@@ -389,14 +389,19 @@ namespace OpenMS
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue; }
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue;}
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
 
-      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
-      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_peptide.getChargeState(), fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      int decoy_charge = 1;
+      int target_charge = 1;
+      if (decoy_peptide.hasCharge()) {decoy_charge = decoy_peptide.getChargeState();}
+      if (target_peptide.hasCharge()) {target_charge = target_peptide.getChargeState();}
+
+      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
 
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
@@ -437,7 +442,7 @@ namespace OpenMS
             {
               if (!exclude_similar)
               {
-                throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Fragment ions are too similar. Either decrease similarity_threshold or set flag exclude_similar.");
+                throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragment ions are too similar. Either decrease similarity_threshold or set flag exclude_similar.");
               }
               else
               {
@@ -455,7 +460,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary. Skipping of unannotated target assays is available as last resort.");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary. Skipping of unannotated target assays is available as last resort.");
           }
         }
       } // end loop over transitions
