@@ -164,20 +164,21 @@ namespace OpenMS
           vector<PeptideHit> peptide_hits;
           // XL Type, determined by "type"
           String xlink_type_string = this->attributeAsString_(attributes, "type");
-          //String prot1 = this->attributeAsString_(attributes, "prot1");
+          String prot1_string = this->attributeAsString_(attributes, "prot1");
 
-
-          /* TODO Determine Decoy and intra/inter cross links
-          if (prot1.hasSubstring("decoy"))
+          // Decide if decoy for alpha
+          if (prot1_string.hasSubstring("decoy"))
           {
+              peptide_identification.setMetaValue("OpenXQuest:is_decoy", DataValue());
               peptide_hit_alpha.setMetaValue("OpenXQuest:is_decoy", DataValue());
           }
           // That is a bit hacky. Maybe use a regular expressions instead.
-          removeSubstring(prot1, "reverse_");
-          removeSubstring(prot1, "decoy_");
-          */
+          removeSubstring(prot1_string, "reverse_");
+          removeSubstring(prot1_string, "decoy_");
+
 
           // Get Attributes of Peptide Identification
+          DataValue xquest_id = DataValue(this->attributeAsString_(attributes, "id"));
           DataValue xquest_xlinkermass = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
           DataValue xquest_wtic = DataValue(this->attributeAsDouble_(attributes, "wTIC"));
           DataValue xquest_perctic = DataValue(this->attributeAsDouble_(attributes, "TIC"));
@@ -188,6 +189,7 @@ namespace OpenMS
           DataValue xquest_error_rel = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
           DataValue structure = DataValue(this->attributeAsString_(attributes, "structure"));
 
+          assert(xquest_id != DataValue::EMPTY);
           assert(xquest_xlinkermass != DataValue::EMPTY);
           assert(xquest_wtic  != DataValue::EMPTY);
           assert(xquest_perctic != DataValue::EMPTY);
@@ -199,7 +201,8 @@ namespace OpenMS
           assert(structure != DataValue::EMPTY);
 
 
-          // Store attributes in Peptide Identification
+          // Store common attributes in Peptide Identification
+          peptide_identification.setMetaValue("OpenXQuest:id", xquest_id);
           peptide_identification.setMetaValue("xl_rank", xquest_xl_rank);
           peptide_identification.setMetaValue("OpenXQuest:xlinkermass", xquest_xlinkermass);
           peptide_identification.setMetaValue("OpenXQuest:wTIC", xquest_wtic);
@@ -213,6 +216,7 @@ namespace OpenMS
           // If requested, also write to the peptide_hit_alpha
           if (this->load_to_peptideHit_)
           {
+              peptide_hit_alpha.setMetaValue("OpenXQuest:id", xquest_id);
               peptide_hit_alpha.setMetaValue("xl_rank", xquest_xl_rank);
               peptide_hit_alpha.setMetaValue("OpenXQuest:xlinkermass", xquest_xlinkermass);
               peptide_hit_alpha.setMetaValue("OpenXQuest:wTIC", xquest_wtic);
@@ -224,14 +228,20 @@ namespace OpenMS
               peptide_hit_alpha.setMetaValue("OpenXQuest:structure", structure);
           }
 
+          // Store specific stuff for peptide hit alpha
+          // Number of matched ions
+          peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
+                                         DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
+          peptide_hit_alpha.setMetaValue("OpenXQuest:prot", DataValue(prot1_string));
+
           // Figure out cross-link type
           if (xlink_type_string == "xlink")
           {
               PeptideHit peptide_hit_beta;
-
               // If requested, also write to the peptide_hit_beta
               if (this->load_to_peptideHit_)
               {
+                  peptide_hit_beta.setMetaValue("OpenXQuest:id", xquest_id);
                   peptide_hit_beta.setMetaValue("xl_rank", xquest_xl_rank);
                   peptide_hit_beta.setMetaValue("OpenXQuest:xlinkermass", xquest_xlinkermass);
                   peptide_hit_beta.setMetaValue("OpenXQuest:wTIC", xquest_wtic);
@@ -243,56 +253,100 @@ namespace OpenMS
                   peptide_hit_beta.setMetaValue("OpenXQuest:structure", structure);
               }
 
+              // Set xl_type
               peptide_identification.setMetaValue("xl_type", "cross-link");
-              std::pair<SignedSize, SignedSize> positions;
-              this->getLinkPosition_(attributes, positions);
-              peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
-              peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.second));
-
-              // Number of matched ions
-              peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
-                                             DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
-              peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
-                                            DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_beta")));
               if (this->load_to_peptideHit_)
               {
                 peptide_hit_alpha.setMetaValue("xl_type", "cross-link");
                 peptide_hit_beta.setMetaValue("xl_type", "cross-link");
               }
+
+              // Set xl positions, depends on xl_type
+              std::pair<SignedSize, SignedSize> positions;
+              this->getLinkPosition_(attributes, positions);
+              peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
+              peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.second));
+
+             // Protein
+              String prot2_string = this->attributeAsString_(attributes, "prot2");
+
+              // Decide if decoy for beta
+              if (prot2_string.hasSubstring("decoy"))
+              {
+                  peptide_identification.setMetaValue("OpenXQuest:is_decoy", DataValue());
+                  peptide_hit_beta.setMetaValue("OpenXQuest:is_decoy", DataValue());
+              }
+              // I really do not like this
+              removeSubstring(prot2_string, "reverse_");
+              removeSubstring(prot2_string, "decoy_");
+
+              // Set peptide_hit specific stuff
+              peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
+                                            DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_beta")));
+              peptide_hit_beta.setMetaValue("OpenXQuest:prot", DataValue(prot2_string));
+
+
+              // Determine if protein is intra/inter protein, check all protein ID combinations
+              StringList prot1_list;
+              StringUtils::split(prot1_string, ",", prot1_list);
+              StringList prot2_list;
+              StringUtils::split(prot2_string, ",", prot2_list);
+
+              for (StringList::const_iterator it1 = prot1_list.begin(); it1 != prot1_list.end(); it1++)
+              {
+                for (StringList::const_iterator it2 = prot2_list.begin(); it2 != prot2_list.end(); it2++)
+                {
+                  if (*it1 == *it2)
+                  {
+                    peptide_identification.setMetaValue("OpenXQuest:is_intraprotein", DataValue());
+                    if (this->load_to_peptideHit_)
+                    {
+                      peptide_hit_alpha.setMetaValue("OpenXQuest:is_intraprotein", DataValue());
+                      peptide_hit_beta.setMetaValue("OpenXQuest:is_intraprotein", DataValue());
+                    }
+                  }
+                  else
+                  {
+                     peptide_identification.setMetaValue("OpenXQuest:is_interprotein", DataValue());
+                     if (this->load_to_peptideHit_)
+                     {
+                       peptide_hit_alpha.setMetaValue("OpenXQuest:is_interprotein", DataValue());
+                       peptide_hit_beta.setMetaValue("OpenXQuest:is_interprotein", DataValue());
+                     }
+                  }
+                }
+              }
+
+
+
               peptide_hits.push_back(peptide_hit_beta);
           }
           else if (xlink_type_string == "intralink")
           {
+              // xl type
               peptide_identification.setMetaValue("xl_type", "loop-link");
-
-              std::pair<SignedSize, SignedSize> positions;
-              this->getLinkPosition_(attributes, positions);
-              peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
-              peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second));
-
               if (this->load_to_peptideHit_)
               {
                 peptide_hit_alpha.setMetaValue("xl_type", "loop-link");
               }
 
-              // Number of matched ions
-              peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
-                                             DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
-
+              // Set xl positions, depends on xl_type
+              std::pair<SignedSize, SignedSize> positions;
+              this->getLinkPosition_(attributes, positions);
+              peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
+              peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second));
           }
           else if (xlink_type_string == "monolink")
           {
+             // xl_type
              peptide_identification.setMetaValue("xl_type", "mono-link");
-             peptide_hit_alpha.setMetaValue("xl_pos", DataValue((SignedSize)this->attributeAsInt_(attributes, "xlinkposition")));
-
              if (this->load_to_peptideHit_)
              {
                peptide_hit_alpha.setMetaValue("xl_type", "mono-link");
              }
-             // Number of matched ions
-             peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
-                                            DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
 
+             // Set xl positions_depends on xl_type
+             peptide_hit_alpha.setMetaValue("xl_pos", DataValue((SignedSize)this->attributeAsInt_(attributes, "xlinkposition")));
           }
           else
           {

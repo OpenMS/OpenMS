@@ -309,7 +309,35 @@ protected:
 
       // Sort pointers in hits_first_rank in descending order according to their respective score
       std::sort(hits_first_rank.begin(),hits_first_rank.end(),comparePeptideIdentificationByScore);
-      //assert(isSortedDescending(hits_first_rank));
+      assert(isSortedDescending(hits_first_rank));
+
+      // For unique IDs
+      std::set<String> unique_ids;
+
+      for (size_t i = 0; i < hits_first_rank.size(); ++i)
+      {
+       PeptideIdentification pep_id = *(hits_first_rank[i]);
+
+       double error_rel = (double) pep_id.getMetaValue("OpenXQuest:error_rel");
+       double delta_score = (*(delta_scores[i]))[0];    // Index 0 because we only consider rank 1 here
+       size_t ions_matched = n_min_ions_matched[i];
+       double score = (double) pep_id.getMetaValue("OpenXQuest:score");
+       String id = (String) pep_id.getMetaValue("OpenXQuest:id");
+
+       // Only consider peptide identifications which  fullfill all filter criteria specified by the user
+       if (    arg_minborder <= error_rel
+           &&  arg_maxborder >= error_rel                                   // mass deviation
+           &&  delta_score   >= arg_mindeltas                               // delta score cutoff
+           &&  ions_matched  >= arg_minionsmatched                          // min number of ions matched
+           &&  score         >= arg_minscore                                // minimum score
+           &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))  // ID must be unique
+        {
+
+
+
+        }
+      }
+
 
       // Control Output
 
@@ -320,8 +348,6 @@ protected:
       }
       */
 
-
-      /*
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end();
            it++)
       {
@@ -331,14 +357,14 @@ protected:
           cout << "Delta Score: " <<  *it2 << endl;
         }
       }
-      */
 
-      /*
+
+
       for(vector< size_t >::const_iterator it = n_min_ions_matched.begin(); it != n_min_ions_matched.end(); it++)
       {
         cout << "N_min_ions_matched: " <<  *it << endl;
       }
-      */
+
 
 
       // Delete Delta Scores
