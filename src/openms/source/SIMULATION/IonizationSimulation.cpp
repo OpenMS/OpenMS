@@ -295,7 +295,7 @@ public:
       Size progress(0);
 
       // iterate over all features
-#pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
+// #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
       for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
       {
         // no barrier here .. only an atomic update of progress value
@@ -304,7 +304,7 @@ public:
 
 #ifdef _OPENMP
         // progress logger, only master thread sets progress (no barrier here)
-        if (omp_get_thread_num() == 0)
+//        if (omp_get_thread_num() == 0)
           this->setProgress(progress);
 #else
         this->setProgress(progress);
@@ -316,6 +316,8 @@ public:
         Int abundance = (Int) ceil(features[index].getIntensity());
         UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 
+        std::cout << " doing here " << index << std::endl;
+
 
         /// shortcut: if abundance is >1000, we 1) downsize by power of 2 until 1000 < abundance_ < 2000
         ///                                     2) dice distribution
@@ -326,6 +328,7 @@ public:
           ++power_factor_2;
           abundance /= 2;
         }
+        std::cout << " have abundance here " << abundance << std::endl;
 
         if (basic_residues_c == 0)
         {
@@ -341,6 +344,7 @@ public:
           {
             Int rnd_no = bdist(rnd_gen_->getTechnicalRng());
             prec_rndbin[j] = (UInt) rnd_no; //cast is save because random dist should give result in the intervall [0, basic_residues_c]
+            std::cout << "fill bdist random nr " << rnd_no << std::endl; // These are deterministic!! 
           }
         }
 
@@ -361,6 +365,7 @@ public:
           // sample charge state from binomial
 
           charge = prec_rndbin[j]; // get precomputed rnd
+          std::cout << " abundance "<< j << " with charge " << charge << std::endl;
 
           if (charge == 0)
           {
@@ -380,13 +385,19 @@ public:
           {
             for (UInt charge_site = 0; charge_site < charge; ++charge_site)
             {
+              std::cout << " charge_site, " << charge_site << std::endl;
               if (prec_rnduni_remaining == 0)
               {
+                std::cout << " refill ctr ... " << std::endl;
                 // refill discrete rnd numbers if container is depleted
                 {
+                  boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
                   for (Size i_rnd = 0; i_rnd < prec_rnduni.size(); ++i_rnd)
                   {
-                    prec_rnduni[i_rnd] = ddist(rnd_gen_->getTechnicalRng());
+                    Int xx = bdist(rnd_gen_->getTechnicalRng());
+                    Size rnd_no = ddist(rnd_gen_->getTechnicalRng());
+                    prec_rnduni[i_rnd] = rnd_no;
+                    std::cout << "fill ddist store random nr " << prec_rnduni[i_rnd] << " / " << rnd_no << " --- vs bdist " << xx << std::endl; // now these ddist are different! 
                   }
                   prec_rnduni_remaining = prec_rnduni.size();
                 }
@@ -413,7 +424,9 @@ public:
         for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m)
         {
           charge_states[it_m->first] *= factor;
+          std::cout << " store charge states " << charge_states[it_m->first] << std::endl;
         }
+        break;
 
         // transform into a set (for sorting by abundance)
         Int max_observed_charge(0);
