@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+
 namespace OpenMS
 {
   namespace Internal
@@ -81,9 +83,20 @@ namespace OpenMS
       size_t min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;
 
-      // Helper Methods
+      // Stores the attributes of a record (peptide identification)
+      std::map<String, DataValue> peptide_id_meta_values;
+
+      // Assign all attributes in the peptide_id_attributes map to the MetaInfoInterface object
+      void add_meta_values(MetaInfoInterface & meta_info_interface);
+
+      // Retrieves the link location for cross-links and loop links
       void getLinkPosition_(const xercesc::Attributes &, std::pair<SignedSize, SignedSize> &);
 
+      /*
+       * Sets the meta data for one or both peptide hits
+       */
+      void setMetaValue(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */);
+      void setMetaValue(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */, PeptideHit & /* beta */);
     };
   } // namespace Internal
 } // namespace OpenMS
