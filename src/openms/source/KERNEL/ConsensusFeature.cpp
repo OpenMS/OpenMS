@@ -120,7 +120,13 @@ namespace OpenMS
   void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
-    peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
+    // annotate map index to peptide identification
+    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    for (std::vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    {
+      it->setMetaValue("map_index", map_index);
+    }
+    peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }
 
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const

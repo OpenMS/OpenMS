@@ -374,7 +374,7 @@ namespace OpenMS
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
       {
-        const set<PeptideEvidence> & evidences = map_acc_2_evidence.at(accession);
+        const set<PeptideEvidence> & evidences = map_acc_2_evidence.find(accession)->second;
         for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
         {
           int start = sit->getStart();

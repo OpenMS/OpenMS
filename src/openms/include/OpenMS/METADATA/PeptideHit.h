@@ -96,6 +96,19 @@ public:
     };
     //@}
 
+    
+    /// Lesser predicate for (modified) sequence of hits
+    class OPENMS_DLLAPI SequenceLessComparator
+    {
+      template <typename Arg>
+      bool operator()(const Arg& a, const Arg& b)
+      {
+        if (a.getSequence().toString() < b.getSequence().toString()) return true;
+        return false;
+      }
+    };
+    //@}
+
     /// Analysis Result (containing search engine / prophet results)
     class OPENMS_DLLAPI PepXMLAnalysisResult
     {

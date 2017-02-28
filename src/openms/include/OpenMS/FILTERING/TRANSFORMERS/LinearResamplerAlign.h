@@ -55,7 +55,7 @@ namespace OpenMS
     points are known in advance, e.g. if one needs to resample a chromatogram
     at the positions of another chromatogram.
   */
-  class LinearResamplerAlign :
+  class OPENMS_DLLAPI LinearResamplerAlign :
     public LinearResampler
   {
 
@@ -232,11 +232,17 @@ public:
 
     */
     template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
+#ifdef OPENMS_ASSERTIONS
     void raster(ConstPeakTypeIterator mz_raw_it, ConstPeakTypeIterator mz_raw_end,
         ConstPeakTypeIterator int_raw_it, ConstPeakTypeIterator int_raw_end,
         PeakTypeIterator mz_resample_it, PeakTypeIterator mz_resample_end,
-        PeakTypeIterator int_resample_it, PeakTypeIterator int_resample_end
-        )
+        PeakTypeIterator int_resample_it, PeakTypeIterator int_resample_end)
+#else
+    void raster(ConstPeakTypeIterator mz_raw_it, ConstPeakTypeIterator mz_raw_end,
+        ConstPeakTypeIterator int_raw_it, ConstPeakTypeIterator /* int_raw_end */,
+        PeakTypeIterator mz_resample_it, PeakTypeIterator mz_resample_end,
+        PeakTypeIterator int_resample_it, PeakTypeIterator /* int_resample_end */)
+#endif
     {
       OPENMS_PRECONDITION(mz_resample_it != mz_resample_end, "Output iterators cannot be identical") // as we use +1
       OPENMS_PRECONDITION(std::distance(mz_resample_it, mz_resample_end) == std::distance(int_resample_it, int_resample_end),
@@ -381,4 +387,5 @@ protected:
 
 }
 
-#endif
+#endif // OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLERALIGN_H
+

@@ -36,8 +36,8 @@
 #define OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
 
 #include <iosfwd>
-#include <vector>
 #include <map>
+#include <set>
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -151,14 +151,14 @@ public:
 
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula
-      and conditioned on a list of isolated precursor isotopes.
+      and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
       @param precursor: the empirical formula of the precursor
       @param precursor_isotopes: the precursor isotopes that were isolated
       @return the conditional IsotopeDistribution of the fragment
     */
-    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const;
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;

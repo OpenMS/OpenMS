@@ -47,6 +47,25 @@ namespace OpenMS
   // static
   void ModifiedPeptideGenerator::applyFixedModifications(const vector<ResidueModification>::const_iterator& fixed_mods_begin, const vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide)
   {
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
+    {
+      if (fixed_it->getOrigin() == "N-term")
+      {
+        if (!peptide.hasNTerminalModification())
+        {
+          peptide.setNTerminalModification(fixed_it->getFullName());
+        }
+      }
+      else if (fixed_it->getOrigin() == "C-term")
+      {
+        if (!peptide.hasCTerminalModification())
+        {
+          peptide.setCTerminalModification(fixed_it->getFullName());
+        }
+      }
+    }
+
     //iterate over each residue
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
@@ -119,6 +138,25 @@ namespace OpenMS
     //iterate over each residue and build compatibility mapping describing
     //which amino acid (peptide index) is compatible with which modification
     map<int, vector<ResidueModification> > map_compatibility;
+
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+    {
+      if (variable_it->getOrigin() == "N-term")
+      {
+        if (!peptide.hasNTerminalModification())
+        {
+          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+      else if (variable_it->getOrigin() == "C-term")
+      {
+        if (!peptide.hasCTerminalModification())
+        {
+          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+    }
 
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
@@ -213,6 +251,7 @@ namespace OpenMS
     // add modified version of the current peptide to the list of all peptides
     all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
   }
+
 
   // static
   void ModifiedPeptideGenerator::recurseAndGenerateVariableModifiedPeptides_(const vector<int>& subset_indices, const map<int, vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, vector<AASequence>& modified_peptides)
@@ -311,5 +350,5 @@ namespace OpenMS
       }
     }
   }
-
 }
+

@@ -303,7 +303,7 @@ static const double mz_arr[] = {
   500.0,
 };
 static const double int_arr[] = {
-  0.0  , 
+  8.0  , 
   100.0,
   200.0,
   300.0,
@@ -332,7 +332,7 @@ START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const 
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
-  // conver the data into a spectrum
+  // convert the data into a spectrum
   MSSpectrum<Peak1D> spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
@@ -348,11 +348,17 @@ START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const 
 
   // If we use monotonically increasing m/z values then everything should work fine
   ChromatogramExtractor extractor;
+
+  extractor.extract_value_tophat(spectrum, 399.89, peak_idx, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 0.0); // test before very first data point
+  extractor.extract_value_tophat(spectrum, 399.905, peak_idx, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 8.0); // test very first data point
+
   extractor.extract_value_tophat(spectrum, 399.91, peak_idx, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0);
+  TEST_REAL_SIMILAR( integrated_intensity,108.0);
   extractor.extract_value_tophat(spectrum, 400.0, peak_idx, integrated_intensity, extract_window, false);
   // print(sum([0 + i*100.0 for i in range(10)]) )
-  TEST_REAL_SIMILAR( integrated_intensity,4500.0);
+  TEST_REAL_SIMILAR( integrated_intensity,4508.0);
   extractor.extract_value_tophat(spectrum, 400.05, peak_idx, integrated_intensity, extract_window, false);
   //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)])  )
   TEST_REAL_SIMILAR( integrated_intensity,8400.0);
@@ -362,6 +368,8 @@ START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const 
   TEST_EQUAL((int)integrated_intensity,9000);
   extractor.extract_value_tophat(spectrum, 400.28, peak_idx, integrated_intensity, extract_window, false);
   TEST_REAL_SIMILAR( integrated_intensity,100.0);
+
+  // test the very last value
   extractor.extract_value_tophat(spectrum, 500.0, peak_idx, integrated_intensity, extract_window, false);
   TEST_REAL_SIMILAR( integrated_intensity, 10.0);
 
@@ -376,12 +384,14 @@ START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const 
   integrated_intensity = 0;
   extract_window = 500; // 500 ppm == 0.2 Da @ 400 m/z
 
+  extractor.extract_value_tophat(spectrum, 399.89, peak_idx, integrated_intensity, extract_window, true);
+  TEST_REAL_SIMILAR( integrated_intensity, 0.0);  // below 400, 500ppm is below 0.2 Da...
   extractor.extract_value_tophat(spectrum, 399.91, peak_idx, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,0.0);  // below 400, 500ppm is below 0.2 Da...
+  TEST_REAL_SIMILAR( integrated_intensity, 8.0);  // very first value
   extractor.extract_value_tophat(spectrum, 399.92, peak_idx, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0); 
+  TEST_REAL_SIMILAR( integrated_intensity,108.0); 
   extractor.extract_value_tophat(spectrum, 400.0, peak_idx, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,4500.0);
+  TEST_REAL_SIMILAR( integrated_intensity,4508.0);
   extractor.extract_value_tophat(spectrum, 400.05, peak_idx, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,8400.0);
   extractor.extract_value_tophat(spectrum, 400.1, peak_idx, integrated_intensity, extract_window, true);
@@ -395,7 +405,7 @@ START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(con
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
-  // conver the data into a spectrum
+  // convert the data into a spectrum
   MSSpectrum<Peak1D> spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
@@ -429,10 +439,16 @@ START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(con
 
   // If we use monotonically increasing m/z values then everything should work fine
   ChromatogramExtractor extractor;
+
+  extractor.extract_value_tophat(spectrum, 399.89, peak_idx, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 0.0); // test before very first data point
+  extractor.extract_value_tophat(spectrum, 399.905, peak_idx, integrated_intensity, extract_window, false);
+  TEST_REAL_SIMILAR(integrated_intensity, 8.0); // test very first data point
+
   extractor.extract_value_bartlett(spectrum, 399.91, peak_idx, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity,0.0);
+  TEST_REAL_SIMILAR( integrated_intensity,0.8);
   extractor.extract_value_bartlett(spectrum, 400.0, peak_idx, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity,1650.0);
+  TEST_REAL_SIMILAR( integrated_intensity,1658.0);
   extractor.extract_value_bartlett(spectrum, 400.05, peak_idx, integrated_intensity, extract_window, false);
   TEST_REAL_SIMILAR( integrated_intensity,4650.0);
   extractor.extract_value_bartlett(spectrum, 400.1, peak_idx, integrated_intensity, extract_window, false);
@@ -453,12 +469,14 @@ START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(con
   integrated_intensity = 0;
   extract_window = 500; // 500 ppm == 0.2 Da @ 400 m/z
 
-  extractor.extract_value_bartlett(spectrum, 399.91, peak_idx, integrated_intensity, extract_window, true);
+  extractor.extract_value_bartlett(spectrum, 399.89, peak_idx, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,0.0);  // below 400, 500ppm is below 0.2 Da...
+  extractor.extract_value_bartlett(spectrum, 399.91, peak_idx, integrated_intensity, extract_window, true);
+  TEST_REAL_SIMILAR( integrated_intensity, 0.798379635419971);  // below 400, 500ppm is below 0.2 Da...
   extractor.extract_value_bartlett(spectrum, 399.92, peak_idx, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,9.98199639930487); 
+  TEST_REAL_SIMILAR( integrated_intensity, 11.5807161432549); 
   extractor.extract_value_bartlett(spectrum, 400.0, peak_idx, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,1650.0);
+  TEST_REAL_SIMILAR( integrated_intensity,1658.0);
   extractor.extract_value_bartlett(spectrum, 400.05, peak_idx, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,4650.4687);
   extractor.extract_value_bartlett(spectrum, 400.1, peak_idx, integrated_intensity, extract_window, true);

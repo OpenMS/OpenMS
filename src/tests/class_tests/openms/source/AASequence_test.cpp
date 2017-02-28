@@ -458,7 +458,7 @@ START_SECTION(String toString() const)
   AASequence seq3 = AASequence::fromString("DFPIAN(Deamidated)GER");
 
   TEST_STRING_EQUAL(seq1.toString(), "DFPIANGER")
-  TEST_STRING_EQUAL(seq2.toString(), "(MOD:00051)DFPIANGER")
+  TEST_STRING_EQUAL(seq2.toString(), ".(MOD:00051)DFPIANGER")
   TEST_STRING_EQUAL(seq3.toString(), "DFPIAN(Deamidated)GER")
 END_SECTION
 
@@ -915,6 +915,23 @@ START_SECTION([EXTRA] Tag in peptides)
   TEST_REAL_SIMILAR(aa2.getMonoWeight(), 1017.487958568)
   TEST_REAL_SIMILAR(aa3.getMonoWeight(), 1017.487958568)
   TEST_REAL_SIMILAR(aa4.getMonoWeight(), 1017.487958568)
+}
+END_SECTION
+
+START_SECTION([EXTRA] testing terminal modifications)
+{
+  AASequence aaNoMod = AASequence::fromString(".DFPIANGER.");
+  AASequence aaNtermMod = AASequence::fromString(".(Dimethyl)DFPIANGER");
+  AASequence aaCtermMod = AASequence::fromString("DFPIANGER.(Label:18O(2))");
+  TEST_EQUAL(aaNoMod.isModified(), false)
+  TEST_EQUAL(aaNtermMod.isModified(), true)
+  TEST_EQUAL(aaCtermMod.isModified(), true)
+  TEST_EQUAL(aaNoMod.getNTerminalModificationName(), "")
+  TEST_EQUAL(aaNtermMod.getNTerminalModificationName(), "Dimethyl")
+  TEST_EQUAL(aaCtermMod.getNTerminalModificationName(), "")
+  TEST_EQUAL(aaNoMod.getCTerminalModificationName(), "")
+  TEST_EQUAL(aaNtermMod.getCTerminalModificationName(), "")
+  TEST_EQUAL(aaCtermMod.getCTerminalModificationName(), "Label:18O(2)")
 }
 END_SECTION
 

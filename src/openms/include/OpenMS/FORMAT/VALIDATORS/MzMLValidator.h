@@ -56,9 +56,9 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
-            */
+        @param mapping The mapping rules
+        @param cv @em All controlled vocabularies required for the mapping
+      */
       MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor

@@ -331,7 +331,8 @@ public:
 
       // walk right and left and add to our intensity
       walker = peak_idx;
-      // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
+      // if we moved past the end of the spectrum, we need to try the last peak
+      // of the spectrum (it could still be within the window)
       if (peak_idx >= input.size())
       {
         walker = input.size() - 1;
@@ -343,22 +344,32 @@ public:
         integrated_intensity += input[walker].getIntensity();
       }
 
-      // walk to the left until we go outside the window, then start walking to the right until we are outside the window
+      // (i) Walk to the left one step and then keep walking left until we go
+      // outside the window. Note for the first step to the left we have to
+      // check for the walker becoming zero.
       walker = peak_idx;
       if (walker > 0)
       {
         walker--;
+        // special case: walker is now zero
+        if (walker == 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
+        {
+          integrated_intensity += input[walker].getIntensity();
+        }
       }
       while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
       {
         integrated_intensity += input[walker].getIntensity(); walker--;
       }
+
+      // (ii) Walk to the right one step and then keep walking right until we
+      // are outside the window
       walker = peak_idx;
       if (walker < input.size() )
       {
         walker++;
       }
-      while (walker<input.size() && input[walker].getMZ()> left &&  input[walker].getMZ() < right)
+      while (walker < input.size() && input[walker].getMZ() > left &&  input[walker].getMZ() < right)
       {
         integrated_intensity += input[walker].getIntensity(); walker++;
       }
@@ -400,7 +411,8 @@ public:
 
       // walk right and left and add to our intensity
       walker = peak_idx;
-      // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
+      // if we moved past the end of the spectrum, we need to try the last peak
+      // of the spectrum (it could still be within the window)
       if (peak_idx >= input.size())
       {
         walker = input.size() - 1;
@@ -413,17 +425,27 @@ public:
         integrated_intensity += input[walker].getIntensity() * weight;
       }
 
-      // walk to the left until we go outside the window, then start walking to the right until we are outside the window
+      // (i) Walk to the left one step and then keep walking left until we go
+      // outside the window. Note for the first step to the left we have to
+      // check for the walker becoming zero.
       walker = peak_idx;
-      if (walker > 0 )
+      if (walker > 0)
       {
         walker--;
+        // special case: walker is now zero
+        if (walker == 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
+        {
+          integrated_intensity += input[walker].getIntensity();
+        }
       }
       while (walker > 0 && input[walker].getMZ() > left && input[walker].getMZ() < right)
       {
         weight =  1 - fabs(input[walker].getMZ() - mz) / half_window_size;
         integrated_intensity += input[walker].getIntensity() * weight; walker--;
       }
+
+      // (ii) Walk to the right one step and then keep walking right until we
+      // are outside the window
       walker = peak_idx;
       if (walker < input.size() )
       {

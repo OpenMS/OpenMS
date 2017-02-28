@@ -169,7 +169,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="13" MZ="417.1908" RT="2289.66040039063" >
-			<PeptideHit score="1" sequence="(Acetyl)MNELN(Deamidated)Q(Deamidated)EISK" charge="3" protein_refs="PH_9" >
+			<PeptideHit score="1" sequence=".(Acetyl)MNELN(Deamidated)Q(Deamidated)EISK" charge="3" protein_refs="PH_9" >
 				<UserParam type="float" name="homology_threshold" value="13"/>
 				<UserParam type="float" name="identity_threshold" value="13"/>
 				<UserParam type="float" name="EValue" value="1e+99"/>

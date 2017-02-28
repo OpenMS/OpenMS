@@ -345,7 +345,7 @@ protected:
       writeLog_(String("Storing ground-truth peptide IDs in: ") + id_out);
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      ms_simulation.getMS2Identifications(proteins, peptides);
+      ms_simulation.getIdentifications(proteins, peptides);
       IdXMLFile().store(id_out, proteins, peptides);
     }
 
