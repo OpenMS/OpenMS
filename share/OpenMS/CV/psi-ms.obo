@@ -16605,3 +16605,1044 @@ id: MS:1002533
 name: TripleTOF 6600
 def: "AB SCIEX TripleTOF 6600, a quadrupole - quadrupole - time-of-flight mass spectrometer." [PSI:MS]
 is_a: MS:1000121 ! AB SCIEX instrument model
+
+[Term]
+id: MS:1002534
+name: ProLuCID:xcorr
+def: "The ProLuCID result 'XCorr'." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002535
+name: ProLuCID:deltacn
+def: "The ProLuCID result 'DeltaCn'." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+
+[Term]
+id: MS:1002536
+name: D-Score
+def: "D-Score for PTM site location at the PSM-level." [DOI:10.1002/pmic.201200408, PMID:23307401]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001968 ! PSM-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002537
+name: MD-Score
+def: "MD-Score for PTM site location at the PSM-level." [DOI:10.1074/mcp.M110.003830-1, PMID:21057138]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001968 ! PSM-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002538
+name: PTM localization confidence metric
+def: "Localization confidence metric for a post translational modification (PTM)." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001405 ! spectrum identification result details
+
+[Term]
+id: MS:1002539
+name: PeptideShaker PTM confidence type
+def: "PeptideShaker quality criteria for the confidence of PTM localizations." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002538 ! PTM localization confidence metric
+
+[Term]
+id: MS:1002540
+name: PeptideShaker PSM confidence type
+def: "PeptideShaker quality criteria for the confidence of PSM's." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002347 ! PSM-level identification confidence metric
+
+[Term]
+id: MS:1002541
+name: PeptideShaker peptide confidence type
+def: "PeptideShaker quality criteria for the confidence of peptide identifications." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001092 ! peptide identification confidence metric
+
+[Term]
+id: MS:1002542
+name: PeptideShaker protein confidence type
+def: "PeptideShaker quality criteria for the confidence of protein identifications." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001198 ! protein identification confidence metric
+
+[Term]
+id: MS:1002543
+name: xiFDR
+def: "Target/Decoy based FDR estimation for cross-linking peptide-identifications." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002544
+name: xi
+def: "Search engine for cross-linked peptides." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002545
+name: xi:score
+def: "The xi result 'Score'." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002546
+name: Skyline mzQuantML converter 
+def: "A software package to convert Skyline report to mzQuantML." [PSI:PI, http://code.google.com/p/srm-mzquantml-convertor/]
+is_a: MS:1001139 ! quantitation software name
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002547
+name: normalized spectral abundance factor
+def: "A normalized spectral abundance factor (NSAF)." [DOI:10.1021/pr060161n, PMID:16944946]
+is_a: MS:1001805 ! quantification datatype
+
+[Term]
+id: MS:1002548
+name: distributed normalized spectral abundance factor
+def: "A distributed normalized spectral abundance factor (dNSAF." [DOI:10.1021/ac9023999, PMID:20166708] 
+is_a: MS:1001805 ! quantification datatype
+
+[Term]
+id: MS:1002549
+name: peptide-level PTM localization score
+def: "A score that assign confidence to the localization of an amino acid modification on a peptide sequence at the peptide-level." [PSI:PI]
+is_a: MS:1001405 ! spectrum identification result details
+
+[Term]
+id: MS:1002550
+name: peptide:phosphoRS score
+def: "phosphoRS score for PTM site location at the peptide-level." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002549 ! peptide-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002551
+name: peptide:Ascore
+def: "A-score for PTM site location at the peptide-level." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002549 ! peptide-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002552
+name: peptide:H-Score
+def: "H-Score for peptide phosphorylation site location at the peptide-level." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002549 ! peptide-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002553
+name: peptide:D-Score
+def: "D-Score for PTM site location at the peptide-level." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002549 ! peptide-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002554
+name: peptide:MD-Score
+def: "MD-Score for PTM site location at the peptide-level." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002549 ! peptide-level PTM localization score
+relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
+
+[Term]
+id: MS:1002555
+name: PTM localization score threshold
+def: "Threshold for PTM site location score." [PSI:PI]
+is_a: MS:1001405 ! spectrum identification result details
+
+[Term]
+id: MS:1002556
+name: Ascore threshold
+def: "Threshold for Ascore PTM site location score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002557
+name: D-Score threshold
+def: "Threshold for D-score PTM site location score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002558
+name: MD-Score threshold
+def: "Threshold for MD-score PTM site location score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002559
+name: H-Score threshold
+def: "Threshold for H-score PTM site location score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:10025560
+name: DeBunker:score threshold
+def: "Threshold for DeBunker PTM site location score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002561
+name: Mascot:PTM site assignment confidence threshold
+def: "Threshold for Mascot PTM site assignment confidence." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002562
+name: MSQuant:PTM-score threshold
+def: "Threshold for MSQuant:PTM-score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002563
+name: MaxQuant:PTM Score threshold
+def: "Threshold for MaxQuant:PTM Score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002564
+name: MaxQuant:P-site localization probability threshold
+def: "Threshold for MaxQuant:P-site localization probability." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002565
+name: MaxQuant:PTM Delta Score threshold
+def: "Threshold for MaxQuant:PTM Delta Score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002566
+name: MaxQuant:Phospho (STY) Probabilities threshold
+def: "Threshold for MaxQuant:Phospho (STY) Probabilities." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002567
+name: phosphoRS score threshold
+def: "Threshold for phosphoRS score." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002568
+name: phosphoRS site probability threshold
+def: "Threshold for phosphoRS site probability." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002569
+name: ProteomeDiscoverer:Number of Spectra Processed At Once
+def: "Number of spectra processed at once in a ProteomeDiscoverer search." [PSI:PI]
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+is_a: MS:1002101 ! ProteomeDiscoverer input parameter
+
+[Term]
+id: MS:1002570
+name: sequence multiply subsumable protein
+def: "A protein for which the matched peptide sequences are the same, or a subset of, the matched peptide sequences for two or more other proteins combined. These other proteins need not all be in the same group." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001101 ! protein group or subset relationship
+
+[Term]
+id: MS:1002571
+name: spectrum multiply subsumable protein
+def: "A protein for which the matched spectra are the same, or a subset of, the matched spectra for two or more other proteins combined. These other proteins need not all be in the same group." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001101 ! protein group or subset relationship
+
+[Term]
+id: MS:1002572
+name: protein detection statistical threshold
+def: "Estimated statistical threshold used for protein detection." [PSI:MS]
+is_a: MS:1002482 ! statistical threshold
+
+[Term]
+id: MS:1002573
+name: spectrum identification statistical threshold
+def: "Estimated statistical threshold used for spectrum identification." [PSI:MS]
+is_a: MS:1002482 ! statistical threshold
+
+[Term]
+id: MS:1002574
+name: ASAPRatio
+def: "A program in the TPP that calculates PSM, peptide, and protein-level abundances based on 2-channel isotope-labelled data such as ICAT, SILAC, etc." [PSI:PI]
+is_a: MS:1002286 ! Trans-Proteomic Pipeline software
+
+[Term]
+id: MS:1002575
+name: Tide
+def: "Tide open-source sequence search program developed at the University of Washington." [PMID:21761931]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002576
+name: Andromeda result file
+def: "Andromeda result file output format." [PSI:PI]
+is_a: MS:1001040 ! intermediate analysis format
+
+[Term]
+id: MS:1002577
+name: 2000 QTRAP
+def: "SCIEX 2000 QTRAP." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002578
+name: 2500 QTRAP
+def: "SCIEX 2500 QTRAP." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002579
+name: 3500 QTRAP
+def: "SCIEX 3500 QTRAP." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002580
+name: QTRAP 4500
+def: "SCIEX QTRAP 4500." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002581
+name: QTRAP 6500
+def: "SCIEX QTRAP 6500." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002582
+name: QTRAP 6500+
+def: "SCIEX QTRAP 6500+." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002583
+name: TripleTOF 4600
+def: "SCIEX TripleTOF 4600 time-of-flight mass spectrometer." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002584
+name: TripleTOF 5600+
+def: "SCIEX TripleTOF 5600+ time-of-flight mass spectrometer." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002585
+name: API 100
+def: "Applied Biosystems/MDS SCIEX API 100 MS." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002586
+name: API 100LC
+def: "Applied Biosystems/MDS SCIEX API 100LC MS." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002587
+name: API 165
+def: "Applied Biosystems/MDS SCIEX API 165 MS." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002588
+name: API 300
+def: "Applied Biosystems/MDS SCIEX API 300 MS." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002589
+name: API 350
+def: "Applied Biosystems/MDS SCIEX API 350 MS." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002590
+name: API 365
+def: "Applied Biosystems/MDS SCIEX API 365 MS." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002591
+name: Triple Quad 3500
+def: "SCIEX Triple Quad 3500." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002592
+name: Triple Quad 4500
+def: "SCIEX Triple Quad 4500." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002593
+name: Triple Quad 5500
+def: "SCIEX Triple Quad 5500." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002594
+name: Triple Quad 6500
+def: "SCIEX Triple Quad 6500." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002595
+name: Triple Quad 6500+
+def: "SCIEX Triple Quad 6500+." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002596
+name: ProLuCID
+def: "The SEQUEST-like sequence search engine ProLuCID, developed in the Yates Lab at the Scripps Research Institute." [PMID:26171723]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002597
+name: MS1 format
+def: "MS1 file format for MS1 spectral data." [PMID:15317041, DOI:10.1002/rcm.1603]
+is_a: MS:1000560 ! mass spectrometer file format
+
+[Term]
+id: MS:1002598
+name: DTASelect
+def: "Analysis software designed to reassemble the SEQUEST peptide identifications and to highlight the most significant matches." [PMID:12643522, http://fields.scripps.edu/DTASelect/]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002599
+name: splash key
+def: "The Splash, is an unique identifier for Spectra, as the InChI Key is an unique identifier for chemical compounds." [http://splash.fiehnlab.ucdavis.edu/]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1001405 ! spectrum identification result details
+
+[Term]
+id: MS:1002600
+name: PRIDE XML
+def: "Internal data and submission format of the PRIDE database." [http://ftp.pride.ebi.ac.uk/pride/resources/schema/pride/pride.xsd]
+is_a: MS:1002130 ! identification file format
+is_a: MS:1001405 ! spectrum identification result details
+
+[Term]
+id: MS:1002601
+name: mzTab
+def: "Tabular result format for proteomics and metabolomics experiments." [PMID:24980485, http://www.psidev.info/mztab/]
+is_a: MS:1000914 ! tab delimited text format
+
+[Term]
+id: MS:1002602
+name: quantification reagent
+def: "Reagent used in labeled quantification methods." [PSI:PI]
+is_a: MS:1002111 ! assay label attribute
+is_a: MS:1000548 ! sample attribute
+
+[Term]
+id: MS:1002603
+name: ICAT reagent
+def: "Isotope coded affinity tag reagent." [PSI:PI]
+is_a: MS:1002602 ! quantification reagent
+
+[Term]
+id: MS:1002604
+name: ICAT heavy reagent
+def: "The name of the sample labelled with the heavy ICAT label." [PSI:PI]
+is_a: MS:1002603 ! ICAT reagent
+
+[Term]
+id: MS:1002605
+name: ICAT light reagent
+def: "The name of the sample labelled with the light ICAT label." [PSI:PI]
+is_a: MS:1002603 ! ICAT reagent
+
+[Term]
+id: MS:1002606
+name: ICPL reagent
+def: "Isotope coded protein labeling reagent." [PSI:PI]
+is_a: MS:1002602 ! quantification reagent
+
+[Term]
+id: MS:1002607
+name: ICPL reagent 0
+def: "The name of the sample labelled with the ICPL reagent 0." [PSI:PI]
+is_a: MS:1002606 ! ICPL reagent
+
+[Term]
+id: MS:1002608
+name: ICPL reagent 4
+def: "The name of the sample labelled with the ICPL reagent 4." [PSI:PI]
+is_a: MS:1002606 ! ICPL reagent
+
+[Term]
+id: MS:1002609
+name: ICPL reagent 6
+def: "The name of the sample labelled with the ICPL reagent 6." [PSI:PI]
+is_a: MS:1002606 ! ICPL reagent
+
+[Term]
+id: MS:1002610
+name: ICPL reagent 10
+def: "The name of the sample labelled with the ICPL reagent 10." [PSI:PI]
+is_a: MS:1002606 ! ICPL reagent
+
+[Term]
+id: MS:1002611
+name: SILAC reagent
+def: "Stable isotope labeling with amino acids in cell culture reagent." [PSI:PI]
+is_a: MS:1002602 ! quantification reagent
+
+[Term]
+id: MS:1002612
+name: SILAC heavy reagent
+def: "The name of the sample labelled with the heavy SILAC label." [PSI:PI]
+is_a: MS:1002611 ! SILAC reagent
+
+[Term]
+id: MS:1002613
+name: SILAC medium reagent
+def: "The name of the sample labelled with the medium SILAC label." [PSI:PI]
+is_a: MS:1002611 ! SILAC reagent
+
+[Term]
+id: MS:1002614
+name: SILAC light reagent
+def: "The name of the sample labelled with the light SILAC label." [PSI:PI]
+is_a: MS:1002611 ! SILAC reagent
+
+[Term]
+id: MS:1002615
+name: TMT reagent
+def: "Tandem mass tag reagent." [PSI:PI]
+is_a: MS:1002602 ! quantification reagent
+
+[Term]
+id: MS:1002616
+name: TMT reagent 126
+def: "The name of the sample labelled with the TMT reagent 126." [PSI:PI]
+is_a: MS:1002615 ! TMT reagent
+
+[Term]
+id: MS:1002617
+name: TMT reagent 127
+def: "The name of the sample labelled with the TMT reagent 127." [PSI:PI]
+is_a: MS:1002615 ! TMT reagent
+
+[Term]
+id: MS:1002618
+name: TMT reagent 128
+def: "The name of the sample labelled with the TMT reagent 128." [PSI:PI]
+is_a: MS:1002615 ! TMT reagent
+
+[Term]
+id: MS:1002619
+name: TMT reagent 129
+def: "The name of the sample labelled with the TMT reagent 129." [PSI:PI]
+is_a: MS:1002615 ! TMT reagent
+
+[Term]
+id: MS:1002620
+name: TMT reagent 130
+def: "The name of the sample labelled with the TMT reagent 130." [PSI:PI]
+is_a: MS:1002615 ! TMT reagent
+
+[Term]
+id: MS:1002621
+name: TMT reagent 131
+def: "The name of the sample labelled with the TMT reagent 131." [PSI:PI]
+is_a: MS:1002615 ! TMT reagent
+
+[Term]
+id: MS:1002622
+name: iTRAQ reagent
+def: "Isobaric tag for relative and absolute quantitation reagent." [PSI:PI]
+is_a: MS:1002602 ! quantification reagent
+
+[Term]
+id: MS:1002623
+name: iTRAQ reagent 113
+def: "The name of the sample labelled with the iTRAQ reagent 113." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002624
+name: iTRAQ reagent 114
+def: "The name of the sample labelled with the iTRAQ reagent 114." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002625
+name: iTRAQ reagent 115
+def: "The name of the sample labelled with the iTRAQ reagent 115." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002626
+name: iTRAQ reagent 116
+def: "The name of the sample labelled with the iTRAQ reagent 116." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002627
+name: iTRAQ reagent 117
+def: "The name of the sample labelled with the iTRAQ reagent 117." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002628
+name: iTRAQ reagent 118
+def: "The name of the sample labelled with the iTRAQ reagent 118." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002629
+name: iTRAQ reagent 119
+def: "The name of the sample labelled with the iTRAQ reagent 119." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002630
+name: iTRAQ reagent 121
+def: "The name of the sample labelled with the iTRAQ reagent 121." [PSI:PI]
+is_a: MS:1002622 ! iTRAQ reagent
+
+[Term]
+id: MS:1002631
+name: Electron-Transfer/Higher-Energy Collision Dissociation (EThcD)
+def: "A dissociation process combining electron-transfer and higher-energy collision dissociation (EThcD). It combines ETD (reaction time) followed by HCD (activation energy)." [PSI:PI]
+synonym: "EThcD" EXACT []
+is_a: MS:1000044 ! dissociation method
+
+[Term]
+id: MS:1002632
+name: jPOST dataset identifier
+def: "Dataset identifier issued by the jPOST repository. A dataset can refer to either a single sample as part of a study, or all samples that are part of the study corresponding to a publication." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1000878 ! external reference identifier
+
+[Term]
+id: MS:1002633
+name: jPOST dataset URI
+def: "URI that allows the access to one dataset in the jPOST repository. A dataset can refer to either a single sample as part of a study, or all samples that are part of the study corresponding to a publication." [PSI:PI]
+xref: value-type:xsd\:anyURI "The allowed value-type for this CV term."
+is_a: MS:1000878 ! external reference identifier
+
+[Term]
+id: MS:1002634
+name: Q Exactive Plus
+def: "Thermo Scientific Q Exactive Plus." [PSI:PI]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1002635
+name: proteogenomics search
+def: "Proteogenomics search performed." [PSI:PI]
+is_a: MS:1002489 ! special processing
+
+[Term]
+id: MS:1002636
+name: proteogenomics attribute
+def: "Proteogenomics attribute." [PSI:PI]
+is_a: MS:1001105 ! peptide result details
+
+[Term]
+id: MS:1002637
+name: chromosome name
+def: "The name or number of the chromosome to which a given peptide has been mapped." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002638
+name: chromosome strand
+def: "The strand (+ or -) to which the peptide has been mapped." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002639
+name: peptide start on chromosome
+def: "OBSOLETE The overall start position on the chromosome to which a peptide has been mapped i.e. the position of the first base of the first codon, using a zero-based counting system." [PSI:PI]
+comment: This term was obsoleted because it contains redundant info contained in term MS:1002643 - peptide start positions on chromosome.
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+is_obsolete: true
+
+[Term]
+id: MS:1002640
+name: peptide end on chromosome
+def: "The overall end position on the chromosome to which a peptide has been mapped i.e. the position of the third base of the last codon, using a zero-based counting system." [PSI:PI]
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002641
+name: peptide exon count
+def: "The number of exons to which the peptide has been mapped." [PSI:PI]
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002642
+name: peptide exon nucleotide sizes
+def: "A comma separated list of the number of DNA bases within each exon to which a peptide has been mapped. Assuming standard operation of a search engine, the peptide exon sizes should sum to exactly three times the peptide length." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002643
+name: peptide start positions on chromosome
+def: "A comma separated list of start positions within exons to which the peptide has been mapped, relative to peptide-chromosome start, assuming a zero-based counting system. The first value MUST match the value in peptide start on chromosome." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002644
+name: genome reference version
+def: "The reference genome and versioning string as used for mapping. All coordinates are within this frame of reference." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002636 ! proteogenomics attribute
+
+[Term]
+id: MS:1002645
+name: MSDK
+def: "Mass Spectrometry Development Kit (MSDK) is a Java library of algorithms for processing of mass spectrometry data." [PSI:PI, http://msdk.github.io/]
+is_a: MS:1001456 ! analysis software
+is_a: MS:1001457 ! data processing software
+
+[Term]
+id: MS:1002646
+name: native spectrum identifier format, combined spectra
+def: "Describes how the native spectrum identifiers that have been combined prior to searching or interpretation are formated." [PSI:PI]
+synonym: "nativeID format, combined spectra" EXACT []
+relationship: part_of MS:1000577 ! raw data file
+
+[Term]
+id: MS:1002647
+name: Thermo nativeID format, combined spectra
+def: "Thermo comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002648
+name: Waters nativeID format, combined spectra
+def: "Waters comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002649
+name: WIFF nativeID format, combined spectra
+def: "WIFF comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002650
+name: Bruker/Agilent YEP nativeID format, combined spectra
+def: "Bruker/Agilent comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002651
+name: Bruker BAF nativeID format, combined spectra
+def: "Bruker BAF comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002652
+name: Bruker FID nativeID format, combined spectra
+def: "Bruker FID comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+comment: The nativeID must be the same as the source file ID.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002653
+name: multiple peak list nativeID format, combined spectra
+def: "Comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+comment: Used for conversion of peak list files with multiple spectra, i.e. MGF, PKL, merged DTA files. Index is the spectrum number in the file, starting from 0.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002654
+name: single peak list nativeID format, combined spectra
+def: "Comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+comment: The nativeID must be the same as the source file ID. Used for conversion of peak list files with one spectrum per file, typically folder of PKL or DTAs, each sourceFileRef is different.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002655
+name: scan number only nativeID format, combined spectra
+def: "Comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+comment: Used for conversion from mzXML, or DTA folder where native scan numbers can be derived.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002656
+name: spectrum identifier nativeID format, combined spectra
+def: "Comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+comment: Used for conversion from mzData. The spectrum id attribute is referenced.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002657
+name: mzML unique identifier, combined spectra
+def: "Comma separated list of spectra that have been combined prior to searching or interpretation." [PSI:PI]
+comment: A unique identifier of a spectrum stored in an mzML file.
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002646 ! native spectrum identifier format, combined spectra
+
+[Term]
+id: MS:1002658
+name: identification parameter
+def: "Identification parameter for the search engine run." [PSI:PI]
+relationship: part_of MS:1001000 ! spectrum interpretation
+
+[Term]
+id: MS:1002659
+name: UniProtKB text sequence format
+def: "Text-based format used by UniProtKB for sequence entries." [PSI:PI]
+xref: SWO:http://edamontology.org/format_2187
+is_a: MS:1001347 ! database file formats
+
+[Term]
+id: MS:1002660
+name: UniProtKB XML sequence format
+def: "XML-based format used by UniProtKB for sequence entries." [PSI:PI]
+is_a: MS:1001347 ! database file formats
+
+[Term]
+id: MS:1002661
+name: Morpheus
+def: "Morpheus search engine." [PMID:23323968]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1002662
+name: Morpheus:Morpheus score
+def: "Morpheus score for PSMs." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+is_a: MS:1001405 ! spectrum identification result details
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002663
+name: Morpheus:summed Morpheus score
+def: "Summed Morpheus score for protein groups." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002368 ! search engine specific score for protein groups
+is_a: MS:1001153 ! search engine specific score
+is_a: MS:1001147 ! protein ambiguity group result details
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002664
+name: interaction score derived from cross-linking
+def: "Parent term for interaction scores derived from cross-linking." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002675 ! cross-linking result details
+relationship: has_regexp MS:1002665 ! ([:digit:]+[.][a|b]:[:digit:]+:[:digit:]+[.][:digit:]+([Ee][+-][0-9]+)*:(true|false]\{1\}))
+
+[Term]
+id: MS:1002665
+name: regular expression for interaction scores derived from cross-linking
+def: "([:digit:]+[.][a|b]:([:digit:]+|null):[:digit:]+[.][:digit:]+([Ee][+-][0-9]+)*:(true|false]\{1\}))" [PSI:PI]
+is_a: MS:1002479 ! regular expression
+
+[Term]
+id: MS:1002666
+name: impact II
+def: "Bruker Daltonics' impact II." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
+
+[Term]
+id: MS:1002667
+name: impact HD
+def: "Bruker Daltonics' impact HD." [PSI:MS]
+is_a: MS:1001536 ! Bruker Daltonics micrOTOF series
+
+[Term]
+id: MS:1002668
+name: frag: iTRAQ 4plex reporter ion
+def: "Standard reporter ion for iTRAQ 4Plex. The value slot holds the integer mass of the iTRAQ 4Plex reporter ion, e.g. 114." [PSI:PI]
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+is_a: MS:1002307 ! fragmentation ion type
+
+[Term]
+id: MS:1002669
+name: frag: iTRAQ 8plex reporter ion
+def: "Standard reporter ion for iTRAQ 8Plex. The value slot holds the integer mass of the iTRAQ 8Plex reporter ion, e.g. 113." [PSI:PI]
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+is_a: MS:1002307 ! fragmentation ion type
+
+[Term]
+id: MS:1002670
+name: frag: TMT reporter ion
+def: "Standard reporter ion for TMT. The value slot holds the integer mass of the TMT reporter ion and can be suffixed with either N or C, indicating whether the mass difference is encoded at a Nitrogen or Carbon atom, e.g. 127N." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002307 ! fragmentation ion type
+
+[Term]
+id: MS:1002671
+name: frag: TMT ETD reporter ion
+def: "Standard reporter ion for TMT with ETD fragmentation. The value slot holds the integer mass of the TMT ETD reporter ion and can be suffixed with either N or C, indicating whether the mass difference is encoded at a Nitrogen or Carbon atom, e.g. 127C." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002307 ! fragmentation ion type
+
+[Term]
+id: MS:1002672
+name: no modification threshold
+def: "No statistical threshold for accepting or rejecting that a modification position." [PSI:PI]
+is_a: MS:1002555 ! PTM localization score threshold
+
+[Term]
+id: MS:1002673
+name: OpenXQuest
+def: "Cross-Linking MS search engine." [PSI:PI]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1002674
+name: X500R QTOF
+def: "SCIEX X500R QTOF, a quadrupole - quadrupole - time-of-flight mass spectrometer." [PSI:MS]
+is_a: MS:1000121 ! SCIEX instrument model
+
+[Term]
+id: MS:1002675
+name: cross-linking result details
+def: "This subsection describes terms which can describe details of cross-linking results." [PSI:PI]
+relationship: part_of MS:1001000 ! spectrum interpretation
+
+[Term]
+id: MS:1002676
+name: protein-pair-level global FDR
+def: "Estimation of the global false discovery rate of proteins-pairs in cross-linking experiments." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002664 ! interaction score derived from cross-linking
+relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
+relationship: has_regexp MS:1002665 ! ([:digit:]+[.][a|b]:[:digit:]+:[:digit:]+[.][:digit:]+([Ee][+-][0-9]+)*:(true|false]\{1\}))
+
+[Term]
+id: MS:1002677
+name: residue-pair-level global FDR
+def: "Estimation of the global false discovery rate of residue-pairs in cross-linking experiments." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1002664 ! interaction score derived from cross-linking
+relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
+relationship: has_regexp MS:1002665 ! ([:digit:]+[.][a|b]:[:digit:]+:[:digit:]+[.][:digit:]+([Ee][+-][0-9]+)*:(true|false]\{1\}))
+
+[Term]
+id: MS:1002678
+name: supplemental higher energy beam-type collision-induced dissociation
+def: "A supplemental collision-induced dissociation process wherein the projectile ion has the translational energy higher than approximately 1000 eV." [PSI:MS]
+is_a: MS:1000422 ! beam-type collision-induced dissociation
+
+[Term]
+id: MS:1002679
+name: supplemental collision-induced dissociation
+def: "The dissociation of an ion after supplemental collisional excitation." [PSI:MS]
+is_a: MS:1000044 ! dissociation method
+
+[Term]
+id: MS:1002680
+name: supplemental collision energy
+def: "Energy for an ion experiencing supplemental collision with a stationary gas particle resulting in dissociation of the ion." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1000510 ! precursor activation attribute
+relationship: has_units UO:0000266 ! electronvolt
+
+[Term]
+id: MS:1002681
+name: OpenXQuest:combined score
+def: "OpenXQuest's combined score for a cross-link spectrum match." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002682
+name: OpenXQuest:xcorr xlink
+def: "OpenXQuest's cross-correlation of cross-linked ions subscore." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002683
+name: OpenXQuest:xcorr common
+def: "OpenXQuest's cross-correlation of unlinked ions subscore." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1002684
+name: OpenXQuest:match-odds
+def: "OpenXQuest's match-odds subscore." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+relationship: has_domain MS:1002306 ! value greater than zero
+
+[Term]
+id: MS:1002685
+name: OpenXQuest:intsum
+def: "OpenXQuest's sum of matched peak intensity subscore." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+relationship: has_domain MS:1002306 ! value greater than zero
+
+[Term]
+id: MS:1002686
+name: OpenXQuest:wTIC
+def: "OpenXQuest's weighted percent of total ion current subscore." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive

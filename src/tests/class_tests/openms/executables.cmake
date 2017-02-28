@@ -364,6 +364,7 @@ set(chemistry_executables_list
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
+  CrossLinksDB_test
   ModifierRep_test
   PepIterator_test
   ResidueDB_test
