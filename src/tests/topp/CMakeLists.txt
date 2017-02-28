@@ -703,7 +703,7 @@ set_tests_properties("TOPP_IsobaricAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_Iso
 
 add_test("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -ini ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.ini -out TMTTenPlexMethod_ouput.tmp)
 add_test("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTTenPlexMethod_ouput.tmp -in2 ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.consensusXML )
-set_tests_properties("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTtenPlexMethod_test_1")
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1")
 
 #------------------------------------------------------------------------------
 # IDConflictResolver tests
