@@ -51,7 +51,10 @@ using namespace std;
 /**
     @page UTILS_SpectraSTSearchAdapter
 
-    @brief This tool provides an interface to the 'SEARCH' mode of the SpectraST program. All parameters rf
+    @brief This util provides an interface to the 'SEARCH' mode of the SpectraST program.
+           All non-advanced parameters of the executable of SpectraST were translated into
+           parameters of this util.
+
     SpectraST: Version: 5
 
     <B>The command line parameters of this tool are:</B>
@@ -69,7 +72,6 @@ class TOPPSpectraSTSearchAdapter :
  public:
   // Define parameter name
   static const String param_executable;
-
   static const String param_spectra_files;
   static const String param_spectra_files_formats;
   static const String param_library_file;
@@ -85,13 +87,10 @@ class TOPPSpectraSTSearchAdapter :
   static const vector<String> param_input_file_formats;
   static const String param_user_mod_file;
 
-
   TOPPSpectraSTSearchAdapter() :
     TOPPBase("SpectraSTSearchAdapter", "Interface to the SEARCH Mode of the SpectraST executable", false)
   {
-
   }
-
 
 protected:
 
@@ -105,47 +104,44 @@ protected:
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_executable, "<path>", "spectrast", "Path to the SpectraST executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
 
       // register spectra input files
-      registerInputFileList_(TOPPSpectraSTSearchAdapter::param_spectra_files, "<SearchFileName1> [ <SearchFileName2> ... <SearchFileNameN> ]", empty, "Name(s) of file containing unknown spectra to be searched.", true, false);
+      registerInputFileList_(TOPPSpectraSTSearchAdapter::param_spectra_files, "<SearchFileName1> [ <SearchFileName2> ... <SearchFileNameN> ]", empty, "File names(s) of spectra to be searched.", true, false);
       setValidFormats_(TOPPSpectraSTSearchAdapter::param_spectra_files, ListUtils::create<String>(TOPPSpectraSTSearchAdapter::param_spectra_files_formats), false);
 
       // register Output files
-      registerOutputFileList_(TOPPSpectraSTSearchAdapter::param_output_files,"<OutputFile1> [ <OutputFileName2> ... <OutputFileNameN> ]", empty, "Files where the output should be written to. Make sure to specify one output file for each input file.",true,false);
+      registerOutputFileList_(TOPPSpectraSTSearchAdapter::param_output_files, "<OutputFile1> [ <OutputFileName2> ... <OutputFileNameN> ]", empty, "Output files. Make sure to specify one output file for each input file", true, false);
       setValidFormats_(TOPPSpectraSTSearchAdapter::param_output_files, TOPPSpectraSTSearchAdapter::param_output_file_formats, false);
 
-
-      // Require library file to be searched  // TODO Check the existence of the .spidx file
+      // Require library file to be searched
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_library_file, "<lib_file>.splib", "", "Specify library file.", true, false);
-      setValidFormats_(TOPPSpectraSTSearchAdapter::param_library_file,ListUtils::create<String>("splib"),false);
-
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_library_file, ListUtils::create<String>("splib"), false);
 
       // Sequence database file
-      registerInputFile_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, "<sequencedb_file>.fasta", "", "Specify a sequence database file",false,false);
-      setValidFormats_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, ListUtils::create<String>("fasta"),false);
+      registerInputFile_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, "<sequencedb_file>.fasta", "", "The sequence database.", false, false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_sequence_database_file, ListUtils::create<String>("fasta"), false);
 
-
-      registerStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_type, "<sequencedb_type>", "", "Specify type of sequence database",false, false);
-      setValidStrings_(TOPPSpectraSTSearchAdapter::param_sequence_database_type,ListUtils::create<String>("DNA,AA"));
+      registerStringOption_(TOPPSpectraSTSearchAdapter::param_sequence_database_type, "<sequencedb_type>", "AA", "Specify type of sequence database", false, false);
+      setValidStrings_(TOPPSpectraSTSearchAdapter::param_sequence_database_type, ListUtils::create<String>("DNA,AA"));
 
       // Search file
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_search_file, "<search_file>", "", "Only search a subset of the query spectra in the search file", false, false);
-      setValidFormats_(TOPPSpectraSTSearchAdapter::param_search_file, ListUtils::create<String>("txt,dat"), false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_search_file, ListUtils::create<String>("txt, dat"), false);
 
       // params file
-      registerInputFile_(TOPPSpectraSTSearchAdapter::param_params_file, "<params_file>", "", "Read search options from file. All options set in the file will be overridden by command-line options, if specified.",false,false);
+      registerInputFile_(TOPPSpectraSTSearchAdapter::param_params_file, "<params_file>", "", "Read search options from file. All options set in the file will be overridden by command-line options, if specified.", false, false);
       setValidFormats_(TOPPSpectraSTSearchAdapter::param_params_file, ListUtils::create<String>("params"), false);
 
-
       // Precursor m/z tolerance
-      registerDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance, "<precursor_mz_tolerance>", 10, "m/z tolerance within which candidate entries are compared to the query", false, false);
+      registerDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance, "<precursor_mz_tolerance>", 3, "m/z (in Th) tolerance within which candidate entries are compared to the query. Monoisotopic mass is assumed.", false, false);
+      setMinFloat_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance, 0);
 
       //Whether to use isotope average instead of monoisotopic mass
-      registerFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass, "Use isotopically averaged mass instead of monoisotopic mass", false);
+      registerFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass, "Use isotopically averaged mass instead of monoisotopic mass", true);
 
       // Whether to use all charge states
-      registerFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states, "Search library spectra of all charge states, i.e., ignore specified charge state (if any) of the query spectrum",false);
+      registerFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states, "Search library spectra of all charge states, i.e., ignore specified charge state (if any) of the query spectrum", true);
 
       // User defined modifications file
-      registerInputFile_(TOPPSpectraSTSearchAdapter::param_user_mod_file,"<user_mod_file>","","Specify name of user-defined modifications file. Default is \"spectrast.usermods\".",false,false);
+      registerInputFile_(TOPPSpectraSTSearchAdapter::param_user_mod_file, "<user_mod_file>", "", "Specify name of user-defined modifications file. Default is \"spectrast.usermods\".", false, true);
   }
 
 
@@ -162,13 +158,18 @@ protected:
          executable = "spectrast";
      }
 
+     // Make Search Mode explicit
+     arguments << "-s";
+
+     double precursor_mz_tolerance = getDoubleOption_(TOPPSpectraSTSearchAdapter::param_precursor_mz_tolerance);
+     arguments << QString::number(precursor_mz_tolerance).prepend("-sM");
+
      // Set the parameter file if present
      String params_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_params_file);
      if (! params_file.empty())
      {
          arguments << params_file.toQString().prepend("-sF");
      }
-
 
      // Add library file argument, terminate if the corresponding spidx is not present
      String library_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_library_file);
@@ -209,10 +210,7 @@ protected:
 
      // Flags
      arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass) ? "-sA" : "-sA!");
-     if (getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states))
-     {
-         arguments << "-sz";
-     }
+     arguments << (getFlag_(TOPPSpectraSTSearchAdapter::param_use_all_charge_states) ? "-sz" : "-sz!");
 
      // User mod file
      String user_mod_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_user_mod_file);
@@ -269,11 +267,9 @@ protected:
          }
      }
 
-
      String temp_dir = File::getTempDirectory();
      arguments << outputFormat.toQString().prepend("-sE");
      arguments <<  temp_dir.toQString().prepend("-sO");
-
 
      // Check whether input files agree in format
      String first_input_file = spectra_files[0];
@@ -316,7 +312,6 @@ protected:
          LOG_DEBUG << " " << it->toStdString();
      }
      LOG_DEBUG << endl;
-
 
      // Run spectrast
      QProcess spectrast_process;
