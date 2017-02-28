@@ -2027,8 +2027,34 @@ protected:
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
+        else if (accession == "MS:1002476") //ion mobility drift time
+        {
+          // Drift time may be a property of the precursor (in case we are
+          // acquiring a fragment ion spectrum) or of the spectrum itself.
+          // According to the updated OBO, it can be a precursor or a scan
+          // attribute.
+          //
+          // If we find here, this relates to a particular precursor. We still
+          // also store it in MSSpectrum in case a client only checks there.
+          // In most cases, there is a single precursor with a single drift
+          // time.
+          //
+          // Note that only milliseconds are valid units
+
+          if (in_spectrum_list_)
+          {
+            spec_.getPrecursors().back().setDriftTime(value.toDouble());
+            spec_.setDriftTime(value.toDouble());
+          }
+          else
+          {
+            chromatogram_.getPrecursor().setDriftTime(value.toDouble());
+          }
+        }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- activation ----------------------------
       else if (parent_tag == "activation")
@@ -2315,7 +2341,9 @@ protected:
           spec_.getAcquisitionInfo().setMethodOfCombination(cv_.getTerm(accession).name);
         }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- scan ----------------------------
       else if (parent_tag == "scan")
@@ -2325,6 +2353,19 @@ protected:
         {
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
+        }
+        else if (accession == "MS:1002476") //ion mobility drift time
+        {
+          // Drift time may be a property of the precursor (in case we are
+          // acquiring a fragment ion spectrum) or of the spectrum itself.
+          // According to the updated OBO, it can be a precursor or a scan
+          // attribute.
+          //
+          // If we find it here, it relates to the scan or spectrum itself and
+          // not to a particular precursor.
+          //
+          // Note that only milliseconds are valid units
+          spec_.setDriftTime(value.toDouble());
         }
         else if (accession == "MS:1000011") //mass resolution
         {
@@ -3545,7 +3586,9 @@ protected:
         //exp_->setMetaValue(name, data_value);
       }
       else
+      {
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+      }
     }
 
     template <typename MapType>
@@ -3895,6 +3938,10 @@ protected:
       for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
       {
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
+      }
+      if (precursor.getDriftTime() >= 0.0)
+      {
+        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
       }
       //userParam: no extra object for it => no user parameters
       os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -5159,6 +5206,11 @@ protected:
         if (j == 0)
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+          // if drift time was never set, dont report it
+          if (spec.getDriftTime() >= 0.0)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
         //scan windows

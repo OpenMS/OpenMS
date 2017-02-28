@@ -233,6 +233,8 @@ set(format_executables_list
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
+  MSDataStoringConsumer_test
+  MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
 )
 

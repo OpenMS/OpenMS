@@ -2,6 +2,7 @@ OpenMS
 ====== 
 
 [![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms/README.html)
 
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 
