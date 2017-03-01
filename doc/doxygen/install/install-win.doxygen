@@ -90,7 +90,7 @@
 
         \code
         cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -G "<generator>" "<path_to_contrib>"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "<generator>" "<path_to_contrib>"
         \endcode
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
@@ -100,7 +100,7 @@
         Example:
         \code
         cd c:\dev\contrib_win64_build
-        cmake -DBUILD_TYPE=ALL -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
         \endcode
 
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
