@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <boost/iterator/counting_iterator.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -73,25 +74,33 @@ using namespace std;
 
 
 
-bool comparePeptideIdentificationByScore(PeptideIdentification* a,
-                                          PeptideIdentification* b)
+
+
+// Struct which is used for sorting the order vector by a meta value
+// of the peptide identification (usually score)
+struct less_than_by_key
 {
-  double a_score = (double) a->getMetaValue("OpenXQuest:score");
-  double b_score = (double) b->getMetaValue("OpenXQuest:score");
-  return (a_score > b_score);
-}
+    vector< vector< PeptideIdentification > > & elements;  // The elements according to which the rankm vector should be computed
+    size_t idx;  // Which element in the internal vector should be used (normally determined by rank, and currently only rank 1 is supported)
+    const String & meta_value;  // By which meta_value each peptide identification should be sorted (usually by score)
+
+    inline bool operator()(const size_t & index1, const size_t & index2)
+    {
+        return ((double) elements[index1][idx].getMetaValue(meta_value) > (double) elements[index2][idx].getMetaValue(meta_value));
+    }
+};
 
 
 
 // Ensures that the provided vectors of pointers in  sorted with respect to the score in
 // descending order
 
-bool isSortedDescending(vector<PeptideIdentification * > & pep_ids)
+bool isSortedDescending(vector< size_t > & order, vector< vector < PeptideIdentification > > & spectra, Int idx)
 {
-  for (size_t i = 0; i < pep_ids.size() -1; ++i)
+  for (size_t i = 0; i < spectra.size() - 1; ++i)
   {
-      double a_score = (double) pep_ids[i]->getMetaValue("OpenXQuest:score");
-      double b_score = (double) pep_ids[i+1]->getMetaValue("OpenXQuest:score");
+      double a_score = (double) spectra[order[i]][idx].getMetaValue("OpenXQuest:score");
+      double b_score = (double) spectra[order[i+1]][idx].getMetaValue("OpenXQuest:score");
 
       if(a_score < b_score)
       {
@@ -100,7 +109,6 @@ bool isSortedDescending(vector<PeptideIdentification * > & pep_ids)
   }
   return true;
 }
-
 
 
 class TOPPXFDR :
@@ -159,7 +167,7 @@ protected:
       registerFlag_(TOPPXFDR::param_qtransform, "Transform simple FDR to q-FDR values");
 
       // Minscore
-      registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 15, "Minimum ld-score to be considered", false);
+      registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
     }
 
     // the main_ function is called after all parameters are read
@@ -231,15 +239,22 @@ protected:
       //-------------------------------------------------------------
       String arg_in_xquestxml = getStringOption_(TOPPXFDR::param_in_xquestxml);
       LOG_INFO << "Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
+
+      // Core data structures for the util
       vector< XQuestResultMeta > metas;
       vector< vector < PeptideIdentification > > spectra;
 
+      size_t  pep_id_index = TOPPXFDR::n_rank - 1; // This is of course trash if more than 1 ranks are used.
+
+      // Parse XQuestResultXMLFile (TODO Also support idXML and MZID)
       XQuestResultXMLFile xquest_result_file;
       xquest_result_file.load(arg_in_xquestxml, metas, spectra, false, 1); // We do not load 'empty' spectra here
+      size_t n_spectra = spectra.size();
 
       if (arg_verbose)
       {
-        LOG_INFO << "Total number of hits: " << xquest_result_file.get_n_hits() << endl;
+        LOG_INFO << "Total number of spectra: " << n_spectra << "\n"
+                 << "Total number of hits: "    << xquest_result_file.get_n_hits() << endl;
       }
 
 //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
@@ -257,11 +272,10 @@ protected:
       // Calculate n_min_ions_matched
       //-------------------------------------------------------------
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
-      // Preallocate
+      // TODO Maybe it makes sense to wrap the vectors into a struct (they belong together by rank)
+      std::vector< std::vector< double >* > delta_scores(n_spectra);
+      std::vector< size_t > n_min_ions_matched(n_spectra);
 
-      std::vector< std::vector< double >* > delta_scores(spectra.size());
-      std::vector< size_t > n_min_ions_matched(spectra.size());
-      std::vector< PeptideIdentification * > hits_first_rank(spectra.size()); // Points to the first rank hits for each spectrum
       for(size_t i = 0; i < delta_scores.size(); ++i)
       {
           size_t n_hits = spectra[i].size();
@@ -273,7 +287,6 @@ protected:
           PeptideIdentification * pep_id1 = &spectra[i][0];
           assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
 
-          hits_first_rank[i] = pep_id1;
           vector<PeptideHit> pep_hits = pep_id1->getHits();
 
           if( pep_id1->getMetaValue("xl_type") == "cross-link")
@@ -285,8 +298,6 @@ protected:
           {
               n_min_ions_matched[i] = (int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions");
           }
-
-
           // Calculate delta score
           if (n_hits > 1)
           {
@@ -306,25 +317,91 @@ protected:
             }
           }
       }
+      typedef  std::vector<size_t> ranks;
 
-      // Sort pointers in hits_first_rank in descending order according to their respective score
-      std::sort(hits_first_rank.begin(),hits_first_rank.end(),comparePeptideIdentificationByScore);
-      assert(isSortedDescending(hits_first_rank));
+      ranks order_score ( boost::counting_iterator<size_t>(0),
+                          boost::counting_iterator<size_t>(n_spectra));
+
+      // Configure the sorting of the Peptide Identifications
+      less_than_by_key order_conf = {
+        spectra,            // elements
+        pep_id_index, // idx
+        "OpenXQuest:score"  // key
+      };
+
+      std::sort(order_score.begin(), order_score.end(), order_conf);
+      assert(isSortedDescending(order_score, spectra, pep_id_index));
 
       // For unique IDs
       std::set<String> unique_ids;
 
-      for (size_t i = 0; i < hits_first_rank.size(); ++i)
-      {
-       PeptideIdentification pep_id = *(hits_first_rank[i]);
 
-       double error_rel = (double) pep_id.getMetaValue("OpenXQuest:error_rel");
-       double delta_score = (*(delta_scores[i]))[0];    // Index 0 because we only consider rank 1 here
-       size_t ions_matched = n_min_ions_matched[i];
-       double score = (double) pep_id.getMetaValue("OpenXQuest:score");
-       String id = (String) pep_id.getMetaValue("OpenXQuest:id");
+
+      for (size_t i = 0; i < n_spectra; ++i)
+      {
+       PeptideIdentification * pep_id = &spectra[order_score[i]][pep_id_index];
+       double error_rel = (double) pep_id->getMetaValue("OpenXQuest:error_rel");
+       double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];    // Index 0 because we only consider rank 1 here
+       size_t ions_matched = n_min_ions_matched[order_score[i]];
+       double score = (double) pep_id->getMetaValue("OpenXQuest:score");
+       String id = (String) pep_id->getMetaValue("OpenXQuest:id");
 
        // Only consider peptide identifications which  fullfill all filter criteria specified by the user
+
+
+       if (     arg_minborder <= error_rel
+            &&  arg_maxborder >= error_rel
+            &&  (arg_mindeltas == 0 || delta_score < arg_mindeltas) // mindeltas of 0 disables filter
+            &&  ions_matched  >= arg_minionsmatched
+            &&  score         >= arg_minscore
+            &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()     ))
+       {
+           unique_ids.insert(id);
+
+           bool is_decoy = pep_id->metaValueExists("OpenXQuest:is_decoy");
+
+
+           // Process intraprotein
+           if (pep_id->metaValueExists("OpenXQuest:is_intraprotein"))
+           {
+               if (is_decoy)
+               {
+                  // TODO Process Intra Decoy
+
+               }
+               else
+               {
+                  // TODO Process non-intra Decoy
+               }
+           }
+
+           // Process interprotein
+           if (pep_id->metaValueExists("OpenXQuest:is_interprotein") /* && ! pep_id->metaValueExists("OpenXQuest:is_intraprotein") */ )
+           {
+               if (is_decoy)
+               {
+                  // TODO Process Intra Decoy
+
+               }
+               else
+               {
+                  // TODO Process non-intra Decoy
+               }
+           }
+           if ( pep_id->getMetaValue("xl_type") == "mono-link" || pep_id->getMetaValue("xl_type") == "loop-link")
+           {
+
+               if(is_decoy)
+               {
+                  cout << "ISMONODECOY" << endl;
+               }
+           }
+       }
+
+
+
+
+       /*
        if (    arg_minborder <= error_rel
            &&  arg_maxborder >= error_rel                                   // mass deviation
            &&  delta_score   >= arg_mindeltas                               // delta score cutoff
@@ -332,40 +409,14 @@ protected:
            &&  score         >= arg_minscore                                // minimum score
            &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))  // ID must be unique
         {
-
-
-
+           cout << "HITT" << endl;
         }
+        */
       }
+
 
 
       // Control Output
-
-      /*
-      for(vector<CrossLinkSpectrumMatch *>::const_iterator it = hits_first_rank.begin(); it != hits_first_rank.end(); ++it)
-      {
-        cout << "Final Score: "<< (*it)->score << endl;
-      }
-      */
-
-      for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end();
-           it++)
-      {
-        std::vector< double > current = **it;
-        for(std::vector< double >::const_iterator it2 = current.begin(); it2 != current.end(); it2++)
-        {
-          cout << "Delta Score: " <<  *it2 << endl;
-        }
-      }
-
-
-
-      for(vector< size_t >::const_iterator it = n_min_ions_matched.begin(); it != n_min_ions_matched.end(); it++)
-      {
-        cout << "N_min_ions_matched: " <<  *it << endl;
-      }
-
-
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
