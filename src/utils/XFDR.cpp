@@ -41,6 +41,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <boost/iterator/counting_iterator.hpp>
 
+#include <sstream>
+#include <string>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -74,6 +77,80 @@ using namespace std;
 
 
 
+bool readClasses(const String & filename, std::map<String, vector< StringList > > & classes )
+{
+  int state = 0;
+  String line;
+  String current_class;
+  vector< vector < String > > attributes;
+  std::ifstream infile(filename.c_str());
+  while (std::getline(infile, line))
+  {
+      switch(state)
+      {
+        // Expect new name of cross-link class
+        case 0:
+
+          if (classes.find(line) != classes.end())
+          {
+              LOG_ERROR << "ERROR: Name of cross-link class not unique: " << line << endl;
+              return false;
+          }
+          current_class  = line;
+          state = 1;
+          break;
+
+        // Expect attributes of the class
+        case 1:
+          if(line.hasPrefix("$"))  // End of XL class definition.
+          {
+              classes[current_class] = attributes;
+              attributes.clear();
+              state = 0;
+          }
+          else
+          {
+            StringList split;
+            StringUtils::split(line,";",split);
+            String identifier = split[0].removeWhitespaces();
+            String predicate = split[1].removeWhitespaces();
+
+            // TODO Also check the keys that are tested
+
+            if (identifier != "PEPID" && identifier != "ALPHA" && identifier != "BETA")
+            {
+              LOG_ERROR << "ERROR: Unknown identifier in attribute specification. Choose among 'PEPID', 'ALPHA', or 'BETA'." << endl;
+              return false;
+            }
+            if(predicate != "IS" && predicate != "ISNOT" && predicate != "HAS" && predicate != "HASNOT")
+            {
+               LOG_ERROR << "ERROR: Predicate is invalid. Choose among 'IS', 'ISNOT', 'HAS', or 'HASNOT'" << endl;
+               return false;
+            }
+            if ((predicate == "IS" || predicate == "ISNOT") && split.size() != 4)
+            {
+                LOG_ERROR << "ERROR: Predicates 'IS' and 'ISNOT' require 4 fields in total" << endl;
+                return false;
+            }
+            if ((predicate == "HAS" || predicate == "HASNOT") && split.size() != 3)
+            {
+                LOG_ERROR << "ERROR: Predicates 'HAS' and 'HASNOT' require 3 fields in total" << endl;
+                return false;
+            }
+            attributes.push_back(split);
+          }
+        default:
+          break;
+      }
+  }
+  if (state == 1)
+  {
+    LOG_ERROR << "ERROR: File ended, but no '$' symbol has been encountered." << endl;
+    return false;
+  }
+
+  return true;
+}
 
 
 // Struct which is used for sorting the order vector by a meta value
@@ -86,10 +163,10 @@ struct less_than_by_key
 
     inline bool operator()(const size_t & index1, const size_t & index2)
     {
-        return ((double) elements[index1][idx].getMetaValue(meta_value) > (double) elements[index2][idx].getMetaValue(meta_value));
+        return ((double) elements[index1][idx].getMetaValue(meta_value)
+                > (double) elements[index2][idx].getMetaValue(meta_value));
     }
 };
-
 
 
 // Ensures that the provided vectors of pointers in  sorted with respect to the score in
@@ -116,6 +193,7 @@ class TOPPXFDR :
 {
 public:
 
+    static const String param_in_xlclasses;  // Parameter for specifying the cross-link classes
     static const String param_in_xquestxml;  // Parameter for the original xQuest XML file
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  5 # filter for maximum precursor mass error (ppm)
@@ -144,8 +222,12 @@ protected:
       // Verbose Flag
       registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
 
-      // File input
-      registerOutputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
+      // File input (Cross-link classes)
+      registerInputFile_(TOPPXFDR::param_in_xlclasses, "<classes_file>", "",
+                         "Specification of cross-link classes to compute statistics on", true, false);
+
+      // File input (XQuest result XML)
+      registerInputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
       setValidFormats_(TOPPXFDR::param_in_xquestxml, ListUtils::create<String>("xml"));
 
       // Minborder
@@ -173,6 +255,42 @@ protected:
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
     {
+      bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
+
+      //-------------------------------------------------------------
+      // Handling the cross-link classes specification
+      //-------------------------------------------------------------
+      String arg_in_xlclasses = getStringOption_(TOPPXFDR::param_in_xlclasses);
+
+      // Container for rules of specifying classes
+      std::map<String, vector< StringList > > classes;
+      if(! readClasses(arg_in_xlclasses, classes))
+      {
+          LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
+          return PARSE_ERROR;
+      }
+
+      if (arg_verbose)
+      {
+        for(std::map<String, vector< StringList > >::const_iterator it = classes.begin(); it != classes.end(); ++it)
+        {
+              cout << "Class defined: " <<  it->first << endl;
+              /*
+              vector< StringList > attr = it->second;
+
+              for (vector< StringList >::const_iterator it2 = attr.begin(); it2 != attr.end(); ++it2)
+              {
+                  StringList values = *it2;
+                  for (StringList::const_iterator it3 = values.begin(); it3 != values.end(); it3++)
+                  {
+                      cout << *it3;
+                  }
+                 cout << endl;
+              }
+              */
+        }
+      }
+
       //-------------------------------------------------------------
       // parsing parameters
       //-------------------------------------------------------------
@@ -192,7 +310,6 @@ protected:
       Int arg_maxborder = getIntOption_(TOPPXFDR::param_maxborder);
       Int arg_minionsmatched = getIntOption_(TOPPXFDR::param_minionsmatched);
       Int arg_minscore = getIntOption_(TOPPXFDR::param_minscore);
-      bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
       bool arg_uniquex = getFlag_(TOPPXFDR::param_uniquexl);
 
       //-------------------------------------------------------------
@@ -337,6 +454,10 @@ protected:
 
 
 
+
+      // Applies user specified filters and aggregates the scores for the corresponding classes
+      // TODO Maybe put the stuff on the heap? Stack is getting full now.
+      std::map< String, vector< double > > scores;
       for (size_t i = 0; i < n_spectra; ++i)
       {
        PeptideIdentification * pep_id = &spectra[order_score[i]][pep_id_index];
@@ -347,8 +468,6 @@ protected:
        String id = (String) pep_id->getMetaValue("OpenXQuest:id");
 
        // Only consider peptide identifications which  fullfill all filter criteria specified by the user
-
-
        if (     arg_minborder <= error_rel
             &&  arg_maxborder >= error_rel
             &&  (arg_mindeltas == 0 || delta_score < arg_mindeltas) // mindeltas of 0 disables filter
@@ -358,44 +477,9 @@ protected:
        {
            unique_ids.insert(id);
 
-           bool is_decoy = pep_id->metaValueExists("OpenXQuest:is_decoy");
+           // Check all classes and see whether this PeptideIdentification matches
 
 
-           // Process intraprotein
-           if (pep_id->metaValueExists("OpenXQuest:is_intraprotein"))
-           {
-               if (is_decoy)
-               {
-                  // TODO Process Intra Decoy
-
-               }
-               else
-               {
-                  // TODO Process non-intra Decoy
-               }
-           }
-
-           // Process interprotein
-           if (pep_id->metaValueExists("OpenXQuest:is_interprotein") /* && ! pep_id->metaValueExists("OpenXQuest:is_intraprotein") */ )
-           {
-               if (is_decoy)
-               {
-                  // TODO Process Intra Decoy
-
-               }
-               else
-               {
-                  // TODO Process non-intra Decoy
-               }
-           }
-           if ( pep_id->getMetaValue("xl_type") == "mono-link" || pep_id->getMetaValue("xl_type") == "loop-link")
-           {
-
-               if(is_decoy)
-               {
-                  cout << "ISMONODECOY" << endl;
-               }
-           }
        }
 
 
@@ -428,6 +512,7 @@ protected:
       return EXECUTION_OK;
     }
 };
+const String TOPPXFDR::param_in_xlclasses = "in_xlclasses";
 const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
