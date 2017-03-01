@@ -55,7 +55,6 @@ TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
-RNPxlSearch
 
 )
 
