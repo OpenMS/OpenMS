@@ -79,30 +79,6 @@ namespace OpenMS
     }
   }
 
-//  // Returns value of Binomial Coefficient C(n, k), dynamic programming approach
-//  double OpenProXLUtils::binomialCoefficient(int n, int k)
-//  {
-//    double C[n+1][k+1];
-
-//    for (int i = 0; i <= n; i++)
-//    {
-//      for (int j = 0; j <= min(i, k); j++)
-//      {
-//        // Simple cases
-//        if (j == 0 || j == i)
-//        {
-//          C[i][j] = 1.0;
-//        }
-//        // Use previously computed values to compute new ones
-//        else
-//        {
-//          C[i][j] = C[i-1][j-1] + C[i-1][j];
-//        }
-//      }
-//    }
-//    return C[n][k];
-//  }
-
   // Statistics/Combinatorics functions for match-odds score
   // Standard cumulative binomial distribution
   double OpenProXLUtils::cumulativeBinomial(Size n, Size k, double p)
@@ -112,35 +88,23 @@ namespace OpenMS
     if (1 - p < 1e-99) return static_cast<double>(k != n); //
     if (k > n)  return 1.0;
 
-    //cout << "TEST cumulBinom, passed if's, p = " << p << endl;
-
-    for (Size j = k-1; j > 0; --j)
+    for (Size j = 0; j < k; ++j)
     {
       double coeff = 0;
-
-
-//      coeff = OpenProXLUtils::binomialCoefficient(n, k);
 
       try
       {
         coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
       }
-      catch (boost::exception const& e)
+      catch (std::overflow_error const& e)
       {
         cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << endl;
+        cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
         coeff = std::numeric_limits<double>::max();
       }
-      catch (...)
-      {
-        cout << "Warning: Exception thrown by boost::math::binomial_coefficient in match_odds score! Setting value to 0." << endl;
-      }
 
-//      double coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
       p_cumul += coeff * pow(p,  j) * pow((1-p), (n-j));
-      //cout << "TEST coeff: " << coeff << " | first pow: " << pow(p,  j) << " | second pow: " <<  pow((1-p), (n-j)) << " | just added: " << coeff * pow(p,  j) * pow((1-p), (n-j)) << " | new p_cumul: " << p_cumul << endl;
     }
-    // case for j = 0, coeff is 1 in that case, pow(p, 0) = 1
-    p_cumul += pow((1-p), (n));
 
     // match-odds score becomes INFINITY for p_cumul >= 1, p_cumul might reach 1 because of insufficient precision, solved by using largest value smaller than 1
     if (p_cumul >= 1.0)
