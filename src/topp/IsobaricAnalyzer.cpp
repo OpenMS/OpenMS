@@ -105,6 +105,23 @@ using namespace std;
   After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications, obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set suitably small RT and m/z tolerances for the mapping, since the identifications will come from the very same MS2 scans that are now represented by consensus features. In general it should be possible to achieve a perfect one-to-one matching of every identification to a single consensus feature.@n
   Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities, you can use @ref TOPP_TextExporter to obtain a simple text format which you can feed to other software tools (e.g., R), or you can apply @ref TOPP_ProteinQuantifier.
 
+  For the TMT6plex and TMT10plex method please add the precentages of the correction matrix as shown in the product data sheet of your charge:
+
+  Data sheet:
+  Mass Tag  Repoter Ion -2      -1      Monoisotopic    +1    +2
+  126       126.12776   0.0%    0.0%        100%        5.0%   0.0%
+  127N      127.124761  0.0%    0.2%        100%        4.6%   0.0%
+  .
+  .
+  .
+
+  Correction matrix:
+  [0.0/0.0/5.0/0.0,
+   0.0/0.2/4.6/0.0,
+   .
+   .
+   .
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IsobaricAnalyzer.cli
     <B>INI file documentation of this tool:</B>
