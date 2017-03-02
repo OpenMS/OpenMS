@@ -77,7 +77,7 @@ using namespace std;
 
 
 
-bool readClasses(const String & filename, std::map<String, vector< StringList > > & classes )
+bool readClasses(const String & filename, std::map<String, vector< vector < StringList > > > & classes )
 {
   int state = 0;
   String line;
@@ -108,16 +108,21 @@ bool readClasses(const String & filename, std::map<String, vector< StringList > 
 
         // Expect attributes of the class
         case 1:
-          if(line.hasPrefix("$"))  // End of XL class definition.
+          if(line.hasPrefix("$"))  // End of xlink class definition.
           {
-              classes[current_class] = attributes;
+              classes[current_class].push_back(attributes);
               attributes.clear();
               state = 0;
+          }
+          else if(line.hasPrefix(">"))  // New clause for class definition found
+          {
+            classes[current_class].push_back(attributes);
+            attributes.clear();
           }
           else
           {
             StringList split;
-            StringUtils::split(line,";",split);
+            StringUtils::split(line,"|", split);
             size_t split_size = split.size();
 
             for (size_t i = 0; i < split_size; ++i)
@@ -128,10 +133,9 @@ bool readClasses(const String & filename, std::map<String, vector< StringList > 
             String predicate = split[1];
 
             // TODO Also check the keys that are tested
-
             if (identifier != "PEPID" && identifier != "ALPHA" && identifier != "BETA")
             {
-              LOG_ERROR << "ERROR: Unknown identifier in attribute specification. Choose among 'PEPID', 'ALPHA', or 'BETA'." << endl;
+              LOG_ERROR << "ERROR: Unknown identifier in attribute specification: '"<< identifier <<"'. Choose among 'PEPID', 'ALPHA', or 'BETA'." << endl;
               return false;
             }
             if(predicate != "IS" && predicate != "ISNOT" && predicate != "HAS" && predicate != "HASNOT")
@@ -275,7 +279,7 @@ protected:
       String arg_in_xlclasses = getStringOption_(TOPPXFDR::param_in_xlclasses);
 
       // Container for rules of specifying classes
-      std::map<String, vector< StringList > > classes;
+      std::map<String, vector< vector< StringList > > > classes;  // A bit awful, should maybe replaced by proper classes (OOP) at some point
       if(! readClasses(arg_in_xlclasses, classes))
       {
           LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
@@ -284,7 +288,7 @@ protected:
 
       if (arg_verbose)
       {
-        for(std::map<String, vector< StringList > >::const_iterator it = classes.begin(); it != classes.end(); ++it)
+        for(std::map<String, vector< vector< StringList > > >::const_iterator it = classes.begin(); it != classes.end(); ++it)
         {
               cout << "Class defined: " <<  it->first << endl;
               /*
@@ -307,7 +311,6 @@ protected:
       // parsing parameters
       //-------------------------------------------------------------
       double arg_mindeltas = getDoubleOption_(TOPPXFDR::param_mindeltas);
-
       if (arg_mindeltas < 0)
       {
         LOG_ERROR << "ERROR: Negative values for parameter 'mindeltas' are not allowed." << endl;
@@ -318,6 +321,9 @@ protected:
         LOG_ERROR << "ERROR: Values larger than 1 for parameter 'mindeltas' are not allowed." << endl;
         return ILLEGAL_PARAMETERS;
       }
+      // mindelta if 0 disables this filter (according to the documentation of xProphet)
+      bool mindelta_filter_disabled = (arg_mindeltas == 0);
+
       Int arg_minborder = getIntOption_(TOPPXFDR::param_minborder);
       Int arg_maxborder = getIntOption_(TOPPXFDR::param_maxborder);
       Int arg_minionsmatched = getIntOption_(TOPPXFDR::param_minionsmatched);
@@ -467,14 +473,13 @@ protected:
       // For unique IDs
       std::set<String> unique_ids;
 
-
-
-
       // Applies user specified filters and aggregates the scores for the corresponding classes
       // TODO Maybe put the stuff on the heap? Stack is getting full now.
       std::map< String, vector< double > > scores;
+
       for (size_t i = 0; i < n_spectra; ++i)
       {
+       // Extract required attributes of the peptide_identification (filter criteria)
        PeptideIdentification * pep_id = &spectra[order_score[i]][pep_id_index];
        double error_rel = (double) pep_id->getMetaValue("OpenXQuest:error_rel");
        double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];    // Index 0 because we only consider rank 1 here
@@ -485,77 +490,88 @@ protected:
        // Only consider peptide identifications which  fullfill all filter criteria specified by the user
        if (     arg_minborder <= error_rel
             &&  arg_maxborder >= error_rel
-            &&  (arg_mindeltas == 0 || delta_score < arg_mindeltas) // mindeltas of 0 disables filter
+            &&  (mindelta_filter_disabled || delta_score < arg_mindeltas)
             &&  ions_matched  >= arg_minionsmatched
             &&  score         >= arg_minscore
-            &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()     ))
+            &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
        {
            unique_ids.insert(id);
 
            // Check all classes and see whether this PeptideIdentification matches
-           // std::map<String, vector< StringList > > & classes
-           for (std::map< String, vector< StringList > >::const_iterator it = classes.begin();
+           for (std::map< String, vector< vector< StringList > > >::const_iterator it = classes.begin();
                 it != classes.end(); ++it)\
            {
-              std::pair< String, vector<StringList> > pair = *it;
-              // Test all the attributes. If one of them does not match this peptide identification, do not add the score
-              // to that particular class
+              bool class_fit = false;
+              std::pair< String, vector< vector< StringList > > > xlink_class = *it;
 
-              bool class_fits = true;  // Keeps track of whether the ppxlink class matches the attribute criteria
-
-              for (vector< StringList>::const_iterator attribute_it = pair.second.begin();
-                   attribute_it != pair.second.end(); ++attribute_it)
+              // Go throw all the clauses of the class and see if at least one clause matches
+              for (vector< vector< StringList > >::const_iterator xlink_class_it = xlink_class.second.begin();
+                   xlink_class_it != xlink_class.second.end(); ++xlink_class_it)
               {
-                  StringList attribute = *attribute_it;
+                  vector< StringList > clause = *xlink_class_it;
 
-                  // Decide for the MetaInfoInterface to be investigated
-                  MetaInfoInterface meta_info_interface;
-                  if (attribute[0] == "PEPID")
+                  bool clause_matches = true;
+
+                  // Check all criteria within the class
+                  for (vector< StringList>::const_iterator clause_it = clause.begin(); clause_it != clause.end();
+                       clause_it++)
                   {
-                    meta_info_interface = *pep_id;
+                      StringList attribute = *clause_it;
+                      // Decide for the MetaInfoInterface to be investigated
+                      MetaInfoInterface meta_info_interface;
+                      if (attribute[0] == "PEPID")
+                      {
+                        meta_info_interface = *pep_id;
+                      }
+                      else
+                      {
+                        std::vector<PeptideHit> & peptide_hits = pep_id->getHits();
+
+                        if (attribute[0] == "ALPHA")   // Assume here that Alpha always exists
+                        {
+                            meta_info_interface = peptide_hits[0];
+                        }
+                        else if (peptide_hits.size() < 2)     // Must be BETA, but there is no beta
+                        {
+                            clause_matches = false;
+                            break;
+                        }
+                        else
+                        {
+                            meta_info_interface = peptide_hits[1];
+                        }
+                       }
+                      // Switch on the predicate
+                      String predicate = attribute[1];     // What the meta value should be tested for
+                      String meta_value  = attribute[2];   // The Meta value to be tested
+                      bool meta_value_exists = meta_info_interface.metaValueExists(meta_value);
+
+                      // Each one of the following criteria throws the peptide identification out of the class
+                      if (    (predicate == "HAS"    && ! meta_value_exists)
+                          ||  (predicate == "HASNOT" &&   meta_value_exists)
+                          ||  (predicate == "IS"     && ! meta_value_exists)
+                          ||  (predicate == "IS"     &&   ((String) meta_info_interface.getMetaValue(meta_value)) != attribute[3])
+                          ||  (predicate == "ISNOT"  &&   ((String) meta_info_interface.getMetaValue(meta_value)) == attribute[3]))
+                      {
+                         clause_matches = false;
+                         break;
+                      }
                   }
-                  else
+                  if(clause_matches)   // This clause matches, so the peptide_identification belongs to this classd
                   {
-                    std::vector<PeptideHit> & peptide_hits = pep_id->getHits();
-
-                    if (attribute[0] == "ALPHA")   // Assume here that Alpha always exists
-                    {
-                        meta_info_interface = peptide_hits[0];
-                    }
-                    else if (peptide_hits.size() < 2)     // Must be BETA, but there is no beta
-                    {
-                        class_fits = false;
-                        break;
-                    }
-                    else
-                    {
-                        meta_info_interface = peptide_hits[1];
-                    }
-                 }
-
-                 // Switch on the predicate
-                 String predicate = attribute[1];     // What the meta value should be tested for
-                 String meta_value  = attribute[2];   // The Meta value to be tested
-                 bool meta_value_exists = meta_info_interface.metaValueExists(meta_value);
-
-                 // Each one of the following criteria throws the peptide identification out of the class
-                 if (    (predicate == "HAS"    && ! meta_value_exists)
-                     ||  (predicate == "HASNOT" &&   meta_value_exists)
-                     ||  (predicate == "IS"     && ! meta_value_exists)
-                     ||  (predicate == "IS"     &&   ((String) meta_info_interface.getMetaValue(meta_value)) != attribute[3])
-                     ||  (predicate == "ISNOT"  &&   ((String) meta_info_interface.getMetaValue(meta_value)) == attribute[3]))
-                 {
-                    class_fits = false;
+                    class_fit = true;
                     break;
-                 }
+                  }  // else:  If the clause does not match, continue to the next clause
               }
-              if (class_fits) // Add score of this peptide identification to the classes scores list
+
+              if (class_fit)
               {
-                 scores[pair.first].push_back(score);
+                  scores[xlink_class.first].push_back(score);
               }
            }
        }
       }
+
       // Print number of scores within each class
       if (arg_verbose)
       {
