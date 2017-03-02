@@ -1598,7 +1598,7 @@ namespace OpenMS
 
       if (peptide_pos_second != OpenProXLUtils::INTERNAL)
       {
-        ResidueModification::Term_Specificity second_spec;
+        ResidueModification::TermSpecificity second_spec;
         Size mod_pos;
         bool compatible = false;
         if (n_term_linker && (peptide_pos_second == OpenProXLUtils::N_TERM))
@@ -1647,7 +1647,7 @@ namespace OpenMS
 
       if (peptide_pos_first != OpenProXLUtils::INTERNAL)
       {
-        ResidueModification::Term_Specificity first_spec;
+        ResidueModification::TermSpecificity first_spec;
         Size mod_pos;
         bool compatible = false;
         if (n_term_linker && (peptide_pos_first == OpenProXLUtils::N_TERM))
@@ -1757,13 +1757,13 @@ namespace OpenMS
       PeptideHit ph_alpha, ph_beta;
       // Set monolink as a modification or add MetaValue for cross-link identity and mass
       AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
-      ResidueModification::Term_Specificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
+      ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
       if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
       {
         //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
         vector< String > mods;
         const String residue = seq_alpha[alpha_pos].getOneLetterCode();
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, residue, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001);
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, residue);
         LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
         bool mod_set = false;
         if (mods.size() > 0) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
@@ -1781,7 +1781,7 @@ namespace OpenMS
         }
         else if (mods.size() == 0 && (alpha_pos == 0 || alpha_pos == seq_alpha.size()-1))
         {
-          ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass (mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, alpha_term_spec);
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, "", alpha_term_spec);
           if (mods.size() > 0)
           {
             Size mod_index = 0;
@@ -1843,7 +1843,7 @@ namespace OpenMS
         alpha_term = "C_TERM";
       }
 
-      ResidueModification::Term_Specificity beta_term_spec = top_csms_spectrum[i].cross_link.term_spec_beta;
+      ResidueModification::TermSpecificity beta_term_spec = top_csms_spectrum[i].cross_link.term_spec_beta;
       String beta_term = "ANYWHERE";
       if (beta_term_spec == ResidueModification::N_TERM)
       {
