@@ -278,7 +278,7 @@ namespace OpenMS
         double mono_weight(Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass + peptideB_mass);
         if (xlink_pos_A == 0 && peptideA.hasNTerminalModification())
         {
-          mono_weight += peptideA.getNTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptideA.getNTerminalModification()->getDiffMonoMass();
         }
         Size i = xlink_pos_A+1;
         if (i < peptideA.size())
@@ -309,7 +309,7 @@ namespace OpenMS
         mono_weight = Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass + peptideA_mass;
         if (xlink_pos_B == 0 && peptideB.hasNTerminalModification())
         {
-          mono_weight += peptideB.getNTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptideB.getNTerminalModification()->getDiffMonoMass();
         }
         i = xlink_pos_B+1;
         if (i < peptideB.size())
@@ -385,7 +385,7 @@ namespace OpenMS
         double mono_weight(Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass + peptideB_mass);
         if (xlink_pos_A == peptideA.size()+1 && peptideA.hasCTerminalModification())
         {
-          mono_weight += peptideA.getCTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptideA.getCTerminalModification()->getDiffMonoMass();
         }
         Size i = peptideA.size() - xlink_pos_A - 1;
 
@@ -419,7 +419,7 @@ namespace OpenMS
         mono_weight = Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass + peptideA_mass;
         if (xlink_pos_B == peptideB.size()+1 && peptideB.hasCTerminalModification())
         {
-          mono_weight += peptideB.getCTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptideB.getCTerminalModification()->getDiffMonoMass();
         }
         i = peptideB.size() - xlink_pos_B - 1;
         if (i < peptideB.size())
@@ -568,7 +568,7 @@ namespace OpenMS
         double mono_weight(Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass);
         if (xlink_pos_A == 0 && peptideA.hasNTerminalModification())
         {
-          mono_weight += peptideA.getNTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptideA.getNTerminalModification()->getDiffMonoMass();
         }
         Size i = xlink_pos_A+1;
         if (i < peptideA.size())
@@ -623,7 +623,7 @@ namespace OpenMS
         double mono_weight(Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass);
         if (xlink_pos_B == peptideA.size()+1 && peptideA.hasCTerminalModification())
         {
-          mono_weight += peptideA.getCTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptideA.getCTerminalModification()->getDiffMonoMass();
         }
 
         Size i = peptideA.size() - xlink_pos_B - 1;
@@ -872,7 +872,7 @@ namespace OpenMS
         double mono_weight(Constants::PROTON_MASS_U * charge);
         if (peptide.hasNTerminalModification())
         {
-          mono_weight += peptide.getNTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
         }
         Size i = add_first_prefix_ion_ ? 0 : 1;
         if (i == 1)
@@ -925,7 +925,7 @@ namespace OpenMS
         double mono_weight(Constants::PROTON_MASS_U * charge);
         if (peptide.hasCTerminalModification())
         {
-          mono_weight += peptide.getCTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
         }
 
         Size i = add_first_prefix_ion_ ? 0 : 1;

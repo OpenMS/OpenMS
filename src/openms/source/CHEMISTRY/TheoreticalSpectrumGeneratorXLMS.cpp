@@ -257,7 +257,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
         double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
         if (peptide.hasNTerminalModification())
         {
-          mono_weight += peptide.getNTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
         }
 
         switch (res_type)
@@ -314,7 +314,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
         double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
         if (peptide.hasCTerminalModification())
         {
-          mono_weight += peptide.getCTerminalResidueModification()->getDiffMonoMass();
+          mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
         }
 
         switch (res_type)
@@ -497,7 +497,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 
         if (peptide.hasCTerminalModification())
         {
-          mono_weight -= peptide.getCTerminalResidueModification()->getDiffMonoMass();
+          mono_weight -= peptide.getCTerminalModification()->getDiffMonoMass();
         }
 
         // adjust mass to given residue type
@@ -546,7 +546,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 
         if (peptide.hasNTerminalModification())
         {
-          mono_weight -= peptide.getNTerminalResidueModification()->getDiffMonoMass();
+          mono_weight -= peptide.getNTerminalModification()->getDiffMonoMass();
         }
 
         // adjust mass to given residue type
