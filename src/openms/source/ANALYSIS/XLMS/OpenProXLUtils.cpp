@@ -971,7 +971,7 @@ namespace OpenMS
     return modifications;
   }
 
-  void OpenProXLUtils::preprocessSpectraLabeled(PeakMap& exp)
+  void OpenProXLUtils::preprocessSpectraLabeled(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -991,8 +991,9 @@ namespace OpenMS
 #endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
-//      // sort by mz
+      // sort by mz and deisotope
       exp[exp_index].sortByPosition();
+      exp[exp_index] = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(exp[exp_index] , 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
      }
   }
 

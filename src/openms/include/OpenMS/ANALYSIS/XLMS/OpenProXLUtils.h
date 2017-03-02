@@ -255,7 +255,7 @@ struct CrossLinkSpectrumMatch
 
     static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
 
-    static void preprocessSpectraLabeled(PeakMap& exp);
+    static void preprocessSpectraLabeled(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm);
 
     static void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
 
