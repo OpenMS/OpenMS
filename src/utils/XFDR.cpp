@@ -43,6 +43,7 @@
 
 #include <sstream>
 #include <string>
+#include <math.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -74,6 +75,27 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+
+
+vector< size_t > * cumulative_distribution(const vector< double> & values, double step, double from, double to)
+{
+  if (to <= from)
+  {
+      return NULL;
+  }
+  vector< size_t > * result = new vector <size_t>(floor((to-from) / step) + 1);
+
+  for (vector< double>::const_iterator it = values.begin(); it != values.end(); ++it)
+  {
+      size_t until = floor(((*it) - from) / step);
+
+      for (size_t i = 0; i <= until; ++i)
+      {
+          (*result)[i]++;
+      }
+  }
+  return result;
+}
 
 
 
@@ -586,13 +608,33 @@ protected:
       }
 
 
+      //std::map< String, vector< double > > scores;
+      // Calculate the cumulative score distribution for each xlink class
+      std::map< String, vector< size_t > * > cum_scores;
+      for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
+           scores_it != scores.end(); ++scores_it)
+      {
+          String class_name = scores_it->first;
+          cum_scores[class_name] = cumulative_distribution(scores_it->second, 0.1, 0, 100);
+      }
 
-      // Control Output
+
+      // Print the cumulative distribution of the scores within each class // TODO Just for plotting. Remove later
+
+
+
+
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
       {
         delete *it;
+      }
+
+      // Delete Cumulative distributions
+      for(std::map< String, vector< size_t > * >::const_iterator it = cum_scores.begin(); it != cum_scores.end(); ++it)
+      {
+       delete it->second;
       }
 
 
