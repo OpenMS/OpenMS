@@ -86,6 +86,12 @@ bool readClasses(const String & filename, std::map<String, vector< StringList > 
   std::ifstream infile(filename.c_str());
   while (std::getline(infile, line))
   {
+      // Ignore empty lines
+      if (line.empty())
+      {
+          continue;
+      }
+
       switch(state)
       {
         // Expect new name of cross-link class
@@ -112,8 +118,14 @@ bool readClasses(const String & filename, std::map<String, vector< StringList > 
           {
             StringList split;
             StringUtils::split(line,";",split);
-            String identifier = split[0].removeWhitespaces();
-            String predicate = split[1].removeWhitespaces();
+            size_t split_size = split.size();
+
+            for (size_t i = 0; i < split_size; ++i)
+            {
+               split[i] = split[i].removeWhitespaces();
+            }
+            String identifier = split[0];
+            String predicate = split[1];
 
             // TODO Also check the keys that are tested
 
@@ -127,12 +139,12 @@ bool readClasses(const String & filename, std::map<String, vector< StringList > 
                LOG_ERROR << "ERROR: Predicate is invalid. Choose among 'IS', 'ISNOT', 'HAS', or 'HASNOT'" << endl;
                return false;
             }
-            if ((predicate == "IS" || predicate == "ISNOT") && split.size() != 4)
+            if ((predicate == "IS" || predicate == "ISNOT") && split_size != 4)
             {
                 LOG_ERROR << "ERROR: Predicates 'IS' and 'ISNOT' require 4 fields in total" << endl;
                 return false;
             }
-            if ((predicate == "HAS" || predicate == "HASNOT") && split.size() != 3)
+            if ((predicate == "HAS" || predicate == "HASNOT") && split_size != 3)
             {
                 LOG_ERROR << "ERROR: Predicates 'HAS' and 'HASNOT' require 3 fields in total" << endl;
                 return false;
@@ -355,8 +367,11 @@ protected:
       // Parsing XML file of xQuest
       //-------------------------------------------------------------
       String arg_in_xquestxml = getStringOption_(TOPPXFDR::param_in_xquestxml);
-      LOG_INFO << "Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
 
+      if (arg_verbose)
+      {
+        LOG_INFO << "INFO: Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
+      }
       // Core data structures for the util
       vector< XQuestResultMeta > metas;
       vector< vector < PeptideIdentification > > spectra;
@@ -478,24 +493,80 @@ protected:
            unique_ids.insert(id);
 
            // Check all classes and see whether this PeptideIdentification matches
+           // std::map<String, vector< StringList > > & classes
+           for (std::map< String, vector< StringList > >::const_iterator it = classes.begin();
+                it != classes.end(); ++it)\
+           {
+              std::pair< String, vector<StringList> > pair = *it;
+              // Test all the attributes. If one of them does not match this peptide identification, do not add the score
+              // to that particular class
 
+              bool class_fits = true;  // Keeps track of whether the ppxlink class matches the attribute criteria
 
+              for (vector< StringList>::const_iterator attribute_it = pair.second.begin();
+                   attribute_it != pair.second.end(); ++attribute_it)
+              {
+                  StringList attribute = *attribute_it;
+
+                  // Decide for the MetaInfoInterface to be investigated
+                  MetaInfoInterface meta_info_interface;
+                  if (attribute[0] == "PEPID")
+                  {
+                    meta_info_interface = *pep_id;
+                  }
+                  else
+                  {
+                    std::vector<PeptideHit> & peptide_hits = pep_id->getHits();
+
+                    if (attribute[0] == "ALPHA")   // Assume here that Alpha always exists
+                    {
+                        meta_info_interface = peptide_hits[0];
+                    }
+                    else if (peptide_hits.size() < 2)     // Must be BETA, but there is no beta
+                    {
+                        class_fits = false;
+                        break;
+                    }
+                    else
+                    {
+                        meta_info_interface = peptide_hits[1];
+                    }
+                 }
+
+                 // Switch on the predicate
+                 String predicate = attribute[1];     // What the meta value should be tested for
+                 String meta_value  = attribute[2];   // The Meta value to be tested
+                 bool meta_value_exists = meta_info_interface.metaValueExists(meta_value);
+
+                 // Each one of the following criteria throws the peptide identification out of the class
+                 if (    (predicate == "HAS"    && ! meta_value_exists)
+                     ||  (predicate == "HASNOT" &&   meta_value_exists)
+                     ||  (predicate == "IS"     && ! meta_value_exists)
+                     ||  (predicate == "IS"     &&   ((String) meta_info_interface.getMetaValue(meta_value)) != attribute[3])
+                     ||  (predicate == "ISNOT"  &&   ((String) meta_info_interface.getMetaValue(meta_value)) == attribute[3]))
+                 {
+                    class_fits = false;
+                    break;
+                 }
+              }
+              if (class_fits) // Add score of this peptide identification to the classes scores list
+              {
+                 scores[pair.first].push_back(score);
+              }
+           }
        }
+      }
+      // Print number of scores within each class
+      if (arg_verbose)
+      {
+        LOG_INFO << "\nINFO: Number of Scores for each class:" << endl;
 
-
-
-
-       /*
-       if (    arg_minborder <= error_rel
-           &&  arg_maxborder >= error_rel                                   // mass deviation
-           &&  delta_score   >= arg_mindeltas                               // delta score cutoff
-           &&  ions_matched  >= arg_minionsmatched                          // min number of ions matched
-           &&  score         >= arg_minscore                                // minimum score
-           &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))  // ID must be unique
+        for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
+             scores_it != scores.end(); ++scores_it)
         {
-           cout << "HITT" << endl;
+          std::pair< String, vector< double > > pair = *scores_it;
+          LOG_INFO << pair.first << ": " << pair.second.size() << endl;
         }
-        */
       }
 
 
