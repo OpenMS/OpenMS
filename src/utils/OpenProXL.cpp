@@ -71,10 +71,14 @@ using namespace OpenMS;
 #define NUMBER_OF_THREADS (1)
 #endif
 
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
 /**
     @page UTILS_OpenProXL OpenProXL
 
-    @brief Perform protein-protein cross-linking experiment search.
+    @brief Performs protein-protein cross-linking identification search.
 
     <CENTER>
     <table>
@@ -101,25 +105,8 @@ class TOPPOpenProXL :
 {
 public:
   TOPPOpenProXL() :
-    TOPPBase("OpenProXL", "Tool for protein-protein cross linking using labeled linkers.", false)
+    TOPPBase("OpenProXL", "Tool for protein-protein cross-linking identification using labeled linkers.", false)
   {
-  }
-
-protected:
-  static void wrap_(const String& input, Size width, String & output)
-  { 
-    Size start = 0;
-
-    while (start + width < input.size())
-    {
-      output += input.substr(start, width) + "\n";
-      start += width;
-    }
-    
-    if (start < input.size())
-    {
-      output += input.substr(start, input.size() - start) + "\n";
-    }
   }
 
 protected:
@@ -182,7 +169,6 @@ protected:
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
-
     registerTOPPSubsection_("cross_linker", "Cross Linker Options");
     registerStringList_("cross_linker:residue1", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to", false);
     registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false);
@@ -210,24 +196,6 @@ protected:
     registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format", false);
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
-
-//  struct PreprocessedPairSpectra_
-//  {
-//    // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMapreprocessed_pair_spectra.
-//    PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-//    PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
-//    PeakMap spectra_all_peaks;
-
-//    PreprocessedPairSpectra_(Size size)
-//    {
-//      for (Size i = 0; i != size; ++i)
-//      {
-//        spectra_common_peaks.addSpectrum(PeakSpectrum());
-//        spectra_xlink_peaks.addSpectrum(PeakSpectrum());
-//        spectra_all_peaks.addSpectrum(PeakSpectrum());
-//      }
-//    }
-//  };
 
   // create common / shifted peak spectra for all pairs
   OpenProXLUtils::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
@@ -279,88 +247,77 @@ protected:
       }
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
-      // assume different charged MS2 fragments
       PeakSpectrum spectrum_heavy_to_light;
       PeakSpectrum xlink_peaks;
-//      PeakSpectrum::IntegerDataArray charges;
+      PeakSpectrum::IntegerDataArray spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
       xlink_peaks.getIntegerDataArrays().push_back(PeakSpectrum::IntegerDataArray());
+
+      // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
       {
         spectrum_heavy_to_light.clear(false);
         double mass_shift = cross_link_mass_iso_shift / charge;
-        // transform heavy spectrum to light spectrum, collect peaks with the current charge into the spectrum
-        // for (Size i = 0; i != spectrum_heavy_different.size(); ++i)  // in xQuest the whole heavy spec is used
+
+        // transform heavy spectrum
         for (Size i = 0; i != spectrum_heavy.size(); ++i)
         {
-          //Peak1D p = spectrum_heavy_different[i];
-          Peak1D p = spectrum_heavy[i];
-          p.setMZ(p.getMZ() - mass_shift);
-          spectrum_heavy_to_light.push_back(p);
+          // check if the charge for the heavy peak determined by deisotoping matches the currently considered charge
+          Size spectrum_heavy_charge = spectrum_heavy_charges[i];
+          if (spectrum_heavy_charge == 0 || spectrum_heavy_charge == charge)
+          {
+            Peak1D p = spectrum_heavy[i];
+            p.setMZ(p.getMZ() - mass_shift);
+            spectrum_heavy_to_light.push_back(p);
+          }
         }
-//        PeakSpectrum::IntegerDataArray charges;
-//        PeakSpectrum::StringDataArray annotations;
-//        charges.assign(spectrum_heavy_to_light.size(), 0);
-//        annotations.assign(spectrum_heavy_to_light.size(), "");
-//        spectrum_heavy_to_light.getIntegerDataArrays().push_back(charges);
-//        spectrum_heavy_to_light.getStringDataArrays().push_back(annotations);
 
-        // align potentially shifted peaks from light MS2 with potentially shifted peaks from heavy (after transformation to resemble the light MS2)
+        // align peaks from light spectrum with shifted peaks from heavy spectrum
         // matching fragments are potentially carrying the cross-linker
         vector< pair< Size, Size > > matched_fragments_with_shift;
 
         spectrum_heavy_to_light.sortByPosition();
-        if (spectrum_light_different.size() > 0 && spectrum_heavy_to_light.size() > 0)
+        if (spectrum_heavy_to_light.size() > 0)
         {
-          //getSpectrumIntensityMatching(matched_fragments_with_shift, spectrum_light_different, spectrum_heavy_to_light, 0.3, false, 0.3); // OLD maybe better version
-          OpenProXLUtils::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3); // xQuest Perl does not remove common peaks from xlink search
+          OpenProXLUtils::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3);
 
+          // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
           {
-            //xlink_peaks.push_back(spectrum_light_different[matched_fragments_with_shift[i].first]);
             xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
             xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
           }
-
-          // make sure to not include the same peaks more than once with a different charge
-//          for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
-//          {
-//            spectrum_light_different.erase(spectrum_light_different.begin() + matched_fragments_with_shift[i].first);
-//            Size heavy_index = spectrum_heavy_different.findNearest(spectrum_heavy_to_light[matched_fragments_with_shift[i].second].getMZ() + mass_shift);
-//            spectrum_heavy_different.erase(spectrum_heavy_different.begin() + heavy_index);
-//          }
         }
       }
 
-
-#ifdef DEBUG_OPENPROXL
-        LOG_DEBUG << "Common peaks: " << matched_fragments_without_shift.size() << " different peaks: " << spectrum_light.size() - matched_fragments_without_shift.size() << ", " << spectrum_heavy.size() - matched_fragments_without_shift.size() << endl;
-        LOG_DEBUG << "Matched shifted peaks: " << matched_fragments_with_shift.size() << " unexplained peaks: " << spectrum_light_different.size() - matched_fragments_with_shift.size() << ", " << spectrum_heavy_to_light.size() - matched_fragments_with_shift.size() << endl;
-#endif
-      // generate common peaks spectrum
+      // generate common peaks spectrum, include charges determined through deisotoping in preprocessing
       PeakSpectrum common_peaks;
+      common_peaks.getIntegerDataArrays().push_back(PeakSpectrum::IntegerDataArray());
+      PeakSpectrum::IntegerDataArray spectrum_light_charges = spectrum_light.getIntegerDataArrays()[0];
       for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
       {
         common_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
+        common_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
       }
 
-      // TODO TEST
+
+      // TODO TEST where deisotoping makes most sense
       // deisotope common_peaks, xlink_peaks already have charges assigned
-      common_peaks.sortByPosition();
-      common_peaks = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(common_peaks, 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+//      common_peaks.sortByPosition();
+//      common_peaks = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(common_peaks, 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
 
 #ifdef DEBUG_OPENPROXL
         LOG_DEBUG << "Peaks to match: " << common_peaks.size() << endl;
 #endif
-      // TODO make this a tool parameter
+
+      // TODO make this a tool parameter ?
+      // maximal peak number for the common and xlink peak spectra, the merged spectrum has twice as many
       Size max_peak_number = 250;
       OpenProXLUtils::nLargestSpectrumFilter(common_peaks, max_peak_number);
       OpenProXLUtils::nLargestSpectrumFilter(xlink_peaks, max_peak_number);
 
-
-      PeakSpectrum::IntegerDataArray charges;
-      charges.assign(common_peaks.size(), 0);
-      common_peaks.getIntegerDataArrays().push_back(charges);
-
+//      PeakSpectrum::IntegerDataArray charges;
+//      charges.assign(common_peaks.size(), 0);
+//      common_peaks.getIntegerDataArrays().push_back(charges);
 
       PeakSpectrum all_peaks = OpenProXLUtils::mergeAnnotatedSpectra(common_peaks, xlink_peaks);
 
@@ -382,9 +339,6 @@ protected:
       }
 
 #ifdef DEBUG_OPENPROXL
-        LOG_DEBUG << "spectrum_light_different: " << preprocessed_pair_spectra.spectra_light_different[pair_index].size() << endl;
-        LOG_DEBUG << "spectrum_heavy_different: " << preprocessed_pair_spectra.spectra_heavy_different[pair_index].size() << endl;
-        LOG_DEBUG << "spectrum_heavy_to_light alignment: " << preprocessed_pair_spectra.spectra_heavy_to_light[pair_index].size() << endl;
         LOG_DEBUG << "spctrum_common_peaks: " << preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() << endl;
         LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
 #endif
@@ -395,20 +349,6 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-//#################  TEST AREA ############################
-
-// loop over all and cout modification origins and specifications
-//Size mod_num = ModificationsDB::getInstance()->getNumberOfModifications();
-
-//for (Size i = 0; i < mod_num; ++i)
-//{
-//  ResidueModification mod = ModificationsDB::getInstance()->getModification(i);
-//  cout << "Mod id: " << mod.getPSIMODAccession() << mod.getUniModAccession() << ":" << mod.getId() << " | mod origin: " << mod.getOrigin() << " | term spec: " << mod.getTermSpecificityName(mod.getTermSpecificity()) << endl;
-//}
-
-//################# TEST AREA END ##########################
-
-
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
 
@@ -450,7 +390,6 @@ protected:
 
     Size peptide_min_size = getIntOption_("peptide:min_size");
 
-//    bool ion_index_mode = (getStringOption_("algorithm:candidate_search") == "index");
     Int number_top_hits = getIntOption_("algorithm:number_top_hits");
 
     if (fixed_unique.size() != fixedModNames.size())
@@ -466,8 +405,6 @@ protected:
       LOG_DEBUG << "duplicate variable modification provided." << endl;
       return ILLEGAL_PARAMETERS;
     }
-    //TODO add crosslinker
-
     vector<ResidueModification> fixed_modifications = OpenProXLUtils::getModificationsFromStringList(fixedModNames);
     vector<ResidueModification> variable_modifications = OpenProXLUtils::getModificationsFromStringList(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
@@ -486,7 +423,7 @@ protected:
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    OpenProXLUtils::preprocessSpectraLabeled(spectra);
+    OpenProXLUtils::preprocessSpectraLabeled(spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
 
     // load linked features
@@ -519,41 +456,6 @@ protected:
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
 
-    // build multimap of precursor mass to scan index
-    multimap<double, Size> multimap_mass_2_scan_index;
-
-    vector<PeptideIdentification> pseudo_ids; // used to map precursor positions to consensus features
-    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
-    {
-      int scan_index = s_it - spectra.begin();
-      vector<Precursor> precursor = s_it->getPrecursors();
-    
-      // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
-      if (precursor.size() == 1 && s_it->size() >= peptide_min_size)
-      {
-        int precursor_charge = precursor[0].getCharge();
-        if (precursor_charge < min_precursor_charge || precursor_charge > max_precursor_charge)
-        {
-          continue;
-        }
-    
-        double precursor_mz = precursor[0].getMZ();
-        double precursor_mass = static_cast<double>(precursor_charge) * precursor_mz - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
-    
-        multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
-        PeptideIdentification temp_pi;
-        temp_pi.setRT(s_it->getRT());
-        temp_pi.setMZ(precursor_mz);
-        temp_pi.setMetaValue("scan_index", scan_index);
-        vector<PeptideHit> temp_hits;
-        PeptideHit temp_ph;
-        temp_ph.setCharge(precursor_charge);
-        temp_hits.push_back(temp_ph);
-        temp_pi.setHits(temp_hits);
-        pseudo_ids.push_back(temp_pi);
-      }
-    }
-
     IDMapper idmapper;
     Param p = idmapper.getParameters();
     p.setValue("rt_tolerance", 30.0);
@@ -564,15 +466,12 @@ protected:
     p.setValue("ignore_charge", "false");
     idmapper.setParameters(p);
 
-    vector< pair<Size, Size> > spectrum_pairs;
-    vector<ProteinIdentification> temp_protein_ids;
-    vector< double > spectrum_precursors;
-    // protein identifications (leave as is...)
-    temp_protein_ids = vector<ProteinIdentification>(1);
-    temp_protein_ids[0].setDateTime(DateTime::now());
-    temp_protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+    progresslogger.startProgress(0, 1, "Map spectrum precursors to linked features...");
+    idmapper.annotate(cfeatures, vector<PeptideIdentification>(), vector<ProteinIdentification>(), true, true, spectra);
+    progresslogger.endProgress();
 
-    idmapper.annotate(cfeatures, pseudo_ids, temp_protein_ids, true, true);
+    vector< pair<Size, Size> > spectrum_pairs;
+    vector< double > spectrum_precursors;
 
     // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
     for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
@@ -581,19 +480,19 @@ protected:
       {
         for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
         {
-          if (static_cast<int>(cit->getPeptideIdentifications()[x].getMetaValue("map index")) == 0)
+          if (static_cast<Size>(cit->getPeptideIdentifications()[x].getMetaValue("map_index")) == 0)
           {
             for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)
             {
-              if (static_cast<int>(cit->getPeptideIdentifications()[y].getMetaValue("map index")) == 1)
+              if (static_cast<Size>(cit->getPeptideIdentifications()[y].getMetaValue("map_index")) == 1)
               {
                 const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
                 const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
-                spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("scan_index"), pi_1.getMetaValue("scan_index")));
-                double current_precursor_mz0 = spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getMZ();
-                double current_precursor_mz1 = spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getMZ();
-                double current_precursor_charge0 = spectra[pi_0.getMetaValue("scan_index")].getPrecursors()[0].getCharge();
-                double current_precursor_charge1 = spectra[pi_1.getMetaValue("scan_index")].getPrecursors()[0].getCharge();
+                spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("spectrum_index"), pi_1.getMetaValue("spectrum_index")));
+                double current_precursor_mz0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
+                double current_precursor_mz1 = spectra[pi_1.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
+                double current_precursor_charge0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getCharge();
+                double current_precursor_charge1 = spectra[pi_1.getMetaValue("spectrum_index")].getPrecursors()[0].getCharge();
 
                 double current_precursor_mass0 = (current_precursor_mz0 * current_precursor_charge0) - (current_precursor_charge0 * Constants::PROTON_MASS_U);
                 double current_precursor_mass1 = (current_precursor_mz1 * current_precursor_charge1) - (current_precursor_charge1 * Constants::PROTON_MASS_U);
@@ -609,15 +508,15 @@ protected:
 
     // create common peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
-//    PreprocessedPairSpectra_ preprocessed_pair_spectra = preprocessPairs_(spectra, map_light_to_heavy, cross_link_mass_light, cross_link_mass_heavy);
     OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
 
 
+    // TODO use this again, when PScore is used
     // for PScore, precompute ranks
-    vector<vector<Size> > rankMap_common = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_common_peaks);
-    vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
-    vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
+//    vector<vector<Size> > rankMap_common = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_common_peaks);
+//    vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
+//    vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
 
     // one identification run
     vector<ProteinIdentification> protein_ids(1);
@@ -642,25 +541,17 @@ protected:
 
     // As MetaValues
     search_params.setMetaValue("input_consensusXML", in_consensus);
-    protein_ids[0].setMetaValue("input_mzML", in_mzml);
-    //protein_ids[0].setMetaValue("input_database", in_fasta);
-
+    search_params.setMetaValue("input_mzML", in_mzml);
+//    protein_ids[0].setMetaValue("input_mzML", in_mzml);
     search_params.setMetaValue("input_decoys", in_decoy_fasta);
     search_params.setMetaValue("decoy_prefix", decoy_prefix);
     search_params.setMetaValue("decoy_string", decoy_string);
 
     search_params.setMetaValue("precursor:min_charge", min_precursor_charge);
     search_params.setMetaValue("precursor:max_charge", max_precursor_charge);
-    //protein_ids[0].setMetaValue("precursor:mass_tolerance", precursor_mass_tolerance);
-    //protein_ids[0].setMetaValue("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_ppm ? "ppm" : "Da");
 
     search_params.setMetaValue("fragment:mass_tolerance_xlinks", fragment_mass_tolerance_xlinks);
-    //protein_ids[0].setMetaValue("fragment:mass_tolerance", fragment_mass_tolerance);
-    //protein_ids[0].setMetaValue("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "Da");
-
     search_params.setMetaValue("peptide:min_size", peptide_min_size);
-    //protein_ids[0].setMetaValue("peptide:missed_cleavages", missed_cleavages);
-    //protein_ids[0].setMetaValue("peptide:enzyme", enzyme_name);
 
     search_params.setMetaValue("cross_link:residue1", cross_link_residue1);
     search_params.setMetaValue("cross_link:residue2", cross_link_residue2);
@@ -668,12 +559,7 @@ protected:
     search_params.setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
     search_params.setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
 
-    //protein_ids[0].setMetaValue("modifications:fixed", fixedModNames);
-    //protein_ids[0].setMetaValue("modifications:variable", varModNames);
     search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
-
-//    search_params.setMetaValue("algorithm:candidate_search", ion_index_mode ? "ion-tag" : "enumeration");
-
     protein_ids[0].setSearchParameters(search_params);
 
     vector<PeptideIdentification> peptide_ids;
@@ -705,7 +591,6 @@ protected:
     }
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-//    multimap<StringView, AASequence> processed_peptides;
     vector<OpenProXLUtils::PeptideMass> peptide_masses;
 
     Size count_proteins = 0;
@@ -733,23 +618,18 @@ protected:
     specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     // TODO does nothing yet
-     specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
+    specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
     specGen.setParameters(specGenParams);
-
-    // TODO constant binsize for HashGrid computation
-    double tolerance_binsize = 0.2;
 
     LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
     search_params = protein_ids[0].getSearchParameters();
     search_params.setMetaValue("MS:1001029", peptide_masses.size()); // number of sequences searched = MS:1001029
     protein_ids[0].setSearchParameters(search_params);
 
-    // Initialize enumeration mode
-    vector<OpenProXLUtils::XLPrecursor> enumerated_cross_link_masses;
-
-    cout << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
+    cout << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
 
     sort(peptide_masses.begin(), peptide_masses.end());
+
     // The largest peptides given a fixed maximal precursor mass are possible with loop links
     // Filter peptides using maximal loop link mass first
     double max_precursor_mass = spectrum_precursors[spectrum_precursors.size()-1];
@@ -770,20 +650,19 @@ protected:
 
     cout << "Filtering peptides with precursors" << endl;
 
-    // search for the first mass greater than the maximim, cut off everything larger
+    // search for the first mass greater than the maximim, use everything before that peptide
     vector<OpenProXLUtils::PeptideMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass);
     peptide_masses.assign(peptide_masses.begin(), last);
 
+    vector<OpenProXLUtils::XLPrecursor> enumerated_cross_link_masses;
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
     enumerated_cross_link_masses = OpenProXLUtils::enumerateCrossLinksAndMasses_(peptide_masses, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
                                                                                                                                                     spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
+
     cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
     sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end());
     cout << "Sorting of enumerated precursors finished" << endl;
-
-
-//    cout << "TEST TYPE: " << sizeof(OpenProXLUtils::XLPrecursor) << " | OBJECT: " << sizeof enumerated_cross_link_masses[0] << " | " << sizeof enumerated_cross_link_masses[500] << endl;
 
     // TODO test variables, can be removed, or set to be used in debug mode?
     double pScoreMax = 0;
@@ -802,7 +681,6 @@ protected:
 
     Size spectrum_counter = 0;
 
-// TODO check if parallel code works fine
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
@@ -817,9 +695,6 @@ protected:
         cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << endl;
       }
 
-      // If this spectra pair has less than 5 common peaks, then ignore it.
-      //TODO is a xquest.def parameter in perl xQuest, set to 25 usually
-
       Size scan_index = spectrum_pairs[pair_index].first;
       Size scan_index_heavy = spectrum_pairs[pair_index].second;
       LOG_DEBUG << "Scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
@@ -832,22 +707,21 @@ protected:
       const PeakSpectrum& xlink_peaks = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index];
       const PeakSpectrum& all_peaks = preprocessed_pair_spectra.spectra_all_peaks[pair_index];
 
+      // TODO adapt to ppm? or drop completely?
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
       vector< double > aucorrx = OpenProXLUtils::xCorrelation(all_peaks, all_peaks, 5, 0.3);
       vector< double > aucorrc = OpenProXLUtils::xCorrelation(all_peaks, all_peaks, 5, 0.2);
 
       vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
+      // ignore this spectrum pair, if they have less paired peaks than the minimal peptide size
       if (all_peaks.size() < peptide_min_size)
       {
         continue;
       }
       // determine candidates
-      //vector<pair<const AASequence*, const AASequence*> > candidates;
       vector< OpenProXLUtils::XLPrecursor > candidates;
       double allowed_error = 0;
-
-      //LOG_DEBUG << "Number of common peaks, xlink peaks: " << preprocessed_pair_spectra.spectra_common_peaks[scan_index].size() << "\t" << preprocessed_pair_spectra.spectra_xlink_peaks[scan_index].size();
 
       // determine MS2 precursors that match to the current peptide mass
       vector< OpenProXLUtils::XLPrecursor >::const_iterator low_it;
