@@ -261,8 +261,8 @@ protected:
       }
       exp[exp_index].sortByPosition();
 
-      // params:                                                                                                                       (PeakSpectrum,  min_charge, max_charge,  fragment_tol, tol_unit_ppm,                              only_keep_deiso, min_iso_peaks, max_iso_peaks, make_single_charged);
-      PeakSpectrum deisotoped = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1,                 7,                    10,                 fragment_mass_tolerance_ppm, false,                    3,                      10,                     false);
+      // params:                                                                                                                       (PeakSpectrum,  min_charge, max_charge,  fragment_tol,                                 tol_unit_ppm,                              only_keep_deiso, min_iso_peaks, max_iso_peaks, make_single_charged);
+      PeakSpectrum deisotoped = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1,                 7,                    fragment_mass_tolerance_xlinks, fragment_mass_tolerance_ppm, false,                    3,                      10,                     false);
 
       // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
       if (deisotoped.size() > peptide_min_size * 2)
@@ -535,9 +535,9 @@ protected:
     sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end());
     cout << "Sorting of enumerated precursors finished" << endl;
 
-
+    // TODO use this again, when PScore is used
     // for PScore, precompute ranks
-    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
+//    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
 
     // TODO test variables, can be removed, or set to be used in debug mode?
     double pScoreMax = 0;
@@ -580,8 +580,6 @@ protected:
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
       vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.3);
       vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.2);
-
-      const PeakSpectrum& common_peaks = spectra[scan_index];
 
       vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
@@ -644,21 +642,21 @@ protected:
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
             << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
 
-	CrossLinkSpectrumMatch csm;
-	csm.cross_link = cross_link_candidate;
+        CrossLinkSpectrumMatch csm;
+        csm.cross_link = cross_link_candidate;
 
-	PeakSpectrum theoretical_spec_common_alpha;
-	PeakSpectrum theoretical_spec_common_beta;
-	PeakSpectrum theoretical_spec_xlinks_alpha;
-	PeakSpectrum theoretical_spec_xlinks_beta;
+        PeakSpectrum theoretical_spec_common_alpha;
+        PeakSpectrum theoretical_spec_common_beta;
+        PeakSpectrum theoretical_spec_xlinks_alpha;
+        PeakSpectrum theoretical_spec_xlinks_beta;
 
-	bool type_is_cross_link = cross_link_candidate.getType() == ProteinProteinCrossLink::CROSS;
-	bool type_is_loop = cross_link_candidate.getType() == ProteinProteinCrossLink::LOOP;
-	Size link_pos_B = 0;
-	if (type_is_loop)
-	{
-	  link_pos_B = cross_link_candidate.cross_link_position.second;
-	}
+        bool type_is_cross_link = cross_link_candidate.getType() == ProteinProteinCrossLink::CROSS;
+        bool type_is_loop = cross_link_candidate.getType() == ProteinProteinCrossLink::LOOP;
+        Size link_pos_B = 0;
+        if (type_is_loop)
+        {
+          link_pos_B = cross_link_candidate.cross_link_position.second;
+        }
         specGen.getCommonIonSpectrum(theoretical_spec_common_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
         if (type_is_cross_link)
         {
@@ -894,7 +892,7 @@ protected:
       Int top = 0;
 
       // collect top n matches to spectrum
-      while(!all_csms_spectrum.empty() && top < number_top_hits)
+      while (!all_csms_spectrum.empty() && top < number_top_hits)
       {
         top++;
         Int max_position = distance(all_csms_spectrum.begin(), max_element(all_csms_spectrum.begin(), all_csms_spectrum.end()));
@@ -969,8 +967,6 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
 
-      vector<String> output_split_dir;
-      vector<String> output_split;
       Size found;
       found = out_xquest.find_last_of("/\\");
       // TODO "/" is Unix specific

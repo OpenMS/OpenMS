@@ -783,13 +783,13 @@ protected:
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
 
-	CrossLinkSpectrumMatch csm;
-	csm.cross_link = cross_link_candidate;
+        CrossLinkSpectrumMatch csm;
+        csm.cross_link = cross_link_candidate;
 
-	PeakSpectrum theoretical_spec_common_alpha;
-	PeakSpectrum theoretical_spec_common_beta;
-	PeakSpectrum theoretical_spec_xlinks_alpha;
-	PeakSpectrum theoretical_spec_xlinks_beta;
+        PeakSpectrum theoretical_spec_common_alpha;
+        PeakSpectrum theoretical_spec_common_beta;
+        PeakSpectrum theoretical_spec_xlinks_alpha;
+        PeakSpectrum theoretical_spec_xlinks_beta;
 
         bool type_is_cross_link = cross_link_candidate.getType() == ProteinProteinCrossLink::CROSS;
         bool type_is_loop = cross_link_candidate.getType() == ProteinProteinCrossLink::LOOP;
@@ -1046,7 +1046,7 @@ protected:
       Int top = 0;
 
       // collect top n matches to spectrum
-      while(!all_csms_spectrum.empty() && top < number_top_hits)
+      while (!all_csms_spectrum.empty() && top < number_top_hits)
       {
         top++;
 
@@ -1124,8 +1124,6 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
 
-      vector<String> output_split_dir;
-      vector<String> output_split;
       Size found;
       found = out_xquest.find_last_of("/\\");
       // TODO "/" is Unix specific
