@@ -197,6 +197,8 @@ protected:
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
+  // TODO compute and store some kind of score from the pair matching
+  // TODO since the alignment algo is used, maybe just matched intensity sum / spectrum intensity sum (correlation)?
   // create common / shifted peak spectra for all pairs
   OpenProXLUtils::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
@@ -309,7 +311,7 @@ protected:
         LOG_DEBUG << "Peaks to match: " << common_peaks.size() << endl;
 #endif
 
-      // TODO make this a tool parameter ?
+      // TODO make this a tool parameter ? Leave it out completely? Comparing Light/Heavy spectra should already be good enough filtering
       // maximal peak number for the common and xlink peak spectra, the merged spectrum has twice as many
       Size max_peak_number = 250;
       OpenProXLUtils::nLargestSpectrumFilter(common_peaks, max_peak_number);
@@ -779,12 +781,10 @@ protected:
 
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
-//          LOG_DEBUG << a->second.getMonoWeight() << ", " << b->second.getMonoWeight() << " cross_link_mass_light: " <<  cross_link_mass_light <<  endl;
 
 	CrossLinkSpectrumMatch csm;
 	csm.cross_link = cross_link_candidate;
 
-	  // TODO try new function
 	PeakSpectrum theoretical_spec_common_alpha;
 	PeakSpectrum theoretical_spec_common_beta;
 	PeakSpectrum theoretical_spec_xlinks_alpha;
@@ -836,7 +836,6 @@ protected:
         if (matched_alpha_count + matched_beta_count > 0)
         {
           // Simplified pre-Score
-          //float pre_score = preScore(matched_fragments_theor_spec.size(), theoretical_spec.size());
           double pre_score = 0;
           if (type_is_cross_link)
           {
@@ -846,10 +845,6 @@ protected:
           {
             pre_score = OpenProXLUtils::preScore(matched_alpha_count, theor_alpha_count);
           }
-           //LOG_DEBUG << "Number of matched peaks to theor. spectrum: " << matched_alpha_count << "\t" << matched_beta_count << endl;
-           //LOG_DEBUG << "Number of theoretical ions: " << theor_alpha_count << "\t" << theor_beta_count << endl;
-           //LOG_DEBUG << "Pre Score: " << pre_score << endl;
-           //LOG_DEBUG << "Peptide size: " << a->second.size() << "\t" << b->second.size() << "\t" << "K Pos:" << K_pos_a[i] << "\t" << K_pos_b[i] << endl;
 
 #ifdef _OPENMP
 #pragma omp critical (max_subscore_variable_access)
@@ -955,16 +950,10 @@ protected:
           vector< double > xcorrc = OpenProXLUtils::xCorrelation(common_peaks, theoretical_spec_common, 5, 0.2);
           vector< double > xcorrx = OpenProXLUtils::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.3);
 
-          // TODO save time: only needs to be done once per light spectrum, here it is repeated for each cross-link candidate
-
           double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
           double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
           double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
           double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
-//            LOG_DEBUG << "xCorrelation X: " << xcorrx << endl;
-//            LOG_DEBUG << "xCorrelation C: " << xcorrc << endl;
-//            LOG_DEBUG << "Autocorr: " << aucorr << "\t Autocorr_sum: " << aucorr_sum << "\t xcorrx_max: " << xcorrx_max << "\t xcorrc_max: " << xcorrc_max << endl;
-
 
 //############################# TESTING SCORES ##############################################
 
@@ -1009,10 +998,6 @@ protected:
           double wTIC_weight = 12.829;
           double intsum_weight = 1.8;
 
-//          double match_odds_weight = 1;  // 1.973;
-//          double wTIC_weight = 24;           // 12.829;
-//          double intsum_weight = 2.8;       // 1.8;
-
           double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * intsum;
 
           csm.score = score;
@@ -1021,9 +1006,7 @@ protected:
           csm.wTIC = wTIC;
           csm.int_sum = intsum;
           csm.match_odds = match_odds;
-//          csm.xcorrx = xcorrx;
           csm.xcorrx_max = xcorrx_max;
-//          csm.xcorrc = xcorrc;
           csm.xcorrc_max = xcorrc_max;
           csm.matched_common_alpha = matched_spec_common_alpha.size();
           csm.matched_common_beta = matched_spec_common_beta.size();
@@ -1050,13 +1033,7 @@ protected:
           vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
           if (last_unique_anno != frag_annotations.end())
           {
-//            LOG_DEBUG << "uniqiifying: " << endl;
-//            for (vector<PeptideHit::FragmentAnnotation>::iterator double_frag = last_unique_anno; double_frag != frag_annotations.end(); ++double_frag)
-//            {
-//              LOG_DEBUG << "anno: " << double_frag->annotation << "\tcharge: " << double_frag->charge << "\tmz: " << double_frag->mz << "\tint: " << double_frag->intensity << endl;
-//            }
             frag_annotations.erase(last_unique_anno, frag_annotations.end());
-//            LOG_DEBUG << "Fragment annotations were uniquified, new size: " << frag_annotations.size() << endl;
           }
 
           csm.frag_annotations = frag_annotations;
@@ -1106,7 +1083,7 @@ protected:
       // Write PeptideIdentifications and PeptideHits for n top hits
       OpenProXLUtils::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
 
-      LOG_DEBUG << "Next Spectrum ################################## \n";
+      LOG_DEBUG << "Next Spectrum #############################################" << endl;
     }
     // end of matching / scoring
     progresslogger.endProgress();
