@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,52 +58,6 @@ namespace OpenMS
   {
 public:
 
-//    struct ProteinProteinCrossLink
-//    {
-//      /** Enums
-//      */
-//      //@{
-//      /** @brief type of Protein-Protein cross-link
-//      */
-//      enum ProteinProteinCrossLinkType
-//      {
-//        CROSS = 0,
-//        MONO = 1,
-//        LOOP = 2,
-//        NUMBER_OF_TERM_SPECIFICITY
-//      };
-
-//      AASequence alpha; // longer peptide
-//      AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
-//      std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
-//      double cross_linker_mass;
-//      String cross_linker_name;
-
-//      ProteinProteinCrossLinkType getType() const
-//      {
-//        if (!beta.empty()) return CROSS;
-
-//        if (cross_link_position.second == -1) return MONO;
-
-//        return LOOP;
-//      }
-
-////      double getMass(double cross_linker_mass)
-////      {
-////        switch(getType())
-////        {
-////          case PROTEIN_PROTEIN: return 0; break;
-////          case MONO: return 0; break;
-////          case LOOP: return 0; break;
-////          default:
-////          //TODO: error
-////          break;
-////        }
-////        return cross_linker_mass; // TODO change
-////      }
-//    };
-
-
     /** @name Constructors and Destructors
     */
     //@{
@@ -124,16 +78,12 @@ public:
      */
     //@{
     /// returns a spectrum with b and y peaks
-    //virtual void getSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1) const;
     virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const ProteinProteinCrossLink & cross_link, Int charge = 1, bool fragment_alpha_chain = true) const;
-    //virtual void getCommonIonSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
     virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const;
     virtual void getXLinkIonSpectrum(RichPeakSpectrum & spec_alpha, const ProteinProteinCrossLink& cross_link, Int mincharge, Int maxcharge) const;
 
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    //virtual void addPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1) const;
-    //virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
     virtual void addCommonPeaks(RichPeakSpectrum & spectrum, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge = 1, bool fragment_alpha_chain = true) const;
     virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, RichPeakSpectrum & spec_beta, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const;
     virtual void addXLinkIonPeaks(RichPeakSpectrum & spec_alpha, const ProteinProteinCrossLink & cross_link, Residue::ResidueType res_type, Int charge) const;
