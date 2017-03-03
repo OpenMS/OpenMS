@@ -134,9 +134,6 @@ namespace OpenMS
     PeakSpectrum::IntegerDataArray integer_array;
     PeakSpectrum::StringDataArray string_array;
 
-//    PeakSpectrum::IntegerDataArrays integer_arrays = spectrum.getIntegerDataArrays();
-//    PeakSpectrum::StringDataArrays string_arrays = spectrum.getStringDataArrays();
-
     integer_array.setName("charge");
     string_array.setName("IonName");
 
@@ -171,43 +168,6 @@ namespace OpenMS
     spectrum.getIntegerDataArrays().push_back(integer_array);
     spectrum.getStringDataArrays().push_back(string_array);
     spectrum.sortByPosition();
-
-    // TESTING
-//    cout << "number of peaks: " << spectrum.size() << endl;
-//    cout << "IntegerDataArray: ";
-//    for (Size i = 0; i < spectrum.getIntegerDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getIntegerDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << "StringDataArray: ";
-//    for (Size i = 0; i < spectrum.getStringDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getStringDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << spectrum << endl;
-
-//    spectrum.sortByPosition();
-
-//    cout << "IDA after sorting:: ";
-//    for (Size i = 0; i < spectrum.getIntegerDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getIntegerDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << "SDA after sorting:: ";
-//    for (Size i = 0; i < spectrum.getStringDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getStringDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << spectrum << endl;
-
     return;
   }
 
@@ -276,7 +236,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           int frag_index = i+1;
 
           // fragment testing
-          double recalc_pos = (peptide.getPrefix(i+1).getMonoWeight(Residue::BIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
+//          double recalc_pos = (peptide.getPrefix(i+1).getMonoWeight(Residue::BIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
@@ -287,25 +247,6 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           }
         }
       }
-//      else // add isotope clusters (slow)
-//      {
-//        Size i = add_first_prefix_ion_ ? 1 : 2;
-//        for (; i < xlink_pos_A + 1; ++i)
-//        {
-//          const AASequence ion = peptide.getPrefix(i);
-//          addIsotopeCluster_(spectrum, ion, AASequence::fromString(""), 0.0, res_type, charge, intensity, ion_type);
-//        }
-//      }
-
-//      if (add_losses_) // add loss peaks (slow)
-//      {
-//        Size i = add_first_prefix_ion_ ? 1 : 2;
-//        for (; i < peptide.size(); ++i)
-//        {
-//          const AASequence ion = peptide.getPrefix(i);
-//          addXLinkLosses_(spectrum, ion, AASequence::fromString(""), 0.0, res_type, charge, intensity, ion_type);
-//        }
-//      }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
@@ -331,7 +272,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           double pos(mono_weight / static_cast<double>(charge));
           int frag_index = peptide.size() - i;
 
-          double recalc_pos = (peptide.getSuffix(frag_index).getMonoWeight(Residue::YIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
+//          double recalc_pos = (peptide.getSuffix(frag_index).getMonoWeight(Residue::YIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
@@ -342,25 +283,6 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           }
         }
       }
-//      else // add isotope clusters (slow)
-//      {
-//        Size i = add_first_prefix_ion_ ? 1 : 2;
-//        for (; i < peptide.size() - xlink_pos_B; ++i)
-//        {
-//          const AASequence ion = peptide.getSuffix(i);
-//          addIsotopeCluster_(spectrum, ion, AASequence::fromString(""), 0.0, res_type, charge, intensity, ion_type);
-//        }
-//      }
-
-//      if (add_losses_) // add loss peaks (slow)
-//      {
-//        Size i = add_first_prefix_ion_ ? 1 : 2;
-//        for (; i < peptide.size() - xlink_pos_B - 1; ++i)
-//        {
-//          const AASequence ion = peptide.getSuffix(i);
-//          addXLinkLosses_(spectrum, ion, AASequence::fromString(""), 0.0, res_type, charge, intensity, ion_type);
-//        }
-//      }
     }
 
     return;
@@ -408,44 +330,6 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
     spectrum.getIntegerDataArrays().push_back(integer_array);
     spectrum.getStringDataArrays().push_back(string_array);
     spectrum.sortByPosition();
-
-
-    // TESTING
-//    cout << "number of peaks: " << spectrum.size() << endl;
-//    cout << "IntegerDataArray: ";
-//    for (Size i = 0; i < spectrum.getIntegerDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getIntegerDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << "StringDataArray: ";
-//    for (Size i = 0; i < spectrum.getStringDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getStringDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << spectrum << endl;
-
-//    spectrum.sortByPosition();
-
-//    cout << "IDA after sorting:: ";
-//    for (Size i = 0; i < spectrum.getIntegerDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getIntegerDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << "SDA after sorting:: ";
-//    for (Size i = 0; i < spectrum.getStringDataArrays()[0].size(); ++i)
-//    {
-//      cout << spectrum.getStringDataArrays()[0][i];
-//    }
-//    cout << endl;
-
-//    cout << spectrum << endl;
-
     return;
   }
 
@@ -480,8 +364,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2 || peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2 || peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = x_intensity_; break;
+      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = c_intensity_; break;
+      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
@@ -516,7 +400,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           double pos(mono_weight / static_cast<double>(charge));
           int frag_index = i;
 
-          double recalc_pos = (peptide.getPrefix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
+//          double recalc_pos = (peptide.getPrefix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
@@ -527,15 +411,6 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           }
         }
       }
-//      else // add isotope clusters (slow)
-//      {
-
-//      }
-
-//      if (add_losses_) // add loss peaks (slow)
-//      {
-
-//      }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
@@ -565,7 +440,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           double pos(mono_weight / static_cast<double>(charge));
           int frag_index = peptide.size() - 1 - i;
 
-          double recalc_pos = (peptide.getSuffix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
+//          double recalc_pos = (peptide.getSuffix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
@@ -576,15 +451,6 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
           }
         }
       }
-//      else // add isotope clusters (slow)
-//      {
-
-//      }
-
-//      if (add_losses_) // add loss peaks (slow)
-//      {
-
-//      }
     }
     return;
   }
@@ -604,12 +470,6 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
       integer_array.push_back(charge);
     }
   }
-
-  // TODO fragmentation on both peptides?
-//  void TheoreticalSpectrumGeneratorXLMS::addComplexPeak_()
-//  {
-
-//  }
 
   // helper for mapping residue type to letter
   char TheoreticalSpectrumGeneratorXLMS::residueTypeToIonLetter_(Residue::ResidueType res_type) const

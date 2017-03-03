@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,37 +56,6 @@ namespace OpenMS
     public DefaultParamHandler
   {
 public:
-
-    struct ProteinProteinCrossLink
-    {
-      /** Enums
-      */
-      //@{
-      /** @brief type of Protein-Protein cross-link
-      */
-      enum ProteinProteinCrossLinkType
-      {
-        CROSS = 0,
-        MONO = 1,
-        LOOP = 2
-      };
-
-      AASequence alpha; // longer peptide
-      AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
-      std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
-      double cross_linker_mass;
-      String cross_linker_name;
-
-      ProteinProteinCrossLinkType getType() const
-      {
-        if (!beta.empty()) return CROSS;
-
-        if (cross_link_position.second == -1) return MONO;
-
-        return LOOP;
-      }
-    };
-
 
     /** @name Constructors and Destructors
     */
