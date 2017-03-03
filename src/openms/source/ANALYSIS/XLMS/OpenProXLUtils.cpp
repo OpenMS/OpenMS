@@ -1179,13 +1179,11 @@ namespace OpenMS
 
     PeakSpectrum OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped, Size min_isopeaks, Size max_isopeaks, bool make_single_charged)
     {
-
-      // Input Spectrum originally called "in"
-      //PeakSpectrum old_spectrum = in;
       PeakSpectrum out;
       PeakSpectrum::IntegerDataArray charge_array;
 
       vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+      vector<double> mono_iso_peak_intensity(old_spectrum.size(), 0);
       if (old_spectrum.empty())
       {
         return out;
@@ -1198,6 +1196,7 @@ namespace OpenMS
       for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
       {
         double current_mz = old_spectrum[current_peak].getMZ();
+        mono_iso_peak_intensity[current_peak] = old_spectrum[current_peak].getIntensity();
 
         for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
         {
@@ -1240,6 +1239,7 @@ namespace OpenMS
 
                 // averagine check passed
                 extensions.push_back(p);
+                mono_iso_peak_intensity[current_peak] += old_spectrum[p].getIntensity();
               }
             }
 
@@ -1276,7 +1276,8 @@ namespace OpenMS
           {
             RichPeak1D p;
             p.setMZ(old_spectrum[i].getMZ());
-            p.setIntensity(old_spectrum[i].getIntensity());
+//            p.setIntensity(old_spectrum[i].getIntensity());
+            p.setIntensity(mono_iso_peak_intensity[i]);
 //            p.setMetaValue("z", z);
             charge_array.push_back(z);
             out.push_back(p);
@@ -1284,7 +1285,8 @@ namespace OpenMS
           else
           {
             RichPeak1D p;
-            p.setIntensity(old_spectrum[i].getIntensity());
+//            p.setIntensity(old_spectrum[i].getIntensity());
+            p.setIntensity(mono_iso_peak_intensity[i]);
             p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
 //            p.setMetaValue("z", 1);
             charge_array.push_back(1);
@@ -1312,7 +1314,8 @@ namespace OpenMS
             {
               RichPeak1D p;
               p.setMZ(old_spectrum[i].getMZ());
-              p.setIntensity(old_spectrum[i].getIntensity());
+              p.setIntensity(mono_iso_peak_intensity[i]);
+//              p.setIntensity(old_spectrum[i].getIntensity());
 //              p.setMetaValue("z", z);
               charge_array.push_back(z);
               out.push_back(p);
@@ -1321,7 +1324,8 @@ namespace OpenMS
             {
               RichPeak1D p;
               p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-              p.setIntensity(old_spectrum[i].getIntensity());
+              p.setIntensity(mono_iso_peak_intensity[i]);
+//              p.setIntensity(old_spectrum[i].getIntensity());
 //              p.setMetaValue("z", z);
               charge_array.push_back(z);
               out.push_back(p);
@@ -1764,7 +1768,8 @@ namespace OpenMS
         //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
         vector< String > mods;
         const String residue = seq_alpha[alpha_pos].getOneLetterCode();
-        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, residue);
+        LOG_DEBUG << "Searching mono-link for " << residue << " | " << alpha_pos << endl;
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, residue, ResidueModification::ANYWHERE);
         LOG_DEBUG << "number of modifications fitting the diff mass: " << mods.size() << endl;
         bool mod_set = false;
         if (mods.size() > 0) // If several mods have the same diff mass, try to resolve ambiguity by cross-linker name (e.g. DSS and BS3 are different reagents, but have the same result after the reaction)
@@ -1782,6 +1787,7 @@ namespace OpenMS
         }
         else if (mods.size() == 0 && (alpha_pos == 0 || alpha_pos == seq_alpha.size()-1))
         {
+          LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, "", alpha_term_spec);
           if (mods.size() > 0)
           {
@@ -1796,10 +1802,12 @@ namespace OpenMS
 //            cout << "Terminal Mod Test; mod: " << mod_index <<  " | " << mods[mod_index] << " | term_spec: " << alpha_term_spec << endl;
             if (alpha_term_spec == ResidueModification::N_TERM)
             {
+              LOG_DEBUG << "Setting N-term mono-link: " << mods[mod_index] << endl;
               seq_alpha.setNTerminalModification(mods[mod_index]);
             }
             else
             {
+              LOG_DEBUG << "Setting C-term mono-link: " << mods[mod_index] << endl;
               seq_alpha.setCTerminalModification(mods[mod_index]);
             }
             mod_set = true;
