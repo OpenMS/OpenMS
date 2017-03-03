@@ -112,88 +112,89 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
+    // name, argument, default, description, required, advanced
     // input files
-    registerInputFile_("in", "<file>", "", "Input file containing the spectra.");
+    registerInputFile_("in", "<file>", "", "Input file containing the spectra.", true, false);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.");
+    registerInputFile_("consensus", "<file>", "", "Input file containing the linked mass peaks.", true, false);
     setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));
 
-    registerInputFile_("database", "<file>", "", "Input file containing the protein database.");
+    registerInputFile_("database", "<file>", "", "Input file containing the protein database.", true, false);
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
-    registerInputFile_("decoy_database", "<file>", "", "Input file containing the decoy protein database.", false);
+    registerInputFile_("decoy_database", "<file>", "", "Input file containing the decoy protein database. Decoys can also be included in the normal database file instead (or additionally).", false, true);
     setValidFormats_("decoy_database", ListUtils::create<String>("fasta"));
 
-    registerStringOption_("decoy_string", "<string>", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
-    registerFlag_("decoy_prefix", "Set flag, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.");
+    registerStringOption_("decoy_string", "<string>", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false, false);
+    registerFlag_("decoy_prefix", "Set flag, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.", false, false);
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
-    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
+    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", true, false);
 
     StringList precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
     precursor_mass_tolerance_unit_valid_strings.push_back("Da");
 
-    registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
+    registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", true, false);
     setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
 
-    registerIntOption_("precursor:min_charge", "<num>", 3, "Minimum precursor charge to be considered.", false, true);
-    registerIntOption_("precursor:max_charge", "<num>", 7, "Maximum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:min_charge", "<num>", 3, "Minimum precursor charge to be considered.", true, true);
+    registerIntOption_("precursor:max_charge", "<num>", 7, "Maximum precursor charge to be considered.", true, true);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
-    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 0.2, "Fragment mass tolerance", false);
-    registerDoubleOption_("fragment:mass_tolerance_xlinks", "<tolerance>", 0.3, "Fragment mass tolerance for cross-link ions", false);
+    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 0.2, "Fragment mass tolerance", true, false;
+    registerDoubleOption_("fragment:mass_tolerance_xlinks", "<tolerance>", 0.3, "Fragment mass tolerance for cross-link ions", true, false);
 
     StringList fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
 
-    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "Da", "Unit of fragment m", false, false);
+    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "Da", "Unit of fragment m", true, false);
     setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerTOPPSubsection_("modifications", "Modifications Options");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false, false);
     setValidStrings_("modifications:fixed", all_mods);
-    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false, false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
     registerTOPPSubsection_("peptide", "Peptide Options");
-    registerIntOption_("peptide:min_size", "<num>", 5, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
-    registerIntOption_("peptide:missed_cleavages", "<num>", 2, "Number of missed cleavages.", false, false);
+    registerIntOption_("peptide:min_size", "<num>", 5, "Minimum size a peptide must have after digestion to be considered in the search.", true, false);
+    registerIntOption_("peptide:missed_cleavages", "<num>", 2, "Number of missed cleavages.", true, false);
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", true, false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
     registerTOPPSubsection_("cross_linker", "Cross Linker Options");
-    registerStringList_("cross_linker:residue1", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to", false);
-    registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false);
-    registerDoubleOption_("cross_linker:mass_light", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false);
-    registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false);
-    registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide", false);
-    registerStringOption_("cross_linker:name", "<string>", "DSS" ,  "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)", false);
+    registerStringList_("cross_linker:residue1", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to", true, false);
+    registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", true, false);
+    registerDoubleOption_("cross_linker:mass_light", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", true, false);
+    registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", true, false);
+    registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide", true, false);
+    registerStringOption_("cross_linker:name", "<string>", "DSS" ,  "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)", false, false);
 
     registerTOPPSubsection_("algorithm", "Algorithm Options");
-    registerStringOption_("algorithm:candidate_search", "<param>", "enumeration", "Mode used to generate candidate peptides.", false, false);
-    StringList candidate_search_modes_strings;
-    //candidate_search_modes_strings.push_back("index");
-    candidate_search_modes_strings.push_back("enumeration");
-    setValidStrings_("algorithm:candidate_search", candidate_search_modes_strings);
+//    registerStringOption_("algorithm:candidate_search", "<param>", "enumeration", "Mode used to generate candidate peptides.", true, false);
+//    StringList candidate_search_modes_strings;
+//    candidate_search_modes_strings.push_back("index");
+//    candidate_search_modes_strings.push_back("enumeration");
+//    setValidStrings_("algorithm:candidate_search", candidate_search_modes_strings);
 
-    registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, true);
+    registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", true, false);
 
     // output file
-    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the original xquest.xml format", false);
+    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
     setValidFormats_("out_xquestxml", ListUtils::create<String>("xml"));
 
-    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format", false);
+    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format", false);
+    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
