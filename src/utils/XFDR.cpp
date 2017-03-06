@@ -77,28 +77,6 @@ using namespace std;
 
 
 
-vector< size_t > * cumulative_distribution(const vector< double> & values, double step, double from, double to)
-{
-  if (to <= from)
-  {
-      return NULL;
-  }
-  vector< size_t > * result = new vector <size_t>(floor((to-from) / step) + 1);
-
-  for (vector< double>::const_iterator it = values.begin(); it != values.end(); ++it)
-  {
-      size_t until = floor(((*it) - from) / step);
-
-      for (size_t i = 0; i <= until; ++i)
-      {
-          (*result)[i]++;
-      }
-  }
-  return result;
-}
-
-
-
 bool readClasses(const String & filename, std::map<String, vector< vector < StringList > > > & classes )
 {
   int state = 0;
@@ -620,6 +598,19 @@ protected:
 
 
       // Print the cumulative distribution of the scores within each class // TODO Just for plotting. Remove later
+      /*
+      for (std::map< String, vector< size_t > * >::const_iterator it = cum_scores.begin(); it != cum_scores.end(); ++it)
+      {
+          std::pair< String, vector< size_t > * > current = *it;
+          String classname = current.first;
+          vector< size_t > counts = *current.second;
+
+          for (vector<size_t>::const_iterator it2 = counts.begin(); it2 != counts.end(); it2++)
+          {
+            cout << "COUNT;" << classname << ";" << *it2 << endl;
+          }
+      }
+      */
 
 
 
