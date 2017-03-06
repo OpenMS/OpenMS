@@ -588,13 +588,13 @@ protected:
 
       //std::map< String, vector< double > > scores;
       // Calculate the cumulative score distribution for each xlink class
-      std::map< String, vector< size_t > * > cum_scores;
-      for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
-           scores_it != scores.end(); ++scores_it)
-      {
-          String class_name = scores_it->first;
-          cum_scores[class_name] = cumulative_distribution(scores_it->second, 0.1, 0, 100);
-      }
+  //    std::map< String, vector< size_t > * > cum_scores;
+  //    for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
+  //         scores_it != scores.end(); ++scores_it)
+  //    {
+  //        String class_name = scores_it->first;
+  //        cum_scores[class_name] = cumulative_distribution(scores_it->second, 0.1, 0, 100);
+  //    }
 
 
       // Print the cumulative distribution of the scores within each class // TODO Just for plotting. Remove later
@@ -623,10 +623,10 @@ protected:
       }
 
       // Delete Cumulative distributions
-      for(std::map< String, vector< size_t > * >::const_iterator it = cum_scores.begin(); it != cum_scores.end(); ++it)
-      {
-       delete it->second;
-      }
+   //   for(std::map< String, vector< size_t > * >::const_iterator it = cum_scores.begin(); it != cum_scores.end(); ++it)
+   //   {
+   //    delete it->second;
+   //   }
 
 
       return EXECUTION_OK;
