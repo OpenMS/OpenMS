@@ -41,6 +41,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <boost/iterator/counting_iterator.hpp>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
+#include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
 
 #include <sstream>
 #include <string>
@@ -587,23 +588,17 @@ protected:
       }
 
       // Generate Histograms of the scores for each class
+      // Use cumulative histograms to count the number of scores above consecutive thresholds
       std::map< String, Math::Histogram<> * > histograms;
+      std::map< String, Math::CumulativeHistogram<>  * >  cum_histograms;
       for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
            scores_it != scores.end(); ++scores_it)
       {
         vector< double > current_scores = scores_it->second;
-        histograms[scores_it->first] = new Math::Histogram<>(current_scores.begin(), current_scores.end(), 0, 100, 1);
+        String classname = scores_it->first;
+        histograms[classname] = new Math::Histogram<>(current_scores.begin(), current_scores.end(), 0, 100, 1);
+        cum_histograms[classname] = new Math::CumulativeHistogram<>(current_scores.begin(), current_scores.end(), 0, 100, 0.1, true, true);
       }
-
-
-
-
-
-
-
-
-
-
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
@@ -612,10 +607,16 @@ protected:
       }
 
       // Delete Histograms
-      // std::map< String, Math::Histogram<> * > histograms;
       for(std::map< String, Math::Histogram<> * >::iterator histograms_it = histograms.begin(); histograms_it != histograms.end(); ++histograms_it)
       {
         delete histograms_it->second;
+      }
+
+      // Delete cum_histograms
+      for(std::map< String, Math::CumulativeHistogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
+          cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
+      {
+        delete cum_histograms_it->second;
       }
 
 

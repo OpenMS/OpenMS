@@ -98,27 +98,14 @@ public:
         max_(max),
         bin_size_(bin_size)
       {
-        if (bin_size_ <= 0)
-        {
-          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-        else
-        {
-          // if max_ == min_ there is only one bin
-          if (max_ != min_)
-          {
-            bins_ = std::vector<ValueType>(Size(ceil((max_ - min_) / bin_size_)), 0);
-          }
-          else
-          {
-            bins_ = std::vector<ValueType>(1, 0);
-          }
-        }
+        this->initBins_();
       }
 
 
       /**
         @brief constructor with data iterator and min, max, bin_size parameters
+
+        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
       */
       template <typename DataIterator>
       Histogram(DataIterator begin, DataIterator end, BinSizeType min, BinSizeType max, BinSizeType bin_size) :
@@ -126,45 +113,11 @@ public:
         max_(max),
         bin_size_(bin_size)
       {
-        if (bin_size_ <= 0)
-        {
-          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-        else
-        {
-          // if max_ == min_ there is only one bin
-          if (max_ != min_)
-          {
-            bins_ = std::vector<ValueType>(Size(ceil((max_ - min_) / bin_size_)), 0);
-          }
-          else
-          {
-            bins_ = std::vector<ValueType>(1, 0);
-          }
-        }
+        this->initBins_();
         for (DataIterator it = begin; it != end; ++it)
         {
           this->inc((BinSizeType) *it);
         }
-      }
-
-
-      /**
-        @brief constructor with data iterator and number of bins to be populated
-      */
-      template <typename DataIterator>
-      Histogram(const DataIterator begin, const DataIterator end, Size n_bins)
-      {
-          this->min_ = std::min_element(begin, end);
-          this->max_ = std::max_element(begin, end);
-          this->bin_size_ = ((this->max_ - this->min_) / n_bins);
-
-          this->bins_ = std::vector<ValueType>(n_bins, 0);
-
-          for (DataIterator it = begin; it != end; ++it)
-          {
-             this->inc((BinSizeType) *it);
-          }
       }
 
 
@@ -377,6 +330,26 @@ protected:
         }
       }
 
+      ///initialize the bins
+      void initBins_()
+      {
+        if (this->bin_size_ <= 0)
+        {
+          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+        else
+        {
+          // if max_ == min_ there is only one bin
+          if (this->max_ != this->min_)
+          {
+            this->bins_ = std::vector<ValueType>(Size(ceil((max_ - min_) / bin_size_)), 0);
+          }
+          else
+          {
+            this->bins_ = std::vector<ValueType>(1, 0);
+          }
+        }
+      }
     };
 
     ///Print the contents to a stream.

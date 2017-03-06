@@ -65,7 +65,133 @@ namespace OpenMS
     class CumulativeHistogram :
       public Histogram<ValueType, BinSizeType>
     {
+    public:
 
+      ///default constructor
+      CumulativeHistogram() :
+        Histogram< ValueType, BinSizeType >(),
+        complementary_(false),
+        inclusive_(true)
+      {
+      }
+
+
+      ///Copy constructor
+      CumulativeHistogram(const CumulativeHistogram & cum_histogram) :
+        Histogram< ValueType, BinSizeType>(cum_histogram),
+        complementary_(cum_histogram.complementary_),
+        inclusive_(cum_histogram.inclusive_)
+      {
+      }
+
+
+      /**
+        @brief constructor with min, max and bin size
+
+        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+      */
+      CumulativeHistogram(BinSizeType min, BinSizeType max, BinSizeType bin_size):
+        Histogram< ValueType, BinSizeType >(min, max, bin_size),
+        complementary_(false),
+        inclusive_(true)
+      {
+      }
+
+
+      /**
+        @brief constructor with min, max, bin size, complementary, and inclusive
+
+        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+      */
+      CumulativeHistogram(BinSizeType min, BinSizeType max, BinSizeType bin_size, bool complementary, bool inclusive):
+        Histogram< ValueType, BinSizeType >(min, max, bin_size),
+        complementary_(complementary),
+        inclusive_(inclusive)
+      {
+      }
+
+
+      /**
+        @brief constructor with data iterator and min, max, bin_size parameters
+
+        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+      */
+      template <typename DataIterator>
+      CumulativeHistogram(DataIterator begin, DataIterator end, BinSizeType min, BinSizeType max, BinSizeType bin_size) :
+        Histogram< ValueType, BinSizeType >(begin, end, min, max, bin_size),
+        complementary_(false),
+        inclusive_(true)
+      {
+      }
+
+
+      /**
+        @brief constructor with data iterator and min, max, bin_size, and complementary parameters
+
+        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+      */
+      template <typename DataIterator>
+      CumulativeHistogram(DataIterator begin, DataIterator end, BinSizeType min, BinSizeType max, BinSizeType bin_size,
+                          bool complementary, bool inclusive) :
+        Histogram< ValueType, BinSizeType >(min, max, bin_size),
+        complementary_(complementary),
+        inclusive_(inclusive)
+      {
+        for (DataIterator it = begin; it != end; ++it)
+        {
+          this->inc((BinSizeType) *it);
+        }
+      }
+
+
+      ///returns the highest value of all bins
+      ValueType maxValue() const
+      {
+        return this->complementary_ ? this->bins_.front() : this->bins_.back();
+      }
+
+      ///returns the lowest value of all bins
+      ValueType minValue() const
+      {
+        return this->complementary_ ? this->bins_.back() : this->bins_.front();
+      }
+
+
+      /**
+        @brief increases all the bins up to value @p val (or from value @p val if complementary) by @p increment
+
+          @return The index of the bin the given value @p val belongs to.
+
+        @exception Exception::OutOfRange is thrown if the value is out of valid range
+      */
+      Size inc(BinSizeType val, ValueType increment = 1)
+      {
+        Size bin_index = this->valToBin_(val);
+        if (this->complementary_)
+        {
+          for (size_t i = 0; i < bin_index; ++i)
+          {
+           this->bins_[i] += increment;
+          }
+        }
+        else
+        {
+          for (size_t i = bin_index + 1; i < this->bins_.size(); ++i)
+          {
+            this->bins_[i] += increment;
+          }
+        }
+        if (this->inclusive_)
+        {
+          this->bins_[bin_index] += increment;
+        }
+        return bin_index;
+      }
+
+    protected:
+
+      bool complementary_;  // Whether the complementary cumulative histogram should be computed
+      bool inclusive_;  // Whether the bin corresponding to a particular value should be increased when the value is encountered
     };
   }   // namespace Math
 } // namespace OpenMS
