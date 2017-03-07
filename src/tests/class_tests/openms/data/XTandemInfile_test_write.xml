@@ -9,6 +9,7 @@
 	<note type="input" label="output, proteins">yes</note>
 	<note type="input" label="output, spectra">yes</note>
 	<note type="input" label="output, sort results by">spectrum</note>
+	<note type="input" label="output, xsl path">tandem-style.xsl</note>
 	<note type="input" label="spectrum, fragment monoisotopic mass error">13</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error plus">14</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error minus">15</note>
