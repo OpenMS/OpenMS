@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
 // peak picking & noise estimation
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -583,11 +584,20 @@ namespace OpenMS
 
       if (sonar_present && su_.use_sonar_scores)
       {
+
+        // set all scores less than 1 to zero (do not over-punish large negative scores)
+        double log_sn = 0;
+        if (scores.sonar_sn > 1) log_sn = std::log(scores.sonar_sn);
+        double log_trend = 0;
+        if (scores.sonar_trend > 1) log_trend = std::log(scores.sonar_trend);
+        double log_diff = 0;
+        if (scores.sonar_diff > 1) log_diff = std::log(scores.sonar_diff);
+
         mrmfeature->addScore("var_sonar_lag", scores.sonar_lag);
         mrmfeature->addScore("var_sonar_shape", scores.sonar_shape);
-        mrmfeature->addScore("var_sonar_sn", scores.sonar_sn);
-        mrmfeature->addScore("var_sonar_diff", scores.sonar_diff);
-        mrmfeature->addScore("var_sonar_trend", scores.sonar_trend);
+        mrmfeature->addScore("var_sonar_log_sn", log_sn);
+        mrmfeature->addScore("var_sonar_log_diff", log_diff);
+        mrmfeature->addScore("var_sonar_log_trend", log_trend);
         mrmfeature->addScore("var_sonar_rsq", scores.sonar_rsq);
       }
 
