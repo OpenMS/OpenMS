@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <boost/iterator/counting_iterator.hpp>
+#include <boost/function.hpp>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
 
@@ -79,6 +80,15 @@ using namespace std;
 
 
 
+/**
+  Reads the classes.dat file containing the xlink class specifications and parses content
+  into the classes data structure.
+
+ * @brief readClasses Parse classes.dat file
+ * @param filename Path to the classes.dat file
+ * @param classes Where the content of the classes.dat file should be stored
+ * @return true if the classes.dat file could be read successfully, false otherwise.
+ */
 bool readClasses(const String & filename, std::map<String, vector< vector < StringList > > > & classes )
 {
   int state = 0;
@@ -173,6 +183,13 @@ bool readClasses(const String & filename, std::map<String, vector< vector < Stri
 
 // Struct which is used for sorting the order vector by a meta value
 // of the peptide identification (usually score)
+
+
+/**
+ * Struct which is used for sorting the order vector by a meta value of the peptide identification
+ * containing the identified cross-link.
+ * @brief The less_than_by_key struct
+ */
 struct less_than_by_key
 {
     vector< vector< PeptideIdentification > > & elements;  // The elements according to which the rankm vector should be computed
@@ -187,9 +204,11 @@ struct less_than_by_key
 };
 
 
-// Ensures that the provided vectors of pointers in  sorted with respect to the score in
-// descending order
-
+/**
+ * Ensures that the order vector is sorted in descending order with respect to the Peptide Identifications (meta value: Score)
+ * This is only used for assertions.
+ *
+ */
 bool isSortedDescending(vector< size_t > & order, vector< vector < PeptideIdentification > > & spectra, Int idx)
 {
   for (size_t i = 0; i < spectra.size() - 1; ++i)
@@ -222,16 +241,60 @@ public:
     static const String param_minscore; // minscore 0 # minimum ld-score to be considered
     static const String param_verbose; // Whether or not the output of the tool should be verbose.
 
+    // Parameters which are not directly related to xProphet
+    static const String param_fp_count_method; // How the false positives in the dataset are counted
+
     // Number of ranks used
     static const Int n_rank;
+
+    // Constants related to particular xl classes
+    static const String xlclass_intradecoys; // intradecoys
+    static const String xlclass_fulldecoysintralinks; // fulldecoysintralinks
+    static const String xlclass_interdecoys; // interdecoys
+    static const String xlclass_fulldecoysinterlinks; // fulldecoysinterlinks
+    static const String xlclass_monodecoys; // monodecoys
+
+    // Parameters to actually calculate the number of FPs
+    static const double fpnum_score_start;
+    static const double fpnum_score_end;
+    static const double fpnum_score_step;
 
     TOPPXFDR() :
             TOPPBase("XFDR", "Template for Tool creation", false)
     {
-
     }
 
 protected:
+
+
+    /** False positve counting as performed by xProphet software package.
+      *
+      * @brief xprophet  method for FP counting as implemented in xProphet
+      * @param cum_histograms Cumulative score distributions
+      * @param fp_counts Number of FPs for each score threshold.
+      */
+     void fp_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
+                       Math::Histogram<> & fp_counts) {
+
+       // Required cumulative histograms for FPs
+       Math::CumulativeHistogram<>  intradecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_intradecoys];
+       Math::CumulativeHistogram<>  fulldecoysintralinks_histogram = *cum_histograms[TOPPXFDR::xlclass_fulldecoysintralinks];
+       Math::CumulativeHistogram<>  interdecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_interdecoys];
+       Math::CumulativeHistogram<>  fulldecoysinterlinks_histogram = *cum_histograms[TOPPXFDR::xlclass_fulldecoysinterlinks];
+       Math::CumulativeHistogram<>  monodecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_monodecoys];
+
+       for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
+            current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
+            current_score += TOPPXFDR::fpnum_score_step)
+       {
+           UInt n_intrafp = intradecoys_histogram.binValue(current_score) - 2 * fulldecoysintralinks_histogram.binValue(current_score);
+           UInt n_interfp = interdecoys_histogram.binValue(current_score) - 2 * fulldecoysinterlinks_histogram.binValue(current_score);
+           UInt n_monofp = monodecoys_histogram.binValue(current_score);
+           // Aim for the center of the bin when inserting the score
+           fp_counts.inc(current_score, n_interfp + n_intrafp + n_monofp);
+       }
+    }
+
 
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
@@ -268,6 +331,10 @@ protected:
 
       // Minscore
       registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
+
+      // False positve Counting  method
+      registerStringOption_(TOPPXFDR::param_fp_count_method, "<fp_count_method>","xprophet", "Method specifying how false positives are counted within the input data", false, true);
+      setValidStrings_(TOPPXFDR::param_fp_count_method, ListUtils::create<String>("xprophet"));
     }
 
     // the main_ function is called after all parameters are read
@@ -281,18 +348,41 @@ protected:
       String arg_in_xlclasses = getStringOption_(TOPPXFDR::param_in_xlclasses);
 
       // Container for rules of specifying classes
-      std::map<String, vector< vector< StringList > > > classes;  // A bit awful, should maybe replaced by proper classes (OOP) at some point
+      std::map<String, vector< vector< StringList > > > classes;  // A bit awful
       if(! readClasses(arg_in_xlclasses, classes))
       {
           LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
           return PARSE_ERROR;
       }
 
+      // Determine if all classes are present for the specified FP counting procedure
+      String arg_fp_count_method = getStringOption_(TOPPXFDR::param_fp_count_method);
+      if (arg_fp_count_method == "xprophet")
+      {
+        StringList required_classes = ListUtils::create<String>("intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
+        for (StringList::const_iterator required_classes_it = required_classes.begin();
+             required_classes_it != required_classes.end(); ++required_classes_it)
+        {
+          String classname = *required_classes_it;
+          if(classes.find(classname) == classes.end())
+          {
+            LOG_ERROR << "ERROR: xProphet FP counting selected, but the following xlink class has not been defined: " << classname << endl;
+            return ILLEGAL_PARAMETERS;
+          }
+        }
+      }
+      else
+      {
+          LOG_ERROR << "ERROR: Unsupported method of FP counting. Aborting." << endl;
+          return ILLEGAL_PARAMETERS;
+      }
+
+
       if (arg_verbose)
       {
         for(std::map<String, vector< vector< StringList > > >::const_iterator it = classes.begin(); it != classes.end(); ++it)
         {
-              cout << "Class defined: " <<  it->first << endl;
+              cout << "Class defined: " <<  it->first << '\n';
               /*
               vector< StringList > attr = it->second;
 
@@ -307,6 +397,7 @@ protected:
               }
               */
         }
+        cout << "----------------------------" << endl;
       }
 
       //-------------------------------------------------------------
@@ -589,6 +680,7 @@ protected:
 
       // Generate Histograms of the scores for each class
       // Use cumulative histograms to count the number of scores above consecutive thresholds
+
       std::map< String, Math::Histogram<> * > histograms;
       std::map< String, Math::CumulativeHistogram<>  * >  cum_histograms;
       for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
@@ -597,8 +689,22 @@ protected:
         vector< double > current_scores = scores_it->second;
         String classname = scores_it->first;
         histograms[classname] = new Math::Histogram<>(current_scores.begin(), current_scores.end(), 0, 100, 1);
-        cum_histograms[classname] = new Math::CumulativeHistogram<>(current_scores.begin(), current_scores.end(), 0, 100, 0.1, true, true);
+        cum_histograms[classname] = new Math::CumulativeHistogram<>(current_scores.begin(), current_scores.end(),
+                                                                    TOPPXFDR::fpnum_score_start,
+                                                                    TOPPXFDR::fpnum_score_end,
+                                                                    TOPPXFDR::fpnum_score_step, true, true);
       }
+
+      // Calculate the number of false positives
+      Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
+      if (arg_fp_count_method == "xprophet")
+      {
+        this->fp_xprophet(cum_histograms, fp_counts);
+      }
+
+      cout << fp_counts << endl;
+
+
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
@@ -633,8 +739,20 @@ const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_qtransform = "qtransform";
 const String TOPPXFDR::param_minscore = "minscore";
 const String TOPPXFDR::param_verbose = "verbose";
+const String TOPPXFDR::param_fp_count_method = "fp_count_method"; // How the false positives in the dataset are counted
 
 const Int    TOPPXFDR::n_rank = 1; //  Number of ranks used
+
+const String TOPPXFDR::xlclass_intradecoys = "intradecoys";
+const String TOPPXFDR::xlclass_fulldecoysintralinks = "fulldecoysintralinks";
+const String TOPPXFDR::xlclass_interdecoys = "interdecoys";
+const String TOPPXFDR::xlclass_fulldecoysinterlinks = "fulldecoysinterlinks";
+const String TOPPXFDR::xlclass_monodecoys = "monodecoys";
+
+// Parameters for actually calculating the number of FPs
+const double TOPPXFDR::fpnum_score_start = 0;
+const double TOPPXFDR::fpnum_score_end = 100;
+const double TOPPXFDR::fpnum_score_step = 0.1;
 
 
 

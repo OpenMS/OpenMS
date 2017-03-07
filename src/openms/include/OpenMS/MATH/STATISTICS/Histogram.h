@@ -212,8 +212,8 @@ public:
       */
       Size inc(BinSizeType val, ValueType increment = 1)
       {
-        Size bin_index = valToBin_(val);
-        bins_[bin_index] += increment;
+        Size bin_index = this->valToBin_(val);
+        this->bins_[bin_index] += increment;
         return bin_index;
       }
 
