@@ -175,6 +175,9 @@ namespace OpenMS
     writeNote_(os, "output, proteins", true);
     writeNote_(os, "output, spectra", true);
     writeNote_(os, "output, sort results by", "spectrum");
+    // required by Percolator to recognize output file
+    // (see https://github.com/percolator/percolator/issues/180):
+    writeNote_(os, "output, xsl path", "tandem-style.xsl");
 
     if (!ignore_member_parameters)
     {
