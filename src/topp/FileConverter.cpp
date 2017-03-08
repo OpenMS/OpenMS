@@ -200,8 +200,8 @@ protected:
     MSNumpressCoder::NumpressConfig npconfig_int;
     npconfig_mz.estimate_fixed_point = true; // critical
     npconfig_int.estimate_fixed_point = true; // critical
-    npconfig_mz.numpressErrorTolerance = 0.0001;
-    npconfig_int.numpressErrorTolerance = 0.5;
+    npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
+    npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_mz.setCompression("linear");
     npconfig_int.setCompression("slof");
     npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
