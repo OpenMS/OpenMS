@@ -46,8 +46,11 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
+
 
 
 //-------------------------------------------------------------
@@ -88,7 +91,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output of (Sirius).ms files");
     setValidFormats_("out", ListUtils::create<String>("csv"));
 
-    registerIntOption_("quantity", "<value>", 20,"The number of compounds used in one output file", false);
+    registerIntOption_("batch_size", "<value>", 20,"The number of compounds used in one output file", false);
   }
 
   //Precursor correction (highest intensity)
@@ -118,7 +121,7 @@ protected:
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String quantity = getIntOption_("quantity");
+    Int batch_size = getIntOption_("batch_size");
 
     //-------------------------------------------------------------
     // Calculations
@@ -129,6 +132,7 @@ protected:
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, spectra);
+    int count = 0;
 
     //check for all spectra at the beginning if spectra are centroided
     // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
@@ -140,6 +144,8 @@ protected:
     }
 
     // loop over all spectra
+    ofstream os;
+
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       // process only MS2 spectra
@@ -156,6 +162,7 @@ protected:
 
       // needed later for writing in ms file
       int int_charge(1);
+
       if (p == IonSource::Polarity::POSITIVE)
       {
         int_charge = +1;
@@ -165,8 +172,6 @@ protected:
         LOG_WARN << "SiriusMSConverter (due to Sirius) only support positive ion mode and mono charged analytes." << endl;
         continue;
       }
-
-      //here loop to write in n compounds in the same .ms file (?)
 
       //there should be only one precursor and MS2 should contain peaks to be considered
       if (precursor.size() == 1 && !spectrum.empty())
@@ -183,7 +188,6 @@ protected:
         //get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
         float precursor_int = precursor[0].getIntensity();
-        double spectrum_rt = spectrum.getRT();
 
         //find corresponding ms1 spectra (precursor)
         PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
@@ -228,38 +232,36 @@ protected:
           }
         }
 
-        //not need for storing the data temporarily -> output folder
-
-        //store data
         String query_id = String("unknown") + String(scan_index);
-        String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
-        String dir = getStringOption_("out");
-        String filename = dir  + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
 
-        //to get the path and filename
-        writeLog_(String("output_folder: " + dir));
-        writeLog_(String("filename: " + filename));
-        writeLog_(String("Activation Energy: " + String(collision)));
+        streamsize prec(0);
 
-        // create temporary input file (.ms)
-        ofstream os(tmp_filename.c_str());
-        if (!os)
+        if (count == 0)
         {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
+            // store data
+            String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
+            String dir = getStringOption_("out");
+            String filename = dir  + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
+
+            // close previous (.ms) file
+            if (os.is_open()) os.close();
+
+            // create temporary input file (.ms)
+            os.open(filename.c_str());
+
+            if (!os)
+            {
+              throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+            }
+            prec = os.precision();
+            os.precision(12);
         }
 
-        // create output folder
-        if (!QDir().mkdir(dir.toQString()))
-        {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_dir);
-        }
 
         //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
         //TODO: MS2 instensity cutoff? -> to reduce the interference of low intensity peaks (?) - can do that for specific spectra (hard coded/soft coded?)
 
         //write internal unique .ms data as sirius input
-        streamsize prec = os.precision();
-        os.precision(12);
         os << fixed;
         os << ">compound " << query_id << "\n";
         if (isotopes.empty() == false)
@@ -316,10 +318,16 @@ protected:
             os << mz << " " << intensity << "\n";
           }
         }
-        os.precision(prec); //reset the precision
-        os.close();
+        os << "\n";
       }
+
+      // increase count and reset to zero if batch size reached
+      count = (count + 1) % batch_size;
+
     }
+
+    // close previous (.ms) file
+    if (os.is_open()) os.close();
 
     return EXECUTION_OK;
   }

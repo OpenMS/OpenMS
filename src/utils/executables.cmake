@@ -46,6 +46,8 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SiriusAdapter
+SiriusMsConverter
+SiriusMzTabWriter
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
