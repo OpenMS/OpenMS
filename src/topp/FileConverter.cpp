@@ -173,6 +173,7 @@ protected:
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
 
     registerFlag_("write_mzML_index", "Add an index to the file when writing mzML files (default: no index)");
+    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data)");
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
@@ -186,10 +187,21 @@ protected:
     //input file names
     String in = getStringOption_("in");
     bool write_mzML_index = getFlag_("write_mzML_index");
+    bool lossy_compression = getFlag_("lossy_compression");
 
     //input file type
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+
+    // prepare data structures for lossy compression
+    MSNumpressCoder::NumpressConfig npconfig_mz;
+    MSNumpressCoder::NumpressConfig npconfig_int;
+    npconfig_mz.estimate_fixed_point = true; // critical
+    npconfig_int.estimate_fixed_point = true; // critical
+    npconfig_mz.numpressErrorTolerance = 0.0001;
+    npconfig_int.numpressErrorTolerance = 0.5;
+    npconfig_mz.setCompression("linear");
+    npconfig_int.setCompression("slof");
 
     if (in_type == FileTypes::UNKNOWN)
     {
@@ -325,25 +337,37 @@ protected:
       // We can transform the complete experiment directly without first
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
-      if (in_type == FileTypes::MZML && out_type == FileTypes::MZML)
+
+      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
       {
+        // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_mzML_index);
+        bool skip_full_count = false;
+        // numpress compression
+        if (lossy_compression)
+        {
+          consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+          consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+          // f.getOptions().setCompression(true); // maybe later.
+        }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzMLFile mzmlfile; 
-        mzmlfile.setLogType(log_type_);
-        mzmlfile.transform(in, &consumer);
-        return EXECUTION_OK;
-      }
-      else if (in_type == FileTypes::MZXML && out_type == FileTypes::MZML)
-      {
-        PlainMSDataWritingConsumer consumer(out);
-        consumer.getOptions().setWriteIndex(write_mzML_index);
-        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzXMLFile mzxmlfile;
-        mzxmlfile.setLogType(log_type_);
-        mzxmlfile.transform(in, &consumer);
-        return EXECUTION_OK;
+
+        // for different input file type
+        if (in_type == FileTypes::MZML)
+        {
+          MzMLFile mzmlfile;
+          mzmlfile.setLogType(log_type_);
+          mzmlfile.transform(in, &consumer, skip_full_count);
+          return EXECUTION_OK;
+        }
+        else if (in_type == FileTypes::MZXML)
+        {
+          MzXMLFile mzxmlfile;
+          mzxmlfile.setLogType(log_type_);
+          mzxmlfile.transform(in, &consumer, skip_full_count);
+          return EXECUTION_OK;
+        }
       }
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
@@ -386,6 +410,14 @@ protected:
       MzMLFile f;
       f.setLogType(log_type_);
       f.getOptions().setWriteIndex(write_mzML_index);
+      // numpress compression
+      if (lossy_compression)
+      {
+        f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        // f.getOptions().setCompression(true); // maybe later.
+      }
+
       ChromatogramTools().convertSpectraToChromatograms(exp, true);
       f.store(out, exp);
     }
