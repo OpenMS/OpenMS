@@ -376,6 +376,8 @@ size_t decodeLinear(
 	
 	//printf("Decoding %d bytes with fixed point %f\n", (int)dataSize, fixedPoint);
 
+	if (dataSize == 8) return 0;
+
 	if (dataSize < 8) 
 		throw "[MSNumpress::decodeLinear] Corrupt input data: not enough bytes to read fixed point! ";
 	
