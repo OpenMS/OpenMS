@@ -36,6 +36,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -139,13 +140,9 @@ namespace OpenMS
         pe.setAAAfter(post[0]);
       }
 
-      String tmp;
-      optionalAttributeAsString_(tmp, attributes, "start");
-      current_start_ = tmp.toInt();
+      current_start_ = attributeAsInt_(attributes, "start");
       pe.setStart(current_start_ - 1);
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "end");
-      current_stop_ = tmp.toInt();
+      current_stop_ = attributeAsInt_(attributes, "end");
       pe.setEnd(current_stop_ - 1);
         
       pe.setProteinAccession(current_protein_);
@@ -155,7 +152,10 @@ namespace OpenMS
       if ((peptide_hits_.find(id) == peptide_hits_.end()) || (seq != previous_seq_))
       {
         PeptideHit hit;
-        hit.setSequence(AASequence::fromString(seq));
+        // can't parse sequences permissively because that would skip characters
+        // that X! Tandem includes when calculating e.g. modification positions,
+        // potentially leading to errors when assigning mods to residues:
+        hit.setSequence(AASequence::fromString(seq, false));
         hit.setCharge(current_charge_);
         
         // get scores etc.:
