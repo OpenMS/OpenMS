@@ -98,6 +98,8 @@ namespace OpenMS
           if (config.linear_fp_mass_acc > 0)
           {
             fixedPoint = numpress::MSNumpress::optimalLinearFixedPointMass(&in[0], dataSize, config.linear_fp_mass_acc);
+            // catch failure
+            if (fixedPoint < 0.0) fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
           }
           else
           {
