@@ -138,8 +138,7 @@ public:
     static const String param_verbose; // Whether or not the output of the tool should be verbose.
 
     // Parameters which are not directly related to xProphet
-    static const String param_fp_count_method; // How the false positives in the dataset are counted
-    static const String param_target_count_method; // How the target data is counted
+    static const String param_fdr_calc_method;
 
     // Number of ranks used
     static const Int n_rank;
@@ -223,6 +222,26 @@ protected:
         }
      }
 
+     /** Target counting as performed by the xProphet software package
+      *
+      * @brief xprophet  method for target hits counting as implemented in xProphet
+      * @param cum_histograms Cumulative score distributions
+      */
+     void fdr_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
+                       const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
+                       vector< double > & fdr, bool adjusted)
+     {
+       for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
+            current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
+            current_score += TOPPXFDR::fpnum_score_step)
+       {
+           double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score) - 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
+           double n_targets = cum_histograms[targetclass]->binValue(current_score);
+           double summand = adjusted ? estimated_n_decoys : 0;
+           fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets + summand) : 0);
+       }
+    }
+
 
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
@@ -261,12 +280,9 @@ protected:
       registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
 
       // False positve Counting  method
-      registerStringOption_(TOPPXFDR::param_fp_count_method, "<fp_count_method>","xprophet", "Method specifying how false positives are counted within the input data", false, true);
-      setValidStrings_(TOPPXFDR::param_fp_count_method, ListUtils::create<String>("xprophet"));
+      registerStringOption_(TOPPXFDR::param_fdr_calc_method, "<fp_count_method>", "xprophet", "Method how the false discovery rate is computed", false, true);
+      setValidStrings_(TOPPXFDR::param_fdr_calc_method, ListUtils::create<String>("xprophet,xprophet_adjusted"));
 
-      // Target counting method
-      registerStringOption_(TOPPXFDR::param_target_count_method, "<target_count_method>", "xprophet", "Method specifying how target hits are counted within the input data", false, true);
-      setValidStrings_(TOPPXFDR::param_target_count_method, ListUtils::create<String>("xprophet"));
     }
 
     // the main_ function is called after all parameters are read
@@ -289,35 +305,12 @@ protected:
       }
 
       //-------------------------------------------------------------
-      // Determine FP counting method
+      // Determine FDR calculation method
       //-------------------------------------------------------------
-      String arg_fp_count_method = getStringOption_(TOPPXFDR::param_fp_count_method);
-      if (arg_fp_count_method == "xprophet")
+      String arg_fdr_calc_method = getStringOption_(TOPPXFDR::param_fdr_calc_method);
+      if (arg_fdr_calc_method == "xprophet" || arg_fdr_calc_method == "xprophet_adjusted")
       {
-        StringList required_classes = ListUtils::create<String>("intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
-        for (StringList::const_iterator required_classes_it = required_classes.begin();
-             required_classes_it != required_classes.end(); ++required_classes_it)
-        {
-          String classname = *required_classes_it;
-          if ( ! cross_link_classes_file.has(classname))
-          {
-            LOG_ERROR << "ERROR: xProphet FP counting selected, but the following xlink class has not been defined: " << classname << endl;
-            return ILLEGAL_PARAMETERS;
-          }
-        }
-      }
-      else
-      {
-          LOG_ERROR << "ERROR: Unsupported method of FP counting. Aborting." << endl;
-          return ILLEGAL_PARAMETERS;
-      }
-      //-------------------------------------------------------------
-      // Determine target counting method
-      //-------------------------------------------------------------
-      String arg_target_count_method = getStringOption_(TOPPXFDR::param_target_count_method);
-      if (arg_target_count_method == "xprophet")
-      {
-         StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks");
+         StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks,intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
          for (StringList::const_iterator required_classes_it = required_classes.begin();
               required_classes_it != required_classes.end(); ++required_classes_it)
          {
@@ -331,7 +324,7 @@ protected:
       }
       else
       {
-        LOG_ERROR << "ERROR: Unsupported method for target xlink counting. Aborting" << endl;
+        LOG_ERROR << "ERROR: Unsupported method for FDR calculation. Aborting" << endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -553,14 +546,14 @@ protected:
       // Generate Histograms of the scores for each class
       // Use cumulative histograms to count the number of scores above consecutive thresholds
 
-      std::map< String, Math::Histogram<> * > histograms;
+      //std::map< String, Math::Histogram<> * > histograms;
       std::map< String, Math::CumulativeHistogram<>  * >  cum_histograms;
       for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
            scores_it != scores.end(); ++scores_it)
       {
         vector< double > current_scores = scores_it->second;
         String classname = scores_it->first;
-        histograms[classname] = new Math::Histogram<>(current_scores.begin(), current_scores.end(), 0, 100, 1);
+        //histograms[classname] = new Math::Histogram<>(current_scores.begin(), current_scores.end(), 0, 100, 1);
         cum_histograms[classname] = new Math::CumulativeHistogram<>(current_scores.begin(), current_scores.end(),
                                                                     TOPPXFDR::fpnum_score_start,
                                                                     TOPPXFDR::fpnum_score_end,
@@ -568,22 +561,39 @@ protected:
       }
 
 
-      // Calculate the number of false positives
+
       Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
-      if (arg_fp_count_method == "xprophet")
-      {
-        this->fp_xprophet(cum_histograms, fp_counts);
-      }
+      this->fp_xprophet(cum_histograms, fp_counts);
 
-      // Calculate the number cumulative distribution of target hits
       Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
-      if (arg_target_count_method == "xprophet")
+      this->target_xprophet(cum_histograms, target_counts);
+
+
+      bool adjusted;
+      if (arg_fdr_calc_method == "xprophet")
       {
-        this->target_xprophet(cum_histograms, target_counts);
+          adjusted = false;
+      }
+      else if (arg_fdr_calc_method == "xprophet_adjusted")
+      {
+        adjusted = true;
+      }
+      else
+      {
+          LOG_ERROR << "ERROR: Unsupported FDR calculation method. Aborting.";
+          return ILLEGAL_PARAMETERS;
       }
 
+      vector< double > fdr_interlinks;
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, adjusted);
+      vector< double > fdr_intralinks;
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, adjusted);
 
 
+      for (vector< double>::const_iterator it = fdr_interlinks.begin(); it != fdr_interlinks.end(); ++it)
+      {
+         cout << *it << endl;
+      }
 
 
       // Delete Delta Scores
@@ -592,13 +602,7 @@ protected:
         delete *it;
       }
 
-      // Delete Histograms
-      for(std::map< String, Math::Histogram<> * >::iterator histograms_it = histograms.begin(); histograms_it != histograms.end(); ++histograms_it)
-      {
-        delete histograms_it->second;
-      }
-
-      // Delete cum_histograms
+      // Delete cumulative_histograms
       for(std::map< String, Math::CumulativeHistogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
           cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
       {
@@ -618,8 +622,7 @@ const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_qtransform = "qtransform";
 const String TOPPXFDR::param_minscore = "minscore";
 const String TOPPXFDR::param_verbose = "verbose";
-const String TOPPXFDR::param_fp_count_method = "fp_count_method";          // How the false positives in the dataset are counted
-const String TOPPXFDR::param_target_count_method = "target_count_method";  // How the target hits in the dataset are counted
+const String TOPPXFDR::param_fdr_calc_method = "fdr_calc_method";
 
 const Int    TOPPXFDR::n_rank = 1; //  Number of ranks used
 
