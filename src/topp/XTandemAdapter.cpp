@@ -123,9 +123,9 @@ protected:
 
     registerInputFile_("in", "<file>", "", "Input file containing MS2 spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "Output file containing search results");
+    registerOutputFile_("out", "<file>", "", "Output file containing search results", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerOutputFile_("xml_out", "<file>", "", "Raw output file directly from X! Tandem", false, true);
+    registerOutputFile_("xml_out", "<file>", "", "Raw output file directly from X! Tandem. Either 'out' or 'xml_out' are required. They can be used together.", false);
     setValidFormats_("xml_out", ListUtils::create<String>("xml"));
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
@@ -189,14 +189,19 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    String inputfile_name = getStringOption_("in");
-    String outputfile_name = getStringOption_("out");
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
     String xml_out = getStringOption_("xml_out");
+    if (xml_out.empty() && out.empty())
+    {
+      writeLog_("Fatal error: no output file given (parameter 'out' or 'xml_out')");
+      return ILLEGAL_PARAMETERS;
+    }
 
     // write input xml file
     String temp_directory = makeTempDirectory_();
     String input_filename = temp_directory + "tandem_input.xml";
-    String tandem_input_filename = inputfile_name;
+    String tandem_input_filename = in;
     String tandem_output_filename = temp_directory + "tandem_output.xml";
     String tandem_taxonomy_filename = temp_directory + "tandem_taxonomy.xml";
 
@@ -224,7 +229,7 @@ protected:
     MzMLFile mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
     mzml_file.setLogType(log_type_);
-    mzml_file.load(inputfile_name, exp);
+    mzml_file.load(in, exp);
 
     if (exp.getSpectra().empty())
     {
@@ -372,27 +377,30 @@ protected:
       }
     }
 
-    // handle the search parameters
-    ProteinIdentification::SearchParameters search_parameters;
-    search_parameters.db = getStringOption_("database");
+    if (!out.empty())
+    {
+      // handle the search parameters
+      ProteinIdentification::SearchParameters search_parameters;
+      search_parameters.db = getStringOption_("database");
 
-    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.mass_type = mass_type;
-    search_parameters.fixed_modifications = getStringList_("fixed_modifications");
-    search_parameters.variable_modifications = getStringList_("variable_modifications");
-    search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
-    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
-    search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
-    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_error_units") == "ppm" ? true : false;
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
-    protein_id.setSearchParameters(search_parameters);
-    protein_id.setSearchEngineVersion("");
-    protein_id.setSearchEngine("XTandem");
+      ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+      search_parameters.mass_type = mass_type;
+      search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+      search_parameters.variable_modifications = getStringList_("variable_modifications");
+      search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
+      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+      search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
+      search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_error_units") == "ppm" ? true : false;
+      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+      protein_id.setSearchParameters(search_parameters);
+      protein_id.setSearchEngineVersion("");
+      protein_id.setSearchEngine("XTandem");
 
-    protein_ids.push_back(protein_id);
+      protein_ids.push_back(protein_id);
 
-    IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
+      IdXMLFile().store(out, protein_ids, peptide_ids);
+    }
 
     /// Deletion of temporary files
     removeTempDirectory_(temp_directory);
