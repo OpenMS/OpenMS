@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Petra Gutenbrunner $
+// $Maintainer: Petra Gutenbrunner, Oliver Alka $
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -134,7 +134,7 @@ protected:
 
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    
+
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
 
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method", false);
@@ -513,9 +513,30 @@ protected:
     
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
-    
+
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
+
+    MSExperiment<> exp;
+    MzMLFile file;
+    file.setLogType(log_type_);
+    String in_tmp;
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+
+    file.load(in, exp);
+    exp.sortSpectra(true);
+
+    // check if mz/intenisty precision have different values - set them to 64-bit - see issue #2381
+    writeLog_("Warning: Luciphor requires a precision of either 32 or 64-bit float. Precision is automtically converted to 64-bit float.");
+
+    file.getOptions().setMz32Bit(false);
+    file.getOptions().setIntensity32Bit(false);
+    String in_file_name = File::removeExtension(File::basename(in));
+    in_tmp = temp_dir + in_file_name + ".mzML";
+    file.store(in_tmp, exp);
+
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
@@ -523,10 +544,10 @@ protected:
       IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
       
       // create a temporary pepXML file for LuciPHOR2 input
-      String in_file_name = File::removeExtension(File::basename(id));
-      id = temp_dir + in_file_name + ".pepXML";
+      String id_file_name = File::removeExtension(File::basename(id));
+      id = temp_dir + id_file_name + ".pepXML";
       
-      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false);
+      PepXMLFile().store(id, prot_ids, pep_ids, in_tmp, "", false);
     }
     else
     {
@@ -546,7 +567,7 @@ protected:
     map<String, vector<String> > config_map;
     String selection_method = getSelectionMethod_(pep_ids[0], prot_ids.begin()->getSearchEngine());
     
-    ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods, selection_method);
+    ExitCodes ret = parseParameters_(config_map, id, in_tmp, out, target_mods, selection_method);
     if (ret != EXECUTION_OK)
     {
       return ret;
@@ -586,18 +607,7 @@ protected:
       writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
-    
-    MSExperiment<> exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
 
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.load(in, exp);
-    exp.sortSpectra(true);
-    
     SpectrumLookup lookup;
     lookup.rt_tolerance = 0.05;
     lookup.readSpectra(exp.getSpectra());
@@ -673,7 +683,7 @@ protected:
     IdXMLFile().store(out, prot_ids, pep_out);
 
     removeTempDir_(temp_dir);
-    
+
     return EXECUTION_OK;
   }
 };

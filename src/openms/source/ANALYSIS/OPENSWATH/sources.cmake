@@ -11,12 +11,15 @@ TransitionTSVReader.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp
+OpenSwathTSVWriter.cpp
+OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
+SONARScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
 ConfidenceScoring.cpp

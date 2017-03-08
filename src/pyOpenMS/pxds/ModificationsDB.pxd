@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
 
         bool has(String modification) nogil except +
 
-	void addModification(ResidueModification * new_mod) nogil except +
+        void addModification(ResidueModification * new_mod) nogil except +
 
         Size findModificationIndex(String & mod_name) nogil except +
 

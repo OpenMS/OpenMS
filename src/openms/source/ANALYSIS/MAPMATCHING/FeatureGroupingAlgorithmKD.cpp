@@ -45,22 +45,51 @@ namespace OpenMS
 {
 
   FeatureGroupingAlgorithmKD::FeatureGroupingAlgorithmKD() :
-    ProgressLogger()
+    ProgressLogger(),
+    feature_distance_(FeatureDistance())
   {
     setName("FeatureGroupingAlgorithmKD");
-    defaults_.setValue("rt_tol", 60.0, "width of RT tolerance window (sec)");
+
+    defaults_.setValue("rt_tol", 60.0, "Width of RT tolerance window (sec)");
+    defaults_.setMinFloat("rt_tol", 0.0);
     defaults_.setValue("mz_tol", 15.0, "m/z tolerance (in ppm or Da)");
-    defaults_.setValue("mz_unit", "ppm", "unit of m/z tolerance");
+    defaults_.setMinFloat("mz_tol", 0.0);
+    defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
-    defaults_.setValue("warp", "true", "whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
+    defaults_.setValue("warp", "true", "Whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
     defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
-    defaults_.setValue("min_rel_cc_size", 0.5, "only relevant during RT transformation: only connected components containing at least (warp_min_occur * number_of_input_maps) features are considered for computing the warping function");
+    defaults_.setValue("max_pairwise_log_fc", 0.5, "Only relevant during RT alignment ('warp' set to 'true'): Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_rel_cc_size", 0.5, "Only relevant during RT alignment ('warp' set to 'true'): Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("min_rel_cc_size", 0.0);
     defaults_.setMaxFloat("min_rel_cc_size", 1.0);
-    defaults_.setValue("max_nr_conflicts", 0, "only relevant during RT transformation: allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)");
+    defaults_.setValue("max_nr_conflicts", 0, "Only relevant during RT alignment ('warp' set to 'true'): Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("max_nr_conflicts", -1);
-    defaults_.setValue("nr_partitions", 100, "number of partitions in m/z space");
+    defaults_.setValue("nr_partitions", 100, "Number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
+
+    // FeatureDistance defaults
+    defaults_.insert("", feature_distance_.getDefaults());
+
+    // override some of them
+    defaults_.setValue("distance_intensity:weight", 1.0);
+    defaults_.setValue("distance_intensity:log_transform", "enabled");
+    defaults_.addTag("distance_intensity:weight", "advanced");
+    defaults_.addTag("distance_intensity:log_transform", "advanced");
+    defaults_.remove("distance_RT:max_difference");
+    defaults_.remove("distance_MZ:max_difference");
+    defaults_.remove("distance_MZ:unit");
+    defaults_.remove("ignore_charge");
+
+    // LOWESS defaults
+    Param lowess_defaults;
+    TransformationModelLowess::getDefaultParameters(lowess_defaults);
+    for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
+    {
+      const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
+    }
+    defaults_.insert("LOWESS:", lowess_defaults);
+    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp' is set to 'true')");
+
     defaultsToParam_();
     setLogType(CMD);
   }
@@ -73,9 +102,11 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,
                                           ConsensusMap& out)
   {
-    rt_tol_secs_ = (double)(param_.getValue("rt_tol"));
+    // set parameters
+    String mz_unit(param_.getValue("mz_unit").toString());
+    mz_ppm_ = mz_unit == "ppm";
     mz_tol_ = (double)(param_.getValue("mz_tol"));
-    mz_ppm_ = param_.getValue("mz_unit").toString() == "ppm";
+    rt_tol_secs_ = (double)(param_.getValue("rt_tol"));
 
     // check that the number of maps is ok:
     if (input_maps.size() < 2)
@@ -86,7 +117,9 @@ namespace OpenMS
 
     out.clear(false);
 
+    // collect all m/z values for partitioning, find intensity maximum
     vector<double> massrange;
+    double max_intensity(0.0);
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
          map_it != input_maps.end(); ++map_it)
     {
@@ -94,13 +127,29 @@ namespace OpenMS
           feat_it != map_it->end(); feat_it++)
       {
         massrange.push_back(feat_it->getMZ());
+        double inty = feat_it->getIntensity();
+        if (inty > max_intensity)
+        {
+          max_intensity = inty;
+        }
       }
     }
-    sort(massrange.begin(), massrange.end());
+
+    // set up distance functor
+    Param distance_params;
+    distance_params.insert("", param_.copy("distance_RT:"));
+    distance_params.insert("", param_.copy("distance_MZ:"));
+    distance_params.insert("", param_.copy("distance_intensity:"));
+    distance_params.setValue("distance_RT:max_difference", rt_tol_secs_);
+    distance_params.setValue("distance_MZ:max_difference", mz_tol_);
+    distance_params.setValue("distance_MZ:unit", (mz_ppm_ ? "ppm" : "Da"));
+    feature_distance_ = FeatureDistance(max_intensity, false);
+    feature_distance_.setParameters(distance_params);
 
     // partition at boundaries -> this should be safe because there cannot be
     // any cluster reaching across boundaries
 
+    sort(massrange.begin(), massrange.end());
     int pts_per_partition = massrange.size() / (int)(param_.getValue("nr_partitions"));
 
     // compute partition boundaries
@@ -335,11 +384,6 @@ namespace OpenMS
 
   ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter_(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const
   {
-    // for scaling distances relative to tolerance windows below
-    pair<double, double> dummy_mz_win = Math::getTolWindow(1000, mz_tol_, mz_ppm_);
-    double max_rt_dist = rt_tol_secs_;
-    double max_mz_dist = (dummy_mz_win.second - dummy_mz_win.first) / 2;
-
     // compute i's neighborhood, together with a look-up table
     // map index -> corresponding points
     map<Size, vector<Size> > points_for_map_index;
@@ -369,10 +413,9 @@ namespace OpenMS
       Size best_index = numeric_limits<double>::max();
       for (vector<Size>::const_iterator c_it = candidates.begin(); c_it != candidates.end(); ++c_it)
       {
-        double dist = distance_(kd_data.mz(*c_it) / max_mz_dist,
-                                kd_data.rt(*c_it) / max_rt_dist,
-                                kd_data.mz(i) / max_mz_dist,
-                                kd_data.rt(i) / max_rt_dist);
+        double dist = const_cast<FeatureDistance&>(feature_distance_)(*(kd_data.feature(*c_it)),
+                                                                      *(kd_data.feature(i))).second;
+
         if (dist < min_dist)
         {
           min_dist = dist;
@@ -401,11 +444,6 @@ namespace OpenMS
     cf.setQuality(avg_quality);
     cf.computeConsensus();
     out.push_back(cf);
-  }
-
-  double FeatureGroupingAlgorithmKD::distance_(double mz_1, double rt_1, double mz_2, double rt_2) const
-  {
-    return sqrt(pow((mz_1 - mz_2), 2) + pow((rt_1 - rt_2), 2));
   }
 
 } // namespace OpenMS

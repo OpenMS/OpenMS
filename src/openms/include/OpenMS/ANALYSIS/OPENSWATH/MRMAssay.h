@@ -286,4 +286,4 @@ protected:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H

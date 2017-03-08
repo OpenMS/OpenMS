@@ -219,14 +219,14 @@ protected:
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
-      boost::shared_ptr<MapType> empty_swath_map (new MapType());
       featureFinder.setParameters(feature_finder_param);
       featureFinder.setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(empty_swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-      featureFinder.pickExperiment(chromatogram_ptr, out_featureFile, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+      std::vector< OpenSwath::SwathMap > empty_maps;
+      featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
+                                   transition_exp, trafo, empty_maps, transition_group_map);
       out_featureFile.ensureUniqueId();
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       FeatureXMLFile().store(out, out_featureFile);
@@ -277,7 +277,10 @@ protected:
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
         OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
         OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-        featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
+        std::vector< OpenSwath::SwathMap > swath_maps(1);
+        swath_maps[0].sptr = swath_ptr;
+        featureFinder.pickExperiment(chromatogram_ptr, featureFile,
+                                     transition_exp_used, trafo, swath_maps, transition_group_map);
 
         // write all features and the protein identifications from tmp_featureFile into featureFile
 #ifdef _OPENMP

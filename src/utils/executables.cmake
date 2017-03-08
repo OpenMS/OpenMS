@@ -12,7 +12,6 @@ Digestor
 DigestorMotif
 ERPairFinder
 FeatureFinderSuperHirn
-FeatureLinkerUnlabeledKD
 FFEval
 FuzzyDiff
 IDDecoyProbability
@@ -48,6 +47,7 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SpecLibCreator
+SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation

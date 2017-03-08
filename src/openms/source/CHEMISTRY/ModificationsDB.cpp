@@ -54,6 +54,7 @@ namespace OpenMS
   {
     readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
     readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
+    readFromOBOFile("CHEMISTRY/XLMOD.obo");
   }
 
 
@@ -306,10 +307,15 @@ namespace OpenMS
   void ModificationsDB::readFromOBOFile(const String& filename)
   {
     ResidueModification mod;
-    Map<String, ResidueModification> all_mods;
+    // add multiple mods for multiple specificities
+    //Map<String, ResidueModification> all_mods;
+    multimap<String, ResidueModification> all_mods;
 
     ifstream is(File::find(filename).c_str());
     String line, line_wo_spaces, id;
+    String origin = "";
+
+    bool reading_cross_link = false;
 
     //parse file
     while (getline(is, line, '\n'))
@@ -325,13 +331,52 @@ namespace OpenMS
 
       if (line_wo_spaces == "[Term]")       //new term
       {
-        if (id != "") //store last term
+        // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
+        if (id != "" && !reading_cross_link) //store last term
         {
-          all_mods[id] = mod;
+          // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
+          vector<String> origins;
+          origin.split(",", origins);
+
+          std::sort(origins.begin(), origins.end());
+          vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+          origins.resize(distance(origins.begin(), unique_end));
+
+          for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+          {
+            if (orig_it->size() == 1)
+            {
+              mod.setOrigin((*orig_it));
+              all_mods.insert(make_pair(id, mod));
+            }
+          }
+
+          if (origin.hasSubstring("ProteinN-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::N_TERM);
+            mod.setOrigin("N-term");
+            all_mods.insert(make_pair(id, mod));
+          }
+          if (origin.hasSubstring("ProteinC-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::C_TERM);
+            mod.setOrigin("C-term");
+            all_mods.insert(make_pair(id, mod));
+          }
+
           id = "";
+          origin = "";
           mod = ResidueModification();
         }
+        else if (reading_cross_link) // re-initialize before reading next [Term]
+        {
+          id = "";
+          origin = "";
+          mod = ResidueModification();
+          reading_cross_link = false;
+        }
       }
+
       //new id line
       else if (line_wo_spaces.hasPrefix("id:"))
       {
@@ -341,7 +386,14 @@ namespace OpenMS
       }
       else if (line_wo_spaces.hasPrefix("name:"))
       {
-        mod.setFullName(line.substr(line.find(':') + 1).trim());
+        String name = line.substr(line.find(':') + 1).trim();
+        mod.setFullName(name);
+        if (mod.getId().hasSubstring("XLMOD"))
+        {
+          mod.setName(name);
+          mod.setId(name);
+          mod.setFullName(name);
+        }
       }
       else if (line_wo_spaces.hasPrefix("is_a:"))
       {
@@ -426,7 +478,8 @@ namespace OpenMS
         }
         else if (val.hasPrefix("Origin:"))
         {
-          mod.setOrigin(val_split[1]);
+          //mod.setOrigin(val_split[1]);
+          origin = val_split[1];
         }
         else if (val.hasPrefix("Source:"))
         {
@@ -436,16 +489,71 @@ namespace OpenMS
         {
           mod.setTermSpecificity(val_split[1]);
         }
+        // XLMOD specific fields
+        else if (val.hasPrefix("reactionSites:"))
+        {
+          if (val_split[1] == "2")
+          {
+            reading_cross_link = true;
+          }
+        }
+        else if (val.hasPrefix("monoisotopicMass:"))
+        {
+          mod.setDiffMonoMass(val_split[1].toDouble());
+        }
+        else if (val.hasPrefix("specificities:"))
+        {
+          // TODO cross-linker specificities can be different for both chain sides, right now the union of both sides is used
+          // Input parameters of the cross-link search tool make sure, that the chemistry is not violated
+          origin = val_split[1];
+
+          // remove brackets
+          origin.remove('(');
+          origin.remove(')');
+          origin.substitute("&", ",");
+        }
       }
     }
 
     if (id != "") //store last term
     {
-      all_mods[id] = mod;
+      // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
+      vector<String> origins;
+      origin.split(",", origins);
+
+      std::sort(origins.begin(), origins.end());
+      vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+      origins.resize(distance(origins.begin(), unique_end));
+
+      for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+      {
+        if (orig_it->size() == 1)
+        {
+          mod.setOrigin((*orig_it));
+          all_mods.insert(make_pair(id, mod));
+        }
+      }
+
+      if (origin.hasSubstring("ProteinN-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::N_TERM);
+        mod.setOrigin("N-term");
+        all_mods.insert(make_pair(id, mod));
+      }
+      if (origin.hasSubstring("ProteinC-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::C_TERM);
+        mod.setOrigin("C-term");
+        all_mods.insert(make_pair(id, mod));
+      }
+
+      id = "";
+      origin = "";
+      mod = ResidueModification();
     }
 
     // now use the term and all synonyms to build the database
-    for (Map<String, ResidueModification>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
     {
 
       // check whether a unimod definition already exists, then simply add synonyms to it
@@ -463,7 +571,8 @@ namespace OpenMS
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        if (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X")
+        if ( (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X") ||
+              (it->second.getOrigin() == "N-term") || (it->second.getOrigin() == "C-term"))
         {
           mods_.push_back(new ResidueModification(it->second));
 

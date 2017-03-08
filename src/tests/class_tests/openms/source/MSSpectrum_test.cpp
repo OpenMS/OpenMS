@@ -120,6 +120,17 @@ START_SECTION((void setRT(double rt)))
   TEST_REAL_SIMILAR(s.getRT(),0.451)
 END_SECTION
 
+START_SECTION((double getDriftTime() const ))
+  MSSpectrum<> s;
+  TEST_REAL_SIMILAR(s.getDriftTime(),-1.0)
+END_SECTION
+
+START_SECTION((void setDriftTime(double dt)))
+  MSSpectrum<> s;
+  s.setDriftTime(0.451);
+  TEST_REAL_SIMILAR(s.getDriftTime(),0.451)
+END_SECTION
+
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const))
 	MSSpectrum<> s;
   TEST_EQUAL(s.getFloatDataArrays().size(),0)
@@ -268,6 +279,7 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
 	tmp.setMetaValue("label",5.0);
 	tmp.setMSLevel(17);
 	tmp.setRT(7.0);
+	tmp.setDriftTime(8.0);
 	tmp.setName("bla");
 	//peaks
 	MSSpectrum<>::PeakType peak;
@@ -279,6 +291,7 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
 	TEST_EQUAL(tmp2.getMSLevel(), 17)
 	TEST_REAL_SIMILAR(tmp2.getRT(), 7.0)
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(), 8.0)
 	TEST_EQUAL(tmp2.getName(),"bla")
 	//peaks
 	TEST_EQUAL(tmp2.size(),1);
@@ -292,6 +305,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 	tmp.setMetaValue("label",5.0);
 	tmp.setMSLevel(17);
 	tmp.setRT(7.0);
+	tmp.setDriftTime(8.0);
 	tmp.setName("bla");
 	//peaks
 	MSSpectrum<>::PeakType peak;
@@ -305,6 +319,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
 	TEST_EQUAL(tmp2.getMSLevel(), 17)
 	TEST_REAL_SIMILAR(tmp2.getRT(), 7.0)
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(), 8.0)
 	TEST_EQUAL(tmp2.getName(),"bla")
 	TEST_EQUAL(tmp2.size(),1);
 	TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
@@ -316,6 +331,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 	TEST_EQUAL(tmp2.metaValueExists("label"), false)
 	TEST_EQUAL(tmp2.getMSLevel(),1)
 	TEST_REAL_SIMILAR(tmp2.getRT(), -1.0)
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(), -1.0)
 	TEST_EQUAL(tmp2.getName(),"")
 	TEST_EQUAL(tmp2.size(),0);
 END_SECTION
@@ -337,6 +353,11 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 	edit.setMetaValue("label",String("bla"));
 	TEST_EQUAL(empty==edit, false);
 
+	edit = empty;
+	edit.setDriftTime(5);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
 	edit.setRT(5);
 	TEST_EQUAL(empty==edit, false);
 
@@ -386,6 +407,11 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 	edit.setMetaValue("label",String("bla"));
 	TEST_EQUAL(edit!=empty,true);
 
+	edit = empty;
+	edit.setDriftTime(5);
+	TEST_EQUAL(edit!=empty,true);
+
+	edit = empty;
 	edit.setRT(5);
 	TEST_EQUAL(edit!=empty,true);
 
@@ -1002,6 +1028,7 @@ START_SECTION(void clear(bool clear_meta_data))
 	edit.resize(1);
 	edit.setMetaValue("label",String("bla"));
 	edit.setRT(5);
+	edit.setDriftTime(6);
 	edit.setMSLevel(5);
 	edit.getFloatDataArrays().resize(5);
 	edit.getIntegerDataArrays().resize(5);

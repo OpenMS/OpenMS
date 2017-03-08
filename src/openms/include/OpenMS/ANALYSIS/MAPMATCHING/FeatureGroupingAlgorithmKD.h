@@ -37,6 +37,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
@@ -243,9 +244,6 @@ private:
     /// Construct consensus feature and add to out map
     void addConsensusFeature_(const std::vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const;
 
-    /// Distance between two points
-    double distance_(double mz_1, double rt_1, double mz_2, double rt_2) const;
-
     /// Current progress for logging
     SignedSize progress_;
 
@@ -257,6 +255,9 @@ private:
 
     /// m/z unit ppm?
     bool mz_ppm_;
+
+    /// Feature distance functor
+    FeatureDistance feature_distance_;
   };
 
 } // namespace OpenMS

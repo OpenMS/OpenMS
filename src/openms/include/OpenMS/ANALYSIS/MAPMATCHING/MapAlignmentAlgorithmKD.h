@@ -103,6 +103,9 @@ private:
   /// Parameters
   Param param_;
 
+  /// Maximum absolute log10 fold change threshold between compatible features
+  double max_pairwise_log_fc_;
+
 };
 
 } // namespace OpenMS

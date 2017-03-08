@@ -43,12 +43,22 @@ namespace OpenMS
 MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, const Param& param) :
   fit_data_(num_maps),
   transformations_(num_maps),
-  param_(param)
+  param_(param),
+  max_pairwise_log_fc_(-1)
 {
+  if (param.exists("max_pairwise_log_fc"))
+  {
+    max_pairwise_log_fc_ = param.getValue("max_pairwise_log_fc");
+  }
 }
 
 MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 {
+  for (vector<TransformationModelLowess*>::iterator it = transformations_.begin();
+       it != transformations_.end(); ++it)
+  {
+    delete *it;
+  }
 }
 
 void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
@@ -102,9 +112,10 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
     Size n = fit_data_[i].size();
     if (n < 50)
     {
-      LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT and m/z tolerance, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
+      LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
     }
-    transformations_[i] = new TransformationModelLowess(fit_data_[i], Param());
+    const Param& lowess_param = param_.copy("LOWESS:", true);
+    transformations_[i] = new TransformationModelLowess(fit_data_[i], lowess_param);
   }
 }
 
@@ -157,7 +168,7 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeFeatureMaps& kd_data, vect
       result[i] = cc_index;
 
       vector<Size> compatible_features;
-      kd_data.getNeighborhood(i, compatible_features);
+      kd_data.getNeighborhood(i, compatible_features, false, max_pairwise_log_fc_);
       for (vector<Size>::const_iterator it = compatible_features.begin();
            it != compatible_features.end();
            ++it)
@@ -191,7 +202,7 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeFeatureMaps& kd_data, map<Size
 void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const map<Size, vector<Size> >& ccs, map<Size, vector<Size> >& filtered_ccs) const
 {
   Size num_maps = fit_data_.size();
-  Size min_size = (double)(param_.getValue("min_rel_cc_size")) * (double)num_maps;
+  Size min_size = max(2.0, (double)(param_.getValue("min_rel_cc_size")) * (double)num_maps);
   int max_nr_conflicts = (int)param_.getValue("max_nr_conflicts");
   filtered_ccs.clear();
 

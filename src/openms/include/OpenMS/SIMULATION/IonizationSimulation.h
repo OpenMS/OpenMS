@@ -187,4 +187,5 @@ protected:
 
 }
 
-#endif
+#endif // OPENMS_SIMULATION_IONIZATIONSIMULATION_H
+
