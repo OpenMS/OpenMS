@@ -174,7 +174,7 @@ protected:
 
     registerFlag_("write_mzML_index", "Add an index to the file when writing mzML files (default: no index)");
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data)");
-    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 550 m/z, default uses -1.0 for maximal accuracy)", false);
+    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy)", false);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
