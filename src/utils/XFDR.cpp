@@ -43,8 +43,8 @@
 #include <boost/function.hpp>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
+#include <OpenMS/FORMAT/CrossLinkClassesFile.h>
 
-#include <sstream>
 #include <string>
 #include <math.h>
 
@@ -79,112 +79,8 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
-
-/**
-  Reads the classes.dat file containing the xlink class specifications and parses content
-  into the classes data structure.
-
- * @brief readClasses Parse classes.dat file
- * @param filename Path to the classes.dat file
- * @param classes Where the content of the classes.dat file should be stored
- * @return true if the classes.dat file could be read successfully, false otherwise.
- */
-bool readClasses(const String & filename, std::map<String, vector< vector < StringList > > > & classes )
-{
-  int state = 0;
-  String line;
-  String current_class;
-  vector< vector < String > > attributes;
-  std::ifstream infile(filename.c_str());
-  while (std::getline(infile, line))
-  {
-      // Ignore empty lines
-      if (line.empty())
-      {
-          continue;
-      }
-
-      switch(state)
-      {
-        // Expect new name of cross-link class
-        case 0:
-
-          if (classes.find(line) != classes.end())
-          {
-              LOG_ERROR << "ERROR: Name of cross-link class not unique: " << line << endl;
-              return false;
-          }
-          current_class  = line;
-          state = 1;
-          break;
-
-        // Expect attributes of the class
-        case 1:
-          if(line.hasPrefix("$"))  // End of xlink class definition.
-          {
-              classes[current_class].push_back(attributes);
-              attributes.clear();
-              state = 0;
-          }
-          else if(line.hasPrefix(">"))  // New clause for class definition found
-          {
-            classes[current_class].push_back(attributes);
-            attributes.clear();
-          }
-          else
-          {
-            StringList split;
-            StringUtils::split(line,"|", split);
-            size_t split_size = split.size();
-
-            for (size_t i = 0; i < split_size; ++i)
-            {
-               split[i] = split[i].removeWhitespaces();
-            }
-            String identifier = split[0];
-            String predicate = split[1];
-
-            // TODO Also check the keys that are tested
-            if (identifier != "PEPID" && identifier != "ALPHA" && identifier != "BETA")
-            {
-              LOG_ERROR << "ERROR: Unknown identifier in attribute specification: '"<< identifier <<"'. Choose among 'PEPID', 'ALPHA', or 'BETA'." << endl;
-              return false;
-            }
-            if(predicate != "IS" && predicate != "ISNOT" && predicate != "HAS" && predicate != "HASNOT")
-            {
-               LOG_ERROR << "ERROR: Predicate is invalid. Choose among 'IS', 'ISNOT', 'HAS', or 'HASNOT'" << endl;
-               return false;
-            }
-            if ((predicate == "IS" || predicate == "ISNOT") && split_size != 4)
-            {
-                LOG_ERROR << "ERROR: Predicates 'IS' and 'ISNOT' require 4 fields in total" << endl;
-                return false;
-            }
-            if ((predicate == "HAS" || predicate == "HASNOT") && split_size != 3)
-            {
-                LOG_ERROR << "ERROR: Predicates 'HAS' and 'HASNOT' require 3 fields in total" << endl;
-                return false;
-            }
-            attributes.push_back(split);
-          }
-        default:
-          break;
-      }
-  }
-  if (state == 1)
-  {
-    LOG_ERROR << "ERROR: File ended, but no '$' symbol has been encountered." << endl;
-    return false;
-  }
-
-  return true;
-}
-
-
 // Struct which is used for sorting the order vector by a meta value
 // of the peptide identification (usually score)
-
-
 /**
  * Struct which is used for sorting the order vector by a meta value of the peptide identification
  * containing the identified cross-link.
@@ -359,11 +255,12 @@ protected:
       String arg_in_xlclasses = getStringOption_(TOPPXFDR::param_in_xlclasses);
 
       // Container for rules of specifying classes
-      std::map<String, vector< vector< StringList > > > classes;  // A bit awful
-      if(! readClasses(arg_in_xlclasses, classes))
+      CrossLinkClassesFile cross_link_classes_file;
+
+      if (! cross_link_classes_file.load(arg_in_xlclasses))
       {
-          LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
-          return PARSE_ERROR;
+         LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
+         return PARSE_ERROR;
       }
 
       //-------------------------------------------------------------
@@ -377,7 +274,7 @@ protected:
              required_classes_it != required_classes.end(); ++required_classes_it)
         {
           String classname = *required_classes_it;
-          if(classes.find(classname) == classes.end())
+          if ( ! cross_link_classes_file.has(classname))
           {
             LOG_ERROR << "ERROR: xProphet FP counting selected, but the following xlink class has not been defined: " << classname << endl;
             return ILLEGAL_PARAMETERS;
@@ -400,7 +297,7 @@ protected:
               required_classes_it != required_classes.end(); ++required_classes_it)
          {
            String classname = *required_classes_it;
-           if (classes.find(classname) == classes.end())
+           if ( ! cross_link_classes_file.has((classname)))
            {
              LOG_ERROR << "ERROR: xProphet target counting selected, but the following xlink class has not been defined: " << classname << endl;
              return ILLEGAL_PARAMETERS;
@@ -415,9 +312,9 @@ protected:
 
       if (arg_verbose)
       {
-        for(std::map<String, vector< vector< StringList > > >::const_iterator it = classes.begin(); it != classes.end(); ++it)
+        for(CrossLinkClassesFile::ClassNameConstIterator it = cross_link_classes_file.begin(); it != cross_link_classes_file.end(); ++it)
         {
-              cout << "Class defined: " <<  it->first << '\n';
+              cout << "Class defined: " <<  *it << '\n';
         }
         cout << "----------------------------" << endl;
       }
@@ -578,7 +475,7 @@ protected:
       // Configure the sorting of the Peptide Identifications
       less_than_by_key order_conf = {
         spectra,            // elements
-        pep_id_index, // idx
+        pep_id_index,       // idx
         "OpenXQuest:score"  // key
       };
 
@@ -611,79 +508,7 @@ protected:
             &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
        {
            unique_ids.insert(id);
-
-           // Check all classes and see whether this PeptideIdentification matches
-           for (std::map< String, vector< vector< StringList > > >::const_iterator it = classes.begin();
-                it != classes.end(); ++it)\
-           {
-              bool class_fit = false;
-              std::pair< String, vector< vector< StringList > > > xlink_class = *it;
-
-              // Go throw all the clauses of the class and see if at least one clause matches
-              for (vector< vector< StringList > >::const_iterator xlink_class_it = xlink_class.second.begin();
-                   xlink_class_it != xlink_class.second.end(); ++xlink_class_it)
-              {
-                  vector< StringList > clause = *xlink_class_it;
-
-                  bool clause_matches = true;
-
-                  // Check all criteria within the class
-                  for (vector< StringList>::const_iterator clause_it = clause.begin(); clause_it != clause.end();
-                       clause_it++)
-                  {
-                      StringList attribute = *clause_it;
-                      // Decide for the MetaInfoInterface to be investigated
-                      MetaInfoInterface meta_info_interface;
-                      if (attribute[0] == "PEPID")
-                      {
-                        meta_info_interface = *pep_id;
-                      }
-                      else
-                      {
-                        std::vector<PeptideHit> & peptide_hits = pep_id->getHits();
-
-                        if (attribute[0] == "ALPHA")   // Assume here that Alpha always exists
-                        {
-                            meta_info_interface = peptide_hits[0];
-                        }
-                        else if (peptide_hits.size() < 2)     // Must be BETA, but there is no beta
-                        {
-                            clause_matches = false;
-                            break;
-                        }
-                        else
-                        {
-                            meta_info_interface = peptide_hits[1];
-                        }
-                       }
-                      // Switch on the predicate
-                      String predicate = attribute[1];     // What the meta value should be tested for
-                      String meta_value  = attribute[2];   // The Meta value to be tested
-                      bool meta_value_exists = meta_info_interface.metaValueExists(meta_value);
-
-                      // Each one of the following criteria throws the peptide identification out of the class
-                      if (    (predicate == "HAS"    && ! meta_value_exists)
-                          ||  (predicate == "HASNOT" &&   meta_value_exists)
-                          ||  (predicate == "IS"     && ! meta_value_exists)
-                          ||  (predicate == "IS"     &&   ((String) meta_info_interface.getMetaValue(meta_value)) != attribute[3])
-                          ||  (predicate == "ISNOT"  &&   ((String) meta_info_interface.getMetaValue(meta_value)) == attribute[3]))
-                      {
-                         clause_matches = false;
-                         break;
-                      }
-                  }
-                  if(clause_matches)   // This clause matches, so the peptide_identification belongs to this classd
-                  {
-                    class_fit = true;
-                    break;
-                  }  // else:  If the clause does not match, continue to the next clause
-              }
-
-              if (class_fit)
-              {
-                  scores[xlink_class.first].push_back(score);
-              }
-           }
+           cross_link_classes_file.collect(*pep_id, scores, "OpenXQuest:score");
        }
       }
 
@@ -717,13 +542,13 @@ protected:
                                                                     TOPPXFDR::fpnum_score_step, true, true);
       }
 
+
       // Calculate the number of false positives
       Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
       if (arg_fp_count_method == "xprophet")
       {
         this->fp_xprophet(cum_histograms, fp_counts);
       }
-
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)

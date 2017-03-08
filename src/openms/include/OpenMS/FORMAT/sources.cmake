@@ -30,6 +30,7 @@ CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
 ControlledVocabulary.h
+CrossLinkClassesFile.h
 CsvFile.h
 DTA2DFile.h
 DTAFile.h
