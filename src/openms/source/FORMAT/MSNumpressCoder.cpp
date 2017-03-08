@@ -217,7 +217,11 @@ namespace OpenMS
     }
     catch (int e)
     {
-      std::cerr << "MZNumpress encoder threw exception: " << e << std::endl;
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+    }
+    catch (char const * e)
+    {
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
     catch (...)
     {
