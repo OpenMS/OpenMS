@@ -92,7 +92,7 @@ namespace OpenMS
       /**
         @brief Returns the appropriate compression term given the PeakFileOptions and the NumpressConfig  
       */
-      static String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
+      static String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, String indent = "", bool use_numpress = false);
 
       /**
         @brief Write the mzML footer the appropriate compression term given the PeakFileOptions and the NumpressConfig  

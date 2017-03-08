@@ -849,22 +849,22 @@ protected:
         if (array_type == "mz")
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), true);
-          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", true);
+          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", false);
           np_config = pf_options_.getNumpressConfigurationMassTime();
         }
         else if (array_type == "time")
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
-          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), true);
-          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", true);
+          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", false);
           np_config = pf_options_.getNumpressConfigurationMassTime();
         }
         else if (array_type == "intensity")
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"/>\n";
-          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), true);
-          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", true);
+          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
           np_config = pf_options_.getNumpressConfigurationIntensity();
         }
         else
@@ -904,7 +904,7 @@ protected:
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
         }
 
-        os << "\t\t\t\t\t\t" << compression_term << "\n";
+        os << compression_term << "\n";
         os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
         os << "\t\t\t\t\t</binaryDataArray>\n";
       }
@@ -5289,7 +5289,7 @@ protected:
         writeContainerData<SpectrumType>(os, options_, spec, "mz");
         writeContainerData<SpectrumType>(os, options_, spec, "intensity");
 
-        String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
+        String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
         //write float data array
         for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
         {
@@ -5306,7 +5306,7 @@ protected:
           }
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-          os << "\t\t\t\t\t\t" << compression_term << "\n";
+          os << compression_term << "\n";
           ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
           if (bi_term.id != "")
           {
@@ -5442,7 +5442,7 @@ protected:
       writeContainerData<ChromatogramType>(os, options_, chromatogram, "time");
       writeContainerData<ChromatogramType>(os, options_, chromatogram, "intensity");
 
-      compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
+      compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
       //write float data array
       for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
       {
@@ -5459,7 +5459,7 @@ protected:
         }
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-        os << "\t\t\t\t\t\t" << compression_term << "\n";
+        os << compression_term << "\n";
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
         if (bi_term.id != "")
         {
