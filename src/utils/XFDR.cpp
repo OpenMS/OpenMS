@@ -198,6 +198,31 @@ protected:
     }
 
 
+     /** Target counting as performed by the xProphet software package
+       *
+       * @brief xprophet  method for target hits counting as implemented in xProphet
+       * @param cum_histograms Cumulative score distributions
+       * @param target_counts Number of target hits
+       */
+      void target_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
+                        Math::Histogram<> & target_counts)
+      {
+        // Required cumulative histograms for target hits
+        Math::CumulativeHistogram<>  intralinks_histogram = *cum_histograms[TOPPXFDR::xlclass_intralinks];
+        Math::CumulativeHistogram<>  interlinks_histogram = *cum_histograms[TOPPXFDR::xlclass_interlinks];
+        Math::CumulativeHistogram<>  monolinks_histogram = *cum_histograms[TOPPXFDR::xlclass_monolinks];
+
+        for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
+             current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
+             current_score += TOPPXFDR::fpnum_score_step)
+        {
+            UInt n_intralinks = intralinks_histogram.binValue(current_score);
+            UInt n_interlinks = interlinks_histogram.binValue(current_score);
+            UInt n_monolinks = monolinks_histogram.binValue(current_score);
+            target_counts.inc(current_score, n_intralinks + n_interlinks + n_monolinks);
+        }
+     }
+
 
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
@@ -549,6 +574,17 @@ protected:
       {
         this->fp_xprophet(cum_histograms, fp_counts);
       }
+
+      // Calculate the number cumulative distribution of target hits
+      Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
+      if (arg_target_count_method == "xprophet")
+      {
+        this->target_xprophet(cum_histograms, target_counts);
+      }
+
+
+
+
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
