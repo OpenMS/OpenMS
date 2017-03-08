@@ -209,18 +209,17 @@ static void decodeInt(
 
 /////////////////////////////////////////////////////////////
 
-double optimalLinearFixedPointPPM(
+double optimalLinearFixedPointMass(
 		const double *data, 
 		size_t dataSize,
-        double ppm
+        double mass_acc
 ) {
 	if (dataSize < 3) return 0; // we just encode the first two points as floats
 
-    // We calculate the maximal fixedPoint we need to achieve a specific ppm
+    // We calculate the maximal fixedPoint we need to achieve a specific mass
     // accuracy. Note that the maximal error we will make by encoding as int is
-    // 0.5 due to rounding errors. We will make the largest rounding error for
-    // the third datapoint, therefore we only need to look at it.
-    double maxFP = 0.5 / (data[2] * ppm * 1e-6);
+    // 0.5 due to rounding errors.
+    double maxFP = 0.5 / mass_acc;
 
     // There is a maximal value for the FP given by the int length (32bit)
     // which means we cannot choose a value higher than that. In case we cannot
@@ -230,7 +229,6 @@ double optimalLinearFixedPointPPM(
 
     return maxFP;
 }
-
 
 double optimalLinearFixedPoint(
 		const double *data,

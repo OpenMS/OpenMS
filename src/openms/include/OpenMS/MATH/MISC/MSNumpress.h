@@ -81,7 +81,7 @@ namespace MSNumpress {
 		size_t dataSize);
 	
 	/**
-	 * Compute the optimal linear fixed point with a desired ppm accuracy.
+	 * Compute the optimal linear fixed point with a desired m/z accuracy.
      *
      * @note If the desired accuracy cannot be reached without overflowing 64
      * bit integers, then a negative value is returned. You need to check for
@@ -90,14 +90,14 @@ namespace MSNumpress {
      *
 	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
 	 * @dataSize	number of doubles from *data to encode
-	 * @ppm			desired accuracy in ppm
+	 * @mass_acc	desired m/z accuracy in Th
      *
 	 * @return		the linear fixed point that satisfies the accuracy requirement (or -1 in case of failure).
 	 */
-    double optimalLinearFixedPointPPM(
+    double optimalLinearFixedPointMass(
             const double *data,
             size_t dataSize,
-            double ppm);
+            double mass_acc);
 
 	/**
 	 * Encodes the doubles in data by first using a 
