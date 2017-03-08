@@ -243,18 +243,23 @@ public:
 
     // Parameters which are not directly related to xProphet
     static const String param_fp_count_method; // How the false positives in the dataset are counted
+    static const String param_target_count_method; // How the target data is counted
 
     // Number of ranks used
     static const Int n_rank;
 
     // Constants related to particular xl classes
+    // decoy classes
     static const String xlclass_intradecoys; // intradecoys
     static const String xlclass_fulldecoysintralinks; // fulldecoysintralinks
     static const String xlclass_interdecoys; // interdecoys
     static const String xlclass_fulldecoysinterlinks; // fulldecoysinterlinks
     static const String xlclass_monodecoys; // monodecoys
+    static const String xlclass_intralinks; // intralinks
+    static const String xlclass_interlinks; // interlinks
+    static const String xlclass_monolinks;  // monolinks
 
-    // Parameters to actually calculate the number of FPs
+    // Parameters to actually calculate the number of FPs // TODO Needs to more dynamic in the future
     static const double fpnum_score_start;
     static const double fpnum_score_end;
     static const double fpnum_score_step;
@@ -274,7 +279,8 @@ protected:
       * @param fp_counts Number of FPs for each score threshold.
       */
      void fp_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
-                       Math::Histogram<> & fp_counts) {
+                       Math::Histogram<> & fp_counts)
+     {
 
        // Required cumulative histograms for FPs
        Math::CumulativeHistogram<>  intradecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_intradecoys];
@@ -294,6 +300,7 @@ protected:
            fp_counts.inc(current_score, n_interfp + n_intrafp + n_monofp);
        }
     }
+
 
 
     // this function will be used to register the tool parameters
@@ -335,6 +342,10 @@ protected:
       // False positve Counting  method
       registerStringOption_(TOPPXFDR::param_fp_count_method, "<fp_count_method>","xprophet", "Method specifying how false positives are counted within the input data", false, true);
       setValidStrings_(TOPPXFDR::param_fp_count_method, ListUtils::create<String>("xprophet"));
+
+      // Target counting method
+      registerStringOption_(TOPPXFDR::param_target_count_method, "<target_count_method>", "xprophet", "Method specifying how target hits are counted within the input data", false, true);
+      setValidStrings_(TOPPXFDR::param_target_count_method, ListUtils::create<String>("xprophet"));
     }
 
     // the main_ function is called after all parameters are read
@@ -355,7 +366,9 @@ protected:
           return PARSE_ERROR;
       }
 
-      // Determine if all classes are present for the specified FP counting procedure
+      //-------------------------------------------------------------
+      // Determine FP counting method
+      //-------------------------------------------------------------
       String arg_fp_count_method = getStringOption_(TOPPXFDR::param_fp_count_method);
       if (arg_fp_count_method == "xprophet")
       {
@@ -376,26 +389,35 @@ protected:
           LOG_ERROR << "ERROR: Unsupported method of FP counting. Aborting." << endl;
           return ILLEGAL_PARAMETERS;
       }
-
+      //-------------------------------------------------------------
+      // Determine target counting method
+      //-------------------------------------------------------------
+      String arg_target_count_method = getStringOption_(TOPPXFDR::param_target_count_method);
+      if (arg_target_count_method == "xprophet")
+      {
+         StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks");
+         for (StringList::const_iterator required_classes_it = required_classes.begin();
+              required_classes_it != required_classes.end(); ++required_classes_it)
+         {
+           String classname = *required_classes_it;
+           if (classes.find(classname) == classes.end())
+           {
+             LOG_ERROR << "ERROR: xProphet target counting selected, but the following xlink class has not been defined: " << classname << endl;
+             return ILLEGAL_PARAMETERS;
+           }
+         }
+      }
+      else
+      {
+        LOG_ERROR << "ERROR: Unsupported method for target xlink counting. Aborting" << endl;
+        return ILLEGAL_PARAMETERS;
+      }
 
       if (arg_verbose)
       {
         for(std::map<String, vector< vector< StringList > > >::const_iterator it = classes.begin(); it != classes.end(); ++it)
         {
               cout << "Class defined: " <<  it->first << '\n';
-              /*
-              vector< StringList > attr = it->second;
-
-              for (vector< StringList >::const_iterator it2 = attr.begin(); it2 != attr.end(); ++it2)
-              {
-                  StringList values = *it2;
-                  for (StringList::const_iterator it3 = values.begin(); it3 != values.end(); it3++)
-                  {
-                      cout << *it3;
-                  }
-                 cout << endl;
-              }
-              */
         }
         cout << "----------------------------" << endl;
       }
@@ -477,7 +499,7 @@ protected:
 
       size_t  pep_id_index = TOPPXFDR::n_rank - 1; // This is of course trash if more than 1 ranks are used.
 
-      // Parse XQuestResultXMLFile (TODO Also support idXML and MZID)
+      // Parse XQuestResultXMLFile (TODO Also support idXML and mzID)
       XQuestResultXMLFile xquest_result_file;
       xquest_result_file.load(arg_in_xquestxml, metas, spectra, false, 1); // We do not load 'empty' spectra here
       size_t n_spectra = spectra.size();
@@ -548,7 +570,7 @@ protected:
             }
           }
       }
-      typedef  std::vector<size_t> ranks;
+      typedef std::vector<size_t> ranks;
 
       ranks order_score ( boost::counting_iterator<size_t>(0),
                           boost::counting_iterator<size_t>(n_spectra));
@@ -702,9 +724,6 @@ protected:
         this->fp_xprophet(cum_histograms, fp_counts);
       }
 
-      cout << fp_counts << endl;
-
-
 
       // Delete Delta Scores
       for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
@@ -725,7 +744,6 @@ protected:
         delete cum_histograms_it->second;
       }
 
-
       return EXECUTION_OK;
     }
 };
@@ -739,7 +757,8 @@ const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_qtransform = "qtransform";
 const String TOPPXFDR::param_minscore = "minscore";
 const String TOPPXFDR::param_verbose = "verbose";
-const String TOPPXFDR::param_fp_count_method = "fp_count_method"; // How the false positives in the dataset are counted
+const String TOPPXFDR::param_fp_count_method = "fp_count_method";          // How the false positives in the dataset are counted
+const String TOPPXFDR::param_target_count_method = "target_count_method";  // How the target hits in the dataset are counted
 
 const Int    TOPPXFDR::n_rank = 1; //  Number of ranks used
 
@@ -748,6 +767,9 @@ const String TOPPXFDR::xlclass_fulldecoysintralinks = "fulldecoysintralinks";
 const String TOPPXFDR::xlclass_interdecoys = "interdecoys";
 const String TOPPXFDR::xlclass_fulldecoysinterlinks = "fulldecoysinterlinks";
 const String TOPPXFDR::xlclass_monodecoys = "monodecoys";
+const String TOPPXFDR::xlclass_intralinks = "intralinks";
+const String TOPPXFDR::xlclass_interlinks = "interlinks";
+const String TOPPXFDR::xlclass_monolinks  = "monolinks";
 
 // Parameters for actually calculating the number of FPs
 const double TOPPXFDR::fpnum_score_start = 0;
@@ -763,6 +785,3 @@ int main(int argc, const char ** argv)
     return tool.main(argc, argv);
 }
 /// @endcond
-
-
-
