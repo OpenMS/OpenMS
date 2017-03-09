@@ -933,9 +933,6 @@ namespace OpenMS
 
       if (selected)
       {
-        // TODO output for testing, delete afterwards
-        cout << "Selected line: " << " #ID: " << num_id << " | #PH: " << num_ph << " PepID length: " << pep_id.size() << " | PepHits: " << pep_id[0].getHits().size() << "selected: " << selected << endl;
-
         // update "selected" value
         vector<PeptideHit> hits = pep_id[num_id].getHits();
         // update both PeptideHits, since they belong to the same cross-link (XL-MS specific)
