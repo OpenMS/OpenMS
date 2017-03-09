@@ -63,7 +63,7 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int index)
   {
     // call without selecting an identification
-    showSpectrumAs1D(spectrum_index, -1, -1);
+    showSpectrumAs1D(index, -1, -1);
   }
 
   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
@@ -312,7 +312,7 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
   {
-    activate1DSpectrum(spectrum_index, -1, -1);
+    activate1DSpectrum(index, -1, -1);
   }
 
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index)
