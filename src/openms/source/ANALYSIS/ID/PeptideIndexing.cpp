@@ -33,14 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
 
@@ -147,18 +149,19 @@ public:
       }
     }
 
-    void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot,
-                const OpenMS::String& seq_pep, const OpenMS::String& protein,
+    void addHit(OpenMS::Size idx_pep,
+				OpenMS::Size idx_prot,
+                const OpenMS::String& seq_pep,
+				const OpenMS::String& seq_prot,
                 OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence::fromString(protein), position,
-                                 seq_pep.length(), true))
+      if (enzyme_.isValidProduct(AASequence::fromString(seq_prot), position, seq_pep.length(), true))
       {
         PeptideProteinMatchInformation match;
         match.protein_index = idx_prot;
         match.position = position;
-        match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : protein[position - 1];
-        match.AAAfter = (position + seq_pep.length() >= protein.size()) ? PeptideEvidence::C_TERMINAL_AA : protein[position + seq_pep.length()];
+        match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
+        match.AAAfter = (position + seq_pep.length() >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + seq_pep.length()];
         pep_to_prot[idx_pep].insert(match);
         ++filter_passed;
       }
@@ -381,9 +384,9 @@ DefaultParamHandler("PeptideIndexing")
     defaults_.setValidStrings("enzyme:name", enzymes);
 
     defaults_.setValue("enzyme:specificity", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
+                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
 
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
@@ -467,7 +470,7 @@ DefaultParamHandler("PeptideIndexing")
     debug_ = static_cast<Size>(param_.getValue("debug")) > 0;
   }
 
- PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
+  PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -480,7 +483,6 @@ DefaultParamHandler("PeptideIndexing")
     {
       log_.open(log_file_.c_str());
     }
-
 
     //-------------------------------------------------------------
     // calculations
@@ -606,11 +608,12 @@ DefaultParamHandler("PeptideIndexing")
         StopWatch sw;
         sw.start();
         SignedSize protDB_length = (SignedSize) length(prot_DB);
+		this->startProgress(0, protDB_length, "Aho-Corasick");
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
         {
-          seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasick> pattern(pep_DB);
+          seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmbiguous> pattern(pep_DB);
           seqan::FoundProteinFunctor func_threads(enzyme);
           writeDebug_("Finding peptide/protein matches ...", 1);
 
@@ -618,6 +621,7 @@ DefaultParamHandler("PeptideIndexing")
           // search all peptides in each protein
           for (SignedSize i = 0; i < protDB_length; ++i)
           {
+			IF_MASTERTHREAD this->setProgress(i);
             seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
             while (find(finder, pattern))
             {
@@ -645,10 +649,11 @@ DefaultParamHandler("PeptideIndexing")
               func.pep_to_prot[it->first].insert(func_threads.pep_to_prot[it->first].begin(), func_threads.pep_to_prot[it->first].end());
             }
 
-          }
-        } // end parallel
+          } // OMP end critical
+        } // OMP end parallel
 
         sw.stop();
+		this->endProgress();
 
         writeLog_(String("\nAho-Corasick done:\n  found ") + func.filter_passed + " hits for " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).");
       } // end of Aho Corasick

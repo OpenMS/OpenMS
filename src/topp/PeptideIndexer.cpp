@@ -35,12 +35,10 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -69,7 +67,7 @@ using namespace OpenMS;
     </table>
 </CENTER>
 
-  A detailed description of the parameters and functionality is given in PeptideIndexing.
+  A detailed description of the parameters and functionality is given in @ref PeptideIndexing .
 
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
@@ -127,7 +125,7 @@ protected:
     Param param_pi = indexer.getParameters();
     param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
-
+	indexer.setLogType(this->log_type_);
     String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
     {

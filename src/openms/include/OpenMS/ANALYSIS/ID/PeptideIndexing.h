@@ -102,7 +102,7 @@ namespace OpenMS
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
-    public DefaultParamHandler
+    public DefaultParamHandler, public ProgressLogger
   {
 public:
 
