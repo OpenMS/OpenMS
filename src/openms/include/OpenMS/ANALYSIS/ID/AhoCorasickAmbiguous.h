@@ -38,6 +38,12 @@
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 
+#ifdef NDEBUG
+#define DEBUG_OUT if (false)
+#else
+#define DEBUG_OUT if (true)
+#endif
+
 namespace seqan
 {
 
@@ -83,26 +89,18 @@ namespace seqan
     typedef typename Value<TKeyword>::Type TAlphabet;
     typedef Graph<Automaton<TAlphabet> > TGraph;
     typedef typename VertexDescriptor<TGraph>::Type TVertexDescriptor;
-
-    TVertexDescriptor nilVal = getNil<TVertexDescriptor>();
-
     TVertexDescriptor current_state;
     __uint8 max_DepthsDecrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
 
-
     Spawn() :
-      current_state(nilVal),
+      current_state(getNil<TVertexDescriptor>()),
       max_position(0),
-    {
-    }
+    {}
 
     Spawn(TVertexDescriptor init_state, __uint8 current_depth) :
       current_state(init_state),
       max_DepthsDecrease(current_depth)
-    {
-    }
-
-
+    {}
   };
 
   template <typename TNeedle>
@@ -111,7 +109,6 @@ namespace seqan
   private:
     Pattern(Pattern const& other);
     Pattern const& operator=(Pattern const & other);
-
     //____________________________________________________________________________
   public:
     typedef typename Size<TNeedle>::Type TSize;
@@ -120,31 +117,29 @@ namespace seqan
     typedef Graph<Automaton<TAlphabet> > TGraph;
     typedef typename VertexDescriptor<TGraph>::Type TVertexDescriptor;
 
-    Holder<TNeedle> data_host; // holds needles
-    String<String<TSize> > data_terminalStateMap; // regular trie data
+    // "constant" data, after construction of trie
+	Holder<TNeedle> data_host; // holds needles
+    String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
     TGraph data_graph;                            // regular trie data
     String<TVertexDescriptor> data_supplyMap;     // trie suffix links
-    String<__uint8> data_nodeDepths;               // depths of each graph node
+    String<__uint8> data_nodeDepths;              // depths of each graph node
 
-                                                  // To restore the automaton after a hit
+    // To restore the automaton after a hit
     String<TSize> data_endPositions;	// All remaining keyword indices
     TSize data_keywordIndex;			// Current keyword that produced a hit
     TSize data_needleLength;			// Last length of needle to reposition finder
     TVertexDescriptor data_lastState;   // Last state of master instance in the trie
-
     typedef typename std::list<Spawn<TNeedle> > Spawns;
     Spawns spawns; // AC instances currently walking the tree
 
-                                        //____________________________________________________________________________
-
-    Pattern() {
-    }
+    //____________________________________________________________________________
+    Pattern() {}
 
     template <typename TNeedle2>
     Pattern(TNeedle2 const & ndl)
     {
       SEQAN_CHECKPOINT
-        setHost(*this, ndl);
+      setHost(*this, ndl);
     }
 
     ~Pattern() {
@@ -320,7 +315,9 @@ namespace seqan
     SEQAN_CHECKPOINT
     clear(me.data_endPositions);
     me.data_keywordIndex = 0;
+	me.data_needleLength = 0;
     me.data_lastState = getRoot(me.data_graph);
+	me.spawns.clear();
   }
   //____________________________________________________________________________
   template <typename TNeedle>
@@ -342,7 +339,28 @@ namespace seqan
     return;
   }
 
+  template<typename T>
+  inline bool isAmbiguous(T c)
+  {
+    static const ValueSize<T>::Type vB = ordValue(T('B')); // D,N
+    static const ValueSize<T>::Type vZ = ordValue(T('Z')); // E,Q
+    static const ValueSize<T>::Type vX = ordValue(T('X')); // all
+    static const uint32_t anyAA = (1 << vB) | (1 << vZ) | (1 << vX);
+    return ((1 << ordValue(c)) & anyAA);
+  }
 
+  template<typename T>
+  inline AminoAcid getSpawnRange(T& idxFirst, T& idxLast, const AminoAcid c)
+  {
+    // jump table:                 // AA for main thread     // start of spawns        // end of spawns (including)
+    static const T jump[3][3] = { { ordValue(AminoAcid('N')), ordValue(AminoAcid('D')), ordValue(AminoAcid('D')) },  // B = D,N
+                                  { ordValue(AminoAcid('Q')), ordValue(AminoAcid('E')), ordValue(AminoAcid('E')) },  // Z = E,Q
+                                  { 0,                        1,                        ordValue(AminoAcid('V')) } };// X = A..V
+    SEQAN_ASSERT(ordValue(AminoAcid('B')) == 20); // make sure the table is ordered as we expect
+    idxFirst = jump[ordValue(c) - 20][1];
+    idxLast = jump[ordValue(c) - 20][2];
+    return AminoAcid(jump[ordValue(c) - 20][0]); // AA for main thread
+  }
 
   // returns false if it reached the 'root', true otherwise
   template <typename TNeedle>
@@ -350,57 +368,48 @@ namespace seqan
                                  typename Pattern<TNeedle, AhoCorasickAmbiguous>::TVertexDescriptor& current,
                                  AminoAcid c)
   {
-    typedef typename Pattern<TNeedle, AhoCorasickAmbiguous>::TVertexDescriptor TVertexDescriptor;
-
-    static const ValueSize<AminoAcid>::Type vB = ordValue(AminoAcid('B')); // D,N
-    static const ValueSize<AminoAcid>::Type vZ = ordValue(AminoAcid('Z')); // E,Q
-    static const ValueSize<AminoAcid>::Type vX = ordValue(AminoAcid('X')); // all
-    static const uint32_t anyAA = (1 << vB) | (1 << vZ) | (1 << vX);
-    if ((1 << ordValue(c)) & anyAA)
-    {
-      std::cout << "found AAA: " << c << "\n";
-      // spawn children
-
-      // jump table:                 // AA for main thread     // start of spawns        // end of spawns (including)
-      static __uint8 jump[3][3] = { {ordValue(AminoAcid('N')), ordValue(AminoAcid('D')), ordValue(AminoAcid('D'))},  // B = D,N
-                                    {ordValue(AminoAcid('Q')), ordValue(AminoAcid('E')), ordValue(AminoAcid('E'))},  // Z = E,Q
-                                    {0,                        1,                        ordValue(AminoAcid('V'))} };// X = A..V
-      SEQAN_ASSERT(ordValue(AminoAcid('B')) == 20); // make sure the table is ordered as we expect...
-      
-      TVertexDescriptor spawn_state = me.data_lastState; // a potential spawn
-      if (c == AminoAcid('B')) // D or N
-      { // push_front is important, to avoid running '_consumeChar()' on it again
-        if (_consumeChar(me, spawn_state, AminoAcid('D'))) // TODO: optimize, since we check for spawning in there (will always fail, since this AA is not amb.)
-        {
-          std::cout << "Spawn 'D' created\n";
-          __uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
-          me.spawns.push_front(Spawn<TNeedle>(spawn_state, node_depth));
-        }
-        c = AminoAcid('N');
-      }
-      else if (c == AminoAcid('Z')) // E or Q
+    if (isAmbiguous(c))
+    { // spawn children
+	  DEBUG_OUT std::cout << "found AAA: " << c << "\n";
+      typedef typename Size<AminoAcid>::Type TSize;
+      TSize idxFirst, idxLast;
+      c = getSpawnRange(idxFirst, idxLast, c);
+      for (TSize i = idxFirst; i <= idxLast; ++i)
       {
-        if (_consumeChar(me, spawn_state, AminoAcid('E')))
+        typedef typename Pattern<TNeedle, AhoCorasickAmbiguous>::TVertexDescriptor TVertexDescriptor;
+        TVertexDescriptor spawn_state = me.data_lastState; // a potential spawn
+        if (_consumeChar(me, spawn_state, AminoAcid(i)))
         {
-          std::cout << "Spawn 'E' created\n";
+		  DEBUG_OUT std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
           __uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
           me.spawns.push_front(Spawn<TNeedle>(spawn_state, node_depth));
         }
-        c = AminoAcid('Q');
       }
-      else
-      { // X
-        for (int i = 1; i <= ordValue(AminoAcid('V')); ++i)
-        { // 2nd to last AA
-          TVertexDescriptor spawn_state = me.data_lastState; // a potential spawn
-          if (_consumeChar(me, spawn_state, AminoAcid(i)))
-          {
-            std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
-            __uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
-            me.spawns.push_front(Spawn<TNeedle>(spawn_state, node_depth));
-          }
+    }
+    return c;
+  }
+  // returns false if it reached the 'root', true otherwise
+  template <typename TNeedle>
+  inline AminoAcid _createSpawns(Pattern<TNeedle, AhoCorasickAmbiguous>& me,
+                                 const Spawn<TNeedle>& current,
+                                 AminoAcid c)
+  {
+    if (isAmbiguous(c))
+    { // spawn children
+	  DEBUG_OUT std::cout << "found AAA: " << c << "\n";
+      typedef typename Size<AminoAcid>::Type TSize;
+      TSize idxFirst, idxLast;
+      c = getSpawnRange(idxFirst, idxLast, c);
+      for (TSize i = idxFirst; i <= idxLast; ++i)
+      {
+        Spawn<TNeedle> spawn_state = current; // a potential spawn
+        if (_consumeChar(me, spawn_state, AminoAcid(i)))
+        {
+		  DEBUG_OUT std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
+          //__uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
+          // Spawns of Spawns inherit the depths from their parents, since the master will also see this same AAA and spawn himself
+          me.spawns.push_front(spawn_state);
         }
-        c = AminoAcid('A');
       }
     }
     return c;
@@ -415,7 +424,7 @@ namespace seqan
   {
     typedef typename Pattern<TNeedle, AhoCorasickAmbiguous>::TVertexDescriptor TVertexDescriptor;
 
-    c = _createSpawns(me, spawn.current_state, c); // spawn children and leave fixed AA for master spawn
+    c = _createSpawns(me, spawn, c); // spawn children and leave fixed AA for master spawn
 
     TVertexDescriptor successor, suffix_node;
     static const TVertexDescriptor nilVal = getNil<TVertexDescriptor>();
@@ -423,14 +432,14 @@ namespace seqan
     while (((successor = getSuccessor(me.data_graph, spawn.current_state, c)) == nilVal) &&
            ((suffix_node = getProperty(me.data_supplyMap, spawn.current_state)) != nilVal))
     { // .. follow suffix links upwards (if we do not fall below depth limit)
-      if (suffix_node == getRoot(me.data_graph))
+      if (false && suffix_node == getRoot(me.data_graph)) // not strictly required, since max_depths would work as well
       {
-        std::cout << "spawn died passing root while going up\n";
+		DEBUG_OUT std::cout << "spawn died while trying to match '" << c << "' passing root while going up\n";
         return false; // this spawn just threw away its reason of existance (it has no history). Die!
       }
       __uint8 depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
       if (spawn.max_DepthsDecrease <= depthDiff) {
-        std::cout << "spawn died while trying to match '" << c << "' and going up (AAA out of scope)\n";
+		DEBUG_OUT std::cout << "spawn died while trying to match '" << c << "' and going up (AAA out of scope)\n";
         return false; // this spawn just threw away its reason of existance (i.e. the AAA). Die!
       }
       spawn.max_DepthsDecrease -= depthDiff;
@@ -439,7 +448,7 @@ namespace seqan
     // found a successor:
     if (successor != nilVal) {
       spawn.current_state = successor;
-      std::cout << "spawn matched '" << c << "'\n";
+	  DEBUG_OUT std::cout << "spawn matched '" << c << "'\n";
 
       // get hits
       typedef typename Size<TNeedle>::Type TSize;
@@ -448,14 +457,14 @@ namespace seqan
       {
         int path_length = getProperty(me.data_nodeDepths, spawn.current_state); // == length of current path to spawn
         int unambiguous_suffix_length = path_length - spawn.max_DepthsDecrease; // == length of suffix peptide which does not contain AAA
-        std::cout << "  spawn adding hits which are more than '" << unambiguous_suffix_length << "' chars long (thus contain the AAA).\n";
+		DEBUG_OUT std::cout << "  spawn adding hits which are more than '" << unambiguous_suffix_length << "' chars long (thus contain the AAA).\n";
 
         // but only report those which contain the AAA
         for (int i = 0; i < length(needle_hits); ++i)
         {
           int hit_length = length(value(host(me), needle_hits[i]));
           if (hit_length <= unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
-          std::cout << "  spawn hit: " << i << "\n"; // value(value(host(me), needle_hits[i]))
+		  DEBUG_OUT std::cout << "  spawn hit: #" << i << "\n"; // value(value(host(me), needle_hits[i]))
           append(me.data_endPositions, needle_hits[i]); // append hits which still contain the AAA
         }
       }
@@ -489,18 +498,18 @@ namespace seqan
     // found a successor:
     if (successor != nilVal) {
       current = successor;
-      std::cout << "main thread/spawntest consumed '" << c << "'\n";
+	  DEBUG_OUT std::cout << "main thread/spawntest consumed '" << c << "'\n";
       typedef typename Size<TNeedle>::Type TSize;
       String<TSize> needle_hits = getProperty(me.data_terminalStateMap, current);
       if (length(needle_hits))
       {
-        std::cout << "  hit count: '" << length(needle_hits) << "'\n";
+		DEBUG_OUT std::cout << "  hit count: '" << length(needle_hits) << "'\n";
         append(me.data_endPositions, getProperty(me.data_terminalStateMap, current)); // indices into TNeedle!
       }
       return true;
     }
     else { // no fitting successor and no way upwards --> we are at root
-      std::cout << "main thread/spawntest hit root\n";
+	  DEBUG_OUT std::cout << "main thread/spawntest hit root while consuming '" << c << "'\n";
       current = getRoot(me.data_graph);
       return false;
     }
