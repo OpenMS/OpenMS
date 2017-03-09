@@ -160,42 +160,38 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids,
-                                                          pep_ids);
-    if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
-        (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
-    {
-      if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
-      {
-        return INPUT_FILE_EMPTY;       
-      }
-      else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
-      {
-        return UNEXPECTED_RESULT;
-      }
-      else
-      {
-        return UNKNOWN_ERROR;
-      }
-    }
-    
-    //-------------------------------------------------------------
-    // calculate protein coverage
-    //-------------------------------------------------------------
-    
-    if (param.getValue("write_protein_sequence").toBool())
-    {
-      for (Size i = 0; i < prot_ids.size(); ++i)
-      {
-        prot_ids[i].computeCoverage(pep_ids);
-      }
-    }
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
+	
+	//-------------------------------------------------------------
+	// calculate protein coverage
+	//-------------------------------------------------------------
 
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-    IdXMLFile().store(out, prot_ids, pep_ids);
+	if (param.getValue("write_protein_sequence").toBool())
+	{
+		for (Size i = 0; i < prot_ids.size(); ++i)
+		{
+			prot_ids[i].computeCoverage(pep_ids);
+		}
+	}
+	//-------------------------------------------------------------
+	// writing output
+	//-------------------------------------------------------------
+	IdXMLFile().store(out, prot_ids, pep_ids);
 
+	//std::cin.get(); // press any key
+    if (   (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+		|| (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    {
+	  return INPUT_FILE_EMPTY;       
+    }
+    else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+    {
+      return UNEXPECTED_RESULT;
+    }
+    else if (indexer_exit != PeptideIndexing::EXECUTION_OK)
+    {
+      return UNKNOWN_ERROR;
+    }
     return EXECUTION_OK;
   }
 

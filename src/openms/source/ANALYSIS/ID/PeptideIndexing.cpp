@@ -598,7 +598,7 @@ DefaultParamHandler("PeptideIndexing")
       if (SA_only && (mismatches_max_ == 0) && (aaa_max_ == 0)) // this combination is not allowed, and we want the user to make a conscious decision about it
       {
         LOG_ERROR << "Fatal error: Cannot run full tolerant search ('full_tolerant_search') when no ambiguous AA's or mismatched AA's are allowed.\n"
-          << "Please adapt your settings." << endl;
+                  << "Please adapt your settings." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
