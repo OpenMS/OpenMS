@@ -39,9 +39,9 @@
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 
 #ifdef NDEBUG
-#define DEBUG_OUT if (false)
+#define DEBUG_ONLY if (false)
 #else
-#define DEBUG_OUT if (true)
+#define DEBUG_ONLY if (true)
 #endif
 
 namespace seqan
@@ -360,7 +360,7 @@ namespace seqan
   {
     if (isAmbiguous(c))
     { // spawn children
-	  DEBUG_OUT std::cout << "found AAA: " << c << "\n";
+	  DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
       typedef typename Size<AminoAcid>::Type TSize;
       TSize idxFirst, idxLast;
       c = _getSpawnRange(idxFirst, idxLast, c);
@@ -370,7 +370,7 @@ namespace seqan
         TVertexDescriptor spawn_state = me.data_lastState; // a potential spawn
         if (_consumeChar(me, spawn_state, AminoAcid(i)))
         {
-		  DEBUG_OUT std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
+		  DEBUG_ONLY std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
           __uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
           me.spawns.push_front(Spawn<TNeedle>(spawn_state, node_depth));
         }
@@ -386,19 +386,19 @@ namespace seqan
   {
     if (isAmbiguous(c))
     { // spawn children
-	  DEBUG_OUT std::cout << "found AAA: " << c << "\n";
+	  DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
       typedef typename Size<AminoAcid>::Type TSize;
       TSize idxFirst, idxLast;
       c = _getSpawnRange(idxFirst, idxLast, c);
       for (TSize i = idxFirst; i <= idxLast; ++i)
       {
-        Spawn<TNeedle> spawn_state = current; // a potential spawn
-        if (_consumeChar(me, spawn_state, AminoAcid(i)))
+        Spawn<TNeedle> spawn = current; // a potential spawn
+        if (_consumeChar(me, spawn, AminoAcid(i)))
         {
-		  DEBUG_OUT std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
+		  DEBUG_ONLY std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
           //__uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
           // Spawns of Spawns inherit the depths from their parents, since the master will also see this same AAA and spawn himself
-          me.spawns.push_front(spawn_state);
+          me.spawns.push_front(spawn);
         }
       }
     }
@@ -424,12 +424,12 @@ namespace seqan
     { // .. follow suffix links upwards (if we do not fall below depth limit)
       if (false && suffix_node == getRoot(me.data_graph)) // not strictly required, since max_depths would work as well
       {
-		DEBUG_OUT std::cout << "spawn died while trying to match '" << c << "' passing root while going up\n";
+		DEBUG_ONLY std::cout << "spawn died while trying to match '" << c << "' passing root while going up\n";
         return false; // this spawn just threw away its reason of existance (it has no history). Die!
       }
       __uint8 depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
       if (spawn.max_DepthsDecrease <= depthDiff) {
-		DEBUG_OUT std::cout << "spawn died while trying to match '" << c << "' and going up (AAA out of scope)\n";
+		DEBUG_ONLY std::cout << "spawn died while trying to match '" << c << "' and going up (AAA out of scope)\n";
         return false; // this spawn just threw away its reason of existance (i.e. the AAA). Die!
       }
       spawn.max_DepthsDecrease -= depthDiff;
@@ -438,7 +438,7 @@ namespace seqan
     // found a successor:
     if (successor != nilVal) {
       spawn.current_state = successor;
-	  DEBUG_OUT std::cout << "spawn matched '" << c << "'\n";
+	  DEBUG_ONLY std::cout << "spawn matched '" << c << "'\n";
 
       // get hits
       typedef typename Size<TNeedle>::Type TSize;
@@ -447,14 +447,14 @@ namespace seqan
       {
         int path_length = getProperty(me.data_nodeDepths, spawn.current_state); // == length of current path to spawn
         int unambiguous_suffix_length = path_length - spawn.max_DepthsDecrease; // == length of suffix peptide which does not contain AAA
-		DEBUG_OUT std::cout << "  spawn adding hits which are more than '" << unambiguous_suffix_length << "' chars long (thus contain the AAA).\n";
+		DEBUG_ONLY std::cout << "  spawn adding hits which are more than '" << unambiguous_suffix_length << "' chars long (thus contain the AAA).\n";
 
         // but only report those which contain the AAA
         for (int i = 0; i < length(needle_hits); ++i)
         {
           int hit_length = length(value(host(me), needle_hits[i]));
           if (hit_length <= unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
-		  DEBUG_OUT std::cout << "  spawn hit: #" << i << "\n"; // value(value(host(me), needle_hits[i]))
+		  DEBUG_ONLY std::cout << "  spawn hit: #" << i << "\n"; // value(value(host(me), needle_hits[i]))
           append(me.data_endPositions, needle_hits[i]); // append hits which still contain the AAA
         }
       }
@@ -488,18 +488,18 @@ namespace seqan
     // found a successor:
     if (successor != nilVal) {
       current = successor;
-	  DEBUG_OUT std::cout << "main thread/spawntest consumed '" << c << "'\n";
+	  DEBUG_ONLY std::cout << "main thread/spawntest consumed '" << c << "'\n";
       typedef typename Size<TNeedle>::Type TSize;
       String<TSize> needle_hits = getProperty(me.data_terminalStateMap, current);
       if (length(needle_hits))
       {
-		DEBUG_OUT std::cout << "  hit count: '" << length(needle_hits) << "'\n";
+		DEBUG_ONLY std::cout << "  hit count: '" << length(needle_hits) << "'\n";
         append(me.data_endPositions, getProperty(me.data_terminalStateMap, current)); // indices into TNeedle!
       }
       return true;
     }
     else { // no fitting successor and no way upwards --> we are at root
-	  DEBUG_OUT std::cout << "main thread/spawntest hit root while consuming '" << c << "'\n";
+	  DEBUG_ONLY std::cout << "main thread/spawntest remains at root after consuming '" << c << "'\n";
       current = getRoot(me.data_graph);
       return false;
     }
@@ -560,7 +560,7 @@ namespace seqan
     }
 
     while (!atEnd(finder)) {
-      const AminoAcid c  = *finder;
+      const AminoAcid c = *finder;
       // spawns; do them first, since we might add new spawns in main thread which are however settled at that point
       if (!me.spawns.empty()) {
         typedef Pattern<TNeedle, AhoCorasickAmbiguous>::Spawns::iterator SpawnCIt;
