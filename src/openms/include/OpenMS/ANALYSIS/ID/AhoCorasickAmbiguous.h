@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Sandro Andreotti $
+// $Authors: Chris Bielow, Sandro Andreotti, Tobias Rausch $
 // --------------------------------------------------------------------------
 
 
@@ -52,29 +52,18 @@ namespace seqan
   //////////////////////////////////////////////////////////////////////////////
 
   /**
-  .Spec.AhoCorasickAmbiguous:
-  ..summary: Multiple exact string matching using Aho-Corasick.
-  ..general:Class.Pattern
-  ..cat:Searching
-  ..signature:Pattern<TNeedle, AhoCorasickAmbiguous>
-  ..param.TNeedle:The needle type, a string of keywords.
-  ...type:Class.String
-  ..remarks.text:The types of the keywords in the needle container and the haystack have to match.
-  ..remarks.text:Matching positions do not come in order because we report beginning positions of matches.
-  ..remarks.text:Likewise, if multiple keywords match at a given position no pre-specified order is guaranteed.
-  ..example.text:The following example program searches for three needles ($queries$) in two haystack sequences ($db$) using the Aho-Corasick algorithm.
-  ..example.file:demos/find/finder_aho_corasick.cpp
-  ..example.remark:Note that you have to provide a String of Strings for the queries at the moment. This will be changed to a StringSet in the future.
-  ..example.text:When executed, this program will create the following output.
-  ..example.output:DB      POS     ENDPOS  TEXT
-  0       0       4       MARD
-  0       3       7       DPLY
-  1       1       6       VGGGG
-  1       6       9       AAA
-  ..include:seqan/find.h
-  */
+	@brief Extended Aho-Corasick algorithm capable of matching ambiguous amino acid in the pattern (i.e. proteins).
 
-  ///.Class.Pattern.param.TSpec.type:Spec.AhoCorasickAmbiguous
+	...
+	Features:
+	  + blazingly fast
+	  + low memory usage
+	  + number of allowed ambAA's can be capped by user (default 3).
+
+
+	This implementation is based on the original AC in SeqAn.
+
+  */
 
   struct AhoCorasickAmbiguous_;
   typedef Tag<AhoCorasickAmbiguous_> AhoCorasickAmbiguous;
@@ -171,8 +160,7 @@ namespace seqan
   //////////////////////////////////////////////////////////////////////////////
 
   template <typename TNeedle>
-  inline void
-    _createAcTrie(Pattern<TNeedle, AhoCorasickAmbiguous> & me)
+  inline void _createAcTrie(Pattern<TNeedle, AhoCorasickAmbiguous> & me)
   {
 
     //OpenMS::StopWatch sw;
@@ -326,7 +314,6 @@ namespace seqan
     return me.data_keywordIndex;
   }
 
-
   template <typename TFinder, typename TNeedle>
   inline void _reportHit(TFinder & finder, Pattern<TNeedle, AhoCorasickAmbiguous> & me) {
     size_t idx_endPosVec = length(me.data_endPositions) - 1;
@@ -349,8 +336,11 @@ namespace seqan
     return ((1 << ordValue(c)) & anyAA);
   }
 
+  /**
+   @brief given an ambAA @p c, return a range of AA's which need to be spawned and an extra AA which is meant for the master thread.
+  */
   template<typename T>
-  inline AminoAcid getSpawnRange(T& idxFirst, T& idxLast, const AminoAcid c)
+  inline AminoAcid _getSpawnRange(T& idxFirst, T& idxLast, const AminoAcid c)
   {
     // jump table:                 // AA for main thread     // start of spawns        // end of spawns (including)
     static const T jump[3][3] = { { ordValue(AminoAcid('N')), ordValue(AminoAcid('D')), ordValue(AminoAcid('D')) },  // B = D,N
@@ -373,7 +363,7 @@ namespace seqan
 	  DEBUG_OUT std::cout << "found AAA: " << c << "\n";
       typedef typename Size<AminoAcid>::Type TSize;
       TSize idxFirst, idxLast;
-      c = getSpawnRange(idxFirst, idxLast, c);
+      c = _getSpawnRange(idxFirst, idxLast, c);
       for (TSize i = idxFirst; i <= idxLast; ++i)
       {
         typedef typename Pattern<TNeedle, AhoCorasickAmbiguous>::TVertexDescriptor TVertexDescriptor;
@@ -399,7 +389,7 @@ namespace seqan
 	  DEBUG_OUT std::cout << "found AAA: " << c << "\n";
       typedef typename Size<AminoAcid>::Type TSize;
       TSize idxFirst, idxLast;
-      c = getSpawnRange(idxFirst, idxLast, c);
+      c = _getSpawnRange(idxFirst, idxLast, c);
       for (TSize i = idxFirst; i <= idxLast; ++i)
       {
         Spawn<TNeedle> spawn_state = current; // a potential spawn
