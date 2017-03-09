@@ -39,11 +39,13 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <boost/iterator/counting_iterator.hpp>
-#include <boost/function.hpp>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
 #include <OpenMS/FORMAT/CrossLinkClassesFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+
+#include <boost/iterator/counting_iterator.hpp>
+#include <boost/function.hpp>
 
 #include <string>
 #include <math.h>
@@ -128,6 +130,7 @@ public:
 
     static const String param_in_xlclasses;  // Parameter for specifying the cross-link classes
     static const String param_in_xquestxml;  // Parameter for the original xQuest XML file
+    static const String param_out_csvresults; // Reports peptide identifications with annotated FDR in the CSV file format
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  5 # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -257,6 +260,9 @@ protected:
       // File input (XQuest result XML)
       registerInputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
       setValidFormats_(TOPPXFDR::param_in_xquestxml, ListUtils::create<String>("xml"));
+
+      registerOutputFile_(TOPPXFDR::param_out_csvresults, "<csv_file>", "", "Peptide Identification annotated with the FDR values", false, false);
+      setValidFormats_(TOPPXFDR::param_out_csvresults, ListUtils::create<String>("csv"));
 
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -5, "Filter for minimum precursor mass error (ppm)", false);
@@ -562,11 +568,12 @@ protected:
 
 
 
-      Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
-      this->fp_xprophet(cum_histograms, fp_counts);
+      // This is currently not needed for the FDR calculation
+      //Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
+      //this->fp_xprophet(cum_histograms, fp_counts);
 
-      Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
-      this->target_xprophet(cum_histograms, target_counts);
+      //Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
+      //this->target_xprophet(cum_histograms, target_counts);
 
 
       bool adjusted;
@@ -580,7 +587,7 @@ protected:
       }
       else
       {
-          LOG_ERROR << "ERROR: Unsupported FDR calculation method. Aborting.";
+          LOG_ERROR << "ERROR: Unsupported FDR calculation method. Aborting." << endl;
           return ILLEGAL_PARAMETERS;
       }
 
@@ -589,31 +596,40 @@ protected:
       vector< double > fdr_intralinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, adjusted);
 
-
-      for (vector< double>::const_iterator it = fdr_interlinks.begin(); it != fdr_interlinks.end(); ++it)
+      /*
+      for (vector< double>::const_iterator it = fdr_intralinks.begin(); it != fdr_intralinks.end(); ++it)
       {
          cout << *it << endl;
       }
-
+      */
 
       // Delete Delta Scores
-      for(std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
+      for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
       {
         delete *it;
       }
 
       // Delete cumulative_histograms
-      for(std::map< String, Math::CumulativeHistogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
+      for (std::map< String, Math::CumulativeHistogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
           cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
       {
         delete cum_histograms_it->second;
       }
 
+
+      // Write the CSV output file if requested
+      String arg_out_csvresults = getStringOption_(TOPPXFDR::param_out_csvresults);
+      if ( ! arg_out_csvresults.empty())
+      {
+          CsvFile csv_file;
+
+      }
       return EXECUTION_OK;
     }
 };
 const String TOPPXFDR::param_in_xlclasses = "in_xlclasses";
 const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";
+const String TOPPXFDR::param_out_csvresults = "out_csvresults";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
@@ -635,11 +651,11 @@ const String TOPPXFDR::xlclass_intralinks = "intralinks";
 const String TOPPXFDR::xlclass_interlinks = "interlinks";
 const String TOPPXFDR::xlclass_monolinks  = "monolinks";
 
+
 // Parameters for actually calculating the number of FPs
 const double TOPPXFDR::fpnum_score_start = 0;
 const double TOPPXFDR::fpnum_score_end = 100;
 const double TOPPXFDR::fpnum_score_step = 0.1;
-
 
 
 // the actual main function needed to create an executable
