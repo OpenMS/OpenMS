@@ -615,7 +615,7 @@ DefaultParamHandler("PeptideIndexing")
 #pragma omp parallel
 #endif
         {
-          seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmbiguous> pattern(pep_DB);
+          seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmb> pattern(pep_DB);
           seqan::FoundProteinFunctor func_threads(enzyme);
           writeDebug_("Finding peptide/protein matches ...", 1);
 
