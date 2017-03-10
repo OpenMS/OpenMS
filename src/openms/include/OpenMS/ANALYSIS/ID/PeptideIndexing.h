@@ -136,8 +136,8 @@ protected:
     /// Output stream for log/debug info
     String log_file_;
     mutable std::ofstream log_;
-    /// debug flag
-    bool debug_;
+    /// debug level
+    int debug_;
 
     String decoy_string_;
     bool prefix_;

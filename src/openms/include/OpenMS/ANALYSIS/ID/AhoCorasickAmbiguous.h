@@ -80,6 +80,7 @@ namespace seqan
     typedef typename VertexDescriptor<TGraph>::Type TVertexDescriptor;
     TVertexDescriptor current_state;
     __uint8 max_DepthsDecrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
+    //__uint8 ambAA_seen;         // number of ambAA's which the spawn has seen
 
     private:
 	    Spawn();
@@ -118,15 +119,24 @@ namespace seqan
     TSize data_needleLength;			// Last length of needle to reposition finder
     TVertexDescriptor data_lastState;   // Last state of master instance in the trie
     typedef typename std::list<Spawn<TNeedle> > Spawns;
-    Spawns spawns;                      // AC instances currently walking the tree
+    Spawns spawns;                      // spawn instances currently walking the tree
+    typedef typename std::list<__uint8> AmbAAPositions; 
+    //AmbAAPositions ambAA_positions;    // indices of ambAA's relative to current path in trie; when going up, this list must be updated
 
     //____________________________________________________________________________
     Pattern() {}
 
-    template <typename TNeedle2>
-    Pattern(TNeedle2 const & ndl)
+    template <typename TNeedle>
+    Pattern(TNeedle const & ndl)
     {
       SEQAN_CHECKPOINT
+      typedef typename Iterator<const TNeedle>::Type TNeedleIt;
+      TNeedleIt itEd(begin(ndl));
+      for (;!atEnd(itEd);goNext(itEd)) {
+        if (length(*itEd) > numeric_limits<__uint8>::max()) {
+          throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmbiguous>(PeptideSet)", std::string("Input sequence to AhoCorasickAmbiguous is longer than 255 chars. This is not allowed!").c_str(), std::string(begin(*itEd), end(*itEd)));
+        }
+      }
       setHost(*this, ndl);
     }
 
@@ -444,7 +454,7 @@ namespace seqan
         // but only report those which contain the AAA
         for (int i = 0; i < length(needle_hits); ++i)
         {
-          int hit_length = length(value(host(me), needle_hits[i]));
+          int hit_length = (int)length(value(host(me), needle_hits[i]));
           if (hit_length <= unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
 		      DEBUG_ONLY std::cout << "  spawn hit: #" << i << "\n"; // value(value(host(me), needle_hits[i]))
           append(me.data_endPositions, needle_hits[i]); // append hits which still contain the AAA

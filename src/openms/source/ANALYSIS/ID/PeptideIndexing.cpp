@@ -150,10 +150,10 @@ public:
     }
 
     void addHit(OpenMS::Size idx_pep,
-				OpenMS::Size idx_prot,
+				        OpenMS::Size idx_prot,
                 const OpenMS::String& seq_pep,
-				const OpenMS::String& seq_prot,
-                OpenMS::Size position)
+				        const OpenMS::String& seq_prot,
+                OpenMS::Int position)
     {
       if (enzyme_.isValidProduct(AASequence::fromString(seq_prot), position, seq_pep.length(), true))
       {
@@ -463,11 +463,11 @@ DefaultParamHandler("PeptideIndexing")
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
 
     aaa_max_ = static_cast<Size>(param_.getValue("aaa_max"));
-    mismatches_max_ = static_cast<Size>(param_.getValue("mismatches_max"));
+    mismatches_max_ = static_cast<UInt>(param_.getValue("mismatches_max"));
     filter_aaa_proteins_ = param_.getValue("filter_aaa_proteins").toBool();
 
     log_file_ = param_.getValue("log");
-    debug_ = static_cast<Size>(param_.getValue("debug")) > 0;
+    debug_ = static_cast<Int>(param_.getValue("debug"));
   }
 
   PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
@@ -602,6 +602,8 @@ DefaultParamHandler("PeptideIndexing")
         return ILLEGAL_PARAMETERS;
       }
 
+	  int counter_global = 0;
+
       /** first, try Aho Corasick (fast) -- using exact matching only */
       if (!SA_only)
       {
@@ -621,19 +623,14 @@ DefaultParamHandler("PeptideIndexing")
           // search all peptides in each protein
           for (SignedSize i = 0; i < protDB_length; ++i)
           {
-			IF_MASTERTHREAD this->setProgress(i);
+			      IF_MASTERTHREAD this->setProgress(i);
             seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
             while (find(finder, pattern))
             {
-              //seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
-
-              //func_threads.pep_to_prot[position(pattern)].insert(i);
-              // String(seqan::String<char, seqan::CStyle>(prot_DB[i])), position(finder))
-              // target.assign(begin(source, Standard()), end(source, Standard()));
+				      ++counter_global;
               const seqan::Peptide& tmp_pep = pep_DB[position(pattern)];
               const seqan::Peptide& tmp_prot = prot_DB[i];
-
-              func_threads.addHit(position(pattern), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), position(finder));
+              func_threads.addHit(position(pattern), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), (int)position(finder));
             }
           }
 
@@ -653,10 +650,14 @@ DefaultParamHandler("PeptideIndexing")
         } // OMP end parallel
 
         sw.stop();
-		this->endProgress();
+		    this->endProgress();
+
+		    std::cout << "GLOBALLY found: " << counter_global << "\n\n\n";
 
         writeLog_(String("\nAho-Corasick done:\n  found ") + func.filter_passed + " hits for " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).");
       } // end of Aho Corasick
+
+
 
       /// now, search using a suffix array -- allows approximate matching:
       /// check if every peptide was found:
@@ -837,7 +838,7 @@ DefaultParamHandler("PeptideIndexing")
           PeptideEvidence pe;
           pe.setProteinAccession(accession);
           pe.setStart(it_i->position);
-          pe.setEnd(it_i->position + it2->getSequence().size() - 1);
+          pe.setEnd(it_i->position + (int)it2->getSequence().size() - 1);
           pe.setAABefore(it_i->AABefore);
           pe.setAAAfter(it_i->AAAfter);
           it2->addPeptideEvidence(pe);
