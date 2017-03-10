@@ -83,7 +83,7 @@ namespace seqan
 
     Spawn() :
       current_state(getNil<TVertexDescriptor>()),
-      max_position(0),
+      max_DepthsDecrease(0)
     {}
 
     Spawn(TVertexDescriptor init_state, __uint8 current_depth) :
@@ -218,7 +218,7 @@ namespace seqan
 
     for (;!atEnd(it);goNext(it))
     {
-      const GetValue<TBfsIterator>::Type itval = *it; // dereferencing *it will give an index into the property array!
+      const typename GetValue<TBfsIterator>::Type itval = *it; // dereferencing *it will give an index into the property array!
 
       //int edgecount = outDegree(me.data_graph, itval);
       //++connectivity[edgecount];
@@ -329,9 +329,9 @@ namespace seqan
   template<typename T>
   inline bool isAmbiguous(T c)
   {
-    static const ValueSize<T>::Type vB = ordValue(T('B')); // D,N
-    static const ValueSize<T>::Type vZ = ordValue(T('Z')); // E,Q
-    static const ValueSize<T>::Type vX = ordValue(T('X')); // all
+    static const typename ValueSize<T>::Type vB = ordValue(T('B')); // D,N
+    static const typename ValueSize<T>::Type vZ = ordValue(T('Z')); // E,Q
+    static const typename ValueSize<T>::Type vX = ordValue(T('X')); // all
     static const uint32_t anyAA = (1 << vB) | (1 << vZ) | (1 << vX);
     return ((1 << ordValue(c)) & anyAA);
   }
@@ -563,7 +563,7 @@ namespace seqan
       const AminoAcid c = *finder;
       // spawns; do them first, since we might add new spawns in main thread which are however settled at that point
       if (!me.spawns.empty()) {
-        typedef Pattern<TNeedle, AhoCorasickAmbiguous>::Spawns::iterator SpawnCIt;
+        typedef typename Pattern<TNeedle, AhoCorasickAmbiguous>::Spawns::iterator SpawnCIt;
         SpawnCIt it = me.spawns.begin();
         while (it != me.spawns.end())
         {
