@@ -80,7 +80,7 @@ namespace OpenMS
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
     {
-      throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
+      throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Distance matrix to start from only contains one element");
     }
 
     std::vector<std::set<Size> > clusters(original_distance.dimensionsize());

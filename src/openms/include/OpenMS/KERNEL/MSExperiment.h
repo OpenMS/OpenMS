@@ -309,7 +309,7 @@ public:
           // append new spectrum
           if (current_rt > iter->getRT())
           {
-            throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input container is not sorted!");
+            throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input container is not sorted!");
           }
           current_rt =  iter->getRT();
           spectrum = createSpec_(current_rt, store_metadata_names);
@@ -352,7 +352,7 @@ public:
           // append new spectrum
           if (current_rt > iter->getRT())
           {
-            throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input container is not sorted!");
+            throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input container is not sorted!");
           }
           current_rt =  iter->getRT();
           spectrum = createSpec_(current_rt);
@@ -992,7 +992,7 @@ private:
             String meta_name = String("masstrace_intensity_") + i;
             if (!item->metaValueExists(meta_name))
             {
-              throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Meta value '") + meta_name + "' expected but not found in container.");
+              throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Meta value '") + meta_name + "' expected but not found in container.");
             }
             ContainerValueType p;
             p.setIntensity(item->getMetaValue(meta_name));

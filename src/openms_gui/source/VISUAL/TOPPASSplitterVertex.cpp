@@ -185,7 +185,7 @@ namespace OpenMS
          ++pkg_it)
     {
       // there can only be one upstream (input) node:
-      QStringList files = pkg_it->begin()->second.filenames;
+      QStringList files = pkg_it->begin()->second.filenames.get();
       for (QStringList::iterator file_it = files.begin();
            file_it != files.end(); ++file_it)
       {

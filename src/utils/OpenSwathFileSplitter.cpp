@@ -32,11 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-// Consumers
-#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-
 // Files
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
@@ -108,7 +103,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Input file needs to have ending mzML or mzXML");
       }
     }

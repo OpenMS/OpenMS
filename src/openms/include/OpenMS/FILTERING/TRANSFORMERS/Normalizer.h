@@ -108,7 +108,7 @@ public:
       // method unknown
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method_);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Method not known", method_);
       }
 
       // normalize

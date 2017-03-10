@@ -49,14 +49,14 @@ namespace OpenMS
     //aborting, ahhh!
     if (!file_)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, NULL, 0);
     if (bzerror_ != BZ_OK)
     {
       close();
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "bzip2 compression failed: ");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "bzip2 compression failed: ");
     }
   }
 
@@ -83,7 +83,7 @@ namespace OpenMS
       else if (bzerror_ != BZ_STREAM_END)
       {
         close();
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, " ", "bzip2 compression failed: ");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ", "bzip2 compression failed: ");
       }
       else
       {
@@ -93,7 +93,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no file for decompression initialized");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no file for decompression initialized");
     }
   }
 
@@ -105,14 +105,14 @@ namespace OpenMS
     //aborting, ahhh!
     if (!file_)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, NULL, 0);
     if (bzerror_ != BZ_OK)
     {
       close();
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "bzip2 compression failed: ");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "bzip2 compression failed: ");
     }
     stream_at_end_ = false;
   }

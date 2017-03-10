@@ -271,7 +271,8 @@ protected:
       template <typename ContainerT>
       void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
       {
-
+        // Intensity is the same for chromatograms and spectra, the second
+        // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
         bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
         if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
@@ -355,7 +356,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
         }
 
@@ -413,7 +414,7 @@ protected:
           }
           if (errCount != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
           }
 
         }
@@ -693,24 +694,39 @@ protected:
           //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
           if (default_arr_length != 0)
           {
-            warning(LOAD, String("The m/z or intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+            warning(LOAD, String("The m/z or intensity array of chromatogram '") +
+                inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
           }
           return;
         }
 
-        //Warn if the decoded data has a different size than the defaultArrayLength
+        // Warn if the decoded data has a different size than the defaultArrayLength
         Size rt_size = rt_precision_64 ? input_data[rt_index].floats_64.size() : input_data[rt_index].floats_32.size();
+        Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
+        // Check if int-size and rt-size are equal
+        if (rt_size != int_size)
+        {
+          fatalError(LOAD, String("The length of RT and intensity values of chromatogram '") + inp_chromatogram.getNativeID() + "' differ (rt-size: " + rt_size + ", int-size: " + int_size + "! Not reading chromatogram!");
+        }
+        bool repair_array_length = false;
         if (default_arr_length != rt_size)
         {
           warning(LOAD, String("The base64-decoded rt array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+          repair_array_length = true;
         }
-        Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
         if (default_arr_length != int_size)
         {
           warning(LOAD, String("The base64-decoded intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+          repair_array_length = true;
+        }
+        // repair size of array, accessing memory that is beyond int_size will lead to segfaults later
+        if (repair_array_length)
+        {
+          default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)
+          warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
         }
 
-        //create meta data arrays and reserve enough space for the content
+        // Create meta data arrays and reserve enough space for the content
         if (input_data.size() > 2)
         {
           for (Size i = 0; i < input_data.size(); i++)
@@ -748,8 +764,8 @@ protected:
           }
         }
 
-        //copy meta data from time and intensity binary
-        //We don't have this as a separate location => store it in spectrum
+        // Copy meta data from time and intensity binary
+        // We don't have this as a separate location => store it directly in spectrum meta data
         for (Size i = 0; i < input_data.size(); i++)
         {
           if (input_data[i].meta.getName() == "time array" || input_data[i].meta.getName() == "intensity array")
@@ -763,7 +779,7 @@ protected:
           }
         }
 
-        //add the peaks and the meta data to the container (if they pass the restrictions)
+        // Add the peaks and the meta data to the container (if they pass the restrictions)
         inp_chromatogram.reserve(default_arr_length);
         ChromatogramPeakType tmp;
         for (Size n = 0; n < default_arr_length; n++)
@@ -853,7 +869,7 @@ protected:
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown array type", array_type);
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown array type", array_type);
         }
 
         // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
@@ -1184,7 +1200,7 @@ protected:
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserveSpaceSpectra(count);
@@ -1198,7 +1214,7 @@ protected:
 
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
-          throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserveSpaceChromatograms(count);
@@ -2011,8 +2027,34 @@ protected:
             chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
           }
         }
+        else if (accession == "MS:1002476") //ion mobility drift time
+        {
+          // Drift time may be a property of the precursor (in case we are
+          // acquiring a fragment ion spectrum) or of the spectrum itself.
+          // According to the updated OBO, it can be a precursor or a scan
+          // attribute.
+          //
+          // If we find here, this relates to a particular precursor. We still
+          // also store it in MSSpectrum in case a client only checks there.
+          // In most cases, there is a single precursor with a single drift
+          // time.
+          //
+          // Note that only milliseconds are valid units
+
+          if (in_spectrum_list_)
+          {
+            spec_.getPrecursors().back().setDriftTime(value.toDouble());
+            spec_.setDriftTime(value.toDouble());
+          }
+          else
+          {
+            chromatogram_.getPrecursor().setDriftTime(value.toDouble());
+          }
+        }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- activation ----------------------------
       else if (parent_tag == "activation")
@@ -2299,7 +2341,9 @@ protected:
           spec_.getAcquisitionInfo().setMethodOfCombination(cv_.getTerm(accession).name);
         }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- scan ----------------------------
       else if (parent_tag == "scan")
@@ -2309,6 +2353,19 @@ protected:
         {
           //No member => meta data
           spec_.setMetaValue("dwell time", termValue);
+        }
+        else if (accession == "MS:1002476") //ion mobility drift time
+        {
+          // Drift time may be a property of the precursor (in case we are
+          // acquiring a fragment ion spectrum) or of the spectrum itself.
+          // According to the updated OBO, it can be a precursor or a scan
+          // attribute.
+          //
+          // If we find it here, it relates to the scan or spectrum itself and
+          // not to a particular precursor.
+          //
+          // Note that only milliseconds are valid units
+          spec_.setDriftTime(value.toDouble());
         }
         else if (accession == "MS:1000011") //mass resolution
         {
@@ -3529,7 +3586,9 @@ protected:
         //exp_->setMetaValue(name, data_value);
       }
       else
+      {
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+      }
     }
 
     template <typename MapType>
@@ -3879,6 +3938,10 @@ protected:
       for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
       {
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
+      }
+      if (precursor.getDriftTime() >= 0.0)
+      {
+        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
       }
       //userParam: no extra object for it => no user parameters
       os << "\t\t\t\t\t\t\t</selectedIon>\n";
@@ -5143,6 +5206,11 @@ protected:
         if (j == 0)
         {
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+          // if drift time was never set, dont report it
+          if (spec.getDriftTime() >= 0.0)
+          {
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
         //scan windows

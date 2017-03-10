@@ -70,6 +70,9 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         double getIsolationWindowUpperOffset() nogil except +
         void setIsolationWindowUpperOffset(double bound) nogil except +
 
+        double getDriftTime() nogil except +
+        void setDriftTime(double drift_time) nogil except +
+
         int getCharge() nogil except +
         void setCharge(int charge) nogil except +
 

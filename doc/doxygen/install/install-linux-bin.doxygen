@@ -2,18 +2,16 @@
   @page install_linux_bin Installation on GNU/Linux
 
   @section package_managers_linux Install via package managers
-  Currently there are packaged versions of %OpenMS provided for Debian,
-  Fedora, OpenSUSE, Ubuntu 14.04 available in the corresponding package managers of these distributions
-  (they might require a lookup in thirdparty "science" repositories). For other
-  GNU/Linux distributions or to obtain the most recent version of the library you need to build your own %OpenMS.
-  @note Please note that these packages are not directly maintained by us and we can not
-  guarantee the same behaviour as when building it on your own.
-  Also their availability is subject to change and support might be limited (due to unforeseen
-  or untested behaviour).
+  Currently there are packaged versions of %OpenMS provided for Fedora, OpenSUSE, Debian, and Ubuntu <a href="https://pkgs.org/search/openms">available in the corresponding package managers</a> of these distributions (they might require a lookup in thirdparty "science" repositories).
+  For other GNU/Linux distributions or to obtain the most recent version of the library you need to build your own %OpenMS.
+
+  @note Please note that these packages are not directly maintained by us and we can not guarantee the same behaviour as when building it on your own.
+  Also their availability is subject to change and support might be limited (due to unforeseen or untested behaviour).
 
   @section build_your_own_linux Build it on your own
-  Please check http://www.openms.de/downloads/ for details on how to
-  obtain the source code and @subpage install_linux on how to build %OpenMS.
+  Please check <a href="http://www.openms.de/">OpenMS.de</a> for details on how to obtain the source code and @subpage install_linux on how to build %OpenMS.
+
+  @note Some thirdparty software used via adapter tools in %OpenMS might also require an installed JavaVM.
 
   @section docker_linux Run a (Bio)Docker image
   We are also providing <a href="https://www.docker.com/">Docker</a>
@@ -22,7 +20,6 @@
   \code
   docker pull biodckr/openms
   \endcode
-  once you have successfully installed docker (see Docker
-  <a href="https://docs.docker.com/engine/installation/">documentation</a>)
+  once you have successfully installed docker (see <a href="https://docs.docker.com/engine/installation/">Docker documentation</a>).
 
 */

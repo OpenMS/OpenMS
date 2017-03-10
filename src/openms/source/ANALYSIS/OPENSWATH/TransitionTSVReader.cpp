@@ -137,7 +137,7 @@ namespace OpenMS
     // could not determine the delimiter correctly
     if (header.size() < min_header_size)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Determined your csv/tsv file to have delimiter '" + (String)txt_delimiter + 
           "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + 
           (String)min_header_size + ". Please check your input file.");
@@ -162,7 +162,7 @@ namespace OpenMS
     {
       if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
             "I determined that your your csv/tsv file has the delimiter '" + (String)txt_delimiter +
              "'.\nBut the parsed header does not have the required field \"" + (String)header_names_[requiredFields[i]] + 
              "\". Please check your input file.");
@@ -234,7 +234,7 @@ namespace OpenMS
 
       if (tmp_line.size() != header_dict.size())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" +
                                          " do not match: " + String(tmp_line.size()) + " != " + String(header_dict.size()));
       }
@@ -302,7 +302,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Expected a header named RetentionTime, Tr_recalibrated or SpectraSTRetentionTime but found none");
       }
 
@@ -1081,7 +1081,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Error, could not parse modifications on " + tr_it->FullPeptideName +
                                        ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
     }
@@ -1432,7 +1432,7 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Your input file contains invalid references, cannot process file.");
     }
     writeTSVOutput_(filename, targeted_exp);
@@ -1456,7 +1456,7 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Invalid input, contains duplicate or invalid references");
     }
   }

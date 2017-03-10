@@ -56,7 +56,7 @@ namespace OpenMS
 
     if (!ofs_->is_open())
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_out);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_out);
     }
 
     // bind to filestream
@@ -90,7 +90,7 @@ namespace OpenMS
   {
     if (str.find('\n') != String::npos)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "argument must not contain newline characters");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "argument must not contain newline characters");
     }
 
     if (!newline_)

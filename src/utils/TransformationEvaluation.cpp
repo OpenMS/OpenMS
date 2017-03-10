@@ -103,7 +103,7 @@ protected:
       max = Math::ceilDecimal(max, magnitude - 1);
       if (max <= min)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'min' must be lower than 'max'");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'min' must be lower than 'max'");
       }
     }
 

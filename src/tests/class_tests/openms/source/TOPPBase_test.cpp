@@ -43,6 +43,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
+#include <stdlib.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -56,12 +58,24 @@ class TOPPBaseTest
     TOPPBaseTest()
       : TOPPBase("TOPPBaseTest", "A test class", false)
     {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(0,0);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
       : TOPPBase("TOPPBaseTest", "A test class", false)
     {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(argc,argv);
     }
 
@@ -180,12 +194,24 @@ class TOPPBaseTestNOP
     TOPPBaseTestNOP()
       : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(0,0);
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
       : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(argc,argv);
     }
 
@@ -242,26 +268,32 @@ class TOPPBaseTestParam: public TOPPBase
     TOPPBaseTestParam(const Param& param):
 			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false), test_param_(param)
     {
+      static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(0, 0);
     }
 
     virtual void registerOptionsAndFlags_()
     {
-			registerFullParam_(test_param_);
-		}
+      registerFullParam_(test_param_);
+    }
 
     virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
     {
       return EXECUTION_OK;
     }
 
-	  const Param& getParam() const
-		{
-			return getParam_();
-		}
+    const Param& getParam() const
+    {
+      return getParam_();
+    }
 
   private:
-	  Param test_param_;
+    Param test_param_;
 };
 
 //test class with optional parameters
@@ -280,11 +312,23 @@ public:
 
   ExitCodes run(int argc , const char** argv)
   {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
     return main(argc, argv);
   }
 
   virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
   {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
     return EXECUTION_OK;
   }
 };
@@ -324,6 +368,12 @@ public:
 
   ExitCodes run(int argc , const char** argv)
   {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
     return main(argc, argv);
   }
 
@@ -659,21 +709,6 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
-}
-END_SECTION
-
-START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
-{
-	//ini file
-	const char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
-	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
-
-	Param good_params = tmp_topp.getParam();
-	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
-	good_params.setValue( "ini", OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini") );
-	good_params.setValue( "stringoption", "instance1" );
-
-	TEST_EQUAL(tmp_topp.getParam(), good_params);
 }
 END_SECTION
 

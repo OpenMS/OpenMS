@@ -98,7 +98,7 @@ namespace OpenMS
     }
     else
     {
-      throw InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -106,7 +106,7 @@ namespace OpenMS
   {
     if (index > size() - 1)
     {
-      throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     map<double, QColor>::iterator it = pos_col_.begin();
@@ -121,7 +121,7 @@ namespace OpenMS
   {
     if (index > size() - 1)
     {
-      throw IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     map<double, QColor>::iterator it = pos_col_.begin();

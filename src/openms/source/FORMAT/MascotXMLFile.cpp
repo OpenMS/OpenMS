@@ -112,7 +112,7 @@ namespace OpenMS
     if (!lookup.empty() && (no_rt_count == id_data.size()))
     {
       throw Exception::MissingInformation(
-        __FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "No retention time information for peptide identifications found");
     }
 

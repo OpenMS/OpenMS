@@ -114,14 +114,14 @@ namespace OpenMS
   void SpectrumCanvas::resizeEvent(QResizeEvent * /* e */)
   {
 #ifdef DEBUG_TOPPVIEW
-    cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+    cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
 #endif
     buffer_ = QImage(width(), height(), QImage::Format_RGB32);
     update_buffer_ = true;
     updateScrollbars_();
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
 #ifdef DEBUG_TOPPVIEW
-    cout << "END   " << __PRETTY_FUNCTION__ << endl;
+    cout << "END   " << OPENMS_PRETTY_FUNCTION << endl;
 #endif
   }
 
@@ -131,21 +131,21 @@ namespace OpenMS
     layers_[current_layer_].filters = filters;
     //update the content
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void SpectrumCanvas::showGridLines(bool show)
   {
     show_grid_ = show;
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void SpectrumCanvas::intensityModeChange_()
   {
     recalculateSnapFactor_();
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void SpectrumCanvas::mzToXAxis(bool mz_to_x_axis)
@@ -160,7 +160,7 @@ namespace OpenMS
 
     updateScrollbars_();
     update_buffer_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void SpectrumCanvas::changeVisibleArea_(const AreaType & new_area, bool repaint, bool add_to_stack)
@@ -188,7 +188,7 @@ namespace OpenMS
     if (repaint)
     {
       update_buffer_ = true;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -300,7 +300,7 @@ namespace OpenMS
 
   void SpectrumCanvas::setVisibleArea(AreaType area)
   {
-    //cout << __PRETTY_FUNCTION__ << endl;
+    //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(area);
   }
 
@@ -470,7 +470,7 @@ namespace OpenMS
     {
       layer.visible = b;
       update_buffer_ = true;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -482,7 +482,7 @@ namespace OpenMS
     {
       layer.filters.setActive(b);
       update_buffer_ = true;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -602,7 +602,7 @@ namespace OpenMS
     measurement_start_.clear();
 
     //update
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void SpectrumCanvas::leaveEvent(QEvent * /*e*/)
@@ -945,9 +945,9 @@ namespace OpenMS
     {
       layer.modified = modified;
 #ifdef DEBUG_TOPPVIEW
-      cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+      cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
       cout << "emit: layerModificationChange" << endl;
-      cout << "END " << __PRETTY_FUNCTION__ << endl;
+      cout << "END " << OPENMS_PRETTY_FUNCTION << endl;
 #endif
       emit layerModficationChange(activeLayerIndex(), modified);
     }

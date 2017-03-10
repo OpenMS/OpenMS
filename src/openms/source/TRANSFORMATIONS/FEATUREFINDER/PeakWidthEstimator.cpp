@@ -69,7 +69,7 @@ namespace OpenMS
       
     if (!(*bspline_).ok())
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unable to fit B-spline to data.", "");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to fit B-spline to data.", "");
     }
   }
   
@@ -97,7 +97,7 @@ namespace OpenMS
 
     if (width < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Estimated peak width is negative.", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Estimated peak width is negative.", "");
     }
 
     return width;

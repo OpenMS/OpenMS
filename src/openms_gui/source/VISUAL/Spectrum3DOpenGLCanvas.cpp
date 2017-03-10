@@ -140,7 +140,7 @@ namespace OpenMS
         {
           glDeleteLists(stickdata_, 1);
 #ifdef DEBUG_TOPPVIEW
-          cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+          cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
           std::cout << "Deleting sticklist near makeDataAsTopView" << std::endl;
 #endif
         }
@@ -167,7 +167,7 @@ namespace OpenMS
       {
         glDeleteLists(stickdata_, 1);
 #ifdef DEBUG_TOPPVIEW
-        cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+        cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
         std::cout << "Deleting sticklist near makeDataAsTopView" << std::endl;
 #endif
       }
@@ -924,7 +924,7 @@ namespace OpenMS
       storeRotationAndZoom();
       setAngels(220, 220, 0);
       canvas_3d_.update_buffer_ = true;
-      canvas_3d_.update_(__PRETTY_FUNCTION__);
+      canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
     }
     //change from zoom to translate
     else if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
@@ -936,7 +936,7 @@ namespace OpenMS
       }
       restoreRotationAndZoom();
       canvas_3d_.update_buffer_ = true;
-      canvas_3d_.update_(__PRETTY_FUNCTION__);
+      canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -955,7 +955,7 @@ namespace OpenMS
       canvas_3d_.rubber_band_.setGeometry(QRect(e->pos(), QSize()));
       canvas_3d_.rubber_band_.show();
       canvas_3d_.update_buffer_ = true;
-      canvas_3d_.update_(__PRETTY_FUNCTION__);
+      canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -966,7 +966,7 @@ namespace OpenMS
       if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM)
       {
         canvas_3d_.rubber_band_.setGeometry(QRect(mouse_move_begin_, e->pos()).normalized());
-        canvas_3d_.update_(__PRETTY_FUNCTION__);
+        canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
       }
       else if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
       {
@@ -981,7 +981,7 @@ namespace OpenMS
         drawAxesLegend();
 
         mouse_move_end_ = e->pos();
-        canvas_3d_.update_(__PRETTY_FUNCTION__);
+        canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
       }
     }
   }
@@ -1004,7 +1004,7 @@ namespace OpenMS
     dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
     canvas_3d_.rubber_band_.hide();
     canvas_3d_.update_buffer_ = true;
-    canvas_3d_.update_(__PRETTY_FUNCTION__);
+    canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum3DOpenGLCanvas::dataToZoomArray(double x_1, double y_1, double x_2, double y_2)

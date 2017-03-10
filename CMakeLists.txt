@@ -72,10 +72,11 @@ include(Dart)
 # - do NOT hardcode them here!
 # - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
 #------------------------------------------------------------------------------
-# CMAKE_FIND_ROOT_PATH
+# CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
 # ADDRESS_SANITIZER
+# OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -191,14 +192,24 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable Coverage
+#------------------------------------------------------------------------------
+option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
+ is slower and uses a lot of disk space (>40GB). Enables the target OpenMS_coverage to generate
+ a coverage report in html format." OFF)
+if(OPENMS_COVERAGE)
+  include(cmake/Coverage.cmake)
+endif()
+
+#------------------------------------------------------------------------------
 # Enable usage statistics
 #------------------------------------------------------------------------------
-option(ENABLE_USAGE_STATISTICS "Enable collection of usage statistics." ON)
-if(ENABLE_USAGE_STATISTICS)
+option(ENABLE_UPDATE_CHECK "Enable update check." ON)
+if(ENABLE_UPDATE_CHECK)
   message(STATUS "Collection of usage statistics and update notifications enabled.")
   message(STATUS "  If you don't want this information to be transmitted to our update sever, you can:")
-  message(STATUS "    - Switch the build variable ENABLE_USAGE_STATISTICS to OFF to remove the functionality at build time.")
-  message(STATUS "    - Set the environment variable OPENMS_DISABLE_USAGE_STATISTICS to disable the functionality at runtime.")
+  message(STATUS "    - Switch the build variable ENABLE_UPDATE_CHECK to OFF to remove the functionality at build time.")
+  message(STATUS "    - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.")
 endif()
 
 #------------------------------------------------------------------------------

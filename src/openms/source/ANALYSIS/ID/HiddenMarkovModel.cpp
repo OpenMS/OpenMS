@@ -195,7 +195,7 @@ namespace OpenMS
   {
     if (name_to_state_.find(name) == name_to_state_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     return name_to_state_[name];
   }
@@ -204,7 +204,7 @@ namespace OpenMS
   {
     if (name_to_state_.find(name) == name_to_state_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     return name_to_state_.find(name)->second;
   }
@@ -428,12 +428,12 @@ namespace OpenMS
   {
     if (name_to_state_.find(s1) == name_to_state_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, s1);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s1);
     }
     HMMState * state1 = name_to_state_[s1];
     if (name_to_state_.find(s2) == name_to_state_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, s2);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s2);
     }
     HMMState * state2 = name_to_state_[s2];
     return getTransitionProbability_(state1, state2);

@@ -140,12 +140,12 @@ namespace OpenMS
 
       if (feature_intensities.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Feature intensities were empty - please provide feature subordinate with intensities");
       }
       if (feature_intensities.size()!=assay_intensities.size())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Did not find a feature for each assay provided - each feature needs "
           "to have n subordinates with the meta-value 'native_id' set to the corresponding transition.");
       }
@@ -207,7 +207,7 @@ namespace OpenMS
       LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Feature does not contain meta value 'PeptideRef' (reference to assay)");
       }
       scores.push_back(scoreAssay_(library_.getPeptideByRef(true_id), feature_rt,

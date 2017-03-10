@@ -184,7 +184,9 @@ END_SECTION
 START_SECTION(static String getUserDirectory())
   TEST_NOT_EQUAL(File::getUserDirectory(), String())
   TEST_EQUAL(File::exists(File::getUserDirectory()), true)
-  // create OpenMS ini in path set by evironmental variable
+
+  // set user directory to a path set by environmental variable and test that
+  // it is correctly set (no changes on the file system occur)
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
   TEST_EQUAL(d.mkpath(dirname.toQString()), true);
@@ -194,7 +196,8 @@ START_SECTION(static String getUserDirectory())
   setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
 #endif
   TEST_EQUAL(File::getUserDirectory(), dirname)
-  TEST_EQUAL(File::exists(File::getUserDirectory() + ".OpenMS/OpenMS.ini"), true)
+  // Note: this does not guarantee any more that the user directory or an
+  // OpenMS.ini file exists at the new location.
 END_SECTION
 
 START_SECTION(static Param getSystemParameters())
@@ -211,7 +214,6 @@ START_SECTION(static String findDatabase(const String &db_name))
   TEST_EQUAL(db.hasSubstring("share/OpenMS"), true)
 
 END_SECTION
-
 
 START_SECTION(static String findExecutable(const OpenMS::String& toolName))
 {

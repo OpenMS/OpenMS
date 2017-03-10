@@ -2155,7 +2155,10 @@ namespace OpenMS
       if (allowUserOverride)
       {
         QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges", QString("Node") + (strange_vertices.size() > 1 ? "s " : " ") + strange_vertices.join(", ") + (strange_vertices.size() > 1 ? " have " : " has ") + "no outgoing edges.\n\nDo you still want to run the pipeline?", QMessageBox::Yes | QMessageBox::No);
+        ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges", QString("Node") +
+                                   (strange_vertices.size() > 1 ? "s " : " ") + strange_vertices.join(", ") +
+                                   (strange_vertices.size() > 1 ? " have " : " has ") +
+                                   "no outgoing edges.\n\nDo you still want to run the pipeline?", QMessageBox::Yes | QMessageBox::No);
         if (ret == QMessageBox::No)
         {
           return false;
@@ -2344,11 +2347,16 @@ namespace OpenMS
     allowed_threads_ = num_jobs;
   }
 
+  bool TOPPASScene::isGUIMode() const
+  {
+    return gui_;
+  }
+
   bool TOPPASScene::isDryRun() const
   {
     return dry_run_;
   }
-
+  
   void TOPPASScene::quitWithError()
   {
     exit(1);

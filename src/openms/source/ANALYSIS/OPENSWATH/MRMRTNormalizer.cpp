@@ -56,14 +56,14 @@ namespace OpenMS
 
     if (n < 5)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
           boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
     }
 
     if (pairs.size() < 30)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + 
           boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
     }
@@ -73,7 +73,7 @@ namespace OpenMS
 
     if (bestrsq < rsq_limit)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
           boost::lexical_cast<std::string>(bestrsq) + " is below limit of " +
           boost::lexical_cast<std::string>(rsq_limit) +
@@ -82,7 +82,7 @@ namespace OpenMS
 
     if (new_pairs.size() < d)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " +
           boost::lexical_cast<std::string>(new_pairs.size()) +
           " is below limit of " + boost::lexical_cast<std::string>(d) +
@@ -138,10 +138,10 @@ namespace OpenMS
       std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, bool use_chauvenet, std::string method)
   {
-    if (pairs.size() < 2)
+    if (pairs.size() < 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Need at least 2 points for the regression.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Need at least 3 data points to remove outliers for the regression.");
     }
 
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
@@ -196,7 +196,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Method ") + method + " is not a valid method for removeOutliersIterative");
         }
 
@@ -222,7 +222,7 @@ namespace OpenMS
     if (rsq < rsq_limit)
     {
       // If the rsq is below the limit, this is an indication that something went wrong!
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " +
           boost::lexical_cast<std::string>(rsq) + " is below limit of " +
           boost::lexical_cast<std::string>(rsq_limit) +
@@ -276,4 +276,39 @@ namespace OpenMS
     return prob;
   }
 
+  bool MRMRTNormalizer::computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+      const std::vector<std::pair<double, double> > & pairs, int nrBins, 
+      int minPeptidesPerBin, int minBinsFilled)
+  {
+    std::vector<int> binCounter(nrBins, 0);
+    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
+    {
+      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
+      normRT *= nrBins;
+      int bin = (int)normRT;
+      if (bin >= nrBins)
+      {
+        // this should never happen, but just to make sure
+        std::cerr << "MRMRTNormalizer::computeBinnedCoverage : computed bin was too large (" << 
+          bin << "), setting it to the maximum of " << nrBins - 1 << std::endl;
+        bin = nrBins - 1;
+      }
+      binCounter[ bin ]++;
+    }
+
+    int binsFilled = 0;
+    for (Size i = 0; i < binCounter.size(); i++)
+    {
+      LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() << 
+        " we have " << binCounter[i] << " peptides " << std::endl;
+      if (binCounter[i] >= minPeptidesPerBin) 
+      {
+        binsFilled++;
+      }
+    }
+
+    return (binsFilled >= minBinsFilled);
+  }
+
 }
+

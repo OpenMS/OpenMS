@@ -81,6 +81,8 @@ public:
       return db_;
     }
 
+    friend class CrossLinksDB;
+
     /// Returns the number of modifications read from the unimod.xml file
     Size getNumberOfModifications() const;
 
@@ -118,6 +120,12 @@ public:
 
     /// Returns true if the modification exists
     bool has(String modification) const;
+
+    /**
+       @brief Add a new modification to ModificationsDB.
+       @throw Exception::InvalidValue if modification already exists (based on its fullID)
+    */
+    void addModification(ResidueModification * new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given

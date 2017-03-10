@@ -163,6 +163,7 @@ public:
       RangeManager<1>(),
       SpectrumSettings(),
       retention_time_(-1),
+      drift_time_(-1),
       ms_level_(1),
       name_(),
       float_data_arrays_(),
@@ -176,6 +177,7 @@ public:
       RangeManager<1>(source),
       SpectrumSettings(source),
       retention_time_(source.retention_time_),
+      drift_time_(source.drift_time_),
       ms_level_(source.ms_level_),
       name_(source.name_),
       float_data_arrays_(source.float_data_arrays_),
@@ -197,6 +199,7 @@ public:
       SpectrumSettings::operator=(source);
 
       retention_time_ = source.retention_time_;
+      drift_time_ = source.drift_time_;
       ms_level_ = source.ms_level_;
       name_ = source.name_;
       float_data_arrays_ = source.float_data_arrays_;
@@ -216,6 +219,7 @@ public:
              RangeManager<1>::operator==(rhs) &&
              SpectrumSettings::operator==(rhs) &&
              retention_time_ == rhs.retention_time_ &&
+             drift_time_ == rhs.drift_time_ &&
              ms_level_ == rhs.ms_level_ &&
              float_data_arrays_ == rhs.float_data_arrays_ &&
              string_data_arrays_ == rhs.string_data_arrays_ &&
@@ -239,16 +243,37 @@ public:
 
     ///@name Accessors for meta information
     ///@{
-    /// Returns the absolute retention time (is seconds)
+    /// Returns the absolute retention time (in seconds)
     inline double getRT() const
     {
       return retention_time_;
     }
 
-    /// Sets the absolute retention time (is seconds)
+    /// Sets the absolute retention time (in seconds)
     inline void setRT(double rt)
     {
       retention_time_ = rt;
+    }
+
+    /**
+      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+
+      @note Drift times may be stored directly as an attribute of the spectrum
+      (if they relate to the spectrum as a whole). In case of ion mobility
+      spectra, the drift time of the spectrum will always be set here while the
+      drift times attribute in the Precursor class may often be unpopulated.
+    */
+    inline double getDriftTime() const
+    {
+      return drift_time_;
+    }
+
+    /**
+      @brief Returns the ion mobility drift time in milliseconds
+    */
+    inline void setDriftTime(double dt)
+    {
+      drift_time_ = dt;
     }
 
     /**
@@ -354,7 +379,7 @@ public:
       }
       else
       {
-        //sort index list
+        // sort index list
         std::vector<std::pair<typename PeakType::IntensityType, Size> > sorted_indices;
         sorted_indices.reserve(ContainerType::size());
         for (Size i = 0; i < ContainerType::size(); ++i)
@@ -371,43 +396,14 @@ public:
           std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
         }
 
-        //apply sorting to ContainerType and to meta data arrays
-        ContainerType tmp;
+        // extract list of indices
+        std::vector<Size> select_indices;
+        select_indices.reserve(sorted_indices.size());
         for (Size i = 0; i < sorted_indices.size(); ++i)
         {
-          tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
+          select_indices.push_back(sorted_indices[i].second);
         }
-        ContainerType::swap(tmp);
-
-        for (Size i = 0; i < float_data_arrays_.size(); ++i)
-        {
-          std::vector<float> mda_tmp;
-          for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          float_data_arrays_[i].swap(mda_tmp);
-        }
-
-        for (Size i = 0; i < string_data_arrays_.size(); ++i)
-        {
-          std::vector<String> mda_tmp;
-          for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          string_data_arrays_[i].swap(mda_tmp);
-        }
-
-        for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-        {
-          std::vector<Int> mda_tmp;
-          for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          integer_data_arrays_[i].swap(mda_tmp);
-        }
+        select(select_indices);
       }
     }
 
@@ -418,7 +414,7 @@ public:
     */
     void sortByPosition()
     {
-      if (float_data_arrays_.empty())
+      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
         std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
       }
@@ -433,47 +429,14 @@ public:
         }
         std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
 
-        //apply sorting to ContainerType and to metadataarrays
-        ContainerType tmp;
-        tmp.reserve(sorted_indices.size());
+        // extract list of indices
+        std::vector<Size> select_indices;
+        select_indices.reserve(sorted_indices.size());
         for (Size i = 0; i < sorted_indices.size(); ++i)
         {
-          tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
+          select_indices.push_back(sorted_indices[i].second);
         }
-        ContainerType::swap(tmp);
-
-        for (Size i = 0; i < float_data_arrays_.size(); ++i)
-        {
-          std::vector<float> mda_tmp;
-          mda_tmp.reserve(float_data_arrays_[i].size());
-          for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(float_data_arrays_[i], mda_tmp);
-        }
-
-        for (Size i = 0; i < string_data_arrays_.size(); ++i)
-        {
-          std::vector<String> mda_tmp;
-          mda_tmp.reserve(string_data_arrays_[i].size());
-          for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(string_data_arrays_[i], mda_tmp);
-        }
-
-        for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-        {
-          std::vector<Int> mda_tmp;
-          mda_tmp.reserve(integer_data_arrays_[i].size());
-          for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(integer_data_arrays_[i], mda_tmp);
-        }
+        select(select_indices);
       }
     }
 
@@ -506,7 +469,7 @@ public:
     Size findNearest(CoordinateType mz) const
     {
       // no peak => no search
-      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one peak to determine the nearest peak!");
+      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
 
       // search for position for inserting
       ConstIterator it = MZBegin(mz);
@@ -724,6 +687,7 @@ public:
         clearRanges();
         this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
         retention_time_ = -1.0;
+        drift_time_ = -1.0;
         ms_level_ = 1;
         name_.clear();
         float_data_arrays_.clear();
@@ -732,10 +696,67 @@ public:
       }
     }
 
-protected:
+    /*
+      @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
 
+      @param indices Vector of indices to keep
+      @return Reference to this MSSpectrum
+
+    */
+    MSSpectrum& select(const std::vector<Size>& indices)
+    { 
+      Size snew = indices.size();
+      ContainerType tmp;
+      tmp.reserve(indices.size());
+      for (Size i = 0; i < snew; ++i)
+      {
+        tmp.push_back(*(ContainerType::begin() + indices[i]));
+      }
+      ContainerType::swap(tmp);
+
+      for (Size i = 0; i < float_data_arrays_.size(); ++i)
+      {
+        std::vector<float> mda_tmp;
+        mda_tmp.reserve(float_data_arrays_[i].size());
+        for (Size j = 0; j < snew; ++j)
+        {
+          mda_tmp.push_back(*(float_data_arrays_[i].begin() + indices[j]));
+        }
+        std::swap(float_data_arrays_[i], mda_tmp);
+      }
+
+      for (Size i = 0; i < string_data_arrays_.size(); ++i)
+      {
+        std::vector<String> mda_tmp;
+        mda_tmp.reserve(string_data_arrays_[i].size());
+        for (Size j = 0; j < snew; ++j)
+        {
+          mda_tmp.push_back(*(string_data_arrays_[i].begin() + indices[j]));
+        }
+        std::swap(string_data_arrays_[i], mda_tmp);
+      }
+
+      for (Size i = 0; i < integer_data_arrays_.size(); ++i)
+      {
+        std::vector<Int> mda_tmp;
+        mda_tmp.reserve(integer_data_arrays_[i].size());
+        for (Size j = 0; j < snew; ++j)
+        {
+          mda_tmp.push_back(*(integer_data_arrays_[i].begin() + indices[j]));
+        }
+        std::swap(integer_data_arrays_[i], mda_tmp);
+      }
+
+      return *this;
+    }
+
+protected:
+   
     /// Retention time
     double retention_time_;
+
+    /// Drift time
+    double drift_time_;
 
     /// MS level
     UInt ms_level_;
@@ -775,3 +796,4 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
+

@@ -208,7 +208,7 @@ namespace OpenMS
       for (RoundPackageConstIt ite = pkg[round].begin();
            ite != pkg[round].end(); ++ite)
       {
-        files.append(ite->second.filenames); // concat filenames from all incoming edges
+        files.append(ite->second.filenames.get()); // concat filenames from all incoming edges
       }
       Size round_index = (round_based_mode_ ? round : 0);
       output_files_[round_index][-1].filenames.append(files); // concat over all rounds (if required)
