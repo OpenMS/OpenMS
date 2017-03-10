@@ -93,6 +93,8 @@ static double decodeFixedPoint(
  * Encodes the int x as a number of halfbytes in res. 
  * res_length is incremented by the number of halfbytes, 
  * which will be 1 <= n <= 9
+ *
+ * see header file for a detailed description of the algorithm.
  */
 static void encodeInt(
 		const unsigned int x,
