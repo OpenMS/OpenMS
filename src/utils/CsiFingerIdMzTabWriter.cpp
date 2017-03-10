@@ -56,27 +56,27 @@ using namespace std;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-@page UTILS_SiriusMzTabWriter
+@page UTILS_CsiFingerIdMzTabWriter
 
 @brief Tool for the conversion of mzML files to (Sirius).ms files
 
        Needed for the interal data structure of the Sirius command line tool
 
 <B>The command line parameters of this tool are:</B>
-@verbinclude UTILS_SiriusMzTabWriter.cli
+@verbinclude UTILS_CsiFingerIdMzTabWriter.cli
 <B>INI file documentation of this tool:</B>
-@htmlinclude UTILS_SiriusMzTabWriter.html
+@htmlinclude UTILS_CsiFingerIdMzTabWriter.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPSiriusMzTabWriter :
+class TOPPCsiFingerIdMzTabWriter :
         public TOPPBase
 {
 public:
-    TOPPSiriusMzTabWriter() :
-        TOPPBase("SiriusMzTabWriter", "Tool for the conversion of mzML files to (Sirius).ms files", false)
+    TOPPCsiFingerIdMzTabWriter() :
+        TOPPBase("CsiFingerIdMzTabWriter", "Tool for the conversion of mzML files to (Sirius).ms files", false)
     {
     }
 
@@ -84,14 +84,15 @@ protected:
 
     struct SiriusAdapterHit
     {
-        String formula;
-        String adduct;
+        String inchikey2D;
+        String inchi;
         unsigned int rank;
+        String molecular_formula;
         double score;
-        double treescore;
-        double isoscore;
-        String explainedpeaks;
-        String explainedintensity;
+        String name;
+        String smiles;
+        vector<String> pubchemids;
+        vector<String> links;
     };
 
     struct SiriusAdapterIdentification
@@ -134,7 +135,7 @@ protected:
         // writing output
         //-------------------------------------------------------------
 
-        SiriusAdapterRun sirius_result;
+        SiriusAdapterRun csi_result;
 
         ifstream file(in);
 
@@ -144,32 +145,33 @@ protected:
             CsvFile  compounds(in, '\t');
 
             // fill indentification structure containing all candidate hits for a single spectrum
-            SiriusAdapterIdentification sirius_id;
+            SiriusAdapterIdentification csi_id;
 
             for (Size j = 1; j < number; ++j)
             {
                 StringList sl;
                 compounds.getRow(j,sl);
-                SiriusAdapterHit sirius_hit;
-
+                SiriusAdapterHit csi_hit;
                 // parse single candidate hit
-                sirius_hit.formula = sl[0];
-                sirius_hit.adduct = sl[1];
-                sirius_hit.rank = sl[2].toInt();
-                sirius_hit.score = sl[3].toDouble();
-                sirius_hit.treescore = sl[4].toDouble();
-                sirius_hit.isoscore = sl[5].toDouble();
-                sirius_hit.explainedpeaks = sl[6];
-                sirius_hit.explainedintensity =sl[7];
-
-                sirius_id.hits.push_back(sirius_hit);
-
+                csi_hit.inchikey2D = sl[0];
+                csi_hit.inchi = sl[1];
+                csi_hit.molecular_formula = sl[2];
+                csi_hit.rank = sl[3].toInt();
+                csi_hit.score = sl[4].toDouble();
+                csi_hit.name = sl[5];
+                csi_hit.smiles = sl[6];
+                // xlogp always empty [7] //??
+                // split multiple ids: e.g.: 1233423;345345;435345
+                sl[8].split(';', csi_hit.pubchemids);
+                sl[9].split(';',csi_hit.links);
+                csi_id.hits.push_back(csi_hit);
             }
 
             // not possible since not in SiriusAdapter <- only folder but no further spectrum
-            sirius_id.scan_index = 0;
-            sirius_id.id = "name";
-            sirius_result.identifications.push_back(sirius_id);
+            csi_id.scan_index = 0;
+            csi_id.id = "name";
+            csi_result.identifications.push_back(csi_id);
+
         }
         else
         {
@@ -185,34 +187,37 @@ protected:
         md.ms_run[1] = md_run;
 
         MzTabSmallMoleculeSectionRows smsd;
-        for (Size i = 0; i != sirius_result.identifications.size(); ++i)
+        for (Size i = 0; i != csi_result.identifications.size(); ++i)
         {
-            const SiriusAdapterIdentification& id = sirius_result.identifications[i];
+            const SiriusAdapterIdentification& id = csi_result.identifications[i];
             for (Size j = 0; j != id.hits.size(); ++j)
             {
                 const SiriusAdapterHit& hit = id.hits[j];
                 MzTabSmallMoleculeSectionRow smsr;
-
                 smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
-                smsr.best_search_engine_score[2] = MzTabDouble(hit.treescore);
-                smsr.best_search_engine_score[3] = MzTabDouble(hit.isoscore);
-                smsr.chemical_formula = MzTabString(hit.formula);
+                smsr.chemical_formula = MzTabString(hit.molecular_formula);
+                smsr.description = MzTabString(hit.name);
+                vector<MzTabString> pubchemids;
+                for (Size k = 0; k != hit.pubchemids.size(); ++k)
+                {
+                    pubchemids.push_back(MzTabString(hit.pubchemids[k]));
+                }
+                smsr.identifier.set(pubchemids);
+                smsr.inchi_key = MzTabString(hit.inchikey2D);
+                smsr.smiles = MzTabString(hit.smiles);
+                //smsr.search_engine.fromCellString("[,,CSIFingerID,3.4.1]");
+                //smsr.search_engine_score_ms_run[1] = smsr.best_search_engine_score;
+                //smsr.spectra_ref.fromCellString(String("ms_run[1]:scan_index=" + String(id.scan_index)));
+                vector<MzTabString> uri;
+                for (Size k = 0; k != hit.links.size(); ++k)
+                {
+                    uri.push_back(MzTabString(hit.links[k]));
+                }
 
                 MzTabOptionalColumnEntry rank;
                 rank.first = "rank";
                 rank.second = MzTabString(hit.rank);
-
-                MzTabOptionalColumnEntry explainedPeaks;
-                explainedPeaks.first = "explainedPeaks";
-                explainedPeaks.second = MzTabString(hit.explainedpeaks);
-
-                MzTabOptionalColumnEntry explainedIntensity;
-                explainedIntensity.first = "explainedIntensity";
-                explainedIntensity.second = MzTabString(hit.explainedpeaks);
-
                 smsr.opt_.push_back(rank);
-                smsr.opt_.push_back(explainedPeaks);
-                smsr.opt_.push_back(explainedIntensity);
                 smsd.push_back(smsr);
             }
         }
@@ -226,7 +231,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-    TOPPSiriusMzTabWriter tool;
+    TOPPCsiFingerIdMzTabWriter tool;
     return tool.main(argc, argv);
 }
 
