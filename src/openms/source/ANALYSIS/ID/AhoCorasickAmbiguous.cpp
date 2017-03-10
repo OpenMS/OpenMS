@@ -29,19 +29,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Sandro Andreotti $
+// $Authors: Chris Bielow, Sandro Andreotti, Tobias Rausch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <typeinfo>
-#include <algorithm>
 
-using namespace OpenMS;
+//using namespace OpenMS;
 using namespace std;
 
 
@@ -52,5 +46,3 @@ namespace OpenMS
 
 
 }
-
-  
