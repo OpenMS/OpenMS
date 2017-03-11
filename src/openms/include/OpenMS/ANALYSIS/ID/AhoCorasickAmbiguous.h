@@ -78,15 +78,16 @@ namespace seqan
     typedef typename Value<TKeyword>::Type TAlphabet;
     typedef Graph<Automaton<TAlphabet> > TGraph;
     typedef typename VertexDescriptor<TGraph>::Type TVert;
+    typedef typename Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     TVert current_state;
-    __uint8 max_DepthsDecrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
-    __uint8 ambAA_seen;         // number of ambAA's which the spawn has seen
+    KeyWordLengthType max_DepthsDecrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
+    KeyWordLengthType ambAA_seen;         // number of ambAA's which the spawn has seen
 
     private:
 	    Spawn();
 
     public:
-	    Spawn(TVert init_state, __uint8 current_depth, __uint8 aaa_seen) :
+	    Spawn(TVert init_state, KeyWordLengthType current_depth, KeyWordLengthType aaa_seen) :
 		    current_state(init_state),
 		    max_DepthsDecrease(current_depth),
         ambAA_seen(aaa_seen)
@@ -106,16 +107,19 @@ namespace seqan
     typedef typename Value<TKeyword>::Type TAlphabet;
     typedef Graph<Automaton<TAlphabet> > TGraph;
     typedef typename VertexDescriptor<TGraph>::Type TVert;
-    const TVert nilVal;
+    typedef __uint8 KeyWordLengthType;
 
+
+    // constant after C'tor; 
+    const TVert nilVal;
+    const KeyWordLengthType max_ambAA;  // default: 3
+                                        
     // "constant" data, after construction of trie
 	  Holder<TNeedle> data_host; // holds needles
     String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
     TGraph data_graph;                            // regular trie data
     String<TVert> data_supplyMap;     // trie suffix links
-    String<__uint8> data_nodeDepths;              // depths of each graph node
-
-    const __uint8 max_ambAA;  // constant after C'tor; default: 3
+    String<KeyWordLengthType> data_nodeDepths;              // depths of each graph node
 
     // "working" set; changes with every hit
     String<TSize> data_endPositions;	// All remaining keyword indices
@@ -126,24 +130,36 @@ namespace seqan
     typedef typename std::list<Spawn<TNeedle> >::iterator SpawnIt;
     typedef typename std::list<Spawn<TNeedle> >::const_iterator SpawnCIt;
     Spawns spawns;                      // spawn instances currently walking the tree
-    typedef typename std::list<__uint8> AmbAAPositions; 
-    typedef typename std::list<__uint8>::iterator AmbAAPositionsIt;
+    typedef typename std::list<KeyWordLengthType> AmbAAPositions;
+    typedef typename std::list<KeyWordLengthType>::iterator AmbAAPositionsIt;
     AmbAAPositions ambAA_positions;    // indices of ambAA's relative to current path in trie; when going up, this list must be updated
 
     //____________________________________________________________________________
     Pattern() {}
 
     template <typename TNeedle>
-    Pattern(TNeedle const & ndl, __uint8 max_AAA = 3) 
+    Pattern(TNeedle const & ndl, KeyWordLengthType max_AAA = 3)
       : nilVal(getNil<TVert>()),
         max_ambAA(max_AAA)
     {
       SEQAN_CHECKPOINT
-      typedef typename Iterator<const TNeedle>::Type TNeedleIt;
-      TNeedleIt itEd(begin(ndl));
-      for (;!atEnd(itEd);goNext(itEd)) {
-        if (length(*itEd) > numeric_limits<__uint8>::max()) {
-          throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input sequence to AhoCorasickAmb is longer than 255 chars. This is not allowed!").c_str(), std::string(begin(*itEd), end(*itEd)));
+      typedef typename Value<TNeedle>::Type TKeyword;
+      typedef typename Value<TKeyword>::Type TAlphabet;
+      
+      LOG_INFO << "AC with " << int(max_ambAA) << " ambiguous AAs!" << std::endl;
+
+      for (TSize i = 0; i < length(ndl); ++i)
+      {
+        if (length(ndl[i]) > numeric_limits<KeyWordLengthType>::max())
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT be longer than 255 chars!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
+        }
+        for (TSize j = 0; j < length(ndl[i]); ++j)
+        {
+          if (isAmbiguous(ndl[i][j]))
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT contain ambiguous amino acids ('B'/'Z'/'X')! Note: unknown AAs (e.g. 'U') will be converted to 'X' implicitly!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
+          }
         }
       }
       setHost(*this, ndl);
@@ -374,6 +390,7 @@ namespace seqan
   {
 	  DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
     typedef typename Size<AminoAcid>::Type TSize;
+    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     TSize idxFirst, idxLast;
     c = _getSpawnRange(idxFirst, idxLast, c);
     for (TSize i = idxFirst; i <= idxLast; ++i)
@@ -383,9 +400,9 @@ namespace seqan
       if (_consumeChar(me, node_spawn, AminoAcid(i), Tag<FixedAASpec>()))
       {
 		    DEBUG_ONLY std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
-        const __uint8 node_depth = getProperty(me.data_nodeDepths, node_spawn); // depth at which the AA was consumed!
+        const KeyWordLengthType node_depth = getProperty(me.data_nodeDepths, node_spawn); // depth at which the AA was consumed!
         // push_front is paramount, since we might iterate over old spawns at this very moment
-        me.spawns.push_front(Spawn<TNeedle>(node_spawn, node_depth, me.ambAA_positions.size()));
+        me.spawns.push_front(Spawn<TNeedle>(node_spawn, node_depth, (KeyWordLengthType)me.ambAA_positions.size()));
       }
     }
     return c;
@@ -398,6 +415,7 @@ namespace seqan
   {
 	  DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
     typedef typename Size<AminoAcid>::Type TSize;
+    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     TSize idxFirst, idxLast;
     c = _getSpawnRange(idxFirst, idxLast, c);
     for (TSize i = idxFirst; i <= idxLast; ++i)
@@ -406,7 +424,7 @@ namespace seqan
       if (_consumeChar(me, spawn, AminoAcid(i), Tag<FixedAASpec>()))
       {
 		    DEBUG_ONLY std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
-        //__uint8 node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
+        //KeyWordLengthType node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
         // Spawns of Spawns inherit the depths from their parents, since the master will also see this same AAA and spawn himself
         me.spawns.push_front(spawn);
       }
@@ -443,7 +461,8 @@ namespace seqan
     if (atRoot(me, spawn)) return false;
     Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, spawn.current_state);
     // check if spawn is allowed to loose that many chars in front
-    __uint8 depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
+    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
+    KeyWordLengthType depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
     if (spawn.max_DepthsDecrease <= depthDiff) {
       DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
       spawn.current_state = getRoot(me.data_graph); // reset to root -- indicating failure!
@@ -557,7 +576,8 @@ namespace seqan
     if ((!me.ambAA_positions.empty()) &&
         (me.ambAA_positions.size() >= me.max_ambAA))
     {
-      __uint8 cum_depth_diff(0);
+      typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
+      KeyWordLengthType cum_depth_diff(0);
       Pattern<TNeedle, AhoCorasickAmb>::TVert old_state = current_state;
       while ((me.ambAA_positions.front() < cum_depth_diff) &&
              (goUp(me, current_state)))
@@ -669,6 +689,7 @@ namespace seqan
     while (!atEnd(finder))
     {
       const AminoAcid c = *finder;
+      DEBUG_ONLY std::cout << "-- consuming " << c << " ---\n";
       // spawns; do them first, since we might add new spawns in main-thread & sub-spawns which are however settled at that point
       if (!me.spawns.empty()) {
         typename Pattern<TNeedle, AhoCorasickAmb>::SpawnIt it = me.spawns.begin();
