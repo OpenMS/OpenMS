@@ -439,9 +439,9 @@ DefaultParamHandler("PeptideIndexing")
 #pragma omp parallel
 #endif
       {
-        typedef typename seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmb> AC;
-        typedef typename AC::KeyWordLengthType KeyWordLengthType;
-        AC pattern(pep_DB, KeyWordLengthType(aaa_max_));
+        typedef typename seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmb> FuzzyAC;
+        typedef typename FuzzyAC::KeyWordLengthType KeyWordLengthType;
+        FuzzyAC pattern(pep_DB, KeyWordLengthType(aaa_max_));
         seqan::FoundProteinFunctor func_threads(enzyme);
         writeDebug_("Finding peptide/protein matches ...", 1);
 
@@ -523,12 +523,7 @@ DefaultParamHandler("PeptideIndexing")
              it_i != func.pep_to_prot[pep_idx].end(); ++it_i)
         {
           const String& accession = proteins[it_i->protein_index].identifier;
-          PeptideEvidence pe;
-          pe.setProteinAccession(accession);
-          pe.setStart(it_i->position);
-          pe.setEnd(it_i->position + (int)it2->getSequence().size() - 1);
-          pe.setAABefore(it_i->AABefore);
-          pe.setAAAfter(it_i->AAAfter);
+          PeptideEvidence pe(accession, it_i->position, it_i->position + (int)it2->getSequence().size() - 1, it_i->AABefore, it_i->AAAfter);
           it2->addPeptideEvidence(pe);
 
           runidx_to_protidx[run_idx].insert(it_i->protein_index); // fill protein hits
@@ -544,7 +539,6 @@ DefaultParamHandler("PeptideIndexing")
         ///
         bool matches_target(false);
         bool matches_decoy(false);
-
         set<String> protein_accessions = it2->extractProteinAccessions();
         for (set<String>::const_iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it)
         {

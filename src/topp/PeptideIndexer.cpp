@@ -49,9 +49,9 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_PeptideIndexer PeptideIndexer
+  @page TOPP_PeptideIndexer PeptideIndexer
 
-    @brief Refreshes the protein references for all peptide hits from an idXML file and adds target/decoy information.
+  @brief Refreshes the protein references for all peptide hits from an idXML file and adds target/decoy information.
 
 <CENTER>
     <table>
@@ -108,8 +108,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    Param temp = PeptideIndexing().getParameters();
-    registerFullParam_(temp);
+    registerFullParam_(PeptideIndexing().getParameters());
    }
 
   ExitCodes main_(int, const char**)
@@ -125,7 +124,7 @@ protected:
     Param param_pi = indexer.getParameters();
     param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
-	indexer.setLogType(this->log_type_);
+	  indexer.setLogType(this->log_type_);
     String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
     {
@@ -162,27 +161,27 @@ protected:
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
 	
-	//-------------------------------------------------------------
-	// calculate protein coverage
-	//-------------------------------------------------------------
+	  //-------------------------------------------------------------
+	  // calculate protein coverage
+	  //-------------------------------------------------------------
 
-	if (param.getValue("write_protein_sequence").toBool())
-	{
-		for (Size i = 0; i < prot_ids.size(); ++i)
-		{
-			prot_ids[i].computeCoverage(pep_ids);
-		}
-	}
-	//-------------------------------------------------------------
-	// writing output
-	//-------------------------------------------------------------
-	IdXMLFile().store(out, prot_ids, pep_ids);
+	  if (param.getValue("write_protein_sequence").toBool())
+	  {
+		  for (Size i = 0; i < prot_ids.size(); ++i)
+		  {
+			  prot_ids[i].computeCoverage(pep_ids);
+		  }
+	  }
+	  //-------------------------------------------------------------
+	  // writing output
+	  //-------------------------------------------------------------
+	  IdXMLFile().store(out, prot_ids, pep_ids);
 
-	//std::cin.get(); // press any key
-    if (   (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
-		|| (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+	  //std::cin.get(); // press any key
+    if ((indexer_exit == PeptideIndexing::DATABASE_EMPTY) ||
+	      (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
     {
-	  return INPUT_FILE_EMPTY;       
+	    return INPUT_FILE_EMPTY;       
     }
     else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
     {
