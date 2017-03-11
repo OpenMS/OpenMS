@@ -53,6 +53,15 @@ namespace OpenMS
   {
   }
 
+  PeptideEvidence::PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after)
+    : accession_(accession),
+      start_(start),
+      end_(end),
+      aa_before_(aa_before),
+      aa_after_(aa_after)
+  {
+  }
+
   PeptideEvidence::PeptideEvidence(const PeptideEvidence& rhs)
   {
     accession_ = rhs.accession_;
