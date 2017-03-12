@@ -95,6 +95,50 @@ namespace seqan
   };
 
   template <typename TNeedle>
+  struct PatternHelperData
+  {
+
+    PatternHelperData()
+    : data_endPositions(),
+      data_keywordIndex(0),
+      data_needleLength(0),
+      data_lastState(0), // a bit of cheating, but we know that root==0
+      spawns(),
+      ambAA_positions()
+    {}
+
+    void reset()
+    {
+      clear(data_endPositions);
+      data_keywordIndex = 0;
+      data_needleLength = 0;
+      data_lastState = 0; // a bit of cheating, but we know that root==0
+      spawns.clear();
+      ambAA_positions.clear();
+    }
+
+    typedef typename Size<TNeedle>::Type TSize;
+    typedef typename Value<TNeedle>::Type TKeyword;
+    typedef typename Value<TKeyword>::Type TAlphabet;
+    typedef Graph<Automaton<TAlphabet> > TGraph;
+    typedef typename VertexDescriptor<TGraph>::Type TVert;
+    typedef __uint8 KeyWordLengthType;
+
+    // "working" set; changes with every hit
+    String<TSize> data_endPositions;	// All remaining keyword indices
+    TSize data_keywordIndex;			// Current keyword that produced a hit
+    TSize data_needleLength;			// Last length of needle to reposition finder
+    TVert data_lastState;   // Last state of master instance in the trie
+    typedef typename std::list<Spawn<TNeedle> > Spawns;
+    typedef typename std::list<Spawn<TNeedle> >::iterator SpawnIt;
+    typedef typename std::list<Spawn<TNeedle> >::const_iterator SpawnCIt;
+    Spawns spawns;                      // spawn instances currently walking the tree
+    typedef typename std::list<KeyWordLengthType> AmbAAPositions;
+    typedef typename std::list<KeyWordLengthType>::iterator AmbAAPositionsIt;
+    AmbAAPositions ambAA_positions;    // indices of ambAA's relative to current path in trie; when going up, this list must be updated
+  };
+
+  template <typename TNeedle>
   class Pattern<TNeedle, AhoCorasickAmb> {
     //____________________________________________________________________________
   private:
@@ -115,24 +159,13 @@ namespace seqan
     const KeyWordLengthType max_ambAA;  // default: 3
                                         
     // "constant" data, after construction of trie
-	  Holder<TNeedle> data_host; // holds needles
+	  Holder<TNeedle> data_host;                    // holds needles
     String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
     TGraph data_graph;                            // regular trie data
-    String<TVert> data_supplyMap;     // trie suffix links
-    String<KeyWordLengthType> data_nodeDepths;              // depths of each graph node
+    String<TVert> data_supplyMap;                 // trie suffix links
+    String<KeyWordLengthType> data_nodeDepths;    // depths of each graph node
 
-    // "working" set; changes with every hit
-    String<TSize> data_endPositions;	// All remaining keyword indices
-    TSize data_keywordIndex;			// Current keyword that produced a hit
-    TSize data_needleLength;			// Last length of needle to reposition finder
-    TVert data_lastState;   // Last state of master instance in the trie
-    typedef typename std::list<Spawn<TNeedle> > Spawns;
-    typedef typename std::list<Spawn<TNeedle> >::iterator SpawnIt;
-    typedef typename std::list<Spawn<TNeedle> >::const_iterator SpawnCIt;
-    Spawns spawns;                      // spawn instances currently walking the tree
-    typedef typename std::list<KeyWordLengthType> AmbAAPositions;
-    typedef typename std::list<KeyWordLengthType>::iterator AmbAAPositionsIt;
-    AmbAAPositions ambAA_positions;    // indices of ambAA's relative to current path in trie; when going up, this list must be updated
+
 
     //____________________________________________________________________________
     Pattern() {}
@@ -299,11 +332,8 @@ namespace seqan
     setValue(me.data_host, needle);
     clear(me.data_graph);
     clear(me.data_supplyMap);
-    clear(me.data_endPositions);
     clear(me.data_terminalStateMap);
     _createAcTrie(me);
-    me.data_needleLength = 0;
-    me.spawns.clear();
 
     //fstream strm;
     //strm.open(TEST_PATH "my_trie.dot", ios_base::out | ios_base::trunc);
@@ -324,31 +354,22 @@ namespace seqan
     setHost(me, reinterpret_cast<TNeedle2 const &>(needle));
   }
   //____________________________________________________________________________
-  template <typename TNeedle>
-  inline void _patternInit(Pattern<TNeedle, AhoCorasickAmb> & me)
-  {
-    SEQAN_CHECKPOINT
-    clear(me.data_endPositions);
-    me.data_keywordIndex = 0;
-	  me.data_needleLength = 0;
-    me.data_lastState = getRoot(me.data_graph);
-	  me.spawns.clear();
-  }
+
   //____________________________________________________________________________
   template <typename TNeedle>
-  inline typename Size<TNeedle>::Type position(Pattern<TNeedle, AhoCorasickAmb> & me)
+  inline typename Size<TNeedle>::Type position(const PatternHelperData<TNeedle>& dh)
   {
-    return me.data_keywordIndex;
+    return dh.data_keywordIndex;
   }
 
   template <typename TFinder, typename TNeedle>
-  inline void _reportHit(TFinder & finder, Pattern<TNeedle, AhoCorasickAmb> & me) {
-    size_t idx_endPosVec = length(me.data_endPositions) - 1;
-    me.data_keywordIndex = me.data_endPositions[idx_endPosVec];
-    resize(me.data_endPositions, idx_endPosVec); // pop last hit
-    me.data_needleLength = length(value(host(me), me.data_keywordIndex)) - 1;
-    finder -= me.data_needleLength; // position finder at beginning of hit
-    _setFinderLength(finder, me.data_needleLength + 1);
+  inline void _reportHit(TFinder& finder, const Pattern<TNeedle, AhoCorasickAmb>& me, PatternHelperData<TNeedle>& dh) {
+    size_t idx_endPosVec = length(dh.data_endPositions) - 1;
+    dh.data_keywordIndex = dh.data_endPositions[idx_endPosVec];
+    resize(dh.data_endPositions, idx_endPosVec); // pop last hit
+    dh.data_needleLength = length(value(host(me), dh.data_keywordIndex)) - 1;
+    finder -= dh.data_needleLength; // position finder at beginning of hit
+    _setFinderLength(finder, dh.data_needleLength + 1);
     _setFinderEnd(finder, position(finder) + length(finder)); // end of match within haystack
     return;
   }
@@ -384,7 +405,8 @@ namespace seqan
   // returns false if it reached the 'root', true otherwise
   // This will only be called by the master itself, and at this point, we can surely add another ambAA (goUp() was called before)!
   template <typename TNeedle>
-  inline AminoAcid _createSpawns(Pattern<TNeedle, AhoCorasickAmb>& me,
+  inline AminoAcid _createSpawns(const Pattern<TNeedle, AhoCorasickAmb>& me,
+                                 PatternHelperData<TNeedle>& dh,
                                  typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current,
                                  AminoAcid c) // ALWAYS ambiguous!!!!
   {
@@ -396,20 +418,21 @@ namespace seqan
     for (TSize i = idxFirst; i <= idxLast; ++i)
     {
       typedef typename Pattern<TNeedle, AhoCorasickAmb>::TVert TVert;
-      TVert node_spawn = me.data_lastState; // a potential spawn
-      if (_consumeChar(me, node_spawn, AminoAcid(i), Tag<FixedAASpec>()))
+      TVert node_spawn = dh.data_lastState; // a potential spawn
+      if (_consumeChar(me, dh, node_spawn, AminoAcid(i), Tag<FixedAASpec>()))
       {
 		    DEBUG_ONLY std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
         const KeyWordLengthType node_depth = getProperty(me.data_nodeDepths, node_spawn); // depth at which the AA was consumed!
         // push_front is paramount, since we might iterate over old spawns at this very moment
-        me.spawns.push_front(Spawn<TNeedle>(node_spawn, node_depth, (KeyWordLengthType)me.ambAA_positions.size()));
+        dh.spawns.push_front(Spawn<TNeedle>(node_spawn, node_depth, (KeyWordLengthType)dh.ambAA_positions.size()));
       }
     }
     return c;
   }
   // returns false if it reached the 'root', true otherwise
   template <typename TNeedle>
-  inline AminoAcid _createSpawns(Pattern<TNeedle, AhoCorasickAmb>& me,
+  inline AminoAcid _createSpawns(const Pattern<TNeedle, AhoCorasickAmb>& me,
+                                 PatternHelperData<TNeedle>& dh,
                                  const Spawn<TNeedle>& current,
                                  AminoAcid c) // ALWAYS ambiguous!!!!
   {
@@ -421,24 +444,22 @@ namespace seqan
     for (TSize i = idxFirst; i <= idxLast; ++i)
     {
       Spawn<TNeedle> spawn = current; // a potential spawn
-      if (_consumeChar(me, spawn, AminoAcid(i), Tag<FixedAASpec>()))
+      if (_consumeChar(me, dh, spawn, AminoAcid(i), Tag<FixedAASpec>()))
       {
 		    DEBUG_ONLY std::cout << "Spawn '" << AminoAcid(i) << "' created\n";
         //KeyWordLengthType node_depth = getProperty(me.data_nodeDepths, spawn_state); // depth at which the AA was consumed!
         // Spawns of Spawns inherit the depths from their parents, since the master will also see this same AAA and spawn himself
-        me.spawns.push_front(spawn);
+        dh.spawns.push_front(spawn);
       }
     }
     return c;
   }
 
-
-
   struct IsAmbAASpec {};
   struct FixedAASpec {};
 
   /// ###  go down  ####
-  template<class TNeedle> inline bool goDown(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current, AminoAcid c)
+  template<class TNeedle> inline bool goDown(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current, AminoAcid c)
   { 
     Pattern<TNeedle, AhoCorasickAmb>::TVert successor = getSuccessor(me.data_graph, current, c);
     if (successor == me.nilVal) return false;
@@ -446,7 +467,7 @@ namespace seqan
     current = successor;
     return true;
   }
-  template<class TNeedle> inline bool goDown(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Spawn<TNeedle>& spawn, AminoAcid c)
+  template<class TNeedle> inline bool goDown(const Pattern<TNeedle, AhoCorasickAmb>& me, Spawn<TNeedle>& spawn, AminoAcid c)
   {
     Pattern<TNeedle, AhoCorasickAmb>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
     if (successor == me.nilVal) return false;
@@ -456,9 +477,9 @@ namespace seqan
   }
 
   /// ###  go up  ####
-  template<class TNeedle> inline bool goUp(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Spawn<TNeedle>& spawn)
+  template<class TNeedle> inline bool goUp(const Pattern<TNeedle, AhoCorasickAmb>& me, Spawn<TNeedle>& spawn)
   {
-    if (atRoot(me, spawn)) return false;
+    //if (atRoot(me, spawn)) return false; // cannot happen -- spawn would have died before
     Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, spawn.current_state);
     // check if spawn is allowed to loose that many chars in front
     typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
@@ -472,7 +493,7 @@ namespace seqan
     spawn.current_state = suffix_node; // no need to check for nilVal, since we cannot reach root (depths runs out before!)
     return true;
   }
-  template<class TNeedle> inline bool goUp(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
+  template<class TNeedle> inline bool goUp(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
   {
     if (atRoot(me, current_state)) return false;
     Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, current_state);
@@ -483,14 +504,14 @@ namespace seqan
     return false;
   }
 
-  template<class TNeedle> inline bool atRoot(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
-  template<class TNeedle> inline bool atRoot(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
+  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
+  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
   {
     DEBUG_ONLY std::cout << "master/test remains at root\n";
     return current_state == getRoot(me.data_graph);
   }
 
-  template<class TNeedle> inline void addHits(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Spawn<TNeedle>& spawn)
+  template<class TNeedle> inline void addHits(const Pattern<TNeedle, AhoCorasickAmb>& me, PatternHelperData<TNeedle>& dh, Spawn<TNeedle>& spawn)
   {
     typedef typename Size<TNeedle>::Type TSize;
     String<TSize> needle_hits = getProperty(me.data_terminalStateMap, spawn.current_state);
@@ -506,28 +527,29 @@ namespace seqan
         int hit_length = (int)length(value(host(me), needle_hits[i]));
         if (hit_length <= unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
         DEBUG_ONLY std::cout << "  spawn hit: #" << i << "\n"; // value(value(host(me), needle_hits[i]))
-        append(me.data_endPositions, needle_hits[i]); // append hits which still contain the AAA
+        append(dh.data_endPositions, needle_hits[i]); // append hits which still contain the AAA
       }
     }
   }
-  template<class TNeedle> inline void addHits(typename Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
+  template<class TNeedle> inline void addHits(const Pattern<TNeedle, AhoCorasickAmb>& me, PatternHelperData<TNeedle>& dh, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
   {
     typedef typename Size<TNeedle>::Type TSize;
     String<TSize> needle_hits = getProperty(me.data_terminalStateMap, current_state);
     if (length(needle_hits))
     {
       DEBUG_ONLY std::cout << "master/test hit total count: #" << length(needle_hits) << "\n";
-      append(me.data_endPositions, getProperty(me.data_terminalStateMap, current_state)); // indices into TNeedle!
+      append(dh.data_endPositions, getProperty(me.data_terminalStateMap, current_state)); // indices into TNeedle!
     }
   }
 
 
   // returns false if it reached the 'root', true otherwise
   template <typename TNeedle, typename TWalker>
-  inline bool _consumeChar(typename Pattern<TNeedle, AhoCorasickAmb>& me,
-                           typename TWalker& walker, // a MasterVertex or Spawn
+  inline bool _consumeChar(const Pattern<TNeedle, AhoCorasickAmb>& me,
+                           PatternHelperData<TNeedle>& dh,
+                           TWalker& walker, // a MasterVertex or Spawn
                            AminoAcid c,
-                           typename Tag<FixedAASpec> fixedAASpec)
+                           Tag<FixedAASpec> fixedAASpec)
   {
     // if we cannot go down, but up is possible:
     while ((!goDown(me, walker, c)) &&
@@ -539,7 +561,7 @@ namespace seqan
     }
     else // found a successor
     {
-      addHits(me, walker);
+      addHits(me, dh, walker);
       return true;
     }
   }
@@ -548,7 +570,8 @@ namespace seqan
   // This is called by Spawns only!
   // Returns false if it reached the 'root', true otherwise
   template <typename TNeedle>
-  inline bool _consumeChar(typename Pattern<TNeedle, AhoCorasickAmb>& me,
+  inline bool _consumeChar(const Pattern<TNeedle, AhoCorasickAmb>& me,
+                           PatternHelperData<TNeedle>& dh,
                            Spawn<TNeedle>& current,
                            AminoAcid c)
   {
@@ -557,29 +580,30 @@ namespace seqan
     {
       if (current.ambAA_seen >= me.max_ambAA) return false; // die -- do not even try to create sub-spawns
       else ++current.ambAA_seen; // increase ambAA count -- also for sub-Spawns which will follow from here...
-      c = _createSpawns(me, current, c); // ... and leave fixed AA for master spawn
-      return _consumeChar(me, current, c, Tag<FixedAASpec>());
+      c = _createSpawns(me, dh, current, c); // ... and leave fixed AA for master spawn
+      return _consumeChar(me, dh, current, c, Tag<FixedAASpec>());
     }
-    return _consumeChar(me, current, c, Tag<FixedAASpec>());
+    return _consumeChar(me, dh, current, c, Tag<FixedAASpec>());
   }
 
   // 
   // This is called by the MASTER thread only!
   // Returns false if it reached the 'root', true otherwise
   template <typename TNeedle>
-  inline bool _consumeChar(typename Pattern<TNeedle, AhoCorasickAmb>& me,
+  inline bool _consumeChar(const Pattern<TNeedle, AhoCorasickAmb>& me,
+                           PatternHelperData<TNeedle>& dh,
                            typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state,
                            AminoAcid c,
-                           typename Tag<IsAmbAASpec> isAmbAASpec)
+                           Tag<IsAmbAASpec> isAmbAASpec)
   {
     // if we reached the max# ambAA, we first need to go up, until the first ambAA goes out of scope
-    if ((!me.ambAA_positions.empty()) &&
-        (me.ambAA_positions.size() >= me.max_ambAA))
+    if ((!dh.ambAA_positions.empty()) &&
+        (dh.ambAA_positions.size() >= me.max_ambAA))
     {
       typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
       KeyWordLengthType cum_depth_diff(0);
       Pattern<TNeedle, AhoCorasickAmb>::TVert old_state = current_state;
-      while ((me.ambAA_positions.front() < cum_depth_diff) &&
+      while ((dh.ambAA_positions.front() < cum_depth_diff) &&
              (goUp(me, current_state)))
       {
         cum_depth_diff += getProperty(me.data_nodeDepths, old_state) - getProperty(me.data_nodeDepths, current_state);
@@ -587,17 +611,17 @@ namespace seqan
       }
       if (current_state == getRoot(me.data_graph))
       { // all the way to the top... reset all
-        me.ambAA_positions.clear();
+        dh.ambAA_positions.clear();
       }
       else
       { // update AA positions
-        me.ambAA_positions.pop_front(); // first hit is invalid in any case
-        typename Pattern<TNeedle, AhoCorasickAmb>::AmbAAPositionsIt it = me.ambAA_positions.begin();
-        while (it != me.ambAA_positions.end())
+        dh.ambAA_positions.pop_front(); // first hit is invalid in any case
+        typename PatternHelperData<TNeedle>::AmbAAPositionsIt it = dh.ambAA_positions.begin();
+        while (it != dh.ambAA_positions.end())
         {
           if ((*it) < cum_depth_diff) // this position is out of scope
           { // remove and advance
-            it = me.ambAA_positions.erase(it);
+            it = dh.ambAA_positions.erase(it);
           }
           else
           { // update
@@ -609,24 +633,25 @@ namespace seqan
     } // now, master can accept an ambAA again ...
     
     // then we add the current ambAA to the end
-    me.ambAA_positions.push_back(getProperty(me.data_nodeDepths, current_state));
+    dh.ambAA_positions.push_back(getProperty(me.data_nodeDepths, current_state));
 
-    c = _createSpawns(me, current_state, c); // ... and leave fixed AA for master thread
-    return _consumeChar(me, current_state, c, Tag<FixedAASpec>());
+    c = _createSpawns(me, dh, current_state, c); // ... and leave fixed AA for master thread
+    return _consumeChar(me, dh, current_state, c, Tag<FixedAASpec>());
   }
 
   // 
   // This is called by the master thread only!
   // returns false if it reached the 'root', true otherwise
   template <typename TNeedle>
-  inline bool _consumeChar(typename Pattern<TNeedle, AhoCorasickAmb>& me,
+  inline bool _consumeChar(const Pattern<TNeedle, AhoCorasickAmb>& me,
+                           PatternHelperData<TNeedle>& dh,
                            typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current,
                            AminoAcid c)
   {
     if (isAmbiguous(c)) 
-      return _consumeChar(me, current, c, Tag<IsAmbAASpec>());
+      return _consumeChar(me, dh, current, c, Tag<IsAmbAASpec>());
     else 
-      return _consumeChar(me, current, c, Tag<FixedAASpec>());
+      return _consumeChar(me, dh, current, c, Tag<FixedAASpec>());
   }
 
   template <typename T = void>
@@ -664,23 +689,18 @@ namespace seqan
   };
 
   template <typename TFinder, typename TNeedle>
-  inline bool find(TFinder & finder, Pattern<TNeedle, AhoCorasickAmb> & me) {
-    typedef typename Value<TNeedle>::Type TKeyword;
-    typedef typename Value<TKeyword>::Type TAlphabet;
-    typedef Graph<Automaton<TAlphabet> > TGraph;
-    typedef typename VertexDescriptor<TGraph>::Type TVert;
-
+  inline bool find(TFinder& finder, const Pattern<TNeedle, AhoCorasickAmb>& me, PatternHelperData<TNeedle>& dh)
+  {
     if (empty(finder))
     {
-      _patternInit(me);
       _finderSetNonEmpty(finder);
     }
     else
     {
-      finder += me.data_needleLength; // restore last consumed position in haystack
-      if (!empty(me.data_endPositions))
+      finder += dh.data_needleLength; // restore last consumed position in haystack
+      if (!empty(dh.data_endPositions))
       { // Process left-over hits
-        _reportHit(finder, me);
+        _reportHit(finder, me, dh);
         return true;
       }
       ++finder; // advance to next position
@@ -691,23 +711,23 @@ namespace seqan
       const AminoAcid c = *finder;
       DEBUG_ONLY std::cout << "-- consuming " << c << " ---\n";
       // spawns; do them first, since we might add new spawns in main-thread & sub-spawns which are however settled at that point
-      if (!me.spawns.empty()) {
-        typename Pattern<TNeedle, AhoCorasickAmb>::SpawnIt it = me.spawns.begin();
-        while (it != me.spawns.end())
+      if (!dh.spawns.empty()) {
+        typename PatternHelperData<TNeedle>::SpawnIt it = dh.spawns.begin();
+        while (it != dh.spawns.end())
         {
-          if (!_consumeChar(me, *it, c)) // might create new spawns
+          if (!_consumeChar(me, dh, *it, c)) // might create new spawns
           { // spawn reached root --> kill it
-            it = me.spawns.erase(it); // remove and advance
+            it = dh.spawns.erase(it); // remove and advance
           }
           else ++it; // next spawn
         }
       }
       // main thread
-      _consumeChar(me, me.data_lastState, c); // might create new spawns
+      _consumeChar(me, dh, dh.data_lastState, c); // might create new spawns
       
-      if (!empty(me.data_endPositions))
+      if (!empty(dh.data_endPositions))
       {
-        _reportHit(finder, me);
+        _reportHit(finder, me, dh);
         return true;
       }
 

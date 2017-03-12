@@ -435,14 +435,15 @@ DefaultParamHandler("PeptideIndexing")
       sw.start();
       SignedSize protDB_length = (SignedSize) length(prot_DB);
 		  this->startProgress(0, protDB_length, "Aho-Corasick");
+      typedef typename seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmb> FuzzyAC;
+      typedef typename FuzzyAC::KeyWordLengthType KeyWordLengthType;
+      const FuzzyAC pattern(pep_DB, KeyWordLengthType(aaa_max_));
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
       {
-        typedef typename seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmb> FuzzyAC;
-        typedef typename FuzzyAC::KeyWordLengthType KeyWordLengthType;
-        FuzzyAC pattern(pep_DB, KeyWordLengthType(aaa_max_));
         seqan::FoundProteinFunctor func_threads(enzyme);
+        seqan::PatternHelperData<seqan::StringSet<seqan::Peptide> > dh;
         writeDebug_("Finding peptide/protein matches ...", 1);
 
 #pragma omp for
@@ -451,11 +452,12 @@ DefaultParamHandler("PeptideIndexing")
         {
 			    IF_MASTERTHREAD this->setProgress(i);
           seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
-          while (find(finder, pattern))
+          dh.reset(); // clear hit data for finder
+          while (find(finder, pattern, dh))
           {
-            const seqan::Peptide& tmp_pep = pep_DB[position(pattern)];
+            const seqan::Peptide& tmp_pep = pep_DB[position(dh)];
             const seqan::Peptide& tmp_prot = prot_DB[i];
-            func_threads.addHit(position(pattern), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), (int)position(finder));
+            func_threads.addHit(position(dh), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), (int)position(finder));
           }
         }
 
