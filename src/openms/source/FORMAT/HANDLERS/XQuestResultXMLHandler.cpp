@@ -132,13 +132,13 @@ namespace OpenMS
     void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
     {
       String tag = XMLString::transcode(qname);
-
       if (tag == "spectrum_search")
       {
-          // Push back spectrum search vector and ensure that the hits are sorted by their rank within the vector
+          // Push back spectrum search vector
           size_t current_spectrum_size = this->current_spectrum_search.size();
           if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
           {
+           /* Currently does not work
             vector< PeptideIdentification > newvec(current_spectrum_size);
             for(vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
                 it != this->current_spectrum_search.end(); ++it)
@@ -153,10 +153,13 @@ namespace OpenMS
               newvec[index] = *it;
             }
             this->csms_.push_back(newvec);
-            if(this->cum_hits_ != NULL)
-            {
-              this->cum_hits_->push_back(this->n_hits_);\
-            }
+            */
+          this->csms_.push_back(this->current_spectrum_search);
+
+          if(this->cum_hits_ != NULL)
+          {
+            this->cum_hits_->push_back(this->n_hits_);\
+          }
         }
         this->current_spectrum_search.clear();
       }
@@ -169,7 +172,6 @@ namespace OpenMS
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
       String tag = XMLString::transcode(qname);
-
       // Extract meta information
       if (tag == "xquest_results")
       {

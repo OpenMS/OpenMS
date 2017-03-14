@@ -239,7 +239,7 @@ protected:
             current_score += TOPPXFDR::fpnum_score_step)
        {
            double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score) - 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
-           double n_targets = cum_histograms[targetclass]->binValue(current_score);
+           double n_targets = cum_histograms[targetclass]->binValue(current_score); // Problemetatic
            double summand = adjusted ? estimated_n_decoys : 0;
            fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets + summand) : 0);
        }
@@ -420,6 +420,7 @@ protected:
 
       size_t  pep_id_index = TOPPXFDR::n_rank - 1; // This is of course trash if more than 1 ranks are used.
 
+
       // Parse XQuestResultXMLFile (TODO Also support idXML and mzID)
       XQuestResultXMLFile xquest_result_file;
       xquest_result_file.load(arg_in_xquestxml, metas, spectra, false, 1); // We do not load 'empty' spectra here
@@ -459,7 +460,9 @@ protected:
           assert(n_hits > 0); // because we initially do not load 'empty' spectra
           // calculate n_min_ions_matched
           PeptideIdentification * pep_id1 = &spectra[i][0];
-          assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
+
+          // Currently the correct rank order in the xQuest result file is assumed
+          //assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
 
           vector<PeptideHit> pep_hits = pep_id1->getHits();
 
@@ -566,6 +569,7 @@ protected:
                                                                     TOPPXFDR::fpnum_score_step, true, true);
       }
 
+      //cout << cum_histograms[TOPPXFDR::xlclass_interlinks] << endl;
 
 
       // This is currently not needed for the FDR calculation
@@ -574,7 +578,6 @@ protected:
 
       //Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
       //this->target_xprophet(cum_histograms, target_counts);
-
 
       bool adjusted;
       if (arg_fdr_calc_method == "xprophet")
@@ -591,17 +594,17 @@ protected:
           return ILLEGAL_PARAMETERS;
       }
 
+      // Calculate FDR for interlinks
       vector< double > fdr_interlinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, adjusted);
+      // Calculate FDR for intralinks
       vector< double > fdr_intralinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, adjusted);
 
-      /*
-      for (vector< double>::const_iterator it = fdr_intralinks.begin(); it != fdr_intralinks.end(); ++it)
-      {
-         cout << *it << endl;
-      }
-      */
+
+
+
+
 
       // Delete Delta Scores
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
@@ -615,7 +618,6 @@ protected:
       {
         delete cum_histograms_it->second;
       }
-
 
       // Write the CSV output file if requested
       String arg_out_csvresults = getStringOption_(TOPPXFDR::param_out_csvresults);

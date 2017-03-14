@@ -70,7 +70,6 @@ namespace OpenMS
    {
      this->cum_hits_ = NULL;
    }
-
    Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_, min_n_ions_per_spectrum, load_to_peptideHit);
    this->parse_(filename, &handler);
   }
