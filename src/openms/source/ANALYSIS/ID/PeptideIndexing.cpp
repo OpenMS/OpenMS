@@ -121,32 +121,15 @@ public:
     {
     }
 
-    template <typename TIter1, typename TIter2>
-    void operator()(const TIter1& iter_pep, const TIter2& iter_prot)
+    void merge(const FoundProteinFunctor& other)
     {
-      // the peptide sequence (will not change)
-      const OpenMS::String tmp_pep(begin(representative(iter_pep)),
-                                   end(representative(iter_pep)));
-
-      // remember mapping of proteins to peptides and vice versa
-      const OpenMS::Size count_occ = countOccurrences(iter_pep);
-      for (OpenMS::Size i_pep = 0; i_pep < count_occ; ++i_pep)
-      {
-        const OpenMS::Size idx_pep = getOccurrences(iter_pep)[i_pep].i1;
-        const OpenMS::Size count_occ_prot = countOccurrences(iter_prot);
-        for (OpenMS::Size i_prot = 0; i_prot < count_occ_prot; ++i_prot)
-        {
-          const seqan::Pair<int> prot_occ = getOccurrences(iter_prot)[i_prot];
-          // the protein sequence (will change for every Occurrence -- hitting
-          // multiple proteins)
-          const OpenMS::String tmp_prot(
-            begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]),
-            end(indexText(container(iter_prot))[getSeqNo(prot_occ)]));
-          // check if hit is valid and add (if valid)
-          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot,
-                 getSeqOffset(prot_occ));
-        }
+      this->filter_passed += other.filter_passed;
+      this->filter_rejected += other.filter_rejected;
+      for (seqan::FoundProteinFunctor::MapType::const_iterator it = other.pep_to_prot.begin(); it != other.pep_to_prot.end(); ++it)
+      { // augment set
+        this->pep_to_prot[it->first].insert(other.pep_to_prot[it->first].begin(), other.pep_to_prot[it->first].end());
       }
+
     }
 
     void addHit(OpenMS::Size idx_pep,
@@ -171,47 +154,6 @@ public:
         //  << protein << " at position " << position << std::endl;
         ++filter_rejected;
       }
-    }
-
-    bool operator==(const FoundProteinFunctor& rhs) const
-    {
-      if (pep_to_prot.size() != rhs.pep_to_prot.size())
-      {
-        LOG_ERROR << "Size " << pep_to_prot.size() << " "
-                  << rhs.pep_to_prot.size() << std::endl;
-        return false;
-      }
-
-      MapType::const_iterator it1 = pep_to_prot.begin();
-      MapType::const_iterator it2 = rhs.pep_to_prot.begin();
-      while (it1 != pep_to_prot.end())
-      {
-        if (it1->first != it2->first)
-        {
-          LOG_ERROR << "Index of " << it1->first << " " << it2->first
-                    << std::endl;
-          return false;
-        }
-        if (it1->second.size() != it2->second.size())
-        {
-          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size()
-                    << "--" << it2->second.size() << std::endl;
-          return false;
-        }
-        if (!equal(it1->second.begin(), it1->second.end(), it2->second.begin()))
-        {
-          LOG_ERROR << "not equal set for " << it1->first << std::endl;
-          return false;
-        }
-        ++it1;
-        ++it2;
-      }
-      return true;
-    }
-
-    bool operator!=(const FoundProteinFunctor& rhs) const
-    {
-      return !(*this == rhs);
     }
 
   };
@@ -258,14 +200,12 @@ DefaultParamHandler("PeptideIndexing")
     defaults_.setValue("allow_unmatched", "false", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
     defaults_.setValidStrings("allow_unmatched", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("aaa_max", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are 'B', 'Z' and 'X'");
+    defaults_.setValue("aaa_max", 3, "[tolerant search only] Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are 'B', 'Z' and 'X'");
     defaults_.setMinInt("aaa_max", 0);
+    defaults_.setMaxInt("aaa_max", 10);
 
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
     defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("true,false"));
-
-    defaults_.setValue("log", "", "Name of log file (created only when specified)");
-    defaults_.setValue("debug", 0, "Sets the debug level");
 
     defaultsToParam_();
   }
@@ -291,6 +231,18 @@ DefaultParamHandler("PeptideIndexing")
     aaa_max_ = static_cast<Size>(param_.getValue("aaa_max"));
   }
 
+
+  /**
+
+   @brief Re-index peptide identifications honoring enzyme cutting rules, ambiguous amino acids and target/decoy hits.
+
+
+   @param proteins List of proteins from FASTA file. These might be modified (e.g. I -> L conversion), depending on settings
+   @param prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
+   @param pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
+   @return Exit status codes.
+  
+  */
   PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
   {
     //-------------------------------------------------------------
@@ -333,14 +285,30 @@ DefaultParamHandler("PeptideIndexing")
       /**
        BUILD Protein DB
       */
-      seqan::StringSet<seqan::Peptide> prot_DB;
       vector<String> duplicate_accessions;
       for (Size i = 0; i != proteins.size(); ++i)
       {
-        String seq = proteins[i].sequence.remove('*');
+        String& seq = proteins[i].sequence.remove('*'); // by Reference, i.e. work on protein-vector since we do not want to copy it (imagine 4GB FASTA files...)
+        if (seq.has('J')) // SeqAn does not know about 'J' and will convert it to 'X'... which will be a mismatch if max_AAA == 0
+        {
+          if (!IL_equivalent_)
+          {
+            LOG_WARN << "Protein '" << proteins[i].identifier << "' contains 'J' amino acid code(s). PeptideIndexer will convert them to 'I'."
+                     << " Since '-IL_equivalent' is not enabled, this might lead to missing matches!"
+                     << " Please either: (a) remove the proteins containing 'J' or (b) enable I/L equivalence!\n";
+            return ExitCodes::UNEXPECTED_RESULT;
+          }
+          seq.substitute('J', 'I');
+        }
         if (IL_equivalent_) // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
         {
           seq.substitute('L', 'I');
+        }
+        if (seq.has('U'))
+        {
+          //throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide contains invalid 'U' characters", seq);
+          LOG_WARN << "Found protein '" << proteins[i].identifier << "' with invalid 'U' character(s). PeptideIndexer cannot handle this at the moment! Replacing 'U' with 'X' as a workaround!\n";
+          seq.substitute('U', 'X');
         }
         String acc = proteins[i].identifier;
         // check for duplicate proteins
@@ -348,8 +316,8 @@ DefaultParamHandler("PeptideIndexing")
         {
           duplicate_accessions.push_back(acc);
           // check if sequence is identical
-          const seqan::Peptide& tmp_prot = prot_DB[acc_to_prot[acc]];
-          if (String(begin(tmp_prot), end(tmp_prot)) != seq)
+          const String& tmp_prot = proteins[acc_to_prot[acc]].sequence;
+          if (tmp_prot != seq)
           {
             LOG_ERROR << "Fatal error: Protein identifier '" << acc << "' found multiple times with different sequences" << (IL_equivalent_ ? " (I/L substituted)" : "") << ":\n"
                       << tmp_prot << "\nvs.\n" << seq << "\nPlease fix the database and run PeptideIndexer again." << std::endl;
@@ -363,11 +331,8 @@ DefaultParamHandler("PeptideIndexing")
         }
         else
         {
-          // extend protein DB
-          seqan::appendValue(prot_DB, seq.c_str());
           acc_to_prot[acc] = i;
         }
-
       }
       // make sure the warnings above are printed to screen
       if (!duplicate_accessions.empty())
@@ -376,7 +341,7 @@ DefaultParamHandler("PeptideIndexing")
               << "   - " << ListUtils::concatenate(duplicate_accessions, "\n   - ") << "\n" << endl;
       }
 
-      /**
+      /*
         BUILD Peptide DB
       */
       seqan::StringSet<seqan::Peptide> pep_DB;
@@ -386,28 +351,37 @@ DefaultParamHandler("PeptideIndexing")
         const vector<PeptideHit>& hits = it1->getHits();
         for (vector<PeptideHit>::const_iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
         {
-          String seq = it2->getSequence().toUnmodifiedString().remove('*');
+          //
+          // Warning:
+          // do not skip over peptides here, since the results are iterated in the same way
+          //
+          String seq = it2->getSequence().toUnmodifiedString().remove('*'); // make a copy, i.e. do NOT change the peptide sequence!
           if (IL_equivalent_) // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
           {
             seq.substitute('L', 'I');
           }
-          if (seq.has('U')) {
+          if (seq.has('U'))
+          {
             //throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide contains invalid 'U' characters", seq);
-            LOG_WARN << "Skipping peptide '" << seq << "' with invalid 'U' character(s)\n";
-            continue;
+            LOG_WARN << "Found peptide '" << seq << "' with invalid 'U' character(s). PeptideIndexer cannot handle this at the moment! Replacing 'U' with 'X' as a workaround!\n";
+            seq.substitute('U', 'X');
           }
-
           appendValue(pep_DB, seq.c_str());
         }
       }
       LOG_WARN << std::endl;
-      writeLog_(String("Mapping ") + length(pep_DB) + " peptides to " + length(prot_DB) + " proteins.");
+      LOG_INFO << "Mapping " << length(pep_DB) << " peptides to " << proteins.size() << " proteins." << std::endl;
+
+      if (length(pep_DB) == 0)
+      { // Aho-Corasick will crash if given empty needles as input
+        LOG_WARN << "Warning: Peptide identifications have no hits inside! Output will be empty as well." << std::endl;
+        return PEPTIDE_IDS_EMPTY;
+      }
 
       /** Aho Corasick (fast) */
-      StopWatch sw;
-      sw.start();
-      SignedSize protDB_length = (SignedSize) length(prot_DB);
-		  this->startProgress(0, protDB_length, "Aho-Corasick");
+      LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acids!" << std::endl;
+		  this->startProgress(0, proteins.size(), "Aho-Corasick");
+
       typedef typename seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasickAmb> FuzzyAC;
       typedef typename FuzzyAC::KeyWordLengthType KeyWordLengthType;
       const FuzzyAC pattern(pep_DB, KeyWordLengthType(aaa_max_));
@@ -417,20 +391,19 @@ DefaultParamHandler("PeptideIndexing")
       {
         seqan::FoundProteinFunctor func_threads(enzyme);
         seqan::PatternHelperData<seqan::StringSet<seqan::Peptide> > dh;
-        writeDebug_("Finding peptide/protein matches ...", 1);
 
 #pragma omp for
         // search all peptides in each protein
-        for (SignedSize i = 0; i < protDB_length; ++i)
+        for (SignedSize i = 0; i < (SignedSize)proteins.size(); ++i)
         {
-			    IF_MASTERTHREAD this->setProgress(i);
-          seqan::Finder<seqan::Peptide> finder(prot_DB[i]);
+          IF_MASTERTHREAD this->setProgress(i);
+          seqan::Peptide protein(proteins[i].sequence.c_str()); // let SeqAn convert the protein to its internal format.
+          seqan::Finder<seqan::Peptide> finder(protein);
           dh.reset(); // clear hit data for finder
           while (find(finder, pattern, dh))
           {
             const seqan::Peptide& tmp_pep = pep_DB[position(dh)];
-            const seqan::Peptide& tmp_prot = prot_DB[i];
-            func_threads.addHit(position(dh), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), (int)position(finder));
+            func_threads.addHit(position(dh), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(protein), end(protein)), (int)position(finder));
           }
         }
 
@@ -439,18 +412,13 @@ DefaultParamHandler("PeptideIndexing")
 #pragma omp critical(PeptideIndexer_joinAC)
 #endif
         {
-          func.filter_passed += func_threads.filter_passed;
-          func.filter_rejected += func_threads.filter_rejected;
-          for (seqan::FoundProteinFunctor::MapType::const_iterator it = func_threads.pep_to_prot.begin(); it != func_threads.pep_to_prot.end(); ++it)
-          {
-            func.pep_to_prot[it->first].insert(func_threads.pep_to_prot[it->first].begin(), func_threads.pep_to_prot[it->first].end());
-          }
-
+          func.merge(func_threads);
         } // OMP end critical
       } // OMP end parallel
-      sw.stop();
+    
+
 		  this->endProgress();
-      writeLog_(String("\nAho-Corasick done:\n  found ") + func.filter_passed + " hits for " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).");
+      LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
      
     } // end local scope
 
