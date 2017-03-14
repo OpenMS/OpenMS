@@ -778,6 +778,18 @@ protected:
     void writeDebug_(const String& text, const Param& param, UInt min_level) const;
     //@}
 
+    ///@name Temporary directories
+    //@{
+    /// Creates a unique temporary directory and returns its name
+    String makeTempDirectory_() const;
+
+    /**
+       @brief Removes a (temporary) directory
+
+       If @p keep_debug is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
+    */
+    void removeTempDirectory_(const String& dirname, Int keep_debug = 2) const;
+    //@}
 
     /**
       @name File IO checking methods

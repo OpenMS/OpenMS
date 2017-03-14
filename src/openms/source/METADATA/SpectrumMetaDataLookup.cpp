@@ -173,6 +173,7 @@ namespace OpenMS
           Size index = findByRegExpMatch_(spectrum_ref, it->str(), match);
           meta = metadata_[index];
         }
+        return; // use the first reference format that matches
       }
     }
   }

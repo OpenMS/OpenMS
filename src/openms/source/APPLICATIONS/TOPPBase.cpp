@@ -1253,13 +1253,16 @@ namespace OpenMS
     writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
 
     // if required or set by user, do some validity checks
-    if (p.required || (!getParam_(name).isEmpty() && tmp != p.default_value))
+    if (p.required || (!getParam_(name).isEmpty() && (tmp != p.default_value) &&
+                       !tmp.empty()))
     {
       // check if files are readable/writable
       if (p.type == ParameterInformation::INPUT_FILE)
       {
         if (!ListUtils::contains(p.tags, "skipexists"))
+        {
           inputFileReadable_(tmp, name);
+        }
       }
       else if (p.type == ParameterInformation::OUTPUT_FILE)
       {
@@ -1617,6 +1620,33 @@ namespace OpenMS
            << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
            << param
            << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
+    }
+  }
+
+  String TOPPBase::makeTempDirectory_() const
+  {
+    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
+    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
+    QDir d;
+    d.mkpath(temp_dir.toQString());
+    return temp_dir;
+  }
+
+  void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
+  {
+    if (temp_dir.empty()) return; // no temp. dir. created
+
+    if ((keep_debug > 0) && (debug_level_ >= keep_debug))
+    {
+      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or lower to remove them.", keep_debug);
+    }
+    else
+    {
+      if ((keep_debug > 0) && (debug_level_ > 0) && (debug_level_ < keep_debug))
+      {
+        writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or higher to keep it.", debug_level_);
+      }
+      File::removeDirRecursively(temp_dir);
     }
   }
 
