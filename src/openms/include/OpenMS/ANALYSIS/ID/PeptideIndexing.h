@@ -129,16 +129,6 @@ public:
 protected:
     virtual void updateMembers_();
 
-    void writeLog_(const String& text) const;
-
-    void writeDebug_(const String& text, const Size min_level) const;
-
-    /// Output stream for log/debug info
-    String log_file_;
-    mutable std::ofstream log_;
-    /// debug level
-    int debug_;
-
     String decoy_string_;
     bool prefix_;
     String missing_decoy_action_;
@@ -149,12 +139,9 @@ protected:
     bool write_protein_description_;
     bool keep_unreferenced_proteins_;
     bool allow_unmatched_;
-    bool full_tolerant_search_;
     bool IL_equivalent_;
 
     Size aaa_max_;
-    UInt mismatches_max_;
-    bool filter_aaa_proteins_;
 
   };
 }

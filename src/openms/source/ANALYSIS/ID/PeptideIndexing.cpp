@@ -274,22 +274,6 @@ DefaultParamHandler("PeptideIndexing")
   {
   }
 
-  void PeptideIndexing::writeLog_(const String& text) const
-  {
-    LOG_INFO << text << endl;
-    if (!log_file_.empty())
-    {
-      log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ": " << text << endl;
-    }
-  }
-
-  void PeptideIndexing::writeDebug_(const String& text, const Size min_level) const
-  {
-    if (debug_ >= min_level)
-    {
-      writeLog_(text);
-    }
-  }
 
   void PeptideIndexing::updateMembers_()
   {
@@ -304,11 +288,7 @@ DefaultParamHandler("PeptideIndexing")
     keep_unreferenced_proteins_ = param_.getValue("keep_unreferenced_proteins").toBool();
     allow_unmatched_ = param_.getValue("allow_unmatched").toBool();
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
-
     aaa_max_ = static_cast<Size>(param_.getValue("aaa_max"));
-    
-    log_file_ = param_.getValue("log");
-    debug_ = static_cast<Int>(param_.getValue("debug"));
   }
 
   PeptideIndexing::ExitCodes PeptideIndexing::run(vector<FASTAFile::FASTAEntry>& proteins, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
@@ -319,11 +299,6 @@ DefaultParamHandler("PeptideIndexing")
     EnzymaticDigestion enzyme;
     enzyme.setEnzyme(enzyme_name_);
     enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
-
-    if (!log_file_.empty())
-    {
-      log_.open(log_file_.c_str());
-    }
 
     //-------------------------------------------------------------
     // calculations
@@ -349,8 +324,6 @@ DefaultParamHandler("PeptideIndexing")
       }
       return PEPTIDE_IDS_EMPTY;
     }
-
-    writeDebug_("Collecting peptides...", 1);
 
     seqan::FoundProteinFunctor func(enzyme); // stores the matches (need to survive local scope which follows)
     Map<String, Size> acc_to_prot; // build map: accessions to FASTA protein index
@@ -486,8 +459,6 @@ DefaultParamHandler("PeptideIndexing")
              << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
 
     /* do mapping */
-    writeDebug_("Reindexing peptide/protein matches...", 1);
-
     /// index existing proteins
     Map<String, Size> runid_to_runidx; // identifier to index
     for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
@@ -710,8 +681,6 @@ DefaultParamHandler("PeptideIndexing")
     LOG_INFO << "  new proteins: " << stats_new_proteins << "\n";
     LOG_INFO << "  orphaned proteins: " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)") << "\n";
 
-    writeDebug_("Reindexing finished!", 1);
-
     if ((!allow_unmatched_) && (stats_unmatched > 0))
     {
       LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
@@ -726,11 +695,6 @@ DefaultParamHandler("PeptideIndexing")
 
       LOG_WARN << "Result files will be written, but PeptideIndexer will exit with an error code." << std::endl;
       return UNEXPECTED_RESULT;
-    }
-
-    if (!log_file_.empty())
-    {
-      log_.close();
     }
 
     return EXECUTION_OK;

@@ -148,12 +148,19 @@ protected:
 
     // we stream the Fasta file
     std::vector<FASTAFile::FASTAEntry> proteins;
-    FASTAFile().load(db_name, proteins);
+    
+    LOG_INFO << "Loading FASTA ..." << std::endl;
+    FASTAFile fa;
+    fa.load(db_name, proteins);
+    LOG_INFO << "done" << std::endl;
 
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids;
 
-    IdXMLFile().load(in, prot_ids, pep_ids);
+    IdXMLFile fi;
+    LOG_INFO << "Loading idXML ..." << std::endl;
+    fi.load(in, prot_ids, pep_ids);
+    LOG_INFO << "done" << std::endl;
 
     //-------------------------------------------------------------
     // calculations
@@ -175,7 +182,9 @@ protected:
 	  //-------------------------------------------------------------
 	  // writing output
 	  //-------------------------------------------------------------
-	  IdXMLFile().store(out, prot_ids, pep_ids);
+    LOG_INFO << "Storing idXML ..." << std::endl;
+    IdXMLFile().store(out, prot_ids, pep_ids);
+    LOG_INFO << "done" << std::endl;
 
 	  //std::cin.get(); // press any key
     if ((indexer_exit == PeptideIndexing::DATABASE_EMPTY) ||
