@@ -426,9 +426,10 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   HiddenMarkovModel_test
+  HyperScore_test
   IDMapper_test
-  IDRipper_test
   ILPDCWrapper_test
+  IDRipper_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test
   IsobaricChannelExtractor_test
@@ -439,17 +440,14 @@ set(analysis_executables_list
   IsobaricQuantifierStatistics_test
   ItraqChannelExtractor_test
   ItraqConstants_test
-  ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
-  TMTSixPlexQuantitationMethod_test
-  TMTTenPlexQuantitationMethod_test
+  ItraqFourPlexQuantitationMethod_test
   ItraqQuantifier_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
-  MRMFragmentSelection_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
@@ -462,11 +460,11 @@ set(analysis_executables_list
   MassDecomposition_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
+  MRMFragmentSelection_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
   PeakIntensityPredictor_test
-  PScore_test
-  HyperScore_test
+	PeptideIndexing_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorIonSelectionPreprocessing_test
@@ -474,6 +472,7 @@ set(analysis_executables_list
   ProteinInference_test
   ProtonDistributionModel_test
   ProteinResolver_test
+  PScore_test
   PSLPFormulation_test
   PSProteinInference_test
   QTClusterFinder_test
@@ -485,12 +484,14 @@ set(analysis_executables_list
   SimpleSVM_test
   StablePairFinder_test
   #TargetedExperimentHelper_test
+  TMTSixPlexQuantitationMethod_test
+  TMTTenPlexQuantitationMethod_test
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test
-  TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
+  TransformationModelLowess_test
 )
 
 set(applications_executables_list
