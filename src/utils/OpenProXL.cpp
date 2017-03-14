@@ -655,7 +655,8 @@ protected:
 
     // search for the first mass greater than the maximim, use everything before that peptide
     vector<OpenProXLUtils::PeptideMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass);
-    peptide_masses.assign(peptide_masses.begin(), last);
+	vector<OpenProXLUtils::PeptideMass> filtered_peptide_masses;
+	filtered_peptide_masses.assign(peptide_masses.begin(), last);
 
     vector<OpenProXLUtils::XLPrecursor> enumerated_cross_link_masses;
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
