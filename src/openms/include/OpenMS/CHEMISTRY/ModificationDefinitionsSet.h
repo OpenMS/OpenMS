@@ -159,7 +159,7 @@ public:
        @param consider_variable Consider the variable modifications?
        @param consider_fixed Consider the fixed modifications?
        @param is_delta Is @p mass a delta mass (mass difference)?
-       @param tolerance Numeric tolerance for mass matching
+       @param tolerance Numeric tolerance (in Da) for mass matching
 
        @throw Exception::IllegalArgument if both @p consider_variable and @p consider_fixed are false
     */

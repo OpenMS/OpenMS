@@ -786,7 +786,7 @@ protected:
     /**
        @brief Removes a (temporary) directory
 
-       If 'keep_debug' is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
+       If @p keep_debug is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
     */
     void removeTempDirectory_(const String& dirname, Int keep_debug = 2) const;
     //@}
