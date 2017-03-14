@@ -1001,7 +1001,7 @@ namespace OpenMS
   {
     if (!s1.isSorted() || !s2.isSorted())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
+		throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
     }
 
     // clear result

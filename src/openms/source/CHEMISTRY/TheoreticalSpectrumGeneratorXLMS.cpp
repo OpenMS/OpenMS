@@ -203,8 +203,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = x_intensity_; break;
+	  case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
+	  case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
@@ -364,8 +364,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
     {
       case Residue::AIon: intensity = a_intensity_; break;
       case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 1); intensity = x_intensity_; break;
+	  case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
+	  case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
       case Residue::YIon: intensity = y_intensity_; break;
       case Residue::ZIon: intensity = z_intensity_; break;
       default: break;
