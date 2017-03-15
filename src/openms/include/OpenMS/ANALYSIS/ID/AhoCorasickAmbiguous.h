@@ -187,13 +187,13 @@ namespace seqan
       {
         if (length(ndl[i]) > std::numeric_limits<KeyWordLengthType>::max())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT be longer than 255 chars!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
+          throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT be longer than 255 chars!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
         }
         for (TSize j = 0; j < length(ndl[i]); ++j)
         {
           if (isAmbiguous(ndl[i][j])) // this check is important -- find() code below relies on no ambiguous chars being present!
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT contain ambiguous amino acids ('B'/'Z'/'X')! Note: unknown AAs (e.g. 'U') will be converted to 'X' implicitly!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
+            throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT contain ambiguous amino acids ('B'/'Z'/'X')! Note: unknown AAs (e.g. 'U') will be converted to 'X' implicitly!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
           }
         }
       }
@@ -514,7 +514,7 @@ namespace seqan
     return false;
   }
 
-  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
+  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
   template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
   {
     DEBUG_ONLY std::cout << "master/test remains at root\n";

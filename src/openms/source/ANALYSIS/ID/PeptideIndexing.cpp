@@ -296,7 +296,7 @@ DefaultParamHandler("PeptideIndexing")
             LOG_WARN << "Protein '" << proteins[i].identifier << "' contains 'J' amino acid code(s). PeptideIndexer will convert them to 'I'."
                      << " Since '-IL_equivalent' is not enabled, this might lead to missing matches!"
                      << " Please either: (a) remove the proteins containing 'J' or (b) enable I/L equivalence!\n";
-            return ExitCodes::UNEXPECTED_RESULT;
+            return UNEXPECTED_RESULT;
           }
           seq.substitute('J', 'I');
         }
@@ -338,7 +338,7 @@ DefaultParamHandler("PeptideIndexing")
       if (!duplicate_accessions.empty())
       {
         LOG_WARN << "Warning! For the following protein identifiers, duplicate entries were found in the sequence database:\n"
-              << "   - " << ListUtils::concatenate(duplicate_accessions, "\n   - ") << "\n" << endl;
+                 << "   - " << ListUtils::concatenate(duplicate_accessions, "\n   - ") << "\n" << endl;
       }
 
       /*
