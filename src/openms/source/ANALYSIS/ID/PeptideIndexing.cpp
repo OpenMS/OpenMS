@@ -147,11 +147,12 @@ public:
         match.AAAfter = (position + seq_pep.length() >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + seq_pep.length()];
         pep_to_prot[idx_pep].insert(match);
         ++filter_passed;
+        DEBUG_ONLY std::cerr << "Hit: " << seq_pep << " with hit to protein " << seq_prot << " at position " << position << std::endl;
       }
       else
       {
         //std::cerr << "REJECTED Peptide " << seq_pep << " with hit to protein "
-        //  << protein << " at position " << position << std::endl;
+        //  << seq_prot << " at position " << position << std::endl;
         ++filter_rejected;
       }
     }
