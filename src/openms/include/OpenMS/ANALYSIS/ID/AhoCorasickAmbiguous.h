@@ -38,6 +38,7 @@
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #ifdef NDEBUG
 #define DEBUG_ONLY if (false)
@@ -532,7 +533,7 @@ namespace seqan
       DEBUG_ONLY std::cout << "  spawn adding hits which are more than '" << unambiguous_suffix_length << "' chars long (thus contain the AAA).\n";
 
       // but only report those which contain the AAA
-      for (int i = 0; i < length(needle_hits); ++i)
+      for (int i = 0; i < (int)length(needle_hits); ++i)
       {
         int hit_length = (int)length(value(host(me), needle_hits[i]));
         if (hit_length <= unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
@@ -565,7 +566,7 @@ namespace seqan
                            PatternHelperData<TNeedle>& dh,
                            TWalker& walker, // a MasterVertex or Spawn
                            AminoAcid c,
-                           Tag<FixedAASpec> fixedAASpec)
+                           Tag<FixedAASpec> /*fixedAASpec*/)
   {
     // if we cannot go down, but up is possible:
     while ((!goDown(me, walker, c)) &&
