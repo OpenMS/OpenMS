@@ -375,7 +375,7 @@ namespace OpenMS
       {
         // alpha fragmentation
         double mono_weight(Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass + peptideB_mass);
-        if (xlink_pos_A == peptideA.size()+1 && peptideA.hasCTerminalModification())
+        if (xlink_pos_A == static_cast<SignedSize>(peptideA.size()+1) && peptideA.hasCTerminalModification())
         {
           mono_weight += peptideA.getCTerminalModification()->getDiffMonoMass();
         }
@@ -408,7 +408,7 @@ namespace OpenMS
 
         // beta fragmentation
         mono_weight = Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass + peptideA_mass;
-        if (xlink_pos_B == peptideB.size()+1 && peptideB.hasCTerminalModification())
+		if (xlink_pos_B == static_cast<SignedSize>(peptideB.size() + 1) && peptideB.hasCTerminalModification())
         {
           mono_weight += peptideB.getCTerminalModification()->getDiffMonoMass();
         }
@@ -602,7 +602,7 @@ namespace OpenMS
       if ((!add_isotopes_) || max_isotope_ < 3) // add single peaks (and maybe a second isotopic peak)
       {
         double mono_weight(Constants::PROTON_MASS_U * charge + cross_link.cross_linker_mass);
-        if (xlink_pos_B == peptideA.size()+1 && peptideA.hasCTerminalModification())
+		if (xlink_pos_B == static_cast<SignedSize>(peptideA.size() + 1) && peptideA.hasCTerminalModification())
         {
           mono_weight += peptideA.getCTerminalModification()->getDiffMonoMass();
         }
@@ -844,7 +844,7 @@ namespace OpenMS
         {
           mono_weight += peptide.getPrefix(i).getMonoWeight(Residue::Internal);
         }
-        for (; i < xlink_pos_A; ++i)
+		for (; static_cast<SignedSize>(i) < xlink_pos_A; ++i)
         {
           mono_weight += peptide[i].getMonoWeight(Residue::Internal);
           double pos(mono_weight);
@@ -866,7 +866,7 @@ namespace OpenMS
       else // add isotope clusters (slow)
       {
         Size i = add_first_prefix_ion_ ? 1 : 2;
-        for (; i < xlink_pos_A + 1; ++i)
+		for (; static_cast<SignedSize>(i) < xlink_pos_A + 1; ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
           addIsotopeCluster_(spectrum, ion, AASequence::fromString(""), 0.0, res_type, charge, intensity, ion_type);
@@ -898,7 +898,7 @@ namespace OpenMS
         {
           mono_weight += peptide.getSuffix(i).getMonoWeight(Residue::Internal);
         }
-        for (Size k = peptide.size() - i - 1; k > xlink_pos_B; --k)
+		for (Size k = peptide.size() - i - 1; static_cast<SignedSize>(k) > xlink_pos_B; --k)
         {
           i++;
           mono_weight += peptide[k].getMonoWeight(Residue::Internal);
