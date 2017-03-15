@@ -17,9 +17,9 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         StringDataArray(StringDataArray) nogil except + #wrap-ignore
 
         Size size() nogil except +
-        float operator[](int) nogil except +
+        String& operator[](int) nogil except + # wrap-ignore
         void clear() nogil except +
-        void push_back(float) nogil except +
+        void push_back(String) nogil except +
 
         void getKeys(libcpp_vector[String] & keys) nogil except +
         void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
