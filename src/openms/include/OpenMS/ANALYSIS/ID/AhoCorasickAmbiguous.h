@@ -37,6 +37,7 @@
 #define SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUS_H
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #ifdef NDEBUG
 #define DEBUG_ONLY if (false)
@@ -174,7 +175,6 @@ namespace seqan
       The vector @p nld must not be empty!
 
     */
-    template <typename TNeedle>
     Pattern(TNeedle const& ndl, KeyWordLengthType max_AAA = 3)
       : nilVal(getNil<TVert>()),
         max_ambAA(max_AAA)
@@ -185,7 +185,7 @@ namespace seqan
       
       for (TSize i = 0; i < length(ndl); ++i)
       {
-        if (length(ndl[i]) > numeric_limits<KeyWordLengthType>::max())
+        if (length(ndl[i]) > std::numeric_limits<KeyWordLengthType>::max())
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, "Pattern<AhoCorasickAmb>(PeptideSet)", std::string("Input peptide to AhoCorasickAmb must NOT be longer than 255 chars!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
         }
@@ -386,6 +386,10 @@ namespace seqan
     return ((1 << ordValue(c)) & anyAA);
   }
 
+
+  struct IsAmbAASpec {};
+  struct FixedAASpec {};
+
   /**
    @brief given an ambAA @p c, return a range of AA's which need to be spawned and an extra AA which is meant for the master thread.
   */
@@ -413,7 +417,7 @@ namespace seqan
   {
 	  DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
     typedef typename Size<AminoAcid>::Type TSize;
-    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
+    typedef typename Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     TSize idxFirst, idxLast;
     c = _getSpawnRange(idxFirst, idxLast, c);
     for (TSize i = idxFirst; i <= idxLast; ++i)
@@ -427,7 +431,7 @@ namespace seqan
         const KeyWordLengthType removed_prefix_len = getProperty(me.data_nodeDepths, dh.data_lastState) - (node_depth - 1); // level ups before consuming (must be positive): 0..N
         DEBUG_ONLY std::cout << "  Spawn removed_prefix_len: " << int(removed_prefix_len) << "\n";
         KeyWordLengthType ambAA_seen(1); // spawn has seen 1 ambAA (this one), plus whatever was on the Master-path minus 'depth_diff'
-        for (PatternHelperData<TNeedle>::AmbAAPositions::reverse_iterator it = dh.ambAA_positions.rbegin(); it != dh.ambAA_positions.rend(); ++it)
+        for (typename PatternHelperData<TNeedle>::AmbAAPositions::reverse_iterator it = dh.ambAA_positions.rbegin(); it != dh.ambAA_positions.rend(); ++it)
         { // start at end (biggest position), since ambAA_positions is increasing. Stop when prefix was cut.
           if ((*it) > removed_prefix_len) ++ambAA_seen;
           else break; 
@@ -448,7 +452,7 @@ namespace seqan
   {
 	  DEBUG_ONLY std::cout << "trying to spawn on AAA: " << c << "\n";
     typedef typename Size<AminoAcid>::Type TSize;
-    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
+    typedef typename Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     TSize idxFirst, idxLast;
     c = _getSpawnRange(idxFirst, idxLast, c);
     for (TSize i = idxFirst; i <= idxLast; ++i)
@@ -464,13 +468,10 @@ namespace seqan
     return c;
   }
 
-  struct IsAmbAASpec {};
-  struct FixedAASpec {};
-
   /// ###  go down  ####
   template<class TNeedle> inline bool goDown(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current, AminoAcid c)
   { 
-    Pattern<TNeedle, AhoCorasickAmb>::TVert successor = getSuccessor(me.data_graph, current, c);
+    typename Pattern<TNeedle, AhoCorasickAmb>::TVert successor = getSuccessor(me.data_graph, current, c);
     if (successor == me.nilVal) return false;
     DEBUG_ONLY std::cout << "master/test matched '" << c << "'\n";
     current = successor;
@@ -478,7 +479,7 @@ namespace seqan
   }
   template<class TNeedle> inline bool goDown(const Pattern<TNeedle, AhoCorasickAmb>& me, Spawn<TNeedle>& spawn, AminoAcid c)
   {
-    Pattern<TNeedle, AhoCorasickAmb>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
+    typename Pattern<TNeedle, AhoCorasickAmb>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
     if (successor == me.nilVal) return false;
     DEBUG_ONLY std::cout << "spawn matched '" << c << "' AA-seen: " << int(spawn.ambAA_seen) << "\n";
     spawn.current_state = successor;
@@ -489,9 +490,9 @@ namespace seqan
   template<class TNeedle> inline bool goUp(const Pattern<TNeedle, AhoCorasickAmb>& me, Spawn<TNeedle>& spawn)
   {
     //if (atRoot(me, spawn)) return false; // cannot happen -- spawn would have died before
-    const Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, spawn.current_state);
+    const typename Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, spawn.current_state);
     // check if spawn is allowed to loose that many chars in front
-    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
+    typedef typename Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     const KeyWordLengthType depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
     if (spawn.max_depth_decrease <= depthDiff) {
       DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
@@ -505,7 +506,7 @@ namespace seqan
   template<class TNeedle> inline bool goUp(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
   {
     if (atRoot(me, current_state)) return false;
-    Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, current_state);
+    typename Pattern<TNeedle, AhoCorasickAmb>::TVert suffix_node = getProperty(me.data_supplyMap, current_state);
     if (suffix_node != me.nilVal) {
       current_state = suffix_node;
       return true;
@@ -611,8 +612,8 @@ namespace seqan
                            typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state,
                            AminoAcid c)
   {
-    Pattern<TNeedle, AhoCorasickAmb>::TVert old_state;
-    typedef Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
+    typename Pattern<TNeedle, AhoCorasickAmb>::TVert old_state;
+    typedef typename Pattern<TNeedle, AhoCorasickAmb>::KeyWordLengthType KeyWordLengthType;
     KeyWordLengthType cum_depth_diff(0);
     bool was_ambAA = isAmbiguous(c); // remember status, since we change 'c' and cannot query its ambiguity afterwards
     if (was_ambAA && (me.max_ambAA > 0)) // if max_ambAA==0, 'c' in {X,B,Z} will not be found in the trie using exact matching (since we forbid in needles), thus will topple back to root automatically, which is exactly what we want
