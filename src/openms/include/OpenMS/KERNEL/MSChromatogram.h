@@ -243,6 +243,12 @@ public:
       return float_data_arrays_;
     }
 
+    /// Sets the float meta data arrays
+    inline void setFloatDataArrays(const FloatDataArrays& fda)
+    {
+      float_data_arrays_ = fda;
+    }
+
     /// Returns a const reference to the string meta data arrays
     inline const StringDataArrays& getStringDataArrays() const
     {
@@ -255,6 +261,12 @@ public:
       return string_data_arrays_;
     }
 
+    /// Sets the string meta data arrays
+    inline void setStringDataArrays(const StringDataArrays& sda)
+    {
+      string_data_arrays_ = sda;
+    }
+
     /// Returns a const reference to the integer meta data arrays
     inline const IntegerDataArrays& getIntegerDataArrays() const
     {
@@ -265,6 +277,12 @@ public:
     inline IntegerDataArrays& getIntegerDataArrays()
     {
       return integer_data_arrays_;
+    }
+
+    /// Sets the integer meta data arrays
+    inline void setIntegerDataArrays(const IntegerDataArrays& ida)
+    {
+      integer_data_arrays_ = ida;
     }
 
     ///@}
