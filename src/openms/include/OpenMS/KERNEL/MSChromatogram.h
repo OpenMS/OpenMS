@@ -40,7 +40,7 @@
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
-
+#include <OpenMS/METADATA/DataArrays.h>
 
 namespace OpenMS
 {
@@ -56,24 +56,6 @@ namespace OpenMS
   {
 
 public:
-
-    /// Float data array class
-    class FloatDataArray :
-      public MetaInfoDescription,
-      public std::vector<float>
-    {};
-
-    /// String data array class
-    class StringDataArray :
-      public MetaInfoDescription,
-      public std::vector<String>
-    {};
-
-    /// Float data array class
-    class IntegerDataArray :
-      public MetaInfoDescription,
-      public std::vector<Int>
-    {};
 
     /// Comparator for the retention time.
     struct MZLess :
@@ -95,10 +77,13 @@ public:
     /// Chromatogram base type
     typedef std::vector<PeakType> ContainerType;
     /// Float data array vector type
+    typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
     /// String data array vector type
+    typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
     typedef std::vector<StringDataArray> StringDataArrays;
     /// Integer data array vector type
+    typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
     typedef std::vector<IntegerDataArray> IntegerDataArrays;
     //@}
 
