@@ -427,19 +427,29 @@ namespace seqan
       TVert node_spawn = dh.data_lastState; // a potential spawn
       if (_consumeChar(me, dh, node_spawn, AminoAcid(i), Tag<FixedAASpec>()))
       {
-        const KeyWordLengthType node_depth = getProperty(me.data_nodeDepths, node_spawn); // depth at which the AA was consumed!
+        KeyWordLengthType node_depth = getProperty(me.data_nodeDepths, node_spawn); // depth at which the AA was consumed!
         // count how many ambAA positions from Master were skipped while going up
         const KeyWordLengthType removed_prefix_len = getProperty(me.data_nodeDepths, dh.data_lastState) - (node_depth - 1); // level ups before consuming (must be positive): 0..N
         DEBUG_ONLY std::cout << "  Spawn removed_prefix_len: " << int(removed_prefix_len) << "\n";
-        KeyWordLengthType ambAA_seen(1); // spawn has seen 1 ambAA (this one), plus whatever was on the Master-path minus 'depth_diff'
-        for (typename PatternHelperData<TNeedle>::AmbAAPositions::reverse_iterator it = dh.ambAA_positions.rbegin(); it != dh.ambAA_positions.rend(); ++it)
-        { // start at end (biggest position), since ambAA_positions is increasing. Stop when prefix was cut.
+        KeyWordLengthType ambAA_seen(1); // spawn has seen 1 ambAA (this one), plus whatever was on the Master-path minus 'removed_prefix_len'
+        typename PatternHelperData<TNeedle>::AmbAAPositions::reverse_iterator it = dh.ambAA_positions.rbegin();
+        for (; it != dh.ambAA_positions.rend(); ++it)
+        { // start at end (biggest position), down to smallest ambAA position. Stop when prefix was cut.
           if ((*it) > removed_prefix_len) ++ambAA_seen;
           else break; 
         }
         // push_front is paramount, since we might iterate over old spawns at this very moment
+        // spawn gets the max_depth_decrease from what the master would have as first ambAA after moving
+        if (it == dh.ambAA_positions.rbegin())
+        { // all ambAA's were forgotten or there are none --> current depths counts (?)
+          DEBUG_ONLY std::cout << "  No ambAA in current path. Using current depth after settling (since this is an ambAA)\n";
+        } 
+        else {
+          node_depth = (*(--it)) - removed_prefix_len; // back to surviving ambAA; and its position minus the removed prefix
+          DEBUG_ONLY std::cout << "  Updating ambAA of 1st Spawn: delta is now: " << int(node_depth) << "\n";
+        }
         dh.spawns.push_front(Spawn<TNeedle>(node_spawn, node_depth, ambAA_seen));
-        DEBUG_ONLY std::cout << "1st Spawn from Master consuming '" << AminoAcid(i) << "' created at d: " << int(dh.spawns.front().max_depth_decrease) << " AA-seen: " << int(dh.spawns.front().ambAA_seen) << "\n";
+        DEBUG_ONLY std::cout << "  1st Spawn from Master consuming '" << AminoAcid(i) << "' created at delta: " << int(dh.spawns.front().max_depth_decrease) << " AA-seen: " << int(dh.spawns.front().ambAA_seen) << "\n";
       }
     }
     return c;
@@ -518,7 +528,7 @@ namespace seqan
   template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
   template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, AhoCorasickAmb>& me, typename Pattern<TNeedle, AhoCorasickAmb>::TVert& current_state)
   {
-    DEBUG_ONLY std::cout << "master/test remains at root\n";
+    //DEBUG_ONLY std::cout << "master/test remains at root\n";
     return current_state == getRoot(me.data_graph);
   }
 
@@ -568,16 +578,20 @@ namespace seqan
                            AminoAcid c,
                            Tag<FixedAASpec> /*fixedAASpec*/)
   {
+    DEBUG_ONLY std::cout << "consuming " << c<< " ";
+
     // if we cannot go down, but up is possible:
     while ((!goDown(me, walker, c)) &&
              goUp(me, walker)) // returns false when Spawn goes out of scope
     { /* .. follow suffix links upwards */ }
     if (atRoot(me, walker))
     {
+      DEBUG_ONLY std::cout << "fail\n";
       return false;
     }
     else // found a successor
     {
+      DEBUG_ONLY std::cout << "ok\n";
       addHits(me, dh, walker);
       return true;
     }
