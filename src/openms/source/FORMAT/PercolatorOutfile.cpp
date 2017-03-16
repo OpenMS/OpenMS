@@ -80,6 +80,85 @@ namespace OpenMS
   }
 
 
+  void PercolatorOutfile::resolveMisassignedNTermMods_(String& peptide) const
+  {
+    boost::regex re("^[A-Z]\\[(?<MOD1>-?\\d+(\\.\\d+)?)\\](\\[(?<MOD2>-?\\d+(\\.\\d+)?)\\])?");
+    boost::smatch match;
+    bool found = boost::regex_search(peptide, match, re);
+    if (found && match["MOD1"].matched)
+    {
+      const ResidueModification* null = 0;
+      vector<const ResidueModification*> maybe_nterm(2, null);
+      String residue = peptide[0];
+      String mod1 = match["MOD1"].str();
+      double mass1 = mod1.toDouble();
+      maybe_nterm[0] = ModificationsDB::getInstance()->
+        getBestModificationByDiffMonoMass(mass1, 0.01, residue,
+                                          ResidueModification::N_TERM);
+      if (maybe_nterm[0] && !match["MOD2"].matched &&
+          ((maybe_nterm[0]->getId() != "Carbamidomethyl") || (residue != "C")))
+      { // only 1 mod, may be terminal -> assume terminal (unless it's CAM!):
+        String replacement = ".(" + maybe_nterm[0]->getId() + ")" + residue;
+        peptide = boost::regex_replace(peptide, re, replacement);
+      }
+      // only 1 mod, may not be terminal -> nothing to do
+      else if (match["MOD2"].matched) // two mods
+      {
+        String mod2 = match["MOD2"].str();
+        double mass2 = mod2.toDouble();
+        maybe_nterm[1] = ModificationsDB::getInstance()->
+          getBestModificationByDiffMonoMass(mass2, 0.01, residue,
+                                            ResidueModification::N_TERM);
+        if (maybe_nterm[0] && !maybe_nterm[1])
+        { // first mod is terminal:
+          String replacement = "(" + maybe_nterm[0]->getId() + ")" + residue +
+            "[" + mod2 + "]";
+          peptide = boost::regex_replace(peptide, re, replacement);
+        }
+        else if (maybe_nterm[1] && !maybe_nterm[0])
+        { // second mod is terminal:
+          String replacement = "(" + maybe_nterm[1]->getId() + ")" + residue +
+            "[" + mod1 + "]";
+          peptide = boost::regex_replace(peptide, re, replacement);
+        }
+        else // ambiguous cases
+        {
+          vector<const ResidueModification*> maybe_residue(2, null);
+          maybe_residue[0] = ModificationsDB::getInstance()->
+            getBestModificationByDiffMonoMass(mass1, 0.01, residue,
+                                              ResidueModification::ANYWHERE);
+          maybe_residue[1] = ModificationsDB::getInstance()->
+            getBestModificationByDiffMonoMass(mass2, 0.01, residue,
+                                              ResidueModification::ANYWHERE);
+          if (maybe_nterm[0] && maybe_nterm[1]) // both mods may be terminal
+          {
+            if (maybe_residue[0] && !maybe_residue[1])
+            { // first mod must be non-terminal -> second mod is terminal:
+              String replacement = "(" + maybe_nterm[1]->getId() + ")" +
+                residue + "[" + mod1 + "]";
+              peptide = boost::regex_replace(peptide, re, replacement);
+            }
+            else if (maybe_residue[1] && !maybe_residue[0])
+            { // second mod must be non-terminal -> first mod is terminal:
+              String replacement = "(" + maybe_nterm[0]->getId() + ")" +
+                residue + "[" + mod2 + "]";
+              peptide = boost::regex_replace(peptide, re, replacement);
+            }
+            else // both mods may be terminal or non-terminal :-(
+            { // arbitrarily assume first mod is terminal
+              String replacement = "(" + maybe_nterm[0]->getId() + ")" +
+                residue + "[" + mod2 + "]";
+              peptide = boost::regex_replace(peptide, re, replacement);
+            }
+          }
+          // if neither mod can be terminal, something is wrong -> let
+          // AASequence deal with
+        }
+      }
+    }
+  }
+
+
   void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
     const
   {
@@ -101,6 +180,15 @@ namespace OpenMS
     boost::regex re("\\[UNIMOD:(\\d+)\\]");
     std::string replacement = "(UniMod:$1)";
     peptide = boost::regex_replace(peptide, re, replacement);
+    // search results from X! Tandem:
+    // N-terminal mods may be wrongly assigned to the first residue; there may
+    // be up to two mass shifts (one terminal, one residue) in random order!
+    resolveMisassignedNTermMods_(peptide);
+    // positive mass shifts are missing the "+":
+    re.assign("\\[(\\d)");
+    replacement = "[+$1";
+    peptide = boost::regex_replace(peptide, re, replacement);
+
     seq = AASequence::fromString(peptide);
   }
 
