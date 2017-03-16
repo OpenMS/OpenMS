@@ -36,7 +36,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -200,8 +200,8 @@ protected:
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
-    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
+    // registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
+    // setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
     registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
@@ -307,7 +307,7 @@ protected:
   multiset<double> svm_probs_external_;
   Size n_internal_features_; // internal feature counter (for FDR calculation)
   Size n_external_features_; // external feature counter (for FDR calculation)
-  TransformationDescription trafo_; // RT transformation (to range 0-1)
+  // TransformationDescription trafo_; // RT transformation (to range 0-1)
   TransformationDescription trafo_external_; // transform. to external RT scale
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
@@ -317,65 +317,44 @@ protected:
   double mapping_tolerance_; // RT tolerance for mapping IDs to features
   Size n_parts_; // number of partitions for SVM cross-validation
   Size n_samples_; // number of samples for SVM training
-  ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
+  ChromatogramExtractorAlgorithm extractor_; // OpenSWATH chromatogram extractor
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
   ProgressLogger prog_log_;
 
 
-  // remove duplicate entries from a vector
-  void removeDuplicateProteins_(TargetedExperiment& library)
-  {
-    // no "TargetedExperiment::Protein::operator<" defined, need to improvise:
-    vector<TargetedExperiment::Protein> proteins;
-    set<String> ids;
-    for (vector<TargetedExperiment::Protein>::const_iterator it = 
-           library.getProteins().begin(); it != library.getProteins().end();
-         ++it)
-    {
-      if (!ids.count(it->id)) // new protein
-      {
-        proteins.push_back(*it);
-        ids.insert(it->id);
-      }
-    }
-    library.setProteins(proteins);
-  }
-
-
-  // add transitions for a peptide ion to the library:
+  // generate transitions for a peptide ion and add them to the library:
   void generateTransitions_(const String& peptide_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist,
-                            vector<ReactionMonitoringTransition>& transitions)
+                            TargetedExperiment& library)
   {
-    transitions.resize(iso_dist.size());
     // go through different isotopes:
     Size counter = 0;
     for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin();
          iso_it != iso_dist.end(); ++iso_it, ++counter)
     {
+      ReactionMonitoringTransition transition;
       String annotation = "i" + String(counter + 1);
       String transition_name = peptide_id + "_" + annotation;
 
-      transitions[counter].setNativeID(transition_name);
-      transitions[counter].setPrecursorMZ(mz);
-      transitions[counter].setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
-                                        float(counter) / charge);
-      transitions[counter].setLibraryIntensity(iso_it->second);
-      transitions[counter].setMetaValue("annotation", annotation);
-      transitions[counter].setPeptideRef(peptide_id);
+      transition.setNativeID(transition_name);
+      transition.setPrecursorMZ(mz);
+      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
+                              float(counter) / charge);
+      transition.setLibraryIntensity(iso_it->second);
+      transition.setMetaValue("annotation", annotation);
+      transition.setPeptideRef(peptide_id);
+      library.addTransition(transition);
     }
   }
 
 
-  void setPeptideRT_(TargetedExperiment::Peptide& peptide, double rt)
+  void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt)
   {
-    peptide.rts.clear();
-    rt_term_.setValue(trafo_.apply(rt));
+    rt_term_.setValue(rt);
     TargetedExperiment::RetentionTime te_rt;
     te_rt.addCVTerm(rt_term_);
     peptide.rts.push_back(te_rt);
   }
-
 
 
   void getRTRegions_(ChargeMap& peptide_data, vector<RTRegion>& rt_regions)
@@ -634,101 +613,122 @@ protected:
   }
 
 
-  void detectFeaturesOnePeptide_(PeptideMap::value_type& peptide_data,
-                                 FeatureMap& features)
+  void createAssayLibrary_(PeptideMap& peptide_map, TargetedExperiment& library)
   {
-    TargetedExperiment library;
-    TargetedExperiment::Peptide peptide;
+    set<String> protein_accessions;
 
-    const AASequence& seq = peptide_data.first;
-    LOG_DEBUG << "\nPeptide: " << seq.toString() << endl;
-    peptide.sequence = seq.toString();
-    // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
-    // sequence and the modifications separately. Unfortunately, creating the
-    // modifications vector is complex and there is currently no convenient
-    // conversion function (see "TargetedExperimentHelper::getAASequence" for
-    // the reverse conversion). However, "Peptide" is later converted to
-    // "OpenSwath::LightPeptide" anyway, and this is done via "AASequence" (see
-    // "OpenSwathDataAccessHelper::convertTargetedPeptide"). So for our purposes
-    // it works to just store the sequence including modifications in "Peptide".
+    for (PeptideMap::iterator pm_it = peptide_map.begin();
+         pm_it != peptide_map.end(); ++pm_it)
+    {
+      TargetedExperiment::Peptide peptide;
 
-    // keep track of protein accessions:
-    set<String> accessions;
-    const pair<RTMap, RTMap>& pair = peptide_data.second.begin()->second;
-    const PeptideHit& hit = (pair.first.empty() ?
-                             pair.second.begin()->second->getHits()[0] :
-                             pair.first.begin()->second->getHits()[0]);
-    accessions = hit.extractProteinAccessions();
-    // missing protein accession would crash OpenSWATH algorithms:
-    if (accessions.empty()) accessions.insert("not_available");
-    peptide.protein_refs = vector<String>(accessions.begin(), accessions.end());
-    for (set<String>::iterator acc_it = accessions.begin(); 
-         acc_it != accessions.end(); ++acc_it)
+      const AASequence& seq = peptide_data.first;
+      LOG_DEBUG << "\nPeptide: " << seq.toString() << endl;
+      peptide.sequence = seq.toString();
+      // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
+      // sequence and the modifications separately. Unfortunately, creating the
+      // modifications vector is complex and there is currently no convenient
+      // conversion function (see "TargetedExperimentHelper::getAASequence" for
+      // the reverse conversion). However, "Peptide" is later converted to
+      // "OpenSwath::LightPeptide" anyway, and this is done via "AASequence"
+      // (see "OpenSwathDataAccessHelper::convertTargetedPeptide"). So for our
+      // purposes it works to just store the sequence including modifications in
+      // "Peptide".
+
+      // keep track of protein accessions:
+      set<String> current_accessions;
+      const pair<RTMap, RTMap>& pair = peptide_data.second.begin()->second;
+      const PeptideHit& hit = (pair.first.empty() ?
+                               pair.second.begin()->second->getHits()[0] :
+                               pair.first.begin()->second->getHits()[0]);
+      current_accessions = hit.extractProteinAccessions();
+      protein_accessions.insert(current_accessions.begin(),
+                                current_accessions.end());
+      // missing protein accession would crash OpenSWATH algorithms:
+      if (current_accessions.empty()) accessions.insert("not_available");
+      peptide.protein_refs = vector<String>(current_accessions.begin(),
+                                            current_accessions.end());
+
+      // get isotope distribution for peptide:
+      Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+      IsotopeDistribution iso_dist = 
+        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
+      if (isotope_pmin_ > 0.0)
+      {
+        iso_dist.trimLeft(isotope_pmin_);
+        iso_dist.trimRight(isotope_pmin_);
+        iso_dist.renormalize();
+      }
+
+      // get regions in which peptide elutes (ideally only one):
+      vector<RTRegion> rt_regions;
+      getRTRegions_(peptide_data.second, rt_regions);
+      LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
+
+      // go through different charge states:
+      for (ChargeMap::const_iterator cm_it = peptide_data.second.begin(); 
+           cm_it != peptide_data.second.end(); ++cm_it)
+      {
+        Int charge = cm_it->first;
+        double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
+        LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << endl;
+        peptide.setChargeState(charge);
+        String peptide_id = peptide.sequence + "/" + String(charge);
+
+        // we want to detect one feature per peptide and charge state - if there
+        // are multiple RT regions, group them together:
+        peptide.setPeptideGroupLabel(peptide_id);
+        peptide.rts.clear();
+        Size counter = 0;
+        // accumulate IDs over multiple regions:
+        RTMap internal_ids, external_ids;
+        for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
+             reg_it != rt_regions.end(); ++reg_it)
+        {
+          if (reg_it->ids.count(charge))
+          {
+            LOG_DEBUG << "Region " << counter + 1 << " (RT: "
+                      << float(reg_it->start) << "-" << float(reg_it->end)
+                      << ", size " << float(reg_it->end - reg_it->start) << ")"
+                      << endl;
+
+            peptide.id = peptide_id;
+            if (rt_regions.size() > 1) peptide.id += ":" + String(++counter);
+
+            // store beginning and end of RT region:
+            addPeptideRT_(peptide, reg_it->start);
+            addPeptideRT_(peptide, reg_it->end);
+            library.addPeptide(peptide);
+            generateTransitions_(peptide.id, mz, charge, iso_dist, library);
+          }
+          internal_ids.insert(reg_it->ids[charge].first.begin(),
+                              reg_it->ids[charge].first.end());
+          external_ids.insert(reg_it->ids[charge].second.begin(),
+                              reg_it->ids[charge].second.end());
+        }
+      }
+    }
+    
+    // add proteins to library:
+    for (set<String>::iterator acc_it = protein_accessions.begin(); 
+         acc_it != protein_accessions.end(); ++acc_it)
     {
       TargetedExperiment::Protein protein;
       protein.id = *acc_it;
       library.addProtein(protein);
     }
+  }
 
-    // get isotope distribution for peptide:
-    Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-    IsotopeDistribution iso_dist = 
-      seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
-    if (isotope_pmin_ > 0.0)
-    {
-      iso_dist.trimLeft(isotope_pmin_);
-      iso_dist.trimRight(isotope_pmin_);
-      iso_dist.renormalize();
-    }
 
-    // get regions in which peptide elutes (ideally only one):
-    vector<RTRegion> rt_regions;
-    getRTRegions_(peptide_data.second, rt_regions);
-    LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
+  void detectFeaturesOnePeptide_(PeptideMap::value_type& peptide_data,
+                                 FeatureMap& features)
+  {
+    TargetedExperiment library;
+    addPeptideToLibrary_(peptide_data, library);
 
-    // go through different charge states:
-    for (ChargeMap::const_iterator cm_it = peptide_data.second.begin(); 
-         cm_it != peptide_data.second.end(); ++cm_it)
-    {
-      Int charge = cm_it->first;
-      double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
-      LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << endl;
-      peptide.setChargeState(charge);
-      peptide.id = peptide.sequence + "/" + String(charge);
 
-      // we want to detect one feature per peptide and charge state, so there is
-      // always only one peptide in the library!
-      Size counter = 0;
       FeatureMap current_features; // accumulate features over multiple regions
-      RTMap internal_ids, external_ids; // accumulate IDs over multiple regions
-      for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
-           reg_it != rt_regions.end(); ++reg_it)
-      {
-        if (reg_it->ids.count(charge))
-        {
-          LOG_DEBUG << "Region " << counter + 1 << " (RT: "
-                    << float(reg_it->start) << "-" << float(reg_it->end)
-                    << ", size " << float(reg_it->end - reg_it->start) << ")"
-                    << endl;
 
-          vector<TargetedExperiment::Peptide> lib_peps(1, peptide);
-          if (rt_regions.size() > 1)
-          {
-            lib_peps[0].id = peptide.id + ":" + String(++counter);
-          }
-          // use center of region as RT of assay (for chrom. extraction):
-          double assay_rt = (reg_it->start + reg_it->end) / 2.0;
-          setPeptideRT_(lib_peps[0], assay_rt);
-          library.setPeptides(lib_peps);
-          vector<ReactionMonitoringTransition> transitions;
-          generateTransitions_(lib_peps[0].id, mz, charge, iso_dist, 
-                               transitions);
-          library.setTransitions(transitions);
-
-          if (keep_library_) library_ += library;
-
-          // extract chromatograms:
-          double rt_window = reg_it->end - reg_it->start;
           PeakMap chrom_data;
           extractor_.extractChromatograms(ms_data_, chrom_data, library,
                                           mz_window_, mz_window_ppm_, trafo_,
@@ -752,7 +752,7 @@ protected:
           // find chromatographic peaks:
           Log_info.remove(cout); // suppress status output from OpenSWATH
           feat_finder_.pickExperiment(chrom_data, current_features, library,
-                                      trafo_, ms_data_);
+                                      TransformationDescription(), ms_data_);
           Log_info.insert(cout);
           LOG_DEBUG << "Found " << current_features.size() << " feature(s)."
                     << endl;
@@ -1282,7 +1282,7 @@ protected:
       String id_ext = getStringOption_("id_ext");
       String lib_out = getStringOption_("lib_out");
       String chrom_out = getStringOption_("chrom_out");
-      String trafo_out = getStringOption_("trafo_out");
+      // String trafo_out = getStringOption_("trafo_out");
       rt_window_ = getDoubleOption_("extract:rt_window");
       mz_window_ = getDoubleOption_("extract:mz_window");
       mz_window_ppm_ = mz_window_ >= 1;
@@ -1311,6 +1311,7 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ms_data_);
 
+      /*
       // RT transformation to range 0-1:
       ms_data_.updateRanges();
       double min_rt = ms_data_.getMinRT(), max_rt = ms_data_.getMaxRT();
@@ -1323,6 +1324,7 @@ protected:
       {
         TransformationXMLFile().store(trafo_out, trafo_);
       }
+      */
 
       // initialize algorithm classes needed later:
       extractor_.setLogType(ProgressLogger::NONE);
