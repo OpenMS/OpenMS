@@ -492,7 +492,10 @@ protected:
     npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
     npconfig_mz.setCompression(getStringOption_("peak_options:numpress:masstime"));
     npconfig_int.setCompression(getStringOption_("peak_options:numpress:intensity"));
-    
+    if (getStringOption_("peak_options:numpress:masstime") == "linear")
+    {
+      npconfig_mz.linear_fp_mass_acc = getDoubleOption_("peak_options:numpress:masstime_error"); // set the desired mass accuracy
+    }
 
     //id-filtering parameters
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
