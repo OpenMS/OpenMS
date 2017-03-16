@@ -285,10 +285,10 @@ protected:
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
     setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
+    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (default 10 ppm at 100 m/z; set to 0.5 for pic or negative to disable check and speed up conversion)", false);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
     setValidStrings_("peak_options:numpress:intensity", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
+    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic or negative to disable check and speed up conversion)", false);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");

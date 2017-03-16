@@ -410,6 +410,13 @@ set_tests_properties("TOPP_FileConverter_22" PROPERTIES WILL_FAIL 1) ## low memo
 add_test("TOPP_FileConverter_23" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_23_input.mzML -out FileConverter_23.tmp -out_type mzML)
 add_test("TOPP_FileConverter_23_out" ${DIFF} -in1 FileConverter_23.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_23_output.mzML -whitelist "location=")
 set_tests_properties("TOPP_FileConverter_23_out" PROPERTIES DEPENDS "TOPP_FileConverter_23")
+# Purpose: test the numpress conversion options (using full accuracy and 1ppm accuracy @ 100 m/z)
+add_test("TOPP_FileConverter_24" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_24.tmp  -write_mzML_index -process_lowmemory -in_type mzML -out_type mzML -lossy_compression -lossy_mass_accuracy 0.0001)
+add_test("TOPP_FileConverter_24_out" ${DIFF} -in1 FileConverter_24.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_24_output.mzML )
+set_tests_properties("TOPP_FileConverter_24_out" PROPERTIES DEPENDS "TOPP_FileConverter_24")
+add_test("TOPP_FileConverter_25" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_25.tmp  -write_mzML_index -process_lowmemory -in_type mzML -out_type mzML -lossy_compression)
+add_test("TOPP_FileConverter_25_out" ${DIFF} -in1 FileConverter_25.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_25_output.mzML )
+set_tests_properties("TOPP_FileConverter_25_out" PROPERTIES DEPENDS "TOPP_FileConverter_25")
 
 #------------------------------------------------------------------------------
 # FileFilter tests
