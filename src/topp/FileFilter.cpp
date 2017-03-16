@@ -282,6 +282,9 @@ protected:
     registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
+    setValidStrings_("peak_options:zlib_compression", ListUtils::create<String>("true,false"));
+
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
     setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
@@ -483,6 +486,10 @@ protected:
     bool indexed_file;
     if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
     else {indexed_file = false; }
+    bool zlib_compression;
+    if (getStringOption_("peak_options:zlib_compression") == "true") {zlib_compression = true; }
+    else {zlib_compression = false; }
+
 
     MSNumpressCoder::NumpressConfig npconfig_mz;
     MSNumpressCoder::NumpressConfig npconfig_int;
@@ -578,6 +585,7 @@ protected:
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
+      f.getOptions().setCompression(zlib_compression);
       // numpress compression
       f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
