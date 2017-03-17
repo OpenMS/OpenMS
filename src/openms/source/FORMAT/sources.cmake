@@ -39,6 +39,7 @@ MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp
 MsInspectFile.cpp
+MyClass.cpp
 MzDataFile.cpp
 MzTab.cpp
 MzTabFile.cpp
