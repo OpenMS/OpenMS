@@ -89,20 +89,18 @@ namespace OpenMS
     return;
   }
 
-  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const
+  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, std::map<String, double>& affected_origins, bool ignore_pyro_glu) const
   {
     std::map<String, double> origin_set;
 
     StringList xtandem_mods;
-    for (set<ModificationDefinition>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+    for (set<ModificationDefinition>::const_iterator it = mods.begin();
+         it != mods.end(); ++it)
     {
-      // special cases:
-      // @TODO: Include "Acetyl (N-term)" here? Should do for "Acetyl (Protein
-      // N-term)", but that's not supported by OpenMS.
-      if ((it->getModificationName() == "Gln->pyro-Glu (N-term Q)") ||
-          (it->getModificationName() == "Glu->pyro-Glu (N-term E)"))
+      if (ignore_pyro_glu &&
+          ((it->getModificationName() == "Gln->pyro-Glu (N-term Q)") ||
+           (it->getModificationName() == "Glu->pyro-Glu (N-term E)")))
       {
-        LOG_INFO << "X! Tandem automatically includes the modifications 'Gln->pyro-Glu (N-term Q)' and 'Glu->pyro-Glu (N-term E)' in searches (see X! Tandem parameter 'protein, quick pyrolidone'); no need to set them explicitly." << endl;
         continue;
       }
 
@@ -266,46 +264,11 @@ namespace OpenMS
       ////////////////////////////////////////////////////////////////////////////////
 
 
-      //////////////// residue modification parameters
-      //<note type="input" label="residue, modification mass">57.022@C</note>
-      //<note>The format of this parameter is m@X, where m is the modification
-      //mass in Daltons and X is the appropriate residue to modify. Lists of
-      //modifications are separated by commas. For example, to modify M and C
-      //with the addition of 16.0 Daltons, the parameter line would be
-      //+16.0@M,+16.0@C
-      //Positive and negative values are allowed.
-      //</note>
-
-      std::map<String, double> affected_origins;
-      writeNote_(os, "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications(), affected_origins));
-
-      //<note type="input" label="residue, potential modification mass"></note>
-      //<note>The format of this parameter is the same as the format
-      //for residue, modification mass (see above).</note>
-
-      writeNote_(os, "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications(), affected_origins));
-
+      //////////////// protein parameters
+      //<note type="input" label="protein, taxon">other mammals</note>
+      //<note>This value is interpreted using the information in taxonomy.xml.</note>
       writeNote_(os, "protein, taxon", taxon_);
 
-  /*
-      //<note type="input" label="residue, potential modification motif"></note>
-      //<note>The format of this parameter is similar to residue, modification mass,
-      //with the addition of a modified PROSITE notation sequence motif specification.
-      //For example, a value of 80@[ST!]PX[KR] indicates a modification
-      //of either S or T when followed by P, and residue and the a K or an R.
-      //A value of 204@N!{P}[ST]{P} indicates a modification of N by 204, if it
-      //is NOT followed by a P, then either an S or a T, NOT followed by a P.
-      //Positive and negative values are allowed.
-      //</note>
-          writeNote_(os, "residue, potential modification motif", variable_modification_motif_);
-          ////////////////////////////////////////////////////////////////////////////////
-
-
-          //////////////// protein parameters
-          //<note type="input" label="protein, taxon">other mammals</note>
-      //<note>This value is interpreted using the information in taxonomy.xml.</note>
-          writeNote_(os, "protein, taxon", taxon_);
-  */
       //<note type="input" label="protein, cleavage site">[RK]|{P}</note>
       //<note>this setting corresponds to the enzyme trypsin. The first characters
       //in brackets represent residues N-terminal to the bond - the '|' pipe -
@@ -340,7 +303,50 @@ namespace OpenMS
       //<note type="input" label="protein, homolog management">no</note>
       //<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
       //writeNote_(os, "protein, homolog management", protein_homolog_management_);
+
+      // special case for "pyro-Glu" modifications:
+      bool ignore_pyro_glu = false;
+      set<String> var_mods = modifications_.getVariableModificationNames();
+      if ((var_mods.find("Gln->pyro-Glu (N-term Q)") != var_mods.end()) &&
+          (var_mods.find("Glu->pyro-Glu (N-term E)") != var_mods.end()))
+      {
+        writeNote_(os, "protein, quick pyrolidone", true);
+        ignore_pyro_glu = true;
+      }
+
       ////////////////////////////////////////////////////////////////////////////////
+
+
+      //////////////// residue modification parameters
+      //<note type="input" label="residue, modification mass">57.022@C</note>
+      //<note>The format of this parameter is m@X, where m is the modification
+      //mass in Daltons and X is the appropriate residue to modify. Lists of
+      //modifications are separated by commas. For example, to modify M and C
+      //with the addition of 16.0 Daltons, the parameter line would be
+      //+16.0@M,+16.0@C
+      //Positive and negative values are allowed.
+      //</note>
+
+      std::map<String, double> affected_origins;
+      writeNote_(os, "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications(), affected_origins));
+
+      //<note type="input" label="residue, potential modification mass"></note>
+      //<note>The format of this parameter is the same as the format
+      //for residue, modification mass (see above).</note>
+      writeNote_(os, "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications(), affected_origins, ignore_pyro_glu));
+
+      //<note type="input" label="residue, potential modification motif"></note>
+      //<note>The format of this parameter is similar to residue, modification mass,
+      //with the addition of a modified PROSITE notation sequence motif specification.
+      //For example, a value of 80@[ST!]PX[KR] indicates a modification
+      //of either S or T when followed by P, and residue and the a K or an R.
+      //A value of 204@N!{P}[ST]{P} indicates a modification of N by 204, if it
+      //is NOT followed by a P, then either an S or a T, NOT followed by a P.
+      //Positive and negative values are allowed.
+      //</note>
+      //    writeNote_(os, "residue, potential modification motif", variable_modification_motif_);
+      ////////////////////////////////////////////////////////////////////////////////
+
 
       //////////////// model refinement parameters
       //<note type="input" label="refine">yes</note>
@@ -380,6 +386,7 @@ namespace OpenMS
       //writeNote_(os, "refine, potential modification motif", refine_var_mod_motif_);
       ////////////////////////////////////////////////////////////////////////////////
 
+
       //////////////// scoring parameters
       //<note type="input" label="scoring, minimum ion count">4</note>
       //writeNote_(os, "scoring, minimum ion count", String(scoring_min_ion_count_));
@@ -404,6 +411,7 @@ namespace OpenMS
       //<note>if yes, then reversed sequences are searched at the same time as forward sequences</note>
       //writeNote_(os, "scoring, include reverse", scoring_include_reverse_);
       ////////////////////////////////////////////////////////////////////////////////
+
 
       //////////////// output parameters
       //<note type="input" label="output, log path"></note>

@@ -247,9 +247,10 @@ protected:
 
       @param mods The modifications to convert
       @param affected_origins Set of origins, which were used previously. Will be augmented with the current mods.
+      @param ignore_pyro_glu Ignore "Gln/Glu->pyro-Glu (N-term Q/E)" modifications (they are handled by a dedicated option)
       @return A X!Tandem compatible string representation.
     */
-    String convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const;
+    String convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<String, double>& affected_origins, bool ignore_pyro_glu = false) const;
 
     double fragment_mass_tolerance_;
 
