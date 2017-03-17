@@ -397,16 +397,20 @@ namespace seqan
   template<typename T>
   inline AminoAcid _getSpawnRange(T& idxFirst, T& idxLast, const AminoAcid c)
   {
-    OPENMS_PRECONDITION(isAmbiguous(c), "AminoAcid is not ambiguous! InternalError!");
-
     // jump table:                 // AA for main thread     // start of spawns        // end of spawns (including)
     static const T jump[3][3] = { { ordValue(AminoAcid('N')), ordValue(AminoAcid('D')), ordValue(AminoAcid('D')) },  // B = D,N
                                   { ordValue(AminoAcid('Q')), ordValue(AminoAcid('E')), ordValue(AminoAcid('E')) },  // Z = E,Q
                                   { 0,                        1,                        ordValue(AminoAcid('V')) } };// X = A..V
-    SEQAN_ASSERT(ordValue(AminoAcid('B')) == 20); // make sure the table is ordered as we expect
-    idxFirst = jump[ordValue(c) - 20][1];
-    idxLast = jump[ordValue(c) - 20][2];
-    return AminoAcid(jump[ordValue(c) - 20][0]); // AA for main thread
+    static const T ord_b = ordValue(AminoAcid('B'));
+#if NDEBUG
+#else
+    assert(ord_b == 20); // make sure the table is ordered as we expect
+    assert(ordValue(AminoAcid('Z')) == 21); // make sure the table is ordered as we expect
+    assert(ordValue(AminoAcid('X')) == 22); // make sure the table is ordered as we expect
+#endif
+    idxFirst = jump[ordValue(c) - ord_b][1];
+    idxLast = jump[ordValue(c) - ord_b][2];
+    return AminoAcid(jump[ordValue(c) - ord_b][0]); // AA for main thread
   }
 
   // returns false if it reached the 'root', true otherwise
