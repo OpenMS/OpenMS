@@ -152,10 +152,11 @@ public:
     static const String xlclass_fulldecoysintralinks; // fulldecoysintralinks
     static const String xlclass_interdecoys; // interdecoys
     static const String xlclass_fulldecoysinterlinks; // fulldecoysinterlinks
-    static const String xlclass_monodecoys; // monodecoys
     static const String xlclass_intralinks; // intralinks
     static const String xlclass_interlinks; // interlinks
     static const String xlclass_monolinks;  // monolinks
+    static const String xlclass_monodecoys; // monodecoys
+
 
     // Parameters to actually calculate the number of FPs // TODO Needs to more dynamic in the future
     static const double fpnum_score_start;
@@ -176,6 +177,8 @@ protected:
       * @param cum_histograms Cumulative score distributions
       * @param fp_counts Number of FPs for each score threshold.
       */
+
+    /*
      void fp_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
                        Math::Histogram<> & fp_counts)
      {
@@ -198,7 +201,7 @@ protected:
            fp_counts.inc(current_score, n_interfp + n_intrafp + n_monofp);
        }
     }
-
+    */
 
      /** Target counting as performed by the xProphet software package
        *
@@ -206,6 +209,7 @@ protected:
        * @param cum_histograms Cumulative score distributions
        * @param target_counts Number of target hits
        */
+    /*
       void target_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
                         Math::Histogram<> & target_counts)
       {
@@ -224,6 +228,7 @@ protected:
             target_counts.inc(current_score, n_intralinks + n_interlinks + n_monolinks);
         }
      }
+     */
 
      /** Target counting as performed by the xProphet software package
       *
@@ -232,19 +237,45 @@ protected:
       */
      void fdr_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
                        const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
-                       vector< double > & fdr, bool adjusted)
+                       vector< double > & fdr, bool mono)
      {
        for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
             current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
             current_score += TOPPXFDR::fpnum_score_step)
        {
-           double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score) - 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
-           double n_targets = cum_histograms[targetclass]->binValue(current_score); // Problemetatic
-           double summand = adjusted ? estimated_n_decoys : 0;
-           fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets + summand) : 0);
+         double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score);
+         if ( ! mono)
+         {
+           estimated_n_decoys -= 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
+         }
+         double n_targets = cum_histograms[targetclass]->binValue(current_score);
+         fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets) : 0);
        }
     }
 
+     /**
+     * @brief Calculates the qFDR values for the provided FDR values, assuming that the FDRs are sorted by score in the input vector
+     * @param fdr Vector with FDR values which should be used for qFDR calculation
+     * @param qfdr Result qFDR values
+     */
+    void calc_qfdr(const vector< double > & fdr, vector< double > & qfdr)
+    {
+      qfdr.resize(fdr.size());
+      for (int i = fdr.size(); i > -1; --i)
+      {
+          double current_fdr = fdr[i];
+          double smallest_fdr = current_fdr;
+          for (int j = i; j > -1; j--)
+          {
+            double fdr_to_check = fdr[j];
+            if (fdr_to_check < smallest_fdr)
+            {
+              smallest_fdr = fdr_to_check;
+            }
+          }
+          qfdr[i] = smallest_fdr < current_fdr ? smallest_fdr : current_fdr;
+      }
+    }
 
     // this function will be used to register the tool parameters
     // it gets automatically called on tool execution
@@ -314,7 +345,7 @@ protected:
       // Determine FDR calculation method
       //-------------------------------------------------------------
       String arg_fdr_calc_method = getStringOption_(TOPPXFDR::param_fdr_calc_method);
-      if (arg_fdr_calc_method == "xprophet" || arg_fdr_calc_method == "xprophet_adjusted")
+      if (arg_fdr_calc_method == "xprophet")
       {
          StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks,intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
          for (StringList::const_iterator required_classes_it = required_classes.begin();
@@ -568,10 +599,6 @@ protected:
                                                                     TOPPXFDR::fpnum_score_end,
                                                                     TOPPXFDR::fpnum_score_step, true, true);
       }
-
-      //cout << cum_histograms[TOPPXFDR::xlclass_interlinks] << endl;
-
-
       // This is currently not needed for the FDR calculation
       //Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
       //this->fp_xprophet(cum_histograms, fp_counts);
@@ -579,32 +606,38 @@ protected:
       //Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
       //this->target_xprophet(cum_histograms, target_counts);
 
-      bool adjusted;
-      if (arg_fdr_calc_method == "xprophet")
-      {
-          adjusted = false;
-      }
-      else if (arg_fdr_calc_method == "xprophet_adjusted")
-      {
-        adjusted = true;
-      }
-      else
-      {
-          LOG_ERROR << "ERROR: Unsupported FDR calculation method. Aborting." << endl;
-          return ILLEGAL_PARAMETERS;
-      }
+
 
       // Calculate FDR for interlinks
       vector< double > fdr_interlinks;
-      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, adjusted);
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, false);
+
       // Calculate FDR for intralinks
       vector< double > fdr_intralinks;
-      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, adjusted);
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, false);
+
+      // Calculate FDR for monolinks and looplinks
+      vector< double > fdr_monolinks;
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_monolinks, TOPPXFDR::xlclass_monodecoys, "", fdr_monolinks, true);
 
 
+      // Determine whether qTransform should be performed
+      bool arg_qtransform = getFlag_(TOPPXFDR::param_qtransform);
 
 
+      if(arg_qtransform)
+      {
+        LOG_INFO << "Performing qFDR transformation" << endl;
+        // Calculate qFDR for interlinks
+        vector< double > qfdr_interlinks;
+        this->calc_qfdr(fdr_interlinks, qfdr_interlinks);
 
+        vector< double > qfdr_intralinks;
+        this->calc_qfdr(fdr_intralinks, qfdr_intralinks);
+
+        vector< double > qfdr_monolinks;
+        this->calc_qfdr(fdr_monolinks, qfdr_monolinks);
+      }
 
       // Delete Delta Scores
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
