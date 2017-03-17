@@ -52,6 +52,7 @@ namespace OpenMS
     {
     public:
 
+
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
@@ -69,6 +70,9 @@ namespace OpenMS
 
       // Docu in base class
       void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+
+      //Docu in base class
+      virtual void writeTo(std::ostream & os);
 
     private:
 

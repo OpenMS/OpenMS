@@ -81,6 +81,8 @@ namespace OpenMS
       load_to_peptideHit_(load_to_peptideHit)
     {
     }
+
+
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
     {
 
@@ -332,6 +334,15 @@ namespace OpenMS
     void XQuestResultXMLHandler::characters(const XMLCh * const chars, const XMLSize_t)
     {
     }
+
+
+    void XQuestResultXMLHandler::writeTo(ostream &os)
+    {
+
+
+    }
+
+
 
 
   }   // namespace Internal

@@ -130,7 +130,7 @@ public:
 
     static const String param_in_xlclasses;  // Parameter for specifying the cross-link classes
     static const String param_in_xquestxml;  // Parameter for the original xQuest XML file
-    static const String param_out_csvresults; // Reports peptide identifications with annotated FDR in the CSV file format
+    static const String param_out_xquestxml; //
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  5 # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -292,8 +292,8 @@ protected:
       registerInputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
       setValidFormats_(TOPPXFDR::param_in_xquestxml, ListUtils::create<String>("xml"));
 
-      registerOutputFile_(TOPPXFDR::param_out_csvresults, "<csv_file>", "", "Peptide Identification annotated with the FDR values", false, false);
-      setValidFormats_(TOPPXFDR::param_out_csvresults, ListUtils::create<String>("csv"));
+      registerOutputFile_(TOPPXFDR::param_out_xquestxml, "<xml_file>", "", "XQuest-compatible result XML file", false, false);
+      setValidFormats_(TOPPXFDR::param_out_xquestxml, ListUtils::create<String>("xml"));
 
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -5, "Filter for minimum precursor mass error (ppm)", false);
@@ -452,7 +452,7 @@ protected:
       size_t  pep_id_index = TOPPXFDR::n_rank - 1; // This is of course trash if more than 1 ranks are used.
 
 
-      // Parse XQuestResultXMLFile (TODO Also support idXML and mzID)
+      // Parse XQuestResultXMLFile (TODO Also support idXML and mzIdentML)
       XQuestResultXMLFile xquest_result_file;
       xquest_result_file.load(arg_in_xquestxml, metas, spectra, false, 1); // We do not load 'empty' spectra here
       size_t n_spectra = spectra.size();
@@ -624,7 +624,6 @@ protected:
       // Determine whether qTransform should be performed
       bool arg_qtransform = getFlag_(TOPPXFDR::param_qtransform);
 
-
       if(arg_qtransform)
       {
         LOG_INFO << "Performing qFDR transformation" << endl;
@@ -652,19 +651,32 @@ protected:
         delete cum_histograms_it->second;
       }
 
-      // Write the CSV output file if requested
-      String arg_out_csvresults = getStringOption_(TOPPXFDR::param_out_csvresults);
-      if ( ! arg_out_csvresults.empty())
+
+      //-------------------------------------------------------------
+      // Parsing XML file of xQuest
+      //-------------------------------------------------------------
+      // XQuest XML
+      String arg_out_xquestxml = getStringOption_(TOPPXFDR::param_out_xquestxml);
+
+      if (! arg_out_xquestxml.empty())
       {
-          CsvFile csv_file;
+        cout << "Writing XQuest output file" << endl;
+
+
+
 
       }
+
+
+
+
+
       return EXECUTION_OK;
     }
 };
 const String TOPPXFDR::param_in_xlclasses = "in_xlclasses";
 const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";
-const String TOPPXFDR::param_out_csvresults = "out_csvresults";
+const String TOPPXFDR::param_out_xquestxml = "out_xquestxml";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
