@@ -302,7 +302,6 @@ set(filtering_executables_list
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
-  MyClass_test
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test

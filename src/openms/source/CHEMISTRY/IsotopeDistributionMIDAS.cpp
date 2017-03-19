@@ -1,12 +1,12 @@
-#include <OpenMS/FORMAT/IsotopeDistributionMIDAS.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistributionMIDAS.h>
 
 namespace OpenMS
 {
-	MyClass::Myclass();
+	MyClass::MyClass()
 	{
 	}
 
-	MyClass::~MyClass();
+	MyClass::~MyClass()
 	{
 	}
 }	//end OpenMS

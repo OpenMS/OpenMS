@@ -57,7 +57,6 @@ MascotGenericFile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h
-MyClass.h
 MzDataFile.h
 MzMLFile.h
 MzTab.h
