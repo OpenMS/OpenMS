@@ -3,15 +3,15 @@
 
 namespace OpenMS
 {
-  class MyClass
+  class IsotopeDistributionMIDAS
   {
   public:
 
     //Default constructor
-    MyClass();
+    IsotopeDistributionMIDAS();
 
     //Destructor
-    virtual ~MyClass();
+    virtual ~IsotopeDistributionMIDAS();
   };
 } //namespace OpenMS
 

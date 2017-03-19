@@ -2,11 +2,11 @@
 
 namespace OpenMS
 {
-	MyClass::MyClass()
+	IsotopeDistributionMIDAS::IsotopeDistributionMIDAS()
 	{
 	}
 
-	MyClass::~MyClass()
+	IsotopeDistributionMIDAS::~IsotopeDistributionMIDAS()
 	{
 	}
 }	//end OpenMS
