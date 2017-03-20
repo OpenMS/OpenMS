@@ -129,6 +129,8 @@ namespace OpenMS
     targetMap[FileTypes::XSD] = "xsd";
     targetMap[FileTypes::PSQ] = "psq";
     targetMap[FileTypes::MRM] = "mrm";
+    targetMap[FileTypes::PQP] = "pqp";
+    targetMap[FileTypes::OSW] = "osw";
     targetMap[FileTypes::PSMS] = "psms";
     targetMap[FileTypes::PARAMXML] = "paramXML";
 

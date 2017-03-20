@@ -55,6 +55,7 @@
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 // Algorithms
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
@@ -207,6 +208,7 @@ namespace OpenMS
      * @param out_featureFile Output feature map to store identified features
      * @param store_features Whether features should be appended to the output feature map
      * @param tsv_writer TSV Writer object to store identified features in csv format
+     * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param load_into_memory Whether to cache the current SWATH map in memory
@@ -220,6 +222,7 @@ namespace OpenMS
                            FeatureMap& out_featureFile, 
                            bool store_features, 
                            OpenSwathTSVWriter & tsv_writer,
+                           OpenSwathOSWWriter & osw_writer,
                            Interfaces::IMSDataConsumer<> * chromConsumer, 
                            int batchSize,
                            bool load_into_memory);
@@ -261,6 +264,7 @@ namespace OpenMS
      * @param rt_extraction_window RT extraction window
      * @param output Output map
      * @param tsv_writer TSV writer for storing output (on the fly)
+     * @param osw_writer OSW Writer object to store identified features in SQLite format
      *
     */
     void scoreAllChromatograms(
@@ -271,7 +275,7 @@ namespace OpenMS
         const Param& feature_finder_param,
         TransformationDescription trafo, 
         const double rt_extraction_window,
-        FeatureMap& output, OpenSwathTSVWriter & tsv_writer);
+        FeatureMap& output, OpenSwathTSVWriter & tsv_writer, OpenSwathOSWWriter & osw_writer);
 
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
@@ -404,6 +408,7 @@ namespace OpenMS
      * @param out_featureFile Output feature map to store identified features
      * @param store_features Whether features should be appended to the output feature map
      * @param tsv_writer TSV Writer object to store identified features in csv format
+     * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param load_into_memory Whether to cache the current SONAR map(s) in memory
@@ -417,6 +422,7 @@ namespace OpenMS
                                 FeatureMap& out_featureFile,
                                 bool store_features, 
                                 OpenSwathTSVWriter & tsv_writer,
+                                OpenSwathOSWWriter & osw_writer,
                                 Interfaces::IMSDataConsumer<> * chromConsumer, 
                                 int batchSize,
                                 bool load_into_memory);

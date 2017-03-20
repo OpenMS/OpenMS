@@ -390,11 +390,13 @@ namespace OpenMS
     FeatureMap& out_featureFile,
     bool store_features,
     OpenSwathTSVWriter & tsv_writer,
+    OpenSwathOSWWriter & osw_writer,
     Interfaces::IMSDataConsumer<> * chromConsumer,
     int batchSize,
     bool load_into_memory)
   {
     tsv_writer.writeHeader();
+    osw_writer.writeHeader();
 
     // Compute inversion of the transformation
     TransformationDescription trafo_inverse = trafo;
@@ -488,7 +490,7 @@ namespace OpenMS
             dummy_map.sptr = current_swath_map;
             dummy_maps.push_back(dummy_map);
             scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, dummy_maps, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -599,7 +601,7 @@ namespace OpenMS
     const Param& feature_finder_param,
     TransformationDescription trafo,
     const double rt_extraction_window,
-    FeatureMap& output, OpenSwathTSVWriter & tsv_writer)
+    FeatureMap& output, OpenSwathTSVWriter & tsv_writer, OpenSwathOSWWriter & osw_writer)
   {
     typedef OpenSwath::LightTransition TransitionType;
     // a transition group holds the MSSpectra with the Chromatogram peaks from above
@@ -647,7 +649,7 @@ namespace OpenMS
       assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
     }
 
-    std::vector<String> to_output;
+    std::vector<String> to_tsv_output, to_osw_output;
     // Iterating over all the assays
     for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
     {
@@ -689,8 +691,8 @@ namespace OpenMS
         transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
-      // currently .tsv and .featureXML are mutually exclusive
-      if (tsv_writer.isActive()) { output.clear(); }
+      // currently .tsv, .osw and .featureXML are mutually exclusive
+      if (tsv_writer.isActive() || osw_writer.isActive()) { output.clear(); }
 
       // Set the MS1 chromatogram if available
       if (!ms1_chromatograms.empty() && ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
@@ -716,7 +718,15 @@ namespace OpenMS
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
         const TransitionType* transition = assay_it->second[0];
-        to_output.push_back(tsv_writer.prepareLine(pep, transition, output, id));
+        to_tsv_output.push_back(tsv_writer.prepareLine(pep, transition, output, id));
+      }
+
+      // Add to the output osw if given
+      if (osw_writer.isActive())
+      {
+        const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
+        const TransitionType* transition = assay_it->second[0];
+        to_osw_output.push_back(osw_writer.prepareLine(pep, transition, output, id));
       }
     }
 
@@ -727,7 +737,18 @@ namespace OpenMS
 #pragma omp critical (scoreAll)
 #endif
       {
-        tsv_writer.writeLines(to_output);
+        tsv_writer.writeLines(to_tsv_output);
+      }
+    }
+
+    // Only write at the very end since this is a step that needs a barrier
+    if (osw_writer.isActive())
+    {
+#ifdef _OPENMP
+#pragma omp critical (scoreAll)
+#endif
+      {
+        osw_writer.writeLines(to_osw_output);
       }
     }
   }
@@ -900,11 +921,13 @@ namespace OpenMS
            FeatureMap& out_featureFile,
            bool store_features,
            OpenSwathTSVWriter & tsv_writer,
+           OpenSwathOSWWriter & osw_writer,
            Interfaces::IMSDataConsumer<> * chromConsumer,
            int batchSize,
            bool load_into_memory)
     {
       tsv_writer.writeHeader();
+      osw_writer.writeHeader();
 
       // Compute inversion of the transformation
       TransformationDescription trafo_inverse = trafo;
@@ -1039,7 +1062,7 @@ namespace OpenMS
             // Step 3: score these extracted transitions
             FeatureMap featureFile;
             scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, used_maps, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one

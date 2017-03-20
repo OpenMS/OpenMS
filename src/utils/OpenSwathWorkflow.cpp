@@ -45,7 +45,9 @@
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -398,10 +400,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,csv"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','csv','pqp')");
+    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,csv,pqp"));
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,csv"));
+    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,csv,pqp"));
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
@@ -421,6 +423,8 @@ protected:
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
     registerStringOption_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+
+    registerStringOption_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
@@ -656,6 +660,7 @@ protected:
 
     String out = getStringOption_("out_features");
     String out_tsv = getStringOption_("out_tsv");
+    String out_osw = getStringOption_("out_osw");
 
     String irt_tr_file = getStringOption_("tr_irt");
     String trafo_in = getStringOption_("rt_norm");
@@ -708,10 +713,10 @@ protected:
       std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     }
-    if ( (out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
+    if ( (out.empty() && out_tsv.empty() && out_osw.empty()) || (!out.empty() && !out_tsv.empty())  || (!out.empty() && !out_osw.empty())  || (!out_tsv.empty() && !out_osw.empty()) )
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Either out_features or out_tsv needs to be set (but not both)");
+          "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
     }
 
     // Check swath window input
@@ -850,6 +855,19 @@ protected:
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
     }
+    else if (tr_file_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
+    {
+      TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+
+      remove(out_osw.c_str());
+      if (!out_osw.empty())
+      {
+        std::ifstream  src(tr_file, std::ios::binary);
+        std::ofstream  dst(out_osw, std::ios::binary);
+
+        dst << src.rdbuf();
+      }
+    }
     else
     {
       TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
@@ -883,20 +901,21 @@ protected:
     FeatureMap out_featureFile;
 
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
+    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
 
     if (sonar)
     {
       OpenSwathWorkflowSonar wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromConsumer, batchSize, load_into_memory);
     }
     else
     {
       OpenSwathWorkflow wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromConsumer, batchSize, load_into_memory);
     }
 
     if (!out.empty())

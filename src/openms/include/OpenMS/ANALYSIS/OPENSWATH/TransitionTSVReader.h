@@ -82,16 +82,7 @@ namespace OpenMS
     public DefaultParamHandler
   {
 
-private:
-    /// Members
-    String retentionTimeInterpretation_;
-    bool override_group_label_check_;
-
-    /// Typedefs
-    typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
-    typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
-    typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
-
+protected:
     /**
       @brief Internal structure to represent a transition
 
@@ -127,6 +118,7 @@ private:
       bool detecting_transition;
       bool identifying_transition;
       bool quantifying_transition;
+      std::vector<String> peptidoforms;
 
       TSVTransition() :
         precursor(-1),
@@ -150,33 +142,6 @@ private:
         return CompoundName.empty();
       }
     };
-
-    static const char* strarray_[];
-
-    static const std::vector<std::string> header_names_;
-
-    /** @brief Determine separator in a CSV file and check for correct headers
-     *
-     * @param line The header to be parsed
-     * @param delimiter The delimiter which will be determined from the input
-     * @param header The fields of the header
-     * @param header_dict The map which maps the fields in the header to their position
-     *
-    */
-    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
-
-    /** @brief Read tab or comma separated input with columns defined by their column headers only
-     *
-     * @param filename The input file
-     * @param filetype The type of file ("mrm" or "tsv")
-     * @param transition_list The output list of transitions
-     *
-    */
-    void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
-
-    /** @brief Cleanup of the read fields (removing quotes etc.)
-    */
-    void cleanupTransitions_(TSVTransition& mytransition);
 
     /** @brief Convert a list of TSVTransition to a TargetedExperiment
      *
@@ -205,6 +170,48 @@ private:
      *
    */
     //@{
+
+    TransitionTSVReader::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
+
+    /// Synchronize members with param class
+    void updateMembers_();
+
+private:
+    /// Members
+    String retentionTimeInterpretation_;
+    bool override_group_label_check_;
+
+    /// Typedefs
+    typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
+
+    static const char* strarray_[];
+
+    static const std::vector<std::string> header_names_;
+
+    /** @brief Determine separator in a CSV file and check for correct headers
+     *
+     * @param line The header to be parsed
+     * @param delimiter The delimiter which will be determined from the input
+     * @param header The fields of the header
+     * @param header_dict The map which maps the fields in the header to their position
+     *
+    */
+    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
+
+    /** @brief Read tab or comma separated input with columns defined by their column headers only
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param transition_list The output list of transitions
+     *
+    */
+    void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
+
+    /** @brief Cleanup of the read fields (removing quotes etc.)
+    */
+    void cleanupTransitions_(TSVTransition& mytransition);
 
     /** Resolve cases where the same peptide label group has different sequences.
      *
@@ -239,18 +246,12 @@ private:
                           int location, const ResidueModification& rmod);
     //@}
 
-
     /** @brief Write a TargetedExperiment to a file
      *
      * @param filename Name of the output file
      * @param targeted_exp The data structure to be written to the file
     */
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
-
-protected:
-
-    /// Synchronize members with param class
-    void updateMembers_();
 
 public:
 
