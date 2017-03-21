@@ -96,8 +96,8 @@ struct less_than_by_key
 
     inline bool operator()(const size_t & index1, const size_t & index2)
     {
-        return ((double) elements[index1][idx].getMetaValue(meta_value)
-                > (double) elements[index2][idx].getMetaValue(meta_value));
+      return ((double) elements[index1][idx].getMetaValue(meta_value)
+              > (double) elements[index2][idx].getMetaValue(meta_value));
     }
 };
 
@@ -111,22 +111,22 @@ bool isSortedDescending(vector< size_t > & order, vector< vector < PeptideIdenti
 {
   for (size_t i = 0; i < spectra.size() - 1; ++i)
   {
-      double a_score = (double) spectra[order[i]][idx].getMetaValue("OpenXQuest:score");
-      double b_score = (double) spectra[order[i+1]][idx].getMetaValue("OpenXQuest:score");
+    double a_score = (double) spectra[order[i]][idx].getMetaValue("OpenXQuest:score");
+    double b_score = (double) spectra[order[i+1]][idx].getMetaValue("OpenXQuest:score");
 
-      if(a_score < b_score)
-      {
-       return false;
-      }
+    if(a_score < b_score)
+    {
+      return false;
+    }
   }
   return true;
 }
 
 
 class TOPPXFDR :
-        public TOPPBase
+    public TOPPBase
 {
-public:
+  public:
 
     static const String param_in_xlclasses;  // Parameter for specifying the cross-link classes
     static const String param_in_xquestxml;  // Parameter for the original xQuest XML file
@@ -164,11 +164,11 @@ public:
     static const double fpnum_score_step;
 
     TOPPXFDR() :
-            TOPPBase("XFDR", "Template for Tool creation", false)
+      TOPPBase("XFDR", "Template for Tool creation", false)
     {
     }
 
-protected:
+  protected:
 
 
     /** False positve counting as performed by xProphet software package.
@@ -203,7 +203,7 @@ protected:
     }
     */
 
-     /** Target counting as performed by the xProphet software package
+    /** Target counting as performed by the xProphet software package
        *
        * @brief xprophet  method for target hits counting as implemented in xProphet
        * @param cum_histograms Cumulative score distributions
@@ -230,30 +230,30 @@ protected:
      }
      */
 
-     /** Target counting as performed by the xProphet software package
+    /** Target counting as performed by the xProphet software package
       *
       * @brief xprophet  method for target hits counting as implemented in xProphet
       * @param cum_histograms Cumulative score distributions
       */
-     void fdr_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
-                       const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
-                       vector< double > & fdr, bool mono)
-     {
-       for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
-            current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
-            current_score += TOPPXFDR::fpnum_score_step)
-       {
-         double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score);
-         if ( ! mono)
-         {
-           estimated_n_decoys -= 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
-         }
-         double n_targets = cum_histograms[targetclass]->binValue(current_score);
-         fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets) : 0);
-       }
+    void fdr_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
+                      const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
+                      vector< double > & fdr, bool mono)
+    {
+      for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
+           current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
+           current_score += TOPPXFDR::fpnum_score_step)
+      {
+        double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score);
+        if ( ! mono)
+        {
+          estimated_n_decoys -= 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
+        }
+        double n_targets = cum_histograms[targetclass]->binValue(current_score);
+        fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets) : 0);
+      }
     }
 
-     /**
+    /**
      * @brief Calculates the qFDR values for the provided FDR values, assuming that the FDRs are sorted by score in the input vector
      * @param fdr Vector with FDR values which should be used for qFDR calculation
      * @param qfdr Result qFDR values
@@ -263,17 +263,17 @@ protected:
       qfdr.resize(fdr.size());
       for (int i = fdr.size(); i > -1; --i)
       {
-          double current_fdr = fdr[i];
-          double smallest_fdr = current_fdr;
-          for (int j = i; j > -1; j--)
+        double current_fdr = fdr[i];
+        double smallest_fdr = current_fdr;
+        for (int j = i; j > -1; j--)
+        {
+          double fdr_to_check = fdr[j];
+          if (fdr_to_check < smallest_fdr)
           {
-            double fdr_to_check = fdr[j];
-            if (fdr_to_check < smallest_fdr)
-            {
-              smallest_fdr = fdr_to_check;
-            }
+            smallest_fdr = fdr_to_check;
           }
-          qfdr[i] = smallest_fdr < current_fdr ? smallest_fdr : current_fdr;
+        }
+        qfdr[i] = smallest_fdr < current_fdr ? smallest_fdr : current_fdr;
       }
     }
 
@@ -337,8 +337,8 @@ protected:
 
       if (! cross_link_classes_file.load(arg_in_xlclasses))
       {
-         LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
-         return PARSE_ERROR;
+        LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
+        return PARSE_ERROR;
       }
 
       //-------------------------------------------------------------
@@ -347,17 +347,17 @@ protected:
       String arg_fdr_calc_method = getStringOption_(TOPPXFDR::param_fdr_calc_method);
       if (arg_fdr_calc_method == "xprophet")
       {
-         StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks,intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
-         for (StringList::const_iterator required_classes_it = required_classes.begin();
-              required_classes_it != required_classes.end(); ++required_classes_it)
-         {
-           String classname = *required_classes_it;
-           if ( ! cross_link_classes_file.has((classname)))
-           {
-             LOG_ERROR << "ERROR: xProphet target counting selected, but the following xlink class has not been defined: " << classname << endl;
-             return ILLEGAL_PARAMETERS;
-           }
-         }
+        StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks,intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
+        for (StringList::const_iterator required_classes_it = required_classes.begin();
+             required_classes_it != required_classes.end(); ++required_classes_it)
+        {
+          String classname = *required_classes_it;
+          if ( ! cross_link_classes_file.has((classname)))
+          {
+            LOG_ERROR << "ERROR: xProphet target counting selected, but the following xlink class has not been defined: " << classname << endl;
+            return ILLEGAL_PARAMETERS;
+          }
+        }
       }
       else
       {
@@ -369,7 +369,7 @@ protected:
       {
         for(CrossLinkClassesFile::ClassNameConstIterator it = cross_link_classes_file.begin(); it != cross_link_classes_file.end(); ++it)
         {
-              cout << "Class defined: " <<  *it << '\n';
+          cout << "Class defined: " <<  *it << '\n';
         }
         cout << "----------------------------" << endl;
       }
@@ -416,7 +416,7 @@ protected:
       }
       else
       {
-       LOG_INFO << "No filtering of hits by minimum score.\n";
+        LOG_INFO << "No filtering of hits by minimum score.\n";
       }
       if (arg_uniquex)
       {
@@ -463,15 +463,15 @@ protected:
                  << "Total number of hits: "    << xquest_result_file.get_n_hits() << endl;
       }
 
-//      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
-//      {
-//        vector< PeptideIdentification > csm = *it;
-//        cout << csm.size() << endl;
-//        for(vector< PeptideIdentification >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
-//        {
-//            cout << it2->getHits().size() << endl;
-//        }
-//      }
+      //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
+      //      {
+      //        vector< PeptideIdentification > csm = *it;
+      //        cout << csm.size() << endl;
+      //        for(vector< PeptideIdentification >::const_iterator it2 = csm.begin(); it2 != csm.end(); ++it2)
+      //        {
+      //            cout << it2->getHits().size() << endl;
+      //        }
+      //      }
 
       //-------------------------------------------------------------
       // Calculate the delta score for each hit
@@ -484,46 +484,46 @@ protected:
 
       for(size_t i = 0; i < delta_scores.size(); ++i)
       {
-          size_t n_hits = spectra[i].size();
-          delta_scores[i] = new std::vector<double>(n_hits);
-          vector<double> * current = delta_scores[i];
+        size_t n_hits = spectra[i].size();
+        delta_scores[i] = new std::vector<double>(n_hits);
+        vector<double> * current = delta_scores[i];
 
-          assert(n_hits > 0); // because we initially do not load 'empty' spectra
-          // calculate n_min_ions_matched
-          PeptideIdentification * pep_id1 = &spectra[i][0];
+        assert(n_hits > 0); // because we initially do not load 'empty' spectra
+        // calculate n_min_ions_matched
+        PeptideIdentification * pep_id1 = &spectra[i][0];
 
-          // Currently the correct rank order in the xQuest result file is assumed
-          //assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
+        // Currently the correct rank order in the xQuest result file is assumed
+        //assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
 
-          vector<PeptideHit> pep_hits = pep_id1->getHits();
+        vector<PeptideHit> pep_hits = pep_id1->getHits();
 
-          if( pep_id1->getMetaValue("xl_type") == "cross-link")
+        if( pep_id1->getMetaValue("xl_type") == "cross-link")
+        {
+          n_min_ions_matched[i] = std::min((int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions"),
+              (int) pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions"));
+        }
+        else
+        {
+          n_min_ions_matched[i] = (int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions");
+        }
+        // Calculate delta score
+        if (n_hits > 1)
+        {
+          for (size_t j = 0; j < n_hits - 1; ++j)
           {
-              n_min_ions_matched[i] = std::min((int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions"),
-                                               (int) pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions"));
-          }
-          else
-          {
-              n_min_ions_matched[i] = (int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions");
-          }
-          // Calculate delta score
-          if (n_hits > 1)
-          {
-            for (size_t j = 0; j < n_hits - 1; ++j)
+            pep_id1 = &spectra[i][j];
+            for (size_t k = 1; j+k < n_hits; ++k )
             {
-              pep_id1 = &spectra[i][j];
-              for (size_t k = 1; j+k < n_hits; ++k )
+              PeptideIdentification * pep_id2 = &spectra[i][j+k];
+              if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
               {
-                PeptideIdentification * pep_id2 = &spectra[i][j+k];
-                if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
-                {                 
-                  (*current)[j] =  ((double) pep_id2->getMetaValue("OpenXQuest:score"))
-                                 / ((double) pep_id1->getMetaValue("OpenXQuest:score"));
-                  break;
-                }
+                (*current)[j] =  ((double) pep_id2->getMetaValue("OpenXQuest:score"))
+                    / ((double) pep_id1->getMetaValue("OpenXQuest:score"));
+                break;
               }
             }
           }
+        }
       }
       typedef std::vector<size_t> ranks;
 
@@ -549,25 +549,25 @@ protected:
 
       for (size_t i = 0; i < n_spectra; ++i)
       {
-       // Extract required attributes of the peptide_identification (filter criteria)
-       PeptideIdentification * pep_id = &spectra[order_score[i]][pep_id_index];
-       double error_rel = (double) pep_id->getMetaValue("OpenXQuest:error_rel");
-       double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];    // Index 0 because we only consider rank 1 here
-       size_t ions_matched = n_min_ions_matched[order_score[i]];
-       double score = (double) pep_id->getMetaValue("OpenXQuest:score");
-       String id = (String) pep_id->getMetaValue("OpenXQuest:id");
+        // Extract required attributes of the peptide_identification (filter criteria)
+        PeptideIdentification * pep_id = &spectra[order_score[i]][pep_id_index];
+        double error_rel = (double) pep_id->getMetaValue("OpenXQuest:error_rel");
+        double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];    // Index 0 because we only consider rank 1 here
+        size_t ions_matched = n_min_ions_matched[order_score[i]];
+        double score = (double) pep_id->getMetaValue("OpenXQuest:score");
+        String id = (String) pep_id->getMetaValue("OpenXQuest:id");
 
-       // Only consider peptide identifications which  fullfill all filter criteria specified by the user
-       if (     arg_minborder <= error_rel
-            &&  arg_maxborder >= error_rel
-            &&  (mindelta_filter_disabled || delta_score < arg_mindeltas)
-            &&  ions_matched  >= arg_minionsmatched
-            &&  score         >= arg_minscore
-            &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
-       {
-           unique_ids.insert(id);
-           cross_link_classes_file.collect(*pep_id, scores, "OpenXQuest:score");
-       }
+        // Only consider peptide identifications which  fullfill all filter criteria specified by the user
+        if (     arg_minborder <= error_rel
+                 &&  arg_maxborder >= error_rel
+                 &&  (mindelta_filter_disabled || delta_score < arg_mindeltas)
+                 &&  ions_matched  >= arg_minionsmatched
+                 &&  score         >= arg_minscore
+                 &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
+        {
+          unique_ids.insert(id);
+          cross_link_classes_file.collect(*pep_id, scores, "OpenXQuest:score");
+        }
       }
 
       // Print number of scores within each class
@@ -646,7 +646,7 @@ protected:
 
       // Delete cumulative_histograms
       for (std::map< String, Math::CumulativeHistogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
-          cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
+           cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
       {
         delete cum_histograms_it->second;
       }
@@ -708,7 +708,7 @@ const double TOPPXFDR::fpnum_score_step = 0.1;
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
 {
-    TOPPXFDR tool;
-    return tool.main(argc, argv);
+  TOPPXFDR tool;
+  return tool.main(argc, argv);
 }
 /// @endcond
