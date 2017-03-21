@@ -882,7 +882,7 @@ protected:
 
       chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
-      // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
+      chromConsumer->getOptions().setCompression(true);
     }
     else
     {
