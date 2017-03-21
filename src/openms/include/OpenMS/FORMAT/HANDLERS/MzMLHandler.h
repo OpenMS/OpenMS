@@ -5281,12 +5281,12 @@ protected:
       //--------------------------------------------------------------------------------------------
       if (!spec.getPrecursors().empty())
       {
-        os << "\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
+        os << "\t\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
         for (Size p = 0; p != spec.getPrecursors().size(); ++p)
         {
           writePrecursor_(os, spec.getPrecursors()[p], validator);
         }
-        os << "\t\t\t</precursorList>\n";
+        os << "\t\t\t\t</precursorList>\n";
       }
 
       //--------------------------------------------------------------------------------------------
