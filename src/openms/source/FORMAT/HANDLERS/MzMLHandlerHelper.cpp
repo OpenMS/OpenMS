@@ -80,6 +80,9 @@ namespace OpenMS
       case MSNumpressCoder::SLOF:
         np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
         break;
+      case MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION:
+        np_term = "";
+        break;
       case MSNumpressCoder::NONE:
         np_term = "";
         break;
