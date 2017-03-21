@@ -120,4 +120,5 @@ namespace OpenMS
   } // namespace Internal
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
+
