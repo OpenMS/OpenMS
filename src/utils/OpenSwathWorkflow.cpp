@@ -867,9 +867,6 @@ protected:
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
-      chromConsumer->getOptions().setCompression(true); // compress data
-      chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
-      chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
       chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
 
       // prepare data structures for lossy compression
@@ -885,7 +882,7 @@ protected:
 
       chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
-      // chromConsumer->getOptions().setCompression(true); // maybe later.
+      // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
     }
     else
     {
