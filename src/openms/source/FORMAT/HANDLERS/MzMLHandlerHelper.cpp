@@ -94,6 +94,8 @@ namespace OpenMS
         return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
       }
     }
+    // default
+    return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
   }
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_, 
