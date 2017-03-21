@@ -5406,7 +5406,7 @@ protected:
                                                   const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
-      chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset + 6));
+      chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?
       // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
