@@ -59,7 +59,7 @@ namespace OpenMS
     if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
     {
       // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
-      // It is technically possible, but it may be illegal according to the standard:
+      // It is technically possible, but is illegal according to the standard:
       //
       // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
       //
