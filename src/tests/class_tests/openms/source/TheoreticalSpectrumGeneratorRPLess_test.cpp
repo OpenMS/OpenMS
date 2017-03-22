@@ -86,21 +86,6 @@ START_SECTION(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, R
   ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
   ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
 
-//  cout << endl;
-//  cout << "yspec size = " << y_spec.size() << endl;
-//  cout << "data arrays size = " <<  y_spec.getIntegerDataArrays().size() << endl;
-//  y_spec.getIntegerDataArrays().resize(2);
-
-//  cout << "test" << endl;
-
-//  cout << "yspec size = " << y_spec.size() << endl;
-//  cout << "data arrays size = " <<  y_spec.getIntegerDataArrays().size() << endl;
-
-//  cout << " int_array size = " << y_spec.getIntegerDataArrays()[0].size() << endl;
-//  y_spec.getIntegerDataArrays()[0].push_back(5);
-//  cout << " int_array size = " << y_spec.getIntegerDataArrays()[0].size() << endl;
-
-
   TOLERANCE_ABSOLUTE(0.001)
   double y_result[] = {147.113, 204.135, 303.203, 431.262, 518.294, 665.362};
   for (Size i = 0; i != y_spec.size(); ++i)
@@ -126,15 +111,6 @@ START_SECTION(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, R
   {
     TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
   }
-/* for quick benchmarking of implementation chances
-  for (Size i = 0; i != 1e6; ++i)
-  {
-    PeakSpectrum y_spec, b_spec, a_spec;
-    ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
-    ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
-    ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
-  }
-*/
 END_SECTION
 
 START_SECTION(void addAbundantImmoniumIons(PeakSpectrum& spec))
@@ -335,14 +311,14 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   TEST_EQUAL(charge_counts[1], 27)
   TEST_EQUAL(charge_counts[2], 30) // 3 more for [M+H], [M+H]-H20, [M+H]-NH3
 
-// for quick benchmarking of implementation chances
-  for (Size i = 0; i != 1e5; ++i)
-  {
-    PeakSpectrum y_spec, b_spec, a_spec;
-    ptr->addPeaks(y_spec, peptide, Residue::YIon, 2);
-    ptr->addPeaks(b_spec, peptide, Residue::BIon, 2);
-    ptr->addPeaks(a_spec, peptide, Residue::AIon, 2);
-  }
+// // for quick benchmarking of implementation chances
+//  for (Size i = 0; i != 1e5; ++i)
+//  {
+//    PeakSpectrum y_spec, b_spec, a_spec;
+//    ptr->addPeaks(y_spec, peptide, Residue::YIon, 2);
+//    ptr->addPeaks(b_spec, peptide, Residue::BIon, 2);
+//    ptr->addPeaks(a_spec, peptide, Residue::AIon, 2);
+//  }
 
 END_SECTION
 
