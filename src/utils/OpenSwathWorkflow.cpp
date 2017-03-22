@@ -400,10 +400,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','csv','pqp')");
-    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,csv,pqp"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
+    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,csv,pqp"));
+    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
@@ -423,8 +423,10 @@ protected:
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
     registerStringOption_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+    setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
     registerStringOption_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
+    setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
