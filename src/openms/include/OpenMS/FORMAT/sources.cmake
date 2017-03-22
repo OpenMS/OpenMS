@@ -79,6 +79,7 @@ SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 SwathFile.h
+SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h

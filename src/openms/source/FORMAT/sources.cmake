@@ -58,6 +58,7 @@ ProtXMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
+SqMassFile.cpp
 SwathFile.cpp
 SVOutStream.cpp
 TextFile.cpp
