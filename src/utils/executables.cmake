@@ -59,10 +59,6 @@ if(NOT DISABLE_OPENSWATH)
   set(UTILS_executables
     ${UTILS_executables}
     TargetedFileConverter
-    ConvertTSVToTraML
-    ConvertPQPToTraML
-    ConvertTraMLToTSV
-    ConvertTraMLToPQP
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow
