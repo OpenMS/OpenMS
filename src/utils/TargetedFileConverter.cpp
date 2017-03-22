@@ -137,6 +137,7 @@ protected:
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
+    registerFlag_("legacy_traml_id", "PQP to TraML: Should legacy TraML IDs be used?", true);
 
   }
 
@@ -180,6 +181,8 @@ protected:
       return PARSE_ERROR;
     }
 
+    bool legacy_traml_id = getFlag_("legacy_traml_id");
+
     //--------------------------------------------------------------------------- 
     // Start Conversion
     //--------------------------------------------------------------------------- 
@@ -201,7 +204,7 @@ protected:
       Param reader_parameters = getParam_().copy("algorithm:", true);
       pqp_reader.setLogType(log_type_);
       pqp_reader.setParameters(reader_parameters);
-      pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
+      pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp, legacy_traml_id);
       pqp_reader.validateTargetedExperiment(targeted_exp);
     }
     else if (in_type == FileTypes::TRAML)

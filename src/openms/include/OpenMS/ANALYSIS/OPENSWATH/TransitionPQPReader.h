@@ -61,9 +61,10 @@ private:
      *
      * @param filename The input file
      * @param transition_list The output list of transitions
+     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
-    void readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+    void readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id = false);
 
     /** @brief Write a TargetedExperiment to a file
      *
@@ -94,17 +95,19 @@ public:
      *
      * @param filename The input file
      * @param targeted_exp The output targeted experiment
+     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
-    void convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+    void convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
     /** @brief Read in a PQP file and construct a targeted experiment (Light transition structure)
      *
      * @param filename The input file
      * @param targeted_exp The output targeted experiment
+     * @param legacy_traml_id Should legacy TraML IDs be used (boolean)?
      *
     */
-    void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp);
+    void convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id = false);
 
   };
 }

@@ -97,94 +97,87 @@ namespace OpenMS
       int  rc;
       char *create_sql;
 
-      /* Open database */
+      // Open database
       rc = sqlite3_open(output_filename_.c_str(), &db);
       if( rc )
       {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
       }
-      else
-      {
-        fprintf(stdout, "OSW stucture prepared successfully\n");
-      }
 
-      /* Create SQL structure */
+      // Create SQL structure
       create_sql = 
-            "CREATE TABLE FEATURE(" \
-            "ID INT PRIMARY KEY NOT NULL," \
-            "PRECURSOR_ID INT NOT NULL," \
-            "RT REAL NOT NULL," \
-            "DELTA_RT REAL NOT NULL," \
-            "LEFT_WIDTH REAL NOT NULL," \
-            "RIGHT_WIDTH REAL NOT NULL); " \
+        "CREATE TABLE FEATURE(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "PRECURSOR_ID INT NOT NULL," \
+        "RT REAL NOT NULL," \
+        "DELTA_RT REAL NOT NULL," \
+        "LEFT_WIDTH REAL NOT NULL," \
+        "RIGHT_WIDTH REAL NOT NULL); " \
 
-            "CREATE TABLE FEATURE_MS1(" \
-            "FEATURE_ID INT NOT NULL," \
-            "AREA_INTENSITY REAL NOT NULL," \
-            "APEX_INTENSITY REAL NOT NULL," \
-            "VAR_MASSDEV_SCORE REAL NOT NULL," \
-            "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
-            "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
-            "VAR_XCORR_COELUTION REAL NOT NULL," \
-            "VAR_XCORR_SHAPE REAL NOT NULL); " \
+        "CREATE TABLE FEATURE_MS1(" \
+        "FEATURE_ID INT NOT NULL," \
+        "AREA_INTENSITY REAL NOT NULL," \
+        "APEX_INTENSITY REAL NOT NULL," \
+        "VAR_MASSDEV_SCORE REAL NOT NULL," \
+        "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
+        "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
+        "VAR_XCORR_COELUTION REAL NOT NULL," \
+        "VAR_XCORR_SHAPE REAL NOT NULL); " \
 
-            "CREATE TABLE FEATURE_MS2(" \
-            "FEATURE_ID INT NOT NULL," \
-            "AREA_INTENSITY REAL NOT NULL," \
-            "APEX_INTENSITY REAL NOT NULL," \
-            "VAR_BSERIES_SCORE REAL NOT NULL," \
-            "VAR_DOTPROD_SCORE REAL NOT NULL," \
-            "VAR_INTENSITY_SCORE REAL NOT NULL," \
-            "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
-            "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
-            "VAR_LIBRARY_CORR REAL NOT NULL," \
-            "VAR_LIBRARY_DOTPROD REAL NOT NULL," \
-            "VAR_LIBRARY_MANHATTAN REAL NOT NULL," \
-            "VAR_LIBRARY_RMSD REAL NOT NULL," \
-            "VAR_LIBRARY_ROOTMEANSQUARE REAL NOT NULL," \
-            "VAR_LIBRARY_SANGLE REAL NOT NULL," \
-            "VAR_LOG_SN_SCORE REAL NOT NULL," \
-            "VAR_MANHATTAN_SCORE REAL NOT NULL," \
-            "VAR_MASSDEV_SCORE REAL NOT NULL," \
-            "VAR_MASSDEV_SCORE_WEIGHTED REAL NOT NULL," \
-            "VAR_NORM_RT_SCORE REAL NOT NULL," \
-            "VAR_XCORR_COELUTION REAL NOT NULL," \
-            "VAR_XCORR_COELUTION_WEIGHTED REAL NOT NULL," \
-            "VAR_XCORR_SHAPE REAL NOT NULL," \
-            "VAR_XCORR_SHAPE_WEIGHTED REAL NOT NULL," \
-            "VAR_YSERIES_SCORE REAL NOT NULL," \
-            "VAR_ELUTION_MODEL_FIT_SCORE REAL NULL," \
-            "VAR_SONAR_LAG REAL NULL," \
-            "VAR_SONAR_SHAPE REAL NULL," \
-            "VAR_SONAR_LOG_SN REAL NULL," \
-            "VAR_SONAR_LOG_DIFF REAL NULL," \
-            "VAR_SONAR_LOG_TREND REAL NULL," \
-            "VAR_SONAR_RSQ REAL NULL); " \
+        "CREATE TABLE FEATURE_MS2(" \
+        "FEATURE_ID INT NOT NULL," \
+        "AREA_INTENSITY REAL NOT NULL," \
+        "APEX_INTENSITY REAL NOT NULL," \
+        "VAR_BSERIES_SCORE REAL NOT NULL," \
+        "VAR_DOTPROD_SCORE REAL NOT NULL," \
+        "VAR_INTENSITY_SCORE REAL NOT NULL," \
+        "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
+        "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
+        "VAR_LIBRARY_CORR REAL NOT NULL," \
+        "VAR_LIBRARY_DOTPROD REAL NOT NULL," \
+        "VAR_LIBRARY_MANHATTAN REAL NOT NULL," \
+        "VAR_LIBRARY_RMSD REAL NOT NULL," \
+        "VAR_LIBRARY_ROOTMEANSQUARE REAL NOT NULL," \
+        "VAR_LIBRARY_SANGLE REAL NOT NULL," \
+        "VAR_LOG_SN_SCORE REAL NOT NULL," \
+        "VAR_MANHATTAN_SCORE REAL NOT NULL," \
+        "VAR_MASSDEV_SCORE REAL NOT NULL," \
+        "VAR_MASSDEV_SCORE_WEIGHTED REAL NOT NULL," \
+        "VAR_NORM_RT_SCORE REAL NOT NULL," \
+        "VAR_XCORR_COELUTION REAL NOT NULL," \
+        "VAR_XCORR_COELUTION_WEIGHTED REAL NOT NULL," \
+        "VAR_XCORR_SHAPE REAL NOT NULL," \
+        "VAR_XCORR_SHAPE_WEIGHTED REAL NOT NULL," \
+        "VAR_YSERIES_SCORE REAL NOT NULL," \
+        "VAR_ELUTION_MODEL_FIT_SCORE REAL NULL," \
+        "VAR_SONAR_LAG REAL NULL," \
+        "VAR_SONAR_SHAPE REAL NULL," \
+        "VAR_SONAR_LOG_SN REAL NULL," \
+        "VAR_SONAR_LOG_DIFF REAL NULL," \
+        "VAR_SONAR_LOG_TREND REAL NULL," \
+        "VAR_SONAR_RSQ REAL NULL); " \
 
-            "CREATE TABLE FEATURE_TRANSITION(" \
-            "FEATURE_ID INT NOT NULL," \
-            "TRANSITION_ID INT NOT NULL," \
-            "AREA_INTENSITY REAL NOT NULL," \
-            "APEX_INTENSITY REAL NOT NULL," \
-            "VAR_LOG_INTENSITY REAL NULL," \
-            "VAR_XCORR_COELUTION REAL NULL," \
-            "VAR_XCORR_SHAPE REAL NULL," \
-            "VAR_LOG_SN_SCORE REAL NULL," \
-            "VAR_MASSDEV_SCORE REAL NULL," \
-            "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
-            "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL); " ;
+        "CREATE TABLE FEATURE_TRANSITION(" \
+        "FEATURE_ID INT NOT NULL," \
+        "TRANSITION_ID INT NOT NULL," \
+        "AREA_INTENSITY REAL NOT NULL," \
+        "APEX_INTENSITY REAL NOT NULL," \
+        "VAR_LOG_INTENSITY REAL NULL," \
+        "VAR_XCORR_COELUTION REAL NULL," \
+        "VAR_XCORR_SHAPE REAL NULL," \
+        "VAR_LOG_SN_SCORE REAL NULL," \
+        "VAR_MASSDEV_SCORE REAL NULL," \
+        "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
+        "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL); " ;
 
 
-      /* Execute SQL statement */
+      // Execute SQL create statement
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
       if( rc != SQLITE_OK )
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
             zErrMsg);
         sqlite3_free(zErrMsg);
-      }
-      else {
-        std::cout << "Done creating tables" << std::endl;
       }
       sqlite3_close(db);
     }
@@ -376,7 +369,7 @@ namespace OpenMS
       int  rc;
       char *create_sql;
 
-      /* Open database */
+      // Open database
       rc = sqlite3_open(output_filename_.c_str(), &db);
       if( rc )
       {

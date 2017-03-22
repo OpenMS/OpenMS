@@ -56,7 +56,7 @@ namespace OpenMS
     return(0);
   }
 
-  void TransitionPQPReader::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list)
+  void TransitionPQPReader::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {
     sqlite3 *db;
     sqlite3_stmt * stmt;
@@ -65,16 +65,18 @@ namespace OpenMS
     std::string select_sql;
     const char* data = "Callback function called";
 
+    // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
+    std::string traml_id = "ID";
+    if (legacy_traml_id)
+    {
+      traml_id = "TRAML_ID";
+    }
 
-    /* Open database */
+    // Open database
     rc = sqlite3_open(filename, &db);
     if( rc )
     {
       fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
-    else
-    {
-      fprintf(stdout, "Opened database successfully\n");
     }
 
     // Get Peptides
@@ -82,10 +84,10 @@ namespace OpenMS
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
                   "TRANSITION.PRODUCT_MZ AS product, " \
                   "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
-                  "TRANSITION.ID AS transition_name, " \
+                  "TRANSITION." + traml_id + " AS transition_name, " \
                   "-1 AS CE, " \
                   "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
-                  "PRECURSOR.ID AS group_id, " \
+                  "PRECURSOR." + traml_id + " AS group_id, " \
                   "TRANSITION.DECOY AS decoy, " \
                   "PEPTIDE.UNMODIFIED_SEQUENCE AS PeptideSequence, " \
                   "PROTEIN_AGGREGATED.PROTEIN_ACCESSION AS ProteinName, " \
@@ -120,10 +122,10 @@ namespace OpenMS
                   "PRECURSOR.PRECURSOR_MZ AS precursor, " \
                   "TRANSITION.PRODUCT_MZ AS product, " \
                   "PRECURSOR.LIBRARY_RT AS rt_calibrated, " \
-                  "TRANSITION.ID AS transition_name, " \
+                  "TRANSITION." + traml_id + " AS transition_name, " \
                   "-1 AS CE, " \
                   "TRANSITION.LIBRARY_INTENSITY AS library_intensity, " \
-                  "PRECURSOR.ID AS group_id, " \
+                  "PRECURSOR." + traml_id + " AS group_id, " \
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
@@ -151,11 +153,11 @@ namespace OpenMS
                   "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
 
-    /* Execute SQL statement */
-    std::cout << select_sql << std::endl;
+    // Execute SQL select statement
     sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
     sqlite3_step( stmt );
 
+    // Convert SQLite data to TSVTransition data structure
     while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
     {
       TSVTransition mytransition;
@@ -287,85 +289,94 @@ namespace OpenMS
     // delete file if present
     remove(filename);
 
-    /* Open database */
+    // Open database
     rc = sqlite3_open(filename, &db);
     if( rc )
     {
       fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
     }
 
-    /* Create SQL structure */
+    // Create SQL structure
     create_sql = 
-  // protein table
-          "CREATE TABLE PROTEIN(" \
-          "ID INT PRIMARY KEY NOT NULL," \
-          "PROTEIN_ACCESSION TEXT NOT NULL," \
-          "DECOY INT NOT NULL);" \
+      // protein table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PROTEIN(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "PROTEIN_ACCESSION TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
 
-  // peptide_protein_mapping table
-          "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
-          "PEPTIDE_ID INT NOT NULL," \
-          "PROTEIN_ID INT NOT NULL);" \
+      // peptide_protein_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "PROTEIN_ID INT NOT NULL);" \
 
-  // peptide table
-          "CREATE TABLE PEPTIDE(" \
-          "ID INT PRIMARY KEY NOT NULL," \
-          "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
-          "MODIFIED_SEQUENCE TEXT NOT NULL," \
-          "DECOY INT NOT NULL);" \
+      // peptide table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
+      "MODIFIED_SEQUENCE TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
 
-  // precursor_peptide_mapping table
-          "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
-          "PRECURSOR_ID INT NOT NULL," \
-          "PEPTIDE_ID INT NOT NULL);" \
+      // precursor_peptide_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
+      "PRECURSOR_ID INT NOT NULL," \
+      "PEPTIDE_ID INT NOT NULL);" \
 
-  // compound table
-          "CREATE TABLE COMPOUND(" \
-          "ID INT PRIMARY KEY NOT NULL," \
-          "COMPOUND_NAME TEXT NOT NULL," \
-          "SUM_FORMULA TEXT NOT NULL," \
-          "SMILES TEXT NOT NULL," \
-          "DECOY INT NOT NULL);" \
+      // compound table
+      // OpenSWATH metabolomics workflows
+      "CREATE TABLE COMPOUND(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "COMPOUND_NAME TEXT NOT NULL," \
+      "SUM_FORMULA TEXT NOT NULL," \
+      "SMILES TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
 
-  // precursor_compound_mapping table
-          "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
-          "PRECURSOR_ID INT NOT NULL," \
-          "COMPOUND_ID INT NOT NULL);" \
+      // precursor_compound_mapping table
+      // OpenSWATH metabolomics workflows
+      "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
+      "PRECURSOR_ID INT NOT NULL," \
+      "COMPOUND_ID INT NOT NULL);" \
 
-  // precursor table
-          "CREATE TABLE PRECURSOR(" \
-          "ID INT PRIMARY KEY NOT NULL," \
-          "GROUP_LABEL TEXT NULL," \
-          "PRECURSOR_MZ REAL NOT NULL," \
-          "CHARGE INT NULL," \
-          "LIBRARY_INTENSITY REAL NULL," \
-          "LIBRARY_RT REAL NULL," \
-          "DECOY INT NOT NULL);" \
+      // precursor table
+      "CREATE TABLE PRECURSOR(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "TRAML_ID TEXT NULL," \
+      "GROUP_LABEL TEXT NULL," \
+      "PRECURSOR_MZ REAL NOT NULL," \
+      "CHARGE INT NULL," \
+      "LIBRARY_INTENSITY REAL NULL," \
+      "LIBRARY_RT REAL NULL," \
+      "DECOY INT NOT NULL);" \
 
-  // transition_precursor_mapping table
-          "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
-          "TRANSITION_ID INT NOT NULL," \
-          "PRECURSOR_ID INT NOT NULL);" \
+      // transition_precursor_mapping table
+      "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
+      "TRANSITION_ID INT NOT NULL," \
+      "PRECURSOR_ID INT NOT NULL);" \
 
-  // transition_peptide_mapping table
-          "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
-          "TRANSITION_ID INT NOT NULL," \
-          "PEPTIDE_ID INT NOT NULL);" \
+      // transition_peptide_mapping table
+      // IPF proteomics workflows
+      "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
+      "TRANSITION_ID INT NOT NULL," \
+      "PEPTIDE_ID INT NOT NULL);" \
 
-  // transition table
-          "CREATE TABLE TRANSITION(" \
-          "ID INT PRIMARY KEY NOT NULL," \
-          "PRODUCT_MZ REAL NOT NULL," \
-          "CHARGE INT NULL," \
-          "TYPE CHAR(1) NULL," \
-          "ORDINAL INT NULL," \
-          "DETECTING INT NOT NULL," \
-          "IDENTIFYING INT NOT NULL," \
-          "QUANTIFYING INT NOT NULL," \
-          "LIBRARY_INTENSITY REAL NULL," \
-          "DECOY INT NOT NULL);";
+      // transition table
+      "CREATE TABLE TRANSITION(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "TRAML_ID TEXT NULL," \
+      "PRODUCT_MZ REAL NOT NULL," \
+      "CHARGE INT NULL," \
+      "TYPE CHAR(1) NULL," \
+      "ORDINAL INT NULL," \
+      "DETECTING INT NOT NULL," \
+      "IDENTIFYING INT NOT NULL," \
+      "QUANTIFYING INT NOT NULL," \
+      "LIBRARY_INTENSITY REAL NULL," \
+      "DECOY INT NOT NULL);";
 
-    /* Execute SQL statement */
+    // Execute SQL create statement
     rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
     {
@@ -374,14 +385,16 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    ////////////////////////////////////////////////
+    // Prepare insert statements
 
+    // Index maps
     std::vector<std::string> group_set, peptide_set, compound_set, protein_set;
     std::map<int,double> precursor_mz_map;
     std::map<int,bool> precursor_decoy_map;
 
     std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
 
+    // OpenSWATH: Loop through TargetedExperiment to generate index maps for peptides
     Size progress = 0;
     startProgress(0, targeted_exp.getPeptides().size(), "Convert peptides");
     for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
@@ -394,6 +407,7 @@ namespace OpenMS
     }
     endProgress();
 
+    // OpenSWATH: Loop through TargetedExperiment to generate index maps for compounds
     progress = 0;
     startProgress(0, targeted_exp.getCompounds().size(), "Convert compounds");
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
@@ -405,8 +419,10 @@ namespace OpenMS
     }
     endProgress();
 
+    // OpenSWATH: Group set must be unique
     boost::erase(group_set, boost::unique<boost::return_found_end>(boost::sort(group_set)));
 
+    // IPF: Loop through all transitions and generate peptidoform data structures
     progress = 0;
     std::vector<TransitionPQPReader::TSVTransition > transitions;
     startProgress(0, targeted_exp.getTransitions().size(), "Convert peptidoforms");
@@ -433,9 +449,12 @@ namespace OpenMS
       }
     }
     endProgress();
+
+    // OpenSWATH: Peptide and compound sets must be unique
     boost::erase(peptide_set, boost::unique<boost::return_found_end>(boost::sort(peptide_set)));
     boost::erase(compound_set, boost::unique<boost::return_found_end>(boost::sort(compound_set)));
 
+    // OpenSWATH: Prepare transition inserts
     progress = 0;
     startProgress(0, transitions.size(), "Prepare transitions and mapping");
     for (Size i = 0; i < transitions.size(); i++)
@@ -443,11 +462,13 @@ namespace OpenMS
       setProgress(progress++);
       TransitionPQPReader::TSVTransition transition = transitions[i];
 
+      // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
       for (Size j = 0; j < transition.peptidoforms.size(); j++)
       {
         insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" << i << "," << std::distance(peptide_set.begin(),std::find(peptide_set.begin(), peptide_set.end(), transition.peptidoforms[j])) << "); ";
       }
 
+      // OpenSWATH: Associate transitions with their precursors
       insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" << i << "," << std::distance(group_set.begin(), std::find(group_set.begin(), group_set.end(),transition.group_id)) << "); ";
 
       std::string transition_charge = "NULL"; // workaround for compounds with missing charge
@@ -456,10 +477,12 @@ namespace OpenMS
         transition_charge = transition.fragment_charge;
       }
 
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << "," << transition.product << "," << transition_charge << ",'" << transition.fragment_type<< "'," << transition.fragment_nr << "," << transition.detecting_transition << "," << transition.identifying_transition << "," << transition.quantifying_transition << "," << transition.library_intensity << "," << transition.decoy << "); ";
+      // OpenSWATH: Insert transition data
+      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" << transition.transition_name << "'," << transition.product << "," << transition_charge << ",'" << transition.fragment_type<< "'," << transition.fragment_nr << "," << transition.detecting_transition << "," << transition.identifying_transition << "," << transition.quantifying_transition << "," << transition.library_intensity << "," << transition.decoy << "); ";
     }
     endProgress();
 
+    // OpenSWATH: Prepare protein inserts
     std::stringstream insert_protein_sql;
 
     progress = 0;
@@ -478,6 +501,7 @@ namespace OpenMS
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     std::vector<std::pair<int, int> > peptide_protein_map;
 
+    // OpenSWATH: Prepare peptide precursor inserts
     progress = 0;
     startProgress(0, targeted_exp.getPeptides().size(), "Prepare peptide precursors and mapping");
     for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
@@ -494,13 +518,14 @@ namespace OpenMS
         peptide_protein_map.push_back(std::make_pair(peptide_set_index,protein_set_index));
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << peptide.getPeptideGroupLabel() << "'," << precursor_mz_map[group_set_index] << "," << peptide.getChargeState() << ",NULL," << peptide.getRetentionTime() << "," << precursor_decoy_map[group_set_index] << "); ";
+      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << peptide.id << "','" << peptide.getPeptideGroupLabel() << "'," << precursor_mz_map[group_set_index] << "," << peptide.getChargeState() << ",NULL," << peptide.getRetentionTime() << "," << precursor_decoy_map[group_set_index] << "); ";
 
       insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" << group_set_index << "," << peptide_set_index << "); ";
 
     }
     endProgress();
 
+    // OpenSWATH: Prepare compound precursor inserts
     progress = 0;
     startProgress(0, targeted_exp.getCompounds().size(), "Prepare compound precursors and mapping");
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
@@ -516,7 +541,7 @@ namespace OpenMS
         compound_charge = String(compound.getChargeState());
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",NULL," << precursor_mz_map[group_set_index] << "," << compound_charge << ",NULL,NULL" << "," << precursor_decoy_map[group_set_index] << "); ";
+      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << compound.id << "',NULL," << precursor_mz_map[group_set_index] << "," << compound_charge << ",NULL,NULL" << "," << precursor_decoy_map[group_set_index] << "); ";
 
       insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" << group_set_index << "," << compound_set_index << "); ";
 
@@ -524,7 +549,7 @@ namespace OpenMS
     endProgress();
 
     boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));  
-
+    // OpenSWATH: Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
     progress = 0;
     startProgress(0, peptide_protein_map.size(), "Prepare peptide - protein mapping");
@@ -535,6 +560,7 @@ namespace OpenMS
     }
     endProgress();
 
+    // OpenSWATH: Prepare peptide inserts
     std::stringstream insert_peptide_sql;
     progress = 0;
     startProgress(0, peptide_set.size(), "Prepare peptides");
@@ -545,6 +571,7 @@ namespace OpenMS
     }
     endProgress();
 
+    // OpenSWATH: Prepare compound inserts
     std::stringstream insert_compound_sql;
     progress = 0;
     startProgress(0, compound_set.size(), "Prepare compounds");
@@ -560,7 +587,7 @@ namespace OpenMS
 
     sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_protein_sql_str = insert_protein_sql.str();
     rc = sqlite3_exec(db, insert_protein_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -570,7 +597,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_peptide_protein_mapping_str = insert_peptide_protein_mapping.str();
     rc = sqlite3_exec(db, insert_peptide_protein_mapping_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -580,7 +607,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_peptide_sql_str = insert_peptide_sql.str();
     rc = sqlite3_exec(db, insert_peptide_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -590,7 +617,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_compound_sql_str = insert_compound_sql.str();
     rc = sqlite3_exec(db, insert_compound_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -600,7 +627,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_precursor_peptide_mapping_str = insert_precursor_peptide_mapping.str();
     rc = sqlite3_exec(db, insert_precursor_peptide_mapping_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -610,7 +637,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_precursor_compound_mapping_str = insert_precursor_compound_mapping.str();
     rc = sqlite3_exec(db, insert_precursor_compound_mapping_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -620,7 +647,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_precursor_sql_str = insert_precursor_sql.str();
     rc = sqlite3_exec(db, insert_precursor_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -630,7 +657,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_transition_sql_str = insert_transition_sql.str();
     rc = sqlite3_exec(db, insert_transition_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -640,7 +667,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_transition_peptide_mapping_sql_str = insert_transition_peptide_mapping_sql.str();
     rc = sqlite3_exec(db, insert_transition_peptide_mapping_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -650,7 +677,7 @@ namespace OpenMS
       sqlite3_free(zErrMsg);
     }
 
-    /* Execute SQL statement */
+    // Execute SQL insert statement
     std::string insert_transition_precursor_mapping_sql_str = insert_transition_precursor_mapping_sql.str();
     rc = sqlite3_exec(db, insert_transition_precursor_mapping_sql_str.c_str(), callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
@@ -677,17 +704,17 @@ namespace OpenMS
     writePQPOutput_(filename, targeted_exp);
   }
 
-  void TransitionPQPReader::convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionPQPReader::convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
-    readPQPInput_(filename, transition_list);
+    readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionPQPReader::convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp)
+  void TransitionPQPReader::convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
-    readPQPInput_(filename, transition_list);
+    readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
