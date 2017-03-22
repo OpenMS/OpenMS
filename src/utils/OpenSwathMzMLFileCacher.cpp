@@ -32,13 +32,17 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/FORMAT/CachedMzML.h"
+#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <fstream>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -73,6 +77,8 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
+
 class TOPPOpenSwathMzMLFileCacher
   : public TOPPBase,
     public ProgressLogger
@@ -90,25 +96,83 @@ class TOPPOpenSwathMzMLFileCacher
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","transition file ('csv')");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerInputFile_("in","<file>","","Input mzML file");
+    registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    String formats("mzML,sqMass");
+    setValidFormats_("in", ListUtils::create<String>(formats));
+    setValidStrings_("in_type", ListUtils::create<String>(formats));
 
-    registerOutputFile_("out","<file>","","output file");
+    formats = "mzML,sqMass";
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>(formats));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     //registerStringOption_("out_meta","<file>","","output file", false);
     //setValidFormats_("out_meta",ListUtils::create<String>("mzML"));
 
     registerFlag_("convert_back", "Convert back to mzML");
-
   }
 
   ExitCodes main_(int , const char**)
   {
-    String in = getStringOption_("in");
     String out_meta = getStringOption_("out");
-    String in_cached = in + ".cached";
     String out_cached = out_meta + ".cached";
     bool convert_back =  getFlag_("convert_back");
+
+    FileHandler fh;
+
+    //input file type
+    String in = getStringOption_("in");
+    String in_cached = in + ".cached";
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+
+    if (in_type == FileTypes::UNKNOWN)
+    {
+      in_type = fh.getType(in);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+    }
+
+    if (in_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine input file type!");
+      return PARSE_ERROR;
+    }
+
+    //output file names and types
+    String out = getStringOption_("out");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
+    if (in_type == FileTypes::SQMASS && out_type == FileTypes::MZML)
+    {
+      MapType exp;
+      SqMassFile sqfile;
+      MzMLFile f;
+      sqfile.load(in, exp);
+      f.store(out, exp);
+      return EXECUTION_OK;
+    }
+    else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
+    {
+      MzMLFile f;
+      SqMassFile sqfile;
+      MapType exp;
+      f.load(in, exp);
+      sqfile.store(out, exp);
+      return EXECUTION_OK;
+    }
+
 
     if (!convert_back)
     {
