@@ -422,10 +422,10 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    registerStringOption_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
-    registerStringOption_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
+    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
     setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
