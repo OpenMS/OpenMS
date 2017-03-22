@@ -29,11 +29,12 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch, Chris Bielow $
+// $Authors: Leon Bichmann, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
@@ -49,8 +50,8 @@
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <QDebug>
 #include <iostream>     // std::cout, std::ostream, std::ios
-
 #include <fstream>
 
 using namespace OpenMS;         
@@ -200,8 +201,26 @@ protected:
     return modifications;
   }
 
+  void removeTempDir_(const String& tmp_dir)
+  {
+    if (tmp_dir.empty()) return; // no temp. dir. created
+
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      File::removeDirRecursively(tmp_dir);
+    }
+  }
+
   void createParamFile_(ostream& os)
   {
+    os << "# comet_version 2016.01 rev. 2\n";               //required as first line in the param file
+    os << "# Comet MS/MS search engine parameters file.\n";
+    os << "# Everything following the '#' symbol is treated as a comment.\n";
     os << "database_name = " << getStringOption_("database") << "\n";
     os << "decoy_search = " << 0 << "\n"; // 0=no (default), 1=concatenated search, 2=separate search
     os << "num_threads = " << getIntOption_("threads") << "\n";  // 0=poll CPU to set num threads; else specify num threads directly (max 64)
@@ -444,8 +463,17 @@ protected:
       }
       db_name = full_db_name;
     }
- 
-    ofstream os("exampleParams.txt");
+
+    //tmp_dir
+    const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
+    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
+    QDir d;
+    d.mkpath(tmp_dir.toQString());
+
+    String tmp_file = tmp_dir + "param.txt";
+    String tmp_pepxml = inputfile_name.substr(0,inputfile_name.rfind(".")) + ".pep.xml";
+
+    ofstream os(tmp_file);
     createParamFile_(os);
     os.close();
 
@@ -476,112 +504,46 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    String comet_executable(getStringOption_("comet_executable"));
-    int status = QProcess::execute(comet_executable.toQString(), QStringList(inputfile_name.toQString())); // does automatic escaping etc...
+    String param = "-P" + tmp_file;
+    QStringList process_params;
+    process_params << param.toQString() << inputfile_name.toQString();
+    //qDebug() << process_params;
+
+    String comet_executable = getStringOption_("comet_executable");
+    //int status = QProcess::execute(comet_executable.toQString(), QStringList(inputfile_name.toQString())); // does automatic escaping etc...
+    int status = QProcess::execute(comet_executable.toQString(),process_params); // does automatic escaping etc...
     if (status != 0)
     {
       writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\nDoes the Comet executable exist?");
       // clean temporary files
-      /*
       if (this->debug_level_ < 2)
       {
-        File::removeDirRecursively(temp_directory);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
+        removeTempDir_(tmp_dir);
+        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
       }
       else
       {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
+        LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << std::endl;
       }
-      */
       //return EXTERNAL_PROGRAM_ERROR;
     }
-  }
-};
-    //vector<ProteinIdentification> protein_ids;
-    //ProteinIdentification protein_id;
-    //protein_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
-    //vector<PeptideIdentification> peptide_ids;
 
-/*
-    // read the output of X! Tandem and write it to idXML
-    XTandemXMLFile tandem_output;
-    tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
-    // find the file, because XTandem extends the filename with a timestamp we do not know (exactly)
-    StringList files;
-    File::fileList(temp_directory, "_tandem_output_file*.xml", files);
-    if (files.size() != 1)
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tandem_output_filename);
-    }
-    tandem_output.load(temp_directory + files[0], protein_id, peptide_ids);
+    // read the pep.xml output of COMET and write it to idXML
 
-    // now put the RTs into the peptide_ids from the spectrum ids
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
-    {
-      UInt id = (Int)it->getMetaValue("spectrum_id");
-      --id; // native IDs were written 1-based
-      if (id < exp.size())
-      {
-        it->setRT(exp[id].getRT());
-        double pre_mz(0.0);
-        if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
-        it->setMZ(pre_mz);
-        //it->removeMetaValue("spectrum_id");
-      }
-      else
-      {
-        LOG_ERROR << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
-      }
-    }
+    vector<PeptideIdentification> peptide_identifications;
+    vector<ProteinIdentification> protein_identifications;
+
+    PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications, inputfile_name);
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
-    // handle the search parameters
-    ProteinIdentification::SearchParameters search_parameters;
-    search_parameters.db = getStringOption_("database");
-    search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
+    IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
 
-    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.mass_type = mass_type;
-    search_parameters.fixed_modifications = getStringList_("fixed_modifications");
-    search_parameters.variable_modifications = getStringList_("variable_modifications");
-    search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
-    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
-    search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
-    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_error_units") == "ppm" ? true : false;
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
-    protein_id.setSearchParameters(search_parameters);
-    protein_id.setSearchEngineVersion("");
-    protein_id.setSearchEngine("XTandem");
-
-    protein_ids.push_back(protein_id);
-
-    IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
-
-    /// Deletion of temporary files
-    if (this->debug_level_ < 2)
-    {
-      File::removeDirRecursively(temp_directory);
-      LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
-    }
-
-    // some stats
-    LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size()) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
-
-
-    return EXECUTION_OK;
   }
-abi
+
 };
-*/
 
 
 int main(int argc, const char** argv)
