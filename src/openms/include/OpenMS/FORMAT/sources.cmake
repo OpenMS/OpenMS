@@ -91,6 +91,7 @@ MzIdentMLFile.h
 MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
+ZlibCompression.h
 )
 
 ### add path to the filenames

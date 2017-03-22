@@ -72,6 +72,7 @@ MzIdentMLFile.cpp
 MzQuantMLFile.cpp
 QcMLFile.cpp
 TraMLFile.cpp
+ZlibCompression.cpp
 )
 
 ### add path to the filenames
