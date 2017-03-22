@@ -273,7 +273,8 @@ namespace OpenMS
       sqlite3_step( stmt );
     }
 
-     sqlite3_close(db);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
   }
 
