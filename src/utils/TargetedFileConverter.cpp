@@ -124,7 +124,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
-                                           "See http://www.openms.de/current_doxygen/html/UTILS_ConvertTSVToTraML.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
+                                           "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     String formats("tsv,mrm,pqp,TraML");
     setValidFormats_("in", ListUtils::create<String>(formats));
