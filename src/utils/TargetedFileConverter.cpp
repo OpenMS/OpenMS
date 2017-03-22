@@ -115,7 +115,7 @@ class TOPPTargetedFileConverter :
 public:
 
   TOPPTargetedFileConverter() :
-    TOPPBase("TargetedFileConverter", "Converts an OpenSWATH transition TSV file to a TraML file")
+    TOPPBase("TargetedFileConverter", "Converts different transition files for targeted proteomics and metabolomics analysis")
   {
   }
 
@@ -126,11 +126,11 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
                                            "See http://www.openms.de/current_doxygen/html/UTILS_ConvertTSVToTraML.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    String formats("tsv,csv,mrm,pqp,TraML");
+    String formats("tsv,mrm,pqp,TraML");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
 
-    formats = "tsv,csv,mrm,pqp,TraML";
+    formats = "tsv,pqp,TraML";
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
@@ -184,7 +184,7 @@ protected:
     // Start Conversion
     //--------------------------------------------------------------------------- 
     TargetedExperiment targeted_exp;
-    if (in_type == FileTypes::CSV || in_type == FileTypes::MRM)
+    if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
     {
       const char* tr_file = in.c_str();
       Param reader_parameters = getParam_().copy("algorithm:", true);
@@ -210,7 +210,7 @@ protected:
       traml.load(in, targeted_exp);
     }
 
-    if (out_type == FileTypes::CSV)
+    if (out_type == FileTypes::TSV)
     {
       const char* tr_file = out.c_str();
       TransitionTSVReader tsv_reader = TransitionTSVReader();
