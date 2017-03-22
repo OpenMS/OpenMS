@@ -382,6 +382,7 @@ namespace OpenMS
     std::map<int,bool> precursor_decoy_map;
 
     std::stringstream insert_transition_sql, insert_transition_peptide_mapping_sql, insert_transition_precursor_mapping_sql;
+    insert_transition_sql.precision(11);
 
     Size progress = 0;
     startProgress(0, targeted_exp.getPeptides().size(), "Convert peptides");
@@ -477,6 +478,7 @@ namespace OpenMS
     boost::erase(protein_set, boost::unique<boost::return_found_end>(boost::sort(protein_set)));  
 
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
+    insert_precursor_sql.precision(11);
     std::vector<std::pair<int, int> > peptide_protein_map;
 
     progress = 0;
