@@ -1109,6 +1109,7 @@ protected:
       //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
       static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
       static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+      static const XMLCh* s_version_mzml = xercesc::XMLString::transcode("mzML:version");
       static const XMLCh* s_order = xercesc::XMLString::transcode("order");
       static const XMLCh* s_location = xercesc::XMLString::transcode("location");
       static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
@@ -1353,7 +1354,11 @@ protected:
         chromatogram_count = 0;
 
         //check file version against schema version
-        String file_version = attributeAsString_(attributes, s_version);
+        String file_version;
+        if (!(optionalAttributeAsString_(file_version, attributes, s_version) || optionalAttributeAsString_(file_version, attributes, s_version_mzml)) )
+        {
+          warning(LOAD, "No version attribute in mzML");
+        }
 
         VersionInfo::VersionDetails current_version = VersionInfo::VersionDetails::create(file_version);
         static VersionInfo::VersionDetails mzML_min_version = VersionInfo::VersionDetails::create("1.1.0");
