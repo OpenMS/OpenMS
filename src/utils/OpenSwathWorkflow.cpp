@@ -863,8 +863,8 @@ protected:
       remove(out_osw.c_str());
       if (!out_osw.empty())
       {
-        std::ifstream  src(tr_file, std::ios::binary);
-        std::ofstream  dst(out_osw, std::ios::binary);
+        std::ifstream  src(tr_file.c_str(), std::ios::binary);
+        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
 
         dst << src.rdbuf();
       }
