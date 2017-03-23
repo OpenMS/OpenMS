@@ -195,6 +195,13 @@ public:
       return *this;
     }
 
+    /// Assignment operator
+    MSSpectrum& operator=(const SpectrumSettings & source)
+    {
+      SpectrumSettings::operator=(source);
+      return *this;
+    }
+
     /// Equality operator
     bool operator==(const MSSpectrum& rhs) const
     {
