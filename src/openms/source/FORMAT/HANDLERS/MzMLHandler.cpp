@@ -39,526 +39,526 @@ namespace OpenMS
   namespace Internal
   {
 
-      /// Destructor
-      MzMLHandler::~MzMLHandler()
+    /// Destructor
+    MzMLHandler::~MzMLHandler()
+    {
+    }
+
+    /**
+        @brief Populate all spectra on the stack with data from input
+
+        Will populate all spectra on the current work stack with data (using
+        multiple threads if available) and append them to the result.
+    */
+    void MzMLHandler::populateSpectraWithData()
+    {
+
+      // Whether spectrum should be populated with data
+      if (options_.getFillData())
       {
-      }
-
-      /**
-          @brief Populate all spectra on the stack with data from input
-
-          Will populate all spectra on the current work stack with data (using
-          multiple threads if available) and append them to the result.
-      */
-      void MzMLHandler::populateSpectraWithData()
-      {
-
-        // Whether spectrum should be populated with data
-        if (options_.getFillData())
-        {
-          size_t errCount = 0;
+        size_t errCount = 0;
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
+        for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
+        {
+          // parallel exception catching and re-throwing business
+          if (!errCount) // no need to parse further if already an error was encountered
           {
-            // parallel exception catching and re-throwing business
-            if (!errCount) // no need to parse further if already an error was encountered
+            try
             {
-              try
+              populateSpectraWithData_(spectrum_data_[i].data,
+                                       spectrum_data_[i].default_array_length, options_,
+                                       spectrum_data_[i].spectrum);
+              if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
-                populateSpectraWithData_(spectrum_data_[i].data,
-                                         spectrum_data_[i].default_array_length, options_,
-                                         spectrum_data_[i].spectrum);
-                if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
-                {
-                  spectrum_data_[i].spectrum.sortByPosition();
-                }
-              }
-              catch (...)
-              {
-#pragma omp critical(HandleException)
-                ++errCount;
+                spectrum_data_[i].spectrum.sortByPosition();
               }
             }
-          }
-          if (errCount != 0)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
+            catch (...)
+            {
+#pragma omp critical(HandleException)
+              ++errCount;
+            }
           }
         }
-
-        // Append all spectra to experiment / consumer
-        for (Size i = 0; i < spectrum_data_.size(); i++)
+        if (errCount != 0)
         {
-          if (consumer_ != NULL)
-          {
-            consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
-            if (options_.getAlwaysAppendData())
-            {
-              exp_->addSpectrum(spectrum_data_[i].spectrum);
-            }
-          }
-          else
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
+        }
+      }
+
+      // Append all spectra to experiment / consumer
+      for (Size i = 0; i < spectrum_data_.size(); i++)
+      {
+        if (consumer_ != NULL)
+        {
+          consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
+          if (options_.getAlwaysAppendData())
           {
             exp_->addSpectrum(spectrum_data_[i].spectrum);
           }
         }
-
-        // Delete batch
-        spectrum_data_.clear();
+        else
+        {
+          exp_->addSpectrum(spectrum_data_[i].spectrum);
+        }
       }
 
-      /**
-          @brief Populate all chromatograms on the stack with data from input
+      // Delete batch
+      spectrum_data_.clear();
+    }
 
-          Will populate all chromatograms on the current work stack with data (using
-          multiple threads if available) and append them to the result.
-      */
-      void MzMLHandler::populateChromatogramsWithData()
+    /**
+        @brief Populate all chromatograms on the stack with data from input
+
+        Will populate all chromatograms on the current work stack with data (using
+        multiple threads if available) and append them to the result.
+    */
+    void MzMLHandler::populateChromatogramsWithData()
+    {
+      // Whether chromatogram should be populated with data
+      if (options_.getFillData())
       {
-        // Whether chromatogram should be populated with data
-        if (options_.getFillData())
-        {
-          size_t errCount = 0;
+        size_t errCount = 0;
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
+        for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
+        {
+          // parallel exception catching and re-throwing business
+          try
           {
-            // parallel exception catching and re-throwing business
-            try
+            populateChromatogramsWithData_(chromatogram_data_[i].data,
+                                           chromatogram_data_[i].default_array_length, options_,
+                                           chromatogram_data_[i].chromatogram);
+            if (options_.getSortChromatogramsByRT() && !chromatogram_data_[i].chromatogram.isSorted())
             {
-              populateChromatogramsWithData_(chromatogram_data_[i].data,
-                                             chromatogram_data_[i].default_array_length, options_,
-                                             chromatogram_data_[i].chromatogram);
-              if (options_.getSortChromatogramsByRT() && !chromatogram_data_[i].chromatogram.isSorted())
-              {
-                chromatogram_data_[i].chromatogram.sortByPosition();
-              }
+              chromatogram_data_[i].chromatogram.sortByPosition();
             }
-            catch (...)
-            {++errCount; }
           }
-          if (errCount != 0)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
-          }
-
+          catch (...)
+          {++errCount; }
+        }
+        if (errCount != 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
         }
 
-        // Append all chromatograms to experiment / consumer
-        for (Size i = 0; i < chromatogram_data_.size(); i++)
+      }
+
+      // Append all chromatograms to experiment / consumer
+      for (Size i = 0; i < chromatogram_data_.size(); i++)
+      {
+        if (consumer_ != NULL)
         {
-          if (consumer_ != NULL)
-          {
-            consumer_->consumeChromatogram(chromatogram_data_[i].chromatogram);
-            if (options_.getAlwaysAppendData())
-            {
-              exp_->addChromatogram(chromatogram_data_[i].chromatogram);
-            }
-          }
-          else
+          consumer_->consumeChromatogram(chromatogram_data_[i].chromatogram);
+          if (options_.getAlwaysAppendData())
           {
             exp_->addChromatogram(chromatogram_data_[i].chromatogram);
           }
         }
-
-        // Delete batch
-        chromatogram_data_.clear();
+        else
+        {
+          exp_->addChromatogram(chromatogram_data_[i].chromatogram);
+        }
       }
 
-      void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
-                                const Size n, SpectrumType& spectrum) const
-        {
+      // Delete batch
+      chromatogram_data_.clear();
+    }
 
-            //add meta data
-            UInt meta_float_array_index = 0;
-            UInt meta_int_array_index = 0;
-            UInt meta_string_array_index = 0;
-            for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
-            {
-              if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
-              {
-                if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-                {
-                  if (n < input_data[i].size)
-                  {
-                    double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-                    spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
-                  }
-                  ++meta_float_array_index;
-                }
-                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-                {
-                  if (n < input_data[i].size)
-                  {
-                    Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-                    spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-                  }
-                  ++meta_int_array_index;
-                }
-                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-                {
-                  if (n < input_data[i].decoded_char.size())
-                  {
-                    String value = input_data[i].decoded_char[n];
-                    spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
-                  }
-                  ++meta_string_array_index;
-                }
-              }
-            }
-        }
-
-      /**
-          @brief Fill a single spectrum with data from input
-
-          @note Do not modify any internal state variables of the class since
-          this function will be executed in parallel.
-
-          Speed: this function takes about 50 % of total load time with a
-          single thread and parallelizes linearly up to at least 10 threads.
-
-      */
-      void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                    Size& default_arr_length, const PeakFileOptions& peak_file_options,
-                                    SpectrumType& spectrum)
+    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
+                              const Size n, SpectrumType& spectrum) const
       {
-        typedef typename SpectrumType::PeakType PeakType;
 
-        //decode all base64 arrays
-        MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
-
-        //look up the precision and the index of the intensity and m/z array
-        bool mz_precision_64 = true;
-        bool int_precision_64 = true;
-        SignedSize mz_index = -1;
-        SignedSize int_index = -1;
-        MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, "m/z array");
-        MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
-
-        //Abort if no m/z or intensity array is present
-        if (int_index == -1 || mz_index == -1)
-        {
-          //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
-          if (default_arr_length != 0)
+          //add meta data
+          UInt meta_float_array_index = 0;
+          UInt meta_int_array_index = 0;
+          UInt meta_string_array_index = 0;
+          for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
           {
-            warning(LOAD, String("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
-          }
-          return;
-        }
-
-        // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
-        if ((input_data[mz_index].ints_32.size() > 0) || (input_data[mz_index].ints_64.size() > 0))
-        {
-          fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
-        }
-        if ((input_data[int_index].ints_32.size() > 0) || (input_data[int_index].ints_64.size() > 0))
-        {
-          fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
-        }
-
-        // Warn if the decoded data has a different size than the defaultArrayLength
-        Size mz_size = mz_precision_64 ? input_data[mz_index].floats_64.size() : input_data[mz_index].floats_32.size();
-        Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
-        // Check if int-size and mz-size are equal
-        if (mz_size != int_size)
-        {
-          fatalError(LOAD, String("The length of m/z and integer values of spectrum '") + spectrum.getNativeID() + "' differ (mz-size: " + mz_size + ", int-size: " + int_size + "! Not reading spectrum!");
-        }
-        bool repair_array_length = false;
-        if (default_arr_length != mz_size)
-        {
-          warning(LOAD, String("The m/z array of spectrum '") + spectrum.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
-          repair_array_length = true;
-        }
-        if (default_arr_length != int_size)
-        {
-          warning(LOAD, String("The intensity array of spectrum '") + spectrum.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
-          repair_array_length = true;
-        }
-        if (repair_array_length)
-        {
-          default_arr_length = int_size;
-          warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
-        }
-
-        //create meta data arrays and reserve enough space for the content
-        if (input_data.size() > 2)
-        {
-          for (Size i = 0; i < input_data.size(); i++)
-          {
-            if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array")
+            if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
             {
               if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
               {
-                //create new array
-                spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
-                //reserve space in the array
-                spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
-                //copy meta info into MetaInfoDescription
-                spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+                if (n < input_data[i].size)
+                {
+                  double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+                  spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
+                }
+                ++meta_float_array_index;
               }
               else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
               {
-                //create new array
-                spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
-                //reserve space in the array
-                spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
-                //copy meta info into MetaInfoDescription
-                spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+                if (n < input_data[i].size)
+                {
+                  Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
+                  spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+                }
+                ++meta_int_array_index;
               }
               else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
               {
-                //create new array
-                spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
-                //reserve space in the array
-                spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
-                //copy meta info into MetaInfoDescription
-                spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+                if (n < input_data[i].decoded_char.size())
+                {
+                  String value = input_data[i].decoded_char[n];
+                  spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
+                }
+                ++meta_string_array_index;
               }
             }
           }
-        }
+      }
 
-        // Copy meta data from m/z and intensity binary
-        // We don't have this as a separate location => store it in spectrum
+    /**
+        @brief Fill a single spectrum with data from input
+
+        @note Do not modify any internal state variables of the class since
+        this function will be executed in parallel.
+
+        Speed: this function takes about 50 % of total load time with a
+        single thread and parallelizes linearly up to at least 10 threads.
+
+    */
+    void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
+                                  Size& default_arr_length, const PeakFileOptions& peak_file_options,
+                                  SpectrumType& spectrum)
+    {
+      typedef typename SpectrumType::PeakType PeakType;
+
+      //decode all base64 arrays
+      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+
+      //look up the precision and the index of the intensity and m/z array
+      bool mz_precision_64 = true;
+      bool int_precision_64 = true;
+      SignedSize mz_index = -1;
+      SignedSize int_index = -1;
+      MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, "m/z array");
+      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
+
+      //Abort if no m/z or intensity array is present
+      if (int_index == -1 || mz_index == -1)
+      {
+        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+        if (default_arr_length != 0)
+        {
+          warning(LOAD, String("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+        }
+        return;
+      }
+
+      // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
+      if ((input_data[mz_index].ints_32.size() > 0) || (input_data[mz_index].ints_64.size() > 0))
+      {
+        fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
+      }
+      if ((input_data[int_index].ints_32.size() > 0) || (input_data[int_index].ints_64.size() > 0))
+      {
+        fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
+      }
+
+      // Warn if the decoded data has a different size than the defaultArrayLength
+      Size mz_size = mz_precision_64 ? input_data[mz_index].floats_64.size() : input_data[mz_index].floats_32.size();
+      Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
+      // Check if int-size and mz-size are equal
+      if (mz_size != int_size)
+      {
+        fatalError(LOAD, String("The length of m/z and integer values of spectrum '") + spectrum.getNativeID() + "' differ (mz-size: " + mz_size + ", int-size: " + int_size + "! Not reading spectrum!");
+      }
+      bool repair_array_length = false;
+      if (default_arr_length != mz_size)
+      {
+        warning(LOAD, String("The m/z array of spectrum '") + spectrum.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (default_arr_length != int_size)
+      {
+        warning(LOAD, String("The intensity array of spectrum '") + spectrum.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (repair_array_length)
+      {
+        default_arr_length = int_size;
+        warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
+      }
+
+      //create meta data arrays and reserve enough space for the content
+      if (input_data.size() > 2)
+      {
         for (Size i = 0; i < input_data.size(); i++)
         {
-          if (input_data[i].meta.getName() == "m/z array" || input_data[i].meta.getName() == "intensity array")
+          if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array")
           {
-            std::vector<UInt> keys;
-            input_data[i].meta.getKeys(keys);
-            for (Size k = 0; k < keys.size(); ++k)
+            if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
             {
-              spectrum.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
+              //create new array
+              spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
+              //reserve space in the array
+              spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
+              //copy meta info into MetaInfoDescription
+              spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
             }
-          }
-        }
-
-        // We found that the push back approach is about 5% faster than using
-        // iterators (e.g. spectrum iterator that gets updated)
-
-        //add the peaks and the meta data to the container (if they pass the restrictions)
-        PeakType tmp;
-        spectrum.reserve(default_arr_length);
-
-        // the most common case: no ranges, 64 / 32 precision
-        //  -> this saves about 10 % load time
-        if ( mz_precision_64 && !int_precision_64 && 
-             input_data.size() == 2 &&  
-             !peak_file_options.hasMZRange() && 
-             !peak_file_options.hasIntensityRange() 
-           )
-        {
-          std::vector< double >::iterator mz_it = input_data[mz_index].floats_64.begin();
-          std::vector< float >::iterator int_it = input_data[int_index].floats_32.begin();
-          for (Size n = 0; n < default_arr_length; n++)
-          {
-            //add peak
-            tmp.setIntensity(*int_it);
-            tmp.setMZ(*mz_it);
-            ++mz_it;
-            ++int_it;
-            spectrum.push_back(tmp);
-          }
-          return;
-        }
-
-        for (Size n = 0; n < default_arr_length; n++)
-        {
-          double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
-          double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
-          if ((!peak_file_options.hasMZRange() || peak_file_options.getMZRange().encloses(DPosition<1>(mz)))
-             && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
-          {
-            //add peak
-            tmp.setIntensity(intensity);
-            tmp.setMZ(mz);
-            spectrum.push_back(tmp);
-
-            // Only if there are more than 2 data arrays, we need to check
-            // for meta data (as there will always be an m/z and intensity
-            // array)
-            if (input_data.size() > 2) 
+            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
             {
-              addSpectrumMetaData_(input_data, n, spectrum);
+              //create new array
+              spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
+              //reserve space in the array
+              spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
+              //copy meta info into MetaInfoDescription
+              spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+            {
+              //create new array
+              spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
+              //reserve space in the array
+              spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
+              //copy meta info into MetaInfoDescription
+              spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
             }
           }
         }
       }
 
-      /**
-          @brief Fill a single chromatogram with data from input
-
-          @note Do not modify any internal state variables of the class since
-          this function will be executed in parallel.
-
-      */
-      void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                          Size& default_arr_length, const PeakFileOptions& peak_file_options,
-                                          ChromatogramType& inp_chromatogram)
+      // Copy meta data from m/z and intensity binary
+      // We don't have this as a separate location => store it in spectrum
+      for (Size i = 0; i < input_data.size(); i++)
       {
-        typedef typename ChromatogramType::PeakType ChromatogramPeakType;
-
-        //decode all base64 arrays
-        MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
-
-        //look up the precision and the index of the intensity and m/z array
-        bool int_precision_64 = true;
-        bool rt_precision_64 = true;
-        SignedSize int_index = -1;
-        SignedSize rt_index = -1;
-        MzMLHandlerHelper::computeDataProperties_(input_data, rt_precision_64, rt_index, "time array");
-        MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
-
-        //Abort if no m/z or intensity array is present
-        if (int_index == -1 || rt_index == -1)
+        if (input_data[i].meta.getName() == "m/z array" || input_data[i].meta.getName() == "intensity array")
         {
-          //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
-          if (default_arr_length != 0)
+          std::vector<UInt> keys;
+          input_data[i].meta.getKeys(keys);
+          for (Size k = 0; k < keys.size(); ++k)
           {
-            warning(LOAD, String("The m/z or intensity array of chromatogram '") +
-                inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+            spectrum.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
           }
-          return;
         }
+      }
 
-        // Warn if the decoded data has a different size than the defaultArrayLength
-        Size rt_size = rt_precision_64 ? input_data[rt_index].floats_64.size() : input_data[rt_index].floats_32.size();
-        Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
-        // Check if int-size and rt-size are equal
-        if (rt_size != int_size)
-        {
-          fatalError(LOAD, String("The length of RT and intensity values of chromatogram '") + inp_chromatogram.getNativeID() + "' differ (rt-size: " + rt_size + ", int-size: " + int_size + "! Not reading chromatogram!");
-        }
-        bool repair_array_length = false;
-        if (default_arr_length != rt_size)
-        {
-          warning(LOAD, String("The base64-decoded rt array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
-          repair_array_length = true;
-        }
-        if (default_arr_length != int_size)
-        {
-          warning(LOAD, String("The base64-decoded intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
-          repair_array_length = true;
-        }
-        // repair size of array, accessing memory that is beyond int_size will lead to segfaults later
-        if (repair_array_length)
-        {
-          default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)
-          warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
-        }
+      // We found that the push back approach is about 5% faster than using
+      // iterators (e.g. spectrum iterator that gets updated)
 
-        // Create meta data arrays and reserve enough space for the content
-        if (input_data.size() > 2)
+      //add the peaks and the meta data to the container (if they pass the restrictions)
+      PeakType tmp;
+      spectrum.reserve(default_arr_length);
+
+      // the most common case: no ranges, 64 / 32 precision
+      //  -> this saves about 10 % load time
+      if ( mz_precision_64 && !int_precision_64 && 
+           input_data.size() == 2 &&  
+           !peak_file_options.hasMZRange() && 
+           !peak_file_options.hasIntensityRange() 
+         )
+      {
+        std::vector< double >::iterator mz_it = input_data[mz_index].floats_64.begin();
+        std::vector< float >::iterator int_it = input_data[int_index].floats_32.begin();
+        for (Size n = 0; n < default_arr_length; n++)
         {
-          for (Size i = 0; i < input_data.size(); i++)
+          //add peak
+          tmp.setIntensity(*int_it);
+          tmp.setMZ(*mz_it);
+          ++mz_it;
+          ++int_it;
+          spectrum.push_back(tmp);
+        }
+        return;
+      }
+
+      for (Size n = 0; n < default_arr_length; n++)
+      {
+        double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
+        double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
+        if ((!peak_file_options.hasMZRange() || peak_file_options.getMZRange().encloses(DPosition<1>(mz)))
+           && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
+        {
+          //add peak
+          tmp.setIntensity(intensity);
+          tmp.setMZ(mz);
+          spectrum.push_back(tmp);
+
+          // Only if there are more than 2 data arrays, we need to check
+          // for meta data (as there will always be an m/z and intensity
+          // array)
+          if (input_data.size() > 2) 
           {
-            if (input_data[i].meta.getName() != "intensity array" && input_data[i].meta.getName() != "time array")
+            addSpectrumMetaData_(input_data, n, spectrum);
+          }
+        }
+      }
+    }
+
+    /**
+        @brief Fill a single chromatogram with data from input
+
+        @note Do not modify any internal state variables of the class since
+        this function will be executed in parallel.
+
+    */
+    void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
+                                        Size& default_arr_length, const PeakFileOptions& peak_file_options,
+                                        ChromatogramType& inp_chromatogram)
+    {
+      typedef typename ChromatogramType::PeakType ChromatogramPeakType;
+
+      //decode all base64 arrays
+      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+
+      //look up the precision and the index of the intensity and m/z array
+      bool int_precision_64 = true;
+      bool rt_precision_64 = true;
+      SignedSize int_index = -1;
+      SignedSize rt_index = -1;
+      MzMLHandlerHelper::computeDataProperties_(input_data, rt_precision_64, rt_index, "time array");
+      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
+
+      //Abort if no m/z or intensity array is present
+      if (int_index == -1 || rt_index == -1)
+      {
+        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+        if (default_arr_length != 0)
+        {
+          warning(LOAD, String("The m/z or intensity array of chromatogram '") +
+              inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+        }
+        return;
+      }
+
+      // Warn if the decoded data has a different size than the defaultArrayLength
+      Size rt_size = rt_precision_64 ? input_data[rt_index].floats_64.size() : input_data[rt_index].floats_32.size();
+      Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
+      // Check if int-size and rt-size are equal
+      if (rt_size != int_size)
+      {
+        fatalError(LOAD, String("The length of RT and intensity values of chromatogram '") + inp_chromatogram.getNativeID() + "' differ (rt-size: " + rt_size + ", int-size: " + int_size + "! Not reading chromatogram!");
+      }
+      bool repair_array_length = false;
+      if (default_arr_length != rt_size)
+      {
+        warning(LOAD, String("The base64-decoded rt array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + rt_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (default_arr_length != int_size)
+      {
+        warning(LOAD, String("The base64-decoded intensity array of chromatogram '") + inp_chromatogram.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      // repair size of array, accessing memory that is beyond int_size will lead to segfaults later
+      if (repair_array_length)
+      {
+        default_arr_length = int_size; // set to length of actual data (int_size and rt_size are equal, s.a.)
+        warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
+      }
+
+      // Create meta data arrays and reserve enough space for the content
+      if (input_data.size() > 2)
+      {
+        for (Size i = 0; i < input_data.size(); i++)
+        {
+          if (input_data[i].meta.getName() != "intensity array" && input_data[i].meta.getName() != "time array")
+          {
+            if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
+            {
+              //create new array
+              inp_chromatogram.getFloatDataArrays().resize(inp_chromatogram.getFloatDataArrays().size() + 1);
+              //reserve space in the array
+              inp_chromatogram.getFloatDataArrays().back().reserve(input_data[i].size);
+              //copy meta info into MetaInfoDescription
+              inp_chromatogram.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+            {
+              //create new array
+              inp_chromatogram.getIntegerDataArrays().resize(inp_chromatogram.getIntegerDataArrays().size() + 1);
+              //reserve space in the array
+              inp_chromatogram.getIntegerDataArrays().back().reserve(input_data[i].size);
+              //copy meta info into MetaInfoDescription
+              inp_chromatogram.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+            {
+              //create new array
+              inp_chromatogram.getStringDataArrays().resize(inp_chromatogram.getStringDataArrays().size() + 1);
+              //reserve space in the array
+              inp_chromatogram.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
+              //copy meta info into MetaInfoDescription
+              inp_chromatogram.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+          }
+        }
+      }
+
+      // Copy meta data from time and intensity binary
+      // We don't have this as a separate location => store it directly in spectrum meta data
+      for (Size i = 0; i < input_data.size(); i++)
+      {
+        if (input_data[i].meta.getName() == "time array" || input_data[i].meta.getName() == "intensity array")
+        {
+          std::vector<UInt> keys;
+          input_data[i].meta.getKeys(keys);
+          for (Size k = 0; k < keys.size(); ++k)
+          {
+            inp_chromatogram.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
+          }
+        }
+      }
+
+      // Add the peaks and the meta data to the container (if they pass the restrictions)
+      inp_chromatogram.reserve(default_arr_length);
+      ChromatogramPeakType tmp;
+      for (Size n = 0; n < default_arr_length; n++)
+      {
+        double rt = rt_precision_64 ? input_data[rt_index].floats_64[n] : input_data[rt_index].floats_32[n];
+        double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
+        if ((!peak_file_options.hasRTRange() || peak_file_options.getRTRange().encloses(DPosition<1>(rt)))
+           && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
+        {
+          //add peak
+          tmp.setIntensity(intensity);
+          tmp.setRT(rt);
+          inp_chromatogram.push_back(tmp);
+
+          //add meta data
+          UInt meta_float_array_index = 0;
+          UInt meta_int_array_index = 0;
+          UInt meta_string_array_index = 0;
+          for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+          {
+            if (input_data[i].meta.getName() != "intensity array" && input_data[i].meta.getName() != "time array") // is meta data array?
             {
               if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
               {
-                //create new array
-                inp_chromatogram.getFloatDataArrays().resize(inp_chromatogram.getFloatDataArrays().size() + 1);
-                //reserve space in the array
-                inp_chromatogram.getFloatDataArrays().back().reserve(input_data[i].size);
-                //copy meta info into MetaInfoDescription
-                inp_chromatogram.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+                if (n < input_data[i].size)
+                {
+                  double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+                  inp_chromatogram.getFloatDataArrays()[meta_float_array_index].push_back(value);
+                }
+                ++meta_float_array_index;
               }
               else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
               {
-                //create new array
-                inp_chromatogram.getIntegerDataArrays().resize(inp_chromatogram.getIntegerDataArrays().size() + 1);
-                //reserve space in the array
-                inp_chromatogram.getIntegerDataArrays().back().reserve(input_data[i].size);
-                //copy meta info into MetaInfoDescription
-                inp_chromatogram.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+                if (n < input_data[i].size)
+                {
+                  Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
+                  inp_chromatogram.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+                }
+                ++meta_int_array_index;
               }
               else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
               {
-                //create new array
-                inp_chromatogram.getStringDataArrays().resize(inp_chromatogram.getStringDataArrays().size() + 1);
-                //reserve space in the array
-                inp_chromatogram.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
-                //copy meta info into MetaInfoDescription
-                inp_chromatogram.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-              }
-            }
-          }
-        }
-
-        // Copy meta data from time and intensity binary
-        // We don't have this as a separate location => store it directly in spectrum meta data
-        for (Size i = 0; i < input_data.size(); i++)
-        {
-          if (input_data[i].meta.getName() == "time array" || input_data[i].meta.getName() == "intensity array")
-          {
-            std::vector<UInt> keys;
-            input_data[i].meta.getKeys(keys);
-            for (Size k = 0; k < keys.size(); ++k)
-            {
-              inp_chromatogram.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
-            }
-          }
-        }
-
-        // Add the peaks and the meta data to the container (if they pass the restrictions)
-        inp_chromatogram.reserve(default_arr_length);
-        ChromatogramPeakType tmp;
-        for (Size n = 0; n < default_arr_length; n++)
-        {
-          double rt = rt_precision_64 ? input_data[rt_index].floats_64[n] : input_data[rt_index].floats_32[n];
-          double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
-          if ((!peak_file_options.hasRTRange() || peak_file_options.getRTRange().encloses(DPosition<1>(rt)))
-             && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
-          {
-            //add peak
-            tmp.setIntensity(intensity);
-            tmp.setRT(rt);
-            inp_chromatogram.push_back(tmp);
-
-            //add meta data
-            UInt meta_float_array_index = 0;
-            UInt meta_int_array_index = 0;
-            UInt meta_string_array_index = 0;
-            for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
-            {
-              if (input_data[i].meta.getName() != "intensity array" && input_data[i].meta.getName() != "time array") // is meta data array?
-              {
-                if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
+                if (n < input_data[i].decoded_char.size())
                 {
-                  if (n < input_data[i].size)
-                  {
-                    double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-                    inp_chromatogram.getFloatDataArrays()[meta_float_array_index].push_back(value);
-                  }
-                  ++meta_float_array_index;
+                  String value = input_data[i].decoded_char[n];
+                  inp_chromatogram.getStringDataArrays()[meta_string_array_index].push_back(value);
                 }
-                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-                {
-                  if (n < input_data[i].size)
-                  {
-                    Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-                    inp_chromatogram.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-                  }
-                  ++meta_int_array_index;
-                }
-                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-                {
-                  if (n < input_data[i].decoded_char.size())
-                  {
-                    String value = input_data[i].decoded_char[n];
-                    inp_chromatogram.getStringDataArrays()[meta_string_array_index].push_back(value);
-                  }
-                  ++meta_string_array_index;
-                }
+                ++meta_string_array_index;
               }
             }
           }
         }
       }
+    }
 
 
     void MzMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
@@ -4882,6 +4882,57 @@ namespace OpenMS
 
       os << "\t\t\t</spectrum>\n";
     }
+
+    template <typename ContainerT>
+    void MzMLHandler::writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
+    {
+      // Intensity is the same for chromatograms and spectra, the second
+      // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
+      bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
+      if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
+      {
+        std::vector<double> data_to_encode(container.size());
+        if (array_type == "intensity")
+        {
+          for (Size p = 0; p < container.size(); ++p)
+          {
+            data_to_encode[p] = container[p].getIntensity();
+          }
+        }
+        else
+        {
+          for (Size p = 0; p < container.size(); ++p)
+          {
+            data_to_encode[p] = container[p].getMZ();
+          }
+        }
+        writeBinaryDataArray(os, pf_options_, data_to_encode, false, array_type);
+      }
+      else
+      {
+        std::vector<float> data_to_encode(container.size());
+
+        if (array_type == "intensity")
+        {
+          for (Size p = 0; p < container.size(); ++p)
+          {
+            data_to_encode[p] = container[p].getIntensity();
+          }
+        }
+        else
+        {
+          for (Size p = 0; p < container.size(); ++p)
+          {
+            data_to_encode[p] = container[p].getMZ();
+          }
+        }
+        writeBinaryDataArray(os, pf_options_, data_to_encode, true, array_type);
+      }
+
+    }
+
+    template void MzMLHandler::writeContainerData<SpectrumType>(std::ostream& os, const PeakFileOptions& pf_options_, const SpectrumType& container, String array_type);
+    template void MzMLHandler::writeContainerData<ChromatogramType>(std::ostream& os, const PeakFileOptions& pf_options_, const ChromatogramType& container, String array_type);
 
     void MzMLHandler::writeChromatogram_(std::ostream& os,
                                                   const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)

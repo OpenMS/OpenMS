@@ -273,52 +273,7 @@ protected:
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
-      {
-        // Intensity is the same for chromatograms and spectra, the second
-        // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
-        bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
-        if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
-        {
-          std::vector<double> data_to_encode(container.size());
-          if (array_type == "intensity")
-          {
-            for (Size p = 0; p < container.size(); ++p)
-            {
-              data_to_encode[p] = container[p].getIntensity();
-            }
-          }
-          else
-          {
-            for (Size p = 0; p < container.size(); ++p)
-            {
-              data_to_encode[p] = container[p].getMZ();
-            }
-          }
-          writeBinaryDataArray(os, pf_options_, data_to_encode, false, array_type);
-        }
-        else
-        {
-          std::vector<float> data_to_encode(container.size());
-
-          if (array_type == "intensity")
-          {
-            for (Size p = 0; p < container.size(); ++p)
-            {
-              data_to_encode[p] = container[p].getIntensity();
-            }
-          }
-          else
-          {
-            for (Size p = 0; p < container.size(); ++p)
-            {
-              data_to_encode[p] = container[p].getMZ();
-            }
-          }
-          writeBinaryDataArray(os, pf_options_, data_to_encode, true, array_type);
-        }
-
-      }
+      void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
 
       /**
           @brief Populate all spectra on the stack with data from input
