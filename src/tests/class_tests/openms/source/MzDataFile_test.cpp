@@ -518,11 +518,6 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_REAL_SIMILAR(e5[0].getFloatDataArrays()[0][2], 100)
   TEST_REAL_SIMILAR(e5[0].getFloatDataArrays()[7][2], 100)
   TEST_EQUAL(e5[0].getFloatDataArrays()[6][2], 100)
-
-  //test if it works with different peak types
-  MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e_rich);
-
 }
 END_SECTION
 
