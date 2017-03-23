@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_MZMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -79,8 +80,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <typename MapType>
-    void load(const String& filename, MapType& map)
+    void load(const String& filename, MSExperiment<Peak1D>& map)
     {
       map.reset();
 
@@ -92,6 +92,8 @@ public:
       handler.setOptions(options_);
       safeParse_(filename, &handler);
     }
+
+    void load(const String& filename, MSExperiment<RichPeak1D>& map);
 
     /**
       @brief Only count the number of spectra and chromatograms from a file
