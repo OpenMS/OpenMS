@@ -46,8 +46,8 @@ namespace OpenMS
 
       Consumes spectra and chromatograms and inserts them into an file-based
       SQL database using sqlite. As Sqlite is highly inefficient when inserting
-      one spectrum/chromatogram at a time, the consumer collects the data and
-      then flushes them all together to disk.
+      one spectrum/chromatogram at a time, the consumer collects the data in an
+      internal buffer and then flushes them all together to disk.
     */
     class OPENMS_DLLAPI MSDataSqlConsumer :
       public Interfaces::IMSDataConsumer<>
@@ -62,66 +62,45 @@ namespace OpenMS
         @brief Constructor
 
         Opens the sqlite file and writes the tables.
+
+        @param filename The filename of the Sqlite database
+        @param clearData Whether to clear the data from memory after writing it
+        @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
       */
-      MSDataSqlConsumer(String filename, bool clearData=true, int flush_after = 500) :
-        sql_writer_(filename),
-        clearData_(clearData),
-        flush_after_(flush_after)
-      {
-        sql_writer_.createTables();
-      }
+      MSDataSqlConsumer(String filename, bool clearData=true, int buffer_size = 500);
 
       /**
         @brief Destructor
   
         Flushes the data for good.
       */
-      ~MSDataSqlConsumer()
-      {
-        flush();
-      }
+      ~MSDataSqlConsumer();
 
-      void flush()
-      {
-        sql_writer_.writeSpectra(spectra_);
-        spectra_.clear();
-        sql_writer_.writeChromatograms(chromatograms_);
-        chromatograms_.clear();
-      }
+      /**
+        @brief Flushes the data for good.
+
+        After calling this function, no more data is held in the buffer but the
+        class is still able to receive new data.
+
+      */
+      void flush();
 
       /**
         @brief Write a spectrum to the output file
       */
-      void consumeSpectrum(SpectrumType & s)
-      {
-        spectra_.push_back(s);
-        if (spectra_.size() >= flush_after_)
-        {
-          sql_writer_.writeSpectra(spectra_);
-          spectra_.clear();
-        }
-        if (clearData_) {s.clear(false);}
-      }
+      void consumeSpectrum(SpectrumType & s);
 
       /**
         @brief Write a chromatogram to the output file
       */
-      void consumeChromatogram(ChromatogramType & c)
-      {
-        chromatograms_.push_back(c);
-        if (chromatograms_.size() >= flush_after_)
-        {
-          sql_writer_.writeChromatograms(chromatograms_);
-          chromatograms_.clear();
-        }
-        if (clearData_) {c.clear(false);}
-      }
+      void consumeChromatogram(ChromatogramType & c);
 
-      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */);
 
-      void setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */);
 
     protected:
+
       OpenMS::Internal::MzMLSqliteHandler sql_writer_;
       bool clearData_;
       size_t flush_after_;

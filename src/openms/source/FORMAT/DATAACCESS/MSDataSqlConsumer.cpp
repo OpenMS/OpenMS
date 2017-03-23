@@ -37,5 +37,54 @@
 namespace OpenMS
 {
 
+  MSDataSqlConsumer::MSDataSqlConsumer(String filename, bool clearData, int flush_after) :
+        sql_writer_(filename),
+        clearData_(clearData),
+        flush_after_(flush_after)
+      {
+        sql_writer_.createTables();
+      }
+
+  MSDataSqlConsumer::~MSDataSqlConsumer()
+  {
+    flush();
+  }
+
+  void MSDataSqlConsumer::flush()
+  {
+    sql_writer_.writeSpectra(spectra_);
+    spectra_.clear();
+    sql_writer_.writeChromatograms(chromatograms_);
+    chromatograms_.clear();
+  }
+
+  void MSDataSqlConsumer::consumeSpectrum(SpectrumType & s)
+  {
+    spectra_.push_back(s);
+    if (spectra_.size() >= flush_after_)
+    {
+      sql_writer_.writeSpectra(spectra_);
+      spectra_.clear();
+    }
+    if (clearData_) {s.clear(false);}
+  }
+
+  void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
+  {
+    chromatograms_.push_back(c);
+    if (chromatograms_.size() >= flush_after_)
+    {
+      sql_writer_.writeChromatograms(chromatograms_);
+      chromatograms_.clear();
+    }
+    if (clearData_) {c.clear(false);}
+  }
+
+  void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
+
+  void MSDataSqlConsumer::setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
+
+
+
 } // namespace OpenMS
 
