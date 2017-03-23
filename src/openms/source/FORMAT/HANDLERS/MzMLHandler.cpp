@@ -39,17 +39,85 @@ namespace OpenMS
   namespace Internal
   {
 
+    /// Constructor for a read-only handler
+    MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
+      XMLHandler(filename, version),
+      exp_(&exp),
+      cexp_(0),
+      options_(),
+      spec_(),
+      chromatogram_(),
+      data_(),
+      default_array_length_(0),
+      in_spectrum_list_(false),
+      decoder_(),
+      logger_(logger),
+      consumer_(NULL),
+      scan_count(0),
+      chromatogram_count(0),
+      skip_chromatogram_(false),
+      skip_spectrum_(false),
+      rt_set_(false) /* ,
+              validator_(mapping_, cv_) */
+    {
+      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
+      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+
+      CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
+      //~ validator_ = Internal::MzMLValidator(mapping_, cv_);
+
+      // check the version number of the mzML handler
+      if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
+      {
+        LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
+      }
+    }
+
+    /// Constructor for a write-only handler
+    MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
+      XMLHandler(filename, version),
+      exp_(0),
+      cexp_(&exp),
+      options_(),
+      spec_(),
+      chromatogram_(),
+      data_(),
+      default_array_length_(0),
+      in_spectrum_list_(false),
+      decoder_(),
+      logger_(logger),
+      consumer_(NULL),
+      scan_count(0),
+      chromatogram_count(0),
+      skip_chromatogram_(false),
+      skip_spectrum_(false),
+      rt_set_(false) /* ,
+              validator_(mapping_, cv_) */
+    {
+      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
+      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+
+      CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
+      //~ validator_ = Internal::MzMLValidator(mapping_, cv_);
+
+      // check the version number of the mzML handler
+      if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
+      {
+        LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
+      }
+    }
+
     /// Destructor
     MzMLHandler::~MzMLHandler()
     {
     }
 
-    /**
-        @brief Populate all spectra on the stack with data from input
-
-        Will populate all spectra on the current work stack with data (using
-        multiple threads if available) and append them to the result.
-    */
     void MzMLHandler::populateSpectraWithData()
     {
 
@@ -109,12 +177,6 @@ namespace OpenMS
       spectrum_data_.clear();
     }
 
-    /**
-        @brief Populate all chromatograms on the stack with data from input
-
-        Will populate all chromatograms on the current work stack with data (using
-        multiple threads if available) and append them to the result.
-    */
     void MzMLHandler::populateChromatogramsWithData()
     {
       // Whether chromatogram should be populated with data
@@ -211,16 +273,6 @@ namespace OpenMS
           }
       }
 
-    /**
-        @brief Fill a single spectrum with data from input
-
-        @note Do not modify any internal state variables of the class since
-        this function will be executed in parallel.
-
-        Speed: this function takes about 50 % of total load time with a
-        single thread and parallelizes linearly up to at least 10 threads.
-
-    */
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                   Size& default_arr_length, const PeakFileOptions& peak_file_options,
                                   SpectrumType& spectrum)
@@ -389,13 +441,6 @@ namespace OpenMS
       }
     }
 
-    /**
-        @brief Fill a single chromatogram with data from input
-
-        @note Do not modify any internal state variables of the class since
-        this function will be executed in parallel.
-
-    */
     void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                         Size& default_arr_length, const PeakFileOptions& peak_file_options,
                                         ChromatogramType& inp_chromatogram)
@@ -4931,11 +4976,89 @@ namespace OpenMS
 
     }
 
+    template <typename DataType>
+    void MzMLHandler::writeBinaryDataArray(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type)
+    {
+      String encoded_string;
+      bool no_numpress = true;
+
+      // Compute the array-type and the compression CV term
+      String cv_term_type;
+      String compression_term;
+      String compression_term_no_np;
+      MSNumpressCoder::NumpressConfig np_config;
+      if (array_type == "mz")
+      {
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", true);
+        compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", false);
+        np_config = pf_options_.getNumpressConfigurationMassTime();
+      }
+      else if (array_type == "time")
+      {
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", true);
+        compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", false);
+        np_config = pf_options_.getNumpressConfigurationMassTime();
+      }
+      else if (array_type == "intensity")
+      {
+        cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"/>\n";
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", true);
+        compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
+        np_config = pf_options_.getNumpressConfigurationIntensity();
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown array type", array_type);
+      }
+
+      // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
+      if (np_config.np_compression != MSNumpressCoder::NONE)
+      {
+        MSNumpressCoder().encodeNP(data_to_encode, encoded_string, pf_options_.getCompression(), np_config);
+        if (!encoded_string.empty())
+        {
+          // numpress succeeded
+          no_numpress = false;
+          os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+          os << cv_term_type;
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+        }
+      }
+
+      // Regular DataArray without numpress (either 32 or 64 bit encoded)
+      if (is32bit && no_numpress)
+      {
+        compression_term = compression_term_no_np; // select the no-numpress term
+        decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+        os << cv_term_type;
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+      }
+      else if (!is32bit && no_numpress)
+      {
+        compression_term = compression_term_no_np; // select the no-numpress term
+        decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+        os << cv_term_type;
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+      }
+
+      os << compression_term << "\n";
+      os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
+      os << "\t\t\t\t\t</binaryDataArray>\n";
+    }
+
+    // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
     template void MzMLHandler::writeContainerData<SpectrumType>(std::ostream& os, const PeakFileOptions& pf_options_, const SpectrumType& container, String array_type);
     template void MzMLHandler::writeContainerData<ChromatogramType>(std::ostream& os, const PeakFileOptions& pf_options_, const ChromatogramType& container, String array_type);
 
+    template void MzMLHandler::writeBinaryDataArray<float>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<float> data_to_encode, bool is32bit, String array_type);
+    template void MzMLHandler::writeBinaryDataArray<double>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<double> data_to_encode, bool is32bit, String array_type);
+
     void MzMLHandler::writeChromatogram_(std::ostream& os,
-                                                  const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
+                                         const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
       chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
@@ -5084,7 +5207,5 @@ namespace OpenMS
       os << "\t\t\t</chromatogram>" << "\n";
     }
 
-
-
-  }
+  } // namespace Internal
 } // namespace OpenMS
