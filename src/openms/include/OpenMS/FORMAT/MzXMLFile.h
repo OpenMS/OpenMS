@@ -54,6 +54,9 @@ namespace OpenMS
     public Internal::XMLFile,
     public ProgressLogger
   {
+
+	typedef MSExperiment<Peak1D> MapType;
+
 public:
     ///Default constructor
     MzXMLFile();
@@ -77,7 +80,6 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <typename MapType>
     void load(const String & filename, MapType & map)
     {
       map.reset();
@@ -86,7 +88,7 @@ public:
       map.setLoadedFileType(filename);
       map.setLoadedFilePath(filename);
 
-      Internal::MzXMLHandler<MapType> handler(map, filename, schema_version_, *this);
+      Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
       handler.setOptions(options_);
       parse_(filename, &handler);
     }
@@ -98,10 +100,9 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    template <typename MapType>
     void store(const String & filename, const MapType & map) const
     {
-      Internal::MzXMLHandler<MapType> handler(map, filename, schema_version_, *this);
+      Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
       save_(filename, &handler);
     }
 
@@ -132,7 +133,7 @@ public:
       // Second pass through the data, now read the spectra!
       {
         MapType dummy;
-        Internal::MzXMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
+        Internal::MzXMLHandler handler(dummy, filename_in, getVersion(), *this);
         handler.setOptions(options_);
         handler.setMSDataConsumer(consumer);
         parse_(filename_in, &handler);
@@ -162,7 +163,7 @@ public:
       // Second pass through the data, now read the spectra!
       {
         PeakFileOptions tmp_options(options_);
-        Internal::MzXMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
+        Internal::MzXMLHandler handler(map, filename_in, getVersion(), *this);
         tmp_options.setAlwaysAppendData(true);
         handler.setOptions(tmp_options);
         handler.setMSDataConsumer(consumer);
@@ -181,7 +182,7 @@ protected:
       PeakFileOptions tmp_options(options_);
       Size scount = 0, ccount = 0;
       MapType experimental_settings;
-      Internal::MzXMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
+      Internal::MzXMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
 
       // set temporary options for handler
       tmp_options.setSizeOnly(true);
