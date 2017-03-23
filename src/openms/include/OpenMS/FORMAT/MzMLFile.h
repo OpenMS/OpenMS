@@ -88,7 +88,7 @@ public:
       map.setLoadedFileType(filename);
       map.setLoadedFilePath(filename);
 
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
+      Internal::MzMLHandler handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       safeParse_(filename, &handler);
     }
@@ -108,7 +108,7 @@ public:
     template <typename MapType>
     void store(const String& filename, const MapType& map) const
     {
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
+      Internal::MzMLHandler handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       save_(filename, &handler);
     }
@@ -140,7 +140,7 @@ public:
       // Second pass through the data, now read the spectra!
       {
         MapType dummy;
-        Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
+        Internal::MzMLHandler handler(dummy, filename_in, getVersion(), *this);
         handler.setOptions(options_);
         handler.setMSDataConsumer(consumer);
         safeParse_(filename_in, &handler);
@@ -170,7 +170,7 @@ public:
       // Second pass through the data, now read the spectra!
       {
         PeakFileOptions tmp_options(options_);
-        Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
+        Internal::MzMLHandler handler(map, filename_in, getVersion(), *this);
         tmp_options.setAlwaysAppendData(true);
         handler.setOptions(tmp_options);
         handler.setMSDataConsumer(consumer);
@@ -208,7 +208,7 @@ protected:
       PeakFileOptions tmp_options(options_);
       Size scount = 0, ccount = 0;
       MapType experimental_settings;
-      Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
+      Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
 
       // set temporary options for handler
       tmp_options.setSizeOnly(true);

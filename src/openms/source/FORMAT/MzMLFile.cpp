@@ -120,7 +120,7 @@ namespace OpenMS
     MapType dummy;
     bool size_only_before_ = options_.getSizeOnly();
     options_.setSizeOnly(true);
-    Internal::MzMLHandler<MapType> handler(dummy, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
     handler.setOptions(options_);
 
     // TODO catch errors as above ?
