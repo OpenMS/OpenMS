@@ -108,11 +108,11 @@ START_SECTION(SvmTheoreticalSpectrumGenerator & getSvmModel(Size))
     NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge))
+START_SECTION(void simulate(PeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge))
 
-    RichPeakMap exp;
+    PeakMap exp;
     boost::random::mt19937_64 rnd_gen (0);
-    RichPeakSpectrum spec;
+    PeakSpectrum spec;
     AASequence peptide = AASequence::fromString("IFSQVGK");
 
     Param p = gen_set.getSvmModel(2).getDefaults();

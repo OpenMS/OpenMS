@@ -80,10 +80,10 @@ START_SECTION(SvmTheoreticalSpectrumGenerator& operator = (const SvmTheoreticalS
 END_SECTION
 
 
-START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, boost::random::mt19937_64&rng, Size precursor_charge))
+START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, boost::random::mt19937_64&rng, Size precursor_charge))
   // init rng
   boost::random::mt19937_64 rnd_gen (0);
-  RichPeakSpectrum spec;
+  PeakSpectrum spec;
 
   Param p = ptr->getDefaults();
   p.setValue ("hide_losses", "true");
@@ -92,11 +92,8 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
   ptr->load();
   ptr->simulate(spec, peptide, rnd_gen, 1);
 
-  MSExperiment<RichPeak1D>exp;
-//  MSExperiment<RichPeak1D>exp2;
-//  exp2.getSpectra().push_back(spec);
+  MSExperiment<Peak1D>exp;
   MzMLFile mz_file;
-//  MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp2);
 
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
 
