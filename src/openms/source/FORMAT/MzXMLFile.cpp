@@ -118,6 +118,7 @@ namespace OpenMS
         RichPeak1D p;
         p.setMZ(it->getMZ());
         p.setIntensity(it->getIntensity());
+        s.push_back(p);
       }
       map.addSpectrum(s);
     }
