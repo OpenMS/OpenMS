@@ -662,16 +662,24 @@ protected:
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
                                          1, 3, 
                                          false, 
-                                         3, 10, 
+                                         2, 10, 
                                          single_charge_spectra, 
                                          annotate_charge);
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+    
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
-
+ 
       // sort (nlargest changes order)
       exp[exp_index].sortByPosition();
+  
+    #ifdef DEBUG_RNPXLSEARCH
+      LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
+      if (exp[exp_index].getIntegerDataArrays().size())
+        for (Size i = 0; i != exp[exp_index].size(); ++i) LOG_DEBUG << exp[exp_index].getIntegerDataArrays()[0][i];
+      LOG_DEBUG << endl;
+    #endif
     }
   }
 
@@ -1931,7 +1939,7 @@ protected:
     spectra.sortSpectra(true);
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, true);
+    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, true, false); // single charge, no annotation
     progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index
