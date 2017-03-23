@@ -58,20 +58,21 @@ namespace OpenMS
                  "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
       generator.setParameters(p);
 
-      RichPeakSpectrum rich_spec;
-      generator.addPeaks(rich_spec, a, Residue::BIon, charge);
-      generator.addPeaks(rich_spec, a, Residue::YIon, charge);
+      PeakSpectrum spec;
+      generator.addPeaks(spec, a, Residue::BIon, charge);
+      generator.addPeaks(spec, a, Residue::YIon, charge);
 
-      for (RichPeakSpectrum::iterator it = rich_spec.begin();
-           it != rich_spec.end(); ++it)
+      const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
+
+      for (Size i = 0; i != spec.size(); ++i)
       {
-        if (it->getMetaValue("IonName").toString()[0] == 'y')
+        if (ion_name[i][0] == 'y')
         {
-          yseries.push_back(it->getMZ());
+          yseries.push_back(spec[i].getMZ());
         }
-        else if (it->getMetaValue("IonName").toString()[0] == 'b')
+        else if (ion_name[i][0] == 'b')
         {
-          bseries.push_back(it->getMZ());
+          bseries.push_back(spec[i].getMZ());
         }
       }
     } // end getBYSeries
@@ -83,15 +84,15 @@ namespace OpenMS
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
       TheoreticalSpectrumGenerator generator;
       Param p;
-      p.setValue("add_metainfo", "true",
+      p.setValue("add_metainfo", "false",
                  "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
       generator.setParameters(p);
-      RichPeakSpectrum rich_spec;
-      generator.addPeaks(rich_spec, a, Residue::BIon, charge);
-      generator.addPeaks(rich_spec, a, Residue::YIon, charge);
-      generator.addPrecursorPeaks(rich_spec, a, charge);
-      for (RichPeakSpectrum::iterator it = rich_spec.begin();
-           it != rich_spec.end(); ++it)
+      PeakSpectrum spec;
+      generator.addPeaks(spec, a, Residue::BIon, charge);
+      generator.addPeaks(spec, a, Residue::YIon, charge);
+      generator.addPrecursorPeaks(spec, a, charge);
+      for (PeakSpectrum::iterator it = spec.begin();
+           it != spec.end(); ++it)
       {
         masses.push_back(it->getMZ());
       }

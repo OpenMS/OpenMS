@@ -82,7 +82,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
+  PeakSpectrum rspec;
   tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
   PeakSpectrum spec;
@@ -94,7 +94,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
     spec.push_back(p);
   }
 
-  RichPeakSpectrum rspec_ETD;
+  PeakSpectrum rspec_ETD;
   tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
   tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
   PeakSpectrum spec_ETD;

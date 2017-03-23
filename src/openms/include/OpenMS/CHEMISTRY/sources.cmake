@@ -22,7 +22,6 @@ Residue.h
 ResidueDB.h
 ResidueModification.h
 TheoreticalSpectrumGenerator.h
-TheoreticalSpectrumGeneratorRPLess.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h

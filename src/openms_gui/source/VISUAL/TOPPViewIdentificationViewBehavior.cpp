@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
@@ -379,7 +378,7 @@ namespace OpenMS
 
     const Param & tv_params = tv_->getParameters();
 
-    RichPeakSpectrum rich_spec;
+    PeakSpectrum spectrum;
     TheoreticalSpectrumGenerator generator;
     Param p;
     p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
@@ -407,36 +406,36 @@ namespace OpenMS
       {
         if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::AIon, charge);
         }
         if (tv_params.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::BIon, charge);
         }
         if (tv_params.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::CIon, charge);
         }
         if (tv_params.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::XIon, charge);
         }
         if (tv_params.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::YIon, charge);
         }
         if (tv_params.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::ZIon, charge);
         }
         if (tv_params.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
         {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+          generator.addPrecursorPeaks(spectrum, aa_sequence, charge);
         }
       }
       if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
       {
-        generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
+        generator.addAbundantImmoniumIons(spectrum, aa_sequence);
       }
     }
     catch (Exception::BaseException & e)
@@ -445,15 +444,8 @@ namespace OpenMS
       return;
     }
 
-    // convert rich spectrum to simple spectrum
-    PeakSpectrum new_spec;
-    for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-    {
-      new_spec.push_back(static_cast<Peak1D>(*it));
-    }
-
     PeakMap new_exp;
-    new_exp.addSpectrum(new_spec);
+    new_exp.addSpectrum(spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -469,32 +461,31 @@ namespace OpenMS
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
 
     // kind of a hack to check whether adding the layer was successful
-    if (current_spectrum_layer_index != theoretical_spectrum_layer_index)
+    if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())
     {
       // Ensure theoretical spectrum is drawn as dashed sticks
       tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
       tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
 
       // Add ion names as annotations to the theoretical spectrum
-      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-      {
-        if (it->getMetaValue("IonName") != DataValue::EMPTY)
-        {
-          DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
-          QString s(((string)it->getMetaValue("IonName")).c_str());
+      PeakSpectrum::StringDataArray sa = spectrum.getStringDataArrays()[0];
 
-          if (s.at(0) == 'y')
-          {
-            Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkRed);
-            item->setSelected(false);
-            tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-          }
-          else if (s.at(0) == 'b')
-          {
-            Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
-            item->setSelected(false);
-            tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-          }
+      for (Size i = 0; i != spectrum.size(); ++i)
+      {
+        DPosition<2> position = DPosition<2>(spectrum[i].getMZ(), spectrum[i].getIntensity());
+        QString s(sa[i].c_str());
+
+        if (s.at(0) == 'y')
+        {
+          Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkRed);
+          item->setSelected(false);
+          tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+        }
+        else if (s.at(0) == 'b')
+        {
+          Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
+          item->setSelected(false);
+          tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
       }
 
@@ -527,7 +518,7 @@ namespace OpenMS
       for (Size i = 0; i != aligned_peak_indices.size(); ++i)
       {
         PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
-        QString s(((string)rich_spec[aligned_peak_indices[i].second].getMetaValue("IonName")).c_str());
+        QString s(sa[aligned_peak_indices[i].second].c_str());
         QString ion_nr_string = s;
 
         if (s.at(0) == 'y')

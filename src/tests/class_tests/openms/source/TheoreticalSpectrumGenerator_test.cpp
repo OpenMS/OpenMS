@@ -1,3 +1,4 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -28,7 +29,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg, Eugen Netz $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -39,12 +40,12 @@
 
 #include <iostream>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorRPLess.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 ///////////////////////////
 
-START_TEST(TheoreticalSpectrumGenerator, "$Id$")
+START_TEST(TheoreticalSpectrumGeneratorRPLess, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -52,37 +53,39 @@ START_TEST(TheoreticalSpectrumGenerator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TheoreticalSpectrumGenerator* ptr = 0;
-TheoreticalSpectrumGenerator* nullPointer = 0;
+TheoreticalSpectrumGeneratorRPLess* ptr = 0;
+TheoreticalSpectrumGeneratorRPLess* nullPointer = 0;
 
-START_SECTION(TheoreticalSpectrumGenerator())
-  ptr = new TheoreticalSpectrumGenerator();
+START_SECTION(TheoreticalSpectrumGeneratorRPLess())
+  ptr = new TheoreticalSpectrumGeneratorRPLess();
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
-  TheoreticalSpectrumGenerator copy(*ptr);
+START_SECTION(TheoreticalSpectrumGeneratorRPLess(const TheoreticalSpectrumGeneratorRPLess& source))
+  TheoreticalSpectrumGeneratorRPLess copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-START_SECTION(~TheoreticalSpectrumGenerator())
+START_SECTION(~TheoreticalSpectrumGeneratorRPLess())
   delete ptr;
 END_SECTION
 
-ptr = new TheoreticalSpectrumGenerator();
+ptr = new TheoreticalSpectrumGeneratorRPLess();
 AASequence peptide = AASequence::fromString("IFSQVGK");
 
-START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg))
-  TheoreticalSpectrumGenerator copy;
+START_SECTION(TheoreticalSpectrumGeneratorRPLess& operator = (const TheoreticalSpectrumGeneratorRPLess& tsg))
+  TheoreticalSpectrumGeneratorRPLess copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
-  RichPeakSpectrum y_spec, b_spec, a_spec;
+START_SECTION(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
+  PeakSpectrum y_spec, b_spec, a_spec;
+
   ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
   ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
   ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
+
   TOLERANCE_ABSOLUTE(0.001)
   double y_result[] = {147.113, 204.135, 303.203, 431.262, 518.294, 665.362};
   for (Size i = 0; i != y_spec.size(); ++i)
@@ -101,26 +104,17 @@ START_SECTION(void addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptid
     TEST_REAL_SIMILAR(a_spec[i].getPosition()[0], a_result[i])
   }
 
-  RichPeakSpectrum y_spec2;
+  PeakSpectrum y_spec2;
   ptr->addPeaks(y_spec2, peptide, Residue::YIon, 2);
   TOLERANCE_ABSOLUTE(0.01)
   for (Size i = 0; i != y_spec2.size(); ++i)
   {
     TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
   }
-/* for quick benchmarking of implementation chances
-  for (Size i = 0; i != 1e6; ++i)
-  {
-    RichPeakSpectrum y_spec, b_spec, a_spec;
-    ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
-    ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
-    ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
-  }
-*/
 END_SECTION
 
-START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
-  RichPeakSpectrum spec;
+START_SECTION(void addAbundantImmoniumIons(PeakSpectrum& spec))
+  PeakSpectrum spec;
   ptr->addAbundantImmoniumIons(spec, AASequence::fromString("HFYLWCP"));
   TEST_EQUAL(spec.size(), 7)
   TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
@@ -141,8 +135,8 @@ START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
 END_SECTION
 
 
-START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-  RichPeakSpectrum spec;
+START_SECTION(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
+  PeakSpectrum spec;
   ptr->addPrecursorPeaks(spec, peptide, 1);
   double result[] = {760.4352, 761.4192, 778.4457};
   for (Size i = 0; i != spec.size(); ++i)
@@ -150,7 +144,7 @@ START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& p
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
   }
 
-  RichPeakSpectrum spec2;
+  PeakSpectrum spec2;
   ptr->addPrecursorPeaks(spec2, peptide, 2);
   double result2[] = {380.7212, 381.2132, 389.7265};
   for (Size i = 0; i != spec2.size(); ++i)
@@ -160,8 +154,8 @@ START_SECTION(void addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& p
 
 END_SECTION
 
-START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-  RichPeakSpectrum spec;
+START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
+  PeakSpectrum spec;
   ptr->getSpectrum(spec, peptide, 1);
   TEST_EQUAL(spec.size(), 11)
 
@@ -193,16 +187,16 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 
   AASequence new_peptide = AASequence::fromString("DFPLANGER");
   /**  From http://db.systemsbiology.net:8080/proteomicsToolkit/FragIonServlet.html
-   Seq    #       A            B            C            X            Y            Z         # (+1) 
-    D     1     88.03990    116.03481    133.06136       -        1018.49583   1001.46928    9 
-    F     2    235.10831    263.10323    280.12978    929.44815    903.46888    886.44233    8 
-    P     3    332.16108    360.15599    377.18254    782.37973    756.40047    739.37392    7 
-    I     4    445.24514    473.24005    490.26660    685.32697    659.34771    642.32116    6 
-    A     5    516.28225    544.27717    561.30372    572.24291    546.26364    529.23709    5 
-    N     6    630.32518    658.32009    675.34664    501.20579    475.22653    458.19998    4 
-    G     7    687.34664    715.34156    732.36811    387.16287    361.18360    344.15705    3 
-    E     8    816.38924    844.38415    861.41070    330.14140    304.16214    287.13559    2 
-    R     9    972.49035   1000.48526       -         201.09881    175.11955    158.09300    1 
+   Seq    #       A            B            C            X            Y            Z         # (+1)
+    D     1     88.03990    116.03481    133.06136       -        1018.49583   1001.46928    9
+    F     2    235.10831    263.10323    280.12978    929.44815    903.46888    886.44233    8
+    P     3    332.16108    360.15599    377.18254    782.37973    756.40047    739.37392    7
+    I     4    445.24514    473.24005    490.26660    685.32697    659.34771    642.32116    6
+    A     5    516.28225    544.27717    561.30372    572.24291    546.26364    529.23709    5
+    N     6    630.32518    658.32009    675.34664    501.20579    475.22653    458.19998    4
+    G     7    687.34664    715.34156    732.36811    387.16287    361.18360    344.15705    3
+    E     8    816.38924    844.38415    861.41070    330.14140    304.16214    287.13559    2
+    R     9    972.49035   1000.48526       -         201.09881    175.11955    158.09300    1
   **/
   double result_all[52-1] = {
    88.03990, 235.10831, 332.16108, 445.24514, 516.28225, 630.32518, 687.34664, 816.38924, /*972.49035, because TSG does not do A-ions of the full peptide*/
@@ -294,24 +288,45 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
   ion_names.insert("[M+H]-NH3+");
   ion_names.insert("[M+H]+");
 
+  PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
+
   // check if all losses have been annotated
   for (Size i = 0; i != spec.size(); ++i)
   {
-    vector<String> keys;
-    spec[i].getKeys(keys);
-    for (Size j = 0; j != keys.size(); ++j)
-    {
-      String name = spec[i].getMetaValue(keys[j]);
-      TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-    }
+    String name = string_array[i];
+    TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
   }
+
+  // test for charges stored in IntegerDataArray
+  PeakSpectrum charge3_spec;
+  ptr->getSpectrum(charge3_spec, peptide, 3);
+  PeakSpectrum::IntegerDataArray charge_array = charge3_spec.getIntegerDataArrays().at(0);
+
+  int charge_counts[3] = {0, 0, 0};
+  for (Size i = 0; i != charge3_spec.size(); ++i)
+  {
+    charge_counts[charge_array[i]-1]++;
+  }
+  TEST_EQUAL(charge_counts[0], 27)
+  TEST_EQUAL(charge_counts[1], 27)
+  TEST_EQUAL(charge_counts[2], 30) // 3 more for [M+H], [M+H]-H20, [M+H]-NH3
+
+// // for quick benchmarking of implementation chances
+//  for (Size i = 0; i != 1e5; ++i)
+//  {
+//    PeakSpectrum y_spec, b_spec, a_spec;
+//    ptr->addPeaks(y_spec, peptide, Residue::YIon, 2);
+//    ptr->addPeaks(b_spec, peptide, Residue::BIon, 2);
+//    ptr->addPeaks(a_spec, peptide, Residue::AIon, 2);
+//  }
+
 END_SECTION
 
 START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
 {
   AASequence tmp_aa = AASequence::fromString("RDAGGPALKK");
-  RichPeakSpectrum tmp;
-  TheoreticalSpectrumGenerator t_gen;
+  PeakSpectrum tmp;
+  TheoreticalSpectrumGeneratorRPLess t_gen;
   Param params;
 
   params.setValue("add_isotopes", "true");
@@ -328,8 +343,8 @@ END_SECTION
 START_SECTION(([EXTRA] test monomer extreme case))
 {
   AASequence tmp_aa = AASequence::fromString("R");
-  RichPeakSpectrum tmp;
-  TheoreticalSpectrumGenerator t_gen;
+  PeakSpectrum tmp;
+  TheoreticalSpectrumGeneratorRPLess t_gen;
   Param params;
 
   params.setValue("add_first_prefix_ion", "true");
@@ -355,8 +370,8 @@ END_SECTION
 START_SECTION(([EXTRA] test isotope clusters for all peak types))
 {
   AASequence tmp_aa = AASequence::fromString("ARRGH");
-  RichPeakSpectrum spec;
-  TheoreticalSpectrumGenerator t_gen;
+  PeakSpectrum spec;
+  TheoreticalSpectrumGeneratorRPLess t_gen;
   Param params;
   params.setValue("add_isotopes", "true");
   params.setValue("max_isotope", 2);

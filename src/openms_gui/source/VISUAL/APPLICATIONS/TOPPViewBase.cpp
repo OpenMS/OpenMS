@@ -3129,7 +3129,7 @@ namespace OpenMS
       }
       Int charge = spec_gen_dialog.spin_box->value();
 
-      RichPeakSpectrum rich_spec;
+      PeakSpectrum spectrum;
       TheoreticalSpectrumGenerator generator;
       Param p;
 
@@ -3163,35 +3163,35 @@ namespace OpenMS
       {
         if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::AIon, charge);
         }
         if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::BIon, charge);
         }
         if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::CIon, charge);
         }
         if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::XIon, charge);
         }
         if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::YIon, charge);
         }
         if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
         {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
+          generator.addPeaks(spectrum, aa_sequence, Residue::ZIon, charge);
         }
         if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
         {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
+          generator.addPrecursorPeaks(spectrum, aa_sequence, charge);
         }
         if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
         {
-          generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
+          generator.addAbundantImmoniumIons(spectrum, aa_sequence);
         }
       }
       catch (Exception::BaseException& e)
@@ -3201,22 +3201,16 @@ namespace OpenMS
       }
 
       // set precursor information
-      PeakSpectrum new_spec;
       vector<Precursor> precursors;
       Precursor precursor;
       precursor.setMZ(aa_sequence.getMonoWeight());
       precursor.setCharge(charge);
       precursors.push_back(precursor);
-      new_spec.setPrecursors(precursors);
-      new_spec.setMSLevel(2);
-      // convert rich spectrum to simple spectrum
-      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-      {
-        new_spec.push_back(static_cast<Peak1D>(*it));
-      }
+      spectrum.setPrecursors(precursors);
+      spectrum.setMSLevel(2);
 
       PeakMap new_exp;
-      new_exp.addSpectrum(new_spec);
+      new_exp.addSpectrum(spectrum);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -3226,8 +3220,6 @@ namespace OpenMS
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
       setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-
-
     }
   }
 

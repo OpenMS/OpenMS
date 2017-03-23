@@ -721,16 +721,16 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(PeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
-    RichPeak1D p_;
-    // just in case someone wants the ion names;
-    p_.metaRegistry().registerName("IonName", "Name of the ion");
-
-
     if (mp_.class_models.empty() || mp_.reg_models.empty() || mp_.ion_types.empty())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no svm models loaded. Call load function before using simulate");
+    }
+
+    if (peptide.empty())
+    {
+      return;
     }
 
     //load parameters
@@ -742,6 +742,18 @@ namespace OpenMS
     bool add_metainfo = param_.getValue("add_metainfo").toBool();
 
     Int simulation_type = (Int)param_.getValue("svm_mode");
+
+    if (add_metainfo)
+    {
+      if (spectrum.getIntegerDataArrays().size() == 0)
+      {
+        spectrum.getIntegerDataArrays().resize(1);
+      }
+      if (spectrum.getStringDataArrays().size() == 0)
+      {
+        spectrum.getStringDataArrays().resize(1);
+      }
+    }
 
     std::vector<std::set<String> > possible_n_term_losses(peptide.size());
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
@@ -775,7 +787,6 @@ namespace OpenMS
         }
       }
     }
-
 
     std::vector<std::pair<std::pair<IonType, double>, Size> > peaks_to_generate;
 
@@ -961,24 +972,22 @@ namespace OpenMS
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
-          p_.setMZ(mz_pos + (double)j * Constants::NEUTRON_MASS_U / charge);
-          p_.setIntensity(intensity * it->second);
-          if (add_metainfo && j == 0)
+          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->second));
+          if (add_metainfo)
           {
-            p_.setMetaValue("IonName", ion_name);
+            spectrum.getStringDataArrays()[0].push_back(ion_name);
+            spectrum.getIntegerDataArrays()[0].push_back(charge);
           }
-          spectrum.push_back(p_);
         }
       }
       else
       {
-        p_.setMZ(mz_pos);
-        p_.setIntensity(intensity);
+        spectrum.push_back(Peak1D(mz_pos, intensity));
         if (add_metainfo)
         {
-          p_.setMetaValue("IonName", ion_name);
+          spectrum.getStringDataArrays()[0].push_back(ion_name);
+          spectrum.getIntegerDataArrays()[0].push_back(charge);
         }
-        spectrum.push_back(p_);
       }
     }
 

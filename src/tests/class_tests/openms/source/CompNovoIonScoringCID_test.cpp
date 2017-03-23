@@ -82,7 +82,7 @@ START_SECTION((void scoreSpectrum(Map<double, IonScore>& CID_ion_scores, PeakSpe
 	tsg_param.setValue("add_isotopes", "true");
 	tsg.setParameters(tsg_param);
 
-	RichPeakSpectrum rspec;
+	PeakSpectrum rspec;
 	tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
 	PeakSpectrum spec;
