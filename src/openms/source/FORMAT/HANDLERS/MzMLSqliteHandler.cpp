@@ -574,6 +574,7 @@ namespace OpenMS
 
     void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum<> >& spectra)
     {
+      // prevent writing of empty data which would throw an SQL exception
       if (spectra.empty()) return;
 
       sqlite3 *db;
@@ -895,7 +896,12 @@ namespace OpenMS
       sqlite3_stmt *stmt = NULL;
       const char *curr_loc;
       rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
-      if (rc != SQLITE_OK) { throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db)); }
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
+        std::cerr << "Prepared statement " << prepare_statement << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db));
+      }
 
       for (Size k = 0; k < data.size(); k++)
       {
@@ -903,11 +909,21 @@ namespace OpenMS
         // SQLITE_STATIC because the statement is finalized
         // before the buffer is freed:
         rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), data[k].size(), SQLITE_STATIC);
-        if (rc != SQLITE_OK) { throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db)); } 
+        if (rc != SQLITE_OK)
+        {
+          std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
+          std::cerr << "Prepared statement " << prepare_statement << std::endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db));
+        } 
       }
 
       rc = sqlite3_step(stmt);
-      if (rc != SQLITE_DONE) { throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db)); }
+      if (rc != SQLITE_DONE)
+      {
+        std::cerr << "SQL error after sqlite3_step" << std::endl;
+        std::cerr << "Prepared statement " << prepare_statement << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db));
+      }
 
       // free memory again
       sqlite3_finalize(stmt);
