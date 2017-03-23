@@ -50,7 +50,8 @@ namespace OpenMS
   /**
     * @brief Compresses and uncompresses data using zlib
     *
-    * @note The 'strings' here are not really null-terminated but rather containers of data
+    * @note The 'strings' here are not really null-terminated but rather
+    * containers of data. If you want safe conversions, use QtByteArray.
     * 
   */
   class OPENMS_DLLAPI ZlibCompression
