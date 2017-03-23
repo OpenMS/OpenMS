@@ -70,7 +70,7 @@ namespace OpenMS
       rc = sqlite3_open(filename_.c_str(), &db);
       if (rc)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't open database: ") + sqlite3_errmsg(db));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
       }
 
       // creates the chromatograms but does not fill them with data (provides option to return meta-data only)
@@ -94,6 +94,7 @@ namespace OpenMS
 
     void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms)
     {
+      int rc;
       sqlite3_stmt * stmt;
       std::string select_sql;
 
@@ -108,11 +109,16 @@ namespace OpenMS
                     ";";
 
 
-      /* Execute SQL statement */
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-      sqlite3_step(stmt);
+      // Execute SQL statement
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
+        std::cerr << "Prepared statement " << select_sql << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+      }
+      rc = sqlite3_step(stmt);
 
-      // TODO ensure that all chroms have their data...
       std::vector<int> chromdata; chromdata.resize(chromatograms.size());
       int k = 0;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -123,12 +129,12 @@ namespace OpenMS
 
         if (chrom_id >= chromatograms.size())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Data for non-existent chromatogram found");
         }
         if (native_id != chromatograms[chrom_id].getNativeID())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Native id for chromatogram doesnt match");
         }
 
@@ -159,7 +165,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Compression not supported");
         }
 
@@ -187,12 +193,21 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Found data type other than RT/Intensity for chromatograms");
         }
 
         sqlite3_step( stmt );
         k++;
+      }
+
+      // ensure that all spectra have their data: we expect two data arrays per spectrum (int and rt)
+      for (Size k = 0; k < chromdata.size(); k++)
+      {
+        if (chromdata[k] < 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Chromatogram ") + k + " does not have 2 data arrays.");
+        }
       }
 
       sqlite3_finalize(stmt);
@@ -201,6 +216,7 @@ namespace OpenMS
     void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra)
     {
       sqlite3_stmt * stmt;
+      int rc;
       std::string select_sql;
 
       select_sql = "SELECT " \
@@ -214,11 +230,16 @@ namespace OpenMS
                     ";";
 
 
-      /* Execute SQL statement */
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      // Execute SQL statement
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
+        std::cerr << "Prepared statement " << select_sql << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+      }
       sqlite3_step(stmt);
 
-      // TODO ensure that all spectra have their data...
       std::vector<int> specdata; specdata.resize(spectra.size());
       int k = 0;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -229,12 +250,12 @@ namespace OpenMS
 
         if (spec_id >= spectra.size())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Data for non-existent spectrum found");
         }
         if (native_id != spectra[spec_id].getNativeID())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Native id for spectrum doesnt match");
         }
 
@@ -265,7 +286,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Compression not supported");
         }
 
@@ -293,12 +314,21 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Found data type other than RT/Intensity for spectra");
         }
 
         sqlite3_step( stmt );
         k++;
+      }
+
+      // ensure that all spectra have their data: we expect two data arrays per spectrum (int and mz)
+      for (Size k = 0; k < specdata.size(); k++)
+      {
+        if (specdata[k] < 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Spectrum ") + k + " does not have 2 data arrays.");
+        }
       }
 
       sqlite3_finalize(stmt);
@@ -500,7 +530,7 @@ namespace OpenMS
       rc = sqlite3_open(filename_.c_str(), &db);
       if (rc)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't open database: ") + sqlite3_errmsg(db));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
       }
 
       // Create SQL structure
@@ -560,9 +590,9 @@ namespace OpenMS
 
       // Execute SQL statement
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
-      if( rc != SQLITE_OK )
+      if (rc != SQLITE_OK)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
             zErrMsg);
         sqlite3_free(zErrMsg);
       }
@@ -585,7 +615,7 @@ namespace OpenMS
       rc = sqlite3_open(filename_.c_str(), &db);
       if (rc)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't open database: ") + sqlite3_errmsg(db));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
       }
 
       // prepare streams and set required precision (default is 6 digits)
@@ -744,6 +774,8 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
+      std::cout << " MzMLSqliteHandler::writeChromatograms " << chroms.size() << std::endl;
+
       sqlite3 *db;
       char *zErrMsg = 0;
       int rc;
@@ -752,7 +784,7 @@ namespace OpenMS
       rc = sqlite3_open(filename_.c_str(), &db);
       if (rc)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't open database: ") + sqlite3_errmsg(db));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
       }
 
       // prepare streams and set required precision (default is 6 digits)
@@ -900,7 +932,7 @@ namespace OpenMS
       {
         std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
         std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
 
       for (Size k = 0; k < data.size(); k++)
@@ -913,7 +945,7 @@ namespace OpenMS
         {
           std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
           std::cerr << "Prepared statement " << prepare_statement << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db));
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
         } 
       }
 
@@ -922,7 +954,7 @@ namespace OpenMS
       {
         std::cerr << "SQL error after sqlite3_step" << std::endl;
         std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, sqlite3_errmsg(db));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
 
       // free memory again
@@ -934,10 +966,11 @@ namespace OpenMS
       char *zErrMsg = 0;
       std::string insert_str = statement.str();
       int rc = sqlite3_exec(db, insert_str.c_str(), callback, 0, &zErrMsg);
-      if( rc != SQLITE_OK )
+      if (rc != SQLITE_OK)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-            zErrMsg);
+        std::cerr << "Error message after sqlite3_exec" << std::endl;
+        std::cerr << "Prepared statement " << statement << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, zErrMsg);
         sqlite3_free(zErrMsg);
       }
     }
