@@ -97,7 +97,7 @@ protected:
     struct SiriusAdapterIdentification
     {
         String id; //?
-        unsigned int scan_index; //?
+        String scan_index;
         vector<SiriusAdapterHit> hits;
     };
 
@@ -129,6 +129,29 @@ protected:
 
         int number = getIntOption_("number");
         number = number + 1; // needed for counting later on
+
+        //Extract scan_index from path
+        OpenMS::String path = File::path(in);
+        vector<String> substrings;
+
+        OpenMS::String SringString;
+        vector<String> newsubstrings;
+
+        cout << path << endl;
+        path.split('_', substrings);
+        cout << substrings << endl;
+
+        SringString = substrings[substrings.size() - 1];
+        SringString.split('_', newsubstrings);
+        cout << newsubstrings << endl;
+
+        vector<String> bla;
+        OpenMS::String SringStringString = newsubstrings[newsubstrings.size() - 1];
+        SringStringString.split('n',bla);
+        cout << bla << endl;
+
+        String scan_index = bla[bla.size() - 1];
+        cout << scan_index << endl;
 
         //-------------------------------------------------------------
         // writing output
@@ -163,11 +186,9 @@ protected:
                 sirius_hit.explainedintensity =sl[7];
 
                 sirius_id.hits.push_back(sirius_hit);
-
             }
 
-            // not possible since not in SiriusAdapter <- only folder but no further spectrum
-            sirius_id.scan_index = 0;
+            sirius_id.scan_index = scan_index; //from folder unkown?
             sirius_id.id = "name";
             sirius_result.identifications.push_back(sirius_id);
         }
