@@ -64,5 +64,64 @@ namespace OpenMS
       options_ = options;
   }
 
+  void MzXMLFile::load(const String & filename, MapType & map)
+  {
+    map.reset();
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    handler.setOptions(options_);
+    parse_(filename, &handler);
+  }
+
+  void MzXMLFile::load(const String & filename, MSExperiment<RichPeak1D> & map)
+  {
+#ifdef OPENMS_ASSERTIONS
+    std::cout << "===========================================================================" << std::endl;
+    std::cout << "WARNING: you are using a deprecated interface MzXMLFile::load with MSExperiment<RichPeak1D>." 
+              << "\nPlease consider switching to MSExperiment<Peak1D>" << std::endl;
+    std::cout << "===========================================================================" << std::endl;
+#endif
+    MSExperiment<Peak1D> map_;
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzXMLHandler handler(map_, filename, schema_version_, *this);
+    handler.setOptions(options_);
+    parse_(filename, &handler);
+
+    map.reset();
+    map = (ExperimentalSettings)map_;
+    map.setChromatograms(map_.getChromatograms());
+
+    // convert regular Spectra to RichPeakSpectra
+    for (Size k = 0; k < map_.getNrSpectra(); k++)
+    {
+      // copy each spectrum over
+      MSSpectrum<RichPeak1D> s;
+      const MSSpectrum<Peak1D> s2 = map_.getSpectrum(k);
+      s = (SpectrumSettings)map_.getSpectrum(k);
+      s.setRT(s2.getRT());
+      s.setDriftTime(s2.getDriftTime());
+      s.setMSLevel(s2.getMSLevel());
+      s.setName(s2.getName());
+      s.setFloatDataArrays(s2.getFloatDataArrays());
+      s.setStringDataArrays(s2.getStringDataArrays());
+      s.setIntegerDataArrays(s2.getIntegerDataArrays());
+      for (MSSpectrum<Peak1D>::iterator it = map_.getSpectrum(k).begin(); it != map_.getSpectrum(k).end(); ++it)
+      {
+        RichPeak1D p;
+        p.setMZ(it->getMZ());
+        p.setIntensity(it->getIntensity());
+      }
+      map.addSpectrum(s);
+    }
+  }
+
 } // namespace OpenMS
 

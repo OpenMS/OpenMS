@@ -36,6 +36,9 @@
 #define OPENMS_FORMAT_MZXMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
@@ -80,18 +83,9 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, MapType & map)
-    {
-      map.reset();
+    void load(const String & filename, MapType & map);
 
-      //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-
-      Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
-      handler.setOptions(options_);
-      parse_(filename, &handler);
-    }
+    void load(const String & filename, MSExperiment<RichPeak1D> & map);
 
     /**
         @brief Stores a map in a MzXML file.
