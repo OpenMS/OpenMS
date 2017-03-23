@@ -156,7 +156,9 @@ class TOPPXFDR :
     static const String xlclass_interlinks; // interlinks
     static const String xlclass_monolinks;  // monolinks
     static const String xlclass_monodecoys; // monodecoys
-
+    static const String xlclass_decoys; // decoys
+    static const String xlclass_hybriddecoysintralinks; // hybriddecoysintralinks
+    static const String xlclass_hybriddecoysinterlinks; // hybriddecoysintralinks
 
     // Parameters to actually calculate the number of FPs // TODO Needs to more dynamic in the future
     static const double fpnum_score_start;
@@ -169,6 +171,113 @@ class TOPPXFDR :
     }
 
   protected:
+
+
+    //static const String xlclass_intradecoys; // intradecoys
+    //static const String xlclass_fulldecoysintralinks; // fulldecoysintralinks
+    //static const String xlclass_interdecoys; // interdecoys
+    //static const String xlclass_fulldecoysinterlinks; // fulldecoysinterlinks
+    //static const String xlclass_intralinks; // intralinks
+    //static const String xlclass_interlinks; // interlinks
+    //static const String xlclass_monolinks;  // monolinks
+    //static const String xlclass_monodecoys; // monodecoys
+
+
+
+   inline void assign_types(PeptideIdentification &pep_id, StringList & types)
+   {
+      types.clear();
+
+      // Intradecoys
+      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      {
+        types.push_back(TOPPXFDR::xlclass_intradecoys);
+      }
+
+      // Decoys
+      if (pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      {
+        types.push_back(TOPPXFDR::xlclass_decoys);
+      }
+
+      // intralinks
+      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && ! pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      {
+        types.push_back(TOPPXFDR::xlclass_intralinks);
+      }
+
+      // interdecoys
+      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      {
+        types.push_back(TOPPXFDR::xlclass_interdecoys);
+      }
+
+      // interlinks
+      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && ! pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      {
+        types.push_back(TOPPXFDR::xlclass_interlinks);
+      }
+
+      // monolinks
+      String xl_type =  pep_id.getMetaValue("xl_type").toString();
+
+      if ( ! pep_id.metaValueExists("OpenXQuest:is_decoy") && (xl_type == "mono-link"
+                                                           ||  xl_type == "loop-link"))
+      {
+        types.push_back(TOPPXFDR::xlclass_monolinks);
+      }
+
+      // monodecoys
+      if ( pep_id.metaValueExists("OpenXQuest:is_decoy") && (xl_type == "mono-link"
+                                                         ||  xl_type == "loop-link"))
+      {
+        types.push_back(TOPPXFDR::xlclass_monodecoys);
+      }
+      vector< PeptideHit > pep_hits = pep_id.getHits();
+      if(pep_hits.size() == 2)
+      {
+        PeptideHit alpha = pep_hits[0];
+        PeptideHit beta = pep_hits[1];
+
+        // fulldecoysintralinks
+        if (   pep_id.metaValueExists("OpenXQuest:is_intraprotein")
+            && alpha.metaValueExists("OpenXQuest:is_decoy")
+            && beta.metaValueExists("OpenXQuest:is_decoy"))
+        {
+          types.push_back(TOPPXFDR::xlclass_fulldecoysintralinks);
+
+        }
+
+        // fulldecoysinterlinks
+        if (   pep_id.metaValueExists("OpenXQuest:is_interprotein")
+            && alpha.metaValueExists("OpenXQuest:is_decoy")
+            && beta.metaValueExists("OpenXQuest:is_decoy"))
+        {
+          types.push_back(TOPPXFDR::xlclass_fulldecoysinterlinks);
+
+        }
+
+        // hybriddecoysintralinks
+        if (       pep_id.metaValueExists("OpenXQuest:is_intraprotein")
+            && ( ! alpha.metaValueExists("OpenXQuest:is_decoy")
+            &&     beta.metaValueExists("OpenXQuest:is_decoy")
+            ||     alpha.metaValueExists("OpenXQuest:is_decoy")
+            &&   ! beta.metaValueExists("OpenXQuest:is_decoy")))
+        {
+          types.push_back(TOPPXFDR::xlclass_hybriddecoysintralinks);
+        }
+
+        // hybriddecoysinterlinks
+        if (       pep_id.metaValueExists("OpenXQuest:is_interprotein")
+            && ( ! alpha.metaValueExists("OpenXQuest:is_decoy")
+            &&     beta.metaValueExists("OpenXQuest:is_decoy")
+            ||     alpha.metaValueExists("OpenXQuest:is_decoy")
+            &&   ! beta.metaValueExists("OpenXQuest:is_decoy")))
+        {
+          types.push_back(TOPPXFDR::xlclass_hybriddecoysinterlinks);
+        }
+      }
+    }
 
 
     /** False positve counting as performed by xProphet software package.
@@ -566,9 +675,17 @@ class TOPPXFDR :
                  &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
         {
           unique_ids.insert(id);
-          cross_link_classes_file.collect(*pep_id, scores, "OpenXQuest:score");
+          StringList xl_types;
+          assign_types(*pep_id, xl_types);
+
+          for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); ++xl_types_it)
+          {
+            // Assign score to this xl type
+            scores[*xl_types_it].push_back(score);
+          }
         }
       }
+
 
       // Print number of scores within each class
       if (arg_verbose)
@@ -652,24 +769,6 @@ class TOPPXFDR :
       }
 
 
-      //-------------------------------------------------------------
-      // Parsing XML file of xQuest
-      //-------------------------------------------------------------
-      // XQuest XML
-      String arg_out_xquestxml = getStringOption_(TOPPXFDR::param_out_xquestxml);
-
-      if (! arg_out_xquestxml.empty())
-      {
-        cout << "Writing XQuest output file" << endl;
-
-
-
-
-      }
-
-
-
-
 
       return EXECUTION_OK;
     }
@@ -697,7 +796,9 @@ const String TOPPXFDR::xlclass_monodecoys = "monodecoys";
 const String TOPPXFDR::xlclass_intralinks = "intralinks";
 const String TOPPXFDR::xlclass_interlinks = "interlinks";
 const String TOPPXFDR::xlclass_monolinks  = "monolinks";
-
+const String TOPPXFDR::xlclass_decoys = "decoys";
+const String TOPPXFDR::xlclass_hybriddecoysintralinks = "hybriddecoysintralinks";
+const String TOPPXFDR::xlclass_hybriddecoysinterlinks = "hybriddecoysinterlinks";
 
 // Parameters for actually calculating the number of FPs
 const double TOPPXFDR::fpnum_score_start = 0;
