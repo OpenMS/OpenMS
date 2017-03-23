@@ -774,8 +774,6 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
-      std::cout << " MzMLSqliteHandler::writeChromatograms " << chroms.size() << std::endl;
-
       sqlite3 *db;
       char *zErrMsg = 0;
       int rc;
