@@ -39,7 +39,6 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <zlib.h>
 #include <string>
 #include <vector>
 #include <QByteArray>
@@ -58,64 +57,43 @@ namespace OpenMS
   {
 public:
 
-    static void compressString(std::string& str, std::string& compressed)
-    {
-      compressed.clear();
+    /**
+      * @brief Compresses data using zlib directly
+      *
+      * @param raw_data Data to be compressed
+      * @param compressed_data Compressed result data
+      * 
+    */
+    static void compressString(std::string& raw_data, std::string& compressed_data);
 
-      unsigned long sourceLen =   (unsigned long)str.size();
-      unsigned long compressed_length = //compressBound((unsigned long)str.size());
-                                        sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+    /**
+      * @brief Compresses data using Qt
+      *
+      * @param raw_data Data to be compressed
+      * @param compressed_data Compressed result data
+      * 
+    */
+    static void compressString(const QByteArray& raw_data, QByteArray& compressed_data);
 
-      int zlib_error;
-      do
-      {
-        compressed.resize(compressed_length);
-        zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
+    /**
+      * @brief Uncompresses data using Qt (wrapper around Qt function)
+      *
+      * @param compressed_data Compressed data
+      * @param nr_bytes Number of bytes in compressed data
+      * @param raw_data Uncompressed result data
+      * 
+    */
+    static void uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data);
 
-        switch (zlib_error)
-        {
-        case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
+    /**
+      * @brief Uncompresses data using Qt
+      *
+      * @param compressed_data Compressed data
+      * @param raw_data Uncompressed result data
+      * 
+    */
+    static void uncompressString(const QByteArray& compressed_data, QByteArray& raw_data);
 
-        case Z_BUF_ERROR:
-          compressed_length *= 2;
-        }
-      }
-      while (zlib_error == Z_BUF_ERROR);
-
-      if (zlib_error != Z_OK)
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
-      }
-      compressed.resize(compressed_length);
-    }
-
-    static void uncompressString(const void * tt, size_t blob_bytes, std::string& uncompressed)
-    {
-      // take a leap of faith and assume the input is valid
-      uncompressed.clear();
-      QByteArray raw_data = QByteArray::fromRawData((const char*)tt, blob_bytes);
-
-      if (true)
-      {
-        QByteArray czip;
-        czip.resize(4);
-        czip[0] = (raw_data.size() & 0xff000000) >> 24;
-        czip[1] = (raw_data.size() & 0x00ff0000) >> 16;
-        czip[2] = (raw_data.size() & 0x0000ff00) >> 8;
-        czip[3] = (raw_data.size() & 0x000000ff);
-        czip += raw_data;
-        raw_data = qUncompress(czip);
-
-        if (raw_data.isEmpty())
-        {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-        }
-      }
-
-      // Note that we may have zero bytes in the string, so we cannot use QString
-      uncompressed = std::string(raw_data.data(), raw_data.size());
-    }
   };
 
 } // namespace OpenMS
