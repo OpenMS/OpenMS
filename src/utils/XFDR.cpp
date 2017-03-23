@@ -42,6 +42,9 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+
 
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/function.hpp>
@@ -127,8 +130,8 @@ class TOPPXFDR :
 {
   public:
 
-    static const String param_in_xquestxml;  // Parameter for the original xQuest XML file
-    static const String param_out_xquestxml; //
+    static const String param_in;  // Parameter for the input file
+    static const String param_out_mzIdentML; //
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  5 # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -389,12 +392,12 @@ class TOPPXFDR :
       registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
 
 
-      // File input (XQuest result XML)
-      registerInputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
-      setValidFormats_(TOPPXFDR::param_in_xquestxml, ListUtils::create<String>("xml"));
+      // File input
+      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
+      setValidFormats_(TOPPXFDR::param_in, ListUtils::create<String>("xml,mzid,idXML"));
 
-      registerOutputFile_(TOPPXFDR::param_out_xquestxml, "<xml_file>", "", "XQuest-compatible result XML file", false, false);
-      setValidFormats_(TOPPXFDR::param_out_xquestxml, ListUtils::create<String>("xml"));
+      //registerOutputFile_(TOPPXFDR::param_out_xquestxml, "<xml_file>", "", "XQuest-compatible result XML file", false, false);
+      //setValidFormats_(TOPPXFDR::param_out_xquestxml, ListUtils::create<String>("xml"));
 
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -5, "Filter for minimum precursor mass error (ppm)", false);
@@ -487,30 +490,83 @@ class TOPPXFDR :
       LOG_INFO << "-----------------------------------------\n" << endl;
 
       //-------------------------------------------------------------
-      // Parsing XML file of xQuest
+      // Parse the input file
       //-------------------------------------------------------------
-      String arg_in_xquestxml = getStringOption_(TOPPXFDR::param_in_xquestxml);
+      String arg_in = getStringOption_(TOPPXFDR::param_in);
 
       if (arg_verbose)
       {
-        LOG_INFO << "INFO: Parsing xQuest input XML file: " << arg_in_xquestxml << endl;
+        LOG_INFO << "INFO: Parsing input file: " << arg_in << endl;
       }
-      // Core data structures for the util
-      vector< XQuestResultMeta > metas;
-      vector< vector < PeptideIdentification > > spectra;
+      Size pep_id_index = TOPPXFDR::n_rank - 1; // This is of course trash if more than 1 ranks are used.
+      Size n_spectra;
 
-      size_t  pep_id_index = TOPPXFDR::n_rank - 1; // This is of course trash if more than 1 ranks are used.
+      vector < PeptideIdentification > all_ids;
+      vector < PeptideIdentification * > rank_one_ids;
 
+      vector < vector < PeptideIdentification > > spectra;  // TODO Only used for xQuest input files, thus move to corresponding block
 
-      // Parse XQuestResultXMLFile (TODO Also support idXML and mzIdentML)
-      XQuestResultXMLFile xquest_result_file;
-      xquest_result_file.load(arg_in_xquestxml, metas, spectra, false, 1); // We do not load 'empty' spectra here
-      size_t n_spectra = spectra.size();
-
-      if (arg_verbose)
+      // assume XQuestXML here
+      if (arg_in.hasSuffix("xml"))
       {
-        LOG_INFO << "Total number of spectra: " << n_spectra << "\n"
-                 << "Total number of hits: "    << xquest_result_file.get_n_hits() << endl;
+        // Core data structures for the util
+        vector< XQuestResultMeta > metas;
+        // Parse XQuestResultXMLFile (TODO Also support idXML and mzIdentML)
+        XQuestResultXMLFile xquest_result_file;
+        xquest_result_file.load(arg_in, metas, spectra, false, 1); // We do not load 'empty' spectra here
+        n_spectra = spectra.size();
+
+        if (arg_verbose)
+        {
+          LOG_INFO << "Total number of spectra: " << n_spectra << "\n"
+                   << "Total number of hits: "    << xquest_result_file.get_n_hits() << endl;
+        }
+
+        for (vector < vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
+             spectra_it != spectra.end(); ++spectra_it)
+        {
+          vector< PeptideIdentification > spectrum = *spectra_it;
+          for (vector< PeptideIdentification >::const_iterator spectrum_it = spectrum.begin(); spectrum_it != spectrum.end(); ++spectrum_it)
+          {
+             PeptideIdentification pep_id = *spectrum_it;
+             all_ids.push_back(pep_id);
+             if( (int) pep_id.getMetaValue("xl_rank") == 1)
+             {
+                rank_one_ids.push_back(&pep_id);
+             }
+          }
+        }
+      }
+      else if (arg_in.hasSuffix("mzid"))
+      {
+        vector< ProteinIdentification > prot_ids;
+        vector< PeptideIdentification > pep_ids;
+        MzIdentMLFile().load(arg_in, prot_ids, pep_ids);
+
+        PeptideIdentification pep_id = pep_ids[0];
+        StringList keys;
+        pep_id.getKeys(keys);
+
+        cout << "PRINT" << endl;
+        for (StringList::const_iterator keys_it = keys.begin(); keys_it != keys.end(); ++keys_it)
+        {
+          cout << *keys_it << endl;
+        }
+      }
+      else if (arg_in.hasSuffix("idXML"))
+      {
+        vector< ProteinIdentification > prot_ids;
+        vector< PeptideIdentification > pep_ids;
+        IdXMLFile().load(arg_in, prot_ids, pep_ids);
+
+        PeptideIdentification pep_id = pep_ids[0];
+        StringList keys;
+        pep_id.getKeys(keys);
+
+        for (StringList::const_iterator keys_it = keys.begin(); keys_it != keys.end(); ++keys_it)
+        {
+          cout << *keys_it << endl;
+        }
       }
 
       //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
@@ -526,50 +582,57 @@ class TOPPXFDR :
       //-------------------------------------------------------------
       // Calculate the delta score for each hit
       // Calculate n_min_ions_matched
+      // Currently only for xQuest input files
       //-------------------------------------------------------------
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
-      // TODO Maybe it makes sense to wrap the vectors into a struct (they belong together by rank)
-      std::vector< std::vector< double >* > delta_scores(n_spectra);
-      std::vector< size_t > n_min_ions_matched(n_spectra);
+      std::vector< std::vector< double >* > delta_scores;
+      std::vector< size_t > n_min_ions_matched;
 
-      for(size_t i = 0; i < delta_scores.size(); ++i)
+      // For xQuest input,calculate delta scores and min_ions_matched
+      if (arg_in.hasSuffix("xml"))
       {
-        size_t n_hits = spectra[i].size();
-        delta_scores[i] = new std::vector<double>(n_hits);
-        vector<double> * current = delta_scores[i];
+        delta_scores.resize(n_spectra);
+        n_min_ions_matched.resize(n_spectra);
 
-        assert(n_hits > 0); // because we initially do not load 'empty' spectra
-        // calculate n_min_ions_matched
-        PeptideIdentification * pep_id1 = &spectra[i][0];
-
-        // Currently the correct rank order in the xQuest result file is assumed
-        //assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
-
-        vector<PeptideHit> pep_hits = pep_id1->getHits();
-
-        if( pep_id1->getMetaValue("xl_type") == "cross-link")
+        for(size_t i = 0; i < delta_scores.size(); ++i)
         {
-          n_min_ions_matched[i] = std::min((int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions"),
-              (int) pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions"));
-        }
-        else
-        {
-          n_min_ions_matched[i] = (int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions");
-        }
-        // Calculate delta score
-        if (n_hits > 1)
-        {
-          for (size_t j = 0; j < n_hits - 1; ++j)
+          size_t n_hits = spectra[i].size();
+          delta_scores[i] = new std::vector<double>(n_hits);
+          vector<double> * current = delta_scores[i];
+
+          assert(n_hits > 0); // because we initially do not load 'empty' spectra
+          // calculate n_min_ions_matched
+          PeptideIdentification * pep_id1 = &spectra[i][0];
+
+          // Currently the correct rank order in the xQuest result file is assumed
+          //assert((int) pep_id1->getMetaValue("xl_rank") == 1); // because hits are sorted according to their rank within the spectrum
+
+          vector<PeptideHit> pep_hits = pep_id1->getHits();
+
+          if( pep_id1->getMetaValue("xl_type") == "cross-link")
           {
-            pep_id1 = &spectra[i][j];
-            for (size_t k = 1; j+k < n_hits; ++k )
+            n_min_ions_matched[i] = std::min((int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions"),
+                (int) pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions"));
+          }
+          else
+          {
+            n_min_ions_matched[i] = (int) pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions");
+          }
+          // Calculate delta score
+          if (n_hits > 1)
+          {
+            for (size_t j = 0; j < n_hits - 1; ++j)
             {
-              PeptideIdentification * pep_id2 = &spectra[i][j+k];
-              if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
+              pep_id1 = &spectra[i][j];
+              for (size_t k = 1; j+k < n_hits; ++k )
               {
-                (*current)[j] =  ((double) pep_id2->getMetaValue("OpenXQuest:score"))
-                    / ((double) pep_id1->getMetaValue("OpenXQuest:score"));
-                break;
+                PeptideIdentification * pep_id2 = &spectra[i][j+k];
+                if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
+                {
+                  (*current)[j] =  ((double) pep_id2->getMetaValue("OpenXQuest:score"))
+                      / ((double) pep_id1->getMetaValue("OpenXQuest:score"));
+                  break;
+                }
               }
             }
           }
@@ -753,8 +816,11 @@ class TOPPXFDR :
           {
             LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
           }
+
+          cout << pep_id.getMetaValue("fdr") << endl;
         }
       }
+
 
 
       // Delete Delta Scores
@@ -773,8 +839,8 @@ class TOPPXFDR :
       return EXECUTION_OK;
     }
 };
-const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";
-const String TOPPXFDR::param_out_xquestxml = "out_xquestxml";
+const String TOPPXFDR::param_in = "in";
+const String TOPPXFDR::param_out_mzIdentML = "out_mzIdentML";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
