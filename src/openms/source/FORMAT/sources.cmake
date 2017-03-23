@@ -11,7 +11,6 @@ CompressedInputSource.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
 ControlledVocabulary.cpp
-CrossLinkClassesFile.cpp
 CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp

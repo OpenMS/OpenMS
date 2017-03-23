@@ -41,7 +41,6 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
-#include <OpenMS/FORMAT/CrossLinkClassesFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 
 #include <boost/iterator/counting_iterator.hpp>
@@ -128,7 +127,6 @@ class TOPPXFDR :
 {
   public:
 
-    static const String param_in_xlclasses;  // Parameter for specifying the cross-link classes
     static const String param_in_xquestxml;  // Parameter for the original xQuest XML file
     static const String param_out_xquestxml; //
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
@@ -139,9 +137,6 @@ class TOPPXFDR :
     static const String param_qtransform; // transform simple FDR to q-FDR values
     static const String param_minscore; // minscore 0 # minimum ld-score to be considered
     static const String param_verbose; // Whether or not the output of the tool should be verbose.
-
-    // Parameters which are not directly related to xProphet
-    static const String param_fdr_calc_method;
 
     // Number of ranks used
     static const Int n_rank;
@@ -393,9 +388,6 @@ class TOPPXFDR :
       // Verbose Flag
       registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
 
-      // File input (Cross-link classes)
-      registerInputFile_(TOPPXFDR::param_in_xlclasses, "<classes_file>", "",
-                         "Specification of cross-link classes to compute statistics on", true, false);
 
       // File input (XQuest result XML)
       registerInputFile_(TOPPXFDR::param_in_xquestxml, "<file>", "", "Results in the original xquest.xml format", false);
@@ -425,63 +417,12 @@ class TOPPXFDR :
       // Minscore
       registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
 
-      // False positve Counting  method
-      registerStringOption_(TOPPXFDR::param_fdr_calc_method, "<fp_count_method>", "xprophet", "Method how the false discovery rate is computed", false, true);
-      setValidStrings_(TOPPXFDR::param_fdr_calc_method, ListUtils::create<String>("xprophet,xprophet_adjusted"));
-
     }
 
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
     {
       bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
-
-      //-------------------------------------------------------------
-      // Handling the cross-link classes specification
-      //-------------------------------------------------------------
-      String arg_in_xlclasses = getStringOption_(TOPPXFDR::param_in_xlclasses);
-
-      // Container for rules of specifying classes
-      CrossLinkClassesFile cross_link_classes_file;
-
-      if (! cross_link_classes_file.load(arg_in_xlclasses))
-      {
-        LOG_ERROR << "ERROR: Reading of cross-link class specification file failed." << endl;
-        return PARSE_ERROR;
-      }
-
-      //-------------------------------------------------------------
-      // Determine FDR calculation method
-      //-------------------------------------------------------------
-      String arg_fdr_calc_method = getStringOption_(TOPPXFDR::param_fdr_calc_method);
-      if (arg_fdr_calc_method == "xprophet")
-      {
-        StringList required_classes = ListUtils::create<String>("intralinks,interlinks,monolinks,intradecoys,fulldecoysintralinks,interdecoys,fulldecoysinterlinks,monodecoys");
-        for (StringList::const_iterator required_classes_it = required_classes.begin();
-             required_classes_it != required_classes.end(); ++required_classes_it)
-        {
-          String classname = *required_classes_it;
-          if ( ! cross_link_classes_file.has((classname)))
-          {
-            LOG_ERROR << "ERROR: xProphet target counting selected, but the following xlink class has not been defined: " << classname << endl;
-            return ILLEGAL_PARAMETERS;
-          }
-        }
-      }
-      else
-      {
-        LOG_ERROR << "ERROR: Unsupported method for FDR calculation. Aborting" << endl;
-        return ILLEGAL_PARAMETERS;
-      }
-
-      if (arg_verbose)
-      {
-        for(CrossLinkClassesFile::ClassNameConstIterator it = cross_link_classes_file.begin(); it != cross_link_classes_file.end(); ++it)
-        {
-          cout << "Class defined: " <<  *it << '\n';
-        }
-        cout << "----------------------------" << endl;
-      }
 
       //-------------------------------------------------------------
       // parsing parameters
@@ -653,7 +594,6 @@ class TOPPXFDR :
       std::set<String> unique_ids;
 
       // Applies user specified filters and aggregates the scores for the corresponding classes
-      // TODO Maybe put the stuff on the heap? Stack is getting full now.
       std::map< String, vector< double > > scores;
 
       for (size_t i = 0; i < n_spectra; ++i)
@@ -723,8 +663,6 @@ class TOPPXFDR :
       //Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
       //this->target_xprophet(cum_histograms, target_counts);
 
-
-
       // Calculate FDR for interlinks
       vector< double > fdr_interlinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, false);
@@ -773,7 +711,6 @@ class TOPPXFDR :
       return EXECUTION_OK;
     }
 };
-const String TOPPXFDR::param_in_xlclasses = "in_xlclasses";
 const String TOPPXFDR::param_in_xquestxml = "in_xquestxml";
 const String TOPPXFDR::param_out_xquestxml = "out_xquestxml";
 const String TOPPXFDR::param_minborder = "minborder";
@@ -784,7 +721,6 @@ const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_qtransform = "qtransform";
 const String TOPPXFDR::param_minscore = "minscore";
 const String TOPPXFDR::param_verbose = "verbose";
-const String TOPPXFDR::param_fdr_calc_method = "fdr_calc_method";
 
 const Int    TOPPXFDR::n_rank = 1; //  Number of ranks used
 
