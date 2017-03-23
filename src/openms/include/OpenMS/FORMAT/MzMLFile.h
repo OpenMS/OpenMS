@@ -75,24 +75,23 @@ public:
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      @p map has to be a MSExperiment or have the same interface.
+      @p filename The filename with the data
+      @p map Is an MSExperiment
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, MSExperiment<Peak1D>& map)
-    {
-      map.reset();
+    void load(const String& filename, MSExperiment<Peak1D>& map);
 
-      //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
+    /**
+      @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      Internal::MzMLHandler handler(map, filename, getVersion(), *this);
-      handler.setOptions(options_);
-      safeParse_(filename, &handler);
-    }
+      @p filename The filename with the data
+      @p map Is an RichMSExperiment
 
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
     void load(const String& filename, MSExperiment<RichPeak1D>& map);
 
     /**

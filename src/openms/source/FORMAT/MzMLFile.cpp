@@ -152,6 +152,19 @@ namespace OpenMS
     }
   }
 
+  void MzMLFile::load(const String& filename, MSExperiment<Peak1D>& map)
+  {
+    map.reset();
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    safeParse_(filename, &handler);
+  }
+
   void MzMLFile::load(const String& filename, MSExperiment<RichPeak1D>& map)
   {
 #ifdef OPENMS_ASSERTIONS
