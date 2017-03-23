@@ -178,7 +178,7 @@ protected:
     }
 
     // read mzML files
-    vector<RichPeakMap> maps_raw;
+    vector<RichPeakMap> maps_raw; // TODO: switch to regular PeakMap
     maps_raw.resize(in_raw.size());
 
     MzMLFile mzml_file;

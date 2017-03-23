@@ -176,7 +176,7 @@ protected:
 
     time_t prog_time = time(NULL);
     MSPFile spectral_library;
-    RichPeakMap query, library;
+    RichPeakMap query, library; // TODO: switch to regular PeakMap
     //spectrum which will be identified
     MzMLFile spectra;
     spectra.setLogType(log_type_);
