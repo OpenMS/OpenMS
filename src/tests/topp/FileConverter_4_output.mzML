@@ -421,13 +421,10 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="433.803" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="433.803" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="1537" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
@@ -492,13 +489,10 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.168" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.168" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="5755" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
@@ -537,13 +531,10 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="432.483" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="432.483" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="15750" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
@@ -582,13 +573,10 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="560.388" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="560.388" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10907" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
@@ -653,13 +641,10 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="432.782" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="432.782" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10428" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
@@ -698,13 +683,10 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="448.45" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="448.45" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
 								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="20363" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>

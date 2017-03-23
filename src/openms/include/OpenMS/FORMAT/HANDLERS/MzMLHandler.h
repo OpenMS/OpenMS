@@ -849,22 +849,22 @@ protected:
         if (array_type == "mz")
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), true);
-          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", true);
+          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", false);
           np_config = pf_options_.getNumpressConfigurationMassTime();
         }
         else if (array_type == "time")
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
-          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), true);
-          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", true);
+          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationMassTime(), "\t\t\t\t\t\t", false);
           np_config = pf_options_.getNumpressConfigurationMassTime();
         }
         else if (array_type == "intensity")
         {
           cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"/>\n";
-          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), true);
-          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", true);
+          compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
           np_config = pf_options_.getNumpressConfigurationIntensity();
         }
         else
@@ -904,7 +904,7 @@ protected:
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
         }
 
-        os << "\t\t\t\t\t\t" << compression_term << "\n";
+        os << compression_term << "\n";
         os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
         os << "\t\t\t\t\t</binaryDataArray>\n";
       }
@@ -3918,37 +3918,55 @@ protected:
     {
       os << "\t\t\t\t\t<precursor>\n";
       //--------------------------------------------------------------------------------------------
-      //isolation window
+      //isolation window (optional)
       //--------------------------------------------------------------------------------------------
-      os << "\t\t\t\t\t\t<isolationWindow>\n";
-      os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      os << "\t\t\t\t\t\t</isolationWindow>\n";
+      if (precursor.getMZ() > 0.0)
+      {
+        os << "\t\t\t\t\t\t<isolationWindow>\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        if (precursor.getIsolationWindowLowerOffset() > 0.0)
+        {
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << precursor.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        }
+        if (precursor.getIsolationWindowUpperOffset() > 0.0)
+        {
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << precursor.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        }
+        os << "\t\t\t\t\t\t</isolationWindow>\n";
+      }
       //userParam: no extra object for it => no user parameters
 
       //--------------------------------------------------------------------------------------------
-      //selected ion list
+      //selected ion list (optional)
       //--------------------------------------------------------------------------------------------
-      os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
-      os << "\t\t\t\t\t\t\t<selectedIon>\n";
-      os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
-      os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
-      for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
+      if (precursor.getCharge() != 0 || precursor.getIntensity() > 0.0 || precursor.getDriftTime() >= 0.0 || precursor.getPossibleChargeStates().size() > 0)
       {
-        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
+        os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
+        os << "\t\t\t\t\t\t\t<selectedIon>\n";
+        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+        if ( precursor.getCharge() != 0)
+        {
+          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
+        }
+        if ( precursor.getIntensity() > 0.0)
+        {
+          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
+        }
+        for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
+        {
+          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
+        }
+        if (precursor.getDriftTime() >= 0.0)
+        {
+          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+        }
+        //userParam: no extra object for it => no user parameters
+        os << "\t\t\t\t\t\t\t</selectedIon>\n";
+        os << "\t\t\t\t\t\t</selectedIonList>\n";
       }
-      if (precursor.getDriftTime() >= 0.0)
-      {
-        os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << precursor.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
-      }
-      //userParam: no extra object for it => no user parameters
-      os << "\t\t\t\t\t\t\t</selectedIon>\n";
-      os << "\t\t\t\t\t\t</selectedIonList>\n";
 
       //--------------------------------------------------------------------------------------------
-      //activation
+      //activation (mandatory)
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t\t\t<activation>\n";
 #pragma clang diagnostic push
@@ -4015,7 +4033,7 @@ protected:
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
       }
       //as "precursor" has no own user param its userParam is stored here
-      writeUserParam_(os, precursor, 6, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator);
+      writeUserParam_(os, precursor, 7, "/mzML/run/spectrumList/spectrum/precursorList/precursor/activation/cvParam/@accession", validator);
       os << "\t\t\t\t\t\t</activation>\n";
       os << "\t\t\t\t\t</precursor>\n";
 
@@ -4027,8 +4045,14 @@ protected:
       os << "\t\t\t\t\t<product>\n";
       os << "\t\t\t\t\t\t<isolationWindow>\n";
       os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << product.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << product.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-      os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << product.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+      if ( product.getIsolationWindowLowerOffset() > 0.0)
+      {
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000828\" name=\"isolation window lower offset\" value=\"" << product.getIsolationWindowLowerOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+      }
+      if ( product.getIsolationWindowUpperOffset() > 0.0)
+      {
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000829\" name=\"isolation window upper offset\" value=\"" << product.getIsolationWindowUpperOffset() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+      }
       writeUserParam_(os, product, 7, "/mzML/run/spectrumList/spectrum/productList/product/isolationWindow/cvParam/@accession", validator);
       os << "\t\t\t\t\t\t</isolationWindow>\n";
       os << "\t\t\t\t\t</product>\n";
@@ -5257,12 +5281,12 @@ protected:
       //--------------------------------------------------------------------------------------------
       if (!spec.getPrecursors().empty())
       {
-        os << "\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
+        os << "\t\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
         for (Size p = 0; p != spec.getPrecursors().size(); ++p)
         {
           writePrecursor_(os, spec.getPrecursors()[p], validator);
         }
-        os << "\t\t\t</precursorList>\n";
+        os << "\t\t\t\t</precursorList>\n";
       }
 
       //--------------------------------------------------------------------------------------------
@@ -5289,7 +5313,7 @@ protected:
         writeContainerData<SpectrumType>(os, options_, spec, "mz");
         writeContainerData<SpectrumType>(os, options_, spec, "intensity");
 
-        String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
+        String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
         //write float data array
         for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
         {
@@ -5306,7 +5330,7 @@ protected:
           }
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-          os << "\t\t\t\t\t\t" << compression_term << "\n";
+          os << compression_term << "\n";
           ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
           if (bi_term.id != "")
           {
@@ -5382,48 +5406,48 @@ protected:
                                                   const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
-      chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset + 6));
+      chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?
       // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
-      os << "      <chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
+      os << "\t\t\t<chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
       // write cvParams (chromatogram type)
       if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"mass chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000810\" name=\"mass chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000235\" name=\"total ion current chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000235\" name=\"total ion current chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000627\" name=\"selected ion current chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000627\" name=\"selected ion current chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::BASEPEAK_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000628\" name=\"basepeak chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000628\" name=\"basepeak chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001472\" name=\"selected ion monitoring chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001472\" name=\"selected ion monitoring chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001473\" name=\"selected reaction monitoring chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001473\" name=\"selected reaction monitoring chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::ELECTROMAGNETIC_RADIATION_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000811\" name=\"electromagnetic radiation chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000811\" name=\"electromagnetic radiation chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::ABSORPTION_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000812\" name=\"absorption chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000812\" name=\"absorption chromatogram\" />\n";
       }
       else if (chromatogram.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
       {
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000813\" name=\"emission chromatogram\" />\n";
+        os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000813\" name=\"emission chromatogram\" />\n";
       }
       else
       {
@@ -5442,7 +5466,7 @@ protected:
       writeContainerData<ChromatogramType>(os, options_, chromatogram, "time");
       writeContainerData<ChromatogramType>(os, options_, chromatogram, "intensity");
 
-      compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
+      compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
       //write float data array
       for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
       {
@@ -5459,7 +5483,7 @@ protected:
         }
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-        os << "\t\t\t\t\t\t" << compression_term << "\n";
+        os << compression_term << "\n";
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
         if (bi_term.id != "")
         {
