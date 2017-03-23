@@ -285,13 +285,11 @@ protected:
     in_type = fh.getType(out);
     if (in_type == FileTypes::MZDATA)
     {
-      MzDataFile mzData;
-      mzData.store(out, library);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else if (in_type == FileTypes::MZXML)
     {
-      MzXMLFile mzXML;
-      mzXML.store(out, library);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     else
     {
