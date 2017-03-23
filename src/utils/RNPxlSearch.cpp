@@ -352,13 +352,9 @@ class FragmentAnnotationHelper
 {
   public:
 
-  static RichPeak1D getAnnotatedImmoniumIon(char c, double immonium_ion_mz, const String& fragment_shift_name)
+  static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
   {
-    RichPeak1D RNA_fragment_peak;
-    RNA_fragment_peak.setIntensity(1.0);
-    RNA_fragment_peak.setMZ(immonium_ion_mz); 
-    RNA_fragment_peak.setMetaValue("IonName", String("i") + c + "+" + fragment_shift_name);
-    return RNA_fragment_peak;
+    return String("i") + c + "+" + fragment_shift_name;
   }
  
   static String fragmentAnnotationDetailsToString(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
@@ -938,50 +934,51 @@ protected:
           const vector<FragmentAdductDefinition_>& partial_loss_modification = all_feasible_fragment_adducts.at(precursor_rna_adduct);
 
           PeakSpectrum partial_loss_spectrum;
+          partial_loss_spectrum.getIntegerDataArrays().resize(1);
+          PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge = partial_loss_spectrum.getIntegerDataArrays()[0];
+
+          partial_loss_spectrum.getStringDataArrays().resize(1); // annotation
+          PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation = partial_loss_spectrum.getStringDataArrays()[0];
 
           // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
-          PeakSpectrum total_loss_spectrum, a_ions, b_ions, y_ions;
+          PeakSpectrum total_loss_spectrum;
 
           // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge  
 
           for (Size z = 1; z <= precursor_charge; ++z)
           {
-            spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
-            spectrum_generator.addPeaks(b_ions, fixed_and_variable_modified_peptide, Residue::BIon, z);
-            spectrum_generator.addPeaks(y_ions, fixed_and_variable_modified_peptide, Residue::YIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::AIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::BIon, z);
+            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::YIon, z);
             // generate MS2 precursor peaks of the total loss peptide for all z <= precursor charge  
             spectrum_generator.addPrecursorPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, z);
           }
-          total_loss_spectrum.insert(total_loss_spectrum.end(), a_ions.begin(), a_ions.end());
-          total_loss_spectrum.insert(total_loss_spectrum.end(), b_ions.begin(), b_ions.end());
-          total_loss_spectrum.insert(total_loss_spectrum.end(), y_ions.begin(), y_ions.end());
 
           total_loss_spectrum.sortByPosition();
 
           // TODO: generate unshifted immonium ions to gain confidence in identified peptide sequence
 
+          // Marker ions derived from RNA fragments:
           // Add peaks for marker ions A', G', C' marker ions (presence of these are determined by precursor RNA)
-          RichPeak1D RNA_fragment_peak;
-          RNA_fragment_peak.setIntensity(1.0);
           if (precursor_rna_adduct.hasSubstring("A"))
           {
-            RNA_fragment_peak.setMZ(136.0623); // C5H6N5
-            RNA_fragment_peak.setMetaValue("IonName", "RNA:A'");
-            partial_loss_spectrum.push_back(RNA_fragment_peak);
+            partial_loss_spectrum.push_back(Peak1D(136.0623, 1.0));
+            partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+            partial_loss_spectrum.getStringDataArrays()[0].push_back("RNA:A'");
           }
 
           if (precursor_rna_adduct.hasSubstring("G"))
           {
-            RNA_fragment_peak.setMZ(152.0572); //C5H6N5O
-            RNA_fragment_peak.setMetaValue("IonName", "RNA:G'");
-            partial_loss_spectrum.push_back(RNA_fragment_peak);
+            partial_loss_spectrum.push_back(Peak1D(152.0572, 1.0));
+            partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+            partial_loss_spectrum.getStringDataArrays()[0].push_back("RNA:G'");
           }
 
           if (precursor_rna_adduct.hasSubstring("C"))
           {
-            RNA_fragment_peak.setMZ(112.0510); // C4H6N3O
-            RNA_fragment_peak.setMetaValue("IonName", "RNA:C'");
-            partial_loss_spectrum.push_back(RNA_fragment_peak);
+            partial_loss_spectrum.push_back(Peak1D(112.0510, 1.0)); // C4H6N3O
+            partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+            partial_loss_spectrum.getStringDataArrays()[0].push_back("RNA:C'");
           }
 
           for (Size i = 0; i != partial_loss_modification.size(); ++i)
@@ -991,98 +988,96 @@ protected:
             //cout << fragment_shift_name << "\t" << partial_loss_modification[i].formula.toString() << endl;
             const double fragment_shift_mass = partial_loss_modification[i].formula.getMonoWeight();
 
-            // RNA mass peak
-            RichPeak1D RNA_fragment_peak;
-            RNA_fragment_peak.setIntensity(1.0);
-            RNA_fragment_peak.setMZ(fragment_shift_mass + Constants::PROTON_MASS_U); // there is exactly one RNA fragment modification that we added to this partial loss spectrum. So get the modification and mass to calculate the RNA peak mass.
-            RNA_fragment_peak.setMetaValue("IonName", "RNA:" + fragment_shift_name);  // add name (e.g. RNA:U-H2O)
-            partial_loss_spectrum.push_back(RNA_fragment_peak);
+            // For every fragment adduct add an RNA mass peak of charge 1
+            partial_loss_spectrum.push_back(Peak1D(fragment_shift_mass + Constants::PROTON_MASS_U, 1.0));
+            partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+            partial_loss_spectrum.getStringDataArrays()[0].push_back("RNA:" + fragment_shift_name); // add name (e.g., RNA:U-H2O)
 
             // Add shifted immonium ion peaks if the amino acid is present in the sequence
             if (unmodified_sequence.hasSubstring("Y"))
             {
-              double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass; 
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', immonium_ion_mz, fragment_shift_name));
+              double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass;
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("W"))
             {
               double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("F"))
             {
               double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("H"))
             {
               double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("C"))
             {
               double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("P"))
             {
               double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
             {
               double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
             }
             else if (unmodified_sequence.hasSubstring("K"))
             {
               double immonium_ion_mz = 101.10732 + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
               // TODO: add a lysin derived fragment (similar to immonium ion) 84. and 129.10 (ask Aleks)
 
             }
             else if (unmodified_sequence.hasSubstring("M"))
             {
               double immonium_ion_mz = 104.05285 + fragment_shift_mass;
-              partial_loss_spectrum.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', immonium_ion_mz, fragment_shift_name));
+              partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
+              partial_loss_spectrum.getIntegerDataArrays()[0].push_back(1);
+              partial_loss_spectrum.getStringDataArrays()[0].push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
             }
 
-            // generate all possible shifted ion a,b,y ion peaks by putting the RNA adduct on them
+            // Generate all possible shifted ion a,b,y-ion peaks by attaching the current RNA adduct (fragment_shift_name)
             double shift = ModificationsDB::getInstance()->getModification(fragment_shift_name, "", ResidueModification::N_TERM).getDiffMonoMass();
  
             PeakSpectrum shifted_series_peaks;
 
+            // For every charge state
             for (Size z = 1; z <= precursor_charge; ++z)
             {
-              PeakSpectrum a_ions, b_ions, y_ions, precursor_ions;
-              spectrum_generator.addPeaks(a_ions, fixed_and_variable_modified_peptide, Residue::AIon, z);
-              spectrum_generator.addPeaks(b_ions, fixed_and_variable_modified_peptide, Residue::BIon, z);
-              spectrum_generator.addPeaks(y_ions, fixed_and_variable_modified_peptide, Residue::YIon, z);
-
+              spectrum_generator.addPeaks(shifted_series_peaks, fixed_and_variable_modified_peptide, Residue::AIon, z);
+              spectrum_generator.addPeaks(shifted_series_peaks, fixed_and_variable_modified_peptide, Residue::BIon, z);
+              spectrum_generator.addPeaks(shifted_series_peaks, fixed_and_variable_modified_peptide, Residue::YIon, z);
               // generate MS2 precursor peaks of the MS2 adducts carrying peptide for all z <= precursor charge  
-              spectrum_generator.addPrecursorPeaks(precursor_ions, fixed_and_variable_modified_peptide, z);
+              spectrum_generator.addPrecursorPeaks(shifted_series_peaks, fixed_and_variable_modified_peptide, z);
 
-              for (Size j = 0; j != a_ions.size(); ++j)
+              for (Size j = 0; j != shifted_series_peaks.size(); ++j)
               {
-                a_ions[j].setMZ(a_ions[j].getMZ() + shift / static_cast<double>(z));
+                shifted_series_peaks[j].setMZ(shifted_series_peaks[j].getMZ() + shift / static_cast<double>(z));
               }
-              for (Size j = 0; j != b_ions.size(); ++j)
-              {
-                b_ions[j].setMZ(b_ions[j].getMZ() + shift / static_cast<double>(z));
-              }
-              for (Size j = 0; j != y_ions.size(); ++j)
-              {
-                y_ions[j].setMZ(y_ions[j].getMZ() + shift / static_cast<double>(z));
-              }
-              for (Size j = 0; j != precursor_ions.size(); ++j)
-              {
-                precursor_ions[j].setMZ(precursor_ions[j].getMZ() + shift / static_cast<double>(z));
-              }
-
-              shifted_series_peaks.insert(shifted_series_peaks.end(), a_ions.begin(), a_ions.end());
-              shifted_series_peaks.insert(shifted_series_peaks.end(), b_ions.begin(), b_ions.end());
-              shifted_series_peaks.insert(shifted_series_peaks.end(), y_ions.begin(), y_ions.end());
-              shifted_series_peaks.insert(shifted_series_peaks.end(), precursor_ions.begin(), precursor_ions.end());
             }
 
             // annotate generated a,b,y ions with fragment shift name
@@ -1093,7 +1088,18 @@ protected:
             }
            
             // add shifted and annotated ion series to partial loss spectrum
-            partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());            
+            partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());
+            partial_loss_spectrum.getStringDataArrays()[0].insert(
+              partial_loss_spectrum.getStringDataArrays()[0].end(),
+              shifted_series_peaks.getStringDataArrays()[0].begin(),
+              shifted_series_peaks.getStringDataArrays()[0].end()
+            );
+            partial_loss_spectrum.getIntegerDataArrays()[0].insert(
+              partial_loss_spectrum.getIntegerDataArrays()[0].end(),
+              shifted_series_peaks.getIntegerDataArrays()[0].begin(),
+              shifted_series_peaks.getIntegerDataArrays()[0].end()
+            );
+
           }
 
           partial_loss_spectrum.sortByPosition();
@@ -1135,6 +1141,7 @@ protected:
             { 
                 String ion_nr_string = ion_name;
                 ion_nr_string.substitute("y", "");
+                ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
@@ -1159,6 +1166,7 @@ protected:
             { 
                 String ion_nr_string = ion_name;
                 ion_nr_string.substitute("b", "");
+                ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
@@ -1183,6 +1191,7 @@ protected:
             { 
                 String ion_nr_string = ion_name;
                 ion_nr_string.substitute("a", "");
+                ion_nr_string.substitute("+", "");
                 Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
@@ -1268,6 +1277,7 @@ protected:
             { 
               String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("y", "");
+              ion_nr_string.substitute("+", ""); // remove one or multiple '+'
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
@@ -1290,6 +1300,7 @@ protected:
             { 
               String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("b", "");
+              ion_nr_string.substitute("+", ""); // remove one or multiple '+'
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;
@@ -1312,6 +1323,7 @@ protected:
             { 
               String ion_nr_string = fragment_ion_name;
               ion_nr_string.substitute("a", "");
+              ion_nr_string.substitute("+", ""); // remove one or multiple '+'
               Size ion_number = (Size)ion_nr_string.toInt();
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << " intensity: " << fragment_intensity << endl;

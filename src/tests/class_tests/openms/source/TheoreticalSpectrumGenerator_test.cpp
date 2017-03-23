@@ -40,12 +40,12 @@
 
 #include <iostream>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorRPLess.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 ///////////////////////////
 
-START_TEST(TheoreticalSpectrumGeneratorRPLess, "$Id$")
+START_TEST(TheoreticalSpectrumGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -53,28 +53,28 @@ START_TEST(TheoreticalSpectrumGeneratorRPLess, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TheoreticalSpectrumGeneratorRPLess* ptr = 0;
-TheoreticalSpectrumGeneratorRPLess* nullPointer = 0;
+TheoreticalSpectrumGenerator* ptr = 0;
+TheoreticalSpectrumGenerator* nullPointer = 0;
 
-START_SECTION(TheoreticalSpectrumGeneratorRPLess())
-  ptr = new TheoreticalSpectrumGeneratorRPLess();
+START_SECTION(TheoreticalSpectrumGenerator())
+  ptr = new TheoreticalSpectrumGenerator();
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION(TheoreticalSpectrumGeneratorRPLess(const TheoreticalSpectrumGeneratorRPLess& source))
-  TheoreticalSpectrumGeneratorRPLess copy(*ptr);
+START_SECTION(TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source))
+  TheoreticalSpectrumGenerator copy(*ptr);
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-START_SECTION(~TheoreticalSpectrumGeneratorRPLess())
+START_SECTION(~TheoreticalSpectrumGenerator())
   delete ptr;
 END_SECTION
 
-ptr = new TheoreticalSpectrumGeneratorRPLess();
+ptr = new TheoreticalSpectrumGenerator();
 AASequence peptide = AASequence::fromString("IFSQVGK");
 
-START_SECTION(TheoreticalSpectrumGeneratorRPLess& operator = (const TheoreticalSpectrumGeneratorRPLess& tsg))
-  TheoreticalSpectrumGeneratorRPLess copy;
+START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectrumGenerator& tsg))
+  TheoreticalSpectrumGenerator copy;
   copy = *ptr;
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
@@ -326,7 +326,7 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
 {
   AASequence tmp_aa = AASequence::fromString("RDAGGPALKK");
   PeakSpectrum tmp;
-  TheoreticalSpectrumGeneratorRPLess t_gen;
+  TheoreticalSpectrumGenerator t_gen;
   Param params;
 
   params.setValue("add_isotopes", "true");
@@ -344,7 +344,7 @@ START_SECTION(([EXTRA] test monomer extreme case))
 {
   AASequence tmp_aa = AASequence::fromString("R");
   PeakSpectrum tmp;
-  TheoreticalSpectrumGeneratorRPLess t_gen;
+  TheoreticalSpectrumGenerator t_gen;
   Param params;
 
   params.setValue("add_first_prefix_ion", "true");
@@ -371,7 +371,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 {
   AASequence tmp_aa = AASequence::fromString("ARRGH");
   PeakSpectrum spec;
-  TheoreticalSpectrumGeneratorRPLess t_gen;
+  TheoreticalSpectrumGenerator t_gen;
   Param params;
   params.setValue("add_isotopes", "true");
   params.setValue("max_isotope", 2);

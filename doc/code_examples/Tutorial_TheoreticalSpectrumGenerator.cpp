@@ -38,7 +38,7 @@ using namespace std;
 Int main()
 {
   TheoreticalSpectrumGenerator tsg;
-  RichPeakSpectrum spec1, spec2;
+  PeakSpectrum spec1, spec2;
   AASequence peptide = AASequence::fromString("DFPIANGER");
 
   tsg.addPeaks(spec1, peptide, Residue::YIon, 1);

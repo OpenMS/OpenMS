@@ -111,15 +111,17 @@ public:
         if (end) break;
       }
 
-      // replace the old peaks by the new ones
-      spectrum.clear(false);
-      for (ConstIterator it = old_spectrum.begin(); it != old_spectrum.end(); ++it)
+      // select peaks that were retained
+      std::vector<Size> indices;
+      for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
       {
         if (positions.find(it->getMZ()) != positions.end())
         {
-          spectrum.push_back(*it);
+          Size index(it - spectrum.begin());
+          indices.push_back(index);
         }
       }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum& spectrum);
@@ -175,8 +177,17 @@ public:
 
       if (peaks_in_window.empty()) // last window is empty -> no special handling needed
       {
-        out.sortByPosition();
-        spectrum = out;
+        // select peaks that were retained
+        std::vector<Size> indices;
+        for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+        {
+          if (std::find(out.begin(), out.end(), *it) != out.end())
+          {
+            Size index(it - spectrum.begin());
+            indices.push_back(index);
+          }
+        }
+        spectrum.select(indices);
         return;
       }
 
@@ -205,8 +216,18 @@ public:
         std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
       }
 
-      out.sortByPosition();
-      spectrum = out;
+      // select peaks that were retained
+      std::vector<Size> indices;
+      for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+      {
+        if (std::find(out.begin(), out.end(), *it) != out.end())
+        {
+          Size index(it - spectrum.begin());
+          indices.push_back(index);
+        }
+      }
+      spectrum.select(indices);
+
       return;
     }
 
@@ -220,3 +241,4 @@ private:
 }
 
 #endif //OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
+

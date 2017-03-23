@@ -712,6 +712,9 @@ public:
       Size snew = indices.size();
       ContainerType tmp;
       tmp.reserve(indices.size());
+
+      const Size peaks_old = size();
+
       for (Size i = 0; i < snew; ++i)
       {
         tmp.push_back(*(ContainerType::begin() + indices[i]));
@@ -720,6 +723,12 @@ public:
 
       for (Size i = 0; i < float_data_arrays_.size(); ++i)
       {
+        if (float_data_arrays_[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" + 
+            String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        }
+
         std::vector<float> mda_tmp;
         mda_tmp.reserve(float_data_arrays_[i].size());
         for (Size j = 0; j < snew; ++j)
@@ -731,6 +740,11 @@ public:
 
       for (Size i = 0; i < string_data_arrays_.size(); ++i)
       {
+        if (string_data_arrays_[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" + 
+            String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        }
         std::vector<String> mda_tmp;
         mda_tmp.reserve(string_data_arrays_[i].size());
         for (Size j = 0; j < snew; ++j)
@@ -742,6 +756,11 @@ public:
 
       for (Size i = 0; i < integer_data_arrays_.size(); ++i)
       {
+        if (integer_data_arrays_[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" + 
+            String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        }
         std::vector<Int> mda_tmp;
         mda_tmp.reserve(integer_data_arrays_[i].size());
         for (Size j = 0; j < snew; ++j)
