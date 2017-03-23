@@ -706,8 +706,12 @@ namespace OpenMS
 
         if (sql_it > 500) // flush after 500 spectra as sqlite can only handle so many bind_blob statments
         {
-          prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-          executeBlobBind_(db, prepare_statement, data);
+          // prevent writing of empty data which would throw an SQL exception
+          if (!data.empty())
+          {
+            prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
+            executeBlobBind_(db, prepare_statement, data);
+          }
 
           data.clear();
           prepare_statement = "INSERT INTO DATA(SPECTRUm_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
@@ -716,8 +720,12 @@ namespace OpenMS
 
       }
 
-      prepare_statement.resize( prepare_statement.size() -1 );
-      executeBlobBind_(db, prepare_statement, data);
+      // prevent writing of empty data which would throw an SQL exception
+      if (!data.empty())
+      {
+        prepare_statement.resize( prepare_statement.size() -1 );
+        executeBlobBind_(db, prepare_statement, data);
+      }
 
       sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
 
@@ -732,6 +740,7 @@ namespace OpenMS
 
     void MzMLSqliteHandler::writeChromatograms(const std::vector<MSChromatogram<> >& chroms)
     {
+      // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
       sqlite3 *db;
@@ -846,8 +855,12 @@ namespace OpenMS
 
         if (sql_it > 500) // flush after 500 chromatograms as sqlite can only handle so many bind_blob statments
         {
-          prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-          executeBlobBind_(db, prepare_statement, data);
+          // prevent writing of empty data which would throw an SQL exception
+          if (!data.empty())
+          {
+            prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
+            executeBlobBind_(db, prepare_statement, data);
+          }
 
           data.clear();
           prepare_statement = "INSERT INTO DATA(CHROMATOGRAM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
@@ -856,8 +869,12 @@ namespace OpenMS
 
       }
 
-      prepare_statement.resize( prepare_statement.size() -1 );
-      executeBlobBind_(db, prepare_statement, data);
+      // prevent writing of empty data which would throw an SQL exception
+      if (!data.empty())
+      {
+        prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
+        executeBlobBind_(db, prepare_statement, data);
+      }
 
       sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
 
