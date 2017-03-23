@@ -599,12 +599,12 @@ class TOPPXFDR :
       for (size_t i = 0; i < n_spectra; ++i)
       {
         // Extract required attributes of the peptide_identification (filter criteria)
-        PeptideIdentification * pep_id = &spectra[order_score[i]][pep_id_index];
-        double error_rel = (double) pep_id->getMetaValue("OpenXQuest:error_rel");
-        double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];    // Index 0 because we only consider rank 1 here
+        PeptideIdentification pep_id = spectra[order_score[i]][pep_id_index];
+        double error_rel = (double) pep_id.getMetaValue("OpenXQuest:error_rel");
+        double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];
         size_t ions_matched = n_min_ions_matched[order_score[i]];
-        double score = (double) pep_id->getMetaValue("OpenXQuest:score");
-        String id = (String) pep_id->getMetaValue("OpenXQuest:id");
+        double score = (double) pep_id.getMetaValue("OpenXQuest:score");
+        String id = (String) pep_id.getMetaValue("OpenXQuest:id");
 
         // Only consider peptide identifications which  fullfill all filter criteria specified by the user
         if (     arg_minborder <= error_rel
@@ -614,10 +614,10 @@ class TOPPXFDR :
                  &&  score         >= arg_minscore
                  &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
         {
+          pep_id.setMetaValue("OpenXQuest:xprophet_f", 1);
           unique_ids.insert(id);
           StringList xl_types;
-          assign_types(*pep_id, xl_types);
-
+          assign_types(pep_id, xl_types);
           for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); ++xl_types_it)
           {
             // Assign score to this xl type
@@ -679,10 +679,11 @@ class TOPPXFDR :
       // Determine whether qTransform should be performed
       bool arg_qtransform = getFlag_(TOPPXFDR::param_qtransform);
 
+
       if(arg_qtransform)
       {
         LOG_INFO << "Performing qFDR transformation" << endl;
-        // Calculate qFDR for interlinks
+
         vector< double > qfdr_interlinks;
         this->calc_qfdr(fdr_interlinks, qfdr_interlinks);
 
@@ -691,7 +692,70 @@ class TOPPXFDR :
 
         vector< double > qfdr_monolinks;
         this->calc_qfdr(fdr_monolinks, qfdr_monolinks);
+
+        fdr_interlinks = qfdr_interlinks;
+        fdr_intralinks = qfdr_intralinks;
+        fdr_monolinks = qfdr_monolinks;
       }
+
+      for (vector< vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
+           spectra_it != spectra.end(); ++spectra_it)
+      {
+        vector< PeptideIdentification > current_spectrum = *spectra_it;
+        for (vector< PeptideIdentification >::const_iterator current_spectrum_it = current_spectrum.begin();
+             current_spectrum_it != current_spectrum.end(); ++current_spectrum_it)
+        {
+          PeptideIdentification pep_id = *current_spectrum_it;
+
+          if ( ! pep_id.metaValueExists("OpenXQuest:xprophet_f"))
+          {
+            pep_id.setMetaValue("OpenXQuest:xprophet_f", 0);
+          }
+
+          StringList xl_types;
+          double score = (double) pep_id.getMetaValue("OpenXQuest:score");
+          String id = pep_id.getMetaValue("OpenXQuest:id");
+          assign_types(pep_id, xl_types);
+
+          // Assign FDR value
+          bool assigned = false;
+          for(StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
+          {
+            String xl_type = *xl_types_it;
+            Size idx = std::floor((score - TOPPXFDR::fpnum_score_start) / TOPPXFDR::fpnum_score_step);
+            if (   xl_type == TOPPXFDR::xlclass_fulldecoysinterlinks
+                || xl_type == TOPPXFDR::xlclass_hybriddecoysinterlinks
+                || xl_type == TOPPXFDR::xlclass_interdecoys
+                || xl_type == TOPPXFDR::xlclass_interlinks)
+            {
+              pep_id.setMetaValue("fdr", fdr_interlinks[idx]);
+              assigned = true;
+              break;
+            }
+            else if (   xl_type == TOPPXFDR::xlclass_fulldecoysintralinks
+                     || xl_type == TOPPXFDR::xlclass_hybriddecoysintralinks
+                     || xl_type == TOPPXFDR::xlclass_intradecoys
+                     || xl_type == TOPPXFDR::xlclass_intralinks)
+            {
+              pep_id.setMetaValue("fdr", fdr_intralinks[idx]);
+              assigned = true;
+              break;
+            }
+            else if (   xl_type == TOPPXFDR::xlclass_monodecoys
+                     || xl_type == TOPPXFDR::xlclass_monolinks)
+            {
+              pep_id.setMetaValue("fdr", fdr_monolinks[idx]);
+              assigned = true;
+              break;
+            }
+          }
+          if ( ! assigned)
+          {
+            LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
+          }
+        }
+      }
+
 
       // Delete Delta Scores
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
@@ -705,8 +769,6 @@ class TOPPXFDR :
       {
         delete cum_histograms_it->second;
       }
-
-
 
       return EXECUTION_OK;
     }
