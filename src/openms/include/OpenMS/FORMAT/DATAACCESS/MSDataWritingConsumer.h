@@ -131,8 +131,8 @@ namespace OpenMS
         @brief Set experimental settings for the whole file
 
         @param exp Experimental settings to be used for this file (from this
-          and the first spectrum/chromatogram, the class will deduce most of
-          the header of the mzML file)
+           and the first spectrum/chromatogram, the class will deduce most of
+           the header of the mzML file)
       */
       virtual void setExperimentalSettings(const ExperimentalSettings& exp)
       {
