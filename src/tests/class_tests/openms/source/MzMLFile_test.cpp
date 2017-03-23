@@ -819,6 +819,13 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(exp_sorted_on_load.getSpectrum(0).isSorted(), true);
     TEST_EQUAL(exp_sorted_on_load.getChromatogram(0).isSorted(), true);
   }
+
+  //test if it works with different peak types
+  MSExperiment<RichPeak1D> e_rich;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),e_rich);
+  TEST_EQUAL(e_rich.getNrSpectra(), 4)
+  TEST_EQUAL(e_rich[0].size(), 15)
+  TEST_EQUAL(e_rich[1].size(), 10)
 END_SECTION
 
 START_SECTION([EXTRA] load only meta data)
