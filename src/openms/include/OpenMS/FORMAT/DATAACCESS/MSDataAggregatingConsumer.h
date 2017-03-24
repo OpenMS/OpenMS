@@ -60,9 +60,6 @@ namespace OpenMS
       std::vector<SpectrumType> s_list;
 
     public:
-      typedef PeakMap MapType;
-      typedef MapType::SpectrumType SpectrumType;
-      typedef MapType::ChromatogramType ChromatogramType;
 
       /**
         @brief Constructor

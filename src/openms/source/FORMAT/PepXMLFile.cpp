@@ -46,6 +46,8 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <fstream>
 #include <iostream>
 #include <boost/regex.hpp>
