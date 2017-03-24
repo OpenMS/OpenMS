@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace std;
 

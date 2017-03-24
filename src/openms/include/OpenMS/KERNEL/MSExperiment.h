@@ -1082,3 +1082,5 @@ private:
 
 #endif // OPENMS_KERNEL_MSEXPERIMENT_H
 
+
+#include <OpenMS/KERNEL/StandardTypes.h>
