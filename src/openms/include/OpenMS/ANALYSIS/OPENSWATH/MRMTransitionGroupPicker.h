@@ -84,7 +84,7 @@ public:
 
     // this is the type in which we store the chromatograms for this analysis
     // (since not all OpenMS tools work with MSChromatogram)
-    typedef MSSpectrum<ChromatogramPeak> ChromatogramSpec;
+    typedef MSChromatogram<> ChromatogramSpec;
 
     //@{
     /// Constructor

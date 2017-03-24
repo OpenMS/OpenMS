@@ -299,7 +299,6 @@ namespace OpenMS
                                                                  bool write_log_messages,
                                                                  std::vector<OpenSwath::SwathMap> swath_maps)
   {
-    typedef MRMTransitionGroupType::PeakType PeakT;
     MRMFeature idmrmfeature = transition_group_identification.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
     idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
@@ -309,8 +308,11 @@ namespace OpenMS
 
     for (Size i = 0; i < transition_group_identification.size(); i++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
-      if ((snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) && (idmrmfeature.getFeature(transition_group_identification.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< ChromatogramSpec >(
+            transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()),
+            sn_win_len_, sn_bin_count_, write_log_messages));
+      if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
+            && (idmrmfeature.getFeature(transition_group_identification.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
       {
         signal_noise_estimators_identification.push_back(snptr);
         native_ids_identification.push_back(transition_group_identification.getTransitions()[i].getNativeID());
@@ -392,7 +394,6 @@ namespace OpenMS
       splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
     }
 
-    typedef MRMTransitionGroupType::PeakType PeakT;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
     std::vector<MRMFeature> feature_list;
 
@@ -402,7 +403,7 @@ namespace OpenMS
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< ChromatogramSpec >(
             transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
       signal_noise_estimators.push_back(snptr);
     }

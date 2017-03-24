@@ -185,7 +185,7 @@ namespace OpenMS
 
     // this is the type in which we store the chromatograms for this analysis
     // (since not all OpenMS tools work with MSChromatogram)
-    typedef MSSpectrum<ChromatogramPeak> ChromatogramSpec; 
+    typedef MSChromatogram<> ChromatogramSpec; 
     // a transition group holds the MSSpectra with the Chromatogram peaks from above
     typedef OpenSwath::LightTransition TransitionType;
     typedef MRMTransitionGroup< ChromatogramSpec, TransitionType> MRMTransitionGroupType;
