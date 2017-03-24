@@ -282,7 +282,10 @@ namespace OpenMS
           }
           spec.setNativeID(String("index=") + spectrum_number);
           exp.addSpectrum(spec);
+          // clear spectrum, create new DataArrays
           spec.clear(true);
+          spec.getStringDataArrays().resize(1);
+          spec.getStringDataArrays()[0].setName("MSPPeakInfo");
         }
         spectrum_number++;
       }
