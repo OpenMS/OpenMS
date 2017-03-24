@@ -147,6 +147,67 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
   e_ptr->filterPeakSpectrum(spec);
 
   TEST_EQUAL(spec.size(), 56)
+
+  p.setValue("movetype", "jump");
+
+  PeakSpectrum s_da;
+  s_da.getIntegerDataArrays().resize(1); 
+  s_da.getStringDataArrays().resize(1);
+  // create a "triangle" shape with apex at i=50 
+/*
+ int  mz   DA_int  DA_string
+  0.1 0    0       up
+  1.1 1    1       up
+  2.1 2    2       up
+  ...
+  47.1 47  47      up
+  48.1 48  48      up
+  49.1 49  49      up
+  50.2 50  50      down
+  49.2 51  51      down
+  48.2 52  52      down
+  ...
+  3.2 97   97      down
+  2.2 98   98      down
+  1.2 99   99      down
+*/
+
+  for (Size i = 0; i != 50; ++i)
+  {
+    s_da.push_back(Peak1D(i, i + 0.1)); 
+    s_da.getIntegerDataArrays()[0].push_back(i); 
+    s_da.getStringDataArrays()[0].push_back("up"); 
+  }
+  for (int i = 50; i != 100; ++i)
+  {
+    s_da.push_back(Peak1D(i, (100 - i) + 0.2)); 
+    s_da.getIntegerDataArrays()[0].push_back(i); 
+    s_da.getStringDataArrays()[0].push_back("down"); 
+  }
+  e_ptr->filterPeakSpectrum(s_da);
+
+
+/* result: the 4 rows in the middle (two from the first window and two from the second window)
+int  mz DA_int DA_string
+48.1 48  48      up
+49.1 49  49      up
+50.2 50  50      down
+49.2 51  51      down
+*/
+
+  TEST_EQUAL(s_da.size(), 4)
+  TEST_EQUAL(s_da[0].getIntensity(), 48.1)
+  TEST_EQUAL(s_da[1].getIntensity(), 49.1)
+  TEST_EQUAL(s_da[3].getIntensity(), 50.2)
+  TEST_EQUAL(s_da[4].getIntensity(), 49.2)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][0], 48)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][1], 49)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][2], 50)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][3], 51)
+  TEST_EQUAL(s_da.getStringDataArrays()[0][0], "up")
+  TEST_EQUAL(s_da.getStringDataArrays()[0][1], "up")
+  TEST_EQUAL(s_da.getStringDataArrays()[0][2], "down")
+  TEST_EQUAL(s_da.getStringDataArrays()[0][3], "down")
 END_SECTION
 
 delete e_ptr;

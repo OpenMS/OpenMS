@@ -86,7 +86,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-//#define DEBUG_RNPXLSEARCH 
+#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
 using namespace std;
@@ -662,25 +662,59 @@ protected:
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
                                          1, 3, 
                                          false, 
-                                         2, 10, 
+                                         3, 10, 
                                          single_charge_spectra, 
                                          annotate_charge);
+    #ifdef DEBUG_RNPXLSEARCH
+      cout << "after deisotoping..." << endl;
+      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+//      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
+      cout << "Fragment charges in spectrum: " << exp_index  << endl;
+      if (exp[exp_index].getIntegerDataArrays().size())
+        for (Size i = 0; i != exp[exp_index].size(); ++i) 
+          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+      cout << endl;
+    #endif
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+
+    #ifdef DEBUG_RNPXLSEARCH
+      cout << "after mower..." << endl;
+      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
+      cout << "Fragment charges in spectrum: " << exp_index  << endl;
+      if (exp[exp_index].getIntegerDataArrays().size())
+        for (Size i = 0; i != exp[exp_index].size(); ++i) 
+          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+    #endif
     
       nlargest_filter.filterPeakSpectrum(exp[exp_index]);
+
+    #ifdef DEBUG_RNPXLSEARCH
+      cout << "after nlargest..." << endl;
+      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
+      cout << "Fragment charges in spectrum: " << exp_index  << endl;
+      if (exp[exp_index].getIntegerDataArrays().size())
+        for (Size i = 0; i != exp[exp_index].size(); ++i) 
+          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+    #endif
  
       // sort (nlargest changes order)
       exp[exp_index].sortByPosition();
   
     #ifdef DEBUG_RNPXLSEARCH
-      LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
+      cout << "after sort..." << endl;
+      cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
+      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
       if (exp[exp_index].getIntegerDataArrays().size())
-        for (Size i = 0; i != exp[exp_index].size(); ++i) LOG_DEBUG << exp[exp_index].getIntegerDataArrays()[0][i];
-      LOG_DEBUG << endl;
+        for (Size i = 0; i != exp[exp_index].size(); ++i) 
+          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
     #endif
     }
+
+    MzMLFile().store(String("RNPxlSearch_a_") + String((int)annotate_charge) + ".mzML", exp);
   }
 
 
@@ -2169,7 +2203,7 @@ protected:
       spectra.sortSpectra(true);    
 
       // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
-      preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); 
+      preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); // no single charge (false), annotate charge (true)
 
       progresslogger.startProgress(0, 1, "localization...");
       postScoreHits_(spectra, 
