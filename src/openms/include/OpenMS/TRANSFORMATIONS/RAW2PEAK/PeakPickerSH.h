@@ -35,6 +35,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

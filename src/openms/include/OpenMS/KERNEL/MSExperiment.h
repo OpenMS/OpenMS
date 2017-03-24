@@ -1082,7 +1082,3 @@ private:
 
 #endif // OPENMS_KERNEL_MSEXPERIMENT_H
 
-
-// small hack so that everybody has the typedefs ...
-#include <OpenMS/KERNEL/StandardTypes.h>
-

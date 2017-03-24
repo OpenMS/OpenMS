@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////

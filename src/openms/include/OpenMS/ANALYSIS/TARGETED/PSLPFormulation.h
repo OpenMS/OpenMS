@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_TARGETED_PSLPFORMULATION_H
 #define OPENMS_ANALYSIS_TARGETED_PSLPFORMULATION_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 

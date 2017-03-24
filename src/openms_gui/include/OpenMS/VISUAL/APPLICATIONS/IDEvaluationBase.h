@@ -41,6 +41,7 @@
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 //QT
 #include <QtGui/QMainWindow>

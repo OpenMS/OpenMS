@@ -35,6 +35,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
 #define OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_XMASSFILE_H
 #define OPENMS_FORMAT_XMASSFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

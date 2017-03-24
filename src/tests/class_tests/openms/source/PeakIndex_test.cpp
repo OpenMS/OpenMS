@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
