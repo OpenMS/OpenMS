@@ -94,13 +94,13 @@ END_SECTION
 
 //TransitionGroupOpenMS
 {
-TransitionGroupOpenMS <MSSpectrum<Peak1D>, ReactionMonitoringTransition>* ptr = 0;
-TransitionGroupOpenMS <MSSpectrum<Peak1D>, ReactionMonitoringTransition>* nullPointer = 0;
+TransitionGroupOpenMS <MSChromatogram<>, ReactionMonitoringTransition>* ptr = 0;
+TransitionGroupOpenMS <MSChromatogram<>, ReactionMonitoringTransition>* nullPointer = 0;
 
 START_SECTION(TransitionGroupOpenMS())
 {
-  MRMTransitionGroup <MSSpectrum <Peak1D>, ReactionMonitoringTransition> trgroup;
-  ptr = new TransitionGroupOpenMS <MSSpectrum <Peak1D>, ReactionMonitoringTransition> (trgroup);
+  MRMTransitionGroup <MSChromatogram<>, ReactionMonitoringTransition> trgroup;
+  ptr = new TransitionGroupOpenMS < MSChromatogram<>, ReactionMonitoringTransition> (trgroup);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION

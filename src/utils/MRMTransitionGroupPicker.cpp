@@ -85,10 +85,9 @@ public:
 
 protected:
 
-  typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; // this is the type in which we store the chromatograms for this analysis
   typedef ReactionMonitoringTransition TransitionType;
   typedef TargetedExperiment TargetedExpType;
-  typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; // a transition group holds the MSSpectra with the Chromatogram peaks from above
+  typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
   void registerOptionsAndFlags_()
   {
@@ -165,7 +164,7 @@ protected:
         OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
         MSChromatogram<ChromatogramPeak> chromatogram_old;
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
+        MSChromatogram<> chromatogram;
 
         // copy old to new chromatogram
         for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
