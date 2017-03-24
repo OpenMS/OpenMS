@@ -103,7 +103,7 @@ MSExperiment<Peak1D> mse;
   }
 }
 
-START_SECTION((static void convert(UInt64 const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n = -1)))
+START_SECTION((static void convert(UInt64 const input_map_index, PeakMap & input_map, ConsensusMap& output_map, Size n = -1)))
 {
 
   ConsensusMap cm;

@@ -52,11 +52,11 @@ START_TEST(MSExperiment, "$Id$");
 using namespace OpenMS;
 using namespace std;
 
-MSExperiment<>* ptr = 0;
-MSExperiment<>* nullPointer = 0;
+PeakMap* ptr = 0;
+PeakMap* nullPointer = 0;
 START_SECTION((MSExperiment()))
 {
-	ptr = new MSExperiment<>;
+	ptr = new PeakMap;
   TEST_NOT_EQUAL(ptr, nullPointer);
 }
 END_SECTION
@@ -69,12 +69,12 @@ END_SECTION
 
 START_SECTION((MSExperiment(const MSExperiment& source)))
 {
-  MSExperiment<> tmp;
+  PeakMap tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
   tmp.resize(1);
 
-  MSExperiment<> tmp2(tmp);
+  PeakMap tmp2(tmp);
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
   TEST_EQUAL(tmp2.size(),1);
@@ -82,7 +82,7 @@ START_SECTION((MSExperiment(const MSExperiment& source)))
 END_SECTION
 
 START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
-  MSExperiment<> tmp;
+  PeakMap tmp;
   tmp.getContacts().resize(1);
   tmp.getContacts()[0].setFirstName("Name");
   tmp.resize(1);
@@ -93,7 +93,7 @@ START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
   tmp[0].push_back(p);
   tmp.updateRanges();
 
-  MSExperiment<> tmp2;
+  PeakMap tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getContacts().size(),1);
   TEST_EQUAL(tmp2.getContacts()[0].getFirstName(),"Name");
@@ -101,13 +101,13 @@ START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
 	TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0);
 	TEST_REAL_SIMILAR(tmp2.getMaxMZ(),10.0);
 
-  tmp2 = MSExperiment<>();
+  tmp2 = PeakMap();
   TEST_EQUAL(tmp2.getContacts().size(),0);
   TEST_EQUAL(tmp2.size(),0);
 END_SECTION
 
 START_SECTION((bool operator== (const MSExperiment& rhs) const))
-  MSExperiment<> edit,empty;
+  PeakMap edit,empty;
 
 	TEST_EQUAL(edit==empty, true);
 
@@ -120,7 +120,7 @@ START_SECTION((bool operator== (const MSExperiment& rhs) const))
 END_SECTION
 
 START_SECTION((bool operator!= (const MSExperiment& rhs) const))
-  MSExperiment<> edit,empty;
+  PeakMap edit,empty;
 
 	TEST_EQUAL(edit!=empty, false);
 
@@ -133,9 +133,9 @@ START_SECTION((bool operator!= (const MSExperiment& rhs) const))
 END_SECTION
 
 START_SECTION((template<class Container> void get2DData(Container& cont) const))
-	MSExperiment<> exp;
-	MSExperiment<>::SpectrumType spec;
-	MSExperiment<>::PeakType peak;
+	PeakMap exp;
+	PeakMap::SpectrumType spec;
+	PeakMap::PeakType peak;
 
 	// first spectrum (MS)
 	spec.setRT(11.1);
@@ -231,7 +231,7 @@ START_SECTION((template <class Container> void set2DData(const Container& cont, 
 END_SECTION
 
 START_SECTION((template <bool add_mass_traces, class Container> void set2DData(const Container& cont, const StringList& store_metadata_names = StringList())))
-	MSExperiment<> exp;
+	PeakMap exp;
 
 	// create sample data
 	std::vector<Peak2D> input;
@@ -589,10 +589,10 @@ START_SECTION((ConstAreaIterator areaBeginConst(CoordinateType min_rt, Coordinat
 	p1.getPosition()[1] = 11.0;
 	plist.push_back(p1);
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.set2DData(plist);
 
-	MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(0,15,0,15);
+	PeakMap::ConstAreaIterator it = exp.areaBeginConst(0,15,0,15);
 
 	TEST_EQUAL(it->getPosition()[0],2.0);
 	it++;
@@ -631,10 +631,10 @@ START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_
 	p1.getPosition()[1] = 11.0;
 	plist.push_back(p1);
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.set2DData(plist);
 
-	MSExperiment<>::AreaIterator it = exp.areaBegin(0,15,0,15);
+	PeakMap::AreaIterator it = exp.areaBegin(0,15,0,15);
 
 	TEST_EQUAL(it->getPosition()[0],2.0);
 	it->getPosition()[0] = 4711.0;
@@ -777,7 +777,7 @@ START_SECTION((void sortSpectra(bool sort_mz = true)))
 	p4.getPosition()[1] = 11.0;
 	plist.push_back(p4);
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.set2DData(plist);
 
 	exp.sortSpectra(true);
@@ -790,7 +790,7 @@ END_SECTION
 
 START_SECTION(bool isSorted(bool check_mz = true ) const)
 	//make test dataset
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(2);
 	exp[0].setRT(1.0);
 	exp[1].setRT(2.0);
@@ -843,36 +843,36 @@ START_SECTION((void reset()))
 	p.getPosition()[1] = 3.0;
 	plist.push_back(p);
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.set2DData(plist);
 	exp.updateRanges();
 
 	exp.reset();
 
-	TEST_EQUAL(exp==MSExperiment<>(),true);
+	TEST_EQUAL(exp==PeakMap(),true);
 END_SECTION
 
 START_SECTION((const ExperimentalSettings& getExperimentalSettings() const))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
 END_SECTION
 
 START_SECTION((ExperimentalSettings& getExperimentalSettings()))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.getExperimentalSettings().setComment("test");
 	TEST_EQUAL(exp.getExperimentalSettings().getComment(),"test");
 END_SECTION
 
 START_SECTION((MSExperiment& operator=(const ExperimentalSettings &source)))
-	MSExperiment<> exp,exp2;
+	PeakMap exp,exp2;
 	exp.getExperimentalSettings().setComment("test");
 	exp2 = exp.getExperimentalSettings();
 	TEST_EQUAL(exp2.getExperimentalSettings().getComment(),"test");
 END_SECTION
 
 START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(10);
 	exp[0].setMSLevel(1);
 	exp[1].setMSLevel(2);
@@ -903,7 +903,7 @@ START_SECTION((ConstIterator getPrecursorSpectrum(ConstIterator iterator) const)
 END_SECTION
 
 START_SECTION((bool clearMetaDataArrays()))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(5);
 	exp[0].getFloatDataArrays().resize(5);
 	exp[0].getIntegerDataArrays().resize(5);
@@ -915,7 +915,7 @@ START_SECTION((bool clearMetaDataArrays()))
 END_SECTION
 
 START_SECTION((void swap(MSExperiment &from)))
-	MSExperiment<> exp1, exp2;
+	PeakMap exp1, exp2;
 	exp1.setComment("stupid comment");
 	exp1.resize(1);
 	exp1[0].setMSLevel(2);
@@ -941,7 +941,7 @@ START_SECTION((void swap(MSExperiment &from)))
 END_SECTION
 
 START_SECTION(void clear(bool clear_meta_data))
-  MSExperiment<> edit;
+  PeakMap edit;
   edit.getSample().setName("bla");
 	edit.resize(5);
 	edit.updateRanges();
@@ -952,14 +952,14 @@ START_SECTION(void clear(bool clear_meta_data))
 
 	edit.clear(false);
 	TEST_EQUAL(edit.size(),0)
-	TEST_EQUAL(edit==MSExperiment<>(),false)
+	TEST_EQUAL(edit==PeakMap(),false)
 
 	edit.clear(true);
-	TEST_EQUAL(edit==MSExperiment<>(),true)
+	TEST_EQUAL(edit==PeakMap(),true)
 END_SECTION
 
 START_SECTION((void sortChromatograms(bool sort_rt=true)))
-  MSExperiment<> exp;
+  PeakMap exp;
   MSChromatogram<> chrom1, chrom2;
   ChromatogramPeak p1, p2, p3;
   p1.setRT(0.3);
@@ -1009,7 +1009,7 @@ START_SECTION((void sortChromatograms(bool sort_rt=true)))
 END_SECTION
 
 START_SECTION((void setChromatograms(const std::vector< MSChromatogram< ChromatogramPeakType > > &chromatograms)))
-	MSExperiment<> exp;
+	PeakMap exp;
 	MSChromatogram<> chrom1, chrom2;
 	ChromatogramPeak p1, p2, p3;
 	p1.setRT(0.1);
@@ -1032,7 +1032,7 @@ START_SECTION((void setChromatograms(const std::vector< MSChromatogram< Chromato
 END_SECTION
 
 START_SECTION((void addChromatogram(const MSChromatogram< ChromatogramPeakType > &chromatogram)))
-  MSExperiment<> exp;
+  PeakMap exp;
   MSChromatogram<> chrom1, chrom2;
   ChromatogramPeak p1, p2, p3;
   p1.setRT(0.1);
@@ -1061,7 +1061,7 @@ START_SECTION((const std::vector<MSChromatogram<ChromatogramPeakType> >& getChro
 END_SECTION
 
 START_SECTION((std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms()))
-  MSExperiment<> exp;
+  PeakMap exp;
   vector<MSChromatogram<> > chromatograms(2);
   exp.getChromatograms().swap(chromatograms);
   TEST_EQUAL(exp.getChromatograms().size(), 2);
@@ -1072,7 +1072,7 @@ START_SECTION((std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatogr
 END_SECTION
 
 START_SECTION((const MSChromatogram<ChromatogramPeakType> getTIC() const))
-  MSExperiment<> tmp;
+  PeakMap tmp;
   tmp.resize(2);
   Peak1D p;
   p.setMZ(5.0);

@@ -94,7 +94,7 @@ START_TEST(FeatureFinderAlgorithm, "$Id$")
 FFA* ptr = 0;
 FFA* nullPointer = 0;
 
-MSExperiment<>* map_nullPointer = 0;
+PeakMap* map_nullPointer = 0;
 FeatureMap*  featureMap_nullPointer = 0;
 FeatureFinder*        ff_nullPointer = 0;
 
@@ -123,7 +123,7 @@ START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFind
   TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
   TEST_EQUAL(ffa.getFF(),ff_nullPointer)
 
-  MSExperiment<> map;
+  PeakMap map;
 	FeatureMap features;
 	FeatureFinder ff;
 	ffa.setData(map, features, ff);

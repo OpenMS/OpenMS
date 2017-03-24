@@ -68,7 +68,7 @@ std::vector<ProteinIdentification> prot_ids;
 
 FeatureMap map;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_features.featureXML"),map);
-MSExperiment<> raw_data;
+PeakMap raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
 
@@ -126,7 +126,7 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
   FeatureMap map2;
   map2.push_back(map[1]);
   /// test for empty experiment
-  MSExperiment<> empty_map;
+  PeakMap empty_map;
   TEST_EXCEPTION(Exception::InvalidSize, ptr->getMassRanges(map,empty_map,indices));
   MSSpectrum<> spec;
   Peak1D p;

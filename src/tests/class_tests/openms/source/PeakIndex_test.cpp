@@ -162,7 +162,7 @@ START_SECTION((template <typename FeatureMapType> const FeatureMapType::value_ty
 }
 END_SECTION
 
-MSExperiment<> exp;
+PeakMap exp;
 exp.resize(3);
 exp[0].setRT(1);
 exp[0].resize(15);

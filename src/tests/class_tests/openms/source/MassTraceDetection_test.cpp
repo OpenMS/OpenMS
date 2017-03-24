@@ -139,7 +139,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &, std::vector< MassTrace >
     // Regression test for bug #1633
     // Test by adding MS2 spectra to the input
     {
-      MSExperiment<> input_new;
+      PeakMap input_new;
       MSSpectrum<> s;
       s.setMSLevel(2);
       {

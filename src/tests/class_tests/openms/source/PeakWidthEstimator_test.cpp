@@ -43,7 +43,7 @@ using namespace OpenMS;
 
 START_TEST(PeakWidthEstimator, "$Id$")
 
-MSExperiment<> exp;
+PeakMap exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), exp);
 
 PeakPickerHiRes picker;

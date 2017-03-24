@@ -48,7 +48,7 @@ START_TEST(AreaIterator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-typedef MSExperiment<> Map;
+typedef PeakMap Map;
 typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
 //typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
 
@@ -294,7 +294,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_EQUAL(it==exp.areaEnd(),true);
 
 	//Test with empty (no MS level 1) experiment
-	MSExperiment<> exp2(exp);
+	PeakMap exp2(exp);
 	exp2[0].setMSLevel(2);
 	exp2[1].setMSLevel(2);
 	exp2[2].setMSLevel(2);

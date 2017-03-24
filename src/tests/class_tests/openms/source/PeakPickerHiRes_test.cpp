@@ -97,7 +97,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0], tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -118,7 +118,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>
   std::vector<PeakPickerHiRes::PeakBoundary> tmp_boundaries;
   pp_hires.pick(input[0], tmp_spec, tmp_boundaries);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -187,7 +187,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0],tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -251,7 +251,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0],tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -289,7 +289,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0],tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -375,14 +375,14 @@ outRich.clear(true);
 
 START_SECTION([EXTRA] test spectrum level selection)
 
-  MSExperiment<> inSpecSelection;
+  PeakMap inSpecSelection;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_spectrum_selection.mzML"), inSpecSelection);
 
   Param pp_hires_param;
   PeakPickerHiRes pp_spec_select;
 
   // pick only ms2
-  MSExperiment<> outMs2Only;
+  PeakMap outMs2Only;
   pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("2"));
   pp_spec_select.setParameters(pp_hires_param);
 
@@ -402,7 +402,7 @@ START_SECTION([EXTRA] test spectrum level selection)
   }
 
   // pick only ms1
-  MSExperiment<> outMs1Only;
+  PeakMap outMs1Only;
   pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("1"));
   pp_spec_select.setParameters(pp_hires_param);
 
@@ -422,7 +422,7 @@ START_SECTION([EXTRA] test spectrum level selection)
   }
 
   // pick ms1 and ms2
-  MSExperiment<> outMs1And2;
+  PeakMap outMs1And2;
   pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("1,2"));
   pp_spec_select.setParameters(pp_hires_param);
 

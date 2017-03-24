@@ -108,7 +108,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	  exp_in.resize(1);
 	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
 	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
-	  MSExperiment<> exp_out;
+	  PeakMap exp_out;
 		TwoDOptimization opt1;
 		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
   }
@@ -120,7 +120,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	  exp_in.resize(1);
 	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
 	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
-	  MSExperiment<> exp_out;
+	  PeakMap exp_out;
 	  exp_out.resize(1);
 		TwoDOptimization opt1;
 		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
@@ -180,7 +180,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape2.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
 
-  MSExperiment<> ms_exp;
+  PeakMap ms_exp;
 	ms_exp.addSpectrum(peaks);
 	ms_exp.begin()->setRT(100);
 			

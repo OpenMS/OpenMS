@@ -173,8 +173,8 @@ tc = TOFCalibration();
 
 START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   std::cout.precision(writtenDigits<>(double(0.0)));
-  MSExperiment<> calib_exp;
-  MSExperiment<> exp,res_exp;
+  PeakMap calib_exp;
+  PeakMap exp,res_exp;
   MzDataFile file;
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants2.mzData"),calib_exp);
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test2.mzData"),exp);
