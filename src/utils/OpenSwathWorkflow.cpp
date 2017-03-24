@@ -721,6 +721,11 @@ protected:
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
     }
+    if (!out_osw.empty() && tr_type != FileTypes::PQP)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "OSW output files can only be generated in combination with PQP input files (-tr).");
+    }
 
     // Check swath window input
     if (!swath_windows_file.empty())
@@ -851,14 +856,13 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
-    FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);
-    if (tr_file_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    if (tr_type == FileTypes::TRAML || tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
     {
       TargetedExperiment targeted_exp;
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
     }
-    else if (tr_file_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
+    else if (tr_type == FileTypes::PQP || tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
       TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
 
@@ -871,9 +875,14 @@ protected:
         dst << src.rdbuf();
       }
     }
-    else
+    else if (tr_type == FileTypes::TSV || tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
       TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+    }
+    else
+    {
+      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      return PARSE_ERROR;
     }
     progresslogger.endProgress();
 

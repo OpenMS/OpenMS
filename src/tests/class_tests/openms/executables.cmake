@@ -590,6 +590,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
+    TransitionPQPReader_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
@@ -625,6 +626,7 @@ set(Boost_dependent_tests
   StatisticFunctions_test
   String_test
   TransitionTSVReader_test
+  TransitionPQPReader_test
 )
 
 ### collect test executables

@@ -48,12 +48,10 @@ namespace OpenMS
 {
 
   /**
-   * @brief Class to write out an OpenSwath TSV output (mProphet input)
+   * @brief Class to write out an OpenSwath OSW SQLite output (PyProphet input)
    *
    * The class can take a FeatureMap and create a set of string from it
-   * suitable for output to tsv using the prepareLine function.
-   *
-   * These lines can also be directly written to a file using writeLines
+   * suitable for output to OSW using the prepareLine function.
    *
    */
   class OPENMS_DLLAPI OpenSwathOSWWriter
@@ -195,32 +193,32 @@ namespace OpenMS
           if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
           {
             sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY) VALUES (" 
-                                    << feature_it->getUniqueId() << ", " 
-                                    << (String)sub_it->getMetaValue("native_id") << ", " 
-                                    << sub_it->getIntensity() << ", " 
-                                    << sub_it->getMetaValue("peak_apex_int") << "); ";
+                                        << feature_it->getUniqueId() << ", " 
+                                        << (String)sub_it->getMetaValue("native_id") << ", " 
+                                        << sub_it->getIntensity() << ", " 
+                                        << sub_it->getMetaValue("peak_apex_int") << "); ";
           }
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
           {
-            sql_feature_ms1         << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
-                                    << feature_it->getUniqueId() << ", " 
-                                    << sub_it->getIntensity() << ", " 
-                                    << sub_it->getMetaValue("peak_apex_int") << ", " 
-                                    << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
-                                    << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
-                                    << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
-                                    << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
-                                    << feature_it->getMetaValue("var_ms1_xcorr_shape") << "); ";
+            sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
+                            << feature_it->getUniqueId() << ", " 
+                            << sub_it->getIntensity() << ", " 
+                            << sub_it->getMetaValue("peak_apex_int") << ", " 
+                            << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
+                            << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
+                            << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
+                            << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
+                            << feature_it->getMetaValue("var_ms1_xcorr_shape") << "); ";
           }
         }
 
-        sql_feature     << "INSERT INTO FEATURE (ID, PRECURSOR_ID, RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
-                        << feature_it->getUniqueId() << ", " 
-                        << id << ", " 
-                        << feature_it->getMetaValue("norm_RT") << ", " 
-                        << feature_it->getMetaValue("delta_rt") << ", " 
-                        << feature_it->getMetaValue("leftWidth") << ", " 
-                        << feature_it->getMetaValue("rightWidth") << "); ";
+        sql_feature << "INSERT INTO FEATURE (ID, PRECURSOR_ID, RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
+                    << feature_it->getUniqueId() << ", " 
+                    << id << ", " 
+                    << feature_it->getMetaValue("norm_RT") << ", " 
+                    << feature_it->getMetaValue("delta_rt") << ", " 
+                    << feature_it->getMetaValue("leftWidth") << ", " 
+                    << feature_it->getMetaValue("rightWidth") << "); ";
 
         std::string var_elution_model_fit_score = "NULL", var_sonar_lag = "NULL", var_sonar_shape = "NULL", var_sonar_log_sn = "NULL", var_sonar_log_diff = "NULL", var_sonar_log_trend = "NULL", var_sonar_rsq = "NULL";
 
