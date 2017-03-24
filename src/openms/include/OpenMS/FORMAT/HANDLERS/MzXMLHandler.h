@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -59,7 +60,7 @@ namespace OpenMS
       Do not use this class. It is only needed in MzXMLFile.
     */
 
-    typedef MSExperiment<Peak1D> MapType;
+    typedef PeakMap MapType;
     typedef MSSpectrum<> SpectrumType;
 
     class OPENMS_DLLAPI MzXMLHandler :

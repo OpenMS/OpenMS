@@ -59,7 +59,7 @@ namespace OpenMS
     {
       try
       {
-        MSExperiment<> exp;
+        PeakMap exp;
         exp.setChromatograms(irt_chromatograms);
         MzMLFile().store("debug_irts.mzML", exp);
       }
@@ -145,7 +145,7 @@ namespace OpenMS
     TransformationDescription empty_trafo; // empty transformation
 
     // Prepare the data with the chromatograms
-    boost::shared_ptr<MSExperiment<Peak1D> > xic_map(new MSExperiment<Peak1D>);
+    boost::shared_ptr<PeakMap > xic_map(new PeakMap);
     xic_map->setChromatograms(chromatograms);
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(xic_map));
 
@@ -466,7 +466,7 @@ namespace OpenMS
 
             // Step 2.1: extract these transitions
             ChromatogramExtractor extractor;
-            boost::shared_ptr<MSExperiment<Peak1D> > chrom_exp(new MSExperiment<Peak1D>);
+            boost::shared_ptr<PeakMap > chrom_exp(new PeakMap);
             std::vector< OpenSwath::ChromatogramPtr > chrom_list;
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
@@ -1011,7 +1011,7 @@ namespace OpenMS
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
             std::vector< OpenMS::MSChromatogram<> > chromatograms;
             ChromatogramExtractor().return_chromatogram(chrom_list, coordinates, transition_exp_used, SpectrumSettings(), chromatograms, false);
-            boost::shared_ptr<MSExperiment<Peak1D> > chrom_exp(new MSExperiment<Peak1D>);
+            boost::shared_ptr<PeakMap > chrom_exp(new PeakMap);
             chrom_exp->setChromatograms(chromatograms);
             OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(chrom_exp));
 

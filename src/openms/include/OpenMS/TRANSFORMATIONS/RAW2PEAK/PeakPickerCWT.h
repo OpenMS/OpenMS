@@ -105,7 +105,7 @@ public:
 
         @throws Exception::UnableToFit() if peak width cannot be determined (if estimation is set to auto)
     */
-    void pickExperiment(const MSExperiment<> & input, MSExperiment<> & output);
+    void pickExperiment(const PeakMap & input, PeakMap & output);
 
     /**
          @brief Estimates average peak width that can then be used for peak picking.
@@ -117,7 +117,7 @@ public:
          This estimate is averaged over several spectra.
 
     */
-    double estimatePeakWidth(const MSExperiment<> & input);
+    double estimatePeakWidth(const PeakMap & input);
 
 protected:
 

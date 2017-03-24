@@ -183,7 +183,7 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides, const String& filename,
     bool stop_on_error)
   {
-    MSExperiment<> exp;
+    PeakMap exp;
     SpectrumLookup lookup;
     bool success = true;
     for (vector<PeptideIdentification>::iterator it = peptides.begin();

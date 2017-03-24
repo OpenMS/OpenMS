@@ -252,7 +252,7 @@ private:
 
     void loadMetaData_(const String& filename)
     {
-      meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
+      meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
 
       MzMLFile f;
       PeakFileOptions options = f.getOptions();
@@ -269,7 +269,7 @@ protected:
     /// The index of the underlying data file
     IndexedMzMLFile indexed_mzml_file_;
     /// The meta-data
-    boost::shared_ptr<MSExperiment<> > meta_ms_experiment_;
+    boost::shared_ptr<PeakMap > meta_ms_experiment_;
   };
 
 } // namespace OpenMS

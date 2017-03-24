@@ -35,6 +35,7 @@
 #ifndef OPENMS_INTERFACES_IMSDATACONSUMER_H
 #define OPENMS_INTERFACES_IMSDATACONSUMER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -64,7 +65,7 @@ namespace Interfaces
       are expected to be called before consuming starts.
 
     */
-    template <typename MapType = MSExperiment<> >
+    template <typename MapType = PeakMap >
     class OPENMS_DLLAPI IMSDataConsumer
     {
     public:

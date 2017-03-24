@@ -146,16 +146,16 @@ namespace OpenMS
   {
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D>& chromatograms,
+  void MRMFeatureFinderScoring::pickExperiment(PeakMap& chromatograms,
                                                FeatureMap& output, TargetedExperiment& transition_exp_,
-                                               TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
+                                               TransformationDescription trafo, PeakMap& swath_map)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
     TransitionGroupMapType transition_group_map;
 
-    boost::shared_ptr<MSExperiment<Peak1D> > sh_chromatograms = boost::make_shared<MSExperiment<Peak1D> >(chromatograms);
-    boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map = boost::make_shared<MSExperiment<Peak1D> >(swath_map);
+    boost::shared_ptr<PeakMap > sh_chromatograms = boost::make_shared<PeakMap >(chromatograms);
+    boost::shared_ptr<PeakMap > sh_swath_map = boost::make_shared<PeakMap >(swath_map);
 
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);

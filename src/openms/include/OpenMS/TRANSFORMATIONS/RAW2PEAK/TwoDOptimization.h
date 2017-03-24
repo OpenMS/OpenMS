@@ -48,6 +48,7 @@
 #include <cmath>
 #include <set>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -172,8 +173,8 @@ protected:
       std::multimap<double, IsotopeCluster>::iterator iso_map_iter;
       Size total_nr_peaks;
       std::map<Int, std::vector<PeakIndex> > matching_peaks;
-      MSExperiment<> picked_peaks;
-      MSExperiment<Peak1D>::ConstIterator raw_data_first;
+      PeakMap picked_peaks;
+      PeakMap::ConstIterator raw_data_first;
       OptimizationFunctions::PenaltyFactorsIntensity penalties;
       std::vector<double> positions;
       std::vector<double> signal;
@@ -211,7 +212,7 @@ protected:
     double tolerance_mz_;
 
     /// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-    //  std::map<Int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
+    //  std::map<Int, std::vector<PeakMap::SpectrumType::Iterator > > matching_peaks_;
     std::map<Int, std::vector<PeakIndex> > matching_peaks_;
 
 
@@ -258,7 +259,7 @@ protected:
 
     /// Identify matching peak in a peak cluster
     void findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
-                            MSExperiment<>& ms_exp);
+                            PeakMap& ms_exp);
 
     //@}
 
@@ -820,7 +821,7 @@ protected:
         data.positions.clear();
         data.signal.clear();
 
-        MSExperiment<Peak1D>::SpectrumType::const_iterator ms_it =
+        PeakMap::SpectrumType::const_iterator ms_it =
           (d.raw_data_first + d.signal2D[2 * i].first)->begin() + d.signal2D[2 * i].second;
         Int size = distance(ms_it, (d.raw_data_first + d.signal2D[2 * i].first)->begin() + d.signal2D[2 * i + 1].second);
         data.positions.reserve(size);

@@ -119,7 +119,7 @@ namespace OpenMS
       base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
 
-      MSExperiment<> experiment;
+      PeakMap experiment;
       FileHandler fh;
       fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());

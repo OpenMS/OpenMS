@@ -37,6 +37,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
@@ -54,8 +55,7 @@ namespace OpenMS
     public Internal::XMLFile,
     public ProgressLogger
   {
-
-	typedef MSExperiment<Peak1D> MapType;
+	typedef PeakMap MapType;
 
 public:
 

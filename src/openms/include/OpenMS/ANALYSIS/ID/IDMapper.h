@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_ID_IDMAPPER_H
 #define OPENMS_ANALYSIS_ID_IDMAPPER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -248,7 +249,7 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
+    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
 
     /**
       @brief Mapping method for consensus maps
@@ -270,7 +271,7 @@ public:
                   const std::vector<ProteinIdentification>& protein_ids, 
                   bool measure_from_subelements = false, 
                   bool annotate_ids_with_subelements = false, 
-                  const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
+                  const PeakMap& spectra = PeakMap());
 
 
     /**

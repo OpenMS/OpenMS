@@ -50,7 +50,7 @@ namespace OpenMS
     // FLO: Do not care at the moment
   }
 
-  void PeakPickerSH::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  void PeakPickerSH::pickExperiment(const PeakMap & input, PeakMap & output)
   {
     // make sure that output is clear
     output.clear(true);

@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -57,7 +58,7 @@ namespace OpenMS
         @improvement Add implementation and tests of 'supDataArray' to store IntegerDataArray and StringDataArray of MSSpectrum (Hiwi)
     */
 
-	typedef MSExperiment<Peak1D> MapType;
+	typedef PeakMap MapType;
 	typedef MSSpectrum<> SpectrumType;
 	typedef MSChromatogram<> ChromatogramType;
 

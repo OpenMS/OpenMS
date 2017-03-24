@@ -70,7 +70,7 @@ public:
 
          This uses the locations of MS2 precursors as seed positions.
     */
-    void generateSeedList(const MSExperiment<> & experiment, SeedList & seeds);
+    void generateSeedList(const PeakMap & experiment, SeedList & seeds);
 
 
     /**

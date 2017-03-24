@@ -49,10 +49,10 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MSDataStoringConsumer :
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer< PeakMap >
   {
   private:
-    MSExperiment<> exp_;
+    PeakMap exp_;
 
   public:
 
@@ -79,7 +79,7 @@ namespace OpenMS
       exp_.addChromatogram(c);
     }
 
-    const MSExperiment<>& getData() const
+    const PeakMap& getData() const
     {
       return exp_;
     }

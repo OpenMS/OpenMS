@@ -35,10 +35,10 @@
 #ifndef OPENMS_FORMAT_MZXMLFILE_H
 #define OPENMS_FORMAT_MZXMLFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
@@ -57,8 +57,7 @@ namespace OpenMS
     public Internal::XMLFile,
     public ProgressLogger
   {
-
-	typedef MSExperiment<Peak1D> MapType;
+	typedef PeakMap MapType;
 
 public:
     ///Default constructor
@@ -84,8 +83,6 @@ public:
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     void load(const String & filename, MapType & map);
-
-    void load(const String & filename, MSExperiment<RichPeak1D> & map);
 
     /**
         @brief Stores a map in a MzXML file.

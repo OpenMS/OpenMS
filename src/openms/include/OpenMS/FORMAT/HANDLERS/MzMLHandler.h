@@ -41,6 +41,7 @@
 
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -107,7 +108,7 @@ namespace OpenMS
         @todo replace hardcoded cv stuff with more flexible handling via obo r/w.
     */
 
-	typedef MSExperiment<Peak1D> MapType;
+	typedef PeakMap MapType;
 	typedef MSSpectrum<> SpectrumType;
 	typedef MSChromatogram<> ChromatogramType;
 

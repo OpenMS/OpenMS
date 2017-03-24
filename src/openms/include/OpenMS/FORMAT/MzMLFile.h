@@ -35,8 +35,8 @@
 #ifndef OPENMS_FORMAT_MZMLFILE_H
 #define OPENMS_FORMAT_MZMLFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -81,18 +81,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, MSExperiment<Peak1D>& map);
-
-    /**
-      @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
-
-      @p filename The filename with the data
-      @p map Is an RichMSExperiment
-
-      @exception Exception::FileNotFound is thrown if the file could not be opened
-      @exception Exception::ParseError is thrown if an error occurs during parsing
-    */
-    void load(const String& filename, MSExperiment<RichPeak1D>& map);
+    void load(const String& filename, PeakMap& map);
 
     /**
       @brief Only count the number of spectra and chromatograms from a file

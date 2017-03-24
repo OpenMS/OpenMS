@@ -35,8 +35,9 @@
 #ifndef OPENMS_METADATA_MSQUANTIFICATIONS_H
 #define OPENMS_METADATA_MSQUANTIFICATIONS_H
 
-#include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 //~ #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -231,7 +232,7 @@ public:
     void setAnalysisSummaryQuantType(QUANT_TYPES r);
     void addConsensusMap(ConsensusMap & m);
     void assignUIDs();
-    void registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, double> > > labels);
+    void registerExperiment(PeakMap & exp, std::vector<std::vector<std::pair<String, double> > > labels);
     void registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dp, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
 private:

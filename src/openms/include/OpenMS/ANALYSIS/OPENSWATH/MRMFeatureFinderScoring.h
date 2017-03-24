@@ -45,6 +45,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
@@ -129,8 +130,8 @@ public:
      * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
-    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
-                        TransformationDescription trafo, MSExperiment<Peak1D>& swath_map);
+    void pickExperiment(PeakMap & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
+                        TransformationDescription trafo, PeakMap& swath_map);
 
     /** @brief Pick features in one experiment containing chromatogram
      *

@@ -117,7 +117,7 @@ public:
      This method picks peaks for each scan in the map consecutively. The
      resulting picked peaks are written to the output map.
     */
-    void pickExperiment(const MSExperiment<> & input, MSExperiment<> & output);
+    void pickExperiment(const PeakMap & input, PeakMap & output);
   };
 }
 

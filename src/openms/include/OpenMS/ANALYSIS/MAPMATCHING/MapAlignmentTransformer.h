@@ -58,7 +58,7 @@ namespace OpenMS
 
   public:
     /// Applies the given transformation to a peak map
-    static void transformRetentionTimes(MSExperiment<>& msexp,
+    static void transformRetentionTimes(PeakMap& msexp,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 

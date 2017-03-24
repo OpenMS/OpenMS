@@ -88,11 +88,11 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI MSDataWritingConsumer : 
       public Internal::MzMLHandler,
-      public Interfaces::IMSDataConsumer< MSExperiment<> >
+      public Interfaces::IMSDataConsumer< PeakMap >
     {
 
     public:
-      typedef MSExperiment<> MapType;
+      typedef PeakMap MapType;
       typedef MapType::SpectrumType SpectrumType;
       typedef MapType::ChromatogramType ChromatogramType;
 

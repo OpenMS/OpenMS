@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::calculateCalibCoeffs_(PeakMap & calib_spectra)
   {
     // flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -160,7 +160,7 @@ namespace OpenMS
     }
   }
 
-  void TOFCalibration::matchMasses_(MSExperiment<> & calib_peaks,
+  void TOFCalibration::matchMasses_(PeakMap & calib_peaks,
                                     std::vector<std::vector<unsigned int> > & monoiso_peaks,
                                     std::vector<unsigned int> & obs_masses,
                                     std::vector<double> & exp_masses, unsigned int idx)
@@ -192,11 +192,11 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<> & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
+  void TOFCalibration::getMonoisotopicPeaks_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
   {
 
-    MSExperiment<>::iterator spec_iter = calib_peaks.begin();
-    MSExperiment<>::SpectrumType::iterator peak_iter, help_iter;
+    PeakMap::iterator spec_iter = calib_peaks.begin();
+    PeakMap::SpectrumType::iterator peak_iter, help_iter;
 #ifdef DEBUG_CALIBRATION
     spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
@@ -255,10 +255,10 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::applyTOFConversion_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::applyTOFConversion_(PeakMap & calib_spectra)
   {
-    MSExperiment<>::iterator spec_iter = calib_spectra.begin();
-    MSExperiment<>::SpectrumType::iterator peak_iter;
+    PeakMap::iterator spec_iter = calib_spectra.begin();
+    PeakMap::SpectrumType::iterator peak_iter;
     unsigned int idx = 0;
 
     //two point conversion
