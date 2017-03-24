@@ -115,7 +115,7 @@ public:
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
-    void transform(const String& filename_in, Interfaces::DefaultIMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
@@ -131,7 +131,7 @@ public:
       @param map Map to store the resulting spectra and chromatograms
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
-    void transform(const String& filename_in, Interfaces::DefaultIMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Checks if a file validates against the XML schema.
@@ -154,7 +154,7 @@ public:
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
-    void transformFirstPass_(const String& filename_in, Interfaces::DefaultIMSDataConsumer * consumer, bool skip_full_count);
+    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
 
     /// Safe parse that catches exceptions and handles them accordingly
     void safeParse_(const String & filename, Internal::XMLHandler * handler);

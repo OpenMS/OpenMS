@@ -115,7 +115,7 @@ public:
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
-    void transform(const String& filename_in, Interfaces::DefaultIMSDataConsumer * consumer, bool skip_full_count = false)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
       transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -144,7 +144,7 @@ public:
       @param map Map to store the resulting spectra and chromatograms
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
-    void transform(const String& filename_in, Interfaces::DefaultIMSDataConsumer * consumer, MapType& map, bool skip_full_count = false)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
       transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -164,7 +164,7 @@ public:
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
-    void transformFirstPass_(const String& filename_in, Interfaces::DefaultIMSDataConsumer * consumer, bool skip_full_count)
+    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
     {
       // Create temporary objects and counters
       PeakFileOptions tmp_options(options_);

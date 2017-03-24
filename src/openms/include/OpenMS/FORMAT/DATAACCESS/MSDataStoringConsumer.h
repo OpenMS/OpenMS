@@ -36,7 +36,10 @@
 #define OPENMS_FORMAT_DATAACCESS_MSDATASTORINGCONSUMER_H
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 namespace OpenMS
 {
@@ -49,7 +52,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MSDataStoringConsumer :
-    public Interfaces::DefaultIMSDataConsumer
+    public Interfaces::IMSDataConsumer
   {
   private:
     PeakMap exp_;

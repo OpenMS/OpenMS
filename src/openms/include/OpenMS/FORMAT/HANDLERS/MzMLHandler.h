@@ -180,7 +180,7 @@ public:
       }
 
       /// Set the IMSDataConsumer consumer which will consume the read data
-      void setMSDataConsumer(Interfaces::DefaultIMSDataConsumer* consumer)
+      void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer)
       {
         consumer_ = consumer;
       }
@@ -342,7 +342,7 @@ protected:
       const ProgressLogger& logger_;
 
       /// Consumer class to work on spectra
-      Interfaces::DefaultIMSDataConsumer* consumer_;
+      Interfaces::IMSDataConsumer* consumer_;
 
       /// Counting spectra and chromatograms
       UInt scan_count;

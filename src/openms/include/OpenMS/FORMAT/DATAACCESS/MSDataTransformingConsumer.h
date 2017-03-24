@@ -37,6 +37,8 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 namespace OpenMS
 {
 
@@ -59,7 +61,7 @@ namespace OpenMS
       Note that the spectrum gets transformed in-place.
     */
     class OPENMS_DLLAPI MSDataTransformingConsumer :
-      public Interfaces::DefaultIMSDataConsumer
+      public Interfaces::IMSDataConsumer
     {
 
     public:

@@ -35,12 +35,15 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENT_H
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -1080,7 +1083,7 @@ private:
 
 } // namespace OpenMS
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #endif // OPENMS_KERNEL_MSEXPERIMENT_H
 
-
-#include <OpenMS/KERNEL/StandardTypes.h>

@@ -99,7 +99,7 @@ namespace OpenMS
    *
    */
   class OPENMS_DLLAPI FullSwathFileConsumer :
-    public Interfaces::DefaultIMSDataConsumer
+    public Interfaces::IMSDataConsumer
   {
 
 public:

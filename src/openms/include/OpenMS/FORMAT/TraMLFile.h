@@ -90,5 +90,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_TRAMLFILE_H
+#endif // OPENMS_FORMAT_TRAMLFILE_H
 

@@ -174,7 +174,7 @@ namespace OpenMS
     save_(filename, &handler);
   }
 
-  void MzMLFile::transform(const String& filename_in, Interfaces::DefaultIMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
+  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -189,7 +189,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLFile::transform(const String& filename_in, Interfaces::DefaultIMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
+  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -206,7 +206,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLFile::transformFirstPass_(const String& filename_in, Interfaces::DefaultIMSDataConsumer* consumer, bool skip_full_count)
+  void MzMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
   {
     // Create temporary objects and counters
     PeakFileOptions tmp_options(options_);

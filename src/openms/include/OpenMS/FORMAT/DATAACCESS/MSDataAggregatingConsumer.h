@@ -37,6 +37,11 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 namespace OpenMS
 {
 
@@ -45,10 +50,10 @@ namespace OpenMS
 
     */
     class OPENMS_DLLAPI MSDataAggregatingConsumer :
-      public Interfaces::DefaultIMSDataConsumer
+      public Interfaces::IMSDataConsumer
     {
 
-      Interfaces::DefaultIMSDataConsumer* next_consumer_;
+      Interfaces::IMSDataConsumer* next_consumer_;
       double previous_rt_;
       bool rt_initialized_;
       SpectrumType s_tmp;
@@ -64,7 +69,7 @@ namespace OpenMS
 
         @note This does not transfer ownership of the consumer
       */
-      MSDataAggregatingConsumer(Interfaces::DefaultIMSDataConsumer* next_consumer) :
+      MSDataAggregatingConsumer(Interfaces::IMSDataConsumer* next_consumer) :
         next_consumer_(next_consumer),
         previous_rt_(0.0),
         rt_initialized_(false)
