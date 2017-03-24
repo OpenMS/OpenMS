@@ -67,7 +67,8 @@ namespace OpenMS
 public:
 
     // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; 
+    // (since not all OpenMS tools work with MSChromatogram)
+    typedef MSSpectrum<ChromatogramPeak> ChromatogramSpec; 
 
     //@{
     /// Constructor
@@ -84,18 +85,18 @@ public:
 
       This function will return a picked chromatogram
     */
-    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram(const ChromatogramSpec& chromatogram, ChromatogramSpec& picked_chrom);
 
 protected:
 
-    void pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogramCrawdad_(const ChromatogramSpec& chromatogram, ChromatogramSpec& picked_chrom);
 
-    void pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram_(const ChromatogramSpec& chromatogram, ChromatogramSpec& picked_chrom);
 
     /**
       @brief Compute peak area (peak integration)
     */
-    void integratePeaks_(const RichPeakChromatogram& chromatogram);
+    void integratePeaks_(const ChromatogramSpec& chromatogram);
 
     /**
       @brief Helper function to find the closest peak in a chromatogram to "target_rt" 
@@ -105,13 +106,13 @@ protected:
 
       It will return the index of the closest peak in the chromatogram.
     */
-    Size findClosestPeak_(const RichPeakChromatogram& chromatogram, double target_rt, Size current_peak = 0);
+    Size findClosestPeak_(const ChromatogramSpec& chromatogram, double target_rt, Size current_peak = 0);
 
     /**
       @brief Helper function to remove overlapping peaks in a single Chromatogram
 
     */
-    void removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void removeOverlappingPeaks_(const ChromatogramSpec& chromatogram, ChromatogramSpec& picked_chrom);
 
 
     /// Synchronize members with param class

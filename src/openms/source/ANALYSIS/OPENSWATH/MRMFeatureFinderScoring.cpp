@@ -755,7 +755,7 @@ namespace OpenMS
       MSChromatogram<ChromatogramPeak> chromatogram_old;
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
       OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-      RichPeakChromatogram chromatogram;
+      ChromatogramSpec chromatogram;
 
       // Create the chromatogram information
       // Get the expected retention time, apply the RT-transformation

@@ -601,12 +601,6 @@ namespace OpenMS
     const double rt_extraction_window,
     FeatureMap& output, OpenSwathTSVWriter & tsv_writer)
   {
-    typedef OpenSwath::LightTransition TransitionType;
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
-    typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
@@ -674,7 +668,7 @@ namespace OpenMS
         OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
         MSChromatogram<ChromatogramPeak> chromatogram_old;
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
+        ChromatogramSpec chromatogram;
 
         // Extract and convert chromatogram to input chromatogram
         precursor_mz = transition->getPrecursorMZ();
@@ -700,7 +694,7 @@ namespace OpenMS
                     ms1_chromatograms.find(transition_group.getTransitionGroupID());
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr->second);
 
-        RichPeakChromatogram chromatogram;
+        ChromatogramSpec chromatogram;
         selectChrom_(chromatogram_old, chromatogram, -1, -1);
         chromatogram.setMetaValue("precursor_mz", precursor_mz);
         chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_" + "Precursor_i0");
