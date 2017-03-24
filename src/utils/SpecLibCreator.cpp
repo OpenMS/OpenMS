@@ -85,14 +85,14 @@ protected:
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
     setValidFormats_("info", ListUtils::create<String>("csv"));
 
-    registerStringOption_("itemseperator", "<char>", ",", " Seperator between items. e.g. ,", false);
+    registerStringOption_("itemseperator", "<char>", ",", " Separator between items. e.g. ,", false);
     registerStringOption_("itemenclosed", "<bool>", "false", "'true' or 'false' if true every item is enclosed e.g. '$peptide$,$run$...", false);
     setValidStrings_("itemenclosed", ListUtils::create<String>("true,false"));
 
     registerInputFile_("spec", "<file>", "", "spectra");
     setValidFormats_("spec", ListUtils::create<String>("mzData,mzXML"));
 
-    registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
+    registerOutputFile_("out", "<file>", "", "output MSP formatted spectra library");
     setValidFormats_("out", ListUtils::create<String>("msp"));
   }
 
@@ -191,7 +191,7 @@ protected:
     }
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(spec);
-    /*MSExperiment<>*/ PeakMap msexperiment;
+    PeakMap msexperiment;
 
     if (in_type == FileTypes::UNKNOWN)
     {
@@ -211,7 +211,7 @@ protected:
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "EMPTY??");
     }
-    RichPeakMap library;
+    PeakMap library;
 
     //-------------------------------------------------------------
     // creating library
@@ -241,14 +241,14 @@ protected:
           //  spec.push_back(it->operator[](k));
           //
           // }
-          MSSpectrum<RichPeak1D> speci;
+          MSSpectrum<Peak1D> speci;
           speci.setRT(it->getRT());
           speci.setMSLevel(2);
           speci.setPrecursors(it->getPrecursors());
           for (UInt j = 0; j < it->size(); ++j)
           {
 
-            RichPeak1D richy;
+            Peak1D richy;
             richy.setIntensity(it->operator[](j).getIntensity());
             richy.setPosition(it->operator[](j).getPosition());
             richy.setMZ(it->operator[](j).getMZ());
@@ -285,11 +285,13 @@ protected:
     in_type = fh.getType(out);
     if (in_type == FileTypes::MZDATA)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      MzDataFile f;
+      f.store(out, library);
     }
     else if (in_type == FileTypes::MZXML)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      MzXMLFile f;
+      f.store(out, library);
     }
     else
     {
