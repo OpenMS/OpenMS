@@ -34,6 +34,10 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
+#include <sqlite3.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
+#include <QtCore/QFileInfo>
+
 namespace OpenMS
 {
   namespace Internal

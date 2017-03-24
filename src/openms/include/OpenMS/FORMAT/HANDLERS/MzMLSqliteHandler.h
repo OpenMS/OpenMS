@@ -35,12 +35,13 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
 
-#include <sqlite3.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
-#include <QtCore/QFileInfo>
+
+// forward declarations
+class sqlite3;
 
 namespace OpenMS
 {
@@ -52,7 +53,7 @@ namespace OpenMS
     /**
         @brief Sqlite handler for storing spectra and chromatograms
 
-        @note Do not use this class directly.
+        @note Do not use this class directly, rather use SqMassFile.
 
         @note This class writes spectra and chromatograms from a cache to make
         writing substantially faster. It is thus recommended to provide many
