@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
     cdef cppclass IndexedMzMLFileLoader:
 
         IndexedMzMLFileLoader() nogil except +
-
-        bool load(String, OnDiscMSExperiment &) nogil except+
-        void store(String, OnDiscMSExperiment &) nogil except+
+ 
+        bool load(String, OnDiscMSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
+        void store(String, OnDiscMSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
         void store(String, MSExperiment &) nogil except+
 
         PeakFileOptions getOptions() nogil except +
