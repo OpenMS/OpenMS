@@ -877,7 +877,7 @@ is_a: MS:1000027 ! detector acquisition mode
 
 [Term]
 id: MS:1000121
-name: AB SCIEX instrument model
+name: SCIEX instrument model
 def: "The brand of instruments from the joint venture between Applied Biosystems and MDS Analytical Technologies (formerly MDS SCIEX). Previously branded as \"Applied Biosystems|MDS SCIEX\"." [PSI:MS]
 synonym: "Applied Biosystems|MDS SCIEX" RELATED []
 is_a: MS:1000031 ! instrument model
@@ -1004,7 +1004,7 @@ relationship: has_units UO:0000187 ! percent
 id: MS:1000139
 name: 4000 QTRAP
 def: "Applied Biosystems/MDS SCIEX Q 4000 TRAP MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000140
@@ -1028,31 +1028,31 @@ is_a: MS:1001556 ! Bruker Daltonics apex series
 id: MS:1000143
 name: API 150EX
 def: "Applied Biosystems/MDS SCIEX API 150EX MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000144
 name: API 150EX Prep
 def: "Applied Biosystems/MDS SCIEX API 150EX Prep MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000145
 name: API 2000
 def: "Applied Biosystems/MDS SCIEX API 2000 MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000146
 name: API 3000
 def: "Applied Biosystems/MDS SCIEX API 3000 MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000147
 name: API 4000
 def: "Applied Biosystems/MDS SCIEX API 4000 MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000148
@@ -1287,13 +1287,13 @@ is_a: MS:1000125 ! Thermo Finnigan instrument model
 id: MS:1000186
 name: proteomics solution 1
 def: "Applied Biosystems/MDS SCIEX Proteomics Solution 1 MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000187
 name: Q TRAP
 def: "Applied Biosystems/MDS SCIEX Q TRAP MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000188
@@ -1311,7 +1311,7 @@ is_a: MS:1000126 ! Waters instrument model
 id: MS:1000190
 name: QSTAR
 def: "Applied Biosystems/MDS SCIEX QSTAR MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000191
@@ -1335,13 +1335,13 @@ is_a: MS:1000125 ! Thermo Finnigan instrument model
 id: MS:1000194
 name: SymBiot I
 def: "Applied Biosystems/MDS SCIEX SymBiot I MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000195
 name: SymBiot XVI
 def: "Applied Biosystems/MDS SCIEX SymBiot XVI MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000196
@@ -4515,43 +4515,43 @@ is_a: MS:1001457 ! data processing software
 id: MS:1000651
 name: 3200 QTRAP
 def: "AB SCIEX or Applied Biosystems|MDS SCIEX QTRAP 3200." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000652
 name: 4800 Plus MALDI TOF/TOF
 def: "AB SCIEX or Applied Biosystems|MDS SCIEX 4800 Plus MALDI TOF-TOF Analyzer." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000653
 name: API 3200
 def: "AB SCIEX or Applied Biosystems|MDS SCIEX API 3200 MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000654
 name: API 5000
 def: "AB SCIEX or Applied Biosystems|MDS SCIEX API 5000 MS." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000655
 name: QSTAR Elite
 def: "AB SCIEX or Applied Biosystems|MDS SCIEX QSTAR Elite." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000656
 name: QSTAR Pulsar
 def: "Applied Biosystems|MDS SCIEX QSTAR Pulsar." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000657
 name: QSTAR XL
 def: "Applied Biosystems|MDS SCIEX QSTAR XL." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000658
@@ -6032,7 +6032,7 @@ id: MS:1000870
 name: 4000 QTRAP
 def: "OBSOLETE AB SCIEX or Applied Biosystems|MDS SCIEX QTRAP 4000." [PSI:MS]
 comment: This term was obsoleted because was redundant to MS:1000139.
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 is_obsolete: true
 
 [Term]
@@ -6451,13 +6451,13 @@ is_a: MS:1000560 ! mass spectrometer file format
 id: MS:1000931
 name: QTRAP 5500
 def: "Applied Biosystems|MDS SCIEX QTRAP 5500." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000932
 name: TripleTOF 5600
 def: "AB SCIEX TripleTOF 5600, a quadrupole - quadrupole - time-of-flight mass spectrometer." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1000933
@@ -9452,7 +9452,7 @@ is_a: MS:1000560 ! mass spectrometer file format
 id: MS:1001482
 name: TOF/TOF 5800
 def: "AB SCIEX or Applied Biosystems|MDS Analytical Technologies AB SCIEX TOF/TOF 5800 Analyzer." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1001483
@@ -16604,7 +16604,7 @@ is_a: MS:1000767 ! native spectrum identifier format
 id: MS:1002533
 name: TripleTOF 6600
 def: "AB SCIEX TripleTOF 6600, a quadrupole - quadrupole - time-of-flight mass spectrometer." [PSI:MS]
-is_a: MS:1000121 ! AB SCIEX instrument model
+is_a: MS:1000121 ! SCIEX instrument model
 
 [Term]
 id: MS:1002534
@@ -16628,7 +16628,7 @@ id: MS:1002536
 name: D-Score
 def: "D-Score for PTM site location at the PSM-level." [DOI:10.1002/pmic.201200408, PMID:23307401]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001968 ! PSM-level PTM localization score
+is_a: MS:1001968 ! PTM localization score
 relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
 
 [Term]
@@ -16636,7 +16636,7 @@ id: MS:1002537
 name: MD-Score
 def: "MD-Score for PTM site location at the PSM-level." [DOI:10.1074/mcp.M110.003830-1, PMID:21057138]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-is_a: MS:1001968 ! PSM-level PTM localization score
+is_a: MS:1001968 ! PTM localization score
 relationship: has_regexp MS:1002505 ! regular expression for modification localization scoring
 
 [Term]

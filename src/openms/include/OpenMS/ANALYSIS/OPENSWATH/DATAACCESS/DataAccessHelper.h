@@ -79,4 +79,5 @@ public:
 
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
+

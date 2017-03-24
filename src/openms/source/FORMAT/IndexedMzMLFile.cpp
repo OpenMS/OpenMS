@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 
+// #define DEBUG_READER
+
 namespace OpenMS
 {
 

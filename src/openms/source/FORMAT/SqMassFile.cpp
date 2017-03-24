@@ -34,10 +34,26 @@
 
 #include <OpenMS/FORMAT/SqMassFile.h>
 
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+
 namespace OpenMS
 {
 
   SqMassFile::SqMassFile() {}
 
   SqMassFile::~SqMassFile() {}
+
+  void SqMassFile::load(const String& filename, MapType& map)
+  {
+    OpenMS::Internal::MzMLSqliteHandler sql_mass_reader(filename);
+    sql_mass_reader.readExperiment(map);
+  }
+
+  void SqMassFile::store(const String& filename, MapType& map)
+  {
+    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename);
+    sql_mass.createTables();
+    sql_mass.writeExperiment(map);
+  }
+
 }

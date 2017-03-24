@@ -330,8 +330,6 @@ public:
               double mz_id = pid.getMZ();
               double rt_id = pid.getRT();
 
-              std::cout << fabs(mz_id - mz_p) << "\t" << fabs(rt_s - rt_id) << std::endl; 
-
               if ( fabs(mz_id - mz_p) < mz_tol && fabs(rt_s - rt_id) < rt_tol )
               {
                 identified = true;

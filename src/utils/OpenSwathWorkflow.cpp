@@ -904,10 +904,23 @@ protected:
         chromConsumer->setExpectedSize(0, expected_chromatograms);
         chromConsumer->setExperimentalSettings(*exp_meta);
         chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
-        chromConsumer->getOptions().setCompression(true); // compress data
-        chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
-        chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
         chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+
+        // prepare data structures for lossy compression
+        MSNumpressCoder::NumpressConfig npconfig_mz;
+        MSNumpressCoder::NumpressConfig npconfig_int;
+        npconfig_mz.estimate_fixed_point = true; // critical
+        npconfig_int.estimate_fixed_point = true; // critical
+        npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
+        npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
+        npconfig_mz.setCompression("linear");
+        npconfig_int.setCompression("slof");
+        npconfig_mz.linear_fp_mass_acc = 0.05; // set the desired RT accuracy in seconds
+
+        chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
+
         chromatogramConsumer = chromConsumer;
       }
     }
