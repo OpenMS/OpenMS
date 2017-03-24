@@ -82,6 +82,26 @@ namespace OpenMS
     }
   }
 
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr, 
+                                                                    double rt_min, double rt_max)
+  {
+    chromatogram.reserve(cptr->getTimeArray()->data.size());
+
+    std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
+    std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
+    for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
+    {
+      if (*rt_it < rt_min || *rt_it > rt_max)
+      {
+        continue;
+      }
+      ChromatogramPeak peak;
+      peak.setRT(*rt_it);
+      peak.setIntensity(*int_it);
+      chromatogram.push_back(peak);
+    }
+  }
+
   void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp)
   {
     //copy proteins

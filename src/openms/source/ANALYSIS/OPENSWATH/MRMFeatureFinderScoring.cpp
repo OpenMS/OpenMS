@@ -759,33 +759,26 @@ namespace OpenMS
       //-----------------------------------
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
       MSChromatogram<> chromatogram;
-      OpenSwath::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
-      OpenSwath::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
-      chromatogram.reserve(rt_arr->data.size());
 
-      // Create the chromatogram information
       // Get the expected retention time, apply the RT-transformation
       // (which describes the normalization) and then take the difference.
       // Note that we inverted the transformation in the beginning because
       // we want to transform from normalized to real RTs here and not the
       // other way round.
-      expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
-      double de_normalized_experimental_rt = trafo.apply(expected_rt);
-      rt_max = de_normalized_experimental_rt + rt_extraction_window;
-      rt_min = de_normalized_experimental_rt - rt_extraction_window;
-      std::vector<double>::const_iterator rt_it = rt_arr->data.begin();
-      std::vector<double>::const_iterator int_it = int_arr->data.begin();
-      for (; rt_it != rt_arr->data.end(); ++rt_it, ++int_it)
+      if (rt_extraction_window > 0)
       {
-        if (rt_extraction_window >= 0 && (*rt_it < rt_min || *rt_it > rt_max))
-        {
-          continue;
-        }
-        ChromatogramPeak peak;
-        peak.setRT(*rt_it);
-        peak.setIntensity(*int_it);
-        chromatogram.push_back(peak);
+        expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
+        double de_normalized_experimental_rt = trafo.apply(expected_rt);
+        rt_max = de_normalized_experimental_rt + rt_extraction_window;
+        rt_min = de_normalized_experimental_rt - rt_extraction_window;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(chromatogram, cptr, rt_min, rt_max);
       }
+      else
+      {
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr);
+      }
+
+      // Check for empty chromatograms (e.g. RT transformation is off)
       if (chromatogram.empty())
       {
         std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \

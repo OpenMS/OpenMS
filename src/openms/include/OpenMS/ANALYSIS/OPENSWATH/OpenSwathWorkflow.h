@@ -182,13 +182,8 @@ namespace OpenMS
   class OPENMS_DLLAPI OpenSwathWorkflow :
     public ProgressLogger
   {
-
-    // this is the type in which we store the chromatograms for this analysis
-    // (since not all OpenMS tools work with MSChromatogram)
-    typedef MSChromatogram<> ChromatogramSpec; 
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
     typedef OpenSwath::LightTransition TransitionType;
-    typedef MRMTransitionGroup< ChromatogramSpec, TransitionType> MRMTransitionGroupType;
+    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
   public:
 
@@ -349,15 +344,6 @@ namespace OpenMS
       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
       OpenSwath::LightTargetedExperiment & transition_exp_used,
       const double rt_extraction_window, const bool ms1) const;
-
-    /** @brief Extract part of a chromatogram inside the extraction windows
-     *
-     * @note The chromatogram will be returned as ChromatogramSpec type which
-     * is used by the feature finders.
-     *
-    */
-    void selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-      ChromatogramSpec& chromatogram, double rt_extraction_window, double center_rt);
 
     /**
      * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)

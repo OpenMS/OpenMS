@@ -664,19 +664,25 @@ namespace OpenMS
               "Error, did not find chromatogram for transitions" + transition->getNativeID() );
         }
 
-        // Convert chromatogram to MSChromatogram
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        ChromatogramSpec chromatogram;
-
-        // Extract and convert chromatogram to input chromatogram
         precursor_mz = transition->getPrecursorMZ();
+
+        // Convert chromatogram to MSChromatogram and filter
+        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+        MSChromatogram<> chromatogram;
         chromatogram.setMetaValue("product_mz", transition->getProductMZ());
         chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
         chromatogram.setNativeID(transition->getNativeID());
-        double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
-        selectChrom_(chromatogram_old, chromatogram, rt_extraction_window, de_normalized_experimental_rt);
+        if (rt_extraction_window > 0)
+        {
+          double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
+          double rt_max = de_normalized_experimental_rt + rt_extraction_window;
+          double rt_min = de_normalized_experimental_rt - rt_extraction_window;
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(chromatogram, cptr, rt_min, rt_max);
+        }
+        else
+        {
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr);
+        }
 
         // Now add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
@@ -689,13 +695,11 @@ namespace OpenMS
       // Set the MS1 chromatogram if available
       if (!ms1_chromatograms.empty() && ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
       {
-        MSChromatogram<ChromatogramPeak> chromatogram_old;
+        MSChromatogram<> chromatogram;
         std::map< std::string, OpenSwath::ChromatogramPtr >::const_iterator cptr =
                     ms1_chromatograms.find(transition_group.getTransitionGroupID());
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr->second);
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr->second);
 
-        ChromatogramSpec chromatogram;
-        selectChrom_(chromatogram_old, chromatogram, -1, -1);
         chromatogram.setMetaValue("precursor_mz", precursor_mz);
         chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_" + "Precursor_i0");
         transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
@@ -860,25 +864,6 @@ namespace OpenMS
     // sort result
     std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
   }
-
-  void OpenSwathWorkflow::selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-    ChromatogramSpec& chromatogram, double rt_extraction_window, double center_rt)
-  {
-    double rt_max = center_rt + rt_extraction_window;
-    double rt_min = center_rt - rt_extraction_window;
-    for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
-    {
-      if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max))
-      {
-        continue;
-      }
-      ChromatogramPeak peak;
-      peak.setMZ(it->getRT());
-      peak.setIntensity(it->getIntensity());
-      chromatogram.push_back(peak);
-    }
-  }
-
 }
 
 // OpenSwathWorkflowSonar
