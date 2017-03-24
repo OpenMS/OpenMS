@@ -126,7 +126,7 @@ START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
-	MSExperiment<RichPeak1D> exp;
+	PeakMap exp;
   exp.resize(4);
   
   RichPeak1D p;

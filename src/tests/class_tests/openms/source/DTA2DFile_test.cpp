@@ -287,10 +287,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e4[3].getRT(), 282684)
 	TEST_REAL_SIMILAR(e4[4].getRT(), 282690)
 
-	//test if it works with different peak types
-	MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_3.dta2d"),e_rich);
-
 END_SECTION
 
 START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))

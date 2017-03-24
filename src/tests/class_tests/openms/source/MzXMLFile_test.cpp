@@ -320,15 +320,6 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e5.size(), 1)
 	TEST_EQUAL(e5[0].size(), 997530)
 
-  //test if it works with different peak types
-  MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e_rich);
-  TEST_EQUAL(e_rich.getNrSpectra(), 4)
-  TEST_EQUAL(e_rich[0].size(), 1)
-  TEST_EQUAL(e_rich[1].size(), 3)
-  TEST_EQUAL(e_rich[2].size(), 5)
-  TEST_EQUAL(e_rich[3].size(), 5)
-
 	//zlib functionality
 	PeakMap zlib;
 	PeakMap none;
