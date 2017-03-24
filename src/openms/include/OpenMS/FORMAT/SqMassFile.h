@@ -35,7 +35,7 @@
 #ifndef OPENMS_FORMAT_SQMASS_H
 #define OPENMS_FORMAT_SQMASS_H
 
-#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
@@ -67,19 +67,9 @@ public:
     */
     //@{
 
-    void load(const String& filename, MapType& map)
-    {
-      OpenMS::Internal::MzMLSqliteHandler sql_mass_reader(filename);
-      sql_mass_reader.readExperiment(map);
-    }
+    void load(const String& filename, MapType& map);
 
-    void store(const String& filename, MapType& map)
-    {
-      OpenMS::Internal::MzMLSqliteHandler sql_mass(filename);
-      sql_mass.createTables();
-      sql_mass.writeExperiment(map);
-    }
-
+    void store(const String& filename, MapType& map);
 
     // maybe later ...
     // static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
