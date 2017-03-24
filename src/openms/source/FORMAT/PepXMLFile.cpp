@@ -767,6 +767,7 @@ namespace OpenMS
       if (!exp_name_.empty())
       {
         String base_name = attributeAsString_(attributes, "base_name");
+        cout << "base name:" << base_name << " exp_name_:" << exp_name_ << endl;
         if (!base_name.empty())
         {
           wrong_experiment_ = !base_name.hasSuffix(exp_name_);

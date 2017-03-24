@@ -405,7 +405,7 @@ protected:
     os << "add_Z_user_amino_acid = " << 0.0000 << "\n";          // added to Z - avg.   0.0000, mono.   0.00000
 
     // COMET_ENZYME_INFO _must_ be at the end of this parameters file
-    os << "[COMET_ENZYME_INFO]";
+    os << "[COMET_ENZYME_INFO]" << "\n";
     os << "0.  No_enzyme              0      -           -" << "\n";
     os << "1.  Trypsin                1      KR          P" << "\n";
     os << "2.  Trypsin/P              1      KR          -" << "\n";
@@ -471,7 +471,8 @@ protected:
     d.mkpath(tmp_dir.toQString());
 
     String tmp_file = tmp_dir + "param.txt";
-    String tmp_pepxml = inputfile_name.substr(0,inputfile_name.rfind(".")) + ".pep.xml";
+    String tmp_pepxml = File::removeExtension(inputfile_name) + ".pep.xml";
+    String tmp_pin = File::removeExtension(inputfile_name) + ".pin";
 
     ofstream os(tmp_file);
     createParamFile_(os);
@@ -533,7 +534,19 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
+    writeDebug_("write PepXMLFile", 1);
     PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications, inputfile_name);
+
+    if (this->debug_level_ == 0)
+    {
+      File::remove(tmp_pepxml);
+      File::remove(tmp_pin);
+      LOG_WARN << "Set debug level to >0 to keep the temporary pep.xml and pin files at '" << tmp_pepxml << "'" << std::endl;
+    }
+    else
+    {
+      LOG_WARN << "Keeping the temporary files at '" << tmp_pepxml << "'. Set debug level to 0 to remove them." << std::endl;
+    }
 
     //-------------------------------------------------------------
     // writing output
