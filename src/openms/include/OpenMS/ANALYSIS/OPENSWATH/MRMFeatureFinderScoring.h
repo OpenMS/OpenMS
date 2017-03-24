@@ -98,20 +98,13 @@ namespace OpenMS
 public:
     ///Type definitions
     //@{
-
-    // All the filters expect MSSpectrum<PeakT>, thus we give it an "MSSpectrum"
-    // but filled with Chromatogram Peaks.
-
-    // this is the type in which we store the chromatograms for this analysis
-    // (since not all OpenMS tools work with MSChromatogram)
-    typedef MSChromatogram<> ChromatogramSpec;
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightTargetedExperiment TargetedExpType;
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
     // a transition group holds the MSSpectra with the Chromatogram peaks from above
-    typedef MRMTransitionGroup< ChromatogramSpec, TransitionType> MRMTransitionGroupType;
+    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
     //@}
 

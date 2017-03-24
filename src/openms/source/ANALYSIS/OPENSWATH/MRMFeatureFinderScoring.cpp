@@ -308,7 +308,7 @@ namespace OpenMS
 
     for (Size i = 0; i < transition_group_identification.size(); i++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< ChromatogramSpec >(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
             transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()),
             sn_win_len_, sn_bin_count_, write_log_messages));
       if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
@@ -403,7 +403,7 @@ namespace OpenMS
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< ChromatogramSpec >(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
             transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
       signal_noise_estimators.push_back(snptr);
     }
@@ -753,10 +753,15 @@ namespace OpenMS
         }
         continue;
       }
-      MSChromatogram<ChromatogramPeak> chromatogram_old;
+
+      //-----------------------------------
+      // Retrieve chromatogram and filter it by the desired RT
+      //-----------------------------------
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-      OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-      ChromatogramSpec chromatogram;
+      MSChromatogram<> chromatogram;
+      OpenSwath::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
+      OpenSwath::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
+      chromatogram.reserve(rt_arr->data.size());
 
       // Create the chromatogram information
       // Get the expected retention time, apply the RT-transformation
@@ -768,15 +773,17 @@ namespace OpenMS
       double de_normalized_experimental_rt = trafo.apply(expected_rt);
       rt_max = de_normalized_experimental_rt + rt_extraction_window;
       rt_min = de_normalized_experimental_rt - rt_extraction_window;
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
+      std::vector<double>::const_iterator rt_it = rt_arr->data.begin();
+      std::vector<double>::const_iterator int_it = int_arr->data.begin();
+      for (; rt_it != rt_arr->data.end(); ++rt_it, ++int_it)
       {
-        if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max))
+        if (rt_extraction_window >= 0 && (*rt_it < rt_min || *rt_it > rt_max))
         {
           continue;
         }
         ChromatogramPeak peak;
-        peak.setMZ(it->getRT());
-        peak.setIntensity(it->getIntensity());
+        peak.setRT(*rt_it);
+        peak.setIntensity(*int_it);
         chromatogram.push_back(peak);
       }
       if (chromatogram.empty())
