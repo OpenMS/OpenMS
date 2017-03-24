@@ -20,16 +20,16 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   RangeManager2
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment[Peak1D, ChromatogramPeak] &)  nogil except +
+        MSExperiment(MSExperiment &)  nogil except +
 
-        bool operator==(MSExperiment[Peak1D, ChromatogramPeak]) nogil except +
+        bool operator==(MSExperiment) nogil except +
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
         StringList getPrimaryMSRunPath() nogil except +
 
-        void swap(MSExperiment[Peak1D, ChromatogramPeak]) nogil except +
+        void swap(MSExperiment) nogil except +
 
         # Spectra functions
         void addSpectrum(MSSpectrum[Peak1D] spec) nogil except +
