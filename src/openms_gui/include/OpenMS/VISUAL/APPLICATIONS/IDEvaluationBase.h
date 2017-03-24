@@ -95,7 +95,7 @@ public:
 
     void setVisibleArea(double low, double high);
 
-    const MSExperiment<>& getPoints() const;
+    const PeakMap& getPoints() const;
 
     static StringList getSupportedImageFormats();
 
@@ -196,7 +196,7 @@ protected:
     std::vector<double> q_value_thresholds_;
 
     // holds the computed curves for easy export to outside
-    MSExperiment<> data_;
+    PeakMap data_;
 
     /** @name Toolbar
     */

@@ -113,7 +113,7 @@ public:
 
     /// Adds a peak map
     template <class PeakType>
-    void add(MSExperiment<PeakType> & exp)
+    void add(PeakMap & exp)
     {
       add(static_cast<ExperimentalSettings &>(exp));
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
