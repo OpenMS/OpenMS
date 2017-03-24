@@ -39,15 +39,15 @@ namespace OpenMS
 {
   void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<> & spectrum)
   {
-    // recreate a spectrum from the data arrays!
-    OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
-    OpenSwath::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
-    spectrum.reserve(mz_arr->data.size());
-    for (Size i = 0; i < mz_arr->data.size(); i++)
+    spectrum.reserve(sptr->getMZArray()->data.size());
+
+    std::vector<double>::const_iterator mz_it = sptr->getMZArray()->data.begin();
+    std::vector<double>::const_iterator int_it = sptr->getIntensityArray()->data.begin();
+    for (; mz_it != sptr->getMZArray()->data.end(); ++mz_it, ++int_it)
     {
       Peak1D p;
-      p.setMZ(mz_arr->data[i]);
-      p.setIntensity(int_arr->data[i]);
+      p.setMZ(*mz_it);
+      p.setIntensity(*int_it);
       spectrum.push_back(p);
     }
   }
@@ -70,15 +70,16 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr)
   {
-    OpenSwath::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
-    OpenSwath::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
-    chromatogram.reserve(rt_arr->data.size());
-    for (Size i = 0; i < rt_arr->data.size(); i++)
+    chromatogram.reserve(cptr->getTimeArray()->data.size());
+
+    std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
+    std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
+    for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
     {
-      ChromatogramPeak p;
-      p.setRT(rt_arr->data[i]);
-      p.setIntensity(int_arr->data[i]);
-      chromatogram.push_back(p);
+      ChromatogramPeak peak;
+      peak.setRT(*rt_it);
+      peak.setIntensity(*int_it);
+      chromatogram.push_back(peak);
     }
   }
 
