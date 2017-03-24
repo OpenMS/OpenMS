@@ -29,15 +29,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Leon Bichmann, Andreas Bertsch, Chris Bielow $
+// $Authors: Leon Bichmann, Timo Sachsenberg, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -62,15 +60,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_XTandemAdapter XTandemAdapter
+    @page TOPP_COMETAdapter COMETAdapter
 
-    @brief Identifies peptides in MS/MS spectra via XTandem.
+    @brief Identifies peptides in MS/MS spectra via COMET.
 
 <CENTER>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ XTandemAdapter \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ COMETAdapter \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -80,34 +78,28 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em X! Tandem must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with several versions of X! Tandem.
-    The last known version to work is 2009-04-01. We encountered problems with
-    later versions (namely 2010-01-01).
-
-    To speed up computations, FASTA databases can be compressed using the fasta_pro.exe
-    tool of @em X! Tandem. It is contained in the "bin" folder of the @em X! Tandem installation.
-    Refer to the docu of @em X! Tandem for further information about settings.
+    @em COMET must be installed before this wrapper can be used. This wrapper
+    has been successfully tested with several versions of COMET.
 
     This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
     the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    X! Tandem settings not exposed by this adapter can be directly adjusted using an XML configuration file.
+    COMET settings not exposed by this adapter can be directly adjusted using an XML configuration file.
     By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
     The parameter "default_config_file" can be used to specify such a custom configuration.
     An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the
-    @em X! Tandem installation and the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
+    @em COMET installation and the OpenMS installation under OpenMS/share/CHEMISTRY/COMET_default_input.xml.
     The latter is loaded by default.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the '-ignore_adapter_param'
-    flag. Then, the config given in '-default_config_file' is used exclusively and only '-in', '-out', '-database' and '-xtandem_executable' are
+    flag. Then, the config given in '-default_config_file' is used exclusively and only '-in', '-out', '-database' and '-COMET_executable' are
     taken from this adapter.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_XTandemAdapter.cli
+    @verbinclude TOPP_COMETAdapter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_XTandemAdapter.html
+    @htmlinclude TOPP_COMETAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -135,7 +127,7 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      // X! Tandem compiles as tandem on OSX and tandem.exe on any other platform
+      // COMET compiles as tandem on OSX and tandem.exe on any other platform
 #if defined(__APPLE__)
       "comet.exe",        
 #else                 
