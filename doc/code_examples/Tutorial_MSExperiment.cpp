@@ -29,6 +29,8 @@
 //
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <iostream>
 
 using namespace OpenMS;
