@@ -195,8 +195,9 @@ namespace OpenMS
   void TOFCalibration::getMonoisotopicPeaks_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
   {
 
-    PeakMap::iterator spec_iter = calib_peaks.begin();
+    PeakMap::iterator spec_iter;
     PeakMap::SpectrumType::iterator peak_iter, help_iter;
+
 #ifdef DEBUG_CALIBRATION
     spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
@@ -210,8 +211,8 @@ namespace OpenMS
         std::cout << peak_iter->getMZ() << std::endl;
       }
     }
-
 #endif
+
     spec_iter = calib_peaks.begin();
     // iterate through all spectra
     for (; spec_iter != calib_peaks.end(); ++spec_iter)
@@ -365,11 +366,11 @@ namespace OpenMS
     }
 
 
-    double xi, yi;
+    double xi;
     std::cout << "interpolation \n\n";
     for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
     {
-      yi = spline(xi);
+      double yi = spline(xi);
       std::cout << xi << "\t" << yi << std::endl;
     }
     std::cout << "--------------\nend interpolation \n\n";
@@ -389,4 +390,5 @@ namespace OpenMS
     }
   }
 
-} //namespace openms
+} //namespace OpenMS
+

@@ -498,7 +498,6 @@ namespace OpenMS
           // find all features (mass traces that are in the window around peak_mz)
           typename PeakMap::SpectrumType ms2_spec;
           std::vector<Precursor> pcs;
-          std::set<std::pair<Size, Size> > selected_mt;
           IntList parent_feature_ids;
 
           double local_mz = peak_mz;

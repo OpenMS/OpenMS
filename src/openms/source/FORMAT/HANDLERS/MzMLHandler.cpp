@@ -647,7 +647,6 @@ namespace OpenMS
       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
       static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
       static const XMLCh* s_id = xercesc::XMLString::transcode("id");
-      static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
       //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
       static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
       static const XMLCh* s_version = xercesc::XMLString::transcode("version");
@@ -685,6 +684,9 @@ namespace OpenMS
 
       if (tag == "spectrum")
       {
+        // for cppcheck
+        static const XMLCh* s_spot_id = xercesc::XMLString::transcode("spotID");
+
         //number of peaks
         spec_ = SpectrumType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
