@@ -257,8 +257,6 @@ protected:
     registerFullParam_(emf_params);
   }
 
-
-  typedef PeakMap PeakMap;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
