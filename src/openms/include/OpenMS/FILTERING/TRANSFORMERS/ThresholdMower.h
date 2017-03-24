@@ -77,7 +77,7 @@ public:
       std::vector<Size> indices;
       for (Size i = 0; i != spectrum.size(); ++i)
       {
-        if (spectrum[i].getIntensity() > threshold_)
+        if (spectrum[i].getIntensity() >= threshold_)
         {
           indices.push_back(i);
         } 
