@@ -159,7 +159,7 @@ protected:
   {
 public:
     ///Input map type
-    typedef MSExperiment<PeakType> MapType;
+    typedef PeakMap MapType;
     ///Input spectrum type
     typedef typename MapType::SpectrumType SpectrumType;
     ///Input intensity type
@@ -168,7 +168,7 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
 
     ///Constructor
-    FeaFiModule(const MSExperiment<PeakType> * map, FeatureMap* features, FeatureFinder * ff) :
+    FeaFiModule(const PeakMap * map, FeatureMap* features, FeatureFinder * ff) :
       DefaultParamHandler("FeaFiModule"),
       map_(0),
       features_(0),

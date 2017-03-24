@@ -173,13 +173,12 @@ public:
     /**
         @brief Import settings from a XMass file.
 
-@param filename File from which the experimental settings should be loaded.
-@param exp MSExperiment where the experimental settings will be stored.
+        @param filename File from which the experimental settings should be loaded.
+        @param exp MSExperiment where the experimental settings will be stored.
 
-@exception Exception::FileNotFound is thrown if the file could not be opened.
+        @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    template <class PeakType>
-    void importExperimentalSettings(const String & filename, MSExperiment<PeakType> & exp)
+    void importExperimentalSettings(const String & filename, PeakMap & exp)
     {
       Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
 

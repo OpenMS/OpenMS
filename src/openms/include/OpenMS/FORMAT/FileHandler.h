@@ -121,8 +121,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <class PeakType>
-    bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
+    bool loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
     {
       // setting the flag for hash recomputation only works if source file entries are rewritten 
       OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
@@ -189,7 +188,7 @@ public:
         f.getOptions() = options_;
         f.setLogType(log);
         f.load(filename, exp);
-        ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true);
+        ChromatogramTools().convertSpectraToChromatograms<PeakMap >(exp, true);
       }
       break;
 
@@ -261,8 +260,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    template <class PeakType>
-    void storeExperiment(const String& filename, const MSExperiment<PeakType>& exp, ProgressLogger::LogType log = ProgressLogger::NONE)
+    void storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log = ProgressLogger::NONE)
     {
       //load right file
       switch (getTypeByFileName(filename))
@@ -283,8 +281,8 @@ public:
         f.setLogType(log);
         if (!exp.getChromatograms().empty())
         {
-          MSExperiment<PeakType> exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
+          PeakMap exp2 = exp;
+          ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
           f.store(filename, exp2);
         }
         else
@@ -301,8 +299,8 @@ public:
         f.setLogType(log);
         if (!exp.getChromatograms().empty())
         {
-          MSExperiment<PeakType> exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
+          PeakMap exp2 = exp;
+          ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
           f.store(filename, exp2);
         }
         else

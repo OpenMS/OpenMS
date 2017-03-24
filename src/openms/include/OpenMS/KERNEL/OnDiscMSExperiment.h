@@ -272,6 +272,8 @@ protected:
     boost::shared_ptr<PeakMap > meta_ms_experiment_;
   };
 
+typedef OpenMS::OnDiscMSExperiment<> OnDiscPeakMap;
+
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H

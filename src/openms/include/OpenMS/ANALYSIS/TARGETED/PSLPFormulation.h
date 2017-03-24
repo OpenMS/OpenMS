@@ -88,9 +88,8 @@ public:
       @param ms2_spectra_per_rt_bin Allowed number of precursors per rt bin
       @param solution_indices Indices of ILP variables that are in the optimal solution
     */
-    template <typename InputPeakType>
     void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap& features,
-                                                      const MSExperiment<InputPeakType>& experiment,
+                                                      const PeakMap& experiment,
                                                       std::vector<IndexTriple>& variable_indices,
                                                       std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                       std::set<Int>& charges_set, UInt ms2_spectra_per_rt_bin,
@@ -105,9 +104,8 @@ public:
                                                    FeatureMap& precursors,
                                                    bool solve_ILP = true);
 
-    template <typename InputPeakType>
     void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap& features,
-                                                             const MSExperiment<InputPeakType>& experiment,
+                                                             const PeakMap& experiment,
                                                              std::vector<IndexTriple>& variable_indices,
                                                              std::vector<int>& solution_indices,
                                                              std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
@@ -174,19 +172,17 @@ public:
 
 protected:
 
-    template <typename InputPeakType>
     void getXIC_(const std::vector<std::pair<Size, Size> >& end_points,
                  std::vector<double>& weights,
-                 const MSExperiment<InputPeakType>& experiment,
+                 const PeakMap& experiment,
                  const bool normalize);
 
     /**
       @brief Calculates the XICs for all features.
     */
-    template <typename InputPeakType>
     void calculateXICs_(std::vector<std::vector<double> >& xics,
                         const FeatureMap& features,
-                        const MSExperiment<InputPeakType>& experiment,
+                        const PeakMap& experiment,
                         const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                         const bool normalize);
 
@@ -234,10 +230,9 @@ protected:
     LPWrapper::SOLVER solver_;
   };
 
-  template <typename InputPeakType>
   void PSLPFormulation::getXIC_(const std::vector<std::pair<Size, Size> >& end_points,
                                 std::vector<double>& weights,
-                                const MSExperiment<InputPeakType>& experiment,
+                                const PeakMap& experiment,
                                 const bool normalize)
   {
     double max_weight = 0.;
@@ -273,10 +268,9 @@ protected:
     }
   }
 
-  template <typename InputPeakType>
   void PSLPFormulation::calculateXICs_(std::vector<std::vector<double> >& xics,
                                        const FeatureMap& features,
-                                       const MSExperiment<InputPeakType>& experiment,
+                                       const PeakMap& experiment,
                                        const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                        const bool normalize)
   {
@@ -288,9 +282,8 @@ protected:
     }
   }
 
-  template <typename InputPeakType>
   void PSLPFormulation::createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap& features,
-                                                                     const MSExperiment<InputPeakType>& experiment,
+                                                                     const PeakMap& experiment,
                                                                      std::vector<IndexTriple>& variable_indices,
                                                                      std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                                      std::set<Int>& charges_set, UInt ms2_spectra_per_rt_bin,
@@ -320,9 +313,8 @@ protected:
     return os;
   }
 
-  template <typename InputPeakType>
   void PSLPFormulation::createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap& features,
-                                                                            const MSExperiment<InputPeakType>& experiment,
+                                                                            const PeakMap& experiment,
                                                                             std::vector<IndexTriple>& variable_indices,
                                                                             std::vector<Int>& solution_indices,
                                                                             std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,

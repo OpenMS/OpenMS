@@ -299,7 +299,7 @@ protected:
         * @param scan_index The index of the scan currently under consideration w.r.t. its MS map.
         * This information is necessary to sweep across the map after each scan has been evaluated.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class. */
-    void updateBoxStates(const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
+    void updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                          const UInt RT_votes_cutoff, const Int front_bound = -1, const Int end_bound = -1);
 
 
@@ -310,7 +310,7 @@ protected:
         * @param map The original map containing the data set to be analyzed.
         * @param max_charge The maximal charge state under consideration.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
-    FeatureMap mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff);
+    FeatureMap mapSeeds2Features(const PeakMap& map, const UInt RT_votes_cutoff);
 
     /** @brief Returns the closed boxes. */
     virtual std::multimap<double, Box> getClosedBoxes()
@@ -480,7 +480,7 @@ protected:
         * signals whose isotopic pattern is nearly diminishing
         * @param map The experimental map.
         * @param box The box to be extended. */
-    void extendBox_(const MSExperiment<PeakType>& map, const Box box);
+    void extendBox_(const PeakMap& map, const Box box);
 
     /** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass.
         * @param c_mass The mass for which we would like to know the averagine decimal places. */
@@ -1476,7 +1476,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::updateBoxStates(const MSExperiment<PeakType>& map, const Size scan_index, const UInt RT_interleave,
+  void IsotopeWaveletTransform<PeakType>::updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                                                           const UInt RT_votes_cutoff, const Int front_bound, const Int end_bound)
   {
     typename std::multimap<double, Box>::iterator iter, iter2;
@@ -1545,7 +1545,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::extendBox_(const MSExperiment<PeakType>& map, const Box box)
+  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box box)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
@@ -1760,7 +1760,7 @@ protected:
   }
 
   template <typename PeakType>
-  FeatureMap IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff)
+  FeatureMap IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const PeakMap& map, const UInt RT_votes_cutoff)
   {
     FeatureMap feature_map;
     typename std::multimap<double, Box>::iterator iter;

@@ -94,15 +94,14 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
-    template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
     {
       checkHits_(peptide_ids);
 
       if (clear_ids)
       { // start with empty IDs
         std::vector<PeptideIdentification> empty_ids;
-        for (typename MSExperiment<PeakType>::iterator it = map.begin(); it != map.end(); ++it)
+        for (PeakMap::iterator it = map.begin(); it != map.end(); ++it)
         {
           it->setPeptideIdentifications(empty_ids);
         }
@@ -209,8 +208,7 @@ public:
       @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
     */
-    template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
     {
       const std::vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
       std::vector<PeptideIdentification> peptide_ids;
@@ -299,8 +297,7 @@ public:
 
       @return A struct of vectors holding spectra indices of the partitioning.
     */
-    template <typename PeakType>
-    static SpectraIdentificationState mapPrecursorsToIdentifications(const MSExperiment<PeakType>& spectra, 
+    static SpectraIdentificationState mapPrecursorsToIdentifications(const PeakMap& spectra, 
                                                                      const std::vector<PeptideIdentification>& ids, 
                                                                      double mz_tol = 0.001, 
                                                                      double rt_tol = 0.001)

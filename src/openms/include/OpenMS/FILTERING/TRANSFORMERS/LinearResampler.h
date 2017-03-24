@@ -144,8 +144,7 @@ public:
     /**
         @brief Resamples the data in an MSExperiment.
     */
-    template <typename PeakType>
-    void rasterExperiment(MSExperiment<PeakType>& exp)
+    void rasterExperiment(PeakMap& exp)
     {
       startProgress(0, exp.size(), "resampling of data");
       for (Size i = 0; i < exp.size(); ++i)

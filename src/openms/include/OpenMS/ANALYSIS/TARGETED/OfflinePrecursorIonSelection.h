@@ -77,10 +77,9 @@ public:
       @param charges_set Allowed charge states
       @param feature_based If true the selection is feature based, if false it is scan based and the highest signals in each spectrum are chosen
     */
-    template <typename InputPeakType>
     void makePrecursorSelectionForKnownLCMSMap(const FeatureMap& features,
-                                               const MSExperiment<InputPeakType>& experiment,
-                                               MSExperiment<InputPeakType>& ms2,
+                                               const PeakMap& experiment,
+                                               PeakMap& ms2,
                                                std::set<Int>& charges_set,
                                                bool feature_based);
 
@@ -91,9 +90,8 @@ public:
       @param experiment Input raw data
       @param indices The boundaries of the features as indices in the raw data
     */
-    template <typename InputPeakType>
     void getMassRanges(const FeatureMap& features,
-                       const MSExperiment<InputPeakType>& experiment,
+                       const PeakMap& experiment,
                        std::vector<std::vector<std::pair<Size, Size> > >& indices);
 
     void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap& precursors);
@@ -116,19 +114,17 @@ private:
     /**
       @brief Calculate the sum of intensities of relevant features for each scan separately.
     */
-    template <typename InputPeakType>
     void calculateXICs_(const FeatureMap& features,
                         const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
-                        const MSExperiment<InputPeakType>& experiment,
+                        const PeakMap& experiment,
                         const std::set<Int>& charges_set,
                         std::vector<std::vector<std::pair<Size, double> > >& xics);
 
     /**
       @brief Eliminates overlapping peaks.
     */
-    template <typename InputPeakType>
     void checkMassRanges_(std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
-                          const MSExperiment<InputPeakType>& experiment);
+                          const PeakMap& experiment);
 
     /// reduce scan count for each entry, and remove every entry which has reached 0 counts
     void updateExclusionList_(ExclusionListType_& exclusion_list) const;
@@ -136,8 +132,7 @@ private:
     LPWrapper::SOLVER solver_;
   };
 
-  template <typename InputPeakType>
-  bool enclosesBoundingBox(const Feature& f, typename MSExperiment<InputPeakType>::CoordinateType rt, typename MSExperiment<InputPeakType>::CoordinateType mz)
+  bool enclosesBoundingBox(const Feature& f, typename PeakMap::CoordinateType rt, typename PeakMap::CoordinateType mz)
   {
     bool enclose_hit = false;
     const std::vector<ConvexHull2D>& hulls = f.getConvexHulls();
@@ -152,9 +147,8 @@ private:
     return enclose_hit;
   }
 
-  template <typename InputPeakType>
   void OfflinePrecursorIonSelection::getMassRanges(const FeatureMap& features,
-                                                   const MSExperiment<InputPeakType>& experiment,
+                                                   const PeakMap& experiment,
                                                    std::vector<std::vector<std::pair<Size, Size> > >& indices)
   {
     if (experiment.empty())
@@ -166,19 +160,19 @@ private:
       for (Size rt = 0; rt < experiment.size(); ++rt)
       {
         // is scan relevant?
-        if (!enclosesBoundingBox<InputPeakType>(features[f], experiment[rt].getRT(), features[f].getMZ()))
+        if (!enclosesBoundingBox(features[f], experiment[rt].getRT(), features[f].getMZ()))
           continue;
 
         std::pair<Size, Size> start;
         std::pair<Size, Size> end;
         bool start_found = false;
         bool end_found = false;
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
+        typename MSSpectrum<Peak1D>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
+        typename MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
         if (mz_iter == experiment[rt].end())
           continue;
         // check to the left
-        while (enclosesBoundingBox<InputPeakType>(features[f], experiment[rt].getRT(), mz_iter->getMZ()))
+        while (enclosesBoundingBox(features[f], experiment[rt].getRT(), mz_iter->getMZ()))
         {
           start_found = true;
           start.first = rt;
@@ -191,7 +185,7 @@ private:
           end.second = start.second;
         }
         // and now to the right
-        while (mz_end != experiment[rt].end() && enclosesBoundingBox<InputPeakType>(features[f], experiment[rt].getRT(), mz_end->getMZ()))
+        while (mz_end != experiment[rt].end() && enclosesBoundingBox(features[f], experiment[rt].getRT(), mz_end->getMZ()))
         {
           end_found = true;
           end.first = rt;
@@ -230,7 +224,7 @@ private:
                   << features[f].getRT() << " " << features[f].getMZ() << " " << features[f].getCharge() << std::endl;
 #endif
         // we estimate the convex hull
-        typename MSExperiment<InputPeakType>::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
+        typename PeakMap::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
         if (spec_iter == experiment.end())
           --spec_iter;
 
@@ -258,7 +252,7 @@ private:
         start.first = distance(experiment.begin(), spec_iter);
         end.first = start.first;
 
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
+        typename MSSpectrum<Peak1D>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
         if (spec_iter->begin() == spec_iter->end())
         {
           indices.push_back(vec);
@@ -274,7 +268,7 @@ private:
             break;
         }
         start.second = distance(spec_iter->begin(), mz_iter);
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_end = mz_iter;
+        typename MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
 #ifdef DEBUG_OPS
         std::cout << features[f].getMZ() << " Start: " << experiment[start.first].getRT() << " " << experiment[start.first][start.second].getMZ();
 #endif
@@ -303,10 +297,9 @@ private:
       checkMassRanges_(indices, experiment);
   }
 
-  template <typename InputPeakType>
   void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap& features,
                                                     const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
-                                                    const MSExperiment<InputPeakType>& experiment,
+                                                    const PeakMap& experiment,
                                                     const std::set<Int>& charges_set,
                                                     std::vector<std::vector<std::pair<Size, double> > >& xics)
   {
@@ -340,10 +333,9 @@ private:
     }
   }
 
-  template <typename InputPeakType>
   void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(const FeatureMap& features,
-                                                                           const MSExperiment<InputPeakType>& experiment,
-                                                                           MSExperiment<InputPeakType>& ms2,
+                                                                           const PeakMap& experiment,
+                                                                           PeakMap& ms2,
                                                                            std::set<Int>& charges_set, // allowed charges
                                                                            bool feature_based) // (MALDI with ILP) vs. scan_based (ESI)
   {
@@ -384,8 +376,8 @@ private:
       {
         Size feature_index = variable_indices[solution_indices[i]].feature;
         Size feature_scan_idx = variable_indices[solution_indices[i]].scan;
-        typename MSExperiment<InputPeakType>::ConstIterator scan = experiment.begin() + feature_scan_idx;
-        typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
+        typename PeakMap::ConstIterator scan = experiment.begin() + feature_scan_idx;
+        typename PeakMap::SpectrumType ms2_spec;
         Precursor p;
         std::vector<Precursor> pcs;
         p.setIntensity(features[feature_index].getIntensity());
@@ -445,7 +437,7 @@ private:
         {
           Size lower_rt = features[feat_idx].getConvexHull().getBoundingBox().minX();
           Size upper_rt = features[feat_idx].getConvexHull().getBoundingBox().maxX();
-          typename MSExperiment<InputPeakType>::ConstIterator it;
+          typename PeakMap::ConstIterator it;
           for (it = experiment.RTBegin(lower_rt); it != experiment.RTEnd(upper_rt); ++it)
           {
             scan_features[it - experiment.begin()].push_back(feat_idx);
@@ -491,7 +483,7 @@ private:
         // decrease scan counter by 1, and remove if entry on time-out
         updateExclusionList_(exclusion_list); 
 
-        MSSpectrum<InputPeakType> scan = experiment[i]; // copy & sort
+        MSSpectrum<Peak1D> scan = experiment[i]; // copy & sort
         scan.sortByIntensity(true);
         Size selected_peaks = 0;
 
@@ -513,7 +505,7 @@ private:
           ++selected_peaks;
 
           // find all features (mass traces that are in the window around peak_mz)
-          typename MSExperiment<InputPeakType>::SpectrumType ms2_spec;
+          typename PeakMap::SpectrumType ms2_spec;
           std::vector<Precursor> pcs;
           std::set<std::pair<Size, Size> > selected_mt;
           IntList parent_feature_ids;
@@ -574,9 +566,8 @@ private:
     }
   }
 
-  template <typename InputPeakType>
   void OfflinePrecursorIonSelection::checkMassRanges_(std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
-                                                      const MSExperiment<InputPeakType>& experiment)
+                                                      const PeakMap& experiment)
   {
     std::vector<std::vector<std::pair<Size, Size> > > checked_mass_ranges;
     double min_mz_peak_distance = param_.getValue("min_mz_peak_distance");
@@ -591,8 +582,8 @@ private:
         ////////////////////////////////////////////////////////////////////////
         // check if other features overlap with this feature in the current scan
         ////////////////////////////////////////////////////////////////////////
-        const InputPeakType& peak_left_border = experiment[s][mass_ranges[f][s_idx].second];
-        const InputPeakType& peak_right_border = experiment[s][mass_ranges[f][s_idx + 1].second];
+        const Peak1D& peak_left_border = experiment[s][mass_ranges[f][s_idx].second];
+        const Peak1D& peak_right_border = experiment[s][mass_ranges[f][s_idx + 1].second];
         for (Size fmr = 0; fmr < mass_ranges.size(); ++fmr)
         {
           if (fmr == f)
@@ -601,8 +592,8 @@ private:
           {
             if (mass_ranges[fmr][mr].first ==  s) // same spectrum
             {
-              const InputPeakType& tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
-              const InputPeakType& tmp_peak_right = experiment[s][mass_ranges[fmr][mr + 1].second];
+              const Peak1D& tmp_peak_left = experiment[s][mass_ranges[fmr][mr].second];
+              const Peak1D& tmp_peak_right = experiment[s][mass_ranges[fmr][mr + 1].second];
 #ifdef DEBUG_OPS
               std::cout << tmp_peak_left.getMZ() << " < "
                         << peak_left_border.getMZ() - min_mz_peak_distance << " && "
