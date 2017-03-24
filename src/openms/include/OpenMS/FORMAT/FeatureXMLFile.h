@@ -35,7 +35,6 @@
 #ifndef OPENMS_FORMAT_FEATUREXMLFILE_H
 #define OPENMS_FORMAT_FEATUREXMLFILE_H
 
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
