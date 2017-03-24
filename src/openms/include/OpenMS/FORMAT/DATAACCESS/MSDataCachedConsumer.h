@@ -50,7 +50,7 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI MSDataCachedConsumer :
       public CachedmzML,
-      public Interfaces::IMSDataConsumer<>
+      public Interfaces::DefaultIMSDataConsumer
     {
       typedef PeakMap MapType;
       typedef MapType::SpectrumType SpectrumType;

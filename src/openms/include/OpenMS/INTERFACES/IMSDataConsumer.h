@@ -124,6 +124,8 @@ namespace Interfaces
       virtual void setExperimentalSettings(const ExperimentalSettings& exp) = 0;
     };
 
+    typedef IMSDataConsumer<MSExperiment> DefaultIMSDataConsumer;
+
 } //end namespace Interfaces
 } //end namespace OpenMS
 

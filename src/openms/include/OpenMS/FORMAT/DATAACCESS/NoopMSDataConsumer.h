@@ -44,12 +44,12 @@ namespace OpenMS
     @brief Consumer class that performs no operation.
 
     This is sometimes necessary to fulfill the requirement of passing an
-    valid Interfaces::IMSDataConsumer<> object or pointer but no operation is
+    valid Interfaces::DefaultIMSDataConsumer object or pointer but no operation is
     required.
 
   */
   class OPENMS_DLLAPI NoopMSDataConsumer :
-    public Interfaces::IMSDataConsumer< PeakMap >
+    public Interfaces::DefaultIMSDataConsumer
   {
   public:
 

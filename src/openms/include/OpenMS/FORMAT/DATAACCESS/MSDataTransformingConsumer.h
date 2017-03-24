@@ -59,7 +59,7 @@ namespace OpenMS
       Note that the spectrum gets transformed in-place.
     */
     class OPENMS_DLLAPI MSDataTransformingConsumer :
-      public Interfaces::IMSDataConsumer<>
+      public Interfaces::DefaultIMSDataConsumer
     {
 
     public:

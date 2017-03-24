@@ -57,7 +57,7 @@ namespace OpenMS
     MSDataTransformingConsumer * transforming_consumer_second = new MSDataTransformingConsumer(); // apply second transformation
     MSDataWritingConsumer * writing_consumer = new MSDataWritingConsumer(outfile); // writing to disk
 
-    std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+    std::vector<Interfaces::DefaultIMSDataConsumer *> consumer_list;
     consumer_list.push_back(transforming_consumer_first);
     consumer_list.push_back(transforming_consumer_second);
     consumer_list.push_back(writing_consumer);
@@ -68,9 +68,9 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MSDataChainingConsumer :
-    public Interfaces::IMSDataConsumer< PeakMap >
+    public Interfaces::DefaultIMSDataConsumer
   {
-    std::vector<Interfaces::IMSDataConsumer<> *> consumers_;
+    std::vector<Interfaces::DefaultIMSDataConsumer *> consumers_;
 
   public:
 
@@ -89,7 +89,7 @@ namespace OpenMS
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer<> *> consumers);
+    MSDataChainingConsumer(std::vector<Interfaces::DefaultIMSDataConsumer *> consumers);
 
     /**
      * @brief Destructor
@@ -107,7 +107,7 @@ namespace OpenMS
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    void appendConsumer(Interfaces::IMSDataConsumer<> * consumer);
+    void appendConsumer(Interfaces::DefaultIMSDataConsumer * consumer);
 
     /**
      * @brief Set experimental settings for all consumers

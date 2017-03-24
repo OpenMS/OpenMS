@@ -49,7 +49,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MSDataStoringConsumer :
-    public Interfaces::IMSDataConsumer< PeakMap >
+    public Interfaces::DefaultIMSDataConsumer
   {
   private:
     PeakMap exp_;

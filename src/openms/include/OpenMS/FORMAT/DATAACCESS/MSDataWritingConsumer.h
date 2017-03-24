@@ -88,7 +88,7 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI MSDataWritingConsumer : 
       public Internal::MzMLHandler,
-      public Interfaces::IMSDataConsumer< PeakMap >
+      public Interfaces::DefaultIMSDataConsumer
     {
 
     public:
