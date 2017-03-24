@@ -862,7 +862,7 @@ namespace OpenMS
   }
 
   void OpenSwathWorkflow::selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-    MSSpectrum<ChromatogramPeak>& chromatogram, double rt_extraction_window, double center_rt)
+    ChromatogramSpec& chromatogram, double rt_extraction_window, double center_rt)
   {
     double rt_max = center_rt + rt_extraction_window;
     double rt_min = center_rt - rt_extraction_window;

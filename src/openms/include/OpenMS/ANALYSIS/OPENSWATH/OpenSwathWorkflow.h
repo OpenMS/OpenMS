@@ -352,12 +352,12 @@ namespace OpenMS
 
     /** @brief Extract part of a chromatogram inside the extraction windows
      *
-     * @note The chromatogram will be returned as MSSpectrum<ChromatogramPeak>
-     * which is used by the feature finders.
+     * @note The chromatogram will be returned as ChromatogramSpec type which
+     * is used by the feature finders.
      *
     */
     void selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-      MSSpectrum<ChromatogramPeak>& chromatogram, double rt_extraction_window, double center_rt);
+      ChromatogramSpec& chromatogram, double rt_extraction_window, double center_rt);
 
     /**
      * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
