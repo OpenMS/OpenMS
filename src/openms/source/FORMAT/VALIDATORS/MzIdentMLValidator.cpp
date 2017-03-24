@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+
 using namespace xercesc;
 using namespace std;
 

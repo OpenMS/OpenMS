@@ -39,6 +39,7 @@
 #endif
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <QRegExp>
 
 #include <set>
 
