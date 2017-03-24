@@ -34,6 +34,7 @@
 
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -429,7 +430,7 @@ protected:
     setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
-    setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
@@ -864,8 +865,8 @@ protected:
       remove(out_osw.c_str());
       if (!out_osw.empty())
       {
-        std::ifstream  src(tr_file, std::ios::binary);
-        std::ofstream  dst(out_osw, std::ios::binary);
+        std::ifstream  src(tr_file.c_str(), std::ios::binary);
+        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
 
         dst << src.rdbuf();
       }
@@ -877,24 +878,33 @@ protected:
     progresslogger.endProgress();
 
     ///////////////////////////////////
-    // Set up chrom.mzML output
+    // Set up chromatogram output
+    // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
-    MSDataWritingConsumer * chromConsumer;
+    Interfaces::IMSDataConsumer<> * chromatogramConsumer;
     if (!out_chrom.empty())
     {
-      chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-      int expected_chromatograms = transition_exp.transitions.size();
-      chromConsumer->setExpectedSize(0, expected_chromatograms);
-      chromConsumer->setExperimentalSettings(*exp_meta);
-      chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
-      chromConsumer->getOptions().setCompression(true); // compress data
-      chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
-      chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
-      chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+      if (out_chrom.hasSuffix(".sqMass"))
+      {
+        chromatogramConsumer = new MSDataSqlConsumer(out_chrom);
+      }
+      else
+      {
+        PlainMSDataWritingConsumer * chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
+        int expected_chromatograms = transition_exp.transitions.size();
+        chromConsumer->setExpectedSize(0, expected_chromatograms);
+        chromConsumer->setExperimentalSettings(*exp_meta);
+        chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
+        chromConsumer->getOptions().setCompression(true); // compress data
+        chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
+        chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
+        chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+        chromatogramConsumer = chromConsumer;
+      }
     }
     else
     {
-      chromConsumer = new NoopMSDataWritingConsumer("");
+      chromatogramConsumer = new NoopMSDataWritingConsumer("");
     }
 
     ///////////////////////////////////
@@ -910,14 +920,14 @@ protected:
       OpenSwathWorkflowSonar wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
     else
     {
       OpenSwathWorkflow wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
 
     if (!out.empty())
@@ -927,7 +937,7 @@ protected:
       FeatureXMLFile().store(out, out_featureFile);
     }
 
-    delete chromConsumer;
+    delete chromatogramConsumer;
 
     return EXECUTION_OK;
   }

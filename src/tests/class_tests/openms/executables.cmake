@@ -215,6 +215,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
+  SqMassFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -229,6 +230,7 @@ set(format_executables_list
   XMLValidator_test
   XTandemInfile_test
   XTandemXMLFile_test
+  ZlibCompression_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
