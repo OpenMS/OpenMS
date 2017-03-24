@@ -67,7 +67,7 @@ END_SECTION
 PeakPickerHiRes pp_hires;
 Param param;
 
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 
 /////////////////////////
 // ORBITRAP data tests //
@@ -151,7 +151,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSE
 END_SECTION
 
 START_SECTION((template <typename PeakType, typename ChromatogramPeakT> void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const))
-  MSExperiment<Peak1D> tmp_exp;
+  PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
@@ -204,7 +204,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
-  MSExperiment<Peak1D> tmp_exp;
+  PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
@@ -306,7 +306,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
-  MSExperiment<Peak1D> tmp_exp;
+  PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
@@ -452,7 +452,7 @@ param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
-    MSExperiment<Peak1D> tmp_picked;
+    PeakMap tmp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
 
@@ -505,7 +505,7 @@ param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
-    MSExperiment<Peak1D> tmp_picked;
+    PeakMap tmp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
 

@@ -65,7 +65,7 @@ START_SECTION(~ElutionPeakDetection())
 }
 END_SECTION
 
-MSExperiment<Peak1D> input;
+PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ElutionPeakDetection_input1.mzML"), input);
 
 std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;

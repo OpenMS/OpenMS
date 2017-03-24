@@ -61,7 +61,7 @@ END_SECTION
 
 // load input and output data
 MzMLFile mz_ml_file;
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test.mzML"), input);
 mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), output);
 

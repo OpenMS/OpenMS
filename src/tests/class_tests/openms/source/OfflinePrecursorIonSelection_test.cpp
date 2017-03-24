@@ -74,7 +74,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data
 
 START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(const FeatureMap &features, const MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
 {
-	MSExperiment<Peak1D> ms2;
+	PeakMap ms2;
 	std::set<Int> charges_set;
 	charges_set.insert(1);
 	bool feature_based = true;

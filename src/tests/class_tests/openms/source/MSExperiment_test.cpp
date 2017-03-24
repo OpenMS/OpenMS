@@ -318,8 +318,8 @@ START_SECTION((template <bool add_mass_traces, class Container> void set2DData(c
 
 END_SECTION
 
-START_SECTION(([EXTRA] MSExperiment<Peak1D >()))
-	MSExperiment<Peak1D > tmp;
+START_SECTION(([EXTRA] PeakMap()))
+	PeakMap tmp;
 	tmp.resize(1);
 	tmp[0].resize(1);
 	tmp[0][0].getPosition()[0] = 47.11;
@@ -327,37 +327,37 @@ START_SECTION(([EXTRA] MSExperiment<Peak1D >()))
 END_SECTION
 
 START_SECTION((CoordinateType getMinMZ() const))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_REAL_SIMILAR(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
 END_SECTION
 
 START_SECTION((CoordinateType getMaxMZ() const))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_REAL_SIMILAR(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 END_SECTION
 
 START_SECTION((CoordinateType getMinRT() const))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_REAL_SIMILAR(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
 END_SECTION
 
 START_SECTION((CoordinateType getMaxRT() const))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_REAL_SIMILAR(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
 END_SECTION
 
 START_SECTION((const std::vector<UInt>& getMSLevels() const))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_EQUAL(tmp.getMSLevels().size(),0)
 END_SECTION
 
 START_SECTION((UInt64 getSize() const ))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_EQUAL(tmp.getSize(),0)
 END_SECTION
 
 START_SECTION((const AreaType& getDataRange() const))
-	MSExperiment<Peak1D > tmp;
+	PeakMap tmp;
 	TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[1],numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_SIMILAR(tmp.getDataRange().maxPosition()[1],-numeric_limits<DPosition<2>::CoordinateType>::max())
 	TEST_REAL_SIMILAR(tmp.getDataRange().minPosition()[0],numeric_limits<DPosition<2>::CoordinateType>::max())
@@ -365,7 +365,7 @@ START_SECTION((const AreaType& getDataRange() const))
 END_SECTION
 
 START_SECTION((virtual void updateRanges()))
-	MSExperiment< Peak1D > tmp;
+	PeakMap tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
 
@@ -458,7 +458,7 @@ START_SECTION((virtual void updateRanges()))
 
 	//test with only one peak
 
-	MSExperiment< Peak1D > tmp2;
+	PeakMap tmp2;
 	MSSpectrum< Peak1D > s2;
 	Peak1D p2;
 
@@ -487,7 +487,7 @@ START_SECTION((virtual void updateRanges()))
 END_SECTION
 
 START_SECTION((void updateRanges(Int ms_level)))
-	MSExperiment< Peak1D > tmp;
+	PeakMap tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
 
@@ -548,7 +548,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 
 	//test with only one peak
 
-	MSExperiment< Peak1D > tmp2;
+	PeakMap tmp2;
 	MSSpectrum< Peak1D > s2;
 	Peak1D p2;
 
@@ -655,7 +655,7 @@ START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_
 END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
-	MSExperiment< Peak1D > tmp;
+	PeakMap tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
 
@@ -668,7 +668,7 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
 	s.setRT(50.0);
 	tmp.addSpectrum(s);
 
-	MSExperiment< Peak1D >::Iterator it;
+	PeakMap::Iterator it;
 
 	it = tmp.RTBegin(20.0);
 	TEST_REAL_SIMILAR(it->getRT(),30.0)
@@ -680,7 +680,7 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
 END_SECTION
 
 START_SECTION((Iterator RTEnd(CoordinateType rt)))
-	MSExperiment< Peak1D > tmp;
+	PeakMap tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
 
@@ -693,7 +693,7 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
 	s.setRT(50.0);
 	tmp.addSpectrum(s);
 
-	MSExperiment< Peak1D >::Iterator it;
+	PeakMap::Iterator it;
 
 	it = tmp.RTEnd(20.0);
 	TEST_REAL_SIMILAR(it->getRT(),30.0)
@@ -705,7 +705,7 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
 END_SECTION
 
 START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
-	MSExperiment< Peak1D > tmp;
+	PeakMap tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
 
@@ -718,7 +718,7 @@ START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 	s.setRT(50.0);
 	tmp.addSpectrum(s);
 
-	MSExperiment< Peak1D >::Iterator it;
+	PeakMap::Iterator it;
 
 	it = tmp.RTBegin(20.0);
 	TEST_REAL_SIMILAR(it->getRT(),30.0)
@@ -730,7 +730,7 @@ START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 END_SECTION
 
 START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
-	MSExperiment< Peak1D > tmp;
+	PeakMap tmp;
 	MSSpectrum< Peak1D > s;
 	Peak1D p;
 
@@ -743,7 +743,7 @@ START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 	s.setRT(50.0);
 	tmp.addSpectrum(s);
 
-	MSExperiment< Peak1D >::Iterator it;
+	PeakMap::Iterator it;
 
 	it = tmp.RTEnd(20.0);
 	TEST_REAL_SIMILAR(it->getRT(),30.0)

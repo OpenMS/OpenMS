@@ -104,10 +104,10 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   //******************************************************************
   //test exception with unequal number of scans
   {
-  	MSExperiment<Peak1D> exp_in;
+  	PeakMap exp_in;
 	  exp_in.resize(1);
-	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
-	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
+	  PeakMap::const_iterator first1 = exp_in.begin();
+	  PeakMap::const_iterator last1 = exp_in.end();
 	  PeakMap exp_out;
 		TwoDOptimization opt1;
 		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
@@ -116,10 +116,10 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   //******************************************************************
   //test exception when meta data is missing
   {
-  	MSExperiment<Peak1D> exp_in;
+  	PeakMap exp_in;
 	  exp_in.resize(1);
-	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
-	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
+	  PeakMap::const_iterator first1 = exp_in.begin();
+	  PeakMap::const_iterator last1 = exp_in.end();
 	  PeakMap exp_out;
 	  exp_out.resize(1);
 		TwoDOptimization opt1;
@@ -227,7 +227,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
     raw_spec2.push_back(data_point);
   }
 
-  MSExperiment<Peak1D > raw_exp;
+  PeakMap raw_exp;
   raw_exp.addSpectrum(raw_spec);
   raw_exp.addSpectrum(raw_spec2);
 	raw_exp.begin()->setRT(100);
@@ -236,7 +236,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   Param param;
   ParamXMLFile paramFile;
 	paramFile.load(file, param);
-  MSExperiment<Peak1D >::const_iterator first,last;
+  PeakMap::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
   TwoDOptimization opt_2d;

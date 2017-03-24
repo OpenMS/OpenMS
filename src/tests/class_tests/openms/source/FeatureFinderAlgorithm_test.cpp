@@ -69,7 +69,7 @@ namespace OpenMS
 				return tmp;
 			}
 
-      const MSExperiment<Peak1D>* getMap()
+      const PeakMap* getMap()
 			{
 				return this->map_;
 			}

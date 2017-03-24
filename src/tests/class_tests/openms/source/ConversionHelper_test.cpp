@@ -85,7 +85,7 @@ END_SECTION
 /////
 
 // Prepare data
-MSExperiment<Peak1D> mse;
+PeakMap mse;
 {
   MSSpectrum<Peak1D> mss;
   Peak1D p;
