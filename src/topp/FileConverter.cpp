@@ -243,7 +243,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    typedef MSExperiment<Peak1D> MSExperimentType;
+    typedef PeakMap MSExperimentType;
     MSExperimentType exp;
 
     typedef MSExperimentType::SpectrumType SpectrumType;

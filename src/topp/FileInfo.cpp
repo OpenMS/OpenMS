@@ -211,7 +211,7 @@ protected:
     os_tsv << "file name" << "\t" << in << "\n"
            << "file type" << "\t" << FileTypes::typeToName(in_type) << "\n";
 
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     FeatureMap feat;
     ConsensusMap cons;
     IdData id_data;
@@ -660,7 +660,7 @@ protected:
 
       //count how many spectra per MS level there are
       map<Size, UInt> counts;
-      for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
+      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         ++counts[it->getMSLevel()];
       }
@@ -677,7 +677,7 @@ protected:
       }
 
       // show meta data array names
-      for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
+      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         for (i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
@@ -783,7 +783,7 @@ protected:
         os << "\n"
            << "-- Detailed spectrum listing --" << "\n";
         UInt count = 0;
-        for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
+        for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
         {
           ++count;
           os << "\n"
@@ -1223,13 +1223,13 @@ protected:
         Size size = exp.getSize();
         vector<double> intensities;
         intensities.reserve(size);
-        for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+        for (PeakMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
         {
           if (spec->getMSLevel() != 1)
           {
             continue;
           }
-          for (MSExperiment<Peak1D>::SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
+          for (PeakMap::SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
           {
             intensities.push_back(it->getIntensity());
           }
@@ -1244,7 +1244,7 @@ protected:
         {
           String name = it->first;
           vector<double> m_values;
-          for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+          for (PeakMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
           {
             for (Size meta = 0; meta < spec->getFloatDataArrays().size(); ++meta)
             {

@@ -149,7 +149,7 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MSExperiment<Peak1D> ms_exp_calib, ms_exp_raw;
+    PeakMap ms_exp_calib, ms_exp_raw;
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
     mz_data_file.load(in_calib, ms_exp_calib);

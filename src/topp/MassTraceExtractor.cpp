@@ -156,7 +156,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_peakmap;
+    PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);

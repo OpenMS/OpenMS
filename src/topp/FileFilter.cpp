@@ -242,7 +242,7 @@ private:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerOptionsAndFlags_()
   {

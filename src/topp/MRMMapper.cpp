@@ -129,8 +129,8 @@ protected:
     bool nostrict = getFlag_("no-strict");
 
     OpenMS::TargetedExperiment targeted_exp;
-    OpenMS::MSExperiment<Peak1D> chromatogram_map;
-    OpenMS::MSExperiment<Peak1D> output;
+    OpenMS::PeakMap chromatogram_map;
+    OpenMS::PeakMap output;
 
     TraMLFile().load(tr_file, targeted_exp);
     MzMLFile().load(in, chromatogram_map);

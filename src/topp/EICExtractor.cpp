@@ -257,7 +257,7 @@ public:
     //-------------------------------------------------------------
     MzMLFile mzml_file;
     mzml_file.setLogType(log_type_);
-    MSExperiment<Peak1D> exp, exp_pp;
+    PeakMap exp, exp_pp;
 
     EDTAFile ed;
     ConsensusMap cm;

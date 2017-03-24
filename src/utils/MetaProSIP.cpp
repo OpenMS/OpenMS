@@ -1830,7 +1830,7 @@ public:
 class MetaProSIPXICExtraction
 {
 public:
-  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const MSExperiment<Peak1D>& peak_map)
+  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
   {
     // point on first spectrum in tolerance window
     PeakMap::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
@@ -1897,7 +1897,7 @@ public:
     return rrs;
   }
 
-  static vector<double> extractXICsOfIsotopeTraces(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double seed_charge, const MSExperiment<Peak1D>& peak_map, const double min_corr_mono = -1.0)
+  static vector<double> extractXICsOfIsotopeTraces(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double seed_charge, const PeakMap& peak_map, const double min_corr_mono = -1.0)
   {
     vector<double> xic_mzs;
 
@@ -2349,7 +2349,7 @@ protected:
   // collects intensities starting at seed_mz/_rt, if no peak is found at the expected position a 0 is added
   vector<double> extractIsotopicIntensities(Size element_count, double mass_diff, double mz_tolerance_ppm,
                                             double seed_rt, double seed_mz, double seed_charge,
-                                            const MSExperiment<Peak1D>& peak_map)
+                                            const PeakMap& peak_map)
   {
     vector<double> isotopic_intensities;
     for (Size k = 0; k != element_count; ++k)
@@ -2375,7 +2375,7 @@ protected:
 
       double found_peak_int = 0;
 
-      MSExperiment<Peak1D>::ConstAreaIterator aait = peak_map.areaBeginConst(min_rt, max_rt, min_mz, max_mz);
+      PeakMap::ConstAreaIterator aait = peak_map.areaBeginConst(min_rt, max_rt, min_mz, max_mz);
 
       // find 13C/15N peak in window around theoretical predicted position
       vector<double> found_peaks;
@@ -2493,7 +2493,7 @@ protected:
   // Used to compensate for slight RT shifts (e.g. important if features of a different map are used)
   // n_scans corresponds to the number of neighboring scan rts that should be extracted
   // n_scan = 2 -> vector size = 1 + 2 + 2
-  vector<double> findApexRT(const FeatureMap::iterator feature_it, double hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
+  vector<double> findApexRT(const FeatureMap::iterator feature_it, double hit_rt, const PeakMap& peak_map, Size n_scans)
   {
     vector<double> seeds_rt;
     vector<Peak2D> mono_trace;
@@ -2505,7 +2505,7 @@ protected:
       const DBoundingBox<2>& mono_bb = feature_it->getConvexHulls()[0].getBoundingBox();
 
       //(min_rt, max_rt, min_mz, max_mz)
-      MSExperiment<Peak1D>::ConstAreaIterator ait = peak_map.areaBeginConst(mono_bb.minPosition()[0], mono_bb.maxPosition()[0], mono_bb.minPosition()[1], mono_bb.maxPosition()[1]);
+      PeakMap::ConstAreaIterator ait = peak_map.areaBeginConst(mono_bb.minPosition()[0], mono_bb.maxPosition()[0], mono_bb.minPosition()[1], mono_bb.maxPosition()[1]);
       for (; ait != peak_map.areaEndConst(); ++ait)
       {
         Peak2D p2d;
@@ -3055,7 +3055,7 @@ protected:
     if (use_averagine_ids)
     {
       // load only MS2 spectra with precursor information
-      MSExperiment<Peak1D> peak_map;
+      PeakMap peak_map;
       MzMLFile mh;
       std::vector<Int> ms_level(1, 2);
       mh.getOptions().setMSLevels(ms_level);
@@ -3142,7 +3142,7 @@ protected:
     }
 
     LOG_INFO << "loading experiment..." << endl;
-    MSExperiment<Peak1D> peak_map;
+    PeakMap peak_map;
     MzMLFile mh;
     std::vector<Int> ms_level(1, 1);
     mh.getOptions().setMSLevels(ms_level);
@@ -3542,7 +3542,7 @@ protected:
     }
 
     // copy meta information
-    MSExperiment<Peak1D> debug_exp = peak_map;
+    PeakMap debug_exp = peak_map;
     debug_exp.clear(false);
 
     vector<vector<SIPPeptide> > sippeptide_clusters; // vector of cluster

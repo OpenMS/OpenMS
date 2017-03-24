@@ -229,7 +229,7 @@ protected:
     String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
 
     cout << "Reading mzML file..." << endl;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile().load(inputfile_raw, exp);
     
     //---prep input

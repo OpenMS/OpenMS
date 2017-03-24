@@ -80,7 +80,7 @@ public:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
   typedef boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > MapTypePtr;
 
   void registerOptionsAndFlags_()

@@ -258,7 +258,7 @@ protected:
   }
 
 
-  typedef MSExperiment<Peak1D> PeakMap;
+  typedef PeakMap PeakMap;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
