@@ -277,7 +277,6 @@ protected:
       }
     }
     cout << "Found " << found_counter << " peptides\n";
-    //library = static_cast<MSExperiment<MSSpectrum<RichPeak1D> > >(msexperiment);
 
     //-------------------------------------------------------------
     // writing output
