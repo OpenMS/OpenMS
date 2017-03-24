@@ -258,7 +258,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
     bool check_spectrum_type = !getFlag_("force");
     pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
 

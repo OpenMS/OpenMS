@@ -304,7 +304,7 @@ protected:
       f.setLogType(log_type_);
       CachedmzML cacher;
       cacher.setLogType(log_type_);
-      MSExperiment<> tmp_exp;
+      PeakMap tmp_exp;
 
       f.load(in_meta, exp);
       cacher.readMemdump(tmp_exp, in);
@@ -380,7 +380,7 @@ protected:
 
         CachedmzML cacher;
         cacher.setLogType(log_type_);
-        MSExperiment<> exp_meta;
+        PeakMap exp_meta;
 
         MSDataCachedConsumer consumer(out);
         MzMLFile().transform(in, &consumer, exp_meta);

@@ -729,24 +729,24 @@ protected:
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
       //remove empty scans
@@ -1139,7 +1139,7 @@ protected:
     }
 
 
-    MSExperiment<> exp2 = exp;
+    PeakMap exp2 = exp;
     exp2.clear(false);
 
     for (Size i = 0; i != exp.size(); ++i)
@@ -1211,7 +1211,7 @@ protected:
     }
 
     // create new experiment
-    MSExperiment<> exp2 = exp; // copy meta data
+    PeakMap exp2 = exp; // copy meta data
     exp2.clear(false); // clear spectra
 
     for (Size i = 0; i != exp.size(); ++i)

@@ -229,7 +229,7 @@ protected:
     String out = getStringOption_("out");
     String tr_file = getStringOption_("tr");
 
-    boost::shared_ptr<MSExperiment<> > exp ( new MSExperiment<> );
+    boost::shared_ptr<PeakMap > exp ( new PeakMap );
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
     mzmlfile.load(in, *exp);

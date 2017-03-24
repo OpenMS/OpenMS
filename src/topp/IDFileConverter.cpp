@@ -313,7 +313,7 @@ protected:
         }
         else
         {
-          MSExperiment<> exp;
+          PeakMap exp;
           fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
@@ -421,7 +421,7 @@ protected:
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
         {
-          MSExperiment<> experiment;
+          PeakMap experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
@@ -515,7 +515,7 @@ protected:
         }
         if (lookup.empty()) // raw data hasn't been read yet
         {
-          MSExperiment<> experiment;
+          PeakMap experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_,
                             false, false);
           lookup.readSpectra(experiment.getSpectra());

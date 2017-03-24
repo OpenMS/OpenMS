@@ -186,7 +186,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
 
     Param pepi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to PeakPickerWavelet", pepi_param, 3);

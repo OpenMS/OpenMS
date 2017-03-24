@@ -298,7 +298,7 @@ protected:
     vector<PeptideIdentification> pep_out;
     IdXMLFile().load(id, prot_ids, pep_ids);
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
 

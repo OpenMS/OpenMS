@@ -1833,14 +1833,14 @@ public:
   static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const MSExperiment<Peak1D>& peak_map)
   {
     // point on first spectrum in tolerance window
-    MSExperiment<>::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
+    PeakMap::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
 
     // point on after last spectrum in tolerance window
-    MSExperiment<>::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
+    PeakMap::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
 
     // create set containing all rts of spectra in tolerance window
     set<double> all_rts;
-    for (MSExperiment<>::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
+    for (PeakMap::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
     {
       all_rts.insert(rt_it->getRT());
     }
@@ -1857,7 +1857,7 @@ public:
       }
 
       double mz_da = mz_toelrance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
-      MSExperiment<>::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
+      PeakMap::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
 
       for (; it != peak_map.areaEndConst(); ++it)
       {
@@ -2329,7 +2329,7 @@ protected:
     }
   }
 
-  PeakSpectrum extractPeakSpectrum(Size element_count, double mass_diff, double rt, double feature_hit_theoretical_mz, Int feature_hit_charge, const MSExperiment<>& peak_map)
+  PeakSpectrum extractPeakSpectrum(Size element_count, double mass_diff, double rt, double feature_hit_theoretical_mz, Int feature_hit_charge, const PeakMap& peak_map)
   {
     PeakSpectrum spec = *peak_map.RTBegin(rt - 1e-8);
     PeakSpectrum::ConstIterator begin_it = spec.MZBegin(feature_hit_theoretical_mz - 1e-8);
@@ -2570,7 +2570,7 @@ protected:
     return seeds_rt;
   }
 
-  PeakSpectrum mergeSpectra(const MSExperiment<>& to_merge)
+  PeakSpectrum mergeSpectra(const PeakMap& to_merge)
   {
     PeakSpectrum merged;
     for (Size i = 0; i != to_merge.size(); ++i)
@@ -3100,8 +3100,8 @@ protected:
       vector<Size> blacklist_idx;
       for (vector<Peak2D>::const_iterator it = blacklisted_precursors.begin(); it != blacklisted_precursors.end(); ++it)
       {
-        MSExperiment<>::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
-        MSExperiment<>::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
+        PeakMap::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
+        PeakMap::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
         Size index = std::distance(map_rt_begin, rt_begin);
         //cout << "Blacklist Index: " << index << endl;
         blacklist_idx.push_back(index);

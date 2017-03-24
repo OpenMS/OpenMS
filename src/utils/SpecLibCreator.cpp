@@ -223,7 +223,7 @@ protected:
       bool no_peptide = true;
       double rt =  (60 * (list[i][retention_time].toFloat())); // from minutes to seconds
       double mz = list[i][measured_weight].toFloat();
-      for (MSExperiment<>::Iterator it = msexperiment.begin(); it < msexperiment.end(); ++it)
+      for (PeakMap::Iterator it = msexperiment.begin(); it < msexperiment.end(); ++it)
       {
         //cout<<"i =" <<i<<endl;
         //cout<<rt <<" (rt) - " << it->getRT()<<" (getRT) = "<<(rt - it->getRT())<<endl;
