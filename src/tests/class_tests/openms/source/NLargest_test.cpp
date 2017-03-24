@@ -164,7 +164,7 @@ int  mz DA_int DA_string
   TEST_EQUAL(s_da.size(), 10)
   TEST_EQUAL(s_da[0].getIntensity(), 50.2)
   TEST_EQUAL(s_da[1].getIntensity(), 49.2)
-  TEST_EQUAL(s_da[3].getIntensity(), 49.1)
+  TEST_EQUAL(s_da[2].getIntensity(), 49.1)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][0], 50)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][1], 51)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][2], 49)
@@ -186,8 +186,6 @@ int  mz DA_int DA_string
   // {
   //  cout << "int:" << s_da[i].getIntensity() << " mz:" << s_da[i].getMZ()  << "\t" << s_da.getIntegerDataArrays()[0][i] << "\t" << s_da.getStringDataArrays()[0][i] << endl;
   // }
-
-
 END_SECTION
 
 delete e_ptr;

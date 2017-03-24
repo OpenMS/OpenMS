@@ -662,7 +662,7 @@ protected:
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
                                          1, 3, 
                                          false, 
-                                         3, 10, 
+                                         2, 10, 
                                          single_charge_spectra, 
                                          annotate_charge);
     #ifdef DEBUG_RNPXLSEARCH
