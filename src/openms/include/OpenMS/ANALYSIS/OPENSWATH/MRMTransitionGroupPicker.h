@@ -82,10 +82,6 @@ namespace OpenMS
 
 public:
 
-    // this is the type in which we store the chromatograms for this analysis
-    // (since not all OpenMS tools work with MSChromatogram)
-    typedef MSChromatogram<> ChromatogramSpec;
-
     //@{
     /// Constructor
     MRMTransitionGroupPicker();
@@ -116,7 +112,7 @@ public:
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
-      std::vector<ChromatogramSpec> picked_chroms_;
+      std::vector<MSChromatogram<> > picked_chroms_;
 
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
@@ -124,7 +120,7 @@ public:
       // Pick chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        ChromatogramSpec& chromatogram = transition_group.getChromatograms()[k];
+        MSChromatogram<>& chromatogram = transition_group.getChromatograms()[k];
         String native_id = chromatogram.getNativeID();
         if (transition_group.getTransitions().size() > 0 && 
             transition_group.hasTransition(native_id)  && 
@@ -137,7 +133,7 @@ public:
         {
           chromatogram.sortByPosition();
         }
-        ChromatogramSpec picked_chrom;
+        MSChromatogram<> picked_chrom;
         picker.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
@@ -450,7 +446,7 @@ public:
     }
 
     /// Find largest peak in a vector of chromatograms
-    void findLargestPeak(std::vector<ChromatogramSpec>& picked_chroms, int& chr_idx, int& peak_idx);
+    void findLargestPeak(std::vector<MSChromatogram<> >& picked_chroms, int& chr_idx, int& peak_idx);
 
 protected:
 
@@ -798,7 +794,7 @@ protected:
       The background is estimated by averaging the noise on either side of the
       peak and then subtracting that from the total intensity.
     */
-    double calculateBgEstimation_(const ChromatogramSpec& chromatogram, double best_left, double best_right);
+    double calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right);
 
     // Members
     String background_subtraction_;
