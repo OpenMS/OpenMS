@@ -134,4 +134,5 @@ private:
   };
 }
 
-#endif
+#endif // OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
+
