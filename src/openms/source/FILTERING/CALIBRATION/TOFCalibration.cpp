@@ -320,4 +320,73 @@ namespace OpenMS
 
   }
 
+  void TOFCalibration::pickAndCalibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  {
+    PeakMap p_calib_spectra;
+
+    // pick peaks
+    PeakPickerCWT pp;
+    pp.setParameters(param_.copy("PeakPicker:", true));
+    pp.pickExperiment(calib_spectra, p_calib_spectra);
+
+    //calibrate
+    calibrate(p_calib_spectra, exp, exp_masses);
+  }
+
+  void TOFCalibration::calibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  {
+    exp_masses_ = exp_masses;
+    calculateCalibCoeffs_(calib_spectra);
+
+    Spline2d<double> spline (3, calib_masses_, error_medians_);
+
+#ifdef DEBUG_CALIBRATION
+    std::cout << "fehler nach spline fitting" << std::endl;
+
+    for (unsigned int spec = 0; spec <  calib_peaks_ft_.size(); ++spec)
+    {
+
+      std::vector<double> exp_masses;
+      std::vector<unsigned int> monoiso;
+      matchMasses_(calib_spectra, monoiso_peaks, monoiso, exp_masses, spec);
+      for (unsigned int p = 0; p < monoiso.size(); ++p)
+      {
+        double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
+        if (xi > calib_masses[error_medians_.size() - 1])
+          continue;
+        if (xi < calib_masses[0])
+          continue;
+        std::cout << exp_masses[p] << "\t"
+                  << Math::getPPM(xi - spline(xi), exp_masses[p])
+                  << std::endl;
+
+      }
+
+    }
+
+
+    double xi, yi;
+    std::cout << "interpolation \n\n";
+    for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
+    {
+      yi = spline(xi);
+      std::cout << xi << "\t" << yi << std::endl;
+    }
+    std::cout << "--------------\nend interpolation \n\n";
+#endif
+
+//    delete[] calib_masses;
+//    delete[] error_medians;
+
+    double m;
+    for (unsigned int spec = 0; spec <  exp.size(); ++spec)
+    {
+      for (unsigned int peak = 0; peak <  exp[spec].size(); ++peak)
+      {
+        m = mQAv_(exp[spec][peak].getMZ());
+        exp[spec][peak].setPos(m - spline.eval(m));
+      }
+    }
+  }
+
 } //namespace openms
