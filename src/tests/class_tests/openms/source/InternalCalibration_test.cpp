@@ -39,6 +39,7 @@
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
