@@ -52,23 +52,115 @@
 
 namespace OpenMS
 {
+    /**
+        @brief Percolator feature and I/O handler
+
+        This class contains functions to handle (compute, aggregate) Percolator
+        features.
+    */
+
     class OPENMS_DLLAPI TopPerc
     {
 
     public:
+        /**
+         * @brief concatMULTISEPeptideIds
+         * @param all_peptide_ids PeptideIdentification vector to append to
+         * @param new_peptide_ids PeptideIdentification vector to be appended
+         * @param search_engine search engine to depend on for feature creation
+         *
+         * Appends a vector of PeptideIdentification to another and registers concatenation Percolator features depending on given search engine.
+         */
         static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
+
+        /**
+         * @brief mergeMULTISEPeptideIds
+         * @param all_peptide_ids PeptideIdentification vector to be merged into
+         * @param new_peptide_ids PeptideIdentification vector to merge
+         * @param search_engine search engine to depend on for feature creation
+         *
+         * Merges a vector of PeptideIdentification into another and registers merge Percolator features depending on given search engine.
+         */
         static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
+
+        /**
+         * @brief mergeMULTISEProteinIds
+         * @param all_protein_ids ProteinIdentification vector to be merged into
+         * @param new_protein_ids ProteinIdentification vector to merge
+         *
+         * Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, registers the created Percolator features
+         */
         static void mergeMULTISEProteinIds(std::vector<ProteinIdentification>& all_protein_ids, std::vector<ProteinIdentification>& new_protein_ids);
         
+
+        /**
+         * @brief addMSGFFeatures
+         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param feature_set register of added features
+         *
+         * Creates and adds MSGF+ specific Percolator features and registers them in feature_set
+         */
         static void addMSGFFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+
+        /**
+         * @brief addXTANDEMFeatures
+         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param feature_set register of added features
+         *
+         * Creates and adds X!Tandem specific Percolator features and registers them in feature_set
+         */
         static void addXTANDEMFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+
+        /**
+         * @brief addCOMETFeatures
+         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param feature_set register of added features
+         *
+         * Creates and adds Comet specific Percolator features and registers them in feature_set
+         */
         static void addCOMETFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+
+        /**
+         * @brief addMASCOTFeatures
+         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param feature_set register of added features
+         *
+         * Creates and adds Mascot specific Percolator features and registers them in feature_set
+         */
         static void addMASCOTFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
+
+        /**
+         * @brief addMULTISEFeatures
+         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param search_engines_used the list of search engines to be considered
+         * @param feature_set register of added features
+         * @param complete_only will only add features for PeptideIdentifications where all given search engines identified something
+         * @param limits_imputation
+         *
+         * Adds multiple search engine specific Percolator features and registers them in feature_set
+         */
         static void addMULTISEFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only = true, bool limits_imputation = false);
+
+        /**
+         * @brief addCONCATSEFeatures
+         * @param peptide_id_list PeptideIdentification vector to create Percolator featrues in
+         * @param search_engines_used the list of search engines to be considered
+         * @param feature_set register of added features
+         *
+         * Adds multiple search engine specific Percolator features and registers them in feature_set
+        */
         static void addCONCATSEFeatures(std::vector<PeptideIdentification>& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
 
+        /**
+         * @brief checkExtraFeatures
+         * @param psms the vector of PeptideHit to be checked
+         * @param extra_features the list of requested extra features
+         *
+         * checks and removes requested extra Percolator features that are actually inavailable (to compute)
+         */
         static void checkExtraFeatures(const std::vector<PeptideHit> &psms, StringList& extra_features);
 
+        /// For accession dependent sorting of ProteinHits
         struct lq_ProteinHit
         {
           inline bool operator() (const ProteinHit& h1, const ProteinHit& h2)
@@ -77,6 +169,7 @@ namespace OpenMS
           }
         };
 
+        /// For accession dependent sorting of PeptideEvidences
         struct lq_PeptideEvidence
         {
           inline bool operator() (const PeptideEvidence& h1, const PeptideEvidence& h2)
@@ -90,9 +183,16 @@ namespace OpenMS
         TopPerc();
         virtual ~TopPerc();
         
+        /// Rescales the fragment features to penalize features calculated by few ions, adapted from MSGFtoPercolator
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
+
+        /// helper functin for assigning the frequently occurring feature delta score
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
+
+        /// helper function to check for human MHC typical peptide termini
         static bool hasMHCEnd_(String peptide);
+
+        /// gets the scan identifer to merge by
         static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
 
     };

@@ -72,20 +72,24 @@ using namespace std;
   @experimental This tool is work in progress and usage and input requirements might change.
 
   <center>
-  <table>
-  <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MSGF+\f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDFilter</td>
-  <td VALIGN="middle" ALIGN ="center" ROWSPAN=1> @ref TOPP_IDMapper</td>
-  </tr>
-  </table>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PercolatorAdapter \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+        </tr>
+    </table>
   </center>
-
-  <p>Percolator is search engine sensitive, i.e. it's input features vary, depending on the search engine.</p>
+  <p>Percolator is search engine sensitive, i.e. it's input features vary,
+depending on the search engine. Must be prepared beforehand. If you do not want
+to use the specific features, use the generic-feature-set flag. Will incorporate
+the score attribute of a PSM, so be sure, the score you want is set as main
+score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
+experience a perfomance loss compared to the search engine specific features.</p>
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PercolatorAdapter.cli

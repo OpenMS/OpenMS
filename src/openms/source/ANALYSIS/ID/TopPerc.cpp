@@ -305,8 +305,8 @@ namespace OpenMS
         {
           bool unique_to_protein = (String(hit->getMetaValue("protein_references")) == "unique");
           bool has_mod = hit->getSequence().isModified();
-          hit->setMetaValue("COMET:uniqueToProt", unique_to_protein);
-          hit->setMetaValue("COMET:hasMod", has_mod);
+          hit->setMetaValue("MASCOT:uniqueToProt", unique_to_protein);
+          hit->setMetaValue("MASCOT:hasMod", has_mod);
         }
       }
     }
