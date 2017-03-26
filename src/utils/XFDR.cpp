@@ -90,6 +90,11 @@ using namespace std;
  * containing the identified cross-link.
  * @brief The less_than_by_key struct
  */
+
+/*
+ *
+ * Less than by key which used the vector < vector < PeptideIdentification data structure /
+ *
 struct less_than_by_key
 {
     vector< vector< PeptideIdentification > > & elements;  // The elements according to which the rankm vector should be computed
@@ -102,6 +107,23 @@ struct less_than_by_key
               > (double) elements[index2][idx].getMetaValue(meta_value));
     }
 };
+*/
+
+struct less_than_by_key
+{
+    // The elements according to which the rank vector should be computed
+    // These are the rank one identifications among all spectra
+    vector< PeptideIdentification * >  & elements;
+    const String & meta_value;  // By which meta_value each peptide identification should be sorted (usually by some score)
+
+    inline bool operator()(const size_t & index1, const size_t & index2)
+    {
+      return ((double) elements[index1]->getMetaValue(meta_value)
+              > (double) elements[index2]->getMetaValue(meta_value));
+    }
+};
+
+
 
 
 /**
@@ -109,12 +131,12 @@ struct less_than_by_key
  * This is only used for assertions.
  *
  */
-bool isSortedDescending(vector< size_t > & order, vector< vector < PeptideIdentification > > & spectra, Int idx)
+bool isSortedDescending(vector< size_t > & order, vector< PeptideIdentification * > & pep_ids)
 {
-  for (size_t i = 0; i < spectra.size() - 1; ++i)
+  for (size_t i = 0; i < pep_ids.size() - 1; ++i)
   {
-    double a_score = (double) spectra[order[i]][idx].getMetaValue("OpenXQuest:score");
-    double b_score = (double) spectra[order[i+1]][idx].getMetaValue("OpenXQuest:score");
+    double a_score = (double) pep_ids[order[i]]->getMetaValue("OpenXQuest:score");
+    double b_score = (double) pep_ids[order[i+1]]->getMetaValue("OpenXQuest:score");
 
     if(a_score < b_score)
     {
@@ -502,7 +524,7 @@ class TOPPXFDR :
       Size n_spectra;
 
       vector < PeptideIdentification > all_ids;
-      vector < PeptideIdentification * > rank_one_ids;
+      vector < Size > rank_one_ids; // Stores the indizes of the rank one hits within all_ids (apparently pointers to Peptide Identifications do not work)
 
       vector < vector < PeptideIdentification > > spectra;  // TODO Only used for xQuest input files, thus move to corresponding block
 
@@ -522,6 +544,7 @@ class TOPPXFDR :
                    << "Total number of hits: "    << xquest_result_file.get_n_hits() << endl;
         }
 
+        Size rank_counter = 0;
         for (vector < vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
              spectra_it != spectra.end(); ++spectra_it)
         {
@@ -532,8 +555,9 @@ class TOPPXFDR :
              all_ids.push_back(pep_id);
              if( (int) pep_id.getMetaValue("xl_rank") == 1)
              {
-                rank_one_ids.push_back(&pep_id);
+                rank_one_ids.push_back(rank_counter);
              }
+             rank_counter++;
           }
         }
       }
@@ -588,6 +612,7 @@ class TOPPXFDR :
       std::vector< std::vector< double >* > delta_scores;
       std::vector< size_t > n_min_ions_matched;
 
+
       // For xQuest input,calculate delta scores and min_ions_matched
       if (arg_in.hasSuffix("xml"))
       {
@@ -638,20 +663,34 @@ class TOPPXFDR :
           }
         }
       }
+
+
+      /*
+       * Sort rank one hits in descending order according to the score
+       */
+
       typedef std::vector<size_t> ranks;
 
       ranks order_score ( boost::counting_iterator<size_t>(0),
-                          boost::counting_iterator<size_t>(n_spectra));
+                          boost::counting_iterator<size_t>(rank_one_ids.size()));
+
+      for (vector< Size>::const_iterator  rank_one_ids_it = rank_one_ids.begin();
+           rank_one_ids_it != rank_one_ids.end(); ++rank_one_ids_it)
+      {
+        cout << *rank_one_ids_it << endl;
+      }
 
       // Configure the sorting of the Peptide Identifications
-      less_than_by_key order_conf = {
-        spectra,            // elements
-        pep_id_index,       // idx
-        "OpenXQuest:score"  // key
-      };
+      //less_than_by_key order_conf = {
+      //  rank_one_ids,            // elements
+      //  "OpenXQuest:score"  // key
+      //};
 
-      std::sort(order_score.begin(), order_score.end(), order_conf);
-      assert(isSortedDescending(order_score, spectra, pep_id_index));
+      ///std::sort(order_score.begin(), order_score.end(), order_conf);
+     // assert(isSortedDescending(order_score, rank_one_ids));
+      return EXECUTION_OK;
+
+
 
       // For unique IDs
       std::set<String> unique_ids;
