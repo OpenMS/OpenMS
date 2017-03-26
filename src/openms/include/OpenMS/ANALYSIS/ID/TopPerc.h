@@ -159,6 +159,20 @@ namespace OpenMS
          * checks and removes requested extra Percolator features that are actually inavailable (to compute)
          */
         static void checkExtraFeatures(const std::vector<PeptideHit> &psms, StringList& extra_features);
+        
+
+    protected:
+        TopPerc();
+        virtual ~TopPerc();
+        
+        /// Rescales the fragment features to penalize features calculated by few ions, adapted from MSGFtoPercolator
+        static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
+
+        /// helper functin for assigning the frequently occurring feature delta score
+        static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
+
+        /// gets the scan identifer to merge by
+        static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
 
         /// For accession dependent sorting of ProteinHits
         struct lq_ProteinHit
@@ -177,20 +191,6 @@ namespace OpenMS
             return (h1.getProteinAccession() < h2.getProteinAccession());
           }
         };
-        
-
-    protected:
-        TopPerc();
-        virtual ~TopPerc();
-        
-        /// Rescales the fragment features to penalize features calculated by few ions, adapted from MSGFtoPercolator
-        static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
-
-        /// helper functin for assigning the frequently occurring feature delta score
-        static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
-
-        /// gets the scan identifer to merge by
-        static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
 
     };
 
