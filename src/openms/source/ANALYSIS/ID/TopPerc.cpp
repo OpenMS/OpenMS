@@ -116,6 +116,7 @@ namespace OpenMS
               hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
             }
           }
+          else LOG_WARN << "MS-GF+ PSM with missing NumMatchedMainIons skipped." << endl;
         }
       }
     }
