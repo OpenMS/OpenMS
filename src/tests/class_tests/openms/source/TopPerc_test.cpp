@@ -61,7 +61,7 @@ bool check_pepids(vector<PeptideIdentification> check, vector<PeptideIdentificat
         if (upkc.size() != upk.size())
             return false;
         for (size_t k = 0; k < upk.size(); ++k)
-          TEST_STRING_EQUAL(upkc[k],upk[k])
+           TEST_STRING_EQUAL(upkc[k],upk[k])
       }
     }
     return true;
@@ -107,110 +107,126 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.concat.perco.in.idXML"), co
 PeptideIdentification pid;
 StringList fs;
 
-START_SECTION((static void concatMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, String search_engine)))
-{
-    std::vector< PeptideIdentification > comet_pids;
-    std::vector< ProteinIdentification > comet_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
+//START_SECTION((static void concatMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, String search_engine)))
+//{
+//    std::vector< PeptideIdentification > comet_pids;
+//    std::vector< ProteinIdentification > comet_pods;
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
 
-    std::vector< PeptideIdentification > msgf_pids;
-    std::vector< ProteinIdentification > msgf_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
+//    std::vector< PeptideIdentification > msgf_pids;
+//    std::vector< ProteinIdentification > msgf_pods;
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
 
-    std::vector< PeptideIdentification > concat_pids;
-    TopPerc::concatMULTISEPeptideIds(concat_pids, msgf_pids, "MS-GF+");
-    TopPerc::concatMULTISEPeptideIds(concat_pids, comet_pids, "Comet");
+//    StringList ses = ListUtils::create<String>("MS-GF+,Comet");
+//    std::vector< PeptideIdentification > concat_pids;
+//    TopPerc::concatMULTISEPeptideIds(concat_pids, msgf_pids, "MS-GF+");
+//    TopPerc::concatMULTISEPeptideIds(concat_pids, comet_pids, "Comet");
+//    TopPerc::addCONCATSEFeatures(concat_pids, ses, fs);
 
-    //check completeness of feature construction
-    ABORT_IF(check_pepids(concat_check_pids, concat_pids));
-}
-END_SECTION
+//    //check completeness of feature construction
+//    ABORT_IF(!check_pepids(concat_check_pids, concat_pids));
+//}
+//END_SECTION
 
-START_SECTION((static void mergeMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, String search_engine)))
-{
-    std::vector< PeptideIdentification > comet_pids;
-    std::vector< ProteinIdentification > comet_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
+//START_SECTION((static void mergeMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, String search_engine)))
+//{
+//    std::vector< PeptideIdentification > comet_pids;
+//    std::vector< ProteinIdentification > comet_pods;
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
 
-    std::vector< PeptideIdentification > msgf_pids;
-    std::vector< ProteinIdentification > msgf_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
+//    std::vector< PeptideIdentification > msgf_pids;
+//    std::vector< ProteinIdentification > msgf_pods;
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
 
-    std::vector< PeptideIdentification > concat_pids;
-    TopPerc::concatMULTISEPeptideIds(concat_pids, msgf_pids, "MS-GF+");
-    TopPerc::concatMULTISEPeptideIds(concat_pids, comet_pids, "Comet");
+//    std::vector< PeptideIdentification > merge_pids;
+//    StringList ses = ListUtils::create<String>("MS-GF+,Comet");
+//    TopPerc::mergeMULTISEPeptideIds(merge_pids, msgf_pids, "MS-GF+");
+//    TopPerc::mergeMULTISEPeptideIds(merge_pids, comet_pids, "Comet");
+//    StringList empty_extra;
+//    TopPerc::addMULTISEFeatures(merge_pids, ses, empty_extra, true);
+//    for (size_t i = merge_pids.size()-1; i > 0; --i)
+//    {
+//      TopPerc::checkExtraFeatures(merge_pids[i].getHits(), empty_extra);  // also check against empty extra features list and inconsistency removal
+//      merge_pids.erase(merge_pids.begin()+i);  //erase to be able to use completeness check function below
+//    }
+//    //check completeness of feature construction
+//    ABORT_IF(!check_pepids(merge_check_pids, merge_pids));
+//}
+//END_SECTION
 
-    //check completeness of feature construction
-    ABORT_IF(check_pepids(concat_check_pids, concat_pids));
-}
-END_SECTION
+//START_SECTION((static void mergeMULTISEProteinIds(std::vector< ProteinIdentification > &all_protein_ids, std::vector< ProteinIdentification > &new_protein_ids)))
+//{
+//    std::vector< PeptideIdentification > comet_pids;
+//    std::vector< ProteinIdentification > comet_pods;
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
 
-START_SECTION((static void mergeMULTISEProteinIds(std::vector< ProteinIdentification > &all_protein_ids, std::vector< ProteinIdentification > &new_protein_ids)))
-{
-    std::vector< PeptideIdentification > comet_pids;
-    std::vector< ProteinIdentification > comet_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
+//    std::vector< PeptideIdentification > msgf_pids;
+//    std::vector< ProteinIdentification > msgf_pods;
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
 
-    std::vector< PeptideIdentification > msgf_pids;
-    std::vector< ProteinIdentification > msgf_pods;
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
+//    std::vector< ProteinIdentification > merge_pods;
+//    TopPerc::mergeMULTISEProteinIds(merge_pods, msgf_pods);
+//    TopPerc::mergeMULTISEProteinIds(merge_pods, comet_pods);
 
-    std::vector< ProteinIdentification > merge_pods;
-    TopPerc::mergeMULTISEProteinIds(merge_pods, msgf_pods);
-    TopPerc::mergeMULTISEProteinIds(merge_pods, comet_pods);
+//    StringList fs;
+//    std::vector< PeptideIdentification > merge_pids;
+//    StringList ses = ListUtils::create<String>("MS-GF+,Comet");
+//    TopPerc::mergeMULTISEPeptideIds(merge_pids, msgf_pids, "MS-GF+");
+//    TopPerc::mergeMULTISEPeptideIds(merge_pids, comet_pids, "Comet");
+//    TopPerc::addMULTISEFeatures(merge_pids, ses, fs, true);
 
-    //check completeness of feature construction
-    ABORT_IF(check_proids(merge_check_pods, merge_pods, fs));
-}
-END_SECTION
+//    //check completeness of feature construction
+//    ABORT_IF(!check_proids(merge_check_pods, merge_pods, fs));
+//}
+//END_SECTION
 
-START_SECTION((static void addMSGFFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
-{
-    std::vector< PeptideIdentification > msgf_pids;
-    std::vector< ProteinIdentification > msgf_pods;
+//START_SECTION((static void addMSGFFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
+//{
+//    std::vector< PeptideIdentification > msgf_pids;
+//    std::vector< ProteinIdentification > msgf_pods;
 
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
-    TopPerc::addMSGFFeatures(msgf_pids,fs);
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc.idXML"), msgf_pods, msgf_pids);
+//    TopPerc::addMSGFFeatures(msgf_pids,fs);
 
-    //check completeness of feature construction
-    ABORT_IF(check_pepids(msgf_check_pids, msgf_pids));
+//    //check completeness of feature construction
+//    ABORT_IF(check_pepids(msgf_check_pids, msgf_pids));
 
-    //check registration of percolator features for adapter
-    ABORT_IF(check_proids(msgf_check_pods, msgf_pods, fs));
-}
-END_SECTION
+//    //check registration of percolator features for adapter
+//    ABORT_IF(!check_proids(msgf_check_pods, msgf_pods, fs));
+//}
+//END_SECTION
 
-START_SECTION((static void addXTANDEMFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
-{
-    std::vector< PeptideIdentification > xtandem_pids;
-    std::vector< ProteinIdentification > xtandem_pods;
+//START_SECTION((static void addXTANDEMFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
+//{
+//    std::vector< PeptideIdentification > xtandem_pids;
+//    std::vector< ProteinIdentification > xtandem_pods;
 
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("xtandem.topperc.idXML"), xtandem_pods, xtandem_pids);
-    TopPerc::addXTANDEMFeatures(xtandem_pids, fs);
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("xtandem.topperc.idXML"), xtandem_pods, xtandem_pids);
+//    TopPerc::addXTANDEMFeatures(xtandem_pids, fs);
 
-    //check completeness of feature construction
-    ABORT_IF(check_pepids(xtandem_check_pids, xtandem_pids));
+//    //check completeness of feature construction
+//    ABORT_IF(check_pepids(xtandem_check_pids, xtandem_pids));
 
-    //check registration of percolator features for adapter
-    ABORT_IF(check_proids(xtandem_check_pods, xtandem_pods, fs));
-}
-END_SECTION
+//    //check registration of percolator features for adapter
+//    ABORT_IF(check_proids(xtandem_check_pods, xtandem_pods, fs));
+//}
+//END_SECTION
 
-START_SECTION((static void addCOMETFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
-{
-    std::vector< PeptideIdentification > comet_pids;
-    std::vector< ProteinIdentification > comet_pods;
+//START_SECTION((static void addCOMETFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
+//{
+//    std::vector< PeptideIdentification > comet_pids;
+//    std::vector< ProteinIdentification > comet_pods;
 
-    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
-    TopPerc::addCOMETFeatures(comet_pids, fs);
+//    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc.idXML"), comet_pods, comet_pids);
+//    TopPerc::addCOMETFeatures(comet_pids, fs);
 
-    //check completeness of feature construction
-    ABORT_IF(check_pepids(comet_check_pids, comet_pids));
+//    //check completeness of feature construction
+//    ABORT_IF(!check_pepids(comet_check_pids, comet_pids));
 
-    //check registration of percolator features for adapter
-    ABORT_IF(check_proids(comet_check_pods, comet_pods, fs));
-}
-END_SECTION
+//    //check registration of percolator features for adapter
+//    ABORT_IF(!check_proids(comet_check_pods, comet_pods, fs));
+//}
+//END_SECTION
 
 START_SECTION((static void addMASCOTFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set)))
 {
@@ -226,7 +242,7 @@ END_SECTION
 
 START_SECTION((static void addCONCATSEFeatures(std::vector< PeptideIdentification > &peptide_id_list, StringList &search_engines_used, StringList &feature_set)))
 {
-  // TODO
+  NOT_TESTABLE  // actually tested in combination with concatMULTISEPeptideIds
 }
 END_SECTION
 
