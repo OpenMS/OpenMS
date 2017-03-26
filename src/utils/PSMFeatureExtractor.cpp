@@ -41,7 +41,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/ID/TopPerc.h>
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
@@ -208,15 +208,15 @@ protected:
         if (concatenate)
         {
           // will concatenate the list
-          TopPerc::concatMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
+          PercolatorFeatureSetHelper::concatMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
         }
         else
         {
           // will collapse the list (reference)
-          TopPerc::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
+          PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
         }
       }
-      TopPerc::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
+      PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
     }
     
     if (all_protein_ids.empty())
@@ -240,19 +240,19 @@ protected:
     {
       if (getFlag_("concat"))
       {
-        TopPerc::addCONCATSEFeatures(all_peptide_ids, search_engines_used, feature_set);
+        PercolatorFeatureSetHelper::addCONCATSEFeatures(all_peptide_ids, search_engines_used, feature_set);
       }
       else
       {
         bool impute = getFlag_("impute");
         bool limits = getFlag_("limit_imputation");
-        TopPerc::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
+        PercolatorFeatureSetHelper::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
       }
     }
-    else if (search_engine == "MS-GF+") TopPerc::addMSGFFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Mascot") TopPerc::addMASCOTFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "XTandem") TopPerc::addXTANDEMFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Comet") TopPerc::addCOMETFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "MS-GF+") PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "Mascot") PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "XTandem") PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
     else
     {
       writeLog_("No known input to create PSM features from. Aborting");
@@ -263,7 +263,7 @@ protected:
     for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
     {
       it->setIdentifier(run_identifier);
-      TopPerc::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features
+      PercolatorFeatureSetHelper::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features
     }
     
     // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop

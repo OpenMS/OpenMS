@@ -492,7 +492,7 @@ set(analysis_executables_list
   SimpleSVM_test
   StablePairFinder_test
   #TargetedExperimentHelper_test
-  TopPerc_test
+  PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test

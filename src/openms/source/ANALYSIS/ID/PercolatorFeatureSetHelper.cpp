@@ -33,13 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/ID/TopPerc.h>
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 
 using namespace std;
 
 namespace OpenMS
 {    
-    void TopPerc::addMSGFFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
+    void PercolatorFeatureSetHelper::addMSGFFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
       feature_set.push_back("MS:1002049"); // unchanged RawScore
       feature_set.push_back("MS:1002050"); // unchanged DeNovoScore
@@ -121,7 +121,7 @@ namespace OpenMS
       }
     }
     
-    void TopPerc::addXTANDEMFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
+    void PercolatorFeatureSetHelper::addXTANDEMFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
       // Find out which ions are in XTandem-File and take only these as features
       StringList ion_types = ListUtils::create<String>("a,b,c,x,y,z");
@@ -162,7 +162,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::addCOMETFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
+    void PercolatorFeatureSetHelper::addCOMETFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
       feature_set.push_back("COMET:deltCn"); // recalculated deltCn = (current_XCorr - 2nd_best_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:deltLCn"); // deltLCn = (current_XCorr - worst_XCorr) / max(current_XCorr, 1)
@@ -245,7 +245,7 @@ namespace OpenMS
     17. seqCov	Sequence coverage of matched ions (per ion series). Not available in mascot adapter.
     18. intMatched	Matched ion intensity (per ion series). Not available in mascot adapter.
     */
-    void TopPerc::addMASCOTFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
+    void PercolatorFeatureSetHelper::addMASCOTFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {      
       feature_set.push_back("MS:1001171"); // unchanged mScore
       feature_set.push_back("MASCOT:delta_score"); // delta score based on mScore
@@ -269,7 +269,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::addCONCATSEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set)
+    void PercolatorFeatureSetHelper::addCONCATSEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set)
     {     
       for (StringList::iterator it = search_engines_used.begin(); it != search_engines_used.end(); ++it) {
         feature_set.push_back("CONCAT:" + *it);
@@ -287,7 +287,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
     {
       LOG_DEBUG << "creating spectrum map" << endl;
       
@@ -419,7 +419,7 @@ namespace OpenMS
     }
     
     // references from PeptideHits to ProteinHits work with the protein accessions, so no need to update the PeptideHits
-    void TopPerc::mergeMULTISEProteinIds(vector<ProteinIdentification>& all_protein_ids, vector<ProteinIdentification>& new_protein_ids)
+    void PercolatorFeatureSetHelper::mergeMULTISEProteinIds(vector<ProteinIdentification>& all_protein_ids, vector<ProteinIdentification>& new_protein_ids)
     {      
       LOG_DEBUG << "merging search parameters" << endl;
       
@@ -444,7 +444,7 @@ namespace OpenMS
       std::vector<ProteinHit>& new_protein_hits = new_protein_ids.front().getHits();
       
       LOG_DEBUG << "Sorting " << new_protein_hits.size() << " new ProteinHits." << endl;
-      std::sort(new_protein_hits.begin(), new_protein_hits.end(), TopPerc::lq_ProteinHit());
+      std::sort(new_protein_hits.begin(), new_protein_hits.end(), PercolatorFeatureSetHelper::lq_ProteinHit());
       
       LOG_DEBUG << "Melting with " << all_protein_hits.size() << " previous ProteinHits." << endl;
       if (all_protein_hits.empty())
@@ -457,7 +457,7 @@ namespace OpenMS
         std::vector<ProteinHit>::iterator uni = set_union(
             all_protein_hits.begin(), all_protein_hits.end(),
             new_protein_hits.begin(), new_protein_hits.end(), tmp_protein_hits.begin(),
-            TopPerc::lq_ProteinHit() );
+            PercolatorFeatureSetHelper::lq_ProteinHit() );
         tmp_protein_hits.resize(uni - tmp_protein_hits.begin());
         all_protein_hits.swap(tmp_protein_hits);
       }
@@ -509,7 +509,7 @@ namespace OpenMS
       LOG_DEBUG << "Merging for this file finished." << endl;
     }
     
-    void TopPerc::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
     {      
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
@@ -542,7 +542,7 @@ namespace OpenMS
       all_peptide_ids.insert(all_peptide_ids.end(), new_peptide_ids.begin(), new_peptide_ids.end());
     }
 
-    void TopPerc::addMULTISEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only, bool limits_imputation)
+    void PercolatorFeatureSetHelper::addMULTISEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set, bool complete_only, bool limits_imputation)
     {
       map<String,vector<double> > extremals;  // will have as keys the below SE cv terms
       vector<String> max_better, min_better;
@@ -709,7 +709,7 @@ namespace OpenMS
       }
     }
 
-    void TopPerc::checkExtraFeatures(const vector<PeptideHit>& psms, StringList& extra_features)
+    void PercolatorFeatureSetHelper::checkExtraFeatures(const vector<PeptideHit>& psms, StringList& extra_features)
     {
       set<StringList::iterator> unavail;
       for (vector<PeptideHit>::const_iterator hit = psms.begin(); hit != psms.end(); ++hit)
@@ -731,7 +731,7 @@ namespace OpenMS
 
     
     // Function adapted from MsgfplusReader in Percolator converter
-    double TopPerc::rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons)
+    double PercolatorFeatureSetHelper::rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons)
     {
       // Rescale the fragment features to penalize features calculated by few ions
       int numMatchedIonLimit = 7;
@@ -740,7 +740,7 @@ namespace OpenMS
       return featureValue * ((double)numerator / denominator);
     }
     
-    void TopPerc::assignDeltaScore_(vector<PeptideHit>& hits, String score_ref, String output_ref)
+    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, String score_ref, String output_ref)
     {
       if (!hits.empty())
       {
@@ -758,7 +758,7 @@ namespace OpenMS
     }
         
     // TODO: this is code redundancy to PercolatorAdapter
-    String TopPerc::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
+    String PercolatorFeatureSetHelper::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {
       // MSGF+ uses this field, is empty if not specified
       String scan_identifier = it->getMetaValue("spectrum_reference");

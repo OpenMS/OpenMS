@@ -42,7 +42,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/ID/TopPerc.h>
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
@@ -284,7 +284,7 @@ protected:
         scan_number = it->substr(idx + 5).toInt();
         break;
       }
-      else if ((idx = it->find("index=")) != string::npos) 
+      else if ((idx = it->hasPrefix("index=")) != string::npos)
       {
         scan_number = it->substr(idx + 6).toInt();
       }
@@ -627,7 +627,7 @@ protected:
       LOG_INFO << "Merging peptide ids." << endl;
       all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
       LOG_INFO << "Merging protein ids." << endl;
-      TopPerc::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
+      PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
     }
     return EXECUTION_OK;
   }

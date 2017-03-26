@@ -55,11 +55,14 @@ namespace OpenMS
     /**
         @brief Percolator feature set and integration helper
 
-        This class contains functions to handle (compute, aggregate, integrate) Percolator
-        features.
+        This class contains functions to handle (compute, aggregate, integrate)
+        Percolator features. This includes the calculation or extraction of
+        Percolator features for the specific search engine usage, preparation for
+        PercolatorApater usage and result reintegration and in the case of
+        multiple search engine incorporation of different features.
     */
 
-    class OPENMS_DLLAPI TopPerc
+    class OPENMS_DLLAPI PercolatorFeatureSetHelper
     {
 
     public:
@@ -162,8 +165,8 @@ namespace OpenMS
         
 
     protected:
-        TopPerc();
-        virtual ~TopPerc();
+        PercolatorFeatureSetHelper();
+        virtual ~PercolatorFeatureSetHelper();
         
         /// Rescales the fragment features to penalize features calculated by few ions, adapted from MSGFtoPercolator
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
@@ -196,5 +199,5 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif //OPENMS_ANALYSIS_ID_TOPPERC_H
+#endif //OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
 
