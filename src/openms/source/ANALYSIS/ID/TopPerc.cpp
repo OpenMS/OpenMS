@@ -38,50 +38,7 @@
 using namespace std;
 
 namespace OpenMS
-{
-    /*
-    void TopPerc::prepareCUSTOMpin(vector<PeptideIdentification>& peptide_ids, vector<String>& user_param_features)
-    {
-      // Create header for the features
-      string min_featureset = "SpecId, Label, ScanNr";
-      StringList txt_header = ListUtils::create<String>(min_featureset);
-      txt_header.insert(txt_header.end(), user_param_features.begin(), user_param_features.end() );
-      txt.addLine(ListUtils::concatenate(txt_header, out_sep));
-
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
-      {
-        for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
-        {
-          String scan_identifier = getScanIdentifier(it, peptide_ids.begin());
-          Int scan_number = getScanNumber(scan_identifier);
-          int label = 1;
-          if (hit->metaValueExists("target_decoy") && String(hit->getMetaValue("target_decoy")).hasSubstring("decoy"))
-          {
-            label = -1;
-          }
-
-          StringList collected_feats;
-          collected_feats.push_back(scan_identifier);
-          collected_feats.push_back(String(label));
-          collected_feats.push_back(String(scan_number));
-
-          for (vector<String>::const_iterator feat = user_param_features.begin(); feat != user_param_features.end(); ++feat)
-          {
-          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
-            if (hit->metaValueExists(*feat))
-            {
-              collected_feats.push_back(hit->getMetaValue(*feat).toString());
-            }
-          }
-          if (collected_feats.size() == user_param_features.size())
-          { // only if all feats were present add
-            txt.addLine(ListUtils::concatenate(collected_feats, out_sep));
-          }
-        }
-      }
-    }
-    */
-    
+{    
     void TopPerc::addMSGFFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
       feature_set.push_back("MS:1002049"); // unchanged RawScore
@@ -798,23 +755,7 @@ namespace OpenMS
         (hits.end()-1)->setMetaValue(output_ref, 0.0); //if last hit or only one hit
       }
     }
-    
-    bool TopPerc::hasMHCEnd_(String peptide)
-    {
-      bool suf = false;
-      static const string arr[] = {"A", "F", "I", "K", "M", "L", "R", "W", "V"};
-      vector<string> mhcends (arr, arr + sizeof(arr) / sizeof(arr[0]) );
-      for (std::vector<string>::iterator eit = mhcends.begin(); eit != mhcends.end(); ++eit)
-      {
-        if (peptide.hasSuffix(string(*eit)))
-        {
-          suf = true;
-          break;
-        }
-      }
-      return suf;
-    }
-    
+        
     // TODO: this is code redundancy to PercolatorAdapter
     String TopPerc::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {

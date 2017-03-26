@@ -189,9 +189,6 @@ namespace OpenMS
         /// helper functin for assigning the frequently occurring feature delta score
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
 
-        /// helper function to check for human MHC typical peptide termini
-        static bool hasMHCEnd_(String peptide);
-
         /// gets the scan identifer to merge by
         static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
 
