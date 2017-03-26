@@ -53,9 +53,9 @@
 namespace OpenMS
 {
     /**
-        @brief Percolator feature and I/O handler
+        @brief Percolator feature set and integration helper
 
-        This class contains functions to handle (compute, aggregate) Percolator
+        This class contains functions to handle (compute, aggregate, integrate) Percolator
         features.
     */
 
@@ -77,7 +77,7 @@ namespace OpenMS
          * @brief mergeMULTISEPeptideIds
          * @param all_peptide_ids PeptideIdentification vector to be merged into
          * @param new_peptide_ids PeptideIdentification vector to merge
-         * @param search_engine search engine to depend on for feature creation
+         * @param search_engine search engine to create features from their scores
          *
          * Merges a vector of PeptideIdentification into another and registers merge Percolator features depending on given search engine.
          */
@@ -95,7 +95,7 @@ namespace OpenMS
 
         /**
          * @brief addMSGFFeatures
-         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param peptide_ids PeptideIdentification vector to create Percolator features in
          * @param feature_set register of added features
          *
          * Creates and adds MSGF+ specific Percolator features and registers them in feature_set
@@ -156,7 +156,7 @@ namespace OpenMS
          * @param psms the vector of PeptideHit to be checked
          * @param extra_features the list of requested extra features
          *
-         * checks and removes requested extra Percolator features that are actually inavailable (to compute)
+         * checks and removes requested extra Percolator features that are actually unavailable (to compute)
          */
         static void checkExtraFeatures(const std::vector<PeptideHit> &psms, StringList& extra_features);
         
