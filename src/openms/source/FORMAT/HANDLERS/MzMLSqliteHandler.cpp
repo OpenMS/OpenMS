@@ -68,7 +68,6 @@ namespace OpenMS
     {
       sqlite3 *db;
       int rc;
-      std::string select_sql;
 
       // Open database
       rc = sqlite3_open(filename_.c_str(), &db);
@@ -178,7 +177,7 @@ namespace OpenMS
           // intensity
           if (chromatograms[chrom_id].empty()) chromatograms[chrom_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); it++, data_it++)
+          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -189,7 +188,7 @@ namespace OpenMS
           // rt
           if (chromatograms[chrom_id].empty()) chromatograms[chrom_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); it++, data_it++)
+          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
           {
             it->setRT(*data_it);
           }
@@ -299,7 +298,7 @@ namespace OpenMS
           // intensity
           if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); it++, data_it++)
+          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -310,7 +309,7 @@ namespace OpenMS
           // mz
           if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); it++, data_it++)
+          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -596,9 +595,9 @@ namespace OpenMS
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
       if (rc != SQLITE_OK)
       {
+        sqlite3_free(zErrMsg);
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
             zErrMsg);
-        sqlite3_free(zErrMsg);
       }
       else {
         std::cout << "Done creating tables" << std::endl;
@@ -972,8 +971,8 @@ namespace OpenMS
       {
         std::cerr << "Error message after sqlite3_exec" << std::endl;
         std::cerr << "Prepared statement " << statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, zErrMsg);
         sqlite3_free(zErrMsg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, zErrMsg);
       }
     }
 

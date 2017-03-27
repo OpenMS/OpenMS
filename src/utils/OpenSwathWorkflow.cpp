@@ -856,13 +856,13 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
-    if (tr_type == FileTypes::TRAML || tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
     {
       TargetedExperiment targeted_exp;
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
     }
-    else if (tr_type == FileTypes::PQP || tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
+    else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
       TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
 
@@ -875,7 +875,7 @@ protected:
         dst << src.rdbuf();
       }
     }
-    else if (tr_type == FileTypes::TSV || tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
+    else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
       TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
     }
