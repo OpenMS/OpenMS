@@ -522,6 +522,7 @@ protected:
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map)
   {
     String previous_ref, peptide_ref;
+    RTMap transformed_internal;
     Size i = 0;
     map<Size, vector<PeptideIdentification*> > feat_ids;
     for (FeatureMap::Iterator feat_it = features.begin();
@@ -619,11 +620,12 @@ protected:
       // distance from feature to closest peptide ID:
       if (!trafo_external_.getDataPoints().empty())
       {
-        // use external IDs if available, otherwise RT-transformed internal IDs:
-        RTMap transformed_internal;
-        // @TODO: don't recompute this for every feature
-        if (rt_external.empty())
+        // use external IDs if available, otherwise RT-transformed internal IDs
+        // (but only compute the transform if necessary, once per assay!):
+        if (rt_external.empty() && (transformed_internal.empty() ||
+                                    (peptide_ref != previous_ref)))
         {
+          transformed_internal.clear();
           for (RTMap::const_iterator it = rt_internal.begin();
                it != rt_internal.end(); ++it)
           {
@@ -1453,7 +1455,6 @@ protected:
       //-------------------------------------------------------------
       // run feature detection
       //-------------------------------------------------------------
-      LOG_INFO << "Running feature detection..." << endl;
       keep_library_ = !lib_out.empty();
       keep_chromatograms_ = !chrom_out.empty();
 
