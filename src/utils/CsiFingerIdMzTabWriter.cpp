@@ -98,7 +98,7 @@ protected:
     struct SiriusAdapterIdentification
     {
         String id; //?
-        unsigned int scan_index; //?
+        String scan_index;
         vector<SiriusAdapterHit> hits;
     };
 
@@ -147,6 +147,29 @@ protected:
             // fill indentification structure containing all candidate hits for a single spectrum
             SiriusAdapterIdentification csi_id;
 
+            //Extract scan_index from path
+            OpenMS::String path = File::path(in);
+            vector<String> substrings;
+
+            OpenMS::String SringString;
+            vector<String> newsubstrings;
+
+            cout << path << endl;
+            path.split('_', substrings);
+            cout << substrings << endl;
+
+            SringString = substrings[substrings.size() - 1];
+            SringString.split('_', newsubstrings);
+            cout << newsubstrings << endl;
+
+            vector<String> bla;
+            OpenMS::String SringStringString = newsubstrings[newsubstrings.size() - 1];
+            SringStringString.split('n',bla);
+            cout << bla << endl;
+
+            String scan_index = bla[bla.size() - 1];
+            cout << scan_index << endl;
+
             for (Size j = 1; j < number; ++j)
             {
                 StringList sl;
@@ -168,7 +191,7 @@ protected:
             }
 
             // not possible since not in SiriusAdapter <- only folder but no further spectrum
-            csi_id.scan_index = 0;
+            csi_id.scan_index = scan_index;
             csi_id.id = "name";
             csi_result.identifications.push_back(csi_id);
 
