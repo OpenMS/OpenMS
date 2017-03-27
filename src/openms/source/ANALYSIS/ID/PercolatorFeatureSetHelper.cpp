@@ -198,14 +198,14 @@ namespace OpenMS
          
           double ln_num_sp;   
           if (hit->metaValueExists("num_matched_peptides"))
-	  {
-	    double num_sp = hit->getMetaValue("num_matched_peptides").toString().toDouble();
+          {
+            double num_sp = hit->getMetaValue("num_matched_peptides").toString().toDouble();
             ln_num_sp = log(max(1.0, num_sp));  // if recorded, one can be safely assumed
-	  }
+          }
           else // fallback
-	  {
-	    ln_num_sp = hit->getMetaValue("MS:1002255").toString().toDouble();
-	  }
+          {
+            ln_num_sp = hit->getMetaValue("MS:1002255").toString().toDouble();
+          }
           double ln_rank_sp = log(max(1.0, hit->getMetaValue("MS:1002256").toString().toDouble()));
           hit->setMetaValue("COMET:lnNumSP", ln_num_sp);
           hit->setMetaValue("COMET:lnRankSP", ln_rank_sp);

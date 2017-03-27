@@ -135,7 +135,7 @@ protected:
       {
       }
       
-      PercolatorResult(StringList& row):
+      explicit PercolatorResult(StringList& row):
       proteinIds()
       {
         // peptide sequence
@@ -279,7 +279,7 @@ protected:
     {
       // if scan number is not available, use the scan index
       Size idx = 0;
-      if ((idx = it->find("scan=")) != string::npos) 
+      if ((idx = it->hasPrefix("scan=")) != string::npos)
       {
         scan_number = it->substr(idx + 5).toInt();
         break;
