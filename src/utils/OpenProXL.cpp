@@ -1098,8 +1098,8 @@ protected:
     PeptideIndexing pep_indexing;
     Param indexing_param = pep_indexing.getParameters();
 
-    String d_prefix = decoy_prefix ? "true" : "false";
-    indexing_param.setValue("prefix", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    String d_prefix = decoy_prefix ? "prefix" : "suffix";
+    indexing_param.setValue("decoy_string_position", d_prefix, "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     indexing_param.setValue("decoy_string", decoy_string, "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.");
     indexing_param.setValue("missing_decoy_action", "warn");
     indexing_param.setValue("enzyme:name", enzyme_name);
