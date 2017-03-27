@@ -109,6 +109,37 @@ struct less_than_by_key
 };
 */
 
+
+/**
+   Look up Meta Value for cross-link identification first in PeptideIdentification, then in the PeptideHits 
+*/
+template<typename T> 
+T getXLMetaValue(const String & name, const PeptideIdentification & pep_id, bool is_score)
+{
+  if( pep_id.metaValueExists(name))
+  {
+    return (T) pep_id.getMetaValue(name);   
+  }
+  vector< PeptideHit > pep_hits = pep_id.getHits();
+  
+  if (is_score)
+  {
+    return (T) pep_hits[0].getScore();
+  }
+      
+  if (pep_hits[0].metaValueExists(name))
+  {  
+    return (T) pep_hits[0].getMetaValue(name);
+  }
+  if (pep_hits.size() == 2 && pep_hits[1].metaValueExists(name))
+  {
+    return (T) pep_hits[1].getMetaValue(name);
+  }
+  return DataValue::EMPTY;
+}
+
+
+
 struct less_than_by_key
 {
     //Indizes of the rank one elements within the all_ids vector
@@ -118,8 +149,8 @@ struct less_than_by_key
 
     inline bool operator()(const size_t & index1, const size_t & index2)
     {
-      return ((double) all_ids[rank_one_ids[index1]].getMetaValue(meta_value)
-              > (double) all_ids[rank_one_ids[index2]].getMetaValue(meta_value));
+      return (  getXLMetaValue<double>(meta_value, all_ids[rank_one_ids[index1]], true)
+              > getXLMetaValue<double>(meta_value, all_ids[rank_one_ids[index2]], true));
     }
 };
 
@@ -131,12 +162,12 @@ struct less_than_by_key
  * This is only used for assertions.
  *
  */
-bool isSortedDescending(vector< size_t > & order, vector< PeptideIdentification > & all_ids, vector< Size > & rank_one_ids )
+bool isSortedDescending(vector< Size > & order, vector< PeptideIdentification > & all_ids, vector< Size > & rank_one_ids )
 {
   for (Size i = 0; i < order.size() - 1; ++i)
   {
-    double a_score = (double) all_ids[rank_one_ids[order[i]]].getMetaValue("OpenXQuest:score");
-    double b_score = (double) all_ids[rank_one_ids[order[i+1]]].getMetaValue("OpenXQuest:score");
+    double a_score = getXLMetaValue<double>("OpenXQuest:score", all_ids[rank_one_ids[order[i]]], true);
+    double b_score = getXLMetaValue<double>("OpenXQuest:score",all_ids[rank_one_ids[order[i+1]]], true);
 
     if(a_score < b_score)
     {
@@ -347,31 +378,6 @@ class TOPPXFDR :
      }
      */
     
-     /**
-      Look up Meta Value for cross-link identification first in PeptideIdentification, then in the PeptideHits 
-     */
-    template<typename T> 
-    T getXLMetaValue(const String & name, const PeptideIdentification & pep_id) const
-    {
-      if( pep_id.metaValueExists(name))
-      {
-        return (T) pep_id.getMetaValue(name);   
-      }
-      vector< PeptideHit > pep_hits = pep_id.getHits();
-      
-      if (pep_hits[0].metaValueExists(name))
-      {  
-        return (T) pep_hits[0].getMetaValue(name);
-      }
-      if (pep_hits.size() == 2 && pep_hits[1].metaValueExists(name))
-      {
-        return (T) pep_hits[1].getMetaValue(name);
-      }
-      return DataValue::EMPTY;
-    }
-
-
-
 
     /** Target counting as performed by the xProphet software package
       *
@@ -570,7 +576,7 @@ class TOPPXFDR :
           {
              PeptideIdentification pep_id = *spectrum_it;
              all_ids.push_back(pep_id);
-             if( getXLMetaValue<int>("xl_rank", pep_id) == 1)
+             if( getXLMetaValue<int>("xl_rank", pep_id, false) == 1)
              {
                 rank_one_ids.push_back(rank_counter);
              }
@@ -607,7 +613,7 @@ class TOPPXFDR :
         {
           PeptideIdentification pep_id = *all_ids_it;
           
-          if (getXLMetaValue<int>("xl_rank", pep_id) == 1)
+          if (getXLMetaValue<int>("xl_rank", pep_id, false) == 1)
           {
             rank_one_ids.push_back(rank_counter);
           }
@@ -619,14 +625,7 @@ class TOPPXFDR :
       // Number of peptide identifications that need to be considered
       Size n_ids = rank_one_ids.size();
       
-      
-      cout << n_ids << endl;
-      
-      return EXECUTION_OK;
-      
-      
-  
-
+   
       //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
       //      {
       //        vector< PeptideIdentification > csm = *it;
@@ -650,6 +649,10 @@ class TOPPXFDR :
       // For xQuest input,calculate delta scores and min_ions_matched
       if (is_xquest_input)
       {
+        if (arg_verbose)
+        {
+          LOG_INFO << "Input is XQuest. Compute the delta scores and the number of matched ions" << endl;
+        }
         delta_scores.resize(n_spectra);
         n_min_ions_matched.resize(n_spectra);
 
@@ -697,12 +700,14 @@ class TOPPXFDR :
           }
         }
       }
-
-
+      else if (arg_verbose)
+      {
+        LOG_INFO << "Input is not xQuest. Omit computing delta score and min. number of matched ions." << endl;
+      }
+     
       /*
        * Sort rank one hits in descending order according to the score
        */
-
       typedef std::vector<size_t> ranks;
     
       ranks order_score ( boost::counting_iterator<size_t>(0),
@@ -714,11 +719,10 @@ class TOPPXFDR :
         rank_one_ids,            // elements
         "OpenXQuest:score"  // key
       };
-
-     std::sort(order_score.begin(), order_score.end(), order_conf);
+     
+     std::sort(order_score.begin(), order_score.end(), order_conf);     
      assert(isSortedDescending(order_score, all_ids, rank_one_ids));
-
-
+ 
       // For unique IDs
       std::set<String> unique_ids;
 
@@ -726,37 +730,31 @@ class TOPPXFDR :
       std::map< String, vector< double > > scores;
 
       // Fetch all relevant peptide identifications in descending order of score
-      for (size_t i = 0; i < n_ids; ++i)
+      for (Size i = 0; i < n_ids; ++i)
       {    
         // Extract required attributes of the peptide_identification (filter criteria)
         PeptideIdentification pep_id = all_ids[rank_one_ids[order_score[i]]];
         
-        // TODO Is this available in non-xQuest input files?
-        double error_rel = (double) pep_id.getMetaValue("OpenXQuest:error_rel");
-        
+        double error_rel;
         double delta_score;
         Size ions_matched;
+        String id;
         if (is_xquest_input)
         {
+          id = (String) pep_id.getMetaValue("OpenXQuest:id");
+          error_rel = (double) pep_id.getMetaValue("OpenXQuest:error_rel");
           delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];
           ions_matched = n_min_ions_matched[order_score[i]];
-        }
-        else
-        {
-          delta_score = 0;
-          ions_matched = 0;          
-        }        
-        double score = (double) pep_id.getMetaValue("OpenXQuest:score");
-         
-        String id = (String) pep_id.getMetaValue("OpenXQuest:id");
-
+        }     
+        double score = getXLMetaValue<double>("OpenXQuest:score", pep_id, true); 
+        
         // Only consider peptide identifications which  fullfill all filter criteria specified by the user
-        if (     arg_minborder <= error_rel
-                 &&  arg_maxborder >= error_rel
+        if (        (is_xquest_input ? (    arg_minborder <= error_rel
+                                         && arg_maxborder >= error_rel ) : true)
                  && (is_xquest_input ? (mindelta_filter_disabled || delta_score < arg_mindeltas) : true)  // Only apply for xQuest Input
                  && (is_xquest_input ? ions_matched  >= arg_minionsmatched : true)                       // Only apply for xQuest Input
                  &&  score >= arg_minscore
-                 &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
+                 && (is_xquest_input ? ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()) : true))
         {
           pep_id.setMetaValue("OpenXQuest:xprophet_f", 1);
           unique_ids.insert(id);
@@ -771,7 +769,6 @@ class TOPPXFDR :
           }
         }
       }
-   
       
       // Print number of scores within each class
       if (arg_verbose)
@@ -785,6 +782,8 @@ class TOPPXFDR :
           LOG_INFO << pair.first << ": " << pair.second.size() << endl;
         }
       }
+      
+      return EXECUTION_OK;
       
 
       // Generate Histograms of the scores for each class
