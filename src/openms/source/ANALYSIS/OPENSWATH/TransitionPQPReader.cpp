@@ -60,7 +60,6 @@ namespace OpenMS
   {
     sqlite3 *db;
     sqlite3_stmt * stmt;
-    char *zErrMsg = 0;
     int  rc;
     std::string select_sql;
 

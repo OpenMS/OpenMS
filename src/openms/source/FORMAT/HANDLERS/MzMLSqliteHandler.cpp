@@ -120,7 +120,7 @@ namespace OpenMS
         std::cerr << "Prepared statement " << select_sql << std::endl;
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
-      rc = sqlite3_step(stmt);
+      sqlite3_step(stmt);
 
       std::vector<int> chromdata; chromdata.resize(chromatograms.size());
       int k = 0;
