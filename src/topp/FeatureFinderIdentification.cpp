@@ -300,6 +300,43 @@ protected:
     }
   } feature_filter_peptides_;
 
+  // comparison functor for (unassigned) peptide IDs
+  struct PeptideCompare
+  {
+    bool operator()(const PeptideIdentification& p1,
+                    const PeptideIdentification& p2)
+    {
+      const String& seq1 = p1.getHits()[0].getSequence().toString();
+      const String& seq2 = p2.getHits()[0].getSequence().toString();
+      if (seq1 == seq2)
+      {
+        Int charge1 = p1.getHits()[0].getCharge();
+        Int charge2 = p2.getHits()[0].getCharge();
+        if (charge1 == charge2)
+        {
+          return p1.getRT() < p2.getRT();
+        }
+        return charge1 < charge2;
+      }
+      return seq1 < seq2;
+    }
+  } peptide_compare_;
+
+  // comparison functor for features
+  struct FeatureCompare
+  {
+    bool operator()(const Feature& f1, const Feature& f2)
+    {
+      const String& ref1 = f1.getMetaValue("PeptideRef");
+      const String& ref2 = f2.getMetaValue("PeptideRef");
+      if (ref1 == ref2)
+      {
+        return f1.getRT() < f2.getRT();
+      }
+      return ref1 < ref2;
+    }
+  } feature_compare_;
+
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
   bool keep_chromatograms_; // keep chromatogram data for output?
@@ -1521,6 +1558,12 @@ protected:
       n_internal_peps = internal_seqs.size();
       n_external_peps = peptide_map.size() - internal_seqs.size();
     }
+
+    // sort everything:
+    sort(features.getUnassignedPeptideIdentifications().begin(),
+         features.getUnassignedPeptideIdentifications().end(),
+         peptide_compare_);
+    sort(features.begin(), features.end(), feature_compare_);
 
     // don't do SVM stuff unless we have external data to apply the model to:
     if (with_external_ids) classifyFeatures_(features);
