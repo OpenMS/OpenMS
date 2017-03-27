@@ -192,18 +192,6 @@ class TOPPXFDR :
 
   protected:
 
-
-    //static const String xlclass_intradecoys; // intradecoys
-    //static const String xlclass_fulldecoysintralinks; // fulldecoysintralinks
-    //static const String xlclass_interdecoys; // interdecoys
-    //static const String xlclass_fulldecoysinterlinks; // fulldecoysinterlinks
-    //static const String xlclass_intralinks; // intralinks
-    //static const String xlclass_interlinks; // interlinks
-    //static const String xlclass_monolinks;  // monolinks
-    //static const String xlclass_monodecoys; // monodecoys
-
-
-
    inline void assign_types(PeptideIdentification &pep_id, StringList & types)
    {
       types.clear();
@@ -358,6 +346,32 @@ class TOPPXFDR :
         }
      }
      */
+    
+     /**
+      Look up Meta Value for cross-link identification first in PeptideIdentification, then in the PeptideHits 
+     */
+    template<typename T> 
+    T getXLMetaValue(const String & name, const PeptideIdentification & pep_id) const
+    {
+      if( pep_id.metaValueExists(name))
+      {
+        return (T) pep_id.getMetaValue(name);   
+      }
+      vector< PeptideHit > pep_hits = pep_id.getHits();
+      
+      if (pep_hits[0].metaValueExists(name))
+      {  
+        return (T) pep_hits[0].getMetaValue(name);
+      }
+      if (pep_hits.size() == 2 && pep_hits[1].metaValueExists(name))
+      {
+        return (T) pep_hits[1].getMetaValue(name);
+      }
+      return DataValue::EMPTY;
+    }
+
+
+
 
     /** Target counting as performed by the xProphet software package
       *
@@ -556,7 +570,7 @@ class TOPPXFDR :
           {
              PeptideIdentification pep_id = *spectrum_it;
              all_ids.push_back(pep_id);
-             if( (int) pep_id.getMetaValue("xl_rank") == 1)
+             if( getXLMetaValue<int>("xl_rank", pep_id) == 1)
              {
                 rank_one_ids.push_back(rank_counter);
              }
@@ -586,11 +600,31 @@ class TOPPXFDR :
       {
         vector< ProteinIdentification > prot_ids;
         IdXMLFile().load(arg_in, prot_ids, all_ids);
+        
+        Size rank_counter = 0;
+        for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
+             all_ids_it != all_ids.end(); ++all_ids_it)
+        {
+          PeptideIdentification pep_id = *all_ids_it;
+          
+          if (getXLMetaValue<int>("xl_rank", pep_id) == 1)
+          {
+            rank_one_ids.push_back(rank_counter);
+          }
+          rank_counter++;
+        }
 
       }
       
       // Number of peptide identifications that need to be considered
       Size n_ids = rank_one_ids.size();
+      
+      
+      cout << n_ids << endl;
+      
+      return EXECUTION_OK;
+      
+      
   
 
       //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
