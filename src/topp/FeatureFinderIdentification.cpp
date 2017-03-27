@@ -204,8 +204,6 @@ protected:
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    // registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
-    // setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
     registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
@@ -805,6 +803,7 @@ protected:
             if (rt_regions.size() > 1) peptide.id += ":" + String(++counter);
 
             // store beginning and end of RT region:
+            peptide.rts.clear();
             addPeptideRT_(peptide, reg_it->start);
             addPeptideRT_(peptide, reg_it->end);
             library_.addPeptide(peptide);
@@ -1319,7 +1318,6 @@ protected:
       String id_ext = getStringOption_("id_ext");
       String lib_out = getStringOption_("lib_out");
       String chrom_out = getStringOption_("chrom_out");
-      // String trafo_out = getStringOption_("trafo_out");
       rt_window_ = getDoubleOption_("extract:rt_window");
       mz_window_ = getDoubleOption_("extract:mz_window");
       mz_window_ppm_ = mz_window_ >= 1;
@@ -1347,21 +1345,6 @@ protected:
       mzml.setLogType(log_type_);
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ms_data_);
-
-      /*
-      // RT transformation to range 0-1:
-      ms_data_.updateRanges();
-      double min_rt = ms_data_.getMinRT(), max_rt = ms_data_.getMaxRT();
-      TransformationDescription::DataPoints points;
-      points.push_back(make_pair(min_rt, 0.0));
-      points.push_back(make_pair(max_rt, 1.0));
-      trafo_.setDataPoints(points);
-      trafo_.fitModel("linear");
-      if (!trafo_out.empty())
-      {
-        TransformationXMLFile().store(trafo_out, trafo_);
-      }
-      */
 
       // initialize algorithm classes needed later:
       Param params = feat_finder_.getParameters();
