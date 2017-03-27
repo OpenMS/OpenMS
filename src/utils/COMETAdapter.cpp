@@ -123,16 +123,14 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("pin_out", "<file>", "", "Output file - for percolator input");
+    setValidFormats_("pin_out", ListUtils::create<String>("pin"), false);
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
       // COMET compiles as tandem on OSX and tandem.exe on any other platform
-#if defined(__APPLE__)
-      "comet.exe",        
-#else                 
-      "comet.exe",
-#endif
+      "comet.exe",                     
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
 
     addEmptyLine_();
@@ -141,7 +139,6 @@ protected:
     //
 
     registerDoubleOption_("peptide_mass_tolerance", "<tolerance>", 10.0, "peptide_mass_tolerance", false);
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
     registerIntOption_("peptide_mass_units", "<search_enzyme_number>", 2, "0=amu, 1=mmu, 2=ppm", false);
@@ -159,16 +156,9 @@ protected:
 
     registerStringOption_("decoy_prefix", "<unit>", "rev_", "decoy entries are denoted by this string which is pre-pended to each protein accession", false);
 
-    //setValidStrings_("precursor_error_units", valid_strings);
-    //setValidStrings_("fragment_error_units", valid_strings);
-
-    //registerIntOption_("min_precursor_charge", "<charge>", 2, "Minimum precursor charge", false);
-    //registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
-    //registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    //setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     addEmptyLine_();
@@ -247,7 +237,7 @@ protected:
     }
     else
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Enzyme not supported. " + enzyme_name);
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Enzyme not supported. " + enzyme_name);
     }
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
@@ -261,7 +251,7 @@ protected:
     vector<ResidueModification> variable_modifications = getModifications_(variable_modifications_names);
     if (variable_modifications.size() > 9)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
     }
 
     Size var_mod_index = 1;
@@ -330,7 +320,8 @@ protected:
     os << "output_sqtfile = " << 0 << "\n";                      // 0=no, 1=yes  write sqt file
     os << "output_txtfile = " << 0 << "\n";                     // 0=no, 1=yes  write tab-delimited txt file
     os << "output_pepxmlfile = " << 1 << "\n";                   // 0=no, 1=yes  write pep.xml file
-    os << "output_percolatorfile = " << 1 << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
+
+    os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
     os << "output_outfiles = " <<  0 << "\n";                    // 0=no, 1=yes  write .out files
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
     os << "num_output_lines = " << 5 << "\n";                    // num peptide results to show
@@ -532,7 +523,6 @@ protected:
     if (this->debug_level_ == 0)
     {
       File::remove(tmp_pepxml);
-      File::remove(tmp_pin);
       LOG_WARN << "Set debug level to >0 to keep the temporary pep.xml and pin files at '" << tmp_pepxml << "'" << std::endl;
     }
     else
