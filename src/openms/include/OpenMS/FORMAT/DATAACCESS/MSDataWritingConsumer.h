@@ -87,7 +87,7 @@ namespace OpenMS
 
     */
     class OPENMS_DLLAPI MSDataWritingConsumer : 
-      public Internal::MzMLHandler< MSExperiment<> >,
+      public Internal::MzMLHandler,
       public Interfaces::IMSDataConsumer< MSExperiment<> >
     {
 
@@ -102,7 +102,7 @@ namespace OpenMS
         @param filename Filename for the output mzML
       */
       explicit MSDataWritingConsumer(String filename) :
-        Internal::MzMLHandler<MapType>(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
+        Internal::MzMLHandler(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
         started_writing_(false),
         writing_spectra_(false),
         writing_chromatograms_(false),
@@ -131,8 +131,8 @@ namespace OpenMS
         @brief Set experimental settings for the whole file
 
         @param exp Experimental settings to be used for this file (from this
-          and the first spectrum/chromatogram, the class will deduce most of
-          the header of the mzML file)
+           and the first spectrum/chromatogram, the class will deduce most of
+           the header of the mzML file)
       */
       virtual void setExperimentalSettings(const ExperimentalSettings& exp)
       {
@@ -193,7 +193,7 @@ namespace OpenMS
           //--------------------------------------------------------------------
           //header
           //--------------------------------------------------------------------
-          Internal::MzMLHandler<MapType>::writeHeader_(ofs_, dummy, dps_, *validator_);
+          Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
           started_writing_ = true;
         }
         if (!writing_spectra_)
@@ -205,7 +205,7 @@ namespace OpenMS
         bool renew_native_ids = false;
         // TODO writeSpectrum assumes that dps_ has at least one value -> assert
         // this here ...
-        Internal::MzMLHandler<MapType>::writeSpectrum_(ofs_, scpy,
+        Internal::MzMLHandler::writeSpectrum_(ofs_, scpy,
                 spectra_written_++, *validator_, renew_native_ids, dps_);
       }
 
@@ -246,7 +246,7 @@ namespace OpenMS
           //--------------------------------------------------------------------
           //header (fill also dps_ variable)
           //--------------------------------------------------------------------
-          Internal::MzMLHandler<MapType>::writeHeader_(ofs_, dummy, dps_, *validator_);
+          Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
           started_writing_ = true;
         }
         if (!writing_chromatograms_)
@@ -255,7 +255,7 @@ namespace OpenMS
           writing_chromatograms_ = true;
           writing_spectra_ = false;
         }
-        Internal::MzMLHandler<MapType>::writeChromatogram_(ofs_, ccpy,
+        Internal::MzMLHandler::writeChromatogram_(ofs_, ccpy,
                 chromatograms_written_++, *validator_);
       }
       //@}

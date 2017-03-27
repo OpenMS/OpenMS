@@ -120,7 +120,7 @@ namespace OpenMS
     MapType dummy;
     bool size_only_before_ = options_.getSizeOnly();
     options_.setSizeOnly(true);
-    Internal::MzMLHandler<MapType> handler(dummy, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
     handler.setOptions(options_);
 
     // TODO catch errors as above ?
@@ -149,6 +149,54 @@ namespace OpenMS
       std::string mess = "- due to that error of type ";
       mess.append(e.getName());
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
+    }
+  }
+
+  void MzMLFile::load(const String& filename, MSExperiment<RichPeak1D>& map)
+  {
+#ifdef OPENMS_ASSERTIONS
+    std::cout << "===========================================================================" << std::endl;
+    std::cout << "WARNING: you are using a deprecated interface MzMLFile::load with MSExperiment<RichPeak1D>." 
+              << "\nPlease consider switching to MSExperiment<Peak1D>" << std::endl;
+    std::cout << "===========================================================================" << std::endl;
+#endif
+
+    MSExperiment<Peak1D> map_;
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzMLHandler handler(map_, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    safeParse_(filename, &handler);
+
+    map.reset();
+    map = (ExperimentalSettings)map_;
+    map.setChromatograms(map_.getChromatograms());
+
+    // convert regular Spectra to RichPeakSpectra
+    for (Size k = 0; k < map_.getNrSpectra(); k++)
+    {
+      // copy each spectrum over
+      MSSpectrum<RichPeak1D> s;
+      const MSSpectrum<Peak1D> s2 = map_.getSpectrum(k);
+      s = (SpectrumSettings)map_.getSpectrum(k);
+      s.setRT(s2.getRT());
+      s.setDriftTime(s2.getDriftTime());
+      s.setMSLevel(s2.getMSLevel());
+      s.setName(s2.getName());
+      s.setFloatDataArrays(s2.getFloatDataArrays());
+      s.setStringDataArrays(s2.getStringDataArrays());
+      s.setIntegerDataArrays(s2.getIntegerDataArrays());
+      for (MSSpectrum<Peak1D>::iterator it = map_.getSpectrum(k).begin(); it != map_.getSpectrum(k).end(); ++it)
+      {
+        RichPeak1D p;
+        p.setMZ(it->getMZ());
+        p.setIntensity(it->getIntensity());
+        s.push_back(p);
+      }
+      map.addSpectrum(s);
     }
   }
 
