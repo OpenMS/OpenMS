@@ -226,10 +226,10 @@ class TOPPXFDR :
    inline void assign_types(PeptideIdentification &pep_id, StringList & types)
    {
       types.clear();
-      bool pep_is_decoy = pep_id.metaValueExists("OpenXQuest:is_decoy");
+      bool pep_is_decoy = pep_id.getMetaValue("target_decoy").toString() == "decoy";
 
       // Intradecoys
-      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && pep_is_decoy)
       {
         types.push_back(TOPPXFDR::xlclass_intradecoys);
       }
@@ -279,8 +279,8 @@ class TOPPXFDR :
         PeptideHit alpha = pep_hits[0];
         PeptideHit beta = pep_hits[1];
         
-        bool alpha_is_decoy = alpha.metaValueExists("OpenXQuest:is_decoy");
-        bool beta_is_decoy = beta.metaValueExists("OpenXQuest:is_decoy");
+        bool alpha_is_decoy = alpha.getMetaValue("target_decoy").toString() == "decoy";
+        bool beta_is_decoy = beta.getMetaValue("target_decoy").toString() == "decoy";
 
         // fulldecoysintralinks
         if (   pep_id.metaValueExists("OpenXQuest:is_intraprotein")

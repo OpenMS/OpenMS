@@ -200,11 +200,10 @@ namespace OpenMS
           String prot1_string = this->attributeAsString_(attributes, "prot1");
 
           // Decide if decoy for alpha
-          if (prot1_string.hasSubstring("decoy"))
-          {
-              peptide_identification.setMetaValue("OpenXQuest:is_decoy", DataValue());
-              peptide_hit_alpha.setMetaValue("OpenXQuest:is_decoy", DataValue());
-          }
+          DataValue target_decoy = DataValue(prot1_string.hasSubstring("decoy") ? "decoy" : "target");
+          peptide_identification.setMetaValue("target_decoy", target_decoy);
+          peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
+          
           // That is a bit hacky. Regular expression
           removeSubstring(prot1_string, "reverse_");
           removeSubstring(prot1_string, "decoy_");
@@ -270,9 +269,16 @@ namespace OpenMS
               // Decide if decoy for beta
               if (prot2_string.hasSubstring("decoy"))
               {
-                  peptide_identification.setMetaValue("OpenXQuest:is_decoy", DataValue());
-                  peptide_hit_beta.setMetaValue("OpenXQuest:is_decoy", DataValue());
+                peptide_identification.setMetaValue("target_decoy", DataValue("decoy"));
+                peptide_hit_beta.setMetaValue("target_decoy", DataValue("decoy"));              
               }
+              else
+              {
+                peptide_hit_beta.setMetaValue("target_decoy", DataValue("target"));
+              }
+             
+              
+              
               // I really do not like this
               removeSubstring(prot2_string, "reverse_");
               removeSubstring(prot2_string, "decoy_");
