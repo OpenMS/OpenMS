@@ -159,9 +159,9 @@ struct CrossLinkSpectrumMatch
   public:
     struct XLPrecursor
     {
-      double precursor_mass;
-      Size alpha_index;
-      Size beta_index;
+      float precursor_mass;
+      unsigned int alpha_index;
+      unsigned int beta_index;
 
       bool operator<(const XLPrecursor& other) const
       {
