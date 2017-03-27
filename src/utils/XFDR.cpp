@@ -111,15 +111,15 @@ struct less_than_by_key
 
 struct less_than_by_key
 {
-    // The elements according to which the rank vector should be computed
-    // These are the rank one identifications among all spectra
-    vector< PeptideIdentification * >  & elements;
+    //Indizes of the rank one elements within the all_ids vector
+    vector < PeptideIdentification > & all_ids;
+    vector< Size >  & rank_one_ids;
     const String & meta_value;  // By which meta_value each peptide identification should be sorted (usually by some score)
 
     inline bool operator()(const size_t & index1, const size_t & index2)
     {
-      return ((double) elements[index1]->getMetaValue(meta_value)
-              > (double) elements[index2]->getMetaValue(meta_value));
+      return ((double) all_ids[rank_one_ids[index1]].getMetaValue(meta_value)
+              > (double) all_ids[rank_one_ids[index2]].getMetaValue(meta_value));
     }
 };
 
@@ -131,12 +131,12 @@ struct less_than_by_key
  * This is only used for assertions.
  *
  */
-bool isSortedDescending(vector< size_t > & order, vector< PeptideIdentification * > & pep_ids)
+bool isSortedDescending(vector< size_t > & order, vector< PeptideIdentification > & all_ids, vector< Size > & rank_one_ids )
 {
-  for (size_t i = 0; i < pep_ids.size() - 1; ++i)
+  for (Size i = 0; i < order.size() - 1; ++i)
   {
-    double a_score = (double) pep_ids[order[i]]->getMetaValue("OpenXQuest:score");
-    double b_score = (double) pep_ids[order[i+1]]->getMetaValue("OpenXQuest:score");
+    double a_score = (double) all_ids[rank_one_ids[order[i]]].getMetaValue("OpenXQuest:score");
+    double b_score = (double) all_ids[rank_one_ids[order[i+1]]].getMetaValue("OpenXQuest:score");
 
     if(a_score < b_score)
     {
@@ -448,6 +448,7 @@ class TOPPXFDR :
     ExitCodes main_(int, const char **)
     {
       bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
+      bool is_xquest_input = false;
 
       //-------------------------------------------------------------
       // parsing parameters
@@ -524,13 +525,15 @@ class TOPPXFDR :
       Size n_spectra;
 
       vector < PeptideIdentification > all_ids;
-      vector < Size > rank_one_ids; // Stores the indizes of the rank one hits within all_ids (apparently pointers to Peptide Identifications do not work)
+      vector < Size > rank_one_ids; // Stores the indizes of the rank one hits within all_ids
 
-      vector < vector < PeptideIdentification > > spectra;  // TODO Only used for xQuest input files, thus move to corresponding block
+      vector < vector < PeptideIdentification > > spectra;
 
       // assume XQuestXML here
       if (arg_in.hasSuffix("xml"))
       {
+        is_xquest_input = true;
+        
         // Core data structures for the util
         vector< XQuestResultMeta > metas;
         // Parse XQuestResultXMLFile (TODO Also support idXML and mzIdentML)
@@ -561,6 +564,8 @@ class TOPPXFDR :
           }
         }
       }
+      
+      // TODO Add support
       else if (arg_in.hasSuffix("mzid"))
       {
         vector< ProteinIdentification > prot_ids;
@@ -580,18 +585,13 @@ class TOPPXFDR :
       else if (arg_in.hasSuffix("idXML"))
       {
         vector< ProteinIdentification > prot_ids;
-        vector< PeptideIdentification > pep_ids;
-        IdXMLFile().load(arg_in, prot_ids, pep_ids);
+        IdXMLFile().load(arg_in, prot_ids, all_ids);
 
-        PeptideIdentification pep_id = pep_ids[0];
-        StringList keys;
-        pep_id.getKeys(keys);
-
-        for (StringList::const_iterator keys_it = keys.begin(); keys_it != keys.end(); ++keys_it)
-        {
-          cout << *keys_it << endl;
-        }
       }
+      
+      // Number of peptide identifications that need to be considered
+      Size n_ids = rank_one_ids.size();
+  
 
       //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
       //      {
@@ -614,7 +614,7 @@ class TOPPXFDR :
 
 
       // For xQuest input,calculate delta scores and min_ions_matched
-      if (arg_in.hasSuffix("xml"))
+      if (is_xquest_input)
       {
         delta_scores.resize(n_spectra);
         n_min_ions_matched.resize(n_spectra);
@@ -670,26 +670,19 @@ class TOPPXFDR :
        */
 
       typedef std::vector<size_t> ranks;
-
+    
       ranks order_score ( boost::counting_iterator<size_t>(0),
                           boost::counting_iterator<size_t>(rank_one_ids.size()));
 
-      for (vector< Size>::const_iterator  rank_one_ids_it = rank_one_ids.begin();
-           rank_one_ids_it != rank_one_ids.end(); ++rank_one_ids_it)
-      {
-        cout << *rank_one_ids_it << endl;
-      }
-
       // Configure the sorting of the Peptide Identifications
-      //less_than_by_key order_conf = {
-      //  rank_one_ids,            // elements
-      //  "OpenXQuest:score"  // key
-      //};
+      less_than_by_key order_conf = {
+        all_ids,
+        rank_one_ids,            // elements
+        "OpenXQuest:score"  // key
+      };
 
-      ///std::sort(order_score.begin(), order_score.end(), order_conf);
-     // assert(isSortedDescending(order_score, rank_one_ids));
-      return EXECUTION_OK;
-
+     std::sort(order_score.begin(), order_score.end(), order_conf);
+     assert(isSortedDescending(order_score, all_ids, rank_one_ids));
 
 
       // For unique IDs
@@ -698,28 +691,45 @@ class TOPPXFDR :
       // Applies user specified filters and aggregates the scores for the corresponding classes
       std::map< String, vector< double > > scores;
 
-      for (size_t i = 0; i < n_spectra; ++i)
-      {
+      // Fetch all relevant peptide identifications in descending order of score
+      for (size_t i = 0; i < n_ids; ++i)
+      {    
         // Extract required attributes of the peptide_identification (filter criteria)
-        PeptideIdentification pep_id = spectra[order_score[i]][pep_id_index];
+        PeptideIdentification pep_id = all_ids[rank_one_ids[order_score[i]]];
+        
+        // TODO Is this available in non-xQuest input files?
         double error_rel = (double) pep_id.getMetaValue("OpenXQuest:error_rel");
-        double delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];
-        size_t ions_matched = n_min_ions_matched[order_score[i]];
+        
+        double delta_score;
+        Size ions_matched;
+        if (is_xquest_input)
+        {
+          delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];
+          ions_matched = n_min_ions_matched[order_score[i]];
+        }
+        else
+        {
+          delta_score = 0;
+          ions_matched = 0;          
+        }        
         double score = (double) pep_id.getMetaValue("OpenXQuest:score");
+         
         String id = (String) pep_id.getMetaValue("OpenXQuest:id");
 
         // Only consider peptide identifications which  fullfill all filter criteria specified by the user
         if (     arg_minborder <= error_rel
                  &&  arg_maxborder >= error_rel
-                 &&  (mindelta_filter_disabled || delta_score < arg_mindeltas)
-                 &&  ions_matched  >= arg_minionsmatched
-                 &&  score         >= arg_minscore
+                 && (is_xquest_input ? (mindelta_filter_disabled || delta_score < arg_mindeltas) : true)  // Only apply for xQuest Input
+                 && (is_xquest_input ? ions_matched  >= arg_minionsmatched : true)                       // Only apply for xQuest Input
+                 &&  score >= arg_minscore
                  &&  ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()))
         {
           pep_id.setMetaValue("OpenXQuest:xprophet_f", 1);
           unique_ids.insert(id);
           StringList xl_types;
-          assign_types(pep_id, xl_types);
+          
+          assign_types(pep_id, xl_types); // TODO Currently hard-coded (maybe similar to onthologies).
+          
           for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); ++xl_types_it)
           {
             // Assign score to this xl type
@@ -727,8 +737,8 @@ class TOPPXFDR :
           }
         }
       }
-
-
+   
+      
       // Print number of scores within each class
       if (arg_verbose)
       {
@@ -741,6 +751,7 @@ class TOPPXFDR :
           LOG_INFO << pair.first << ": " << pair.second.size() << endl;
         }
       }
+      
 
       // Generate Histograms of the scores for each class
       // Use cumulative histograms to count the number of scores above consecutive thresholds
@@ -800,67 +811,61 @@ class TOPPXFDR :
         fdr_monolinks = qfdr_monolinks;
       }
 
-      for (vector< vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
-           spectra_it != spectra.end(); ++spectra_it)
+
+      // Assign FDR values to all identifications
+      for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
+           all_ids_it != all_ids.end(); all_ids_it++)
       {
-        vector< PeptideIdentification > current_spectrum = *spectra_it;
-        for (vector< PeptideIdentification >::const_iterator current_spectrum_it = current_spectrum.begin();
-             current_spectrum_it != current_spectrum.end(); ++current_spectrum_it)
+        PeptideIdentification pep_id = *all_ids_it;
+       
+        if ( ! pep_id.metaValueExists("OpenXQuest:xprophet_f"))
         {
-          PeptideIdentification pep_id = *current_spectrum_it;
-
-          if ( ! pep_id.metaValueExists("OpenXQuest:xprophet_f"))
-          {
-            pep_id.setMetaValue("OpenXQuest:xprophet_f", 0);
-          }
-
-          StringList xl_types;
-          double score = (double) pep_id.getMetaValue("OpenXQuest:score");
-          String id = pep_id.getMetaValue("OpenXQuest:id");
-          assign_types(pep_id, xl_types);
-
-          // Assign FDR value
-          bool assigned = false;
-          for(StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
-          {
-            String xl_type = *xl_types_it;
-            Size idx = std::floor((score - TOPPXFDR::fpnum_score_start) / TOPPXFDR::fpnum_score_step);
-            if (   xl_type == TOPPXFDR::xlclass_fulldecoysinterlinks
-                || xl_type == TOPPXFDR::xlclass_hybriddecoysinterlinks
-                || xl_type == TOPPXFDR::xlclass_interdecoys
-                || xl_type == TOPPXFDR::xlclass_interlinks)
-            {
-              pep_id.setMetaValue("fdr", fdr_interlinks[idx]);
-              assigned = true;
-              break;
-            }
-            else if (   xl_type == TOPPXFDR::xlclass_fulldecoysintralinks
-                     || xl_type == TOPPXFDR::xlclass_hybriddecoysintralinks
-                     || xl_type == TOPPXFDR::xlclass_intradecoys
-                     || xl_type == TOPPXFDR::xlclass_intralinks)
-            {
-              pep_id.setMetaValue("fdr", fdr_intralinks[idx]);
-              assigned = true;
-              break;
-            }
-            else if (   xl_type == TOPPXFDR::xlclass_monodecoys
-                     || xl_type == TOPPXFDR::xlclass_monolinks)
-            {
-              pep_id.setMetaValue("fdr", fdr_monolinks[idx]);
-              assigned = true;
-              break;
-            }
-          }
-          if ( ! assigned)
-          {
-            LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
-          }
-
-          cout << pep_id.getMetaValue("fdr") << endl;
+          pep_id.setMetaValue("OpenXQuest:xprophet_f", 0);
         }
-      }
 
+        StringList xl_types;
+        double score = (double) pep_id.getMetaValue("OpenXQuest:score");
+        String id = pep_id.getMetaValue("OpenXQuest:id");
+        assign_types(pep_id, xl_types);
 
+        // Assign FDR value
+        bool assigned = false;
+        for(StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
+        {
+          String xl_type = *xl_types_it;
+          Size idx = std::floor((score - TOPPXFDR::fpnum_score_start) / TOPPXFDR::fpnum_score_step);
+          if (   xl_type == TOPPXFDR::xlclass_fulldecoysinterlinks
+              || xl_type == TOPPXFDR::xlclass_hybriddecoysinterlinks
+              || xl_type == TOPPXFDR::xlclass_interdecoys
+              || xl_type == TOPPXFDR::xlclass_interlinks)
+          {
+            pep_id.setMetaValue("OpenXQuest:fdr", fdr_interlinks[idx]);
+            assigned = true;
+            break;
+          }
+          else if (   xl_type == TOPPXFDR::xlclass_fulldecoysintralinks
+                   || xl_type == TOPPXFDR::xlclass_hybriddecoysintralinks
+                   || xl_type == TOPPXFDR::xlclass_intradecoys
+                   || xl_type == TOPPXFDR::xlclass_intralinks)
+          {
+            pep_id.setMetaValue("OpenXQuest:fdr", fdr_intralinks[idx]);
+            assigned = true;
+            break;
+          }
+          else if (   xl_type == TOPPXFDR::xlclass_monodecoys
+                   || xl_type == TOPPXFDR::xlclass_monolinks)
+          {
+            pep_id.setMetaValue("OpenXQuest:fdr", fdr_monolinks[idx]);
+            assigned = true;
+            break;
+          }
+        }
+        if ( ! assigned)
+        {
+          LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
+        }
+        cout <<  id << " " <<  pep_id.getMetaValue("OpenXQuest:fdr") << endl;
+      }     
 
       // Delete Delta Scores
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
