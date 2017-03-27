@@ -167,7 +167,7 @@ bool isSortedDescending(vector< Size > & order, vector< PeptideIdentification > 
   for (Size i = 0; i < order.size() - 1; ++i)
   {
     double a_score = getXLMetaValue<double>("OpenXQuest:score", all_ids[rank_one_ids[order[i]]], true);
-    double b_score = getXLMetaValue<double>("OpenXQuest:score",all_ids[rank_one_ids[order[i+1]]], true);
+    double b_score = getXLMetaValue<double>("OpenXQuest:score", all_ids[rank_one_ids[order[i+1]]], true);
 
     if(a_score < b_score)
     {
@@ -226,6 +226,7 @@ class TOPPXFDR :
    inline void assign_types(PeptideIdentification &pep_id, StringList & types)
    {
       types.clear();
+      bool pep_is_decoy = pep_id.metaValueExists("OpenXQuest:is_decoy");
 
       // Intradecoys
       if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && pep_id.metaValueExists("OpenXQuest:is_decoy"))
@@ -234,25 +235,25 @@ class TOPPXFDR :
       }
 
       // Decoys
-      if (pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      if (pep_is_decoy)
       {
         types.push_back(TOPPXFDR::xlclass_decoys);
       }
 
       // intralinks
-      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && ! pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && ! pep_is_decoy)
       {
         types.push_back(TOPPXFDR::xlclass_intralinks);
       }
 
       // interdecoys
-      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && pep_is_decoy)
       {
         types.push_back(TOPPXFDR::xlclass_interdecoys);
       }
 
       // interlinks
-      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && ! pep_id.metaValueExists("OpenXQuest:is_decoy"))
+      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && ! pep_is_decoy)
       {
         types.push_back(TOPPXFDR::xlclass_interlinks);
       }
@@ -260,15 +261,15 @@ class TOPPXFDR :
       // monolinks
       String xl_type =  pep_id.getMetaValue("xl_type").toString();
 
-      if ( ! pep_id.metaValueExists("OpenXQuest:is_decoy") && (xl_type == "mono-link"
-                                                           ||  xl_type == "loop-link"))
+      if ( ! pep_is_decoy && (xl_type == "mono-link"
+                          ||  xl_type == "loop-link"))
       {
         types.push_back(TOPPXFDR::xlclass_monolinks);
       }
 
       // monodecoys
-      if ( pep_id.metaValueExists("OpenXQuest:is_decoy") && (xl_type == "mono-link"
-                                                         ||  xl_type == "loop-link"))
+      if ( pep_is_decoy && (xl_type == "mono-link"
+                        ||  xl_type == "loop-link"))
       {
         types.push_back(TOPPXFDR::xlclass_monodecoys);
       }
@@ -277,11 +278,14 @@ class TOPPXFDR :
       {
         PeptideHit alpha = pep_hits[0];
         PeptideHit beta = pep_hits[1];
+        
+        bool alpha_is_decoy = alpha.metaValueExists("OpenXQuest:is_decoy");
+        bool beta_is_decoy = beta.metaValueExists("OpenXQuest:is_decoy");
 
         // fulldecoysintralinks
         if (   pep_id.metaValueExists("OpenXQuest:is_intraprotein")
-            && alpha.metaValueExists("OpenXQuest:is_decoy")
-            && beta.metaValueExists("OpenXQuest:is_decoy"))
+            && alpha_is_decoy
+            && beta_is_decoy)
         {
           types.push_back(TOPPXFDR::xlclass_fulldecoysintralinks);
 
@@ -289,8 +293,8 @@ class TOPPXFDR :
 
         // fulldecoysinterlinks
         if (   pep_id.metaValueExists("OpenXQuest:is_interprotein")
-            && alpha.metaValueExists("OpenXQuest:is_decoy")
-            && beta.metaValueExists("OpenXQuest:is_decoy"))
+            && alpha_is_decoy
+            && beta_is_decoy)
         {
           types.push_back(TOPPXFDR::xlclass_fulldecoysinterlinks);
 
@@ -298,20 +302,20 @@ class TOPPXFDR :
 
         // hybriddecoysintralinks
         if (       pep_id.metaValueExists("OpenXQuest:is_intraprotein")
-            && ( ! alpha.metaValueExists("OpenXQuest:is_decoy")
-            &&     beta.metaValueExists("OpenXQuest:is_decoy")
-            ||     alpha.metaValueExists("OpenXQuest:is_decoy")
-            &&   ! beta.metaValueExists("OpenXQuest:is_decoy")))
+            && ( ! alpha_is_decoy
+            &&     beta_is_decoy
+            ||     alpha_is_decoy
+            &&   ! beta_is_decoy))
         {
           types.push_back(TOPPXFDR::xlclass_hybriddecoysintralinks);
         }
 
         // hybriddecoysinterlinks
         if (       pep_id.metaValueExists("OpenXQuest:is_interprotein")
-            && ( ! alpha.metaValueExists("OpenXQuest:is_decoy")
-            &&     beta.metaValueExists("OpenXQuest:is_decoy")
-            ||     alpha.metaValueExists("OpenXQuest:is_decoy")
-            &&   ! beta.metaValueExists("OpenXQuest:is_decoy")))
+            && ( ! alpha_is_decoy
+            &&     beta_is_decoy
+            ||     alpha_is_decoy
+            &&   ! beta_is_decoy))
         {
           types.push_back(TOPPXFDR::xlclass_hybriddecoysinterlinks);
         }
