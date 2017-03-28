@@ -62,7 +62,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void FeatureFinder::run(const String& algorithm_name, MSExperiment<>& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
+  void FeatureFinder::run(const String& algorithm_name, PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
     // Nothing to do if there is no data
     if ((algorithm_name != "mrm" && input_map.empty()) || (algorithm_name == "mrm" && input_map.getChromatograms().empty()))

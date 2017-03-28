@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilterAlgorithm.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
@@ -165,8 +166,7 @@ public:
 
         @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
           */
-    template <typename PeakType>
-    void filterExperiment(MSExperiment<PeakType> & map)
+    void filterExperiment(PeakMap & map)
     {
       Size progress = 0;
       startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");

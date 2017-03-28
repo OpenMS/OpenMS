@@ -70,7 +70,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
   NEW_TMP_FILE(tmp_filename);
   MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
 
@@ -114,7 +114,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   NEW_TMP_FILE(tmp_filename);
   MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
 
@@ -149,7 +149,7 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
     NEW_TMP_FILE(tmp_filename);
     MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, true);
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
     TEST_EQUAL(exp.getNrSpectra() > 0, true)
     MSSpectrum<> first_spectrum = exp.getSpectrum(0);
@@ -170,7 +170,7 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
     NEW_TMP_FILE(tmp_filename);
     MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
     TEST_EQUAL(exp.getNrSpectra() > 0, true)
     MSSpectrum<> first_spectrum = exp.getSpectrum(0);

@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
@@ -67,7 +68,7 @@ namespace OpenMS
 
 public:
 
-    typedef MSExperiment<Peak1D> MapType;
+    typedef PeakMap MapType;
     typedef MSSpectrum<Peak1D> SpectrumType;
     typedef MSChromatogram<ChromatogramPeak> ChromatogramType;
 

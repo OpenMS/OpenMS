@@ -35,6 +35,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SEEDLISTGENERATOR_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SEEDLISTGENERATOR_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -70,7 +71,7 @@ public:
 
          This uses the locations of MS2 precursors as seed positions.
     */
-    void generateSeedList(const MSExperiment<> & experiment, SeedList & seeds);
+    void generateSeedList(const PeakMap & experiment, SeedList & seeds);
 
 
     /**

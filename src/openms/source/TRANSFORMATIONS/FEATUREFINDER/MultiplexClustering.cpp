@@ -59,7 +59,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum) :
+  MultiplexClustering::MultiplexClustering(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum) :
     rt_typical_(rt_typical), rt_minimum_(rt_minimum)
   {
     if (exp_picked.size() != boundaries.size())
@@ -98,7 +98,7 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    MSExperiment<Peak1D>::ConstIterator it_rt;
+    PeakMap::ConstIterator it_rt;
     for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
     {
       MSSpectrum<Peak1D>::ConstIterator it_mz;
@@ -112,7 +112,7 @@ namespace OpenMS
 
   }
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment<Peak1D>& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum) :
+  MultiplexClustering::MultiplexClustering(const PeakMap& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum) :
     rt_typical_(rt_typical), rt_minimum_(rt_minimum)
   {
     // ranges of the experiment
@@ -155,7 +155,7 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    MSExperiment<Peak1D>::ConstIterator it_rt;
+    PeakMap::ConstIterator it_rt;
     for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
     {
       MSSpectrum<Peak1D>::ConstIterator it_mz;

@@ -11,6 +11,6 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoAlgorithm.h>" namespace "OpenMS"
         # wrap-ignore
         DeNovoAlgorithm() nogil except +
         DeNovoAlgorithm(DeNovoAlgorithm) nogil except +
-        void generateCandidates(libcpp_vector[ PeptideIdentification ] & candidates, libcpp_vector[ libcpp_vector[ IonScore_DeNovoIonScoring ] ] &ion_scores, MSExperiment[RichPeak1D, ChromatogramPeak] &exp) nogil except +
+        void generateCandidates(libcpp_vector[ PeptideIdentification ] & candidates, libcpp_vector[ libcpp_vector[ IonScore_DeNovoIonScoring ] ] &ion_scores, MSExperiment &exp) nogil except +
         void generateCandidates(PeptideIdentification &candidates, libcpp_vector[ IonScore_DeNovoIonScoring ] & ion_scores, MSSpectrum[RichPeak1D] & spec) nogil except +
 

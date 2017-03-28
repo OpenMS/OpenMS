@@ -344,7 +344,7 @@ START_SECTION([EXTRA](pick multiple peaks SN))
 END_SECTION
 
 TOLERANCE_RELATIVE(1.00001);
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 
 /////////////////////////
 // ORBITRAP data tests //

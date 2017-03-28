@@ -517,7 +517,7 @@ protected:
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile file;
     file.setLogType(log_type_);
     String in_tmp;

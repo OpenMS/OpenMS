@@ -93,13 +93,13 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION(bool load(const String& filename, OnDiscMSExperiment<>& exp))
+START_SECTION(bool load(const String& filename, OnDiscPeakMap& exp))
 {
   IndexedMzMLFileLoader file;
-  OnDiscMSExperiment<> exp;
+  OnDiscPeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
-  MSExperiment<> exp2;
+  PeakMap exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
 
   TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
@@ -125,7 +125,7 @@ START_SECTION([EXTRA]CheckParsing)
 {
   // Check return value of load
   IndexedMzMLFileLoader file;
-  OnDiscMSExperiment<> exp;
+  OnDiscPeakMap exp;
   bool success;
   success = file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(success, false)
@@ -134,10 +134,10 @@ START_SECTION([EXTRA]CheckParsing)
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, OnDiscMSExperiment<>& exp))
+START_SECTION(void store(const String& filename, OnDiscPeakMap& exp))
 {
   IndexedMzMLFileLoader file;
-  OnDiscMSExperiment<> exp, exp_;
+  OnDiscPeakMap exp, exp_;
   file.load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp_);
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -147,7 +147,7 @@ START_SECTION(void store(const String& filename, OnDiscMSExperiment<>& exp))
   bool success = file.load(tmp_filename,exp);
   TEST_EQUAL(success, true)
 
-  MSExperiment<> exp2;
+  PeakMap exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
 
   TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
@@ -169,11 +169,11 @@ START_SECTION(void store(const String& filename, OnDiscMSExperiment<>& exp))
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, MSExperiment<>& exp))
+START_SECTION(void store(const String& filename, PeakMap& exp))
 {
   IndexedMzMLFileLoader file;
-  OnDiscMSExperiment<> exp;
-  MSExperiment<> exp2;
+  OnDiscPeakMap exp;
+  PeakMap exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
 
   std::string tmp_filename;

@@ -118,9 +118,9 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    MSExperiment<>& experiment, SeqToList& rt_data)
+    PeakMap& experiment, SeqToList& rt_data)
   {
-    for (MSExperiment<>::Iterator exp_it = experiment.begin();
+    for (PeakMap::Iterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)
     {
       getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);

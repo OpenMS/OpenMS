@@ -92,7 +92,7 @@ START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, b
   ptr->load();
   ptr->simulate(spec, peptide, rnd_gen, 1);
 
-  MSExperiment<Peak1D>exp;
+  PeakMap exp;
   MzMLFile mz_file;
 
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);

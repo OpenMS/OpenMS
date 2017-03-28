@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
         bool empty() nogil except +
 
-        void readSpectra(MSExperiment[Peak1D, ChromatogramPeak] spectra, String scan_regexp) nogil except +
+        void readSpectra(MSExperiment spectra, String scan_regexp) nogil except +
 
         Size findByRT(double rt) nogil except +
 
