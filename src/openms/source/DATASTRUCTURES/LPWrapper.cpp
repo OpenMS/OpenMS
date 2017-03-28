@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
+# define NOMINMAX //avoid redefinition of min max
 # pragma warning( push ) // save warning state
 # pragma warning( disable : 4267 )
 #else
@@ -56,9 +57,11 @@
 #include "coin/CglMixedIntegerRounding.hpp"
 #ifdef _MSC_VER
 # pragma warning( pop ) // restore old warning state
+# undef NOMINMAX
 #else
 # pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
+
 
 #include <glpk.h>
 #include <cstddef>
