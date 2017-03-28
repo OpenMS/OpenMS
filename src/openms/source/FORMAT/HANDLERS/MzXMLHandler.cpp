@@ -1057,7 +1057,7 @@ namespace OpenMS
 
     void MzXMLHandler::doPopulateSpectraWithData_(SpectrumData & spectrum_data)
     {
-      typedef typename SpectrumType::PeakType PeakType;
+      typedef SpectrumType::PeakType PeakType;
 
       //std::cout << "reading scan" << "\n";
       if (spectrum_data.char_rest_ == "") // no peaks

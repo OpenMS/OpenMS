@@ -117,7 +117,7 @@ private:
 protected:
 
       /// Peak type
-      typedef typename MapType::PeakType PeakType;
+      typedef MapType::PeakType PeakType;
       /// Spectrum type
       typedef MSSpectrum<PeakType> SpectrumType;
 

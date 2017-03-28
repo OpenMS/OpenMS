@@ -788,7 +788,7 @@ public:
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
-      for (typename PeakMap::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         filterHitsByScore(exp_it->getPeptideIdentifications(), 
@@ -812,7 +812,7 @@ public:
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
-      for (typename PeakMap::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         filterHitsBySignificance(exp_it->getPeptideIdentifications(),
@@ -832,7 +832,7 @@ public:
       std::vector<PeptideIdentification> all_peptides; // IDs from all spectra
 
       // filter peptide hits:
-      for (typename PeakMap::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         std::vector<PeptideIdentification>& peptides = 
@@ -867,7 +867,7 @@ public:
       updateHitRanks(experiment.getProteinIdentifications());
 
       // filter peptide hits:
-      for (typename PeakMap::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         if (exp_it->getMSLevel() == 2)
