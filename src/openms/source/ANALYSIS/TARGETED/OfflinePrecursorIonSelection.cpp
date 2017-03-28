@@ -123,7 +123,7 @@ namespace OpenMS
     }
   }
 
-  bool enclosesBoundingBox(const Feature& f, typename PeakMap::CoordinateType rt, typename PeakMap::CoordinateType mz)
+  bool enclosesBoundingBox(const Feature& f, PeakMap::CoordinateType rt, PeakMap::CoordinateType mz)
   {
     bool enclose_hit = false;
     const std::vector<ConvexHull2D>& hulls = f.getConvexHulls();
@@ -158,8 +158,8 @@ namespace OpenMS
         std::pair<Size, Size> end;
         bool start_found = false;
         bool end_found = false;
-        typename MSSpectrum<Peak1D>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
-        typename MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
+        MSSpectrum<Peak1D>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
+        MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
         if (mz_iter == experiment[rt].end())
           continue;
         // check to the left
@@ -215,7 +215,7 @@ namespace OpenMS
                   << features[f].getRT() << " " << features[f].getMZ() << " " << features[f].getCharge() << std::endl;
 #endif
         // we estimate the convex hull
-        typename PeakMap::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
+        PeakMap::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
         if (spec_iter == experiment.end())
           --spec_iter;
 
@@ -243,7 +243,7 @@ namespace OpenMS
         start.first = distance(experiment.begin(), spec_iter);
         end.first = start.first;
 
-        typename MSSpectrum<Peak1D>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
+        MSSpectrum<Peak1D>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
         if (spec_iter->begin() == spec_iter->end())
         {
           indices.push_back(vec);
@@ -259,7 +259,7 @@ namespace OpenMS
             break;
         }
         start.second = distance(spec_iter->begin(), mz_iter);
-        typename MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
+        MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
 #ifdef DEBUG_OPS
         std::cout << features[f].getMZ() << " Start: " << experiment[start.first].getRT() << " " << experiment[start.first][start.second].getMZ();
 #endif
@@ -367,8 +367,8 @@ namespace OpenMS
       {
         Size feature_index = variable_indices[solution_indices[i]].feature;
         Size feature_scan_idx = variable_indices[solution_indices[i]].scan;
-        typename PeakMap::ConstIterator scan = experiment.begin() + feature_scan_idx;
-        typename PeakMap::SpectrumType ms2_spec;
+        PeakMap::ConstIterator scan = experiment.begin() + feature_scan_idx;
+        PeakMap::SpectrumType ms2_spec;
         Precursor p;
         std::vector<Precursor> pcs;
         p.setIntensity(features[feature_index].getIntensity());
@@ -428,7 +428,7 @@ namespace OpenMS
         {
           Size lower_rt = features[feat_idx].getConvexHull().getBoundingBox().minX();
           Size upper_rt = features[feat_idx].getConvexHull().getBoundingBox().maxX();
-          typename PeakMap::ConstIterator it;
+          PeakMap::ConstIterator it;
           for (it = experiment.RTBegin(lower_rt); it != experiment.RTEnd(upper_rt); ++it)
           {
             scan_features[it - experiment.begin()].push_back(feat_idx);
@@ -456,7 +456,7 @@ namespace OpenMS
           const std::vector<ConvexHull2D> mass_traces = features[feature_num].getConvexHulls();
           for (Size mass_trace_num = 0; mass_trace_num < mass_traces.size(); ++mass_trace_num)
           {
-            typename OpenMS::DBoundingBox<2> tmp_bbox = mass_traces[mass_trace_num].getBoundingBox();
+            OpenMS::DBoundingBox<2> tmp_bbox = mass_traces[mass_trace_num].getBoundingBox();
             tmp_bbox.setMinY(tmp_bbox.minY() - mz_isolation_window);
             tmp_bbox.setMaxY(tmp_bbox.maxY() + mz_isolation_window);
             bounding_boxes.insert(std::make_pair(std::make_pair(feature_num, mass_trace_num), tmp_bbox));
@@ -496,7 +496,7 @@ namespace OpenMS
           ++selected_peaks;
 
           // find all features (mass traces that are in the window around peak_mz)
-          typename PeakMap::SpectrumType ms2_spec;
+          PeakMap::SpectrumType ms2_spec;
           std::vector<Precursor> pcs;
           IntList parent_feature_ids;
 

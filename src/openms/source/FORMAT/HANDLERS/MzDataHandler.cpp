@@ -347,7 +347,7 @@ namespace OpenMS
       {
 
         //create FloatDataArray
-        typename MapType::SpectrumType::FloatDataArray mda;
+        MapType::SpectrumType::FloatDataArray mda;
         //Assign the right MetaInfoDescription ("supDesc" tag)
         String id = attributeAsString_(attributes, s_id);
         for (Size i = 0; i < meta_id_descs_.size(); ++i)
@@ -1040,7 +1040,7 @@ namespace OpenMS
             //write supplemental data arrays
             for (Size i = 0; i < spec.getFloatDataArrays().size(); ++i)
             {
-              const typename MapType::SpectrumType::FloatDataArray & mda = spec.getFloatDataArrays()[i];
+              const MapType::SpectrumType::FloatDataArray & mda = spec.getFloatDataArrays()[i];
               //check if spectrum and meta data array have the same length
               if (mda.size() != spec.size())
               {
