@@ -36,12 +36,12 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
+#define NOMINMAX //avoid redefinition of min max
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
-# define NOMINMAX //avoid redefinition of min max
-# pragma warning( push ) // save warning state
-# pragma warning( disable : 4267 )
+#pragma warning( push ) // save warning state
+#pragma warning( disable : 4267 )
 #else
-# pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 #include "coin/CoinModel.hpp"
 #include "coin/OsiClpSolverInterface.hpp"
@@ -56,11 +56,11 @@
 #include "coin/CglFlowCover.hpp"
 #include "coin/CglMixedIntegerRounding.hpp"
 #ifdef _MSC_VER
-# pragma warning( pop ) // restore old warning state
-# undef NOMINMAX
+#pragma warning( pop ) // restore old warning state
 #else
-# pragma GCC diagnostic warning "-Wunused-parameter"
+#pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
+#undef NOMINMAX
 
 
 #include <glpk.h>
