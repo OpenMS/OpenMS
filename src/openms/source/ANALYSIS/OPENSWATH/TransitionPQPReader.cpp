@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  static int callback(void *NotUsed, int argc, char **argv, char **azColName){
+  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName){
     int i;
     for (i=0; i<argc; i++)
     {
@@ -112,7 +112,7 @@ namespace OpenMS
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
                   "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID " \
-                  "INNER JOIN " \ 
+                  "INNER JOIN " \
                   "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION FROM PROTEIN INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID GROUP BY PEPTIDE_ID) AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID ";
 
     // Get Compounds
@@ -283,7 +283,6 @@ namespace OpenMS
     sqlite3 *db;
     char *zErrMsg = 0;
     int  rc;
-    char *create_sql;
 
     // delete file if present
     remove(filename);
@@ -296,7 +295,7 @@ namespace OpenMS
     }
 
     // Create SQL structure
-    create_sql = 
+    const char* create_sql =
       // protein table
       // OpenSWATH proteomics workflows
       "CREATE TABLE PROTEIN(" \
@@ -380,7 +379,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -496,7 +495,7 @@ namespace OpenMS
     }
     endProgress();
 
-    boost::erase(protein_set, boost::unique<boost::return_found_end>(boost::sort(protein_set)));  
+    boost::erase(protein_set, boost::unique<boost::return_found_end>(boost::sort(protein_set)));
 
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     insert_precursor_sql.precision(11);
@@ -549,7 +548,7 @@ namespace OpenMS
     }
     endProgress();
 
-    boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));  
+    boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));
     // OpenSWATH: Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
     progress = 0;
@@ -594,7 +593,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -604,7 +603,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -614,7 +613,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -624,7 +623,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -634,7 +633,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -644,7 +643,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -654,7 +653,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -664,7 +663,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -674,7 +673,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -684,7 +683,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           zErrMsg);
     }
 
@@ -699,7 +698,7 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           "Your input file contains invalid references, cannot process file.");
     }
     writePQPOutput_(filename, targeted_exp);
