@@ -189,9 +189,9 @@ public:
 protected:
 
       /// Peak type
-      typedef typename MapType::PeakType PeakType;
+      typedef MapType::PeakType PeakType;
       /// Chromatogram peak type
-      typedef typename MapType::ChromatogramPeakType ChromatogramPeakType;
+      typedef MapType::ChromatogramPeakType ChromatogramPeakType;
       /// Spectrum type
       typedef MSSpectrum<PeakType> SpectrumType;
       /// Spectrum type
