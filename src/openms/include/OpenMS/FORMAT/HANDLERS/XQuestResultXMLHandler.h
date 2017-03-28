@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
 namespace OpenMS
@@ -56,6 +57,7 @@ namespace OpenMS
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
+                             std::vector< ProteinIdentification > &,
                              int & n_hits,
                              std::vector< int > * cum_hits,
                              size_t min_n_ions_per_spectrum,

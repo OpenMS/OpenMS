@@ -36,6 +36,7 @@
 #include <xercesc/sax2/Attributes.hpp>
 #include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>
@@ -68,6 +69,7 @@ namespace OpenMS
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
+                                                   std::vector< ProteinIdentification > & prot_id,
                                                    int & n_hits_,
                                                    std::vector< int > * cum_hits,
                                                    size_t min_n_ions_per_spectrum,
