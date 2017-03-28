@@ -663,11 +663,12 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
     {
-#ifdef COIN_HAS_CLP
+//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But afaik we prefer CLP as solver anyway so no need to look for different solvers.
+//#ifdef COIN_HAS_CLP
       OsiClpSolverInterface solver;
-#elif COIN_HAS_OSL
-      OsiOslSolverInterface solver;
-#endif
+//#elif COIN_HAS_OSL
+//      OsiOslSolverInterface solver;
+//#endif
       solver.loadFromCoinModel(*model_);
       /* Now let MIP calculate a solution */
       // Pass to solver
