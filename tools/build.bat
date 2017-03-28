@@ -62,8 +62,11 @@ if not %ERRORLEVEL%==0 (
   ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this .bat file to point to the correct location or make it available in %%PATH%%.
   goto end
 )
-REM run with low priority, so the machine is usable, but on full steam when idle
-start /WAIT /B /LOW MSBuild.exe %SLN% /maxcpucount /target:%TARGET% /p:Configuration=%CFG%
+REM Invoke MSBuild.exe
+REM do not use "START /WAIT /B /LOW ..." since: 
+REM   - it does not allow to cancel the job on the console (it will keep running in the background)
+REM   - it might trick MSBuild.exe into assuming only single-core CPU, even if /maxcpucount is specified
+MSBuild.exe %SLN% /maxcpucount /target:%TARGET% /p:Configuration=%CFG%
 
 
 :end
