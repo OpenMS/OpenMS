@@ -115,12 +115,12 @@ namespace OpenMS
 
   void MzMLFile::loadSize(const String& filename, Size& scount, Size& ccount)
   {
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
 
     MapType dummy;
     bool size_only_before_ = options_.getSizeOnly();
     options_.setSizeOnly(true);
-    Internal::MzMLHandler<MapType> handler(dummy, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
     handler.setOptions(options_);
 
     // TODO catch errors as above ?
@@ -150,6 +150,19 @@ namespace OpenMS
       mess.append(e.getName());
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
     }
+  }
+
+  void MzMLFile::load(const String& filename, PeakMap& map)
+  {
+    map.reset();
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    safeParse_(filename, &handler);
   }
 
 } // namespace OpenMS

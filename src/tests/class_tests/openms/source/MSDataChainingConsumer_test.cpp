@@ -91,7 +91,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
   consumer_list.push_back(new NoopMSDataConsumer());
   MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   MSSpectrum<> first_spectrum = exp.getSpectrum(0);
@@ -117,7 +117,7 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   consumer_list.push_back(new NoopMSDataConsumer());
   MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   MSSpectrum<> first_spectrum = exp.getSpectrum(0);
@@ -150,7 +150,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   consumer_list.push_back(new NoopMSDataConsumer());
   MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
   MSChromatogram<> first_chromatogram = exp.getChromatogram(0);
@@ -176,7 +176,7 @@ START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
   consumer_list.push_back(new NoopMSDataConsumer());
   MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
   MSChromatogram<> first_chromatogram = exp.getChromatogram(0);
@@ -221,7 +221,7 @@ START_SECTION(( void appendConsumer(IMSDataConsumer<> * consumer) ))
   MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);
   chaining_consumer->appendConsumer(transforming_consumer);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   MSSpectrum<> first_spectrum = exp.getSpectrum(0);

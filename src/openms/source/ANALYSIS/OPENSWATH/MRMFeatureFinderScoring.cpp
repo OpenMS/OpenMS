@@ -146,16 +146,16 @@ namespace OpenMS
   {
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D>& chromatograms,
+  void MRMFeatureFinderScoring::pickExperiment(PeakMap& chromatograms,
                                                FeatureMap& output, TargetedExperiment& transition_exp_,
-                                               TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
+                                               TransformationDescription trafo, PeakMap& swath_map)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
     TransitionGroupMapType transition_group_map;
 
-    boost::shared_ptr<MSExperiment<Peak1D> > sh_chromatograms = boost::make_shared<MSExperiment<Peak1D> >(chromatograms);
-    boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map = boost::make_shared<MSExperiment<Peak1D> >(swath_map);
+    boost::shared_ptr<PeakMap > sh_chromatograms = boost::make_shared<PeakMap >(chromatograms);
+    boost::shared_ptr<PeakMap > sh_swath_map = boost::make_shared<PeakMap >(swath_map);
 
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
@@ -299,7 +299,6 @@ namespace OpenMS
                                                                  bool write_log_messages,
                                                                  std::vector<OpenSwath::SwathMap> swath_maps)
   {
-    typedef MRMTransitionGroupType::PeakType PeakT;
     MRMFeature idmrmfeature = transition_group_identification.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
     idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
@@ -309,8 +308,11 @@ namespace OpenMS
 
     for (Size i = 0; i < transition_group_identification.size(); i++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
-      if ((snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) && (idmrmfeature.getFeature(transition_group_identification.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+            transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()),
+            sn_win_len_, sn_bin_count_, write_log_messages));
+      if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
+            && (idmrmfeature.getFeature(transition_group_identification.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
       {
         signal_noise_estimators_identification.push_back(snptr);
         native_ids_identification.push_back(transition_group_identification.getTransitions()[i].getNativeID());
@@ -392,7 +394,6 @@ namespace OpenMS
       splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
     }
 
-    typedef MRMTransitionGroupType::PeakType PeakT;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
     std::vector<MRMFeature> feature_list;
 
@@ -402,7 +403,7 @@ namespace OpenMS
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
             transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
       signal_noise_estimators.push_back(snptr);
     }
@@ -752,32 +753,32 @@ namespace OpenMS
         }
         continue;
       }
-      MSChromatogram<ChromatogramPeak> chromatogram_old;
-      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-      OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-      RichPeakChromatogram chromatogram;
 
-      // Create the chromatogram information
+      //-----------------------------------
+      // Retrieve chromatogram and filter it by the desired RT
+      //-----------------------------------
+      OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+      MSChromatogram<> chromatogram;
+
       // Get the expected retention time, apply the RT-transformation
       // (which describes the normalization) and then take the difference.
       // Note that we inverted the transformation in the beginning because
       // we want to transform from normalized to real RTs here and not the
       // other way round.
-      expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
-      double de_normalized_experimental_rt = trafo.apply(expected_rt);
-      rt_max = de_normalized_experimental_rt + rt_extraction_window;
-      rt_min = de_normalized_experimental_rt - rt_extraction_window;
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
+      if (rt_extraction_window > 0)
       {
-        if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max))
-        {
-          continue;
-        }
-        ChromatogramPeak peak;
-        peak.setMZ(it->getRT());
-        peak.setIntensity(it->getIntensity());
-        chromatogram.push_back(peak);
+        expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
+        double de_normalized_experimental_rt = trafo.apply(expected_rt);
+        rt_max = de_normalized_experimental_rt + rt_extraction_window;
+        rt_min = de_normalized_experimental_rt - rt_extraction_window;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(chromatogram, cptr, rt_min, rt_max);
       }
+      else
+      {
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr);
+      }
+
+      // Check for empty chromatograms (e.g. RT transformation is off)
       if (chromatogram.empty())
       {
         std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \

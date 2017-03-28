@@ -234,7 +234,7 @@ class TOPPHiResPrecursorMassCorrector :
         //cout << rt << " " << mz << endl;
 
         // get precursor spectrum
-        MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
+        PeakMap::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
         UInt precursor_spectrum_idx = rt_it - exp.begin();
@@ -304,7 +304,7 @@ class TOPPHiResPrecursorMassCorrector :
         // cout << rt << " " << mz << endl;
 
         // retrieves iterator of the MS2 fragment sprectrum
-        MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
+        PeakMap::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
         UInt precursor_spectrum_idx = rt_it - exp.begin();

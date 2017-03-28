@@ -1042,7 +1042,7 @@ namespace OpenMS
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
 
-  void PeakPickerCWT::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  void PeakPickerCWT::pickExperiment(const PeakMap & input, PeakMap & output)
   {
     // if estimatePeakWidth-flag is set estimate it
     if (param_.getValue("estimate_peak_width") == "true")
@@ -1447,7 +1447,7 @@ namespace OpenMS
     }         // if (peak_shapes.size() > 0)
   }
 
-  double PeakPickerCWT::estimatePeakWidth(const MSExperiment<> & input)
+  double PeakPickerCWT::estimatePeakWidth(const PeakMap & input)
   {
     // The peak widths which are tested
     // Note that the limit is 1 Da in Peak Width. The Wavelet has a certain tolerance, but very broad peaks (e.g. top-down MS) will not be found

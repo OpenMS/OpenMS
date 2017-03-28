@@ -78,10 +78,10 @@ namespace OpenMS
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const MSExperiment<>& map, TransformationDescription& trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const PeakMap& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
-    MSExperiment<> map2(map);
+    PeakMap map2(map);
     MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
     align(map_scene, trafo);
   }

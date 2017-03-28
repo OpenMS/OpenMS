@@ -55,11 +55,20 @@ namespace OpenMS
   /**
     @brief In-Memory representation of a mass spectrometry experiment.
 
-    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram, which are accessible through the getSpectrum and getChromatogram functions.
+    Contains the data and metadata of an experiment performed with an MS (or
+    HPLC and MS). This representation of an MS experiment is organized as list
+    of spectra and chromatograms and provides an in-memory representation of
+    popular mass-spectrometric file formats such as mzXML or mzML. The
+    meta-data associated with an experiment is contained in
+    ExperimentalSettings (by inheritance) while the raw data (as well as
+    spectra and chromatogram level meta data) is stored in objects of type
+    MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
+    and getChromatogram functions.
 
-    Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
-    stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
-    search for the first spectrum before x that has a lower MS-level!
+    Be careful when changing the order of contained MSSpectrum instances, if
+    tandem-MS data is stored in this class. The only way to find a precursor
+    spectrum of MSSpectrum x is to search for the first spectrum before x that
+    has a lower MS-level!
 
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
     @note Some of the meta data is associated with the spectra directly (e.g. DataProcessing) and therefore the spectra need to be present to retain this information.
@@ -67,13 +76,14 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class MSExperiment :
     public RangeManager<2>,
     public ExperimentalSettings
   {
 
 public:
+    typedef Peak1D PeakT;
+    typedef ChromatogramPeak ChromatogramPeakT;
 
     /// @name Base type definitions
     //@{
@@ -1043,10 +1053,8 @@ private:
 
   };
 
-
   /// Print the contents to a stream.
-  template <typename PeakT, typename ChromatogramPeakT>
-  std::ostream & operator<<(std::ostream & os, const MSExperiment<PeakT, ChromatogramPeakT> & exp)
+  inline std::ostream & operator<<(std::ostream & os, const MSExperiment & exp)
   {
     os << "-- MSEXPERIMENT BEGIN --" << std::endl;
 
@@ -1054,13 +1062,13 @@ private:
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (typename MSExperiment<PeakT>::const_iterator it = exp.begin(); it != exp.end(); ++it)
+    for (typename std::vector<MSSpectrum<> >::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
     {
       os << *it;
     }
 
     //chromatograms
-    for (typename std::vector<MSChromatogram<ChromatogramPeakT> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+    for (typename std::vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
     {
       os << *it;
     }
@@ -1073,3 +1081,4 @@ private:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSEXPERIMENT_H
+

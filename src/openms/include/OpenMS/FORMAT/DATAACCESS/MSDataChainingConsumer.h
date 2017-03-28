@@ -68,7 +68,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI MSDataChainingConsumer :
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer< PeakMap >
   {
     std::vector<Interfaces::IMSDataConsumer<> *> consumers_;
 

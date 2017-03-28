@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
         ChromatogramExtractor()                  nogil except +
         ChromatogramExtractor(ChromatogramExtractor)   nogil except + 
 
-        void extractChromatograms(MSExperiment[Peak1D, ChromatogramPeak] & input,
-                                  MSExperiment[Peak1D, ChromatogramPeak] & output, 
+        void extractChromatograms(MSExperiment & input,
+                                  MSExperiment & output, 
                                   TargetedExperiment & transition_exp,
                                   double extract_window,
                                   bool ppm,

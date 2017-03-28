@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
@@ -91,7 +92,7 @@ public:
 
         String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
 
-        boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+        boost::shared_ptr<PeakMap > exp(new PeakMap);
         OpenSwath::SpectrumAccessPtr spectra_ptr;
 
         // Populate meta-data
@@ -161,7 +162,7 @@ public:
       String tmp_fname = "openswath_tmpfile";
 
       startProgress(0, 1, "Loading metadata file " + file);
-      boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata = populateMetaData_(file);
+      boost::shared_ptr<PeakMap> experiment_metadata = populateMetaData_(file);
       exp_meta = experiment_metadata;
 
       // First pass through the file -> get the meta data
@@ -175,7 +176,7 @@ public:
       endProgress();
 
       FullSwathFileConsumer* dataConsumer;
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap> exp(new PeakMap);
       startProgress(0, 1, "Loading data file " + file);
       if (readoptions == "normal")
       {
@@ -214,7 +215,7 @@ public:
       String tmp_fname = "openswath_tmpfile";
 
       startProgress(0, 1, "Loading metadata file " + file);
-      boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
       MzXMLFile f;
       f.getOptions().setAlwaysAppendData(true);
       f.getOptions().setFillData(false);
@@ -232,7 +233,7 @@ public:
       endProgress();
 
       FullSwathFileConsumer* dataConsumer;
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap > exp(new PeakMap);
       startProgress(0, 1, "Loading data file " + file);
       if (readoptions == "normal")
       {
@@ -267,7 +268,7 @@ protected:
 
     /// Cache a file to disk
     OpenSwath::SpectrumAccessPtr doCacheFile_(String in, String tmp, String tmp_fname,
-                                              boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata)
+                                              boost::shared_ptr<PeakMap > experiment_metadata)
     {
       String cached_file = tmp + tmp_fname + ".cached";
       String meta_file = tmp + tmp_fname;
@@ -278,15 +279,15 @@ protected:
       CachedmzML().writeMetadata(*experiment_metadata.get(), meta_file, true);
       delete cachedConsumer; // ensure that filestream gets closed
 
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap > exp(new PeakMap);
       MzMLFile().load(meta_file, *exp.get());
       return SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
     }
 
     /// Only read the meta data from a file and use it to populate exp_meta
-    boost::shared_ptr< MSExperiment<Peak1D> > populateMetaData_(String file)
+    boost::shared_ptr< PeakMap > populateMetaData_(String file)
     {
-      boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap > experiment_metadata(new PeakMap);
       MzMLFile f;
       f.getOptions().setAlwaysAppendData(true);
       f.getOptions().setFillData(false);

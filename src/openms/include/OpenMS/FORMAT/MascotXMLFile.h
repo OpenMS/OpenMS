@@ -103,7 +103,7 @@ public:
       @param experiment Experiment containing the spectra
       @param scan_regex Optional regular expression for extracting information from references to spectra
     */  
-    static void initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& experiment, const String& scan_regex = "");
+    static void initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& experiment, const String& scan_regex = "");
 
   };
 

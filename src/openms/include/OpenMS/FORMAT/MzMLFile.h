@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_MZMLFILE_H
 #define OPENMS_FORMAT_MZMLFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -74,24 +75,13 @@ public:
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      @p map has to be a MSExperiment or have the same interface.
+      @p filename The filename with the data
+      @p map Is an MSExperiment
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <typename MapType>
-    void load(const String& filename, MapType& map)
-    {
-      map.reset();
-
-      //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
-      handler.setOptions(options_);
-      safeParse_(filename, &handler);
-    }
+    void load(const String& filename, PeakMap& map);
 
     /**
       @brief Only count the number of spectra and chromatograms from a file
@@ -108,7 +98,7 @@ public:
     template <typename MapType>
     void store(const String& filename, const MapType& map) const
     {
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
+      Internal::MzMLHandler handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       save_(filename, &handler);
     }
@@ -140,7 +130,7 @@ public:
       // Second pass through the data, now read the spectra!
       {
         MapType dummy;
-        Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
+        Internal::MzMLHandler handler(dummy, filename_in, getVersion(), *this);
         handler.setOptions(options_);
         handler.setMSDataConsumer(consumer);
         safeParse_(filename_in, &handler);
@@ -170,7 +160,7 @@ public:
       // Second pass through the data, now read the spectra!
       {
         PeakFileOptions tmp_options(options_);
-        Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
+        Internal::MzMLHandler handler(map, filename_in, getVersion(), *this);
         tmp_options.setAlwaysAppendData(true);
         handler.setOptions(tmp_options);
         handler.setMSDataConsumer(consumer);
@@ -208,7 +198,7 @@ protected:
       PeakFileOptions tmp_options(options_);
       Size scount = 0, ccount = 0;
       MapType experimental_settings;
-      Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
+      Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
 
       // set temporary options for handler
       tmp_options.setSizeOnly(true);

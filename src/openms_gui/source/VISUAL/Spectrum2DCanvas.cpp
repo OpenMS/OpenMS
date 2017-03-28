@@ -254,7 +254,7 @@ namespace OpenMS
     {
       const LayerData & layer = getCurrentLayer();
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       exp = *layer.getPeakData();
       float mz_origin = 0.0;
 
@@ -476,7 +476,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_CHROMATOGRAM) // chromatograms
     {
-      const MSExperiment<Peak1D> exp = *layer.getPeakData();
+      const PeakMap exp = *layer.getPeakData();
       //TODO CHROM implement layer filters
       //TODO CHROM implement faster painting
 
@@ -1787,7 +1787,7 @@ namespace OpenMS
     {
       const LayerData & layer = getCurrentLayer();
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       exp = *layer.getPeakData();
 
       vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin();
@@ -2442,7 +2442,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       exp = *layer.getPeakData();
 
       int CHROMATOGRAM_SHOW_MZ_RANGE = 10;

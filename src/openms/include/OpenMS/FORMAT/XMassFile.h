@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_XMASSFILE_H
 #define OPENMS_FORMAT_XMASSFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -173,13 +174,12 @@ public:
     /**
         @brief Import settings from a XMass file.
 
-@param filename File from which the experimental settings should be loaded.
-@param exp MSExperiment where the experimental settings will be stored.
+        @param filename File from which the experimental settings should be loaded.
+        @param exp MSExperiment where the experimental settings will be stored.
 
-@exception Exception::FileNotFound is thrown if the file could not be opened.
+        @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    template <class PeakType>
-    void importExperimentalSettings(const String & filename, MSExperiment<PeakType> & exp)
+    void importExperimentalSettings(const String & filename, PeakMap & exp)
     {
       Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
 

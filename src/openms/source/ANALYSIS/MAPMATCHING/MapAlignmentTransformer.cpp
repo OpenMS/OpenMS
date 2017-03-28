@@ -56,13 +56,13 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    MSExperiment<>& msexp, const TransformationDescription& trafo,
+    PeakMap& msexp, const TransformationDescription& trafo,
     bool store_original_rt)
   {
     msexp.clearRanges();
 
     // Transform spectra
-    for (MSExperiment<>::iterator mse_iter = msexp.begin();
+    for (PeakMap::iterator mse_iter = msexp.begin();
          mse_iter != msexp.end(); ++mse_iter)
     {
       double rt = mse_iter->getRT();

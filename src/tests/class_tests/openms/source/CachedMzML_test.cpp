@@ -46,7 +46,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-CachedmzML cacheFile(std::string & tmp_filename, MSExperiment<>& exp)
+CachedmzML cacheFile(std::string & tmp_filename, PeakMap& exp)
 {
   NEW_TMP_FILE(tmp_filename);
 
@@ -92,7 +92,7 @@ START_SECTION(( [EXTRA] testCaching))
   NEW_TMP_FILE(tmp_filename);
 
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
@@ -153,7 +153,7 @@ START_SECTION(( void writeMemdump(MapType& exp, String out )))
   NEW_TMP_FILE(tmp_filename);
 
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
@@ -172,7 +172,7 @@ START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMe
   NEW_TMP_FILE(tmp_filename);
 
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
@@ -180,7 +180,7 @@ START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMe
   // Cache the experiment to a temporary file
   CachedmzML cache;
 
-  MSExperiment<> meta_exp;
+  PeakMap meta_exp;
   // without adding the cache value, the meta data of the two experiments should be equal
   cache.writeMetadata(exp, tmp_filename, false);
   MzMLFile().load(tmp_filename, meta_exp);
@@ -199,17 +199,17 @@ END_SECTION
 // Create a single CachedMzML file and use it for the following computations
 // (may be somewhat faster)
 std::string tmp_filename;
-MSExperiment<> exp;
+PeakMap exp;
 CachedmzML cache_ = cacheFile(tmp_filename, exp);
 
 START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 {
 
   std::string tmp_filename;
-  MSExperiment<> exp;
+  PeakMap exp;
   CachedmzML cache = cacheFile(tmp_filename, exp);
 
-  MSExperiment<> exp_new;
+  PeakMap exp_new;
   cache.readMemdump(exp_new, tmp_filename);
 
   TEST_EQUAL(exp_new.size(), exp.size())
@@ -227,7 +227,7 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   // Cache the experiment to a temporary file

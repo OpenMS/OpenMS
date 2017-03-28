@@ -28,5 +28,5 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
         #           libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides,
         #           RTMapping & rt_mapping, String & scan_regex) nogil except +
 
-        # NAMESPACE # void generateRTMapping(MSExperiment[Peak1D, ChromatogramPeak]::ConstIterator begin, MSExperiment[Peak1D, ChromatogramPeak]::ConstIterator end, RTMapping & rt_mapping) nogil except +
+        # NAMESPACE # void generateRTMapping(MSExperiment::ConstIterator begin, MSExperiment::ConstIterator end, RTMapping & rt_mapping) nogil except +
 

@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
   std::string s = ExampleLibraryFile::printSomething();
   std::cout << "From external lib: " << s << "\n";
 
-  MSExperiment<Peak1D,ChromatogramPeak> exp;
+  PeakMap exp;
   MzMLFile f;
   String tmpfilename = "tmpfile.mzML";
 
