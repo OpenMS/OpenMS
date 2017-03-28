@@ -637,7 +637,7 @@ namespace OpenMS
       npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
       npconfig_int.setCompression("slof");
 
-      String prepare_statement = "INSERT INTO DATA(SPECTRUM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
+      String prepare_statement = "INSERT INTO DATA (SPECTRUM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
       std::vector<String> data;
       int sql_it = 1;
       int nr_precursors = 0;
@@ -744,7 +744,7 @@ namespace OpenMS
           }
 
           data.clear();
-          prepare_statement = "INSERT INTO DATA(SPECTRUm_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
+          prepare_statement = "INSERT INTO DATA (SPECTRUM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
           sql_it = 1;
         }
 
@@ -804,7 +804,7 @@ namespace OpenMS
       npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
       npconfig_int.setCompression("slof");
 
-      String prepare_statement = "INSERT INTO DATA(CHROMATOGRAM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
+      String prepare_statement = "INSERT INTO DATA (CHROMATOGRAM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
       std::vector<String> data;
       int sql_it = 1;
       for (Size k = 0; k < chroms.size(); k++)
@@ -893,7 +893,7 @@ namespace OpenMS
           }
 
           data.clear();
-          prepare_statement = "INSERT INTO DATA(CHROMATOGRAM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
+          prepare_statement = "INSERT INTO DATA (CHROMATOGRAM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
           sql_it = 1;
         }
 
