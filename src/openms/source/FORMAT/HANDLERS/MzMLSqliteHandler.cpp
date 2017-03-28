@@ -123,7 +123,6 @@ namespace OpenMS
       sqlite3_step(stmt);
 
       std::vector<int> chromdata; chromdata.resize(chromatograms.size());
-      int k = 0;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         Size chrom_id = sqlite3_column_int( stmt, 0 );
@@ -201,7 +200,6 @@ namespace OpenMS
         }
 
         sqlite3_step( stmt );
-        k++;
       }
 
       // ensure that all spectra have their data: we expect two data arrays per spectrum (int and rt)
@@ -244,7 +242,6 @@ namespace OpenMS
       sqlite3_step(stmt);
 
       std::vector<int> specdata; specdata.resize(spectra.size());
-      int k = 0;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         Size spec_id = sqlite3_column_int( stmt, 0 );
@@ -322,7 +319,6 @@ namespace OpenMS
         }
 
         sqlite3_step( stmt );
-        k++;
       }
 
       // ensure that all spectra have their data: we expect two data arrays per spectrum (int and mz)
