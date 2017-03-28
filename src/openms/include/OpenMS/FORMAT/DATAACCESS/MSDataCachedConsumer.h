@@ -56,9 +56,8 @@ namespace OpenMS
       public CachedmzML,
       public Interfaces::IMSDataConsumer
     {
-      typedef PeakMap MapType;
-      typedef MapType::SpectrumType SpectrumType;
-      typedef MapType::ChromatogramType ChromatogramType;
+      typedef MSSpectrum<> SpectrumType;
+      typedef MSChromatogram<> ChromatogramType;
 
     public:
 

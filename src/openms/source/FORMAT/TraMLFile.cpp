@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/TraMLFile.h>
 
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>

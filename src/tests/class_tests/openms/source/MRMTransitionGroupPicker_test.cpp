@@ -32,14 +32,20 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+///////////////////////////
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <boost/assign/std/vector.hpp>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 using namespace OpenMS;
 using namespace std;
