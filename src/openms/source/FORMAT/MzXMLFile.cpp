@@ -64,5 +64,18 @@ namespace OpenMS
       options_ = options;
   }
 
+  void MzXMLFile::load(const String & filename, MapType & map)
+  {
+    map.reset();
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    handler.setOptions(options_);
+    parse_(filename, &handler);
+  }
+
 } // namespace OpenMS
 

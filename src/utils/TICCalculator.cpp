@@ -81,10 +81,10 @@ using namespace OpenSwath;
 
 
 class TICConsumer : 
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer< PeakMap >
 {
 
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
@@ -223,7 +223,7 @@ protected:
       opt.setFillData(load_data); // whether to actually load any data
       opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
       mzml.setOptions(opt);
-      MSExperiment<> map;
+      PeakMap map;
       mzml.load(in, map);
       double TIC = 0.0;
       long int nr_peaks = 0;
@@ -248,7 +248,7 @@ protected:
       
       IndexedMzMLFileLoader imzml;
       // load data from an indexed MzML file
-      OnDiscMSExperiment<> map;
+      OnDiscPeakMap map;
       imzml.load(in, map);
       double TIC = 0.0;
       long int nr_peaks = 0;
@@ -279,7 +279,7 @@ protected:
       imzml.setOptions(opt);
 
       // load data from an indexed MzML file
-      OnDiscMSExperiment<> map;
+      OnDiscPeakMap map;
       map.openFile(in, true);
       map.setSkipXMLChecks(true);
 

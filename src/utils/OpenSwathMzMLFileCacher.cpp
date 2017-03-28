@@ -90,7 +90,7 @@ class TOPPOpenSwathMzMLFileCacher
   {
   }
 
- typedef MSExperiment<Peak1D> MapType;
+ typedef PeakMap MapType;
 
  protected:
 

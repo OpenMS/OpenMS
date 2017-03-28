@@ -77,10 +77,10 @@ START_SECTION(~MapAlignmentTransformer())
 }
 END_SECTION
 
-START_SECTION((static void transformRetentionTimes(MSExperiment<>& msexp, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(PeakMap& msexp, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
-  MSExperiment<> exp;
-  MSExperiment<>::SpectrumType spec;
+  PeakMap exp;
+  PeakMap::SpectrumType spec;
 
   // first spectrum (MS)
   spec.setRT(11.1);

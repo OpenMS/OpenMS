@@ -151,7 +151,7 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    OnDiscMSExperiment<> exp;
+    OnDiscPeakMap exp;
     loader.load(in, exp);
 
     // We could write out this warning in the constructor if no spectra have come our way ...
@@ -202,7 +202,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
 
     ///////////////////////////////////
     // Create PeakPickerHiRes and hand it to the PPHiResMzMLConsumer

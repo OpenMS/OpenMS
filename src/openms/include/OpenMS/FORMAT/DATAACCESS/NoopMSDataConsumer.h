@@ -49,7 +49,7 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI NoopMSDataConsumer :
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer< PeakMap >
   {
   public:
 

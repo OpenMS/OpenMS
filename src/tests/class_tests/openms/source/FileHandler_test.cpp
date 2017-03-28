@@ -125,7 +125,7 @@ END_SECTION
 
 START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
-MSExperiment<> exp;
+PeakMap exp;
 TEST_EQUAL(tmp.loadExperiment("test.bla", exp), false)
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp), true)
 
@@ -182,7 +182,7 @@ TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PA
 END_SECTION
 
 START_SECTION((static String computeFileHash(const String& filename)))
-MSExperiment<> exp;
+PeakMap exp;
 FileHandler tmp;
 // compute hash
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, FileTypes::UNKNOWN, ProgressLogger::NONE, true, true), true)
@@ -225,7 +225,7 @@ END_SECTION
 
 START_SECTION((template <class PeakType> void storeExperiment(const String &filename, const MSExperiment<PeakType>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
-MSExperiment<> exp;
+PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML

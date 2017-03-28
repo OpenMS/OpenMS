@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +
         void addConsensusMap(ConsensusMap m) nogil except +
         void assignUIDs() nogil except +
-        void registerExperiment(MSExperiment[Peak1D, ChromatogramPeak] exp, 
+        void registerExperiment(MSExperiment exp, 
                                 libcpp_vector[ libcpp_vector[ libcpp_pair[
                                   String, double] ] ] labels) nogil except + # wrap-ignore
 

@@ -258,7 +258,7 @@ protected:
     //-------------------------------------------------------------
 
     // Raw data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
     mz_file.load(in, exp);
@@ -317,14 +317,14 @@ protected:
       if (!file_cal_lock_out.empty())
       {
         LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
-        MSExperiment<> exp_out;
+        PeakMap exp_out;
         exp_out.set2DData(ic.getCalibrationPoints(), CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_out, exp_out);
       }
       if (!file_cal_lock_fail_out.empty())
       {
         LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
-        MSExperiment<> exp_out;
+        PeakMap exp_out;
         exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_fail_out, exp_out);
       }

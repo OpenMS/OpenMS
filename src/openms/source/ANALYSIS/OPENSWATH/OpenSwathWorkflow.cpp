@@ -59,7 +59,7 @@ namespace OpenMS
     {
       try
       {
-        MSExperiment<> exp;
+        PeakMap exp;
         exp.setChromatograms(irt_chromatograms);
         MzMLFile().store("debug_irts.mzML", exp);
       }
@@ -145,7 +145,7 @@ namespace OpenMS
     TransformationDescription empty_trafo; // empty transformation
 
     // Prepare the data with the chromatograms
-    boost::shared_ptr<MSExperiment<Peak1D> > xic_map(new MSExperiment<Peak1D>);
+    boost::shared_ptr<PeakMap > xic_map(new PeakMap);
     xic_map->setChromatograms(chromatograms);
     OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(xic_map));
 
@@ -468,7 +468,7 @@ namespace OpenMS
 
             // Step 2.1: extract these transitions
             ChromatogramExtractor extractor;
-            boost::shared_ptr<MSExperiment<Peak1D> > chrom_exp(new MSExperiment<Peak1D>);
+            boost::shared_ptr<PeakMap > chrom_exp(new PeakMap);
             std::vector< OpenSwath::ChromatogramPtr > chrom_list;
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
@@ -603,12 +603,6 @@ namespace OpenMS
     const double rt_extraction_window,
     FeatureMap& output, OpenSwathTSVWriter & tsv_writer, OpenSwathOSWWriter & osw_writer)
   {
-    typedef OpenSwath::LightTransition TransitionType;
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
-    typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-
     TransformationDescription trafo_inv = trafo;
     trafo_inv.invert();
 
@@ -672,19 +666,25 @@ namespace OpenMS
               "Error, did not find chromatogram for transitions" + transition->getNativeID() );
         }
 
-        // Convert chromatogram to MSChromatogram
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
-
-        // Extract and convert chromatogram to input chromatogram
         precursor_mz = transition->getPrecursorMZ();
+
+        // Convert chromatogram to MSChromatogram and filter
+        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+        MSChromatogram<> chromatogram;
         chromatogram.setMetaValue("product_mz", transition->getProductMZ());
         chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
         chromatogram.setNativeID(transition->getNativeID());
-        double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
-        selectChrom_(chromatogram_old, chromatogram, rt_extraction_window, de_normalized_experimental_rt);
+        if (rt_extraction_window > 0)
+        {
+          double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
+          double rt_max = de_normalized_experimental_rt + rt_extraction_window;
+          double rt_min = de_normalized_experimental_rt - rt_extraction_window;
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(chromatogram, cptr, rt_min, rt_max);
+        }
+        else
+        {
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr);
+        }
 
         // Now add the transition and the chromatogram to the MRMTransitionGroup
         transition_group.addTransition(*transition, transition->getNativeID());
@@ -697,13 +697,11 @@ namespace OpenMS
       // Set the MS1 chromatogram if available
       if (!ms1_chromatograms.empty() && ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
       {
-        MSChromatogram<ChromatogramPeak> chromatogram_old;
+        MSChromatogram<> chromatogram;
         std::map< std::string, OpenSwath::ChromatogramPtr >::const_iterator cptr =
                     ms1_chromatograms.find(transition_group.getTransitionGroupID());
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr->second);
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr->second);
 
-        RichPeakChromatogram chromatogram;
-        selectChrom_(chromatogram_old, chromatogram, -1, -1);
         chromatogram.setMetaValue("precursor_mz", precursor_mz);
         chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_" + "Precursor_i0");
         transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
@@ -887,25 +885,6 @@ namespace OpenMS
     // sort result
     std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
   }
-
-  void OpenSwathWorkflow::selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-    MSSpectrum<ChromatogramPeak>& chromatogram, double rt_extraction_window, double center_rt)
-  {
-    double rt_max = center_rt + rt_extraction_window;
-    double rt_min = center_rt - rt_extraction_window;
-    for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
-    {
-      if (rt_extraction_window >= 0 && (it->getRT() < rt_min || it->getRT() > rt_max))
-      {
-        continue;
-      }
-      ChromatogramPeak peak;
-      peak.setMZ(it->getRT());
-      peak.setIntensity(it->getIntensity());
-      chromatogram.push_back(peak);
-    }
-  }
-
 }
 
 // OpenSwathWorkflowSonar
@@ -1055,7 +1034,7 @@ namespace OpenMS
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
             std::vector< OpenMS::MSChromatogram<> > chromatograms;
             ChromatogramExtractor().return_chromatogram(chrom_list, coordinates, transition_exp_used, SpectrumSettings(), chromatograms, false);
-            boost::shared_ptr<MSExperiment<Peak1D> > chrom_exp(new MSExperiment<Peak1D>);
+            boost::shared_ptr<PeakMap > chrom_exp(new PeakMap);
             chrom_exp->setChromatograms(chromatograms);
             OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(chrom_exp));
 

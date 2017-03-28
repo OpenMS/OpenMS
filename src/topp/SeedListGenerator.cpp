@@ -164,7 +164,7 @@ protected:
       }
       else if (in_type == FileTypes::MZML)
       {
-        MSExperiment<> experiment;
+        PeakMap experiment;
         MzMLFile().load(in, experiment);
         seed_gen.generateSeedList(experiment, seed_lists[0]);
       }

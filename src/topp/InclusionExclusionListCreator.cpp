@@ -235,7 +235,7 @@ protected:
         {
 
           String raw_data_path = getStringOption_("raw_data");
-          MSExperiment<> exp, ms2;
+          PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
           out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());

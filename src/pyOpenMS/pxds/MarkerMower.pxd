@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>" namespace "Open
 
         void filterSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
-        void filterPeakMap(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+        void filterPeakMap(MSExperiment & exp) nogil except +
 
         String getProductName() nogil except +
 

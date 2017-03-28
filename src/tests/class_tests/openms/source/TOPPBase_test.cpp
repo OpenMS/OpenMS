@@ -165,7 +165,7 @@ class TOPPBaseTest
       outputFileWritable_(filename, param_name);
     }
 
-    void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
+    void addDataProcessing(PeakMap& map, DataProcessing::ProcessingAction action)
     {
     	DataProcessing dp = getProcessingInfo_(action);
 
@@ -713,7 +713,7 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 END_SECTION
 
 START_SECTION(([EXTRA] data processing methods))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(2);
 
 	TOPPBaseTest topp;

@@ -1172,7 +1172,7 @@ protected:
           Size output_count(0);
 
           output << "#MS" << "level" << "rt" << "mz" << "charge" << "peaks" << "index" << "name" << nl;
-          for (MSExperiment<>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+          for (PeakMap::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
           {
             int index = (it - exp.getSpectra().begin());
             String name = it->getName();

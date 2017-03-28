@@ -73,7 +73,7 @@ START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakTy
 }
 END_SECTION
 
-START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &output)))
+START_SECTION((void pickExperiment(const PeakMap &input, PeakMap &output)))
 {
   // TODO
 }

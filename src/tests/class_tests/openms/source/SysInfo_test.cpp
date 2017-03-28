@@ -54,7 +54,7 @@ START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
   std::cout << "Memory consumed initally: " << first << " KB" << std::endl;
 
   {
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp);
 
     TEST_EQUAL(SysInfo::getProcessMemoryConsumption(after), true);

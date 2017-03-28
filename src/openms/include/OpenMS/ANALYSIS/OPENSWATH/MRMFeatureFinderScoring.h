@@ -45,6 +45,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
@@ -98,19 +99,13 @@ namespace OpenMS
 public:
     ///Type definitions
     //@{
-
-    // All the filters expect MSSpectrum<PeakT>, thus we give it an "MSSpectrum"
-    // but filled with Chromatogram Peaks.
-
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightTargetedExperiment TargetedExpType;
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
     // a transition group holds the MSSpectra with the Chromatogram peaks from above
-    typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
+    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
     //@}
 
@@ -135,8 +130,8 @@ public:
      * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
-    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
-                        TransformationDescription trafo, MSExperiment<Peak1D>& swath_map);
+    void pickExperiment(PeakMap & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
+                        TransformationDescription trafo, PeakMap& swath_map);
 
     /** @brief Pick features in one experiment containing chromatogram
      *

@@ -569,6 +569,8 @@ public:
       return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
     }
 
+    ConstIterator MZEnd(CoordinateType rt) const {return RTEnd(rt);}
+
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 

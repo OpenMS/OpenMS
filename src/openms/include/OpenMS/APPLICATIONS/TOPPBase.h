@@ -49,6 +49,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
@@ -861,8 +862,7 @@ protected:
     void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for peak maps
-    template <typename PeakType, typename CT>
-    void addDataProcessing_(MSExperiment<PeakType, CT>& map, const DataProcessing& dp) const
+    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
     {
       boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
       for (Size i = 0; i < map.size(); ++i)

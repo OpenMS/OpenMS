@@ -214,7 +214,7 @@ protected:
       return PARSE_ERROR;
     }
 
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     FeatureMap feat;
     ConsensusMap cons;
 

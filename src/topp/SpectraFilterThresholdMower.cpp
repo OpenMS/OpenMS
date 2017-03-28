@@ -115,7 +115,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, exp);

@@ -139,7 +139,7 @@ protected:
     //-------------------------------------------------------------
 
     // Raw data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
     mz_file.load(in, exp);
