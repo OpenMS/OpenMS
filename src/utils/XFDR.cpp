@@ -254,7 +254,7 @@ class TOPPXFDR :
   public:
 
     static const String param_in;  // Parameter for the input file
-    static const String param_out_mzIdentML; //
+    static const String param_out_idXML;
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  5 # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -510,9 +510,10 @@ class TOPPXFDR :
       // File input
       registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
       setValidFormats_(TOPPXFDR::param_in, ListUtils::create<String>("xml,mzid,idXML"));
-
-      //registerOutputFile_(TOPPXFDR::param_out_xquestxml, "<xml_file>", "", "XQuest-compatible result XML file", false, false);
-      //setValidFormats_(TOPPXFDR::param_out_xquestxml, ListUtils::create<String>("xml"));
+      
+      // idXML output
+      registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", false, false);
+      setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
 
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -5, "Filter for minimum precursor mass error (ppm)", false);
@@ -618,6 +619,8 @@ class TOPPXFDR :
       Size n_spectra;
 
       vector < PeptideIdentification > all_ids;
+      vector < ProteinIdentification > prot_ids;
+      
       vector < Size > rank_one_ids; // Stores the indizes of the rank one hits within all_ids
 
       vector < vector < PeptideIdentification > > spectra;
@@ -677,7 +680,6 @@ class TOPPXFDR :
       }
       else if (arg_in.hasSuffix("idXML"))
       {
-        vector< ProteinIdentification > prot_ids;
         IdXMLFile().load(arg_in, prot_ids, all_ids); 
         prepareIDXML(all_ids, prot_ids);
        
@@ -1003,11 +1005,19 @@ class TOPPXFDR :
         delete cum_histograms_it->second;
       }
 
+     // Write output
+     String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
+     
+     if ( ! arg_out_idXML.empty())
+     {
+       IdXMLFile().store( arg_out_idXML, prot_ids, all_ids);   
+     }
+    
       return EXECUTION_OK;
     }
 };
 const String TOPPXFDR::param_in = "in";
-const String TOPPXFDR::param_out_mzIdentML = "out_mzIdentML";
+const String TOPPXFDR::param_out_idXML = "out_idXML";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
