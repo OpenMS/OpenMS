@@ -57,7 +57,6 @@ namespace OpenMS
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
-                             std::vector< ProteinIdentification > &,
                              int & n_hits,
                              std::vector< int > * cum_hits,
                              size_t min_n_ions_per_spectrum,
@@ -88,7 +87,7 @@ namespace OpenMS
       std::vector< int > * cum_hits_;
       size_t min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;
-
+      
       // Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values;
 
@@ -97,7 +96,11 @@ namespace OpenMS
 
       // Retrieves the link location for cross-links and loop links
       void getLinkPosition_(const xercesc::Attributes &, std::pair<SignedSize, SignedSize> &);
-
+      
+      // Sets the Peptide Evidence for alpha or beta
+      void setPeptideEvidence_(const String &, PeptideHit &);
+      
+          
       /*
        * Sets the meta data for one or both peptide hits
        */

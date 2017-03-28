@@ -69,7 +69,6 @@ namespace OpenMS
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
-                                                   std::vector< ProteinIdentification > & prot_id,
                                                    int & n_hits_,
                                                    std::vector< int > * cum_hits,
                                                    size_t min_n_ions_per_spectrum,
@@ -102,7 +101,28 @@ namespace OpenMS
       pair.first = xlink_position_split[0].toInt();
       pair.second = xlink_position_split[1].toInt();
     }
-
+    
+    void XQuestResultXMLHandler::setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit)
+    {
+      StringList prot_list;
+      StringUtils::split(prot_string, ",", prot_list);
+      vector< PeptideEvidence > evidences(prot_list.size());
+      
+      for( StringList::const_iterator prot_list_it = prot_list.begin();
+               prot_list_it != prot_list.end(); ++prot_list_it)
+      {
+        PeptideEvidence pep_ev;
+        pep_ev.setProteinAccession(*prot_list_it);
+        pep_ev.setStart(PeptideEvidence::UNKNOWN_POSITION); // These information are not available in the xQuest result file
+        pep_ev.setEnd(PeptideEvidence::UNKNOWN_POSITION);
+        pep_ev.setAABefore(PeptideEvidence::UNKNOWN_AA);
+        pep_ev.setAAAfter(PeptideEvidence::UNKNOWN_AA);
+        
+        evidences.push_back(pep_ev);
+      }
+      pep_hit.setPeptideEvidences(evidences);
+    }
+  
 
     // Assign all attributes in the peptide_id_attributes map to the MetaInfoInterface object
     void XQuestResultXMLHandler::add_meta_values(MetaInfoInterface & meta_info_interface)
@@ -162,7 +182,7 @@ namespace OpenMS
 
           if(this->cum_hits_ != NULL)
           {
-            this->cum_hits_->push_back(this->n_hits_);\
+            this->cum_hits_->push_back(this->n_hits_);
           }
         }
         this->current_spectrum_search.clear();
@@ -205,10 +225,7 @@ namespace OpenMS
           DataValue target_decoy = DataValue(prot1_string.hasSubstring("decoy") ? "decoy" : "target");
           peptide_identification.setMetaValue("target_decoy", target_decoy);
           peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
-          
-          // That is a bit hacky. Regular expression
-          removeSubstring(prot1_string, "reverse_");
-          removeSubstring(prot1_string, "decoy_");
+
 
           // Get Attributes of Peptide Identification
           this->peptide_id_meta_values["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
@@ -246,7 +263,10 @@ namespace OpenMS
           peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
                                          DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
           peptide_hit_alpha.setMetaValue("OpenXQuest:prot", DataValue(prot1_string));
-
+          
+          // Set peptide Evidences for Alpha (need one for each accession in the prot1_string)
+          this->setPeptideEvidence_(prot1_string, peptide_hit_alpha);
+          
           // Switch on Cross-link type
           if (xlink_type_string == "xlink")
           {
@@ -279,21 +299,22 @@ namespace OpenMS
                 peptide_hit_beta.setMetaValue("target_decoy", DataValue("target"));
               }
              
-              
-              
-              // I really do not like this
-              removeSubstring(prot2_string, "reverse_");
-              removeSubstring(prot2_string, "decoy_");
-
+             
               // Set peptide_hit specific stuff
               peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
                                             DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_beta")));
               peptide_hit_beta.setMetaValue("OpenXQuest:prot", DataValue(prot2_string));
-
+              
+              // Set Peptide Evidences for Beta
+              this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
 
               // Determine if protein is intra/inter protein, check all protein ID combinations
+              removeSubstring(prot1_string, "reverse_");
+              removeSubstring(prot1_string, "decoy_");
               StringList prot1_list;
               StringUtils::split(prot1_string, ",", prot1_list);
+              removeSubstring(prot2_string, "reverse_");
+              removeSubstring(prot2_string, "decoy_");
               StringList prot2_list;
               StringUtils::split(prot2_string, ",", prot2_list);
 

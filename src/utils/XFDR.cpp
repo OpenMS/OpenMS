@@ -634,7 +634,7 @@ class TOPPXFDR :
         vector< XQuestResultMeta > metas;
         // Parse XQuestResultXMLFile (TODO Also support idXML and mzIdentML)
         XQuestResultXMLFile xquest_result_file;
-        xquest_result_file.load(arg_in, metas, spectra, prot_ids, false, 1); // We do not load 'empty' spectra here
+        xquest_result_file.load(arg_in, metas, spectra, false, 1); // We do not load 'empty' spectra here
         n_spectra = spectra.size();
 
         if (arg_verbose)
@@ -1008,6 +1008,8 @@ class TOPPXFDR :
      // Write output
      String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
      
+     
+     // idXML
      if ( ! arg_out_idXML.empty())
      {
        IdXMLFile().store( arg_out_idXML, prot_ids, all_ids);   
