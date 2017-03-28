@@ -81,7 +81,7 @@ public:
           @param exp The result data structure
           @param meta_only Only read the meta data
       */
-      void readExperiment(MSExperiment<>& exp, bool meta_only = false);
+      void readExperiment(MSExperiment & exp, bool meta_only = false);
 
 protected:
 
@@ -109,7 +109,7 @@ public:
 
           @param exp The data to write
       */
-      void writeExperiment(const MSExperiment<> & exp);
+      void writeExperiment(const MSExperiment & exp);
 
       /**
           @brief Create data tables for a new file

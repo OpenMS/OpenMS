@@ -52,7 +52,7 @@ namespace OpenMS
     class OPENMS_DLLAPI MSDataSqlConsumer :
       public Interfaces::IMSDataConsumer<>
     {
-      typedef MSExperiment<> MapType;
+      typedef MSExperiment MapType;
       typedef MapType::SpectrumType SpectrumType;
       typedef MapType::ChromatogramType ChromatogramType;
 

@@ -64,7 +64,7 @@ namespace OpenMS
     {
     }
 
-    void MzMLSqliteHandler::readExperiment(MSExperiment<>& exp, bool meta_only)
+    void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only)
     {
       sqlite3 *db;
       int rc;
@@ -509,7 +509,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::writeExperiment(const MSExperiment<> & exp)
+    void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
     {
       writeChromatograms(exp.getChromatograms());
       writeSpectra(exp.getSpectra());

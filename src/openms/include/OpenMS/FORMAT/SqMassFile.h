@@ -51,7 +51,7 @@ namespace OpenMS
   {
 public:
 
-    typedef MSExperiment<Peak1D> MapType;
+    typedef MSExperiment MapType;
 
     /** @name Constructors and Destructor
     */
