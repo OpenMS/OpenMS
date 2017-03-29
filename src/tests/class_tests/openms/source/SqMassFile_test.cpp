@@ -72,10 +72,10 @@ TOLERANCE_RELATIVE(1.0005)
 START_SECTION(void load(const String& filename, MapType& map))
 {
   SqMassFile file;
-  MSExperiment<> exp;
+  MSExperiment exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), exp);
 
-  MSExperiment<> exp2;
+  MSExperiment exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
 
   TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
@@ -148,7 +148,7 @@ TOLERANCE_RELATIVE(1+1e-5)
 
 START_SECTION(void store(const String& filename, MapType& map))
 {
-  MSExperiment<> exp_orig;
+  MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
 
   SqMassFile file;
@@ -157,7 +157,7 @@ START_SECTION(void store(const String& filename, MapType& map))
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
-  MSExperiment<> exp;
+  MSExperiment exp;
   file.load(tmp_filename, exp);
 
   TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
@@ -166,7 +166,7 @@ START_SECTION(void store(const String& filename, MapType& map))
   TEST_EQUAL(exp.getNrChromatograms(), 1)
   TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
 
-  MSExperiment<> exp2 = exp_orig;
+  MSExperiment exp2 = exp_orig;
 
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
