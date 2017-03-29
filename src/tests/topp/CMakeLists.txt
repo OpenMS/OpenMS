@@ -1120,13 +1120,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathMzMLFileCacher_test_3_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_3_input.tmp.sqMass -out OpenSwathMzMLFileCacher_3_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_3_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_3_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_3_output.mzML)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_3_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_3_step1")
-  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_3_step1")
+  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_3_step2")
 
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_2_input.chrom.mzML -out OpenSwathMzMLFileCacher_4_input.tmp.sqMass -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_4_input.tmp.sqMass -out OpenSwathMzMLFileCacher_4_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_4_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_4_output.mzML)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_4_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_4_step1")
-  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_4_step1")
+  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_4_step2")
 
   # Testing the OpenSwathAnalyzer together with the FileCacher (for spectra and chromatograms)
   add_test("TOPP_OpenSwathAnalyzer_test_3_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp -out_type mzML -test)
