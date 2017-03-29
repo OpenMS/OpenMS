@@ -1014,6 +1014,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_TargetedFileConverter_test_1_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_1")
   add_test("TOPP_TargetedFileConverter_test_2" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.pqp.tmp -in_type pqp -out ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML.tmp -out_type TraML -legacy_traml_id)
   add_test("TOPP_TargetedFileConverter_test_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_2" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_1_prepare")
   set_tests_properties("TOPP_TargetedFileConverter_test_2_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_2")
 
   # Metabolomics
