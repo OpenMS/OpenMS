@@ -7112,7 +7112,7 @@ name: retention time(s)
 def: "OBSOLETE Retention time of the spectrum from the source file." [PSI:PI]
 comment: This term was made obsolete because scan start time (MS:1000016) should be used instead.
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001105 ! peptide result details
+is_a: MS:1001105 ! peptide sequence-level identification attribute
 is_a: MS:1001405 ! spectrum identification result details
 relationship: has_units UO:0000010 ! second
 relationship: has_units UO:0000031 ! minute
@@ -7581,7 +7581,7 @@ name: p-value
 def: "OBSOLETE Quality estimation by p-value." [PSI:PI]
 comment: This term was made obsolete because now is split into peptide and protein terms.
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001092 ! peptide identification confidence metric
+is_a: MS:1001092 ! peptide sequence-level identification statistic
 is_a: MS:1001198 ! protein identification confidence metric
 is_obsolete: true
 
@@ -7630,7 +7630,7 @@ is_a: MS:1001450 ! decoy DB details
 id: MS:1001198
 name: protein identification confidence metric
 def: "Identification confidence metric for a protein." [PSI:PI]
-is_a: MS:1001116 ! single protein result details
+is_a: MS:1001116 ! single protein identification statistic
 
 [Term]
 id: MS:1001199
@@ -12074,7 +12074,7 @@ name: FDRScore
 def: "OBSOLETE A smoothing of the distribution of q-values calculated for PSMs from individual search engines, such that ordering of result quality is maintained and all FDRScore values are guaranteed to have a value > 0." [PMID:19253293]
 comment: This term was made obsolete because it was split into the more specific terms for PSM-level FDRScore (1002355), distinct peptide-level FDRScore (MS:1002360), protein-level FDRScore (MS:1002365) and protein group-level FDRScore (MS:1002374).
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 is_obsolete: true
 
@@ -14703,7 +14703,7 @@ id: MS:1002268
 name: Byonic:Best LogProb
 def: "Best (most negative) log p-value of an individual PSM." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001116 ! single protein result details
+is_a: MS:1001116 ! single protein identification statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002109 ! lower score better
 
@@ -15665,7 +15665,7 @@ id: MS:1002408
 name: number of distinct protein sequences
 def: "The number of protein clusters that have been identified, which must match the number of clusters that pass the threshold in the file." [PSI:PI]
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
-is_a: MS:1002405 ! protein cluster details
+is_a: MS:1002405 ! protein group-level result list attribute
 
 [Term]
 id: MS:1002409
@@ -16275,7 +16275,7 @@ id: MS:1002499
 name: peptide level score
 def: "OBSOLETE Peptide level score." [PSI:PI]
 comment: This term was obsoleted because it was never intended to go in the CV.
-is_a: MS:1002358 ! search engine specific score for distinct peptides
+is_a: MS:1002358 ! search engine specific peptide sequence-level identification statistic
 is_obsolete: true
 
 [Term]
@@ -17485,7 +17485,7 @@ id: MS:1002681
 name: OpenXQuest:combined score
 def: "OpenXQuest's combined score for a cross-link spectrum match." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002108 ! higher score better
 
@@ -17494,7 +17494,7 @@ id: MS:1002682
 name: OpenXQuest:xcorr xlink
 def: "OpenXQuest's cross-correlation of cross-linked ions subscore." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002108 ! higher score better
 
@@ -17503,7 +17503,7 @@ id: MS:1002683
 name: OpenXQuest:xcorr common
 def: "OpenXQuest's cross-correlation of unlinked ions subscore." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002108 ! higher score better
 
@@ -17512,7 +17512,7 @@ id: MS:1002684
 name: OpenXQuest:match-odds
 def: "OpenXQuest's match-odds subscore." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002108 ! higher score better
 relationship: has_domain MS:1002306 ! value greater than zero
@@ -17522,7 +17522,7 @@ id: MS:1002685
 name: OpenXQuest:intsum
 def: "OpenXQuest's sum of matched peak intensity subscore." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002108 ! higher score better
 relationship: has_domain MS:1002306 ! value greater than zero
@@ -17532,7 +17532,7 @@ id: MS:1002686
 name: OpenXQuest:wTIC
 def: "OpenXQuest's weighted percent of total ion current subscore." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001143 ! search engine specific score for PSMs
+is_a: MS:1001143 ! PSM-level search engine specific statistic
 is_a: MS:1001153 ! search engine specific score
 relationship: has_order MS:1002108 ! higher score better
 relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
@@ -17876,7 +17876,7 @@ is_a: MS:1001347 ! database file formats
 id: MS:1002752
 name: database type spectral library
 def: "Database containing spectra." [PSI:PI]
-is_a: MS:1001073 ! database type
+is_a: MS:1001073 ! database type amino acid
 
 [Term]
 id: MS:1002753
