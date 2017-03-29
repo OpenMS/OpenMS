@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,87 +28,56 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: $
+// $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RICHPEAK1D_H
-#define OPENMS_KERNEL_RICHPEAK1D_H
+#include <OpenMS/KERNEL/MSSpectrumHelper.h>
 
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <algorithm>
 
 namespace OpenMS
 {
-
-  /**
-    @brief A 1-dimensional raw data point or peak with meta information.
-
-    This data structure is intended for continuous data or peak data.
-    If you do not need to annotate single peaks with meta data, use Peak1D instead.
-
-    @ingroup Kernel
-  */
-  class OPENMS_DLLAPI RichPeak1D :
-    public Peak1D,
-    public MetaInfoInterface
+  MSSpectrum<RichPeak1D> MSSpectrumHelper::clone(const MSSpectrum<Peak1D>& p)
   {
-public:
+    MSSpectrum<RichPeak1D> rp;
+    rp.retention_time_ = p.retention_time_;
+    rp.ms_level_ = p.ms_level_;
+    rp.name_ = p.name_;
+    rp.float_data_arrays_.clear();
 
-    /// Default constructor
-    inline RichPeak1D() :
-      Peak1D(),
-      MetaInfoInterface()
-    {}
-
-    /// Copy constructor
-    inline RichPeak1D(const RichPeak1D & p) :
-      Peak1D(p),
-      MetaInfoInterface(p)
-    {}
-        
-    /// Peak1D "c'tor"
-    inline RichPeak1D(const Peak1D & p) :
-      Peak1D(p),
-      MetaInfoInterface()
-    {}
-
-    /// construct with position and intensity
-    inline explicit RichPeak1D(PositionType a, IntensityType b) :
-      Peak1D(a, b),
-      MetaInfoInterface()
-    {}
-
-    /// Destructor
-    ~RichPeak1D()
-    {}
-
-    /// Assignment operator
-    inline RichPeak1D & operator=(const RichPeak1D & rhs)
+    //ugly stuff from MSSpectrum
+    for (MSSpectrum<Peak1D>::FloatDataArrays::const_iterator fit = p.float_data_arrays_.begin(); fit!= p.float_data_arrays_.end(); ++fit)
     {
-      if (this == &rhs) return *this;
-
-      Peak1D::operator=(rhs);
-      MetaInfoInterface::operator=(rhs);
-
-      return *this;
+      MSSpectrum<RichPeak1D>::FloatDataArray f;
+      f.MetaInfoInterface::operator=(*fit);
+      std::copy(fit->begin(),fit->end(),f.begin());
+      rp.float_data_arrays_.push_back(f);
+    }
+    for (MSSpectrum<Peak1D>::StringDataArrays::const_iterator fit = p.string_data_arrays_.begin(); fit!= p.string_data_arrays_.end(); ++fit)
+    {
+      MSSpectrum<RichPeak1D>::StringDataArray f;
+      f.MetaInfoInterface::operator=(*fit);
+      std::copy(fit->begin(),fit->end(),f.begin());
+      rp.string_data_arrays_.push_back(f);
+    }
+    for (MSSpectrum<Peak1D>::IntegerDataArrays::const_iterator fit = p.integer_data_arrays_.begin(); fit!= p.integer_data_arrays_.end(); ++fit)
+    {
+      MSSpectrum<RichPeak1D>::IntegerDataArray f;
+      f.MetaInfoInterface::operator=(*fit);
+      std::copy(fit->begin(),fit->end(),f.begin());
+      rp.integer_data_arrays_.push_back(f);
     }
 
-    /// Equality operator
-    inline bool operator==(const RichPeak1D & rhs) const
-    {
-      return Peak1D::operator==(rhs) &&
-             MetaInfoInterface::operator==(rhs);
-    }
+    //grab SpectrumSettings
+    rp.SpectrumSettings::operator=(p);
+    //grab MetaInfoInterface
+    rp.MetaInfoInterface::operator=(p);
 
-    /// Equality operator
-    inline bool operator!=(const RichPeak1D & rhs) const
-    {
-      return !(operator==(rhs));
-    }
+    //copy cast peaks to riches
+    std::copy(p.begin(), p.end(), std::back_inserter(rp));
+    return rp;
+  }
 
-  };
 
 } // namespace OpenMS
-
-#endif // OPENMS_KERNEL_RICHPEAK1D_H

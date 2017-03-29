@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,87 +28,33 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: $
+// $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RICHPEAK1D_H
-#define OPENMS_KERNEL_RICHPEAK1D_H
+#ifndef OPENMS_KERNEL_MSSPECTRUMHELPER_H
+#define OPENMS_KERNEL_MSSPECTRUMHELPER_H
 
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
 
-  /**
-    @brief A 1-dimensional raw data point or peak with meta information.
-
-    This data structure is intended for continuous data or peak data.
-    If you do not need to annotate single peaks with meta data, use Peak1D instead.
-
-    @ingroup Kernel
-  */
-  class OPENMS_DLLAPI RichPeak1D :
-    public Peak1D,
-    public MetaInfoInterface
+  class OPENMS_DLLAPI MSSpectrumHelper
   {
-public:
+    public:
 
-    /// Default constructor
-    inline RichPeak1D() :
-      Peak1D(),
-      MetaInfoInterface()
-    {}
+      /**
+        @brief bla
 
-    /// Copy constructor
-    inline RichPeak1D(const RichPeak1D & p) :
-      Peak1D(p),
-      MetaInfoInterface(p)
-    {}
-        
-    /// Peak1D "c'tor"
-    inline RichPeak1D(const Peak1D & p) :
-      Peak1D(p),
-      MetaInfoInterface()
-    {}
+        blub
 
-    /// construct with position and intensity
-    inline explicit RichPeak1D(PositionType a, IntensityType b) :
-      Peak1D(a, b),
-      MetaInfoInterface()
-    {}
-
-    /// Destructor
-    ~RichPeak1D()
-    {}
-
-    /// Assignment operator
-    inline RichPeak1D & operator=(const RichPeak1D & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      Peak1D::operator=(rhs);
-      MetaInfoInterface::operator=(rhs);
-
-      return *this;
-    }
-
-    /// Equality operator
-    inline bool operator==(const RichPeak1D & rhs) const
-    {
-      return Peak1D::operator==(rhs) &&
-             MetaInfoInterface::operator==(rhs);
-    }
-
-    /// Equality operator
-    inline bool operator!=(const RichPeak1D & rhs) const
-    {
-      return !(operator==(rhs));
-    }
+        @param whee.
+      */
+    static MSSpectrum<RichPeak1D> clone(const MSSpectrum<Peak1D> &p);
 
   };
-
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_RICHPEAK1D_H
+#endif // OPENMS_KERNEL_CONSENSUSMAP_H

@@ -36,6 +36,13 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
+#include <algorithm>
+#include <cmath>
+#include <list>
 
 using namespace std;
 
@@ -178,17 +185,21 @@ namespace OpenMS
     }
   }
 
-
   bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
     vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error)
+    bool stop_on_error, bool reset_basename)
   {
     PeakMap exp;
     SpectrumLookup lookup;
     bool success = true;
+    String bn = File::basename(filename);
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
          it != peptides.end(); ++it)
     {
+      if (reset_basename)
+      {
+        it->setBaseName(bn);
+      }
       if (boost::math::isnan(it->getRT()))
       {
         if (lookup.empty()) // load raw data only if we have to
@@ -205,6 +216,43 @@ namespace OpenMS
         catch (Exception::ElementNotFound&)
         {
           LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          success = false;
+          if (stop_on_error) break;
+        }
+      }
+    }
+    return success;
+  }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(vector<PeptideIdentification>& peptides, const String& filename,
+    bool stop_on_error, bool reset_basename)
+  {
+    MSExperiment exp;
+    SpectrumLookup lookup;
+    bool success = true;
+    String bn = File::basename(filename);
+    for (vector<PeptideIdentification>::iterator it = peptides.begin();
+         it != peptides.end(); ++it)
+    {
+      if (reset_basename)
+      {
+        it->setBaseName(bn);
+      }
+      if (!it->metaValueExists("spectrum_reference"))
+      {
+        if (lookup.empty()) // load raw data only if we have to
+        {
+          FileHandler().loadExperiment(filename, exp);
+          lookup.readSpectra(exp.getSpectra());
+        }
+        try
+        {
+          Size index = lookup.findByRT(it->getRT());
+          it->setMetaValue("spectrum_reference", exp[index].getNativeID());
+        }
+        catch (Exception::ElementNotFound&)
+        {
+          LOG_ERROR << "Error: Failed to look up spectrum reference by retention time for peptide ID with RT'" + String(it->getRT()) + "' - no spectrum with corresponding RT found." << endl;
           success = false;
           if (stop_on_error) break;
         }
