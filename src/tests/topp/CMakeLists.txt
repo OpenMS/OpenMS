@@ -1038,6 +1038,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_4" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_3_output.pqp.tmp -in_type pqp -out TargetedFileConverter_4_output.TraML.tmp -out_type TraML -legacy_traml_id)
   add_test("TOPP_TargetedFileConverter_test_4_out1" ${DIFF} -in1 TargetedFileConverter_4_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_4_output.TraML)
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
+  set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
 
   add_test("TOPP_MRMMapping_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
   add_test("TOPP_MRMMapping_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
