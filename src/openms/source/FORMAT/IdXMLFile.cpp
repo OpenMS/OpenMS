@@ -101,13 +101,13 @@ namespace OpenMS
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    os << "<?xml-stylesheet type=\"text/xsl\" href=\"http://open-ms.sourceforge.net/XSL/IdXML.xsl\" ?>\n";
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/XSL/IdXML.xsl\" ?>\n";
     os << "<IdXML version=\"" << getVersion() << "\"";
     if (document_id != "")
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/IdXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //look up different search parameters
     std::vector<ProteinIdentification::SearchParameters> params;
