@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <vector>
 #include <map>
@@ -145,6 +147,26 @@ namespace OpenMS
       tmp_hulls.push_back(hull);
     }
     return tmp_hulls;
+  }
+
+  std::vector< OpenMS::MSChromatogram<> > FeatureHypothesis::getChromatograms() const
+  {
+    std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
+    for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
+    {
+      OpenMS::MSChromatogram<> chromatogram;
+
+      for (MassTrace::const_iterator l_it = iso_pattern_[mt_idx]->begin(); l_it != iso_pattern_[mt_idx]->end(); ++l_it)
+      {
+        ChromatogramPeak peak;
+        peak.setRT((*l_it).getRT());
+        peak.setIntensity((*l_it).getIntensity());
+        chromatogram.push_back(peak);
+      }
+
+      tmp_chromatograms.push_back(chromatogram);
+    }
+    return tmp_chromatograms;
   }
 
   OpenMS::String FeatureHypothesis::getLabel() const
@@ -265,6 +287,9 @@ namespace OpenMS
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
     defaults_.setValidStrings("report_convex_hulls", ListUtils::create<String>("false,true"));
 
+    defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (increases featureXML file size considerably).");
+    defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -292,6 +317,7 @@ namespace OpenMS
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
+    report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
   }
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
@@ -873,6 +899,7 @@ namespace OpenMS
         f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
       }
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
+      if (report_chromatograms_) f.setMetaValue("Chromatogram", feat_hypos[hypo_idx].getChromatograms());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);

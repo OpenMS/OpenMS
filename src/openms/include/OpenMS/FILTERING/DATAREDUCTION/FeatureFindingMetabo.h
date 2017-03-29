@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <vector>
 #include <svm.h>
@@ -101,8 +102,7 @@ public:
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
-
-
+    std::vector< OpenMS::MSChromatogram<> > getChromatograms() const;
 
 private:
 
@@ -283,6 +283,7 @@ private:
     
     bool use_mz_scoring_C13_;
     bool report_convex_hulls_;
+    bool report_chromatograms_;
   };
 
 }
