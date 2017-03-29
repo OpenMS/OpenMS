@@ -70,10 +70,11 @@ namespace OpenMS
       input_filename_(input_filename),
       doWrite_(!output_filename.empty()),
       use_ms1_traces_(ms1_scores),
+      sonar_(sonar),
       enable_uis_scoring_(uis_scores)
       {}
 
-    static int callback(void *NotUsed, int argc, char **argv, char **azColName){
+    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName){
       int i;
       for(i=0; i<argc; i++)
       {
@@ -93,7 +94,6 @@ namespace OpenMS
       sqlite3 *db;
       char *zErrMsg = 0;
       int  rc;
-      char *create_sql;
 
       // Open database
       rc = sqlite3_open(output_filename_.c_str(), &db);
@@ -103,7 +103,7 @@ namespace OpenMS
       }
 
       // Create SQL structure
-      create_sql = 
+      const char * create_sql =
         "CREATE TABLE FEATURE(" \
         "ID INT PRIMARY KEY NOT NULL," \
         "PRECURSOR_ID INT NOT NULL," \
@@ -180,8 +180,8 @@ namespace OpenMS
       sqlite3_close(db);
     }
 
-    String prepareLine(const OpenSwath::LightCompound& pep,
-        const OpenSwath::LightTransition* transition,
+    String prepareLine(const OpenSwath::LightCompound& /* pep */,
+        const OpenSwath::LightTransition* /* transition */,
         FeatureMap& output, String id)
     {
       std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
@@ -365,7 +365,7 @@ namespace OpenMS
       sqlite3 *db;
       char *zErrMsg = 0;
       int  rc;
-      char *create_sql;
+      // char *create_sql;
 
       // Open database
       rc = sqlite3_open(output_filename_.c_str(), &db);
