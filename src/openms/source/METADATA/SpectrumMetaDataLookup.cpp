@@ -227,7 +227,7 @@ namespace OpenMS
   bool SpectrumMetaDataLookup::addMissingSpectrumReferencestoPeptideIDs(vector<PeptideIdentification>& peptides, const String& filename,
     bool stop_on_error, bool reset_basename)
   {
-    MSExperiment<> exp;
+    MSExperiment exp;
     SpectrumLookup lookup;
     bool success = true;
     String bn = File::basename(filename);
