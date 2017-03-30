@@ -191,12 +191,11 @@ public:
      *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
      *   be used as input to extractChromatograms)
      * @param transition_exp The transition experiment used as input (is constant)
-     * @param rt_extraction_window If larger than zero, full RT extraction
-     *   window, centered on the first RT value (@p rt_end - @p rt_start will
-     *   equal this window size). If less than zero, @p rt_end will be set to -1
-     *   and @p rt_start to 0 (i.e. full RT range). If exactly zero, exactly two
-     *   RT entries are expected - the first is used as @p rt_start and the
-     *   second as @p rt_end.
+     * @param rt_extraction_window If non-negative, full RT extraction window,
+     *   centered on the first RT value (@p rt_end - @p rt_start will equal this
+     *   window size). If negative, @p rt_end will be set to -1 and @p rt_start
+     *   to 0 (i.e. full RT range). If NaN, exactly two RT entries are expected
+     *   - the first is used as @p rt_start and the second as @p rt_end.
      * @param ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided

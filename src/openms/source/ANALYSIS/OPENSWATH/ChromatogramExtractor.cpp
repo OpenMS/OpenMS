@@ -79,6 +79,7 @@ namespace OpenMS
         coord.id = transition.getNativeID();
       }
 
+      std::cout << "RT window: " << rt_extraction_window << std::endl;
       if (rt_extraction_window < 0)
       {
         coord.rt_end = -1;
@@ -91,7 +92,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
       }
-      else if (rt_extraction_window == 0)
+      else if (boost::math::isnan(rt_extraction_window))
       {
         if (pep.rts.size() != 2)
         {
@@ -100,7 +101,7 @@ namespace OpenMS
         coord.rt_start = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
         coord.rt_end = pep.rts[1].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
       }
-      else
+      else // if 'rt_extraction_window' is zero, just write the (first) RT value for later processing
       {
         double rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
         coord.rt_start = rt - rt_extraction_window / 2.0;

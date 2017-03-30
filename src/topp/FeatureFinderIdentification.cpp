@@ -1450,7 +1450,8 @@ protected:
       // extractor.setLogType(ProgressLogger::NONE);
       vector<OpenSwath::ChromatogramPtr> chrom_temp;
       vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-      extractor.prepare_coordinates(chrom_temp, coords, library_, 0, false);
+      extractor.prepare_coordinates(chrom_temp, coords, library_,
+                                    numeric_limits<double>::quiet_NaN(), false);
 
       boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
       OpenSwath::SpectrumAccessPtr spec_temp =
