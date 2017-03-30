@@ -35,6 +35,10 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 #------------------------------------------------------------------------------
 # naming conventions:
 #
@@ -118,7 +122,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${Qt5Network_INCLUDE_DIRS}
                                      ${Qt5Svg_INCLUDE_DIRS}
                                      ${Qt5OpenGL_INCLUDE_DIRS}
-                                     ${Qt5WebEngine_INCLUDE_DIRS}
                                      ${GSL_INCLUDE_DIRS}
                                      ${Boost_INCLUDE_DIRS}
                                      ${SEQAN_INCLUDE_DIRS}
@@ -138,7 +141,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                   ${Qt5Network_LIBRARIES}
                                   ${Qt5OpenGL_LIBRARIES}
                                   ${Qt5Svg_LIBRARIES}
-                                  ${Qt5WebEngine_LIBRARIES}
                                   ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 

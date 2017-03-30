@@ -255,7 +255,7 @@ public slots:
     /// enabled/disabled menu entries depending on the current state
     void updateMenu();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget* w);
+    void updateTabBar(QMdiSubWindow* w);
     /// tile the open windows vertically
     void tileVertical();
     /// tile the open windows horizontally

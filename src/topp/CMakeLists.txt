@@ -55,7 +55,7 @@ endforeach(i)
 
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport WebEngine REQUIRED)
+  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport REQUIRED)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

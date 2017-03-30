@@ -17,7 +17,10 @@ ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
+
 ParamEditor.cpp
+ParamEditor.ui
+
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
 Spectrum1DCanvas.cpp

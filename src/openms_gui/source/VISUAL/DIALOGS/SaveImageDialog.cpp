@@ -37,6 +37,7 @@
 #include <cmath>
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
+
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 // Qt

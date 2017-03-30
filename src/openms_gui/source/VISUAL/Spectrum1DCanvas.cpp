@@ -47,6 +47,7 @@
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>

@@ -180,13 +180,13 @@ namespace OpenMS
     box_layout->addWidget(tab_bar_);
 
     ws_ = new EnhancedWorkspace(dummy);
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateToolBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateTabBar(QWidget*)));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateLayerBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateViewBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateFilterBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateCurrentPath()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateToolBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateLayerBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateViewBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateFilterBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateCurrentPath()));
     connect(ws_, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
 
     box_layout->addWidget(ws_);
@@ -248,8 +248,8 @@ namespace OpenMS
     //Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
-    windows->addAction("&Cascade", this->ws_, SLOT(cascade()));
-    windows->addAction("&Tile automatic", this->ws_, SLOT(tile()));
+    windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
+    windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
     windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileHorizontal()));
     windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileVertical()));
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
@@ -1464,7 +1464,7 @@ namespace OpenMS
     for (int i = 0; i < windows.size(); ++i)
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i));
-      if (w->getWindowId() == id)
+      if (w != 0 && w->getWindowId() == id)
       {
         return w;
       }
@@ -2192,11 +2192,11 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::updateTabBar(QWidget* w)
+  void TOPPViewBase::updateTabBar(QMdiSubWindow* w)
   {
     if (w)
     {
-      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w);
+      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w->widget());
       Int window_id = tbw->getWindowId();
       tab_bar_->setCurrentId(window_id);
     }
@@ -2504,12 +2504,16 @@ namespace OpenMS
     {
       return 0;
     }
-    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow());
+    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeSubWindow());
+    if (ws_->currentSubWindow() == 0)
+    {
+      return 0;
+    }
+    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->currentSubWindow()->widget());
     if (sw == 0)
     {
       return 0;
@@ -3108,7 +3112,7 @@ namespace OpenMS
     TheoreticalSpectrumGenerationDialog spec_gen_dialog;
     if (spec_gen_dialog.exec())
     {
-      String seq_string(spec_gen_dialog.line_edit->text());
+      String seq_string(spec_gen_dialog.getSequence());
       if (seq_string == "")
       {
         QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
@@ -3124,69 +3128,44 @@ namespace OpenMS
         QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
         return;
       }
-      Int charge = spec_gen_dialog.spin_box->value();
 
       RichPeakSpectrum rich_spec;
       TheoreticalSpectrumGenerator generator;
-      Param p;
-
-      p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-
-      bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-      String losses_str = losses ? "true" : "false";
-      p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-
-      bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-      String iso_str = isotopes ? "true" : "false";
-      p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
-
-      bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
-      String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
-      p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
-
-      Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
-      p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
-      p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
-      p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
-      p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
-      p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
-      p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
-      p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-      double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
-      p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+      Param p = generator.getParameters();
+      Int charge = p.getValue("charge");
       generator.setParameters(p);
 
       try
       {
-        if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+        if (p.getValue("has_A").toBool()) // "A-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
         }
-        if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
+        if (p.getValue("has_B").toBool()) // "B-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
         }
-        if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
+        if (p.getValue("has_C").toBool()) // "C-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
         }
-        if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
+        if (p.getValue("has_X").toBool()) // "X-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
         }
-        if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
+        if (p.getValue("has_Y").toBool()) // "Y-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
         }
-        if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
+        if (p.getValue("has_Z").toBool()) // "Z-ions"
         {
           generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
         }
-        if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
+        if (p.getValue("has_Precursor").toBool()) // "Precursor"
         {
           generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
         }
-        if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
+        if (p.getValue("has_abundantImmoniumIons").toBool()) // "abundant Immonium-ions"
         {
           generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
         }
@@ -3251,9 +3230,9 @@ namespace OpenMS
       }
 
       Param param;
-      double tolerance = spec_align_dialog.tolerance_spinbox->value();
+      double tolerance = spec_align_dialog.getTolerance();
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
-      String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
+      String unit_is_ppm = spec_align_dialog.isPPM() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
       active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
@@ -3441,8 +3420,6 @@ namespace OpenMS
     QString text = QString("<BR>"
                            "<FONT size=+3>TOPPView</font><BR>"
                            "<BR>"
-                           "Version: %1%2<BR>"
-                           "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause License (BSD-new)<BR>"
                            "<BR>"
@@ -3451,7 +3428,7 @@ namespace OpenMS
                            "<BR>"
                            "<BR>"
                            "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-                           "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
+                           "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
                            ).arg( // if we have a revision, embed it also into the shown version number

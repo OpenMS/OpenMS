@@ -34,6 +34,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
+
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
