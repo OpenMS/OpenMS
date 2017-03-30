@@ -39,6 +39,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 namespace OpenMS
 {

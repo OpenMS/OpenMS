@@ -37,6 +37,12 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
+
 namespace OpenMS
 {
 
@@ -59,13 +65,10 @@ namespace OpenMS
       Note that the spectrum gets transformed in-place.
     */
     class OPENMS_DLLAPI MSDataTransformingConsumer :
-      public Interfaces::IMSDataConsumer<>
+      public Interfaces::IMSDataConsumer
     {
 
     public:
-      typedef PeakMap MapType;
-      typedef MapType::SpectrumType SpectrumType;
-      typedef MapType::ChromatogramType ChromatogramType;
 
       /**
         @brief Constructor

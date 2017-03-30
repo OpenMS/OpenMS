@@ -37,11 +37,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
@@ -91,11 +88,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const MapType & map) const
-    {
-      Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
-      save_(filename, &handler);
-    }
+    void store(const String & filename, const MapType & map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
@@ -115,21 +108,7 @@ public:
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
-    template <typename MapType>
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count = false)
-    {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      transformFirstPass_(filename_in, consumer, skip_full_count);
-      
-      // Second pass through the data, now read the spectra!
-      {
-        MapType dummy;
-        Internal::MzXMLHandler handler(dummy, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-        parse_(filename_in, &handler);
-      }
-    }
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false);
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
@@ -145,48 +124,12 @@ public:
       @param map Map to store the resulting spectra and chromatograms
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
     */
-    template <typename MapType>
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map, bool skip_full_count = false)
-    {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      transformFirstPass_(filename_in, consumer, skip_full_count);
-
-      // Second pass through the data, now read the spectra!
-      {
-        PeakFileOptions tmp_options(options_);
-        Internal::MzXMLHandler handler(map, filename_in, getVersion(), *this);
-        tmp_options.setAlwaysAppendData(true);
-        handler.setOptions(tmp_options);
-        handler.setMSDataConsumer(consumer);
-
-        parse_(filename_in, &handler);
-      }
-    }
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count = false);
 
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
-    template <typename MapType>
-    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count)
-    {
-      // Create temporary objects and counters
-      PeakFileOptions tmp_options(options_);
-      Size scount = 0, ccount = 0;
-      MapType experimental_settings;
-      Internal::MzXMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
-
-      // set temporary options for handler
-      tmp_options.setSizeOnly(true);
-      tmp_options.setMetadataOnly( skip_full_count );
-      handler.setOptions(tmp_options);
-
-      parse_(filename_in, &handler);
-
-      // After parsing, collect information
-      scount = handler.getScanCount();
-      consumer->setExpectedSize(scount, ccount);
-      consumer->setExperimentalSettings(experimental_settings);
-    }
+    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
 
 private:
 
@@ -194,4 +137,4 @@ private:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZXMLFILE_H
+#endif // OPENMS_FORMAT_MZXMLFILE_H

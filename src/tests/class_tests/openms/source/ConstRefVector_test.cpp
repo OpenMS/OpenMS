@@ -41,6 +41,10 @@
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 

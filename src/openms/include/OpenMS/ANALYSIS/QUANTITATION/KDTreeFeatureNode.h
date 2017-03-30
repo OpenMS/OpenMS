@@ -36,7 +36,10 @@
 #define OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 namespace OpenMS
 {

@@ -39,6 +39,10 @@
 #include <OpenMS/FORMAT/CachedMzML.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 

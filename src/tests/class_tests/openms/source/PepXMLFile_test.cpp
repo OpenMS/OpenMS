@@ -39,6 +39,9 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h> //ONLY used for checking if pepxml transformation produced a reusable id file
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>

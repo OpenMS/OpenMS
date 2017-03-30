@@ -34,6 +34,9 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -50,6 +53,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>

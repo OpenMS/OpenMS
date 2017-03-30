@@ -36,6 +36,8 @@
 #define OPENMS_ANALYSIS_RNPXL_HYPERSCORE
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <vector>
 
 namespace OpenMS

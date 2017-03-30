@@ -38,8 +38,13 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 #include <boost/random/mersenne_twister.hpp>
 

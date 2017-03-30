@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>

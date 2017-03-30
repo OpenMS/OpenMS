@@ -36,11 +36,14 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-
 ///////////////////////////
+
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 START_TEST(FileHandler, "$Id$")
 

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <queue>
 
 using namespace std;

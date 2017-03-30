@@ -36,8 +36,11 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSES_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <iostream>
 
