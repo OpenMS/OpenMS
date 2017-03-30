@@ -183,8 +183,6 @@ protected:
                 csi_hit.score = sl[4].toDouble();
                 csi_hit.name = sl[5];
                 csi_hit.smiles = sl[6];
-                // xlogp always empty [7] //??
-                // split multiple ids: e.g.: 1233423;345345;435345
                 sl[8].split(';', csi_hit.pubchemids);
                 sl[9].split(';',csi_hit.links);
                 csi_id.hits.push_back(csi_hit);
