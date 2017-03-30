@@ -712,7 +712,13 @@ namespace OpenMS
     {
       // sort by mz and deisotope
       exp[exp_index].sortByPosition();
-      exp[exp_index] = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(exp[exp_index] , 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+
+      // TODO this is a lazy heuristic, but usually tolerances given in Da are too high for deisotoping anyway
+      // Usually, high resolution data from Orbitrap instruments has an MS2 tolerance of about 20 ppm
+        if (fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100))
+        {
+          exp[exp_index] = OpenProXLUtils::deisotopeAndSingleChargeMSSpectrum(exp[exp_index] , 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
+        }
      }
   }
 
@@ -841,7 +847,7 @@ namespace OpenMS
             int s1_charge = s1.getIntegerDataArrays()[0][i - 1];
             int s2_charge = s2.getIntegerDataArrays()[0][j - 1];
             charge_fits = s1_charge == s2_charge || s1_charge == 0 || s2_charge == 0;
-//          LOG_DEBUG << "s1 charge: " << s1_charges[i - 1] << " | s2 charge: " << s2_charges[j - 1] << endl;
+//            LOG_DEBUG << "s1 charge: " << s1_charge << " | s2 charge: " << s2_charge << " | charge fits: " << charge_fits << endl;
           }
 
           // int_ratio is between 0 and 1, multiply with intensity_weight for penalty
