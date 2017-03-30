@@ -51,6 +51,7 @@ namespace OpenMS
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector< XQuestResultMeta > & metas,
                                  std::vector< std::vector < PeptideIdentification > > & csms,
+                                 std::vector< ProteinIdentification > & prot_ids,
                                  bool calc_cum_hits,
                                  size_t min_n_ions_per_spectrum,
                                  bool load_to_peptideHit)
@@ -70,7 +71,7 @@ namespace OpenMS
    {
      this->cum_hits_ = NULL;
    }
-   Internal::XQuestResultXMLHandler handler(filename, metas, csms, this->n_hits_, this->cum_hits_, min_n_ions_per_spectrum, load_to_peptideHit);
+   Internal::XQuestResultXMLHandler handler(filename, metas, csms, prot_ids, this->n_hits_, this->cum_hits_, min_n_ions_per_spectrum, load_to_peptideHit);
    this->parse_(filename, &handler);
   }
 
@@ -89,9 +90,10 @@ namespace OpenMS
   {
     // TODO Currently dummy, needed for the handler
     std::vector< XQuestResultMeta > metas;
+    std::vector< ProteinIdentification > prot_ids;
     
     this->n_hits_= 0;
-    Internal::XQuestResultXMLHandler handler(filename, metas,spectra, this->n_hits_, NULL, 0, false);
+    Internal::XQuestResultXMLHandler handler(filename, metas,spectra, prot_ids, this->n_hits_, NULL, 0, false);
   }
 
 

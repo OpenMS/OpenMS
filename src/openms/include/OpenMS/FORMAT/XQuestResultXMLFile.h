@@ -52,6 +52,7 @@ public:
     void load(const String &,  // filename
               std::vector< XQuestResultMeta >  &, // Vector to be filled with Metadata about individual XQuest results
               std::vector< std::vector< PeptideIdentification > > &, // Vector of encompassed spectra, each containing associated PeptideIdentifications
+              std::vector< ProteinIdentification > &,
               bool = false,  // Whether or not the cumnulated hit no. over the spectra should be calculated
               size_t = 0,  // Minimum number of PeptideIdentification a spectrum must contain to be loaded
               bool = false); // Whether the OpenXQuest data will be loaded as Meta Values also into the peptide hits, instead just into the PeptideIdentification

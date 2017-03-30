@@ -69,6 +69,7 @@ namespace OpenMS
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
+                                                   std::vector< ProteinIdentification > & prot_ids,
                                                    int & n_hits_,
                                                    std::vector< int > * cum_hits,
                                                    size_t min_n_ions_per_spectrum,
@@ -76,11 +77,15 @@ namespace OpenMS
       XMLHandler(filename, "1.0"),
       metas_(metas),
       csms_(csms),
+      prot_ids_(prot_ids),
       n_hits_(n_hits_),
       cum_hits_(cum_hits),
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
     {
+      this->prot_ids_.clear();
+      ProteinIdentification prot_id;
+      this->prot_ids_.push_back(prot_id);
     }
 
 
@@ -112,7 +117,20 @@ namespace OpenMS
                prot_list_it != prot_list.end(); ++prot_list_it)
       {
         PeptideEvidence pep_ev;
-        pep_ev.setProteinAccession(*prot_list_it);
+        String accession = *prot_list_it; 
+        
+        if (this->accessions.find(accession) == this->accessions.end())
+        {
+          this->accessions.insert(accession);
+          
+          ProteinHit prot_hit;
+          prot_hit.setAccession(accession);
+          this->prot_ids_[0].getHits().push_back(prot_hit);
+        }
+       
+        
+        
+        pep_ev.setProteinAccession(accession);
         pep_ev.setStart(PeptideEvidence::UNKNOWN_POSITION); // These information are not available in the xQuest result file
         pep_ev.setEnd(PeptideEvidence::UNKNOWN_POSITION);
         pep_ev.setAABefore(PeptideEvidence::UNKNOWN_AA);

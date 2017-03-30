@@ -57,6 +57,7 @@ namespace OpenMS
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
+                             std::vector< ProteinIdentification > &,
                              int & n_hits,
                              std::vector< int > * cum_hits,
                              size_t min_n_ions_per_spectrum,
@@ -79,6 +80,11 @@ namespace OpenMS
 
       std::vector< XQuestResultMeta > & metas_;
       std::vector< std::vector< PeptideIdentification > > & csms_;
+      std::vector< ProteinIdentification > & prot_ids_; 
+      
+      // Set of all protein accessions that are within the ProteinHits 
+      std::set< String > accessions;
+      
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search;
       // The current meta value
