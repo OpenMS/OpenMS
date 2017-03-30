@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

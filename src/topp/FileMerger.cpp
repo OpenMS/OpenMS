@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

@@ -111,4 +111,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZXMLFILE_H
+#endif // OPENMS_FORMAT_MZXMLFILE_H
+

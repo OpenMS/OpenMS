@@ -43,6 +43,8 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace OpenMS;
 using namespace std;

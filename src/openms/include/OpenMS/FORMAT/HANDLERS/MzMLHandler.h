@@ -52,9 +52,8 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
-#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/CONCEPT/Helpers.h>
 
@@ -181,7 +180,7 @@ public:
       }
 
       /// Set the IMSDataConsumer consumer which will consume the read data
-      void setMSDataConsumer(Interfaces::IMSDataConsumer<MapType>* consumer)
+      void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer)
       {
         consumer_ = consumer;
       }
@@ -343,7 +342,7 @@ protected:
       const ProgressLogger& logger_;
 
       /// Consumer class to work on spectra
-      Interfaces::IMSDataConsumer<MapType>* consumer_;
+      Interfaces::IMSDataConsumer* consumer_;
 
       /// Counting spectra and chromatograms
       UInt scan_count;

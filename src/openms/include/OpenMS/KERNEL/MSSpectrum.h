@@ -35,6 +35,7 @@
 #ifndef OPENMS_KERNEL_MSSPECTRUM_H
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -63,7 +64,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT = Peak1D>
+  template <typename PeakT>
   class MSSpectrum :
     private std::vector<PeakT>,
     public RangeManager<1>,

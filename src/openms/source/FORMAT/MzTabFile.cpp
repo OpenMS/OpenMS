@@ -32,11 +32,15 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <QString>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 

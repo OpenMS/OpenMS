@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>

@@ -36,9 +36,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+///////////////////////////
+
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 using namespace OpenMS;
 using namespace std;

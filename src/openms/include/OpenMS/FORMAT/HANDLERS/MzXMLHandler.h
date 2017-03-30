@@ -104,7 +104,7 @@ public:
       }
 
       /// Set the IMSDataConsumer consumer which will consume the read data
-      void setMSDataConsumer(Interfaces::IMSDataConsumer<MapType> * consumer)
+      void setMSDataConsumer(Interfaces::IMSDataConsumer * consumer)
       {
         consumer_ = consumer;
       }
@@ -162,7 +162,7 @@ protected:
       UInt spec_write_counter_;
 
       /// Consumer class to work on spectra
-      Interfaces::IMSDataConsumer<MapType>* consumer_;
+      Interfaces::IMSDataConsumer* consumer_;
 
       /// Consumer class to work on spectra
       UInt scan_count_;

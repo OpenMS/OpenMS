@@ -37,15 +37,17 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
+///////////////////////////
+
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
 
 START_TEST(ComplementFilter, "$Id$")
 

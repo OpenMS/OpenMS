@@ -42,7 +42,6 @@
 #include <map>
 #include <fstream>
 
-using namespace xercesc;
 using namespace std;
 
 namespace OpenMS
