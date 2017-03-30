@@ -139,8 +139,7 @@ protected:
     setValidFormats_("pin_out", ListUtils::create<String>("pin"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
-    registerIntOption_("threads", "<num>", 1, "number of threads", false);
-    //TO DO: add thread option to Qprocess getIntOption_("threads");
+    registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
 
     //Masses
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "precursor_mass_tolerance (MSGF+), peptide_mass_tolerance(COMET)", false, true);
