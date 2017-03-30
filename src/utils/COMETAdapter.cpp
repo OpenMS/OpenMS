@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -84,17 +86,11 @@ using namespace std;
     This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
     the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    COMET settings not exposed by this adapter can be directly adjusted using an XML configuration file.
-    By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
-    The parameter "default_config_file" can be used to specify such a custom configuration.
-    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the
-    @em COMET installation and the OpenMS installation under OpenMS/share/CHEMISTRY/COMET_default_input.xml.
-    The latter is loaded by default.
-    If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the '-ignore_adapter_param'
-    flag. Then, the config given in '-default_config_file' is used exclusively and only '-in', '-out', '-database' and '-COMET_executable' are
-    taken from this adapter.
+    COMET settings not exposed by this adapter can be directly adjusted using an txt param file, which can be generated using comet -p.
+    By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+    Parameter names have been changed to match names found in XTandem or MSGFPlus Search Engines, however some are Comet specific.
+    For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_COMETAdapter.cli
@@ -123,8 +119,6 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerOutputFile_("pin_out", "<file>", "", "Output file - for percolator input");
-    setValidFormats_("pin_out", ListUtils::create<String>("pin"), false);
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
@@ -134,39 +128,87 @@ protected:
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
 
     addEmptyLine_();
-    //
-    // Optional parameters (if '-ignore_adapter_param' is set)
-    //
-
-    registerDoubleOption_("peptide_mass_tolerance", "<tolerance>", 10.0, "peptide_mass_tolerance", false);
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
-
-    registerIntOption_("peptide_mass_units", "<search_enzyme_number>", 2, "0=amu, 1=mmu, 2=ppm", false);
-    registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
-    registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
-    vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
-
-    registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false);
-    registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false);
-    registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false);
-    registerIntOption_("isotope_error", "<num>", 0, "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false);
-
-    registerIntOption_("num_enzyme_termini", "<num>", 2, "1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific", false);
-    registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false);
-
-    registerStringOption_("decoy_prefix", "<unit>", "rev_", "decoy entries are denoted by this string which is pre-pended to each protein accession", false);
-
-    vector<String> all_mods;
-    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
-    setValidStrings_("variable_modifications", all_mods);
-
     addEmptyLine_();
-    
+
+    //
+    // Optional parameters //
+    //
+
+    //Files
+    registerOutputFile_("pin_out", "<file>", "", "Output file - for percolator input", false);
+    setValidFormats_("pin_out", ListUtils::create<String>("pin"));
+    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
+    registerIntOption_("threads", "<num>", 1, "number of threads", false);
+    //TO DO: add thread option to Qprocess getIntOption_("threads");
+
+    //Masses
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "precursor_mass_tolerance (MSGF+), peptide_mass_tolerance(COMET)", false, true);
+    // TO DO: change selection menue from numbers to valid strings
+    //registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", true);
+    //vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
+    registerIntOption_("precursor_error_units", "<search_enzyme_number>", 2, "peptide_mass_units (COMET) 0=amu, 1=mmu, 2=ppm", false, true);
+    registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, false);
+    registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, false);
+    registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, true);
+    registerIntOption_("isotope_error", "<num>", 0, "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false, true);
+
+    //Search Enzyme
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
-    registerStringOption_("cleavage_site", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
-    setValidStrings_("cleavage_site", all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, true);
+    setValidStrings_("enzyme", all_enzymes);
+    // TO DO: change selection menue from numbers to valid strings
+    registerIntOption_("num_enzyme_termini", "<num>", 2, "1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific", false, true);
+    registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, true);
+
+    //Fragment Ions
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (COMET)", false, true);
+    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.4, "fragment_bin_offset (COMET)", false, false);
+    registerIntOption_("theoretical_fragment_ions", "<num>", 1, "theoretical fragment ion peak representation, 0==sum of intensites plus fanking bins, 1==sum of intensities of central bin only", false, false);
+    registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, false);
+    registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, false);
+    registerIntOption_("use_C_ions","<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, false);
+    registerIntOption_("use_X_ions","<num>", 0, "use X ions for PSM, 0 == no, 1 == yes", false, false);
+    registerIntOption_("use_Y_ions","<num>", 1, "use Y ions for PSM, 0 == no, 1 == yes", false, false);
+    registerIntOption_("use_Z_ions","<num>", 0, "use Z ions for PSM, 0 == no, 1 == yes", false, false);
+    registerIntOption_("use_NL_ions","<num>", 0, "use Neutral Loss ions for PSM, 0 == no, 1 == yes", false, false);
+
+    //Output
+    registerIntOption_("num_hits","<num>",5,"Number of peptide hits in output file", false, true);
+    //TO DO: check whether search enzyme/sample enzyme specification is important
+
+    //mzXML/mzML parameters
+    registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all enzymes, 2 6 == from +2 to +6, 3 3 == +3", false, true);
+    registerIntOption_("override_charge", "<num>", 0, "0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online", false, true);
+    registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, true);
+    registerStringOption_("activation_method", "<method>", "ALL", "activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD", false, true);
+    setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
+
+    //Misc. parameters
+    registerStringOption_("digest_mass_range", "[min] [max]", "600.0 5000.0", "MH+ peptide mass range to analyze", false, true);
+    registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, true);
+    registerIntOption_("max_precursor_charge", "<num>", 3, "set maximum precursor charge state to analyze (allowed max 9)", false, false);
+    registerIntOption_("clip_nterm_methionine", "<num>", 0, "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, true);
+    registerIntOption_("spectrum_batch_size", "<num>", 0, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, false);
+    registerStringOption_("mass_offsets", "<offset>", "", "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, false);
+
+    // spectral processing
+    registerIntOption_("minimum_peaks", "<num>", 10, "required minimum number of peaks in spectrum to search (default 10)", false, false);
+    registerIntOption_("minimum_intensity", "<num>", 0, "minimum intensity value to read in", false, false);
+    registerIntOption_("remove_precursor_peak", "<num>", 0, "0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)", false, false);
+    registerIntOption_("remove_precursor_tolerance", "<num>", 1.5, "+- Da tolerance for precursor removal", false, false);
+    registerStringOption_("clear_mz_range", "[min] [max]", "0.0 0.0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, false);
+
+    //Modifications
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, true);
+    vector<String> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    setValidStrings_("fixed_modifications", all_mods);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, true);
+    setValidStrings_("variable_modifications", all_mods);
+    addEmptyLine_();
+    
   }
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -198,6 +240,8 @@ protected:
     }
   }
 
+  // function to write paramter file
+
   void createParamFile_(ostream& os)
   {
     os << "# comet_version 2016.01 rev. 2\n";               //required as first line in the param file
@@ -208,8 +252,8 @@ protected:
     os << "num_threads = " << getIntOption_("threads") << "\n";  // 0=poll CPU to set num threads; else specify num threads directly (max 64)
 
     // masses
-    os << "peptide_mass_tolerance = " << getDoubleOption_("peptide_mass_tolerance") << "\n";
-    os << "peptide_mass_units = " << getIntOption_("peptide_mass_units") << "\n";                  // 0=amu, 1=mmu, 2=ppm
+    os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
+    os << "peptide_mass_units = " << getIntOption_("precursor_error_units") << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << getIntOption_("mass_type_parent") << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << getIntOption_("mass_type_fragment") << "\n";                  // 0=average masses, 1=monoisotopic masses
     os << "precursor_tolerance_type = " << getIntOption_("precursor_tolerance_type") << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
@@ -229,7 +273,7 @@ protected:
     map_oms2comet["Trypsin/P"] = 2;
     map_oms2comet["no cleavage"] = 0;   
 
-    String enzyme_name = getStringOption_("cleavage_site");
+    String enzyme_name = getStringOption_("enzyme");
     Size enzyme_number = 1;
     if (map_oms2comet.find(enzyme_name) != map_oms2comet.end())
     {
@@ -304,16 +348,16 @@ protected:
     // fragment ions
     // ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
     // high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0
-    os << "fragment_bin_tol = " << 1.0005 << "\n";               // binning to use on fragment ions
-    os << "fragment_bin_offset = " << 0.4  << "\n";              // offset position to start the binning (0.0 to 1.0)
-    os << "theoretical_fragment_ions = " << 1 << "\n";           // 0=use flanking peaks, 1=M peak only
-    os << "use_A_ions = " << 0 << "\n";
-    os << "use_B_ions = " << 1 << "\n";
-    os << "use_C_ions = " << 0 << "\n";
-    os << "use_X_ions = " << 0 << "\n";
-    os << "use_Y_ions = " << 1 << "\n";
-    os << "use_Z_ions = " << 0 << "\n";
-    os << "use_NL_ions = " << 0 << "\n";                         // 0=no, 1=yes to consider NH3/H2O neutral loss peaks
+    os << "fragment_bin_tol = " << getDoubleOption_("fragment_bin_tolerance") << "\n";               // binning to use on fragment ions
+    os << "fragment_bin_offset = " << getDoubleOption_("fragment_bin_offset")  << "\n";              // offset position to start the binning (0.0 to 1.0)
+    os << "theoretical_fragment_ions = " << getIntOption_("theoretical_fragment_ions") << "\n";           // 0=use flanking peaks, 1=M peak only
+    os << "use_A_ions = " << getIntOption_("use_A_ions") << "\n";
+    os << "use_B_ions = " << getIntOption_("use_B_ions") << "\n";
+    os << "use_C_ions = " << getIntOption_("use_C_ions") << "\n";
+    os << "use_X_ions = " << getIntOption_("use_X_ions") << "\n";
+    os << "use_Y_ions = " << getIntOption_("use_Y_ions") << "\n";
+    os << "use_Z_ions = " << getIntOption_("use_Z_ions") << "\n";
+    os << "use_NL_ions = " << getIntOption_("use_NL_ions") << "\n";                         // 0=no, 1=yes to consider NH3/H2O neutral loss peaks
 
     // output
     os << "output_sqtstream = " << 0 << "\n";                    // 0=no, 1=yes  write sqt to standard output
@@ -324,68 +368,59 @@ protected:
     os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
     os << "output_outfiles = " <<  0 << "\n";                    // 0=no, 1=yes  write .out files
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
-    os << "num_output_lines = " << 5 << "\n";                    // num peptide results to show
+    os << "num_output_lines = " << getIntOption_("num_hits") << "\n";                    // num peptide results to show
     os << "show_fragment_ions = " << 0 << "\n";                  // 0=no, 1=yes for out files only
     os << "sample_enzyme_number = " << 0 << "\n";                // Sample enzyme which is possibly different than the one applied to the search.
 
     // mzXML parameters
     os << "scan_range = " << "0 0" << "\n";                        // start and scan scan range to search; 0 as 1st entry ignores parameter
-    os << "precursor_charge = " << "0 0" << "\n";                  // precursor charge range to analyze; does not override any existing charge; 0 as 1st entry ignores parameter
-    os << "override_charge = " << 0 << "\n";                     // 0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online
-    os << "ms_level = " << 2 << "\n";                            // MS level to analyze, valid are levels 2 (default) or 3
-    os << "activation_method = " << "ALL" << "\n";                 // activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD
+    os << "precursor_charge = " << getStringOption_("precursor_charge") << "\n";                  // precursor charge range to analyze; does not override any existing charge; 0 as 1st entry ignores parameter
+    os << "override_charge = " << getIntOption_("override_charge") << "\n";                     // 0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online
+    os << "ms_level = " << getIntOption_("ms_level") << "\n";                            // MS level to analyze, valid are levels 2 (default) or 3
+    os << "activation_method = " << getStringOption_("activation_method") << "\n";                 // activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD
 
     // misc parameters
-    os << "digest_mass_range = " << "600.0 5000.0" << "\n";        // MH+ peptide mass range to analyze
+    os << "digest_mass_range = " << getStringOption_("digest_mass_range") << "\n";        // MH+ peptide mass range to analyze
     os << "num_results = " << 100 << "\n";                       // number of search hits to store internally
     os << "skip_researching = " << 1 << "\n";                    // for '.out' file output only, 0=search everything again (default), 1=dont search if .out exists
-    os << "max_fragment_charge = " << 3 << "\n";                 // set maximum fragment charge state to analyze (allowed max 5)
-    os << "max_precursor_charge = " << 4 << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
+    os << "max_fragment_charge = " << getIntOption_("max_fragment_charge") << "\n";                 // set maximum fragment charge state to analyze (allowed max 5)
+    os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
-    os << "clip_nterm_methionine = " << 0 << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
-    os << "spectrum_batch_size = " << 0 << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
-    os << "decoy_prefix = " << getStringOption_("decoy_prefix") << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
+    os << "clip_nterm_methionine = " << getIntOption_("clip_nterm_methionine") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
+    os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
+    os << "decoy_prefix = " << "rev_" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
-    os << "mass_offsets = " << "" << "\n";                       // one or more mass offsets to search (values substracted from deconvoluted precursor mass)
+    os << "mass_offsets = " << getStringOption_("mass_offsets") << "\n";                       // one or more mass offsets to search (values substracted from deconvoluted precursor mass)
 
     // spectral processing
-    os << "minimum_peaks = " << 10 << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
-    os << "minimum_intensity = " << 0 << "\n";                   // minimum intensity value to read in
-    os << "remove_precursor_peak = " << 0 << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)
-    os << "remove_precursor_tolerance = " << 1.5 << "\n";        // +- Da tolerance for precursor removal
-    os << "clear_mz_range = " << "0.0 0.0" << "\n";                // for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
+    os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
+    os << "minimum_intensity = " << getIntOption_("minimum_intensity") << "\n";                   // minimum intensity value to read in
+    os << "remove_precursor_peak = " << getIntOption_("remove_precursor_peak") << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)
+    os << "remove_precursor_tolerance = " << getIntOption_("remove_precursor_tolerance") << "\n";        // +- Da tolerance for precursor removal
+    os << "clear_mz_range = " << getStringOption_("clear_mz_range") << "\n";                // for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
 
-    // additional modifications
-    os << "add_Cterm_peptide = " << 0.0 << "\n";
-    os << "add_Nterm_peptide = " <<  0.0 << "\n";
-    os << "add_Cterm_protein = " << 0.0 << "\n";
-    os << "add_Nterm_protein = " << 0.0 << "\n";
-    os << "add_G_glycine = " << 0.0000 << "\n";                  // added to G - avg.  57.0513, mono.  57.02146
-    os << "add_A_alanine = " << 0.0000 << "\n";                  // added to A - avg.  71.0779, mono.  71.03711
-    os << "add_S_serine = " << 0.0000 << "\n";                  // added to S - avg.  87.0773, mono.  87.03203
-    os << "add_P_proline = " << 0.0000 << "\n";                  // added to P - avg.  97.1152, mono.  97.05276
-    os << "add_V_valine = " << 0.0000 << "\n";                   // added to V - avg.  99.1311, mono.  99.06841
-    os << "add_T_threonine = " << 0.0000 << "\n";                // added to T - avg. 101.1038, mono. 101.04768
-    os << "add_C_cysteine = " << 0.0000 << "\n";             // added to C - avg. 103.1429, mono. 103.00918
-    os << "add_L_leucine = " << 0.0000 << "\n";                  // added to L - avg. 113.1576, mono. 113.08406
-    os << "add_I_isoleucine = " << 0.0000 << "\n";               // added to I - avg. 113.1576, mono. 113.08406
-    os << "add_N_asparagine = " << 0.0000 << "\n";               // added to N - avg. 114.1026, mono. 114.04293
-    os << "add_D_aspartic_acid = " << 0.0000 << "\n";            // added to D - avg. 115.0874, mono. 115.02694
-    os << "add_Q_glutamine = " << 0.0000 << "\n";                // added to Q - avg. 128.1292, mono. 128.05858
-    os << "add_K_lysine = " << 0.0000 << "\n";                   // added to K - avg. 128.1723, mono. 128.09496
-    os << "add_E_glutamic_acid =" <<  0.0000 << "\n";            // added to E - avg. 129.1140, mono. 129.04259
-    os << "add_M_methionine =" <<  0.0000 << "\n";               // added to M - avg. 131.1961, mono. 131.04048
-    os << "add_O_ornithine = " << 0.0000 << "\n";                // added to O - avg. 132.1610, mono  132.08988
-    os << "add_H_histidine = " << 0.0000 << "\n";                // added to H - avg. 137.1393, mono. 137.05891
-    os << "add_F_phenylalanine = " << 0.0000 << "\n";            // added to F - avg. 147.1739, mono. 147.06841
-    os << "add_U_selenocysteine = " << 0.0000 << "\n";           // added to U - avg. 150.3079, mono. 150.95363
-    os << "add_R_arginine = " << 0.0000 << "\n";                 // added to R - avg. 156.1857, mono. 156.10111
-    os << "add_Y_tyrosine = " << 0.0000 << "\n";                 // added to Y - avg. 163.0633, mono. 163.06333
-    os << "add_W_tryptophan = " << 0.0000 << "\n";               // added to W - avg. 186.0793, mono. 186.07931
-    os << "add_B_user_amino_acid = " << 0.0000 << "\n";          // added to B - avg.   0.0000, mono.   0.00000
-    os << "add_J_user_amino_acid = " << 0.0000 << "\n";          // added to J - avg.   0.0000, mono.   0.00000
-    os << "add_X_user_amino_acid = " << 0.0000 << "\n";          // added to X - avg.   0.0000, mono.   0.00000
-    os << "add_Z_user_amino_acid = " << 0.0000 << "\n";          // added to Z - avg.   0.0000, mono.   0.00000
+
+    // write fixed modifictations - if not specified residue paramter is zero
+    // Aminoacid:
+    //      add_AA.OneletterCode_AA.ThreeLetterCode = xxx
+    // Terminus:
+    //      add_N/Cterm_peptide = xxx       protein not available yet
+    vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
+    vector<ResidueModification> fixed_modifications = getModifications_(fixed_modifications_names);
+    for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+    {
+      String AA = it->getOrigin();
+      if ((AA!="N-term") && (AA!="C-term"))
+      {
+      const Residue* r = ResidueDB::getInstance()->getResidue(AA);
+      String name = r->getName();
+      os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << it->getDiffMonoMass() << endl;
+      }
+      else
+      {
+      os << "add_" << AA.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
+      }
+    }
 
     // COMET_ENZYME_INFO _must_ be at the end of this parameters file
     os << "[COMET_ENZYME_INFO]" << "\n";
@@ -453,13 +488,21 @@ protected:
     QDir d;
     d.mkpath(tmp_dir.toQString());
 
-    String tmp_file = tmp_dir + "param.txt";
     String tmp_pepxml = File::removeExtension(inputfile_name) + ".pep.xml";
-    String tmp_pin = File::removeExtension(inputfile_name) + ".pin";
+    String default_params = getStringOption_("default_params_file");
+    String tmp_file;
 
-    ofstream os(tmp_file);
-    createParamFile_(os);
-    os.close();
+    if (default_params.empty())
+    {
+        tmp_file = tmp_dir + "param.txt";
+        ofstream os(tmp_file);
+        createParamFile_(os);
+        os.close();
+    }
+    else
+    {
+        tmp_file = default_params;
+    }
 
     PeakMap exp;
     MzMLFile mzml_file;
