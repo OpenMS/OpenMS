@@ -111,11 +111,12 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::initializeGL()
   {
-    QColor color(canvas_3d_.param_.getValue("background_color").toQString());
-    qglClearColor(color);
+    makeCurrent();
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    QColor color(canvas_3d_.param_.getValue("background_color").toQString());
+    qglClearColor(color);
     calculateGridLines_();
 
     //abort if no layers are displayed

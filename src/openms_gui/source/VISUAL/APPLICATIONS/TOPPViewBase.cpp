@@ -180,13 +180,13 @@ namespace OpenMS
     box_layout->addWidget(tab_bar_);
 
     ws_ = new EnhancedWorkspace(dummy);
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateToolBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateTabBar(QWidget*)));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateLayerBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateViewBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateFilterBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateCurrentPath()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateToolBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateLayerBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateViewBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateFilterBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateCurrentPath()));
     connect(ws_, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
 
     box_layout->addWidget(ws_);
@@ -248,8 +248,8 @@ namespace OpenMS
     //Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
-    windows->addAction("&Cascade", this->ws_, SLOT(cascade()));
-    windows->addAction("&Tile automatic", this->ws_, SLOT(tile()));
+    windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
+    windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
     windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileHorizontal()));
     windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileVertical()));
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
@@ -1464,7 +1464,7 @@ namespace OpenMS
     for (int i = 0; i < windows.size(); ++i)
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i));
-      if (w->getWindowId() == id)
+      if (w != 0 && w->getWindowId() == id)
       {
         return w;
       }
@@ -2192,11 +2192,11 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::updateTabBar(QWidget* w)
+  void TOPPViewBase::updateTabBar(QMdiSubWindow* w)
   {
     if (w)
     {
-      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w);
+      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w->widget());
       Int window_id = tbw->getWindowId();
       tab_bar_->setCurrentId(window_id);
     }
@@ -2504,12 +2504,16 @@ namespace OpenMS
     {
       return 0;
     }
-    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow());
+    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeSubWindow());
+    if (ws_->currentSubWindow() == 0)
+    {
+      return 0;
+    }
+    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->currentSubWindow()->widget());
     if (sw == 0)
     {
       return 0;
