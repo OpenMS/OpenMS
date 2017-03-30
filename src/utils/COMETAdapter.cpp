@@ -12,7 +12,7 @@
 //    documentation and/or other materials provided with the distribution.
 //  * Neither the name of any author or any participating institution
 //    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
+//    with specific prior written permission.
 // For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -24,7 +24,7 @@
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 // OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// OTHERWISE) ARISING IN ANY WAY  OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
@@ -51,7 +51,7 @@
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
-#include <iostream>     // std::cout, std::ostream, std::ios
+#include <iostream>     // std::c\, std::ostream, std::ios
 #include <fstream>
 
 using namespace OpenMS;         
@@ -123,7 +123,6 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      // COMET compiles as tandem on OSX and tandem.exe on any other platform
       "comet.exe",                     
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
 
@@ -142,69 +141,69 @@ protected:
     registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
 
     //Masses
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "precursor_mass_tolerance (MSGF+), peptide_mass_tolerance(COMET)", false, true);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "precursor_mass_tolerance (MSGF+), peptide_mass_tolerance(COMET)", false, false);
     // TO DO: change selection menue from numbers to valid strings
     //registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", true);
     //vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
-    registerIntOption_("precursor_error_units", "<search_enzyme_number>", 2, "peptide_mass_units (COMET) 0=amu, 1=mmu, 2=ppm", false, true);
-    registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, false);
-    registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, false);
-    registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, true);
-    registerIntOption_("isotope_error", "<num>", 0, "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false, true);
+    registerIntOption_("precursor_error_units", "<search_enzyme_number>", 2, "peptide_mass_units (COMET) 0=amu, 1=mmu, 2=ppm", false, false);
+    registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
+    registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
+    registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
+    registerIntOption_("isotope_error", "<num>", 0, "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false, false);
 
     //Search Enzyme
     vector<String> all_enzymes;
     EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
-    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, true);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
     // TO DO: change selection menue from numbers to valid strings
-    registerIntOption_("num_enzyme_termini", "<num>", 2, "1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific", false, true);
-    registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, true);
+    registerIntOption_("num_enzyme_termini", "<num>", 2, "1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific", false, false);
+    registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
 
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (COMET)", false, true);
-    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.4, "fragment_bin_offset (COMET)", false, false);
-    registerIntOption_("theoretical_fragment_ions", "<num>", 1, "theoretical fragment ion peak representation, 0==sum of intensites plus fanking bins, 1==sum of intensities of central bin only", false, false);
-    registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, false);
-    registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, false);
-    registerIntOption_("use_C_ions","<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, false);
-    registerIntOption_("use_X_ions","<num>", 0, "use X ions for PSM, 0 == no, 1 == yes", false, false);
-    registerIntOption_("use_Y_ions","<num>", 1, "use Y ions for PSM, 0 == no, 1 == yes", false, false);
-    registerIntOption_("use_Z_ions","<num>", 0, "use Z ions for PSM, 0 == no, 1 == yes", false, false);
-    registerIntOption_("use_NL_ions","<num>", 0, "use Neutral Loss ions for PSM, 0 == no, 1 == yes", false, false);
+    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.4, "fragment_bin_offset (COMET)", false, true);
+    registerIntOption_("theoretical_fragment_ions", "<num>", 1, "theoretical fragment ion peak representation, 0==sum of intensites plus fanking bins, 1==sum of intensities of central bin only", false, true);
+    registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_C_ions","<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_X_ions","<num>", 0, "use X ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_Y_ions","<num>", 1, "use Y ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_Z_ions","<num>", 0, "use Z ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_NL_ions","<num>", 0, "use Neutral Loss ions for PSM, 0 == no, 1 == yes", false, true);
 
     //Output
-    registerIntOption_("num_hits","<num>",5,"Number of peptide hits in output file", false, true);
+    registerIntOption_("num_hits","<num>",5,"Number of peptide hits in output file", false, false);
     //TO DO: check whether search enzyme/sample enzyme specification is important
 
     //mzXML/mzML parameters
-    registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all enzymes, 2 6 == from +2 to +6, 3 3 == +3", false, true);
-    registerIntOption_("override_charge", "<num>", 0, "0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online", false, true);
-    registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, true);
-    registerStringOption_("activation_method", "<method>", "ALL", "activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD", false, true);
+    registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all enzymes, 2 6 == from +2 to +6, 3 3 == +3", false, false);
+    registerIntOption_("override_charge", "<num>", 0, "0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online", false, false);
+    registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, false);
+    registerStringOption_("activation_method", "<method>", "ALL", "activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD", false, false);
     setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
 
     //Misc. parameters
     registerStringOption_("digest_mass_range", "[min] [max]", "600.0 5000.0", "MH+ peptide mass range to analyze", false, true);
-    registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, true);
-    registerIntOption_("max_precursor_charge", "<num>", 3, "set maximum precursor charge state to analyze (allowed max 9)", false, false);
-    registerIntOption_("clip_nterm_methionine", "<num>", 0, "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, true);
-    registerIntOption_("spectrum_batch_size", "<num>", 0, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, false);
-    registerStringOption_("mass_offsets", "<offset>", "", "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, false);
+    registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, false);
+    registerIntOption_("max_precursor_charge", "<num>", 3, "set maximum precursor charge state to analyze (allowed max 9)", false, true);
+    registerIntOption_("clip_nterm_methionine", "<num>", 0, "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
+    registerIntOption_("spectrum_batch_size", "<num>", 0, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, true);
+    registerStringOption_("mass_offsets", "<offset>", "", "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, true);
 
     // spectral processing
-    registerIntOption_("minimum_peaks", "<num>", 10, "required minimum number of peaks in spectrum to search (default 10)", false, false);
-    registerIntOption_("minimum_intensity", "<num>", 0, "minimum intensity value to read in", false, false);
-    registerIntOption_("remove_precursor_peak", "<num>", 0, "0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)", false, false);
-    registerIntOption_("remove_precursor_tolerance", "<num>", 1.5, "+- Da tolerance for precursor removal", false, false);
-    registerStringOption_("clear_mz_range", "[min] [max]", "0.0 0.0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, false);
+    registerIntOption_("minimum_peaks", "<num>", 10, "required minimum number of peaks in spectrum to search (default 10)", false, true);
+    registerIntOption_("minimum_intensity", "<num>", 0, "minimum intensity value to read in", false, true);
+    registerIntOption_("remove_precursor_peak", "<num>", 0, "0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)", false, true);
+    registerIntOption_("remove_precursor_tolerance", "<num>", 1.5, "+- Da tolerance for precursor removal", false, true);
+    registerStringOption_("clear_mz_range", "[min] [max]", "0.0 0.0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
 
     //Modifications
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, true);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, true);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     setValidStrings_("variable_modifications", all_mods);
     addEmptyLine_();
     
@@ -486,11 +485,12 @@ protected:
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
     QDir d;
     d.mkpath(tmp_dir.toQString());
-
-    String tmp_pepxml = File::removeExtension(inputfile_name) + ".pep.xml";
+    String tmp_pepxml = tmp_dir + File::removeExtension(File::basename(inputfile_name)) + ".pep.xml";
+    //String tmp_idxml = tmp_dir + File::basename(inputfile_name) + ".idXML";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
+    //default params given or to be written
     if (default_params.empty())
     {
         tmp_file = tmp_dir + "param.txt";
@@ -529,11 +529,11 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-
-    String param = "-P" + tmp_file;
+    String paramP = "-P" + tmp_file;
+    String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
     QStringList process_params;
-    process_params << param.toQString() << inputfile_name.toQString();
-    //qDebug() << process_params;
+    process_params << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
+    qDebug() << process_params;
 
     String comet_executable = getStringOption_("comet_executable");
     //int status = QProcess::execute(comet_executable.toQString(), QStringList(inputfile_name.toQString())); // does automatic escaping etc...
@@ -554,7 +554,13 @@ protected:
       //return EXTERNAL_PROGRAM_ERROR;
     }
 
-    // read the pep.xml output of COMET and write it to idXML
+
+    //-------------------------------------------------------------
+    // writing put
+    //-------------------------------------------------------------
+
+
+    // read the pep.xml put of COMET and write it to idXML
 
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
@@ -562,21 +568,18 @@ protected:
     writeDebug_("write PepXMLFile", 1);
     PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications, inputfile_name);
 
+    IdXMLFile().store(inputfile_name, protein_identifications, peptide_identifications);
+
+    // remove tempdir
     if (this->debug_level_ == 0)
     {
-      File::remove(tmp_pepxml);
-      LOG_WARN << "Set debug level to >0 to keep the temporary pep.xml and pin files at '" << tmp_pepxml << "'" << std::endl;
+        removeTempDir_(tmp_dir);
+        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
     }
     else
     {
       LOG_WARN << "Keeping the temporary files at '" << tmp_pepxml << "'. Set debug level to 0 to remove them." << std::endl;
     }
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-
-    IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
 
   }
 
