@@ -238,8 +238,7 @@ namespace OpenMS
     {
       goto_dialog.fixRange();
       SpectrumCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
-        correctAreaToObeyMinMaxRanges_(area);
+      if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
       canvas()->setVisibleArea(area);
     }
   }

@@ -40,8 +40,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>
-
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QTreeWidget>
@@ -51,6 +49,11 @@ class QStyleOptionViewItem;
 class QAbstractItemModel;
 class QStringList;
 class QString;
+
+namespace Ui
+{
+  class ParamEditorTemplate;
+}
 
 namespace OpenMS
 {
@@ -159,6 +162,7 @@ protected slots:
 
   }
 
+  
   /**
       @brief A GUI for editing or viewing a Param object
 
@@ -171,8 +175,7 @@ protected slots:
       @ingroup Visual
   */
   class OPENMS_GUI_DLLAPI ParamEditor :
-    public QWidget,
-    public Ui::ParamEditorTemplate
+    public QWidget
   {
     Q_OBJECT
 
@@ -187,6 +190,9 @@ public:
 
     /// constructor
     ParamEditor(QWidget * parent = 0);
+    /// destructor
+    virtual ~ParamEditor();
+    
     /// load method for Param object
     void load(Param & param);
     /// store edited data in Param object
@@ -223,6 +229,9 @@ protected:
     bool modified_;
     /// Indicates if normal mode or advanced mode is activated
     bool advanced_mode_;
+
+private:
+    Ui::ParamEditorTemplate* ui_;
   };
 
 

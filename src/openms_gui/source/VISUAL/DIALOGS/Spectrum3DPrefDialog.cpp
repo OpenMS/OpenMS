@@ -34,6 +34,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/Spectrum3DPrefDialog.h>
+#include <ui_Spectrum3DPrefDialog.h>
 
 using namespace std;
 
@@ -42,9 +43,15 @@ namespace OpenMS
   namespace Internal
   {
     Spectrum3DPrefDialog::Spectrum3DPrefDialog(QWidget * parent) :
-      QDialog(parent)
+      QDialog(parent),
+      ui_(new Ui::Spectrum3DPrefDialogTemplate)
     {
-      setupUi(this);
+      ui_->setupUi(this);
+    }
+
+    Spectrum3DPrefDialog::~Spectrum3DPrefDialog()
+    {
+      delete ui_;
     }
 
   }   //namespace Internal

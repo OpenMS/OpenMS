@@ -163,8 +163,7 @@ include_directories(${Qt5Network_INCLUDE_DIRS})
 add_definitions(${Qt5Core_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
 
-set(CMAKE_CXX_FLAGS "${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
-set(CMAKE_CXX_FLAGS "${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
 
 #------------------------------------------------------------------------------

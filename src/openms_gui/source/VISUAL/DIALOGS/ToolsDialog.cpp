@@ -34,6 +34,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
