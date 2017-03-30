@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 namespace OpenMS
 {
@@ -53,6 +54,8 @@ namespace OpenMS
     {
     public:
 
+      // Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
+      static const std::map< Size, String > enzymes;
 
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
@@ -77,7 +80,7 @@ namespace OpenMS
       virtual void writeTo(std::ostream & os);
 
     private:
-
+   
       std::vector< XQuestResultMeta > & metas_;
       std::vector< std::vector< PeptideIdentification > > & csms_;
       std::vector< ProteinIdentification > & prot_ids_; 
@@ -85,14 +88,16 @@ namespace OpenMS
       // Set of all protein accessions that are within the ProteinHits 
       std::set< String > accessions;
       
+      // The enzyme database for enzyme lookup
+      EnzymesDB * enzymes_db;
+      
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search;
-      // The current meta value
-      XQuestResultMeta current_meta_;
+      XQuestResultMeta current_meta_; // The current meta value
       int & n_hits_; // Total no. of hits found in the result XML file
       std::vector< int > * cum_hits_;
       size_t min_n_ions_per_spectrum_;
-      bool load_to_peptideHit_;
+      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
       
       // Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values;

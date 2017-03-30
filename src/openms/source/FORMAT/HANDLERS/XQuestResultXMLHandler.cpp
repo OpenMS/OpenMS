@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <boost/assign/list_of.hpp>
+
 #include <iostream>
 #include <utility>
 
@@ -65,7 +67,16 @@ namespace OpenMS
         large.erase(i, small.length());
       }
     }
-
+   
+    
+   // Initialize static const members
+  
+   const std::map< Size, String > XQuestResultXMLHandler::enzymes = boost::assign::map_list_of(0, "no_enzyme") 
+   (1, "trypsin") (2, "chymotrypsin") (3, "unknown_enzyme") (9, "unknown_enzyme")
+   (10, "unknown_enzyme") (14, "unknown_enzyme") (15, "unknown_enzyme") (16, "unknown_enzyme") (17, "unknown_enzyme")
+   (18, "unknown_enzyme") (20, "unknown_enzyme");
+  
+  
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
@@ -83,9 +94,13 @@ namespace OpenMS
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
     {
+      // Initialize the one and only protein identification
       this->prot_ids_.clear();
       ProteinIdentification prot_id;
       this->prot_ids_.push_back(prot_id);
+      
+      // Fetch the enzymes database
+      this->enzymes_db = EnzymesDB::getInstance();
     }
 
 
@@ -125,11 +140,11 @@ namespace OpenMS
           
           ProteinHit prot_hit;
           prot_hit.setAccession(accession);
+          prot_hit.setMetaValue("target_decoy", accession.hasSubstring("decoy") ? "decoy" : "target");
+          
           this->prot_ids_[0].getHits().push_back(prot_hit);
         }
        
-        
-        
         pep_ev.setProteinAccession(accession);
         pep_ev.setStart(PeptideEvidence::UNKNOWN_POSITION); // These information are not available in the xQuest result file
         pep_ev.setEnd(PeptideEvidence::UNKNOWN_POSITION);
@@ -206,23 +221,36 @@ namespace OpenMS
         this->current_spectrum_search.clear();
       }
       else if (tag == "xquest_results")
-      {
-          this->metas_.push_back(this->current_meta_);
-          this->current_meta_.clearMetaInfo();
+      {      
+        this->metas_.push_back(this->current_meta_);
+        this->current_meta_.clearMetaInfo();
       }
     }
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
       String tag = XMLString::transcode(qname);
-      // Extract meta information
+      // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
-        // For now, put each of the key value pair as DataValue into the meta interface
+      
+        /*
         for(XMLSize_t i = 0; i < attributes.getLength(); ++i)
         {
             this->current_meta_.setMetaValue(XMLString::transcode(attributes.getQName(i)),
-                                     DataValue(XMLString::transcode(attributes.getValue(i))));
+                                   DataValue(XMLString::transcode(attributes.getValue(i))));
         }
+        */
+        // Set the search parameters 
+        ProteinIdentification::SearchParameters search_params;
+        search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(XQuestResultXMLHandler::enzymes.at( this->attributeAsInt_(attributes, "enzyme_num")));
+        search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
+        search_params.db = this->attributeAsString_(attributes, "database");
+        search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
+        String tolerancemeasure = this->attributeAsString_(attributes, "tolerancemeasure");
+        search_params.precursor_mass_tolerance_ppm = tolerancemeasure == "ppm";
+        
+        
+        this->prot_ids_[0].setSearchParameters(search_params);  
       }
       else if (tag == "spectrum_search")
       {

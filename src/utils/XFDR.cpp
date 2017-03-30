@@ -44,7 +44,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/function.hpp>
@@ -635,6 +635,11 @@ class TOPPXFDR :
         // Parse XQuestResultXMLFile (TODO Also support idXML and mzIdentML)
         XQuestResultXMLFile xquest_result_file;
         xquest_result_file.load(arg_in, metas, spectra, prot_ids, false, 1);
+        
+        // currently, cross-link identifications are stored within one ProteinIdentification
+        assert(prot_ids.size() == 1);
+        //vector< ProteinHit > prot_hits = prot_ids[0].getHits();
+        //cout << prot_hits.size() << endl;
         n_spectra = spectra.size();
 
         if (arg_verbose)
@@ -702,7 +707,6 @@ class TOPPXFDR :
           }
           rank_counter++;
         }
-
       }
       
       // Number of peptide identifications that need to be considered
