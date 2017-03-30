@@ -1463,7 +1463,7 @@ namespace OpenMS
 
     for (int i = 0; i < windows.size(); ++i)
     {
-      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i));
+      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i)->widget());
       if (w != 0 && w->getWindowId() == id)
       {
         return w;
