@@ -273,42 +273,50 @@ protected:
       const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
       vector< pair< Size, Size > > matched_fragments_without_shift;
       OpenProXLUtils::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 0.3);
+      LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 
       // different fragments may carry light or heavy cross-linker.
-      PeakSpectrum spectrum_heavy_different;
-      PeakSpectrum spectrum_light_different;
+//      PeakSpectrum spectrum_heavy_different;
+//      PeakSpectrum spectrum_light_different;
 
-      // TODO: maybe speed this up - can be done in linear time
-      for (Size i = 0; i != spectrum_light.size(); ++i)
-      {
-        bool found = false;
-        for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
-        {
-          if (matched_fragments_without_shift[j].first == i) { found = true; break; }
-        }
-        if (!found)
-        {
-          spectrum_light_different.push_back(spectrum_light[i]);
-        }
-      }
-      for (Size i = 0; i != spectrum_heavy.size(); ++i)
-      {
-        bool found = false;
-        for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
-        {
-          if (matched_fragments_without_shift[j].second == i) { found = true; break; }
-        }
-        if (!found)
-        {
-          spectrum_heavy_different.push_back(spectrum_heavy[i]);
-        }
-      }
+//      // TODO: maybe speed this up - can be done in linear time
+//      // Careful: charges are lost here for the ..._different spectra
+//      for (Size i = 0; i != spectrum_light.size(); ++i)
+//      {
+//        bool found = false;
+//        for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
+//        {
+//          if (matched_fragments_without_shift[j].first == i) { found = true; break; }
+//        }
+//        if (!found)
+//        {
+//          spectrum_light_different.push_back(spectrum_light[i]);
+//        }
+//      }
+//      for (Size i = 0; i != spectrum_heavy.size(); ++i)
+//      {
+//        bool found = false;
+//        for (Size j = 0; j != matched_fragments_without_shift.size(); ++j)
+//        {
+//          if (matched_fragments_without_shift[j].second == i) { found = true; break; }
+//        }
+//        if (!found)
+//        {
+//          spectrum_heavy_different.push_back(spectrum_heavy[i]);
+//        }
+//      }
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
       PeakSpectrum spectrum_heavy_to_light;
       PeakSpectrum xlink_peaks;
-      PeakSpectrum::IntegerDataArray spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
-      xlink_peaks.getIntegerDataArrays().push_back(PeakSpectrum::IntegerDataArray());
+      PeakSpectrum::IntegerDataArray spectrum_heavy_charges;
+      if (spectrum_heavy.getIntegerDataArrays().size() > 0)
+      {
+        spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
+      }
+
+      PeakSpectrum::IntegerDataArray spectrum_heavy_to_light_charges;
+      xlink_peaks.getIntegerDataArrays().resize(1);
 
       // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
@@ -319,15 +327,25 @@ protected:
         // transform heavy spectrum
         for (Size i = 0; i != spectrum_heavy.size(); ++i)
         {
+          bool charge_fits = true;
           // check if the charge for the heavy peak determined by deisotoping matches the currently considered charge
-          Size spectrum_heavy_charge = spectrum_heavy_charges[i];
-          if (spectrum_heavy_charge == 0 || spectrum_heavy_charge == charge)
+          if (spectrum_heavy_charges.size() == spectrum_heavy.size() && spectrum_heavy_charges[i] != 0 && spectrum_heavy_charges[i] != charge)
+          {
+            charge_fits = false;
+          }
+//          Size spectrum_heavy_charge = spectrum_heavy_charges[i];
+//          LOG_DEBUG << "Spectrum heavy charge: " << spectrum_heavy_charge << endl;
+          if (charge_fits)
           {
             Peak1D p = spectrum_heavy[i];
             p.setMZ(p.getMZ() - mass_shift);
             spectrum_heavy_to_light.push_back(p);
+            spectrum_heavy_to_light_charges.push_back(charge);
           }
         }
+        spectrum_heavy_to_light.getIntegerDataArrays().push_back(spectrum_heavy_to_light_charges);
+
+        LOG_DEBUG << "Spectrum heavy to light: " << spectrum_heavy_to_light.size() << endl;
 
         // align peaks from light spectrum with shifted peaks from heavy spectrum
         // matching fragments are potentially carrying the cross-linker
@@ -337,6 +355,8 @@ protected:
         if (spectrum_heavy_to_light.size() > 0)
         {
           OpenProXLUtils::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3);
+
+          LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
@@ -349,12 +369,20 @@ protected:
 
       // generate common peaks spectrum, include charges determined through deisotoping in preprocessing
       PeakSpectrum common_peaks;
-      common_peaks.getIntegerDataArrays().push_back(PeakSpectrum::IntegerDataArray());
-      PeakSpectrum::IntegerDataArray spectrum_light_charges = spectrum_light.getIntegerDataArrays()[0];
+
+      PeakSpectrum::IntegerDataArray spectrum_light_charges;
+      if (spectrum_light.getIntegerDataArrays().size() > 0)
+      {
+        spectrum_light_charges = spectrum_light.getIntegerDataArrays()[0];
+        common_peaks.getIntegerDataArrays().resize(1);
+      }
       for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
       {
         common_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
-        common_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
+        if (spectrum_light_charges.size() > 0)
+        {
+          common_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
+        }
       }
 
 
@@ -386,6 +414,8 @@ protected:
       common_peaks.sortByPosition();
       xlink_peaks.sortByPosition();
       all_peaks.sortByPosition();
+
+      LOG_DEBUG << "paired up, common peaks: " << common_peaks.size() << " | xlink peaks: " << xlink_peaks.size() << " | all peaks: " << all_peaks.size() << endl;
 
 #ifdef _OPENMP
 #pragma omp critical (preprocessed_pair_spectra_access)
@@ -890,6 +920,10 @@ protected:
         Size matched_beta_count = matched_spec_common_beta.size() + matched_spec_xlinks_beta.size();
         Size theor_beta_count = theoretical_spec_common_beta.size() + theoretical_spec_xlinks_beta.size();
 
+        LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
+        LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
+        LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
+
         if (matched_alpha_count + matched_beta_count > 0)
         {
           // Simplified pre-Score
@@ -1135,8 +1169,6 @@ protected:
         all_top_csms_current_index = all_top_csms.size()-1;
       }
 
-
-
       // Write PeptideIdentifications and PeptideHits for n top hits
       OpenProXLUtils::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
 
@@ -1144,6 +1176,8 @@ protected:
     }
     // end of matching / scoring
     progresslogger.endProgress();
+
+    cout << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
 
     LOG_DEBUG << "Pre Score maximum: " << pScoreMax << "\t TIC maximum: " << TICMax << "\t wTIC maximum: " << wTICMax << "\t Match-Odds maximum: " << matchOddsMax << endl;
     LOG_DEBUG << "XLink Cross-correlation maximum: " << xcorrxMax << "\t Common Cross-correlation maximum: " << xcorrcMax << "\t Intsum maximum: " << intsumMax << endl;
