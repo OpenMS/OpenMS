@@ -54,45 +54,56 @@ namespace OpenMS
       LOG_WARN << error_message_ << std::endl;
     }
 
-  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, bool use_numpress)
+  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
   {
     if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
     {
       // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
-      // It is technically possible but
+      // It is technically possible, but is illegal according to the standard:
       //
       // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
+      //
+      // If you comment out the exception, it will work though.
       //
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
     }
 
-    if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)
+    String np_term;
+    switch (np.np_compression)
     {
-      if (opt.getCompression())
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
-      }
-      else
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-      }
+      case MSNumpressCoder::LINEAR:
+        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+        break;
+      case MSNumpressCoder::PIC:
+        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+        break;
+      case MSNumpressCoder::SLOF:
+        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+        break;
+      case MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION:
+        np_term = "";
+        break;
+      case MSNumpressCoder::NONE:
+        np_term = "";
+        break;
     }
-    else if (np.np_compression == MSNumpressCoder::LINEAR)
+
+    // force numpress term to be empty
+    if (!use_numpress) np_term = "";
+
+    if (opt.getCompression())
     {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+      return indent + np_term + "\n" + indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
     }
-    else if (np.np_compression == MSNumpressCoder::PIC)
+    else if (!np_term.empty())
     {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
-    }
-    else if (np.np_compression == MSNumpressCoder::SLOF)
-    {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+      // only return the numpress term if its not empty
+      return indent + np_term;
     }
     else
     {
       // default
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+      return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
     }
   }
 
@@ -185,11 +196,15 @@ namespace OpenMS
       {
         if (data_[i].np_compression != MSNumpressCoder::NONE)
         {
-          // If its numpress, we don't care about 32 / 64 bit but the numpress
-          // decoder expects std::vector<double> which are 64 bit.
+          // If its numpress, we don't distinguish 32 / 64 bit as the numpress
+          // decoder always works with 64 bit (takes std::vector<double>)
           MSNumpressCoder::NumpressConfig config;
           config.np_compression = data_[i].np_compression;
           MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
+
+          // Next, ensure that we only look at the float array even if the
+          // mzML tags say 32 bit data (I am looking at you, proteowizard)
+          data_[i].precision = BinaryData::PRE_64;
         }
         else if (data_[i].precision == BinaryData::PRE_64)
         {

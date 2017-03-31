@@ -225,7 +225,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_exp_raw;
+    PeakMap ms_exp_raw;
     mz_data_file.load(in, ms_exp_raw);
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
@@ -258,7 +258,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
     bool check_spectrum_type = !getFlag_("force");
     pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
 

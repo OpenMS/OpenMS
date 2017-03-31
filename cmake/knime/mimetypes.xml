@@ -34,4 +34,5 @@
  <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/>
  <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>
  <mimetype name="QCML" binary="false" description="qcML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
+ <mimetype name="PARAMXML" binary="false" description="paramXML (subset of the general %OpenMS ini parameter files)" ext="paramXML"/>
 </mimetypes>

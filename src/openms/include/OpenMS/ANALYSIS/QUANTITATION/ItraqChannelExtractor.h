@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -86,7 +87,7 @@ public:
     ///
     /// @param ms_exp_data Raw data to read
     /// @param consensus_map
-    void run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
+    void run(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
 
 protected:
 

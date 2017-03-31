@@ -37,6 +37,9 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
@@ -52,6 +55,7 @@ namespace OpenMS
     public Internal::XMLFile,
     public ProgressLogger
   {
+	typedef PeakMap MapType;
 
 public:
 
@@ -77,19 +81,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <typename MapType>
-    void load(const String & filename, MapType & map)
-    {
-      map.reset();
-
-      //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-
-      Internal::MzDataHandler<MapType> handler(map, filename, schema_version_, *this);
-      handler.setOptions(options_);
-      parse_(filename, &handler);
-    }
+    void load(const String & filename, MapType & map);
 
     /**
         @brief Stores a map in a MzData file.
@@ -98,13 +90,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    template <typename MapType>
-    void store(const String & filename, const MapType & map) const
-    {
-      Internal::MzDataHandler<MapType> handler(map, filename, schema_version_, *this);
-      handler.setOptions(options_);
-      save_(filename, &handler);
-    }
+    void store(const String & filename, const MapType & map) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -125,4 +111,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZXMLFILE_H
+#endif // OPENMS_FORMAT_MZXMLFILE_H
+

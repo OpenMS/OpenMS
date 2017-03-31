@@ -39,8 +39,11 @@
 #endif
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <QRegExp>
 
 #include <set>
+#include <fstream>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code"
@@ -522,7 +525,7 @@ namespace OpenMS
     const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
     vector<PeptideIdentification>& ids)
   {
-    MSExperiment<> experiment;
+    PeakMap experiment;
     String type;
 
     for (vector<pair<String, vector<pair<Size, Size> > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i)

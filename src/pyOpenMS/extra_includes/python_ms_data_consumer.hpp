@@ -7,8 +7,8 @@
 
 class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>  {
 
-    typedef OpenMS::MSExperiment<>::SpectrumType SpectrumType;
-    typedef OpenMS::MSExperiment<>::ChromatogramType ChromatogramType;
+    typedef OpenMS::PeakMap::SpectrumType SpectrumType;
+    typedef OpenMS::PeakMap::ChromatogramType ChromatogramType;
 
     typedef PyObject* (*SpectrumToPythonWrapper) (const SpectrumType &);
     typedef PyObject* (*ChromatogramToPythonWrapper) (const ChromatogramType &);

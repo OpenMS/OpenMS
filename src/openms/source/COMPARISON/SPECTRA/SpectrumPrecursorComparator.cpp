@@ -34,6 +34,8 @@
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <cmath>
 
 using namespace std;

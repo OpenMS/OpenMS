@@ -371,21 +371,6 @@ protected:
     }
   }
 
-  void removeTempDir_(const String& temp_dir)
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-  
   String describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
@@ -466,10 +451,7 @@ protected:
 
     // create temporary directory (and modifications file, if necessary):
     String temp_dir, mzid_temp, mod_file;
-    temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
+    temp_dir = makeTempDirectory_();
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
@@ -774,7 +756,7 @@ protected:
       }
     }
 
-    removeTempDir_(temp_dir);
+    removeTempDirectory_(temp_dir);
 
     return EXECUTION_OK;
   }

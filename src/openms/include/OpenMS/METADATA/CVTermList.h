@@ -37,8 +37,7 @@
 
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 namespace OpenMS
 {

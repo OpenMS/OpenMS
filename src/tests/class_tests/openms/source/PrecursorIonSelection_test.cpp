@@ -125,13 +125,13 @@ START_SECTION(void rescore(FeatureMap& features,std::vector<PeptideIdentificatio
   TEST_REAL_SIMILAR(next_features[0].getMetaValue("msms_score"),46365.5)
 END_SECTION
 
-  START_SECTION( void simulateRun(FeatureMap& features,std::vector<PeptideIdentification>& pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, String path,MSExperiment<> & experiment, String precursor_path=""))
+  START_SECTION( void simulateRun(FeatureMap& features,std::vector<PeptideIdentification>& pep_ids,std::vector<ProteinIdentification>& prot_ids,PrecursorIonSelectionPreprocessing& preprocessed_db, String path,PeakMap & experiment, String precursor_path=""))
   ptr->reset();
 	features.clear(true);
   f_file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_features.featureXML"),features);
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
-  MSExperiment<> exp;
+  PeakMap exp;
   ptr->simulateRun(features,pep_ids,prot_ids,preprocessing,tmp_filename,exp);
   ptr->sortByTotalScore(features);
   TEST_EQUAL(features[20].getMetaValue("shifted"),"both")

@@ -17,10 +17,10 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
         CachedmzML() nogil except +
         CachedmzML(CachedmzML) nogil except +
 
-        void writeMemdump(MSExperiment[Peak1D,ChromatogramPeak] exp, String out) nogil except +
-        void writeMetadata(MSExperiment[Peak1D,ChromatogramPeak] exp, String out_meta) nogil except +
+        void writeMemdump(MSExperiment exp, String out) nogil except +
+        void writeMetadata(MSExperiment exp, String out_meta) nogil except +
 
-        void readMemdump(MSExperiment[Peak1D,ChromatogramPeak] exp, String filename) nogil except +
+        void readMemdump(MSExperiment exp, String filename) nogil except +
 
         # void readSingleSpectrum(MSSpectrum[ Peak1D ] & spectrum, String & filename, Size & idx) nogil except +
         libcpp_vector[ streampos ]  getSpectraIndex() nogil except +

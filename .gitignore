@@ -11,6 +11,7 @@ bin
 build
 *.user
 *.pyc
+*.DS_Store
 moc_*.cxx*
 .idea
 OpenMS.config

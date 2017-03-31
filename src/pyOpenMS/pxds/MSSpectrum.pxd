@@ -6,6 +6,7 @@ from Peak1D cimport *
 from RichPeak1D cimport *
 from String cimport *
 from RangeManager cimport *
+from DataArrays cimport *
 
 # this class has addons, see the ./addons folder
 
@@ -56,6 +57,14 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         void sortByIntensity(bool reverse) nogil except +
         void sortByPosition() nogil except +
+
+        libcpp_vector[FloatDataArray] getFloatDataArrays() nogil except +
+        libcpp_vector[IntegerDataArray] getIntegerDataArrays() nogil except +
+        libcpp_vector[StringDataArray] getStringDataArrays() nogil except +
+
+        void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except +
+        void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except +
+        void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except +
 
         void getKeys(libcpp_vector[String] & keys) nogil except +
         void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers

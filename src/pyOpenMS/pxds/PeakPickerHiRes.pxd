@@ -20,8 +20,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
                   MSSpectrum[Peak1D] & output
                  ) nogil except +
 
-        void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] & input,
-                            MSExperiment[Peak1D, ChromatogramPeak] & output
+        void pickExperiment(MSExperiment & input,
+                            MSExperiment & output
                            ) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":

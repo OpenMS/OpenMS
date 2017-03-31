@@ -80,7 +80,7 @@ END_SECTION
 
 START_SECTION((virtual void run()))
 	//input and output
-	MSExperiment<> input;
+	PeakMap input;
 	MzDataFile mzdata_file;
 	mzdata_file.getOptions().addMSLevel(1);
 	mzdata_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzData"),input);

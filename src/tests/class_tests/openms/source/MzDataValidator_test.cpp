@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 ///////////////////////////
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+
 using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;

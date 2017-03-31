@@ -167,6 +167,7 @@
           <NODE name="distance_intensity" description="Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)">
             <ITEM name="exponent" value="1" type="double" description="Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
             <ITEM name="weight" value="0" type="double" description="Final intensity distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="log_transform" value="disabled" type="string" description="Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))" required="false" advanced="true" restrictions="enabled,disabled" />
           </NODE>
         </NODE>
       </NODE>

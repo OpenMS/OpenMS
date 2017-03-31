@@ -81,6 +81,8 @@ public:
       return db_;
     }
 
+    friend class CrossLinksDB;
+
     /// Returns the number of modifications read from the unimod.xml file
     Size getNumberOfModifications() const;
 

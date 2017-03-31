@@ -136,7 +136,7 @@ namespace OpenMS
   }
 
 
-  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& exp, const String& scan_regex)
+  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& exp, const String& scan_regex)
   {
     // load spectra and extract scan numbers from the native IDs
     // (expected format: "... scan=#"):

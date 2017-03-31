@@ -1620,11 +1620,7 @@ protected:
           ph.setMetaValue(String("RNPxl:best_localization_score"), a_it->best_localization_score);
           ph.setMetaValue(String("RNPxl:localization_scores"), a_it->localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
-
-          if (!a_it->fragment_annotation_string.empty())
-          {
-            ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
-          }
+          ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);

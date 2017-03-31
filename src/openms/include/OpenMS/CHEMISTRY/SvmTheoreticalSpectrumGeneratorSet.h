@@ -36,7 +36,12 @@
 #ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
 #define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
 
-#include <OpenMS/SIMULATION/SimTypes.h>
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 

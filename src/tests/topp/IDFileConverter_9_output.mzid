@@ -155,41 +155,58 @@
 	<AnalysisData>
 		<SpectrumIdentificationList id="SIL_15157403601844400700">
 			<FragmentationTable>
-				<Measure id="Measure_SIL_15157403601844400700">
+				<Measure id="Measure_mz">
 					<cvParam accession="MS:1001225" cvRef="PSI-MS" unitCvRef="PSI-MS" unitName="m/z" unitAccession="MS:1000040" name="product ion m/z"/>
+				</Measure>
+				<Measure id="Measure_int">
+					<cvParam cvRef="PSI-MS" accession="MS:1001226" name="product ion intensity" unitAccession="MS:1000131" unitCvRef="UO" unitName="number of detector counts"/>
+				</Measure>
+				<Measure id="Measure_error">
+					<cvParam cvRef="PSI-MS" accession="MS:1001227" name="product ion m/z error" unitAccession="MS:1000040" unitCvRef="PSI-MS" unitName="m/z"/>
 				</Measure>
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="MZ:nan@RT:nan" id="SIR_15050004366391181853">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_17716858074023296841" calculatedMassToCharge="1580.87280307147" experimentalMassToCharge="nan" chargeState="1" id="SII_16177748921272733768">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_16250062551099875712"/>
-					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="1.4"/>
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs"/>
+					<userParam name="MOWSE" unitName="xsd:double" value="1.4"/>
 				</SpectrumIdentificationItem>
 			</SpectrumIdentificationResult>
 		</SpectrumIdentificationList>
 		<SpectrumIdentificationList id="SIL_4835329514588776807">
 			<FragmentationTable>
-				<Measure id="Measure_SIL_4835329514588776807">
+				<Measure id="Measure_mz">
 					<cvParam accession="MS:1001225" cvRef="PSI-MS" unitCvRef="PSI-MS" unitName="m/z" unitAccession="MS:1000040" name="product ion m/z"/>
+				</Measure>
+				<Measure id="Measure_int">
+					<cvParam cvRef="PSI-MS" accession="MS:1001226" name="product ion intensity" unitAccession="MS:1000131" unitCvRef="UO" unitName="number of detector counts"/>
+				</Measure>
+				<Measure id="Measure_error">
+					<cvParam cvRef="PSI-MS" accession="MS:1001227" name="product ion m/z error" unitAccession="MS:1000040" unitCvRef="PSI-MS" unitName="m/z"/>
 				</Measure>
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="17" id="SIR_17413765565443951891">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_2927519776102075938" calculatedMassToCharge="956.468357540271" experimentalMassToCharge="675.9" chargeState="1" id="SII_12524258085768770586">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_16907355690727166316"/>
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_10306100746905639127"/>
-					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="0.9"/>
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs"/>
+					<userParam name="MOWSE" unitName="xsd:double" value="0.9"/>
 					<userParam name="name" unitName="xsd:string" value="PeptideHit"/>
 				</SpectrumIdentificationItem>
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="1112.56946892307" experimentalMassToCharge="675.9" chargeState="1" id="SII_14811341817612382122">
-					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="1.4"/>
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs"/>
+					<userParam name="MOWSE" unitName="xsd:double" value="1.4"/>
 				</SpectrumIdentificationItem>
-				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1234.5"/>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1234.5" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="MZ:nan@RT:nan" id="SIR_2684106197423007927">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_8119044117483804262" calculatedMassToCharge="634.838928386321" experimentalMassToCharge="nan" chargeState="2" id="SII_17314619952666245179">
-					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="44.4"/>
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs"/>
+					<userParam name="MOWSE" unitName="xsd:double" value="44.4"/>
 				</SpectrumIdentificationItem>
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_3023658190814908261" calculatedMassToCharge="712.889484077721" experimentalMassToCharge="nan" chargeState="2" id="SII_7898004582401008768">
-					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs" value="33.3"/>
+					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="search engine specific score for PSMs"/>
+					<userParam name="MOWSE" unitName="xsd:double" value="33.3"/>
 				</SpectrumIdentificationItem>
 			</SpectrumIdentificationResult>
 		</SpectrumIdentificationList>
