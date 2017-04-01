@@ -1291,7 +1291,7 @@ namespace OpenMS
               {
                 pep_id_->push_back(PeptideIdentification());
                 pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
-                pep_id_->back().setMetaValue("spectrum_reference", spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
+                pep_id_->back().setMetaValue("spectrum_reference", spectrumID);  // as spectrumID is taken from the mz_file and varies widely from vendor to vendor, spectrum_reference as string will reference the spectrum internally
 
                 //fill pep_id_->back() with content
                 DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
@@ -1311,18 +1311,23 @@ namespace OpenMS
 
               // TODO @mths: setSignificanceThreshold, but from where?
 
-  //              String identi = si_pro_map_[id]->getSearchEngine()+"_"
-  //                      +si_pro_map_[id]->getDateTime().getDate()
-  //                      +"T"+si_pro_map_[id]->getDateTime().getTime();
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
-              //pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
 
               pep_id_->back().sortByRank();
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
               {
-              // check for retention time or scan time entry
+                // check for retention time or scan time entry
+                /* N.B.: MzIdentML does not impose the requirement to store
+                   'redundant' data (e.g. RT) as the identified spectrum is
+                   unambiguously referencable by the spectrumID (OpenMS
+                   internally spectrum_reference) and hence such data can be
+                   looked up in the mz file. For convenience, and as OpenMS
+                   relies on the smallest common denominator to reference a
+                   spectrum (RT/precursor MZ), we provide functionality to amend
+                   RT data to identifications and support reading such from mzid
+                */
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
                   double rt = cvit->second.front().getValue().toString().toDouble();
