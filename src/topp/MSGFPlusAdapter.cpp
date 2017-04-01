@@ -114,10 +114,10 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),  // EnzymesDB::getInstance()->getAllNames()
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
+    EnzymesDB::getInstance()->getAllNames(enzymes_);
   }
 
 protected:

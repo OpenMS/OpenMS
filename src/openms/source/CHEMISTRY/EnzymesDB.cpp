@@ -286,4 +286,16 @@ namespace OpenMS
       }
     }
   }
+
+  void EnzymesDB::getAllMSGFNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getMSGFid() != 0)
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
 } // namespace OpenMS
