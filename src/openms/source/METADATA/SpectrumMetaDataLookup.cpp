@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace std;
 
@@ -181,38 +180,83 @@ namespace OpenMS
   }
 
 
-  bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
-    vector<PeptideIdentification>& peptides, const String& filename,
+  bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const SpectrumMetaDataLookup& lookup,
     bool stop_on_error)
   {
-    PeakMap exp;
-    SpectrumLookup lookup;
     bool success = true;
-    for (vector<PeptideIdentification>::iterator it = peptides.begin();
-         it != peptides.end(); ++it)
+    if (!lookup.empty())
     {
-      if (boost::math::isnan(it->getRT()))
+      for (vector<PeptideIdentification>::iterator it = peptides.begin();
+            it != peptides.end(); ++it)
       {
-        if (lookup.empty()) // load raw data only if we have to
+        if (boost::math::isnan(it->getRT()))
         {
-          FileHandler().loadExperiment(filename, exp);
-          lookup.readSpectra(exp.getSpectra());
+          String spectrum_id = it->getMetaValue("spectrum_reference");
+          try
+          {
+            Size index = lookup.findByNativeID(spectrum_id);
+            SpectrumMetaDataLookup::SpectrumMetaData meta;
+            lookup.getSpectrumMetaData(index, meta);
+            it->setRT(meta.rt);
+          }
+          catch (Exception::ElementNotFound&)
+          {
+            LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+            success = false;
+            if (stop_on_error) break;
+          }
         }
-        String spectrum_id = it->getMetaValue("spectrum_reference");
+      }
+    }
+    else
+    {
+      LOG_ERROR << "Error: No lookup to find retention times from is available. Is mz_file lookup given?" << endl;
+    }
+    return success;
+  }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const SpectrumMetaDataLookup& lookup,
+    bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)
+  {
+    bool success = true;
+    if (override_spectra_data && !lookup.spectra_data.empty())
+    {
+      vector<String> spectra_data(1);
+      spectra_data[0] = "file://" + lookup.spectra_data;
+      for (vector<ProteinIdentification>::iterator it =
+            proteins.begin(); it !=
+            proteins.end(); ++it)
+      {
+        it->setMetaValue("spectra_data", spectra_data);
+      }
+    }
+    if (!lookup.empty())
+    {
+      for (vector<PeptideIdentification>::iterator it =
+            peptides.begin(); it !=
+            peptides.end(); ++it)
+      {
         try
         {
-          Size index = lookup.findByNativeID(spectrum_id);
-          it->setRT(exp[index].getRT());
+          Size index = lookup.findByRT(it->getRT());
+          SpectrumMetaDataLookup::SpectrumMetaData meta;
+          lookup.getSpectrumMetaData(index, meta);
+          it->setMetaValue("spectrum_reference", meta.native_id);
         }
         catch (Exception::ElementNotFound&)
         {
-          LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide ID with retention time '" + String(it->getRT()) + "'." << endl;
           success = false;
           if (stop_on_error) break;
         }
       }
     }
+    else
+    {
+      LOG_ERROR << "Error: No lookup to find spectrum_references from is available. Is mz_file lookup given?" << endl;
+    }
     return success;
   }
+
 
 } // namespace OpenMS

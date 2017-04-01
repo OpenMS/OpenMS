@@ -731,7 +731,11 @@ protected:
         {
           switchScores_(*pep_it);
         }
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
+
+        SpectrumMetaDataLookup lookup;
+        lookup.readMzFile(in);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, lookup, false);
+
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }
     }
