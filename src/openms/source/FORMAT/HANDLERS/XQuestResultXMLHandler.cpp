@@ -242,13 +242,31 @@ namespace OpenMS
         */
         // Set the search parameters 
         ProteinIdentification::SearchParameters search_params;
+        
+        // General
         search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(XQuestResultXMLHandler::enzymes.at( this->attributeAsInt_(attributes, "enzyme_num")));
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
         String tolerancemeasure = this->attributeAsString_(attributes, "tolerancemeasure");
         search_params.precursor_mass_tolerance_ppm = tolerancemeasure == "ppm";
+        search_params.fragment_mass_tolerance = this->attributeAsDouble_(attributes, "ms2tolerance");
+        String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
+        search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
         
+        // Modifications
+        vector< String > variable_mod_list; 
+        
+        // TODO Number of variable modifications might be larger than one
+        vector< String > variable_mod_split;
+        StringUtils::split(this->attributeAsString_(attributes, "variable_mod"), ",", variable_mod_split);
+        
+        // Oxidation of M
+        if (variable_mod_split[0] == "M")
+        {
+          variable_mod_list.push_back("Oxidation (M)");
+        }
+        search_params.variable_modifications = variable_mod_list;
         
         this->prot_ids_[0].setSearchParameters(search_params);  
       }
