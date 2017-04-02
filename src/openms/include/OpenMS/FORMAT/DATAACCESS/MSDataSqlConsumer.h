@@ -50,7 +50,7 @@ namespace OpenMS
       internal buffer and then flushes them all together to disk.
     */
     class OPENMS_DLLAPI MSDataSqlConsumer :
-      public Interfaces::IMSDataConsumer<>
+      public Interfaces::IMSDataConsumer
     {
       typedef MSExperiment MapType;
       typedef MapType::SpectrumType SpectrumType;
