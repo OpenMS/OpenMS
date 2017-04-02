@@ -12,7 +12,7 @@
 //    documentation and/or other materials provided with the distribution.
 //  * Neither the name of any author or any participating institution
 //    may be used to endorse or promote products derived from this software
-//    with specific prior written permission.
+//    without specific prior written permission.
 // For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -24,12 +24,12 @@
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 // OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY  OF THE USE OF THIS SOFTWARE, EVEN IF
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Leon Bichmann, Timo Sachsenberg, Andreas Bertsch, Chris Bielow $
+// $Authors: Leon Bichmann, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -51,7 +51,7 @@
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
-#include <iostream>     // std::c\, std::ostream, std::ios
+#include <iostream>
 #include <fstream>
 
 using namespace OpenMS;         
@@ -126,9 +126,6 @@ protected:
       "comet.exe",                     
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
 
-    addEmptyLine_();
-    addEmptyLine_();
-
     //
     // Optional parameters //
     //
@@ -174,7 +171,6 @@ protected:
 
     //Output
     registerIntOption_("num_hits","<num>",5,"Number of peptide hits in output file", false, false);
-    //TO DO: check whether search enzyme/sample enzyme specification is important
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all enzymes, 2 6 == from +2 to +6, 3 3 == +3", false, false);
@@ -205,7 +201,6 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     setValidStrings_("variable_modifications", all_mods);
-    addEmptyLine_();
     
   }
 
@@ -218,7 +213,7 @@ protected:
     {
       String modification(*mod_it);
       modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
-   }
+    }
 
     return modifications;
   }
@@ -237,8 +232,6 @@ protected:
       File::removeDirRecursively(tmp_dir);
     }
   }
-
-  // function to write paramter file
 
   void createParamFile_(ostream& os)
   {
@@ -450,9 +443,9 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    String outputfile_name = getStringOption_("out");
-    writeDebug_(String("Output file: ") + outputfile_name, 1);
-    if (outputfile_name == "")
+    String out = getStringOption_("out");
+    writeDebug_(String("Output file___real one: ") + out, 1);
+    if (out == "")
     {
       writeLog_("No output file specified. Aborting!");
       printUsage_();
@@ -481,12 +474,12 @@ protected:
     }
 
     //tmp_dir
-    const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
+    //const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
+    const String tmp_dir = OpenMS::File::getTempDirectory() + "/";
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
-    QDir d;
-    d.mkpath(tmp_dir.toQString());
+    //QDir d;
+    //d.mkpath(tmp_dir.toQString());
     String tmp_pepxml = tmp_dir + File::removeExtension(File::basename(inputfile_name)) + ".pep.xml";
-    //String tmp_idxml = tmp_dir + File::basename(inputfile_name) + ".idXML";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
@@ -536,39 +529,27 @@ protected:
     qDebug() << process_params;
 
     String comet_executable = getStringOption_("comet_executable");
-    //int status = QProcess::execute(comet_executable.toQString(), QStringList(inputfile_name.toQString())); // does automatic escaping etc...
     int status = QProcess::execute(comet_executable.toQString(),process_params); // does automatic escaping etc...
     if (status != 0)
     {
       writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\nDoes the Comet executable exist?");
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        removeTempDir_(tmp_dir);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << std::endl;
-      }
-      //return EXTERNAL_PROGRAM_ERROR;
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
-
     //-------------------------------------------------------------
-    // writing put
+    // writing output
     //-------------------------------------------------------------
-
 
     // read the pep.xml put of COMET and write it to idXML
 
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
-    writeDebug_("write PepXMLFile", 1);
-    PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications, inputfile_name);
-
-    IdXMLFile().store(inputfile_name, protein_identifications, peptide_identifications);
+    writeDebug_("load PepXMLFile", 1);
+    PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications);
+    writeDebug_("write idXMLFile", 1);
+    writeDebug_(out, 1);
+    IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     // remove tempdir
     if (this->debug_level_ == 0)
