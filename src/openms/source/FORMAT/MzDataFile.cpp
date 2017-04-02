@@ -36,6 +36,7 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 namespace OpenMS
 {
@@ -81,7 +82,7 @@ namespace OpenMS
     return result;
   }
 
-  void MzDataFile::load(const String & filename, MapType & map)
+  void MzDataFile::load(const String & filename, PeakMap & map)
   {
     map.reset();
 
@@ -94,7 +95,7 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  void MzDataFile::store(const String & filename, const MapType & map) const
+  void MzDataFile::store(const String & filename, const PeakMap & map) const
   {
     Internal::MzDataHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);

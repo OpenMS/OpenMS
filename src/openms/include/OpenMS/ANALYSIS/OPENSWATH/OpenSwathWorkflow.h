@@ -225,7 +225,7 @@ namespace OpenMS
                            bool store_features, 
                            OpenSwathTSVWriter & tsv_writer,
                            OpenSwathOSWWriter & osw_writer,
-                           Interfaces::IMSDataConsumer<> * chromConsumer, 
+                           Interfaces::IMSDataConsumer * chromConsumer, 
                            int batchSize,
                            bool load_into_memory);
 
@@ -239,14 +239,14 @@ namespace OpenMS
                                     const FeatureMap & featureFile,
                                     FeatureMap& out_featureFile,
                                     bool store_features,
-                                    Interfaces::IMSDataConsumer<> * chromConsumer);
+                                    Interfaces::IMSDataConsumer * chromConsumer);
 
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps, 
                         std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer<> * chromConsumer, 
+                        Interfaces::IMSDataConsumer * chromConsumer, 
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp, 
                         const TransformationDescription& trafo_inverse,
@@ -416,7 +416,7 @@ namespace OpenMS
                                 bool store_features, 
                                 OpenSwathTSVWriter & tsv_writer,
                                 OpenSwathOSWWriter & osw_writer,
-                                Interfaces::IMSDataConsumer<> * chromConsumer, 
+                                Interfaces::IMSDataConsumer * chromConsumer, 
                                 int batchSize,
                                 bool load_into_memory);
 

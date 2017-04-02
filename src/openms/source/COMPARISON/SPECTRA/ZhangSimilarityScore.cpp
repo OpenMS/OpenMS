@@ -34,8 +34,11 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <boost/math/special_functions/erf.hpp>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <boost/math/special_functions/erf.hpp>
 #include <cmath>
 
 using namespace std;

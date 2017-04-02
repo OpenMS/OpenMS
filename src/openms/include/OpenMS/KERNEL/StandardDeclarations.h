@@ -32,50 +32,23 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_TRAMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_TRAMLVALIDATOR_H
+#ifndef OPENMS_KERNEL_FORWARD_H
+#define OPENMS_KERNEL_FORWARD_H
 
-#include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-
+// Forward declarations
 namespace OpenMS
 {
-  class ControlledVocabulary;
-  namespace Internal
-  {
+  class Peak1D;
+  class RichPeak1D;
+  class ChromatogramPeak;
 
-    /**
-      @brief Semantically validates MzXML files.
-    */
-    class OPENMS_DLLAPI TraMLValidator :
-      public SemanticValidator
-    {
-public:
-      /**
-        @brief Constructor
+  template <typename PeakT = Peak1D>
+  class MSSpectrum;
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
-            */
-      TraMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
+  template <typename PeakT = ChromatogramPeak>
+  class MSChromatogram;
 
-      /// Destructor
-      virtual ~TraMLValidator();
-
-private:
-
-      /// Not implemented
-      TraMLValidator();
-
-      /// Not implemented
-      TraMLValidator(const TraMLValidator & rhs);
-
-      /// Not implemented
-      TraMLValidator & operator=(const TraMLValidator & rhs);
-
-    };
-
-  }   // namespace Internal
-
-} // namespace OpenMS
-
-#endif
+  class MSExperiment;
+  class ExperimentalSettings;
+}
+#endif // OPENMS_KERNEL_FORWARD_H

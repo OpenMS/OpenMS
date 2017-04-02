@@ -30,6 +30,9 @@
 
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/Types.h>
+
 using OpenMS::Int;
 using OpenMS::UInt;
 using OpenMS::Size;

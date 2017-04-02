@@ -88,7 +88,7 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI MSDataWritingConsumer : 
       public Internal::MzMLHandler,
-      public Interfaces::IMSDataConsumer< PeakMap >
+      public Interfaces::IMSDataConsumer
     {
 
     public:
@@ -101,29 +101,10 @@ namespace OpenMS
 
         @param filename Filename for the output mzML
       */
-      explicit MSDataWritingConsumer(String filename) :
-        Internal::MzMLHandler(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
-        started_writing_(false),
-        writing_spectra_(false),
-        writing_chromatograms_(false),
-        spectra_written_(0),
-        chromatograms_written_(0),
-        spectra_expected_(0),
-        chromatograms_expected_(0),
-        add_dataprocessing_(false)
-      {
-        validator_ = new Internal::MzMLValidator(this->mapping_, this->cv_);
-
-        // open file in binary mode to avoid any line ending conversions
-        ofs_.open(filename.c_str(), std::ios::out | std::ios::binary);
-        ofs_.precision(writtenDigits(double()));
-      }
+      explicit MSDataWritingConsumer(String filename);
 
       /// Destructor
-      virtual ~MSDataWritingConsumer()
-      {
-        doCleanup_();
-      }
+      virtual ~MSDataWritingConsumer();
 
       /// @name IMSDataConsumer interface
       //@{
@@ -134,10 +115,7 @@ namespace OpenMS
           and the first spectrum/chromatogram, the class will deduce most of
           the header of the mzML file)
       */
-      virtual void setExperimentalSettings(const ExperimentalSettings& exp)
-      {
-        settings_ = exp;
-      }
+      virtual void setExperimentalSettings(const ExperimentalSettings& exp);
 
       /**
         @brief Set expected size of spectra and chromatograms to be written.
@@ -149,11 +127,7 @@ namespace OpenMS
         @param expectedSpectra Number of spectra expected
         @param expectedChromatograms Number of chromatograms expected
       */
-      virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
-      {
-        spectra_expected_ = expectedSpectra;
-        chromatograms_expected_ = expectedChromatograms;
-      }
+      virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms);
 
       /**
         @brief Consume a spectrum
@@ -163,51 +137,7 @@ namespace OpenMS
 
         @param s The spectrum to be written to mzML
       */
-      virtual void consumeSpectrum(SpectrumType & s)
-      {
-        if (writing_chromatograms_)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Cannot write spectra after writing chromatograms.");
-        }
-
-        // Process the spectrum 
-        SpectrumType scpy = s;
-        processSpectrum_(scpy);
-
-        // Add dataprocessing if required
-        if (add_dataprocessing_)
-        {
-          scpy.getDataProcessing().push_back(additional_dataprocessing_);
-        }
-
-        if (!started_writing_)
-        {
-          // This is the first data to be written -> start writing the header
-          // We also need to modify the map and add this dummy spectrum in
-          // order to write the header correctly
-          MapType dummy;
-          dummy = settings_;
-          dummy.addSpectrum(scpy);
-
-          //--------------------------------------------------------------------
-          //header
-          //--------------------------------------------------------------------
-          Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
-          started_writing_ = true;
-        }
-        if (!writing_spectra_)
-        {
-          // This is the first spectrum, thus write the spectrumList header
-          ofs_ << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
-          writing_spectra_ = true;
-        }
-        bool renew_native_ids = false;
-        // TODO writeSpectrum assumes that dps_ has at least one value -> assert
-        // this here ...
-        Internal::MzMLHandler::writeSpectrum_(ofs_, scpy,
-                spectra_written_++, *validator_, renew_native_ids, dps_);
-      }
+      virtual void consumeSpectrum(SpectrumType & s);
 
       /**
         @brief Consume a chromatogram
@@ -217,47 +147,7 @@ namespace OpenMS
 
         @param c The chromatogram to be written to mzML
       */
-      virtual void consumeChromatogram(ChromatogramType & c)
-      {
-        // make sure to close an open List tag
-        if (writing_spectra_)
-        {
-          ofs_ << "\t\t</spectrumList>\n";
-        }
-
-        // Create copy and add dataprocessing if required
-        ChromatogramType ccpy = c;
-        processChromatogram_(ccpy);
-
-        if (add_dataprocessing_)
-        {
-          ccpy.getDataProcessing().push_back(additional_dataprocessing_);
-        }
-
-        if (!started_writing_)
-        {
-          // this is the first data to be written -> start writing the header
-          // We also need to modify the map and add this dummy chromatogram in
-          // order to write the header correctly
-          MapType dummy;
-          dummy = settings_;
-          dummy.addChromatogram(ccpy);
-
-          //--------------------------------------------------------------------
-          //header (fill also dps_ variable)
-          //--------------------------------------------------------------------
-          Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
-          started_writing_ = true;
-        }
-        if (!writing_chromatograms_)
-        {
-          ofs_ << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
-          writing_chromatograms_ = true;
-          writing_spectra_ = false;
-        }
-        Internal::MzMLHandler::writeChromatogram_(ofs_, ccpy,
-                chromatograms_written_++, *validator_);
-      }
+      virtual void consumeChromatogram(ChromatogramType & c);
       //@}
 
       /**
@@ -268,20 +158,17 @@ namespace OpenMS
 
         @param d The DataProcessing object to be added
       */
-      virtual void addDataProcessing(DataProcessing d)
-      {
-        additional_dataprocessing_ = DataProcessingPtr( new DataProcessing(d) );
-        add_dataprocessing_ = true;
-      }
+      virtual void addDataProcessing(DataProcessing d);
 
       /**
         @brief Return the number of spectra written.
       */
-      virtual Size getNrSpectraWritten() {return spectra_written_;}
+      virtual Size getNrSpectraWritten();
+
       /**
         @brief Return the number of chromatograms written.
       */
-      virtual Size getNrChromatogramsWritten() {return chromatograms_written_;}
+      virtual Size getNrChromatogramsWritten();
 
     private:
 
@@ -307,28 +194,7 @@ namespace OpenMS
 
         Will write the last tags to the file and close the file stream.
       */
-      virtual void doCleanup_()
-      {
-        //--------------------------------------------------------------------------------------------
-        //cleanup
-        //--------------------------------------------------------------------------------------------
-        // make sure to close an open List tag
-        if (writing_spectra_)
-        {
-          ofs_ << "\t\t</spectrumList>\n";
-        }
-        else if (writing_chromatograms_)
-        {
-          ofs_ << "\t\t</chromatogramList>\n";
-        }
-
-        // Only write the footer if we actually did start writing ... 
-        if (started_writing_) 
-          Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets, chromatograms_offsets);
-
-        delete validator_;
-        ofs_.close();
-      }
+      virtual void doCleanup_();
 
     protected:
 
@@ -410,4 +276,5 @@ namespace OpenMS
 
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_DATAACCESS_MSDATAWRITINGCONSUMER_H
+

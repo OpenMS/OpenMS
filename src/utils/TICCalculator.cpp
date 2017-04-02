@@ -81,7 +81,7 @@ using namespace OpenSwath;
 
 
 class TICConsumer : 
-    public Interfaces::IMSDataConsumer< PeakMap >
+    public Interfaces::IMSDataConsumer
 {
 
     typedef PeakMap MapType;

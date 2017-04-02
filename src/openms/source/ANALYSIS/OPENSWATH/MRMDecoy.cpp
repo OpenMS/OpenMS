@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <map>
 #include <utility> //for pair
 #include <string>

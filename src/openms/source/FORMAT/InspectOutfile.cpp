@@ -39,8 +39,11 @@
 #endif
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <QRegExp>
 
 #include <set>
+#include <fstream>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code"

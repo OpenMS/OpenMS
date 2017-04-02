@@ -32,17 +32,19 @@
 // $Authors: George Rosenberger, Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
-#include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 ///////////////////////////
+
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+#include <boost/assign/std/vector.hpp>
+#include <boost/assign/list_of.hpp>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
