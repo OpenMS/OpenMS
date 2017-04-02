@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrumHelper.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <algorithm>
 

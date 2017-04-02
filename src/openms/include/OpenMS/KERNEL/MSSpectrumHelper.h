@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Mathias Walzer$
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
@@ -36,7 +36,6 @@
 #define OPENMS_KERNEL_MSSPECTRUMHELPER_H
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -46,13 +45,13 @@ namespace OpenMS
     public:
 
       /**
-        @brief bla
+        @brief Helper function to facilitate the transition from a Peak1D spectrum to a RichPeak1D spectrum
 
-        blub
+        For annotation and alignment purposes, a RichPeak1D spectrum is necessary. This function facilitates the transition.
 
-        @param whee.
+        @param p the Peak1D spectrum to be cloned with RichPeak1D
       */
-    static MSSpectrum<RichPeak1D> clone(const MSSpectrum<Peak1D> &p);
+      static MSSpectrum<RichPeak1D> clone(const MSSpectrum<Peak1D> &p);
 
   };
 } // namespace OpenMS

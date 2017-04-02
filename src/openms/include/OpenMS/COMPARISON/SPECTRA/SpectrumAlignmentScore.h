@@ -35,7 +35,16 @@
 #ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENTSCORE_H
 #define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENTSCORE_H
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
+
+#include <boost/math/special_functions/erf.hpp>
+#include <cmath>
 
 namespace OpenMS
 {

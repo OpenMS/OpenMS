@@ -35,11 +35,18 @@
 #ifndef OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
 #define OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
 
-#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/MSSpectrumHelper.h>
+
 #include <boost/regex.hpp>
 
 namespace OpenMS
@@ -115,7 +122,7 @@ namespace OpenMS
       bool max_series_;
       bool SN_statistics_;
       bool precursor_statistics_;
-      uint topNmatch_fragmenterrors_;
+      unsigned topNmatch_fragmenterrors_;
       bool fragmenterror_statistics_;
       bool terminal_series_match_ratio_;
 

@@ -38,8 +38,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSSpectrumHelper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
@@ -88,8 +86,7 @@ namespace OpenMS
     /** adds meta values
      precursor_in_ms2
     */
-    defaults_.setValue("topNmatch_fragmenterrors", 7, "If set n > 0,  meta values for topN_meanfragmenterror, topN_MSEfragmenterror, topN_stddevfragmenterror are added");
-    defaults_.setValidStrings("topNmatch_fragmenterrors", ListUtils::create<String>("true,false"));
+    defaults_.setValue("topNmatch_fragmenterrors", unsigned(7), "If set n > 0,  meta values for topN_meanfragmenterror, topN_MSEfragmenterror, topN_stddevfragmenterror are added");
     /** adds meta values
      topN_meanfragmenterror
      topN_MSEfragmenterror
@@ -386,7 +383,7 @@ namespace OpenMS
     max_series_ = param_.getValue("max_series").toBool();
     SN_statistics_ = param_.getValue("S/N_statistics").toBool();
     precursor_statistics_ = param_.getValue("precursor_statistics").toBool();
-    topNmatch_fragmenterrors_ = (uint)param_.getValue("topNmatch_fragmenterrors");
+    topNmatch_fragmenterrors_ = (unsigned)param_.getValue("topNmatch_fragmenterrors");
     fragmenterror_statistics_ = param_.getValue("fragmenterror_statistics").toBool();
     terminal_series_match_ratio_ = param_.getValue("terminal_series_match_ratio").toBool();
   }
