@@ -36,6 +36,8 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+
 using namespace xercesc;
 using namespace std;
 

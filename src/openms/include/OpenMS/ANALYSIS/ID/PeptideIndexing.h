@@ -36,7 +36,10 @@
 #define OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 

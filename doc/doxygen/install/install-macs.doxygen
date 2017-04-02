@@ -96,7 +96,7 @@
 
         \code
         cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_contrib>
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_contrib>
         \endcode
 
     Example:

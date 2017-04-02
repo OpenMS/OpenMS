@@ -205,7 +205,7 @@ private:
       FileTypes::Type filetype = FileHandler::getType(reference_file);
       if (filetype == FileTypes::MZML)
       {
-        MSExperiment<> experiment;
+        PeakMap experiment;
         MzMLFile().load(reference_file, experiment);
         algorithm.setReference(experiment);
       }

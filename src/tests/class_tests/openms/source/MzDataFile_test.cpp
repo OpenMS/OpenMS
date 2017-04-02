@@ -108,7 +108,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TOLERANCE_ABSOLUTE(0.01)
 
   MzDataFile file;
-  MSExperiment<> e;
+  PeakMap e;
 
   // real test
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e);
@@ -464,24 +464,24 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   /////////////////////// TESTING SPECIAL CASES ///////////////////////
 
   //load a second time to make sure everything is re-initialized correctly
-  MSExperiment<> e2;
+  PeakMap e2;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e2);
   TEST_EQUAL(e == e2, true)
 
   //loading a minimal file containing one spectrum  - with whitespaces inside the base64 data
-  MSExperiment<> e3;
+  PeakMap e3;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_3_minimal.mzData"), e3);
   TEST_EQUAL(e3.size(), 1)
   TEST_EQUAL(e3[0].size(), 3)
 
   //load one extremely long spectrum - tests CDATA splitting
-  MSExperiment<> e4;
+  PeakMap e4;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_2_long.mzData"), e4);
   TEST_EQUAL(e4.size(), 1)
   TEST_EQUAL(e4[0].size(), 997530)
 
   //load with 64 bit precision and endian conversion
-  MSExperiment<> e5;
+  PeakMap e5;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_4_64bit.mzData"), e5);
   TEST_EQUAL(e5.getIdentifier(), "");
   TEST_EQUAL(e5.size(), 1)
@@ -518,11 +518,6 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_REAL_SIMILAR(e5[0].getFloatDataArrays()[0][2], 100)
   TEST_REAL_SIMILAR(e5[0].getFloatDataArrays()[7][2], 100)
   TEST_EQUAL(e5[0].getFloatDataArrays()[6][2], 100)
-
-  //test if it works with different peak types
-  MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e_rich);
-
 }
 END_SECTION
 
@@ -533,7 +528,7 @@ START_SECTION(([EXTRA] load with metadata - only flag))
   MzDataFile file;
   file.getOptions().setMetadataOnly(true);
 
-  MSExperiment<> e;
+  PeakMap e;
 
   // real test
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e);
@@ -557,7 +552,7 @@ START_SECTION(([EXTRA] load with selected MS levels))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  MSExperiment<> e;
+  PeakMap e;
   MzDataFile file;
 
   // load only MS level 1
@@ -588,7 +583,7 @@ START_SECTION(([EXTRA] load with RT range))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  MSExperiment<> e;
+  PeakMap e;
   MzDataFile file;
 
   file.getOptions().setRTRange(makeRange(100, 200));
@@ -610,7 +605,7 @@ START_SECTION(([EXTRA] load with MZ range))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  MSExperiment<> e;
+  PeakMap e;
   MzDataFile file;
 
   file.getOptions().setMZRange(makeRange(115, 135));
@@ -647,7 +642,7 @@ START_SECTION(([EXTRA] load with intensity range))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  MSExperiment<> e;
+  PeakMap e;
   MzDataFile file;
 
   file.getOptions().setIntensityRange(makeRange(150, 350));
@@ -679,7 +674,7 @@ END_SECTION
 
 START_SECTION((template <typename MapType> void store(const String &filename, const MapType &map) const))
 {
-  MSExperiment<> e1, e2;
+  PeakMap e1, e2;
   MzDataFile f;
   f.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e1);
   TEST_EQUAL(e1.size(), 3)
@@ -700,7 +695,7 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
 {
   MzDataFile file;
   //init spectrum/experiment/meta data array
-  MSExperiment<> exp;
+  PeakMap exp;
   MSSpectrum<> spec;
   spec.resize(5);
   spec[0].setIntensity(1.0f); spec[0].setMZ(1.0);
@@ -749,7 +744,7 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
 
   //*******************************************
   //load and check file
-  MSExperiment<> exp2;
+  PeakMap exp2;
   file.load(filename, exp2);
 
   TEST_EQUAL(exp2.size(), 3)
@@ -784,7 +779,7 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
 
   //*******************************************
   //check if filtering of meta data arrays works
-  MSExperiment<> exp3;
+  PeakMap exp3;
   file.getOptions().setMZRange(DRange<1>(2.5, 7.0));
   file.load(filename, exp3);
 
@@ -823,7 +818,7 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
   exp3[2].getFloatDataArrays()[0].setName("");
   exp3[2].getFloatDataArrays()[1].setName("");
 
-  MSExperiment<> exp4;
+  PeakMap exp4;
   file.store(filename, exp3);
   file.load(filename, exp4);
 
@@ -861,7 +856,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 {
   std::string tmp_filename;
   MzDataFile f;
-  MSExperiment<> e;
+  PeakMap e;
 
   //test if empty file is valid
   NEW_TMP_FILE(tmp_filename);

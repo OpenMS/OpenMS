@@ -661,7 +661,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
                                           std::vector<ProteinIdentification>& prot_ids,
                                           PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                          String path, MSExperiment<>& experiment, String precursor_path)
+                                          String path, PeakMap& experiment, String precursor_path)
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
@@ -981,7 +981,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, MSExperiment<>& experiment,
+  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, PeakMap& experiment,
                                                       std::vector<PeptideIdentification>& param_pep_ids,
                                                       std::vector<ProteinIdentification>& prot_ids,
                                                       PrecursorIonSelectionPreprocessing& preprocessed_db,

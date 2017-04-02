@@ -38,6 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -117,7 +118,7 @@ public:
     typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef MSExperiment<> ExperimentType;
+    typedef PeakMap ExperimentType;
 
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;

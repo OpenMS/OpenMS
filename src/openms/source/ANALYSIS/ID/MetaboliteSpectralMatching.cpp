@@ -367,10 +367,10 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spec
     return hyperscore;
 }
 
-void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
+void MetaboliteSpectralMatching::run(PeakMap & msexp, MzTab& mztab_out)
 {
     // load spectral database mzML file
-    MSExperiment<Peak1D> spec_db;
+    PeakMap spec_db;
     MzMLFile mzfile;
     std::vector<Int> ms_level(1,2);
     (mzfile.getOptions()).setMSLevels(ms_level);

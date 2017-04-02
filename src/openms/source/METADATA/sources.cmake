@@ -10,6 +10,7 @@ CVTermList.cpp
 CVTermListInterface.cpp
 ChromatogramSettings.cpp
 ContactPerson.cpp
+DataArrays.cpp
 DataProcessing.cpp
 Digestion.cpp
 DocumentIDTagger.cpp

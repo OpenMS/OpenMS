@@ -81,7 +81,7 @@ namespace OpenMS
 
       @return Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed).
     */
-    bool load(const String& filename, OnDiscMSExperiment<>& exp)
+    bool load(const String& filename, OnDiscPeakMap& exp)
     {
       return exp.openFile(filename);
     }
@@ -92,7 +92,7 @@ namespace OpenMS
       @param filename Filename determines where the file will be stored 
       @param exp MS data to be stored
     */
-    void store(const String& filename, OnDiscMSExperiment<>& exp)
+    void store(const String& filename, OnDiscPeakMap& exp)
     {
       // Create a writing data consumer which consumes the experiment (writes it to disk)
       PlainMSDataWritingConsumer consumer(filename);
@@ -118,7 +118,7 @@ namespace OpenMS
       @param filename Filename determines where the file will be stored 
       @param exp MS data to be stored
     */
-    void store(const String& filename, MSExperiment<>& exp)
+    void store(const String& filename, PeakMap& exp)
     {
       MzMLFile f;
       options_.setWriteIndex(true);  // ensure that we write the index
@@ -134,4 +134,5 @@ private:
   };
 }
 
-#endif
+#endif // OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
+

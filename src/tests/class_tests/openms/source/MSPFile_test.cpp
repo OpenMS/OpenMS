@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -81,10 +83,10 @@ START_SECTION(MSPFile& operator=(const MSPFile &rhs))
 	TEST_EQUAL(f1.getParameters() == f2.getParameters(), true)
 END_SECTION
 
-START_SECTION(void load(const String &filename, std::vector< PeptideIdentification > &ids, RichPeakMap &exp))
+START_SECTION(void load(const String &filename, std::vector< PeptideIdentification > &ids, PeakMap &exp))
 	MSPFile msp_file;
 	vector<PeptideIdentification> ids;
-	RichPeakMap exp;
+	PeakMap exp;
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	TEST_EQUAL(exp.size(), 5)
 	TEST_EQUAL(ids.size(), 5)
@@ -126,10 +128,10 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 END_SECTION
 
-START_SECTION(void store(const String& filename, const RichPeakMap& exp) const)
+START_SECTION(void store(const String& filename, const PeakMap& exp) const)
 	MSPFile msp_file;
 	vector<PeptideIdentification> ids;
-  RichPeakMap exp;
+  PeakMap exp;
   msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	for (Size i = 0; i != ids.size(); ++i)
 	{

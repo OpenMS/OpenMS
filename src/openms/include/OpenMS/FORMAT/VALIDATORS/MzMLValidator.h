@@ -35,10 +35,7 @@
 #ifndef OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
 #define OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
 
-
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-
 
 namespace OpenMS
 {
@@ -56,9 +53,9 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
-            */
+        @param mapping The mapping rules
+        @param cv @em All controlled vocabularies required for the mapping
+      */
       MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor

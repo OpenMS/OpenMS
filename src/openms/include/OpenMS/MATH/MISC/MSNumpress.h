@@ -35,20 +35,33 @@
 	
 	encodeInt()
  
+	The algorithm is similar to other variable length integer encodings,
+	such as the SQLite Variable-Length Integers encoding, but it uses half
+	bytes in its encoding procedure.
+
 	This encoding works on a 4 byte integer, by truncating initial zeros or ones.
 	If the initial (most significant) half byte is 0x0 or 0xf, the number of such 
 	halfbytes starting from the most significant is stored in a halfbyte. This initial 
 	count is then followed by the rest of the ints halfbytes, in little-endian order. 
 	A count halfbyte c of
-	
+
 		0 <= c <= 8 		is interpreted as an initial c 		0x0 halfbytes 
 		9 <= c <= 15		is interpreted as an initial (c-8) 	0xf halfbytes
 
-	Ex:
+	Example:
+
 	int		c		rest
 	0 	=> 	0x8
 	-1	=>	0xf		0xf
+	 2	=>	0x7		0x2
 	23	=>	0x6 	0x7	0x1
+	2047	=>	0x5 	0xf 0xf	0xf
+
+	Note that the algorithm returns a char array in which the half bytes are
+	stored in the lower 4 bits of each element. Since the first element is a
+	count half byte, the maximal length of the encoded data is 9 half bytes
+	(1 count half byte + 8 half bytes for a 4-byte integer).
+
  */
 
 #ifndef OPENMS_MATH_MISC_MSNUMPRESS_H
@@ -68,10 +81,37 @@ namespace numpress {
 
 namespace MSNumpress {
 	
+	/**
+	 * Compute the maximal linear fixed point that prevents integer overflow.
+     *
+	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @dataSize	number of doubles from *data to encode
+     *
+	 * @return		the linear fixed point safe to use
+	 */
 	double optimalLinearFixedPoint(
-		const double *data, 
+		const double *data,
 		size_t dataSize);
 	
+	/**
+	 * Compute the optimal linear fixed point with a desired m/z accuracy.
+     *
+     * @note If the desired accuracy cannot be reached without overflowing 64
+     * bit integers, then a negative value is returned. You need to check for
+     * this and in that case abandon numpress or use optimalLinearFixedPoint
+     * which returns the largest safe value.
+     *
+	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @dataSize	number of doubles from *data to encode
+	 * @mass_acc	desired m/z accuracy in Th
+     *
+	 * @return		the linear fixed point that satisfies the accuracy requirement (or -1 in case of failure).
+	 */
+    double optimalLinearFixedPointMass(
+            const double *data,
+            size_t dataSize,
+            double mass_acc);
+
 	/**
 	 * Encodes the doubles in data by first using a 
 	 *   - lossy conversion to a 4 byte 5 decimal fixed point representation
@@ -192,7 +232,7 @@ namespace MSNumpress {
 	 *
 	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
 	 * @dataSize	number of doubles from *data to encode
-	 * @result		pointer to were resulting bytes should be stored
+	 * @result		pointer to where resulting bytes should be stored
 	 * @return		the number of encoded bytes
 	 */
 	size_t encodePic(

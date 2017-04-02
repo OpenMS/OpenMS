@@ -64,7 +64,7 @@ public:
     virtual ~MapAlignmentAlgorithmSpectrumAlignment();
 
     /// Align peak maps
-    virtual void align(std::vector<MSExperiment<> >&, std::vector<TransformationDescription>&);
+    virtual void align(std::vector<PeakMap >&, std::vector<TransformationDescription>&);
 
 private:
     /// Copy constructor is not implemented -> private
@@ -150,7 +150,7 @@ private:
         @param aligned map which has to be aligned.
         @param transformation container for rebuilding the alignment only by specific data-points
     */
-    void prepareAlign_(const std::vector<MSSpectrum<>*>& pattern, MSExperiment<>& aligned, std::vector<TransformationDescription>& transformation);
+    void prepareAlign_(const std::vector<MSSpectrum<>*>& pattern, PeakMap& aligned, std::vector<TransformationDescription>& transformation);
 
     /**
         @brief filtered the MSLevel to gain only MSLevel 1
@@ -162,7 +162,7 @@ private:
 
         @exception Exception::IllegalArgument is thrown if no spectra are contained in @p peakmap
     */
-    void msFilter_(MSExperiment<>& peakmap, std::vector<MSSpectrum<>*>& spectrum_pointer_container);
+    void msFilter_(PeakMap& peakmap, std::vector<MSSpectrum<>*>& spectrum_pointer_container);
 
     /**
         @brief function for the test if cell i,j of the grid is inside the band

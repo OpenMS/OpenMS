@@ -38,6 +38,7 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
 ///////////////////////////
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;

@@ -82,7 +82,7 @@ namespace OpenMS
     return *this;
   }
 
-  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator & it, MSExperiment<> & ms_exp)
+  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator & it, PeakMap & ms_exp)
   {
     IsotopeCluster::ChargedIndexSet::const_iterator iter = it->second.peaks.begin();
     for (; iter != it->second.peaks.end(); ++iter)
@@ -179,8 +179,8 @@ namespace OpenMS
     std::multimap<double, IsotopeCluster>::iterator iso_map_iter = m_data->iso_map_iter;
     Size total_nr_peaks = m_data->total_nr_peaks;
     const std::map<Int, std::vector<PeakIndex> > & matching_peaks = m_data->matching_peaks;
-    const MSExperiment<> & picked_peaks = m_data->picked_peaks;
-    MSExperiment<Peak1D>::ConstIterator raw_data_first = m_data->raw_data_first;
+    const PeakMap & picked_peaks = m_data->picked_peaks;
+    PeakMap::ConstIterator raw_data_first = m_data->raw_data_first;
     const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
 
     Size num_scans = signal2D.size() / 2;
@@ -374,8 +374,8 @@ namespace OpenMS
     Size total_nr_peaks = m_data->total_nr_peaks;
     const std::map<Int, std::vector<PeakIndex> > & matching_peaks = m_data->matching_peaks;
     std::vector<double> ov_weight(matching_peaks.size(), 0);
-    const MSExperiment<> & picked_peaks = m_data->picked_peaks;
-    MSExperiment<Peak1D>::ConstIterator raw_data_first = m_data->raw_data_first;
+    const PeakMap & picked_peaks = m_data->picked_peaks;
+    PeakMap::ConstIterator raw_data_first = m_data->raw_data_first;
     const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
 //          std::vector<double> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
 //          std::vector<double> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;

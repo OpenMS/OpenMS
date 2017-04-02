@@ -21,7 +21,6 @@ set(sources_list
 	TraMLHandler.cpp
 	UnimodXMLHandler.cpp
 	XMLHandler.cpp
-	XTandemInfileXMLHandler.cpp
 )
 
 ### add path to the filenames

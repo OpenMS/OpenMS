@@ -33,11 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
   void MapConversion::convert(UInt64 const input_map_index,
-                              MSExperiment<>& input_map,
+                              PeakMap& input_map,
                               ConsensusMap& output_map,
                               Size n)
   {

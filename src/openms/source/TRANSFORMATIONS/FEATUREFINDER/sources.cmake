@@ -7,6 +7,7 @@ BaseModel.cpp
 BiGaussFitter1D.cpp
 BiGaussModel.cpp
 EGHTraceFitter.cpp
+ElutionModelFitter.cpp
 EmgFitter1D.cpp
 EmgModel.cpp
 EmgScoring.cpp

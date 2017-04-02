@@ -220,6 +220,8 @@ namespace OpenMS
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
       lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+      // X! Tandem Percolator format:
+      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+");
     }
 
     vector<String> items;

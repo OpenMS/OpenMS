@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
     
     cdef cppclass ModificationDefinition "OpenMS::ModificationDefinition":
         # wrap-hash:
-        #   getModification().c_str()
+        #   getModificationName().c_str()
 
         ModificationDefinition() nogil except +
         ModificationDefinition(ModificationDefinition) nogil except +
@@ -21,9 +21,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         bool isFixedModification() nogil except +
         void setMaxOccurences(UInt num) nogil except +
         UInt getMaxOccurences() nogil except +
-        String getModification() nogil except +
+        String getModificationName() nogil except +
         void setModification(String &modification) nogil except +
 
-        void setTermSpecificity(TermSpecificity pos) nogil except +
-        TermSpecificity getTermSpecificity() nogil except +
+        ResidueModification getModification() nogil except +
 

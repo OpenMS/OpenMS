@@ -48,6 +48,7 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SpecLibCreator
+SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation

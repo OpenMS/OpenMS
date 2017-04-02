@@ -69,6 +69,17 @@ START_SECTION((void setActivationEnergy(double activation_energy)))
   TEST_REAL_SIMILAR(tmp.getActivationEnergy(),47.11);
 END_SECTION
 
+START_SECTION((double getDriftTime() const))
+  Precursor tmp;
+  TEST_EQUAL(tmp.getDriftTime(),-1);
+END_SECTION
+
+START_SECTION((void setDriftTime(double dt)))
+  Precursor tmp;
+  tmp.setDriftTime(47.11);
+  TEST_REAL_SIMILAR(tmp.getDriftTime(),47.11);
+END_SECTION
+
 START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationMethods().size(),0);
@@ -143,6 +154,7 @@ END_SECTION
 START_SECTION((Precursor(const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
+	tmp.setDriftTime(7.11);
 	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -154,11 +166,13 @@ START_SECTION((Precursor(const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
 END_SECTION
 
 START_SECTION((Precursor& operator= (const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
+	tmp.setDriftTime(7.11);
 	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -172,6 +186,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
 		
 	//assignment of empty object
 	tmp2 = Precursor();
@@ -180,6 +195,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(),-1.0);
 END_SECTION
 
 START_SECTION((bool operator== (const Precursor& rhs) const))
@@ -190,6 +206,10 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	tmp2.setActivationEnergy(47.11);
 	TEST_EQUAL(tmp==tmp2, false);
 	
+	tmp2 = tmp;
+	tmp.setDriftTime(5.0);
+	TEST_EQUAL(tmp==tmp2, false);
+
 	tmp2 = tmp;
 	tmp.getActivationMethods().insert(Precursor::CID);
 	TEST_EQUAL(tmp==tmp2, false);
@@ -223,6 +243,10 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	tmp2.setActivationEnergy(47.11);
 	TEST_EQUAL(tmp!=tmp2, true);
 	
+	tmp2 = tmp;
+	tmp.setDriftTime(5.0);
+	TEST_EQUAL(tmp!=tmp2, true);
+
 	tmp2 = tmp;
 	tmp.getActivationMethods().insert(Precursor::CID);
 	TEST_EQUAL(tmp!=tmp2, true);
