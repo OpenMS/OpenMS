@@ -13,6 +13,7 @@ EnzymaticDigestion.cpp
 Enzyme.cpp
 EnzymesDB.cpp
 IsotopeDistribution.cpp
+IsotopeDistributionMIDAS.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp

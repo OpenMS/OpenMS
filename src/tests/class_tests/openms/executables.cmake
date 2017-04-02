@@ -385,6 +385,7 @@ set(chemistry_executables_list
   MassDecomposer_test
   IMSAlphabet_test
   RealMassDecomposer_test
+  IsotopeDistributionMIDAS_test
 )
 
 

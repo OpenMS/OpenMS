@@ -49,6 +49,7 @@
 #include <algorithm>
 #include <iostream>
 #include <boost/unordered_map.hpp>
+#include <set>
 
 namespace OpenMS
 {

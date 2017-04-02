@@ -52,7 +52,8 @@
 #include <vector>
 
 namespace OpenMS
-{
+{ 
+  typedef unsigned int uint;
   class EmpiricalFormula;
 
   class OPENMS_DLLAPI AdductInfo
