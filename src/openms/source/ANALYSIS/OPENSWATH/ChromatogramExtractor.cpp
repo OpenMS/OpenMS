@@ -79,7 +79,6 @@ namespace OpenMS
         coord.id = transition.getNativeID();
       }
 
-      std::cout << "RT window: " << rt_extraction_window << std::endl;
       if (rt_extraction_window < 0)
       {
         coord.rt_end = -1;
