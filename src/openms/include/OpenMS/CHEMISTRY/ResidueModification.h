@@ -80,7 +80,6 @@ public:
 
             This does not describe the amino acids which are valid for a
             specific amino acid!
-
     */
     enum TermSpecificity
     {
@@ -93,7 +92,6 @@ public:
     };
 
     /** @brief Classification of the modification
-
     */
     enum SourceClassification
     {
@@ -190,10 +188,20 @@ public:
     /// returns the terminal specificity name which is set or given as parameter
     String getTermSpecificityName(TermSpecificity = NUMBER_OF_TERM_SPECIFICITY) const;
 
-    ///sets the origin (i.e. amino acid)
+    /**
+       @brief Sets the origin (i.e. amino acid or terminus)
+
+       @see getOrigin()
+    */
     void setOrigin(const String& origin);
 
-    /// returns the origin (i.e. amino acid) if set
+    /**
+       @brief Returns the origin (i.e. amino acid or terminus) if set
+
+       For modifications without terminal specificity, the origin is the residue that gets modified, e.g. "M" for "Oxidation (M)".
+       For modifications with purely terminal specificity, the origin is "N-term" or "C-term", e.g. "N-term" for "Acetyl (N-term)".
+       For modifications with terminal and residue specificity, the origin is the residue, e.g. "E" for "Glu->pyro-Glu (N-term E)".
+    */
     const String& getOrigin() const;
 
     /// classification as defined by the PSI-MOD
