@@ -119,7 +119,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("database", "<file>", "", "FASTA file", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
@@ -135,7 +135,7 @@ protected:
     setValidFormats_("pin_out", ListUtils::create<String>("pin"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
-    registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
+    //registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
 
     //Masses
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "precursor_mass_tolerance (MSGF+), peptide_mass_tolerance(COMET)", false, false);
@@ -143,9 +143,9 @@ protected:
     //registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", true);
     //vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
     registerIntOption_("precursor_error_units", "<search_enzyme_number>", 2, "peptide_mass_units (COMET) 0=amu, 1=mmu, 2=ppm", false, false);
-    registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
-    registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
-    registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
+    //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
+    //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
+    //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
     registerIntOption_("isotope_error", "<num>", 0, "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false, false);
 
     //Search Enzyme
@@ -160,7 +160,7 @@ protected:
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (COMET)", false, true);
     registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.4, "fragment_bin_offset (COMET)", false, true);
-    registerIntOption_("theoretical_fragment_ions", "<num>", 1, "theoretical fragment ion peak representation, 0==sum of intensites plus fanking bins, 1==sum of intensities of central bin only", false, true);
+    registerIntOption_("theoretical_fragment_ions", "<num>", 1, "theoretical fragment ion peak representation, 0==sum of intensites plus flanking bins, 1==sum of intensities of central bin only", false, true);
     registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, true);
     registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, true);
     registerIntOption_("use_C_ions","<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, true);
@@ -173,8 +173,8 @@ protected:
     registerIntOption_("num_hits","<num>",5,"Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
-    registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all enzymes, 2 6 == from +2 to +6, 3 3 == +3", false, false);
-    registerIntOption_("override_charge", "<num>", 0, "0=no, 1=override precursor charge states, 2=ignore precursor charges outside precursor_charge range, 3=see online", false, false);
+    registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all charges, 2 6 == from +2 to +6, 3 3 == +3", false, false);
+    registerIntOption_("override_charge", "<num>", 0, "0 = keep any known precursor charge state, 1 = ignore known precursor charge state and use precursor_charge parameter, 2=ignore precursor charges outside precursor_charge range, 3= keep any known precursor charge state. For unknown charge states, search as singly charged if there is no signal above the precursor m/z or use the precursor_charge range", false, false);
     registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, false);
     registerStringOption_("activation_method", "<method>", "ALL", "activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD", false, false);
     setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
@@ -245,9 +245,9 @@ protected:
     // masses
     os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
     os << "peptide_mass_units = " << getIntOption_("precursor_error_units") << "\n";                  // 0=amu, 1=mmu, 2=ppm
-    os << "mass_type_parent = " << getIntOption_("mass_type_parent") << "\n";                    // 0=average masses, 1=monoisotopic masses
-    os << "mass_type_fragment = " << getIntOption_("mass_type_fragment") << "\n";                  // 0=average masses, 1=monoisotopic masses
-    os << "precursor_tolerance_type = " << getIntOption_("precursor_tolerance_type") << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
+    os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
+    os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
+    os << "precursor_tolerance_type = " << 1 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
     os << "isotope_error = " << getIntOption_("isotope_error") << "\n";                      // 0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)
 
     // search enzyme
@@ -268,7 +268,7 @@ protected:
     Size enzyme_number = 1;
     if (map_oms2comet.find(enzyme_name) != map_oms2comet.end())
     {
-      enzyme_number = map_oms2comet.at(enzyme_name);
+      enzyme_number = map_oms2comet[enzyme_name];   // replaced .at() with []
     }
     else
     {
@@ -436,7 +436,7 @@ protected:
 
     String inputfile_name = getStringOption_("in");
     writeDebug_(String("Input file: ") + inputfile_name, 1);
-    if (inputfile_name == "")
+    if (inputfile_name.empty())
     {
       writeLog_("No input file specified. Aborting!");
       printUsage_();
@@ -445,7 +445,7 @@ protected:
 
     String out = getStringOption_("out");
     writeDebug_(String("Output file___real one: ") + out, 1);
-    if (out == "")
+    if (out.empty())
     {
       writeLog_("No output file specified. Aborting!");
       printUsage_();
@@ -475,7 +475,7 @@ protected:
 
     //tmp_dir
     //const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
-    const String tmp_dir = OpenMS::File::getTempDirectory() + "/";
+    const String tmp_dir = makeTempDirectory_(); //OpenMS::File::getTempDirectory() + "/";
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
     //QDir d;
     //d.mkpath(tmp_dir.toQString());
@@ -487,7 +487,7 @@ protected:
     if (default_params.empty())
     {
         tmp_file = tmp_dir + "param.txt";
-        ofstream os(tmp_file);
+        ofstream os(tmp_file.c_str());
         createParamFile_(os);
         os.close();
     }
@@ -498,7 +498,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2
+    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2 //TO DO: setMSLevels or clearMSLevels
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -562,6 +562,7 @@ protected:
       LOG_WARN << "Keeping the temporary files at '" << tmp_pepxml << "'. Set debug level to 0 to remove them." << std::endl;
     }
 
+    return EXECUTION_OK;
   }
 
 };
