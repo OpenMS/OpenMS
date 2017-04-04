@@ -40,9 +40,12 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
+///////////////////////////
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-///////////////////////////
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;

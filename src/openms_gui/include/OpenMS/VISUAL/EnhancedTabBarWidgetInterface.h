@@ -37,6 +37,11 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
 namespace OpenMS
 {
   /**

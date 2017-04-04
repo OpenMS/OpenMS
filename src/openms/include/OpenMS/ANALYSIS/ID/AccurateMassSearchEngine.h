@@ -46,6 +46,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <iosfwd>
 #include <vector>

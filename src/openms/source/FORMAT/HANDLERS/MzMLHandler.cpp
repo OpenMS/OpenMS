@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/CVMappingFile.h>
+
 namespace OpenMS
 {
   namespace Internal
@@ -277,7 +280,7 @@ namespace OpenMS
                                   Size& default_arr_length, const PeakFileOptions& peak_file_options,
                                   SpectrumType& spectrum)
     {
-      typedef typename SpectrumType::PeakType PeakType;
+      typedef SpectrumType::PeakType PeakType;
 
       //decode all base64 arrays
       MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
@@ -445,7 +448,7 @@ namespace OpenMS
                                         Size& default_arr_length, const PeakFileOptions& peak_file_options,
                                         ChromatogramType& inp_chromatogram)
     {
-      typedef typename ChromatogramType::PeakType ChromatogramPeakType;
+      typedef ChromatogramType::PeakType ChromatogramPeakType;
 
       //decode all base64 arrays
       MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
@@ -4846,7 +4849,7 @@ namespace OpenMS
         //write float data array
         for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
         {
-          const typename SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
+          const SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
           std::vector<double> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
@@ -4876,7 +4879,7 @@ namespace OpenMS
         //write integer data array
         for (Size m = 0; m < spec.getIntegerDataArrays().size(); ++m)
         {
-          const typename SpectrumType::IntegerDataArray& array = spec.getIntegerDataArrays()[m];
+          const SpectrumType::IntegerDataArray& array = spec.getIntegerDataArrays()[m];
           std::vector<Int64> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
@@ -4905,7 +4908,7 @@ namespace OpenMS
         //write string data arrays
         for (Size m = 0; m < spec.getStringDataArrays().size(); ++m)
         {
-          const typename SpectrumType::StringDataArray& array = spec.getStringDataArrays()[m];
+          const SpectrumType::StringDataArray& array = spec.getStringDataArrays()[m];
           std::vector<String> data_to_encode;
           data_to_encode.resize(array.size());
           for (Size p = 0; p < array.size(); ++p)
@@ -5127,7 +5130,7 @@ namespace OpenMS
       //write float data array
       for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
       {
-        const typename ChromatogramType::FloatDataArray& array = chromatogram.getFloatDataArrays()[m];
+        const ChromatogramType::FloatDataArray& array = chromatogram.getFloatDataArrays()[m];
         std::vector<double> data64_to_encode(array.size());
         for (Size p = 0; p < array.size(); ++p)
           data64_to_encode[p] = array[p];
@@ -5157,7 +5160,7 @@ namespace OpenMS
       //write integer data array
       for (Size m = 0; m < chromatogram.getIntegerDataArrays().size(); ++m)
       {
-        const typename ChromatogramType::IntegerDataArray& array = chromatogram.getIntegerDataArrays()[m];
+        const ChromatogramType::IntegerDataArray& array = chromatogram.getIntegerDataArrays()[m];
         std::vector<Int64> data64_to_encode(array.size());
         for (Size p = 0; p < array.size(); ++p)
           data64_to_encode[p] = array[p];
@@ -5186,7 +5189,7 @@ namespace OpenMS
       //write string data arrays
       for (Size m = 0; m < chromatogram.getStringDataArrays().size(); ++m)
       {
-        const typename ChromatogramType::StringDataArray& array = chromatogram.getStringDataArrays()[m];
+        const ChromatogramType::StringDataArray& array = chromatogram.getStringDataArrays()[m];
         std::vector<String> data_to_encode;
         data_to_encode.resize(array.size());
         for (Size p = 0; p < array.size(); ++p)

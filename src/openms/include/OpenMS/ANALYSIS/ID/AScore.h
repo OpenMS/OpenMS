@@ -32,12 +32,16 @@
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-#ifndef  OPENMS_ANALYSIS_ID_ASCORE_H
-#define  OPENMS_ANALYSIS_ID_ASCORE_H
+#ifndef OPENMS_ANALYSIS_ID_ASCORE_H
+#define OPENMS_ANALYSIS_ID_ASCORE_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
+
 #include <limits>
 #include <vector>
 
@@ -185,3 +189,4 @@ class OPENMS_DLLAPI AScore
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_ID_ASCORE_H
+

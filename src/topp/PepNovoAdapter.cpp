@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PepNovoInfile.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>

@@ -35,6 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <fstream>
 
 using namespace OpenMS;

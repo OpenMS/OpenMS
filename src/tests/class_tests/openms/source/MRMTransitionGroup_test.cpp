@@ -40,12 +40,14 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 using namespace OpenMS;
 using namespace std;
 
-typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 typedef OpenMS::ReactionMonitoringTransition TransitionType;
-typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
+typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
 ///////////////////////////
 
@@ -70,8 +72,8 @@ START_SECTION(~MRMTransitionGroup())
 END_SECTION
 
 
-RichPeakChromatogram chrom1;
-RichPeakChromatogram chrom2;
+MSChromatogram<> chrom1;
+MSChromatogram<> chrom2;
 TransitionType trans1;
 TransitionType trans2;
 MRMFeature feature1;

@@ -36,6 +36,7 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 namespace OpenMS

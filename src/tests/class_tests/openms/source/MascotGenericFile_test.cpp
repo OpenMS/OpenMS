@@ -40,6 +40,9 @@
 #include <sstream>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 using namespace OpenMS;
 using namespace std;
 

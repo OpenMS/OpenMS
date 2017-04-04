@@ -44,6 +44,9 @@
 
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 void FunctionChangeSpectrum (OpenMS::MSSpectrum<OpenMS::Peak1D> & s)
@@ -77,7 +80,7 @@ START_SECTION((~MSDataChainingConsumer()))
 END_SECTION
 
 START_SECTION(( MSDataChainingConsumer(std::vector<IMSDataConsumer*> consumers) ))
-  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   chaining_consumer_ptr = new MSDataChainingConsumer(consumer_list);
   TEST_NOT_EQUAL(chaining_consumer_ptr, chaining_consumer_nullPointer)
   delete chaining_consumer_ptr;
@@ -85,7 +88,7 @@ END_SECTION
 
 START_SECTION((void consumeSpectrum(SpectrumType & s)))
 {
-  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -111,7 +114,7 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   transforming_consumer->setExpectedSize(2,0);
   transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
 
-  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(transforming_consumer);
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -144,7 +147,7 @@ END_SECTION
 
 START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 {
-  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -170,7 +173,7 @@ START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
   transforming_consumer->setExpectedSize(2,0);
   transforming_consumer->setChromatogramProcessingPtr(FunctionChangeChromatogram);
 
-  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(transforming_consumer);
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -209,13 +212,13 @@ START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
 }
 END_SECTION
 
-START_SECTION(( void appendConsumer(IMSDataConsumer<> * consumer) ))
+START_SECTION(( void appendConsumer(IMSDataConsumer * consumer) ))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
   transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
 
-  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
   consumer_list.push_back(new NoopMSDataConsumer());
   MSDataChainingConsumer * chaining_consumer = new MSDataChainingConsumer(consumer_list);

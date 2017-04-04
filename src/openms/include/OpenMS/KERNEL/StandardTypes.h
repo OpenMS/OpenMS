@@ -36,9 +36,7 @@
 #define OPENMS_KERNEL_STANDARDTYPES_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 
 namespace OpenMS
 {
@@ -76,3 +74,4 @@ namespace OpenMS
 }
 
 #endif // OPENMS_KERNEL_STANDARDTYPES_H
+

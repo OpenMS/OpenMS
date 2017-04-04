@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
 #define OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
