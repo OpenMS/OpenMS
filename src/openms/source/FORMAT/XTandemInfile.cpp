@@ -38,8 +38,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <set>
-#include <map>
+#include <boost/regex.hpp>
+
 #include <fstream>
 
 using namespace xercesc;
@@ -70,7 +70,8 @@ namespace OpenMS
     number_of_missed_cleavages_(1),
     default_parameters_file_(""),
     output_results_("valid"),
-    max_valid_evalue_(0.01)
+    max_valid_evalue_(0.01),
+    force_default_mods_(false)
   {
   }
 
@@ -78,45 +79,68 @@ namespace OpenMS
   {
   }
 
-  void XTandemInfile::write(const String& filename, bool ignore_member_parameters)
+  void XTandemInfile::write(const String& filename, bool ignore_member_parameters, bool force_default_mods)
   {
     if (!File::writable(filename))
     {
       throw (Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename));
     }
+    force_default_mods_ = force_default_mods;
     ofstream os(filename.c_str());
     writeTo_(os, ignore_member_parameters);
     return;
   }
 
-  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, std::map<String, double>& affected_origins, bool ignore_pyro_glu) const
+  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods, map<String, double>& affected_origins) const
   {
-    std::map<String, double> origin_set;
+    // check if both "Glu->pyro-Glu (N-term E)" and "Gln->pyro-Glu (N-term Q)"
+    // are specified:
+    bool has_pyroglu_e = false, has_pyroglu_q = false;
+    for (set<ModificationDefinition>::const_iterator it = mods.begin();
+         it != mods.end(); ++it)
+    {
+      if (it->getModificationName() == "Glu->pyro-Glu (N-term E)")
+      {
+        has_pyroglu_e = true;
+      }
+      else if (it->getModificationName() == "Gln->pyro-Glu (N-term Q)")
+      {
+        has_pyroglu_q = true;
+      }
+      if (has_pyroglu_e && has_pyroglu_q) break;
+    }
 
+    map<String, double> origin_set;
     StringList xtandem_mods;
     for (set<ModificationDefinition>::const_iterator it = mods.begin();
          it != mods.end(); ++it)
     {
-      if (ignore_pyro_glu &&
-          ((it->getModificationName() == "Gln->pyro-Glu (N-term Q)") ||
-           (it->getModificationName() == "Glu->pyro-Glu (N-term E)")))
+      if (!force_default_mods_ &&
+          // @TODO: change Acetyl spec. to "protein N-term" once it's supported
+          ((it->getModificationName() == "Acetyl (N-term)") ||
+           // for the pyro-Glus, only skip if both are present:
+           ((it->getModificationName() == "Gln->pyro-Glu (N-term Q)") &&
+            has_pyroglu_e) ||
+           ((it->getModificationName() == "Glu->pyro-Glu (N-term E)") &&
+            has_pyroglu_q)))
       {
         continue;
       }
 
       double mod_mass = it->getModification().getDiffMonoMass();
 
-      String orig;
+      String orig = it->getModification().getOrigin();
       ResidueModification::TermSpecificity ts = it->getModification().getTermSpecificity();
-      if (ts == ResidueModification::ANYWHERE)
+      if ((ts != ResidueModification::ANYWHERE) && !orig.empty())
       {
-        orig = it->getModification().getOrigin();
+        LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << it->getModificationName() << "'." << endl;
       }
-      else if (ts == ResidueModification::C_TERM)
+
+      if (ts == ResidueModification::C_TERM)
       {
         orig = "]";
       }
-      else
+      else if (ts == ResidueModification::N_TERM)
       {
         orig = "[";
       }
@@ -304,14 +328,35 @@ namespace OpenMS
       //<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
       //writeNote_(os, "protein, homolog management", protein_homolog_management_);
 
-      // special case for "pyro-Glu" modifications:
-      bool ignore_pyro_glu = false;
+      // special cases for default (N-terminal) modifications:
       set<String> var_mods = modifications_.getVariableModificationNames();
-      if ((var_mods.find("Gln->pyro-Glu (N-term Q)") != var_mods.end()) &&
+      // Ron Beavis: "If a variable modification is set for the peptide N-terminus, the 'quick acetyl' and 'quick pyrolidone' are turned off so that they don't interfere with the specified variable modification." -> check for that
+      boost::regex re(" \\(N-term( .)?\\)$");
+      for (set<String>::iterator vm_it = var_mods.begin();
+           vm_it != var_mods.end(); ++vm_it)
+      {
+        if (boost::regex_search(*vm_it, re) && (*vm_it != "Acetyl (N-term)") &&
+            (*vm_it != "Gln->pyro-Glu (N-term Q)") &&
+            (*vm_it != "Glu->pyro-Glu (N-term E)"))
+        {
+          force_default_mods_ = true;
+        }
+      }
+
+      if (!force_default_mods_ &&
+          (var_mods.find("Gln->pyro-Glu (N-term Q)") != var_mods.end()) &&
           (var_mods.find("Glu->pyro-Glu (N-term E)") != var_mods.end()))
       {
         writeNote_(os, "protein, quick pyrolidone", true);
-        ignore_pyro_glu = true;
+        LOG_INFO << "Modifications 'Gln->pyro-Glu (N-term Q)' and 'Glu->pyro-Glu (N-term E)' are handled implicitly by the X! Tandem option 'protein, quick pyrolidone'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of these modifications." << endl;
+      }
+
+      // special case for "Acetyl (N-term)" modification:
+      if (!force_default_mods_ &&
+          (var_mods.find("Acetyl (N-term)") != var_mods.end()))
+      {
+        writeNote_(os, "protein, quick acetyl", true);
+        LOG_INFO << "Modification 'Acetyl (N-term)' is handled implicitly by the X! Tandem option 'protein, quick acetyl'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of this modification." << endl;
       }
 
       ////////////////////////////////////////////////////////////////////////////////
@@ -327,13 +372,13 @@ namespace OpenMS
       //Positive and negative values are allowed.
       //</note>
 
-      std::map<String, double> affected_origins;
+      map<String, double> affected_origins;
       writeNote_(os, "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications(), affected_origins));
 
       //<note type="input" label="residue, potential modification mass"></note>
       //<note>The format of this parameter is the same as the format
       //for residue, modification mass (see above).</note>
-      writeNote_(os, "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications(), affected_origins, ignore_pyro_glu));
+      writeNote_(os, "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications(), affected_origins));
 
       //<note type="input" label="residue, potential modification motif"></note>
       //<note>The format of this parameter is similar to residue, modification mass,

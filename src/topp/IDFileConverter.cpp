@@ -379,7 +379,9 @@ protected:
       else if (in_type == FileTypes::XML) // X! Tandem
       {
         ProteinIdentification protein_id;
-        XTandemXMLFile().load(in, protein_id, peptide_identifications);
+        ModificationDefinitionsSet mod_defs;
+        XTandemXMLFile().load(in, protein_id, peptide_identifications,
+                              mod_defs);
         protein_id.setSearchEngineVersion("");
         protein_id.setSearchEngine("XTandem");
         protein_identifications.push_back(protein_id);
