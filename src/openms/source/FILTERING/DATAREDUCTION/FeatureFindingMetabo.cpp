@@ -732,9 +732,10 @@ namespace OpenMS
     } // end for charge
   } // end of findLocalFeatures_(...)
 
-  void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap)
+  void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram<> > >& output_chromatograms)
   {
     output_featmap.clear();
+    output_chromatograms.clear();
 
     if (input_mtraces.empty()) 
     {
@@ -874,6 +875,7 @@ namespace OpenMS
       //
       // Now accept hypothesis
       //
+
       Feature f;
       f.setRT(feat_hypos[hypo_idx].getCentroidRT());
       f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
@@ -899,11 +901,12 @@ namespace OpenMS
         f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
       }
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
-      if (report_chromatograms_) f.setMetaValue("Chromatogram", feat_hypos[hypo_idx].getChromatograms());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       output_featmap.push_back(f);
+
+      if (report_chromatograms_) output_chromatograms.push_back(feat_hypos[hypo_idx].getChromatograms());
 
       // add used traces to exclusion map
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)

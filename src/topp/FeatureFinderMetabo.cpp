@@ -34,6 +34,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
@@ -270,7 +271,6 @@ protected:
       }
     }
 
-
 //    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
 
     //-------------------------------------------------------------
@@ -284,9 +284,11 @@ protected:
     FeatureMap feat_map;
     feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
 
+    std::vector<std::vector< OpenMS::MSChromatogram<> > > feat_chromatograms;
+
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
-    ffmet.run(m_traces_final, feat_map);
+    ffmet.run(m_traces_final, feat_map, feat_chromatograms);
 
     Size trace_count(0);
     for (Size i = 0; i < feat_map.size(); ++i)
@@ -302,12 +304,42 @@ protected:
 
     if (trace_count != m_traces_final.size())
     {
-      LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
-      return UNEXPECTED_RESULT;
+        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+        return UNEXPECTED_RESULT;
+    }
+
+    feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+
+    //here for chromatogram
+    //iter of vector in vector and give same featureID
+    //iter over chrom in vector of vector and give native id (featureID_index) - isotope pattern
+    if (ffm_param.getValue("report_chromatograms").toBool())
+    {
+        cout << "Size vector Chrom: " << feat_chromatograms.size() << endl;
+        cout << "Size feat_map: " << feat_map.size() << endl;
+        if (feat_chromatograms.size() == feat_map.size())
+        {
+            for (Size i = 0; i < feat_map.size(); ++i)
+            {
+                String id(feat_map[i].getUniqueId());
+                cout << "ID: " << id << endl;
+
+                for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
+                {
+                    feat_chromatograms[i][j].setName(id + "_" + j);
+                    cout << "Name: " << feat_chromatograms[i][j].getName() << endl;
+                }
+            }
+        }
+        else
+        {
+            LOG_ERROR << "FF-Metabo: Internal error. The number of features and chromatograms are different! Aborting." << std::endl;
+            return UNEXPECTED_RESULT;
+        }
     }
 
     feat_map.sortByMZ();
-    feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
     if (feat_map.size() > 0)
