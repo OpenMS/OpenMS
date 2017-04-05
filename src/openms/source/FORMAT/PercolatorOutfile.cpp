@@ -152,7 +152,7 @@ namespace OpenMS
             }
           }
           // if neither mod can be terminal, something is wrong -> let
-          // AASequence deal with
+          // AASequence deal with it
         }
       }
     }
