@@ -225,6 +225,17 @@ protected:
       /// Progress logging class
       const ProgressLogger& logger_;
 
+
+      /// write metaInfo to xml (usually in nameValue-tag)
+      inline std::ostream& writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
+      {
+        if (meta.metaValueExists(metakey))
+        {
+          os << " " << attname << "=\"" << meta.getMetaValue(metakey) << "\" ";
+        }
+        return os;
+      }
+
       /// write metaInfo to xml (usually in nameValue-tag)
       inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue")
       {
@@ -395,7 +406,7 @@ private:
       static const XMLCh* s_completiontime_;
       static const XMLCh* s_precision_;
       static const XMLCh* s_byteorder_;
-      static const XMLCh* s_pairorder_;
+      static const XMLCh* s_contentType_;
       static const XMLCh* s_compressionType_;
       static const XMLCh* s_precursorintensity_;
       static const XMLCh* s_precursorcharge_;
@@ -436,7 +447,7 @@ private:
           s_completiontime_ = xercesc::XMLString::transcode("completionTime");
           s_precision_ = xercesc::XMLString::transcode("precision");
           s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
-          s_pairorder_ = xercesc::XMLString::transcode("pairOrder");
+          s_contentType_ = xercesc::XMLString::transcode("contentType");
           s_compressionType_ = xercesc::XMLString::transcode("compressionType");
           s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
           s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
@@ -493,7 +504,7 @@ private:
     template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_byteorder_ = 0;
     template <typename MapType>
-    const XMLCh * MzXMLHandler<MapType>::s_pairorder_ = 0;
+    const XMLCh * MzXMLHandler<MapType>::s_contentType_ = 0;
     template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_compressionType_ = 0;
     template <typename MapType>
@@ -615,7 +626,7 @@ private:
         }
         //pair order
         String pair_order = "m/z-int";
-        optionalAttributeAsString_(pair_order, attributes, s_pairorder_);
+        optionalAttributeAsString_(pair_order, attributes, s_contentType_);
         if (pair_order != "m/z-int")
         {
           error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
@@ -1039,15 +1050,15 @@ private:
         if (spec.size() != 0)
           ++count_tmp_;
       }
-      if (count_tmp_ == 0)
-        ++count_tmp_;
+      if (count_tmp_ == 0) ++count_tmp_;
+
       logger_.startProgress(0, cexp_->size(), "storing mzXML file");
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-         << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1\" "
-         << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-         << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 "
-         << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd\">\n"
-         << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n";
+         << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\" \n"
+         << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n"
+         << " xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 "
+         << "http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
+         << "\t<msRun scanCount=\"" << count_tmp_ << "\" startTime=\"PT0.2158S\" endTime=\"PT4500.06S\" >\n"; //TODO
 
       //----------------------------------------------------------------------------------------
       // parent files
@@ -1071,7 +1082,7 @@ private:
           }
           else
           {
-            os << "processedData";
+            os << "RAWData";
           }
           //Sha1 checksum must have 40 characters => create a fake if it is unknown
           os << "\" fileSha1=\"";
@@ -1095,19 +1106,20 @@ private:
       {
         const Instrument& inst = cexp_->getInstrument();
         os << "\t\t<msInstrument>\n"
-           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n" << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
+           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"Thermo Finnigan\"/>\n" 
+           << "\t\t\t<msModel category=\"msModel\" value=\"unknown\"/>\n";
         if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod())
         {
-          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
+          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"NSI\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
+          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << "NSI" << "\"/>\n";
         }
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
         if (analyzers.empty() || !analyzers[0].getResolutionMethod())
         {
-          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
+          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"FTMS\"/>\n";
         }
         else
         {
@@ -1115,20 +1127,20 @@ private:
         }
         if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType())
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"unknown\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << "unknown" << "\"/>\n";
         }
         os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
         if (analyzers.empty() || !analyzers[0].getResolutionMethod())
         {
-          os << "\t\t\t<msResolution category=\"msResolution\" value=\"\"/>\n";
+          //os << "\t\t\t<msResolution category=\"msResolution\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
+          //os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
         }
 
         if (cexp_->getContacts().size() > 0)
@@ -1154,7 +1166,7 @@ private:
 
           os << "/>\n";
         }
-        writeUserParam_(os, inst, 3);
+        //writeUserParam_(os, inst, 3);
 
         if (inst.metaValueExists("#comment"))
         {
@@ -1167,10 +1179,10 @@ private:
       //----------------------------------------------------------------------------------------
       //data processing (the information of the first spectrum is assigned to the whole file)
       //----------------------------------------------------------------------------------------
-      if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
+      if (true || cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
-           << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
+          << "\t\t\t<software type=\"conversion\" name=\"ReAdW\" version=\"4.3.1(build Sep  9 2009 12:30 : 29)\" />\n"
            << "\t\t</dataProcessing>\n";
       }
       else
@@ -1208,7 +1220,7 @@ private:
             os << "\" completionTime=\"" << data_processing.getCompletionTime().get().substitute(' ', 'T');
           }
           os << "\"/>\n";
-          writeUserParam_(os, data_processing, 3, "processingOperation");
+          //writeUserParam_(os, data_processing, 3, "processingOperation");
 
           os << "\t\t</dataProcessing>\n";
         }
@@ -1271,9 +1283,10 @@ private:
         }
 
         os << String(ms_level + 1, '\t')
-           << "<scan num=\"" << spectrum_id << "\" msLevel=\""
-           << ms_level << "\" peaksCount=\""
-           << spec.size() << "\" polarity=\"";
+           << "<scan num=\"" << spectrum_id << "\"\n"
+           << " msLevel=\"" << ms_level << "\"\n"
+           << " peaksCount=\"" << spec.size() << "\" \n"
+           << " polarity=\"";
         if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
         {
           os << "+";
@@ -1298,66 +1311,60 @@ private:
         case InstrumentSettings::MSNSPECTRUM:
           if (spec.getInstrumentSettings().getZoomScan())
           {
-            os << "\" scanType=\"zoom";
+            os << "\"\n scanType=\"zoom";
           }
           else
           {
-            os << "\" scanType=\"Full";
+            os << "\"\n scanType=\"Full";
           }
           break;
 
         case InstrumentSettings::SIM:
-          os << "\" scanType=\"SIM";
+          os << "\"\n scanType=\"SIM";
           break;
 
         case InstrumentSettings::SRM:
-          os << "\" scanType=\"SRM";
+          os << "\" \nscanType=\"SRM";
           break;
 
         case InstrumentSettings::CRM:
-          os << "\" scanType=\"CRM";
+          os << "\"\n scanType=\"CRM";
           break;
 
         default:
-          os << "\" scanType=\"Full";
+          os << "\"\n scanType=\"Full";
           warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
 
         // filter line
         if (spec.metaValueExists("filter string") )
         {
-          os << "\" filterLine=\"";
+          os << "\"\n filterLine=\"";
           os << writeXMLEscape ( (String)spec.getMetaValue("filter string") );
         }
 
-        // base peak mz (used by some programs like MAVEN), according to xsd:
-        // "m/z of the base peak (most intense peak)"
-        os << "\" basePeakMz=\"";
-        double basePeakInt = 0;
-        double basePeakMz = 0;
-        for (Size j = 0; j < spec.size(); j++)
-        {
-          if (spec[j].getIntensity() > basePeakInt)
-          {
-            basePeakInt = spec[j].getIntensity();
-            basePeakMz = spec[j].getMZ();
-          }
-        }
-        os << basePeakMz;
-
         // retention time
-        os << "\" retentionTime=\"";
-        if (spec.getRT() < 0)
-          os << "-";
-        os << "PT" << std::fabs(spec.getRT()) << "S\"";
+        os << "\"\n retentionTime=\"";
+        if (spec.getRT() < 0) os << "-";
+        os << "PT" << std::fabs(spec.getRT()) << "S\"\n";
         if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
-          os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
+          //os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
         }
         if (spec.getInstrumentSettings().getScanWindows().size() > 1)
         {
           warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
         }
+
+        // convert meta values to tags
+
+        writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz") << "\n";
+        writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz") << "\n";
+        writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz") << "\n";
+        writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity") << "\n";
+        writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent");
+
+        if (ms_level == 2) os << "\n collisionEnergy=\"40\" \n";
 
         // end of "scan" attributes
         os << ">\n";
@@ -1366,21 +1373,32 @@ private:
         for (Size i = 0; i < spec.getPrecursors().size(); ++i)
         {
           const Precursor& precursor = spec.getPrecursors()[i];
-          //intensity
-          os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << precursor.getIntensity();
-          //charge
+          // intensity
+          os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << (int)precursor.getIntensity() << "\"";
+          // charge
           if (precursor.getCharge() != 0)
-            os << "\" precursorCharge=\"" << precursor.getCharge();
-          //window size
+            os << " precursorCharge=\"" << precursor.getCharge() << "\"";
+          // window size
           if (precursor.getIsolationWindowLowerOffset() + precursor.getIsolationWindowUpperOffset() > 0.0)
-            os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset());
+          {
+            //os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
+          }
+            
+          
+          os << " activationMethod=\"CID\" ";
           //m/z
-          os << "\">" << precursor.getMZ() << "</precursorMz>\n";
+          double mz = precursor.getMZ();
+          if (!spec.getAcquisitionInfo().empty() &&
+              spec.getAcquisitionInfo().begin()->metaValueExists("[Thermo Trailer Extra]Monoisotopic M/Z:"))
+          {
+            mz = spec.getAcquisitionInfo().begin()->getMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:");
+          }
+          os << ">" << mz << "</precursorMz>\n";
         }
 
         if (!spec.empty())
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
+          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\">";
 
           //std::cout << "Writing scan " << s << "\n";
           std::vector<float> tmp;
@@ -1396,10 +1414,10 @@ private:
         }
         else
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"true\"/>\n";
+          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" contentType=\"m/z-int\" xsi:nil=\"true\"/>\n";
         }
 
-        writeUserParam_(os, spec, ms_level + 2);
+        //writeUserParam_(os, spec, ms_level + 2);
         if (spec.getComment() != "")
         {
           os << String(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";
@@ -1423,7 +1441,7 @@ private:
       }
 
       os << "\t</msRun>\n"
-         << "\t<indexOffset>0</indexOffset>\n"
+         << "\t<sha1>0000000000000000000000000000000000000000</sha1>\n"
          << "</mzXML>\n";
 
       logger_.endProgress();
