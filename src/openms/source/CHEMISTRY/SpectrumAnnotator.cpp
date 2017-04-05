@@ -52,6 +52,7 @@ namespace OpenMS
   const boost::regex SpectrumAnnotator::nt_regex_("[a,b,c][[:digit:]]+[+]+");
   const boost::regex SpectrumAnnotator::ct_regex_("[x,y,z][[:digit:]]+[+]+");
   const boost::regex SpectrumAnnotator::noloss_regex_("[a,b,c,x,y,z][[:digit:]]+[+]+");
+  const boost::regex SpectrumAnnotator::seriesposition_regex_("[a,b,c,x,y,z]([[:digit:]])+[+,-]+[[:word:]]*[+]*");
 
   SpectrumAnnotator::SpectrumAnnotator() :
     DefaultParamHandler("SpectrumAnnotator")
@@ -205,14 +206,18 @@ namespace OpenMS
                   cint += it->getIntensity();
                 }
               }
-              if (max_series_ && boost::regex_match(ion_name, noloss_regex_))
+              if (max_series_)  // without loss max series is sometimes pretty crummy
               {
                 const String& ion_type = ion_name.prefix(1);
-                if (ListUtils::contains(allowed_types, ion_type)) //case sensitive?
+                boost::cmatch what;
+                if (boost::regex_match(ion_name.c_str(), what, seriesposition_regex_) &&
+                        ListUtils::contains(allowed_types, ion_type))
                 {
+                  // what[0] contains the whole string
+                  // what[1] contains the response code
                   try
                   {
-                    int i = ion_name.substr(1).remove('+').toInt() - 1; //do not care about charge
+                    int i = std::atoi(what[1].first);
                     ion_series[ion_type].at(i) = true;
                   }
                   catch (std::out_of_range)
@@ -294,7 +299,7 @@ namespace OpenMS
         if (max_series_)
         {
           String max_series;
-          int series_stretch = 0;
+          int max_stretch = 0;
           for (map<String, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
           {
             int stretch = 0;
@@ -308,15 +313,15 @@ namespace OpenMS
               {
                 stretch = 0;
               }
-            }
-            if (stretch > series_stretch)
-            {
-              series_stretch = stretch;
-              max_series = tt->first;
+              if (stretch > max_stretch)
+              {
+                max_stretch = stretch;
+                max_series = tt->first;
+              }
             }
           }
           ph->setMetaValue("max_series_type", max_series);
-          ph->setMetaValue("max_series_size", series_stretch);
+          ph->setMetaValue("max_series_size", max_stretch);
         }
         //TODO parent peak intensity complement pairs number
         if (SN_statistics_)

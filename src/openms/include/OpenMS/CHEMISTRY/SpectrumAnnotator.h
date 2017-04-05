@@ -129,6 +129,7 @@ namespace OpenMS
       static const boost::regex nt_regex_;
       static const boost::regex ct_regex_;
       static const boost::regex noloss_regex_;
+      static const boost::regex seriesposition_regex_;
 
   };
 }
