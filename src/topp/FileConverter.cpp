@@ -441,7 +441,7 @@ protected:
                                                  CONVERSION_MZXML));
       MzXMLFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      //ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::DTA2D)
