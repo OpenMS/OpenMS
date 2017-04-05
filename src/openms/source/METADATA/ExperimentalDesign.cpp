@@ -92,6 +92,7 @@ namespace OpenMS
       }
 
       MSRun r;
+      int run_number = cells[0].toInt();
       r.file = cells[1];
       r.fraction = static_cast<unsigned>(cells[2].toInt());
       r.technical_replicate = static_cast<unsigned>(cells[3].toInt());
@@ -99,6 +100,15 @@ namespace OpenMS
       ed.runs.push_back(r);
 
       ++line_number;
+
+      // validation: check if run number matches the line number in the design file
+      if (line_number != run_number)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
+          "Error: Run index (" + String(run_number) + ") does not match row index (" + String(line_number) + ") in line: " + String(s) + ".");
+      }
+
+      // TODO? check if file exists?
     }
   }
 
