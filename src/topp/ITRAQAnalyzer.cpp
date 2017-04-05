@@ -162,7 +162,7 @@ protected:
     //-------------------------------------------------------------
 
     MzMLFile mz_data_file;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     mz_data_file.setLogType(log_type_);
     mz_data_file.load(in, exp);
 

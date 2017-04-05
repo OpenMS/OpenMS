@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -332,8 +333,7 @@ public:
         The size of the structuring element is computed for each spectrum individually, if it is given in 'Thomson'.
         See the filtering method for MSSpectrum for details.
     */
-    template <typename PeakType>
-    void filterExperiment(MSExperiment<PeakType> & exp)
+    void filterExperiment(PeakMap & exp)
     {
       startProgress(0, exp.size(), "filtering baseline");
       for (UInt i = 0; i < exp.size(); ++i)

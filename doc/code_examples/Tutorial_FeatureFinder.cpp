@@ -39,7 +39,7 @@ Int main()
   // ... set parameters (e.g. from INI file)
   Param parameters;
   // ... set input data (e.g. from mzML file)
-  MSExperiment<> input;
+  PeakMap input;
   // ... set output data structure
   FeatureMap output;
   // ... set user-specified seeds, if needed

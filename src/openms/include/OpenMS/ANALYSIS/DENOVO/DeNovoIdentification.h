@@ -70,8 +70,8 @@ public:
     /// assignment operator
     DeNovoIdentification & operator=(const DeNovoIdentification & rhs);
 
-    /// performs an ProteinIdentification run on a RichPeakMap
-    virtual void getIdentifications(std::vector<PeptideIdentification> & ids, const RichPeakMap & exp) = 0;
+    /// performs an ProteinIdentification run on a PeakMap
+    virtual void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp) = 0;
 
     /// performs an ProteinIdentification run on a PeakSpectrum
     virtual void getIdentification(PeptideIdentification & id, const RichPeakSpectrum & spectrum) = 0;

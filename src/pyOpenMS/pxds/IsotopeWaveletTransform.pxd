@@ -20,9 +20,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         void getTransformHighRes(MSSpectrum[ PeakT ] &c_trans, MSSpectrum[ PeakT ] &c_ref, UInt c) nogil except +
         void identifyCharge(MSSpectrum[ PeakT ] &candidates, MSSpectrum[ PeakT ] &ref, UInt scan_index, UInt c, double ampl_cutoff, bool check_PPMs) nogil except +
         void initializeScan(MSSpectrum[ PeakT ] &c_ref, UInt c) nogil except +
-        void updateBoxStates(MSExperiment[ PeakT, ChromatogramPeak ] &map_, Size scan_index, UInt RT_interleave, UInt RT_votes_cutoff, Int front_bound, Int end_bound) nogil except +
+        void updateBoxStates(MSExperiment &map_, Size scan_index, UInt RT_interleave, UInt RT_votes_cutoff, Int front_bound, Int end_bound) nogil except +
         # void mergeFeatures(IsotopeWaveletTransform[ PeakT ] *later_iwt, UInt RT_interleave, UInt RT_votes_cutoff) nogil except +
-        FeatureMap mapSeeds2Features(MSExperiment[ PeakT, ChromatogramPeak] &map_, UInt RT_votes_cutoff) nogil except +
+        FeatureMap mapSeeds2Features(MSExperiment &map_, UInt RT_votes_cutoff) nogil except +
         ## std::multimap[ double, Box ] getClosedBoxes() nogil except +
         ## double getLinearInterpolation(typename MSSpectrum[ PeakT ]::const_iterator &left_iter, double mz_pos, typename MSSpectrum[ PeakT ]::const_iterator &right_iter) nogil except +
         double getLinearInterpolation(double mz_a, double intens_a, double mz_pos, double mz_b, double intens_b) nogil except +

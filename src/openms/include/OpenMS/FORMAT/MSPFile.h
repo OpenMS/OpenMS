@@ -75,7 +75,7 @@ public:
     /**
         @brief Loads a map from a MSPFile file.
 
-        @param exp RichPeakMap which contains the spectra after reading
+        @param exp PeakMap which contains the spectra after reading
         @param filename the filename of the experiment
         @param ids output parameter which contains the peptide identifications from the spectra annotations
 
@@ -83,19 +83,19 @@ public:
         @throw ParseError is thrown if the given file could not be parsed
         @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
     */
-    void load(const String & filename, std::vector<PeptideIdentification> & ids, RichPeakMap & exp);
+    void load(const String & filename, std::vector<PeptideIdentification> & ids, PeakMap & exp);
 
     /**
         @brief Stores a map in a MSPFile file.
 
         @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void store(const String & filename, const RichPeakMap & exp) const;
+    void store(const String & filename, const PeakMap & exp) const;
 
 protected:
 
     /// reads the header information and stores it as metainfo in the spectrum
-    void parseHeader_(const String & header, RichPeakSpectrum & spec);
+    void parseHeader_(const String & header, PeakSpectrum & spec);
 
   };
 

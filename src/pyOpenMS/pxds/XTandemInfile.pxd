@@ -1,7 +1,6 @@
 from Types cimport *
 from libcpp cimport bool
 from String cimport *
-# from XTandemInfileXMLHandler cimport *
 from ModificationDefinitionsSet cimport *
 # from XMLFile cimport *
 
@@ -27,15 +26,15 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         void setModifications(ModificationDefinitionsSet & mods) nogil except +
         ModificationDefinitionsSet  getModifications() nogil except +
         void setOutputFilename(String & output) nogil except +
-        String  getOutputFilename() nogil except +
+        String getOutputFilename() nogil except +
         void setInputFilename(String & input_file) nogil except +
-        String  getInputFilename() nogil except +
+        String getInputFilename() nogil except +
         void setTaxonomyFilename(String & filename) nogil except +
-        String  getTaxonomyFilename() nogil except +
+        String getTaxonomyFilename() nogil except +
         void setDefaultParametersFilename(String & filename) nogil except +
-        String  getDefaultParametersFilename() nogil except +
+        String getDefaultParametersFilename() nogil except +
         void setTaxon(String & taxon) nogil except +
-        String  getTaxon() nogil except +
+        String getTaxon() nogil except +
         void setMaxPrecursorCharge(Int max_charge) nogil except +
         Int getMaxPrecursorCharge() nogil except +
         void setNumberOfMissedCleavages(UInt missed_cleavages) nogil except +
@@ -44,12 +43,9 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         String getOutputResults() nogil except +
         void setMaxValidEValue(double value) nogil except +
         double getMaxValidEValue() nogil except +
-        bool isRefining() nogil except +
         void setSemiCleavage(bool semi_cleavage) nogil except +
         void setAllowIsotopeError(bool allow_isotope_error) nogil except +
-        void setRefine(bool refine) nogil except +
         void write(String & filename) nogil except +
-        void load(String & filename) nogil except +
         void setCleavageSite(String cleavage_site) nogil except +
         String getCleavageSite() nogil except +
 

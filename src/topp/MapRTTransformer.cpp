@@ -195,7 +195,7 @@ protected:
       if (in_type == FileTypes::MZML)
       {
         MzMLFile file;
-        MSExperiment<> map;
+        PeakMap map;
         applyTransformation_(in, out, trafo, file, map);
       }
       else if (in_type == FileTypes::FEATUREXML)

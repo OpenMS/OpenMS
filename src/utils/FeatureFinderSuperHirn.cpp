@@ -107,7 +107,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mzMLFile;
     mzMLFile.setLogType(log_type_);
-    MSExperiment<Peak1D> input;
+    PeakMap input;
     mzMLFile.getOptions().addMSLevel(1);
     mzMLFile.load(in, input);
 

@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -198,7 +199,7 @@ protected:
 
       UInt i = 0;
       FileTypes::Type type;
-      MSExperiment<Peak1D> msexperiment;
+      PeakMap msexperiment;
       // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, float> num_and_rt;)  However, now String::toInt() might throw.
       map<Int, float> num_and_rt;
       vector<String> NativeID;
@@ -209,7 +210,7 @@ protected:
         type = fh.getTypeByFileName(mz_file);
         fh.loadExperiment(mz_file, msexperiment, type, log_type_, false, false);
 
-        for (MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
+        for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
           String(spectra_it->getNativeID()).split('=', NativeID);
           try
@@ -313,7 +314,7 @@ protected:
         }
         else
         {
-          MSExperiment<> exp;
+          PeakMap exp;
           fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
@@ -421,7 +422,7 @@ protected:
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
         {
-          MSExperiment<> experiment;
+          PeakMap experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
@@ -515,7 +516,7 @@ protected:
         }
         if (lookup.empty()) // raw data hasn't been read yet
         {
-          MSExperiment<> experiment;
+          PeakMap experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_,
                             false, false);
           lookup.readSpectra(experiment.getSpectra());

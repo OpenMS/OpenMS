@@ -64,11 +64,11 @@ public:
 
     struct ExtractionCoordinates
     {
-      double mz; /// m/z value around which should be extracted
-      double mz_precursor; /// precursor m/z value (is currently ignored by the algorithm)
-      double rt_start; /// rt start of extraction (in seconds)
-      double rt_end; /// rt end of extraction (in seconds)
-      std::string id; /// identifier
+      double mz; ///< m/z value around which should be extracted
+      double mz_precursor; ///< precursor m/z value (is currently ignored by the algorithm)
+      double rt_start; ///< rt start of extraction (in seconds)
+      double rt_end; ///< rt end of extraction (in seconds)
+      std::string id; ///< identifier
 
       static bool SortExtractionCoordinatesByMZ(
           const ChromatogramExtractorAlgorithm::ExtractionCoordinates& left,

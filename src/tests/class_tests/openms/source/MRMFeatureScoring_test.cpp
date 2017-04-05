@@ -144,7 +144,7 @@ START_SECTION((virtual void test_dia_scores()))
   OpenSWATH_Test::MRMTransitionGroupType transition_group;
   transition_group = OpenSWATH_Test::createMockTransitionGroup();
 
-  MSExperiment<Peak1D> swath_map;
+  PeakMap swath_map;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), swath_map);
 
   MRMFeature mrmfeature = OpenSWATH_Test::createMockFeature();

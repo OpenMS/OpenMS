@@ -32,8 +32,10 @@
 // $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
+
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -108,7 +110,7 @@ namespace OpenMS
     }
 
     //~ TODO create MzIdentML instances from MSExperiment which contains much of the information yet needed
-    //~ MzIdentMLHandler(const MSExperiment<>& mx, const String& filename, const String& version, const ProgressLogger& logger)
+    //~ MzIdentMLHandler(const PeakMap& mx, const String& filename, const String& version, const ProgressLogger& logger)
     //~ : XMLHandler(filename, version),
     //~ logger_(logger),
     //~ ms_exp_(mx),

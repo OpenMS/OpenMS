@@ -36,7 +36,6 @@
 #define OPENMS_FORMAT_XTANDEMINFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
@@ -52,11 +51,6 @@ namespace OpenMS
       <note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
     	<note type="input" label="output, proteins">yes</note>
     @endverbatim
-
-    Internally, there is a double book-keeping of parameters obtained from a config-xml file via load()
-    and the member parameters exposed via get/set functions.
-    During write(), member params take precedence over additional note-parameters loaded from a config file.
-    If load() was not called before write(), only member parameters are written.
 
     @ingroup FileIO
   */
@@ -199,9 +193,6 @@ public:
     /// returns the max valid E-value allowed in the list
     double getMaxValidEValue() const;
 
-    /// get state of refine setting
-    bool isRefining() const;
-
     /// get state of noise suppression
     bool getNoiseSuppression() const;
 
@@ -210,9 +201,6 @@ public:
 
     /// set if misassignment of precursor to first and second 13C isotopic peak should also be considered
     void setAllowIsotopeError(const bool allow_isotope_error);
-
-    /// set state of refine setting
-    void setRefine(const bool refine);
 
     /// set state of noise suppression
     void setNoiseSuppression(const bool noise_suppression);
@@ -226,34 +214,14 @@ public:
     /** 
       @brief Writes the XTandemInfile to the given file
 
-      By default, member variables take precedence over values previously
-      read via load().
       If ignore_member_parameters is true, only a very limited number of
       tags fed by member variables (i.e. in, out, database/taxonomy) is written.
-      For everything else, only external tags (from a previous load()) are used.
       
       @param filename the name of the file which is written
       @param ignore_member_parameters Do not write tags for class members
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
     void write(const String& filename, bool ignore_member_parameters = false);
-
-    /** 
-      @brief Reads the information from the given filename
-
-      @param filename the file which should be read from
-      @throw FileNotFound is thrown if the given file could not be found
-      @throw ParseError is thrown if the given file could not be parsed
-    */
-    void load(const String& filename);
-
-    /**
-       @brief Returns the number of notes read from external XML file.
-
-       @return Number of &lt;note&gt; tags.
-
-    */
-    Size getNoteCount() const;
 
 protected:
 
@@ -263,11 +231,11 @@ protected:
 
     void writeTo_(std::ostream& os, bool ignore_member_parameters);
 
-    const String& writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
+    void writeNote_(std::ostream& os, const String& label, const String& value);
 
-    const String& writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
+    void writeNote_(std::ostream& os, const String& label, const char* value);
 
-    const String& writeNote_(std::ostream& os, const String& type, const String& label, bool value);
+    void writeNote_(std::ostream& os, const String& label, bool value);
 
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
@@ -289,13 +257,13 @@ protected:
 
     double precursor_mass_tolerance_minus_;
 
-    MassType precursor_mass_type_;
+    ErrorUnit fragment_mass_error_unit_;
 
     ErrorUnit precursor_mass_error_unit_;
 
-    ErrorUnit fragment_mass_error_unit_;
-
     MassType fragment_mass_type_;
+
+    MassType precursor_mass_type_;
 
     UInt max_precursor_charge_;
 
@@ -319,18 +287,10 @@ protected:
 
     String cleavage_site_;
 
-    /// Enable/disable xtandem refinement
-    bool refine_;
-
-    /// Enable/disable xtandem noise suppression routine
-    bool noise_suppression_;
-
     /// semi cleavage
     bool semi_cleavage_;
 
     bool allow_isotope_error_;
-
-    double refine_max_valid_evalue_;
 
     // scoring
     UInt number_of_missed_cleavages_;
@@ -342,11 +302,6 @@ protected:
 
     double max_valid_evalue_;
 
-    /** 
-      Holds additional nodes that were not translated to member variables, but are conserved for storing.
-      &ltnote type="input" label="spectrum, fragment monoisotopic mass error"&gt;0.4&lt;/note&gt;
-    */
-    std::vector<Internal::XTandemInfileNote> notes_;
   };
 
 } // namespace OpenMS

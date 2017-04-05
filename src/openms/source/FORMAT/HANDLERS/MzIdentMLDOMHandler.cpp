@@ -957,12 +957,16 @@ namespace OpenMS
                       }
                       else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        // TODO: add support for protein N-terminal modifications in unimod
+                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
                         mod = m.getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        // TODO: add support for protein C-terminal modifications in unimod
+                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
                         mod = m.getFullId();
                       }
                     }

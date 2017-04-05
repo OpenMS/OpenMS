@@ -36,6 +36,13 @@
 #define OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENTHELPER_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/CVTermListInterface.h>

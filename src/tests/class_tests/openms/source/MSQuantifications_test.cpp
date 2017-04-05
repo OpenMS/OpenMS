@@ -175,7 +175,7 @@ START_SECTION((void assignUIDs()))
 }
 END_SECTION
 
-START_SECTION((void registerExperiment(MSExperiment< Peak1D > &exp, std::vector< std::vector< std::pair< String, double > > > labels)))
+START_SECTION((void registerExperiment(PeakMap &exp, std::vector< std::vector< std::pair< String, double > > > labels)))
 {
   // TODO
 }

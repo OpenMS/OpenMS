@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
                                UInt step_size,
                                PSLPFormulation & ilp) nogil except +
         void rescore(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & new_pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values) nogil except +
-        void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment[Peak1D, ChromatogramPeak] & experiment, String precursor_path) nogil except +
+        void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment & experiment, String precursor_path) nogil except +
         void setLPSolver(SOLVER solver) nogil except +
         SOLVER getLPSolver() nogil except +
         void reset() nogil except +

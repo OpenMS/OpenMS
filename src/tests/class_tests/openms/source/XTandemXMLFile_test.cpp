@@ -37,7 +37,6 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -54,15 +53,10 @@ START_TEST(XTandemXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-XTandemXMLFile xml_file;
 XTandemXMLFile* ptr;
 XTandemXMLFile* nullPointer = 0;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
-String date_string_1;
-String date_string_2;
-PeptideHit peptide_hit;
 
 START_SECTION((XTandemXMLFile()))
 	ptr = new XTandemXMLFile();
@@ -73,20 +67,26 @@ START_SECTION(~XTandemXMLFile())
 	delete ptr;
 END_SECTION
 
-ptr = new XTandemXMLFile();
+XTandemXMLFile xml_file;
 
 START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+{
 	ModificationDefinitionsSet mod_set(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
-
-	ptr->setModificationDefinitionsSet(mod_set);
-	NOT_TESTABLE
+	xml_file.setModificationDefinitionsSet(mod_set);
+  NOT_TESTABLE // tested below
+}
 END_SECTION
 
 START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data))
-	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications);
-	TEST_EQUAL(peptide_identifications.size(), 303)
-	TEST_EQUAL(protein_identification.getHits().size(), 497)
-	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications);
+{
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications);
+	TEST_EQUAL(peptide_identifications.size(), 303);
+	TEST_EQUAL(protein_identification.getHits().size(), 497);
+
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications);
+	TEST_EQUAL(peptide_identifications.size(), 2);
+	TEST_EQUAL(protein_identification.getHits().size(), 21);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

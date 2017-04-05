@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -162,7 +163,7 @@ START_SECTION((template <typename FeatureMapType> const FeatureMapType::value_ty
 }
 END_SECTION
 
-MSExperiment<> exp;
+PeakMap exp;
 exp.resize(3);
 exp[0].setRT(1);
 exp[0].resize(15);

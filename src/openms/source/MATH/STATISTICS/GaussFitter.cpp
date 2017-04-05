@@ -71,7 +71,7 @@ namespace OpenMS
 
       GaussFunctor(int dimensions, const std::vector<DPosition<2> >* data)
       : m_inputs(dimensions), 
-        m_values(data->size()), 
+        m_values(static_cast<int>(data->size())),
         m_data(data)
       {}
 

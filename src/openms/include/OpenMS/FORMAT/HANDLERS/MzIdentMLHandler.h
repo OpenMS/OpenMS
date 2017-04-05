@@ -109,7 +109,7 @@ protected:
       ///Controlled vocabulary for modifications (unimod from OpenMS/share/OpenMS/CV/unimod.obo)
       ControlledVocabulary unimod_;
 
-      //~ MSExperiment<>* ms_exp_;
+      //~ PeakMap* ms_exp_;
 
       ///XML tag parse element
       String tag_;

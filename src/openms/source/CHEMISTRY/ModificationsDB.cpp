@@ -180,7 +180,7 @@ namespace OpenMS
     {
       if ((fabs((*it)->getDiffMonoMass() - mass) <= max_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         mods.push_back((*it)->getFullId());
@@ -215,7 +215,7 @@ namespace OpenMS
       double mass_error = fabs(mono_mass - mass);
       if ((mass_error < min_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         min_error = mass_error;
@@ -239,7 +239,7 @@ namespace OpenMS
       double mass_error = fabs((*it)->getDiffMonoMass() - mass);
       if ((mass_error < min_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         min_error = mass_error;

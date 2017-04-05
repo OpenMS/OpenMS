@@ -26,6 +26,10 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
         bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
 
+        # Fills this EmpiricalFormula with an approximate elemental composition for a given average weight,
+        # exact number of sulfurs, and approximate elemental stoichiometry
+        bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P) nogil except +
+
         # @brief returns the isotope distribution of the formula
         #   *	The details of the calculation of the isotope distribution
         #   * are described in the doc to the IsotopeDistribution class.

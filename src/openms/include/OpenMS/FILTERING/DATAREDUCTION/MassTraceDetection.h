@@ -35,6 +35,7 @@
 #ifndef OPENMS_FILTERING_DATAREDUCTION_MASSTRACEDETECTION_H
 #define OPENMS_FILTERING_DATAREDUCTION_MASSTRACEDETECTION_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -90,10 +91,10 @@ public:
     */
 
     /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
-    void run(const MSExperiment<Peak1D> &, std::vector<MassTrace> &);
+    void run(const PeakMap &, std::vector<MassTrace> &);
 
     /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
-    void run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MSExperiment<Peak1D>::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
+    void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
     /** @name Private methods and members 
     */
@@ -107,7 +108,7 @@ private:
     /// The internal run method
     void run_(const MapIdxSortedByInt& chrom_apices,
               const Size peak_count, 
-              const MSExperiment<Peak1D> & work_exp,
+              const PeakMap & work_exp,
               const std::vector<Size>& spec_offsets,
               std::vector<MassTrace> & found_masstraces);
 

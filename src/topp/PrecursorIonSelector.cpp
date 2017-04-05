@@ -225,7 +225,7 @@ protected:
       pisp.dbPreprocessing(db_path, rt_model, dt_model, store_preprocessing);
     }
 
-    MSExperiment<> exp;
+    PeakMap exp;
     if (raw_data != "") MzMLFile().load(raw_data, exp);
 
     //-------------------------------------------------------------
