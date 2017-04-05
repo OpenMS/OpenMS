@@ -1262,6 +1262,16 @@ private:
         warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'scan='. The spectra are renumbered and the native IDs are lost!");
       }
 
+      // local class holding the byte offsets to '<scan>' tags in the mzXML file; req. to create the index at the end
+      struct IndexPos
+      {
+        Size id_; std::ostream::streampos pos_;
+        IndexPos(const Size id, const std::ostream::streampos pos)
+          : id_(id),
+            pos_(pos) {}
+      };
+      std::vector<IndexPos> scan_index_positions;
+
       // write scans
       std::stack<UInt> open_scans;
       for (Size s = 0; s < cexp_->size(); s++)
@@ -1282,8 +1292,10 @@ private:
           spectrum_id = spec.getNativeID().toInt();
         }
 
-        os << String(ms_level + 1, '\t')
-           << "<scan num=\"" << spectrum_id << "\"\n"
+        os << String(ms_level + 1, '\t');
+        
+        scan_index_positions.push_back(IndexPos(spectrum_id, os.tellp())); // remember scan index
+        os << "<scan num=\"" << spectrum_id << "\"\n"
            << " msLevel=\"" << ms_level << "\"\n"
            << " peaksCount=\"" << spec.size() << "\" \n"
            << " polarity=\"";
@@ -1440,8 +1452,19 @@ private:
         }
       }
 
-      os << "\t</msRun>\n"
-         << "\t<sha1>0000000000000000000000000000000000000000</sha1>\n"
+      os << "\t</msRun>\n";
+
+      // create scan index
+      std::ostream::streampos index_offset = os.tellp();
+      os << "<index name = \"scan\" >\n";
+      for (Size i = 0; i < scan_index_positions.size(); ++i)
+      {
+        os << "<offset id = \"" << scan_index_positions[i].id_ << "\" >" << scan_index_positions[i].pos_ << "</offset>\n";
+      }
+      os << "</index>\n";
+      os << "<indexOffset>" << index_offset << "</indexOffset>\n";
+
+      os << "<sha1>0000000000000000000000000000000000000000</sha1>\n"
          << "</mzXML>\n";
 
       logger_.endProgress();
