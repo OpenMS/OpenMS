@@ -100,9 +100,9 @@ namespace OpenMS
 
           for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
           {
-            if (orig_it->size() == 1)
+            if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
             {
-              mod.setOrigin((*orig_it));
+              mod.setOrigin((*orig_it)[0]);
               all_mods.insert(make_pair(id, mod));
             }
           }
@@ -110,13 +110,13 @@ namespace OpenMS
           if (origin.hasSubstring("ProteinN-term"))
           {
             mod.setTermSpecificity(ResidueModification::N_TERM);
-            mod.setOrigin("N-term");
+            mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
           if (origin.hasSubstring("ProteinC-term"))
           {
             mod.setTermSpecificity(ResidueModification::C_TERM);
-            mod.setOrigin("C-term");
+            mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
 
@@ -283,9 +283,9 @@ namespace OpenMS
 
       for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
       {
-        if (orig_it->size() == 1)
+        if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
         {
-          mod.setOrigin((*orig_it));
+          mod.setOrigin((*orig_it)[0]);
           all_mods.insert(make_pair(id, mod));
         }
       }
@@ -293,13 +293,13 @@ namespace OpenMS
       if (origin.hasSubstring("ProteinN-term"))
       {
         mod.setTermSpecificity(ResidueModification::N_TERM);
-        mod.setOrigin("N-term");
+        mod.setOrigin('X');
         all_mods.insert(make_pair(id, mod));
       }
       if (origin.hasSubstring("ProteinC-term"))
       {
         mod.setTermSpecificity(ResidueModification::C_TERM);
-        mod.setOrigin("C-term");
+        mod.setOrigin('X');
         all_mods.insert(make_pair(id, mod));
       }
 
@@ -327,8 +327,8 @@ namespace OpenMS
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        if ( (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X") ||
-              (it->second.getOrigin() == "N-term") || (it->second.getOrigin() == "C-term"))
+        if ((it->second.getOrigin() != 'X') ||
+            (it->second.getTermSpecificity() != ResidueModification::ANYWHERE))
         {
           mods_.push_back(new ResidueModification(it->second));
 
@@ -337,7 +337,10 @@ namespace OpenMS
           synonyms.insert(it->second.getFullName());
           //synonyms.insert(it->second.getUniModAccession());
           synonyms.insert(it->second.getPSIMODAccession());
-          mods_.back()->setFullId(it->second.getFullName() + " (" + it->second.getOrigin() + ")");
+          // full ID is auto-generated based on (short) ID, but we want the name instead:
+          mods_.back()->setId(it->second.getFullName());
+          mods_.back()->setFullId();
+          mods_.back()->setId(it->second.getId());
           synonyms.insert(mods_.back()->getFullId());
 
           // now check each of the names and link it to the residue modification
