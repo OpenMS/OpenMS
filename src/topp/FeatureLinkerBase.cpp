@@ -156,35 +156,19 @@ protected:
 
         // determine if design defines more than one fraction
         frac2run = ed.getFractionToRunsMapping();
+
+        // check if all fractions have the same number of MS runs associated
+        if (!ed.sameNrOfRunsPerFraction())
+        {
+          writeLog_("Error: Number of runs must match for every fraction!");
+          return ILLEGAL_PARAMETERS;
+        }
       }
       else // no design file given
       {
         for (Size i = 0; i != ins.size(); ++i)
         {
           frac2run[1].insert(i + 1); // associate each run with fraction 1
-        }
-      }
-
-      // check if all fractions have the same number of MS runs associated
-      // and set the number of runs that need to be linked
-      Size runs_per_fraction(ins.size());
-      if (frac2run.size() > 1)
-      {
-        for (map<unsigned, set<unsigned> >::const_iterator mit = frac2run.begin(); mit != frac2run.end(); ++mit)
-        {
-          if (mit == frac2run.begin()) // fraction 1
-          {
-            // initialize runs per fraction with the number of runs in the first fraction
-            runs_per_fraction = mit->second.size();
-          }
-          else // fraction >= 2
-          {
-            if (mit->second.size() != runs_per_fraction)
-            {
-              writeLog_("Error: Number of runs must match for every fraction!");
-              return ILLEGAL_PARAMETERS;
-            }
-          }
         }
       }
 

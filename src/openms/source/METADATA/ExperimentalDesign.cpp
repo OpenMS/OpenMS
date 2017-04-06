@@ -123,4 +123,29 @@ namespace OpenMS
 
     return ret;
   }
+
+  bool ExperimentalDesign::sameNrOfRunsPerFraction() const
+  {
+    map<unsigned, set<unsigned> > frac2run = getFractionToRunsMapping();
+    if (frac2run.size() > 1)
+    {
+      Size runs_per_fraction(0);
+      for (map<unsigned, set<unsigned> >::const_iterator mit = frac2run.begin(); mit != frac2run.end(); ++mit)
+      {
+        if (mit == frac2run.begin()) // fraction 1
+        {
+          // initialize runs per fraction with the number of runs in the first fraction
+          runs_per_fraction = mit->second.size();
+        }
+        else // fraction >= 2
+        {
+          if (mit->second.size() != runs_per_fraction)
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 }

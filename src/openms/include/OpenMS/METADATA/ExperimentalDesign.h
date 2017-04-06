@@ -81,6 +81,9 @@ namespace OpenMS
     /// return fraction index to MSRuns (e.g., Fraction 1 maps to MSRun 1 and 2 in the example above)
     std::map<unsigned, std::set<unsigned> > getFractionToRunsMapping() const;
 
+    /// return if each fraction number is asscociated with the same number of runs 
+    bool sameNrOfRunsPerFraction() const;
+
     /// TODO:
     /// 2) Optional section with assay-level information of the experimental design.
     ///    Required to perform statistical down-stream processing.
