@@ -113,7 +113,7 @@
     compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
     they are incompatible with Visual Studio binaries.
 
-    To build Qt from sources, download Qt 4.8.7, which supports all VS versions up to VS 2015!
+    To build Qt from sources, download Qt 4.8.7 (see below), which supports all VS versions up to VS 2015!
     @note Qt 5.X IS NOT SUPPORTED YET!
 
     Follow this procedure if you want to compile Qt yourself:
