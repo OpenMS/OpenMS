@@ -32,8 +32,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setTermSpecificity(String & name) nogil except +
         TermSpecificity getTermSpecificity() nogil except +
         String getTermSpecificityName(TermSpecificity ) nogil except +
-        void setOrigin(String & origin) nogil except +
-        String  getOrigin() nogil except +
+        void setOrigin(char origin) nogil except +
+        char  getOrigin() nogil except +
         void setSourceClassification(String & classification) nogil except +
         void setSourceClassification(SourceClassification classification) nogil except +
         SourceClassification getSourceClassification() nogil except +
