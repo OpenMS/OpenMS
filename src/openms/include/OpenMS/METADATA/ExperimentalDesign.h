@@ -61,7 +61,7 @@ namespace OpenMS
     ///   4	humanD.mzML	      2	              1
     ///   5	humanE.mzML	      3	              1
     ///   6	humanF.mzML	      3	              1          
-    ///   7	humanF.mzML	      3	              2       (<- example how a 2nd technical replicate is stored for fraction 3)
+    ///   7	humanG.mzML	      3	              2       (<- example how a 2nd technical replicate is stored for fraction 3)
     /// TODO: add possibility to provide optional columns that map to additional run-level specific meta data (see, for example, the mzTab specificiation)
     class OPENMS_DLLAPI MSRun
     {
