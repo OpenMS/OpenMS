@@ -55,7 +55,11 @@ namespace OpenMS
     public:
 
       // Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
-      static const std::map< Size, String > enzymes;
+      static std::map< Size, String > enzymes;
+
+      // Maps String encoding month to the numeric value
+      static std::map<String, UInt> months;
+
 
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
@@ -102,6 +106,9 @@ namespace OpenMS
       // Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values;
 
+      // Extract the DateTime from an xQuest date String
+      inline void extractDateTime(const String & xquest_datetime_string, DateTime & date_time);
+
       // Assign all attributes in the peptide_id_attributes map to the MetaInfoInterface object
       void add_meta_values(MetaInfoInterface & meta_info_interface);
 
@@ -110,8 +117,7 @@ namespace OpenMS
       
       // Sets the Peptide Evidence for alpha or beta
       void setPeptideEvidence_(const String &, PeptideHit &);
-      
-          
+
       /*
        * Sets the meta data for one or both peptide hits
        */
