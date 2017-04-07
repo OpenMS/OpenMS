@@ -748,10 +748,12 @@ namespace OpenMS
       if (spectrum.getIntegerDataArrays().size() == 0)
       {
         spectrum.getIntegerDataArrays().resize(1);
+        spectrum.getIntegerDataArrays()[0].setName("Charges");
       }
       if (spectrum.getStringDataArrays().size() == 0)
       {
         spectrum.getStringDataArrays().resize(1);
+        spectrum.getStringDataArrays()[0].setName("IonNames");
       }
     }
 
