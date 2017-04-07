@@ -70,9 +70,7 @@ namespace OpenMS
       }
     }
 
-    
     // Initialize static const members
-
     std::map< Size, String > XQuestResultXMLHandler::enzymes = boost::assign::map_list_of(0, "no_enzyme")
         (1, "trypsin") (2, "chymotrypsin") (3, "unknown_enzyme") (9, "unknown_enzyme")
         (10, "unknown_enzyme") (14, "unknown_enzyme") (15, "unknown_enzyme") (16, "unknown_enzyme") (17, "unknown_enzyme")
@@ -80,6 +78,8 @@ namespace OpenMS
 
     std::map< String, UInt> XQuestResultXMLHandler::months = boost::assign::map_list_of("Jan", 1)
         ("Feb", 2) ("Mar", 3) ("Apr", 4) ("May", 5) ("Jun", 6) ("Jul", 7) ("Aug", 8) ("Sep", 9) ("Oct", 10) ("Nov", 11)("Dec", 12);
+
+    const String XQuestResultXMLHandler::decoy_string = "decoy_";
 
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    vector< XQuestResultMeta> & metas,
@@ -120,20 +120,24 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::extractDateTime(const String & xquest_datetime_string, DateTime & date_time)
     {
-      // Example: Fri Dec 18 12:28:42 2015
       StringList xquest_datetime_string_split;
       StringUtils::split(xquest_datetime_string,' ', xquest_datetime_string_split);
-      // Set date
-      UInt day = xquest_datetime_string_split[2].toInt();
-      UInt year = xquest_datetime_string_split[4].toInt();
-      UInt month = XQuestResultXMLHandler::months[xquest_datetime_string_split[1]];
-      date_time.setDate(month, day, year);
-      // Set time
-      date_time.setTime(xquest_datetime_string_split[3]);
+      if (this->is_openproxl)
+      {
+        // Example: 2017-03-17 23:04:50
+        date_time.setDate(xquest_datetime_string_split[0]);
+        date_time.setTime(xquest_datetime_string_split[1]);
+      }
+      else
+      {
+        // Example: Fri Dec 18 12:28:42 2015
+        UInt day = xquest_datetime_string_split[2].toInt();
+        UInt year = xquest_datetime_string_split[4].toInt();
+        UInt month = XQuestResultXMLHandler::months[xquest_datetime_string_split[1]];
+        date_time.setDate(month, day, year);
+        date_time.setTime(xquest_datetime_string_split[3]);
+      }
     }
-
-
-
     // Extracts the position of the Cross-Link for intralinks and crosslinks
     void XQuestResultXMLHandler::getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair)
     {
@@ -248,6 +252,19 @@ namespace OpenMS
       {
         this->metas_.push_back(this->current_meta_);
         this->current_meta_.clearMetaInfo();
+        ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
+        search_params.charges = ListUtils::concatenate(this->charges, ",");
+        search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge);
+        search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge);
+        DoubleList monolink_masses_list(this->monolinks_masses.size());
+        for (std::set<double>::const_iterator monolink_masses_it = this->monolinks_masses.begin();
+             monolink_masses_it != this->monolinks_masses.end(); ++monolink_masses_it)
+        {
+          monolink_masses_list.push_back(*monolink_masses_it);
+        }
+        search_params.setMetaValue("cross_link:mass_monolink", DataValue(monolink_masses_list));
+
+        this->prot_ids_[0].setSearchParameters(search_params);
       }
     }
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
@@ -256,6 +273,10 @@ namespace OpenMS
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
+        // Decide whether this Block is original xQuest or OpenProXL
+        String xquest_version = this->attributeAsString_(attributes, "xquest_version");
+        this->is_openproxl = xquest_version.hasSubstring("XL");
+
         // Date and Time of Search
         DateTime date_time;
         this->extractDateTime(this->attributeAsString_(attributes, "date"), date_time);
@@ -269,16 +290,23 @@ namespace OpenMS
         }
         */
 
-
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;
-        
+
         // General
-        search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]);
+        if (this->is_openproxl) // Enzyme via name
+        {
+          search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(this->attributeAsString_(attributes, "enzyme_name"));
+        }
+        else // Enzyme via enzyme number in xQuest
+        {
+          search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]);
+        }
+
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
-        String tolerancemeasure = this->attributeAsString_(attributes, "tolerancemeasure");
+        String tolerancemeasure = this->attributeAsString_(attributes, this->is_openproxl ? "tolerancemeasure_ms1" : "tolerancemeasure");
         search_params.precursor_mass_tolerance_ppm = tolerancemeasure == "ppm";
         search_params.fragment_mass_tolerance = this->attributeAsDouble_(attributes, "ms2tolerance");
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
@@ -295,17 +323,41 @@ namespace OpenMS
           variable_mod_list.push_back("Oxidation (M)");
         }
         search_params.variable_modifications = variable_mod_list;
-        
+
+        // Meta Values
+        search_params.setMetaValue("input_decoys", DataValue(this->attributeAsString_(attributes, "database_dc")));
+        search_params.setMetaValue("decoy_prefix", DataValue(1));
+        search_params.setMetaValue("decoy_string", DataValue(XQuestResultXMLHandler::decoy_string));
+        search_params.setMetaValue("fragment:mass_tolerance_xlinks", DataValue(this->attributeAsDouble_(attributes, "xlink_ms2tolerance")));
+
         this->prot_ids_[0].setSearchParameters(search_params);
       }
       else if (tag == "spectrum_search")
       {
-        // TODO Store information of spectrum search
+        // Update min and max precursor charge
+        UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
+        if (charge_precursor < this->min_precursor_charge)
+        {
+          this->min_precursor_charge = charge_precursor;
+        }
+        if (charge_precursor > this->max_precursor_charge)
+        {
+          this->max_precursor_charge = charge_precursor;
+        }
       }
       else if (tag == "search_hit")
       {
+        // Keep track of the charge if this hit
+        UInt charge = this->attributeAsInt_(attributes, "charge");
+        this->charges.insert(charge);
+
         this->n_hits_++;
         PeptideIdentification peptide_identification;
+
+        // Set Attributes of Peptide Identification
+        peptide_identification.setMZ(this->attributeAsDouble_(attributes, "mz"));
+
+
         PeptideHit peptide_hit_alpha;
         vector<PeptideHit> peptide_hits;
         // XL Type, determined by "type"
@@ -317,6 +369,11 @@ namespace OpenMS
         peptide_identification.setMetaValue("target_decoy", target_decoy);
         peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
 
+        // Attributes of peptide_hit_alpha
+        double score = this->attributeAsDouble_(attributes, "score");
+        peptide_hit_alpha.setScore(score);
+        peptide_hit_alpha.setSequence(AASequence::fromString(this->attributeAsString_(attributes, "seq1")));
+        peptide_hit_alpha.setCharge(charge);
 
         // Get Attributes of Peptide Identification
         this->peptide_id_meta_values["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
@@ -326,7 +383,7 @@ namespace OpenMS
         this->peptide_id_meta_values["xl_rank"] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
         this->peptide_id_meta_values["OpenXQuest:intsum"] = DataValue(this->attributeAsDouble_(attributes, "intsum")/100);
         this->peptide_id_meta_values["OpenXQuest:match-odds"] = DataValue(this->attributeAsDouble_(attributes, "match_odds"));
-        this->peptide_id_meta_values["OpenXQuest:score"] = DataValue(this->attributeAsDouble_(attributes, "score"));
+        this->peptide_id_meta_values["OpenXQuest:score"] = DataValue(score);
         this->peptide_id_meta_values["OpenXQuest:error_rel"] = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
         this->peptide_id_meta_values["OpenXQuest:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
 
@@ -361,7 +418,16 @@ namespace OpenMS
         // Switch on Cross-link type
         if (xlink_type_string == "xlink")
         {
+          // Set the cross Link Mass
+          ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
+          search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
+          this->prot_ids_[0].setSearchParameters(search_params);
+
           PeptideHit peptide_hit_beta;
+          peptide_hit_beta.setScore(score);
+          peptide_hit_beta.setSequence(AASequence::fromString(this->attributeAsString_(attributes, "seq2")));
+          peptide_hit_beta.setCharge(charge);
+
           // If requested, also write to the peptide_hit_beta
           if (this->load_to_peptideHit_)
           {
@@ -401,11 +467,11 @@ namespace OpenMS
 
           // Determine if protein is intra/inter protein, check all protein ID combinations
           removeSubstring(prot1_string, "reverse_");
-          removeSubstring(prot1_string, "decoy_");
+          removeSubstring(prot1_string, XQuestResultXMLHandler::decoy_string);
           StringList prot1_list;
           StringUtils::split(prot1_string, ",", prot1_list);
           removeSubstring(prot2_string, "reverse_");
-          removeSubstring(prot2_string, "decoy_");
+          removeSubstring(prot2_string, XQuestResultXMLHandler::decoy_string);
           StringList prot2_list;
           StringUtils::split(prot2_string, ",", prot2_list);
 
@@ -432,6 +498,9 @@ namespace OpenMS
         }
         else if (xlink_type_string == "monolink")
         {
+          // Set the monolink mass
+          this->monolinks_masses.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
+
           // xl_type
           this->setMetaValue("xl_type", DataValue("mono-link"),peptide_identification,peptide_hit_alpha);
 

@@ -59,7 +59,7 @@ namespace OpenMS
 
       // Maps String encoding month to the numeric value
       static std::map<String, UInt> months;
-
+      static const String decoy_string;
 
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
@@ -85,15 +85,27 @@ namespace OpenMS
 
     private:
    
+      // Main data structures that are populated during loading the file
       std::vector< XQuestResultMeta > & metas_;
       std::vector< std::vector< PeptideIdentification > > & csms_;
       std::vector< ProteinIdentification > & prot_ids_; 
       
-      // Set of all protein accessions that are within the ProteinHits 
+      // Whether or not current xquest result tag comes from OpenProXL
+      bool is_openproxl;
+
+      // Set of all protein accessions that are within the ProteinHits.
       std::set< String > accessions;
       
       // The enzyme database for enzyme lookup
       EnzymesDB * enzymes_db;
+
+      // Keeps track of the charges of the hits
+      std::set< UInt > charges;
+      UInt min_precursor_charge;
+      UInt max_precursor_charge;
+
+      // The masses of the Monolinks
+      std::set< double > monolinks_masses;
       
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search;
