@@ -161,7 +161,7 @@ T getXLMetaValue(const String & name, const PeptideIdentification & pep_id, bool
 /** 
    Prepares the peptide identifications of cross-links such that they can be further processed
  */
-void prepareIDXML(vector< PeptideIdentification > & pep_ids, vector< ProteinIdentification > & prot_ids)
+void prepareInput(vector< PeptideIdentification > & pep_ids, vector< ProteinIdentification > & prot_ids)
 {
   for (vector< PeptideIdentification >::iterator pep_ids_it = pep_ids.begin();
        pep_ids_it != pep_ids.end(); ++pep_ids_it)
@@ -203,9 +203,6 @@ void prepareIDXML(vector< PeptideIdentification > & pep_ids, vector< ProteinIden
       }            
     }     
   }
- 
-  // Determine whether inter or intra protein
-   assert(pep_id.metaValueExists("target_decoy"));
   }
 }
 
@@ -256,12 +253,13 @@ class TOPPXFDR :
 
     static const String param_in;  // Parameter for the input file
     static const String param_out_idXML;
+    static const String param_out_mzid;
     static const String param_minborder;  // minborder -5 # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  5 # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
     static const String param_minionsmatched; // minionsmatched 0 # Filter for minimum matched ions per peptide
     static const String param_uniquexl; // calculate statistics based on unique IDs
-    static const String param_qtransform; // transform simple FDR to q-FDR values
+    static const String param_no_qvalues; // Do not transform to qvalues
     static const String param_minscore; // minscore 0 # minimum ld-score to be considered
     static const String param_verbose; // Whether or not the output of the tool should be verbose.
 
@@ -516,6 +514,10 @@ class TOPPXFDR :
       registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", false, false);
       setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
 
+      // mzid output
+      registerOutputFile_(TOPPXFDR::param_out_mzid, "<mzid_file>", "", "Output as mzid file", false, false);
+      setValidFormats_(TOPPXFDR::param_out_mzid, ListUtils::create<String>("mzid"));
+
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -5, "Filter for minimum precursor mass error (ppm)", false);
 
@@ -532,7 +534,7 @@ class TOPPXFDR :
       registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based on unique IDs");
 
       // Qtransform
-      registerFlag_(TOPPXFDR::param_qtransform, "Transform simple FDR to q-FDR values");
+      registerFlag_(TOPPXFDR::param_no_qvalues, "Do not transform simple FDR to q-FDR values");
 
       // Minscore
       registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
@@ -665,37 +667,30 @@ class TOPPXFDR :
              rank_counter++;
           }
         }
-      }
-      
-      // TODO Add support
+      }      
       else if (arg_in.hasSuffix("mzid"))
       {
-        vector< ProteinIdentification > prot_ids;
-        vector< PeptideIdentification > pep_ids;
-        MzIdentMLFile().load(arg_in, prot_ids, pep_ids);
+        MzIdentMLFile().load(arg_in, prot_ids, all_ids);
+        prepareInput(all_ids, prot_ids);
 
-        PeptideIdentification pep_id = pep_ids[0];
-        StringList keys;
-        pep_id.getKeys(keys);
-
-        cout << "PRINT" << endl;
-        for (StringList::const_iterator keys_it = keys.begin(); keys_it != keys.end(); ++keys_it)
+        Size rank_counter = 0;
+        for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
+             all_ids_it != all_ids.end(); ++all_ids_it)
         {
-          cout << *keys_it << endl;
+          PeptideIdentification pep_id = *all_ids_it;
+
+          if (getXLMetaValue<int>("xl_rank", pep_id, false) == 1)
+          {
+            rank_one_ids.push_back(rank_counter);
+          }
+          rank_counter++;
         }
       }
       else if (arg_in.hasSuffix("idXML"))
       {
         IdXMLFile().load(arg_in, prot_ids, all_ids); 
-        prepareIDXML(all_ids, prot_ids);
-       
-        for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
-             all_ids_it != all_ids.end(); ++all_ids_it)
-        {
-           assert(all_ids_it->metaValueExists("target_decoy"));
-        }
-    
-         
+        prepareInput(all_ids, prot_ids);
+
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
              all_ids_it != all_ids.end(); ++all_ids_it)
@@ -711,8 +706,7 @@ class TOPPXFDR :
       }
       
       // Number of peptide identifications that need to be considered
-      Size n_ids = rank_one_ids.size();
-      
+      Size n_ids = rank_one_ids.size();      
    
       //      for(vector< vector < PeptideIdentification > >::const_iterator it = spectra.begin(); it != spectra.end(); ++it)
       //      {
@@ -922,10 +916,10 @@ class TOPPXFDR :
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_monolinks, TOPPXFDR::xlclass_monodecoys, "", fdr_monolinks, true);
 
       // Determine whether qTransform should be performed
-      bool arg_qtransform = getFlag_(TOPPXFDR::param_qtransform);
+      bool arg_no_qvalues = getFlag_(TOPPXFDR::param_no_qvalues);
 
 
-      if(arg_qtransform)
+      if(! arg_no_qvalues)
       {
         LOG_INFO << "Performing qFDR transformation" << endl;
 
@@ -957,7 +951,7 @@ class TOPPXFDR :
         
         StringList xl_types;
         assign_types(pep_id, xl_types);
-        pep_id.setMetaValue("OpenXQuest:fdr_type", arg_qtransform ? "qfdr" : "fdr");     
+        pep_id.setMetaValue("OpenXQuest:fdr_type", arg_no_qvalues ? "fdr" : "qfdr");
        
         // Assign FDR value
         bool assigned = false;
@@ -1010,27 +1004,31 @@ class TOPPXFDR :
         delete cum_histograms_it->second;
       }
 
-     // Write output
+     // Write idXML
      String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
-     
-     
-     // idXML
      if ( ! arg_out_idXML.empty())
      {
        IdXMLFile().store( arg_out_idXML, prot_ids, all_ids);   
      }
-    
+
+     // Write mzid
+     String arg_out_mzid = getStringOption_(TOPPXFDR::param_out_mzid);
+     if ( ! arg_out_mzid.empty())
+     {
+      MzIdentMLFile().store(arg_out_mzid, prot_ids, all_ids);
+     }
       return EXECUTION_OK;
     }
 };
 const String TOPPXFDR::param_in = "in";
 const String TOPPXFDR::param_out_idXML = "out_idXML";
+const String TOPPXFDR::param_out_mzid = "out_mzid";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
 const String TOPPXFDR::param_minionsmatched = "minionsmatched";
 const String TOPPXFDR::param_uniquexl = "uniquexl";
-const String TOPPXFDR::param_qtransform = "qtransform";
+const String TOPPXFDR::param_no_qvalues = "no_qvalues";
 const String TOPPXFDR::param_minscore = "minscore";
 const String TOPPXFDR::param_verbose = "verbose";
 
