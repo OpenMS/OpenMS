@@ -323,6 +323,7 @@ namespace OpenMS
 
           for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
           {
+            // we don't allow modifications with ambiguity codes as origin (except "X"):
             if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
             {
               mod.setOrigin((*orig_it)[0]);
@@ -493,6 +494,7 @@ namespace OpenMS
 
       for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
       {
+        // we don't allow modifications with ambiguity codes as origin (except "X"):
         if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
         {
           mod.setOrigin((*orig_it)[0]);
