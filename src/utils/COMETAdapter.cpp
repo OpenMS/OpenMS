@@ -326,7 +326,7 @@ protected:
       } 
       String required = "0";
 
-      os << "variable_mod0" << var_mod_index << " = " << mass << " " << residues << " " << variable << " " << max_mods_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n"; 
+      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << variable << " " << max_mods_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
