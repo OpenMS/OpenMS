@@ -262,7 +262,9 @@ protected:
     map_oms2comet["Lys-C"] = 3;
     map_oms2comet["PepsinA"] = 9;
     map_oms2comet["Trypsin/P"] = 2;
-    map_oms2comet["no cleavage"] = 0;   
+    map_oms2comet["no cleavage"] = 0;
+    map_oms2comet["unspecific cleavage"] = 0;
+
 
     String enzyme_name = getStringOption_("enzyme");
     Size enzyme_number = 1;
@@ -289,10 +291,10 @@ protected:
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
     }
 
-    Size var_mod_index = 1;
+    Size var_mod_index = 0;
 
     // write out user specified modifications
-    for (; var_mod_index <= variable_modifications.size(); ++var_mod_index)
+    for (; var_mod_index < variable_modifications.size(); ++var_mod_index)
     {
       const ResidueModification mod = variable_modifications[var_mod_index];
       double mass = mod.getDiffMonoMass();
@@ -328,7 +330,7 @@ protected:
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
-    for (; var_mod_index <= 9; ++var_mod_index)
+    for (; var_mod_index < 9; ++var_mod_index)
     {
       os << "variable_mod0" << var_mod_index << " = " << "0.0 X 0 3 -1 0 0" << "\n";
     }
@@ -479,7 +481,7 @@ protected:
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
     //QDir d;
     //d.mkpath(tmp_dir.toQString());
-    String tmp_pepxml = tmp_dir + File::removeExtension(File::basename(inputfile_name)) + ".pep.xml";
+    String tmp_pepxml = tmp_dir + "result.pep.xml";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
@@ -550,6 +552,7 @@ protected:
     writeDebug_("write idXMLFile", 1);
     writeDebug_(out, 1);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
+
 
     // remove tempdir
     if (this->debug_level_ == 0)
