@@ -140,33 +140,23 @@ private:
         String("any;+;-").split(';', cv_terms_[0]);
         //Scan type
         // is no longer used cv_terms_[1] is empty now
+        
         //Ionization method
         String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
         cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
+                
         //Mass analyzer
         String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
         cv_terms_[3].resize(MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+        
         //Detector
         String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
         cv_terms_[4].resize(IonDetector::SIZE_OF_TYPE);
+        
         //Resolution method
         String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
         cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
-        /* // OLD:
-            cv_terms_.resize(6);
-            //Polarity
-            String("any;+;-").split(';',cv_terms_[0]);
-            //Scan type
-            // is no longer used cv_terms_[1] is empty now
-            //Ionization method
-            String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
-            //Mass analyzer
-            String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
-            //Detector
-            String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
-            //Resolution method
-            String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
-            */
+
       }
 
 protected:
@@ -1118,7 +1108,7 @@ private:
            //<< "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n"
            //<< "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
-        if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod())
+        if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
         {
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
@@ -1127,9 +1117,9 @@ private:
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
         }
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-        if (analyzers.empty() || !analyzers[0].getResolutionMethod() || cv_terms_[3][analyzers[0].getType()].empty())
-        { //TODO is this important for MaxQuant? --> no
-          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"FTMS\"/>\n";
+        if (analyzers.empty() || cv_terms_[3][analyzers[0].getType()].empty())
+        { 
+          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
         }
         else
         {
@@ -1137,7 +1127,7 @@ private:
         }
         if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType() || cv_terms_[4][inst.getIonDetectors()[0].getType()].empty())
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"unknown\"/>\n"; // TODO
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
         }
         else
         {
