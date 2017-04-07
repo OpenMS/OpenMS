@@ -32,8 +32,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef THEORETICALSPECTRUMGENERATORRPLESS_H
-#define THEORETICALSPECTRUMGENERATORRPLESS_H
+#ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
+#define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
