@@ -141,10 +141,10 @@ private:
         //Scan type
         // is no longer used cv_terms_[1] is empty now
         //Ionization method
-        String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;;;;;;MALDI").split(';', cv_terms_[2]);
+        String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
         cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
         //Mass analyzer
-        String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';', cv_terms_[3]);
+        String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
         cv_terms_[3].resize(MassAnalyzer::SIZE_OF_ANALYZERTYPE);
         //Detector
         String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
@@ -1053,12 +1053,18 @@ private:
       if (count_tmp_ == 0) ++count_tmp_;
 
       logger_.startProgress(0, cexp_->size(), "storing mzXML file");
+      double min_rt(0), max_rt(0);
+      if (cexp_->size() > 0)
+      {
+        min_rt = cexp_->begin()->getRT();
+        max_rt = (cexp_->end()-1)->getRT();
+      }
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
          << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\" \n"
          << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n"
          << " xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 "
          << "http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
-         << "\t<msRun scanCount=\"" << count_tmp_ << "\" startTime=\"PT0.2158S\" endTime=\"PT4500.06S\" >\n"; //TODO
+         << "\t<msRun scanCount=\"" << count_tmp_ << "\" startTime=\"PT" << min_rt << "S\" endTime=\"PT" << max_rt << "S\" >\n";
 
       //----------------------------------------------------------------------------------------
       // parent files
@@ -1106,41 +1112,41 @@ private:
       {
         const Instrument& inst = cexp_->getInstrument();
         os << "\t\t<msInstrument>\n"
-           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"Thermo Finnigan\"/>\n" 
-           << "\t\t\t<msModel category=\"msModel\" value=\"unknown\"/>\n";
+          << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"Thermo Finnigan\"/>\n"
+          << "\t\t\t<msModel category=\"msModel\" value=\"unknown\"/>\n";
+           // TODO
+           //<< "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n"
+           //<< "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
+
         if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod())
         {
-          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"NSI\"/>\n";
+          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << "NSI" << "\"/>\n";
+          os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
         }
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-        if (analyzers.empty() || !analyzers[0].getResolutionMethod())
-        {
+        if (analyzers.empty() || !analyzers[0].getResolutionMethod() || cv_terms_[3][analyzers[0].getType()].empty())
+        { //TODO is this important for MaxQuant? --> no
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"FTMS\"/>\n";
         }
         else
         {
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()]  << "\"/>\n";
         }
-        if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType())
+        if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType() || cv_terms_[4][inst.getIonDetectors()[0].getType()].empty())
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"unknown\"/>\n";
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"unknown\"/>\n"; // TODO
         }
         else
         {
-          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << "unknown" << "\"/>\n";
+          os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";
         }
         os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
-        if (analyzers.empty() || !analyzers[0].getResolutionMethod())
-        {
-          //os << "\t\t\t<msResolution category=\"msResolution\" value=\"\"/>\n";
-        }
-        else
-        {
-          //os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
+        if (! (analyzers.empty() || !analyzers[0].getResolutionMethod() || cv_terms_[5][analyzers[0].getResolutionMethod()].empty()))
+        { // must not be empty, otherwise MaxQuant crashes upon loading mzXML
+          os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
         }
 
         if (cexp_->getContacts().size() > 0)
@@ -1182,7 +1188,8 @@ private:
       if (true || cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
-          << "\t\t\t<software type=\"conversion\" name=\"ReAdW\" version=\"4.3.1(build Sep  9 2009 12:30 : 29)\" />\n"
+           //<< "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
+           << "\t\t\t<software type=\"conversion\" name=\"ReAdW\" version=\"4.3.1(build Sep  9 2009 12:30 : 29)\" />\n"
            << "\t\t</dataProcessing>\n";
       }
       else
@@ -1297,7 +1304,7 @@ private:
         scan_index_positions.push_back(IndexPos(spectrum_id, os.tellp())); // remember scan index
         os << "<scan num=\"" << spectrum_id << "\"\n"
            << " msLevel=\"" << ms_level << "\"\n"
-           << " peaksCount=\"" << spec.size() << "\" \n"
+           << " peaksCount=\"" << spec.size() << "\"\n"
            << " polarity=\"";
         if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
         {
@@ -1376,8 +1383,12 @@ private:
         writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity") << "\n";
         writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent");
 
-        if (ms_level == 2) os << "\n collisionEnergy=\"40\" \n";
-
+        if (ms_level == 2 && 
+            !spec.getPrecursors().empty() &&
+            spec.getPrecursors().front().metaValueExists("collision energy"))
+        {
+          os << "\n collisionEnergy=\"" << spec.getPrecursors().front().getMetaValue("collision energy") << "\" \n";
+        }
         // end of "scan" attributes
         os << ">\n";
 
@@ -1395,14 +1406,20 @@ private:
           {
             //os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
           }
-            
+          if (precursor.getActivationMethods().empty())
+          {
+            os << " activationMethod=\"unknown\" ";
+          }
+          else
+          {
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
+          }
           
-          os << " activationMethod=\"CID\" ";
           //m/z
           double mz = precursor.getMZ();
-          if (!spec.getAcquisitionInfo().empty() &&
+          if (!spec.getAcquisitionInfo().empty() && 
               spec.getAcquisitionInfo().begin()->metaValueExists("[Thermo Trailer Extra]Monoisotopic M/Z:"))
-          {
+          { // this value is usually more accurate; the old ReAdw-converter uses it as well
             mz = spec.getAcquisitionInfo().begin()->getMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:");
           }
           os << ">" << mz << "</precursorMz>\n";
