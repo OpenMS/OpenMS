@@ -330,7 +330,8 @@ namespace OpenMS
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
         if ((it->second.getOrigin() != 'X') ||
-            (it->second.getTermSpecificity() != ResidueModification::ANYWHERE))
+            ((it->second.getTermSpecificity() != ResidueModification::ANYWHERE) &&
+             (it->second.getDiffMonoMass() != 0)))
         {
           mods_.push_back(new ResidueModification(it->second));
 

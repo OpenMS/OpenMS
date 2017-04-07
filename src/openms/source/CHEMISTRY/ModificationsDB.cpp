@@ -331,6 +331,20 @@ namespace OpenMS
             }
           }
 
+          // for mono-links from XLMOD.obo:
+          if (origin.hasSubstring("ProteinN-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::N_TERM);
+            mod.setOrigin('X');
+            all_mods.insert(make_pair(id, mod));
+          }
+          if (origin.hasSubstring("ProteinC-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::C_TERM);
+            mod.setOrigin('X');
+            all_mods.insert(make_pair(id, mod));
+          }
+
           id = "";
           origin = "";
           mod = ResidueModification();
@@ -502,6 +516,20 @@ namespace OpenMS
         }
       }
 
+      // for mono-links from XLMOD.obo:
+      if (origin.hasSubstring("ProteinN-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::N_TERM);
+        mod.setOrigin('X');
+        all_mods.insert(make_pair(id, mod));
+      }
+      if (origin.hasSubstring("ProteinC-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::C_TERM);
+        mod.setOrigin('X');
+        all_mods.insert(make_pair(id, mod));
+      }
+
       id = "";
       origin = "";
       mod = ResidueModification();
@@ -526,11 +554,9 @@ namespace OpenMS
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        // @TODO: allow terminal specificity (currently breaks various tests,
-        // e.g. due to inclusion of "MOD:01154": "pyruvic acid")
-        // if ((it->second.getOrigin() != 'X') ||
-        //     (it->second.getTermSpecificity() != ResidueModification::ANYWHERE))
-        if (it->second.getOrigin() != 'X')
+        if ((it->second.getOrigin() != 'X') ||
+            ((it->second.getTermSpecificity() != ResidueModification::ANYWHERE) &&
+             (it->second.getDiffMonoMass() != 0)))
         {
           mods_.push_back(new ResidueModification(it->second));
 
