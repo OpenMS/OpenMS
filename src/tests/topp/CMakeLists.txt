@@ -2020,3 +2020,8 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+#------------------------------------------------------------------------------
+# XFDR tests
+add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -in ${DATA_DIR_TOPP}/XFDR_test_input.xml -out_idXML XFDR_test_output_temp.idXML)
+add_test("UTILS_XFDR_1_out1" ${DIFF} -in1 XFDR_test_output_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_output.idXML)
+set_tests_properties("UTILS_XFDR_1_out1" PROPERTIES DEPENDS "UTILS_XFDR_1")
