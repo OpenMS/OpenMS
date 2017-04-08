@@ -139,10 +139,10 @@ namespace OpenMS
       String xlink_position = this->attributeAsString_(attributes, "xlinkposition");
       StringList xlink_position_split;
       StringUtils::split(xlink_position, "," ,xlink_position_split);
-      assert(xlink_position_split.size() == 2);
+      //assert(xlink_position_split.size() == 2);
 
       pair.first = xlink_position_split[0].toInt();
-      pair.second = xlink_position_split[1].toInt();
+      pair.second = xlink_position_split.size() == 2 ? xlink_position_split[1].toInt() : 0;
     }
     
     void XQuestResultXMLHandler::setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit)
@@ -372,6 +372,7 @@ namespace OpenMS
 
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
+
         peptide_hit_alpha.setScore(score);
         peptide_hit_alpha.setSequence(AASequence::fromString(this->attributeAsString_(attributes, "seq1")));
         peptide_hit_alpha.setCharge(charge);
@@ -505,8 +506,9 @@ namespace OpenMS
           // xl_type
           this->setMetaValue_("xl_type", DataValue("mono-link"),peptide_identification,peptide_hit_alpha);
 
-          // Set xl positions_depends on xl_type
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue((SignedSize)this->attributeAsInt_(attributes, "xlinkposition") - 1));
+          std::pair< SignedSize, SignedSize > xlink_pos;
+          this->getLinkPosition_(attributes, xlink_pos);
+          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(xlink_pos.first - 1));
         }
         else
         {
