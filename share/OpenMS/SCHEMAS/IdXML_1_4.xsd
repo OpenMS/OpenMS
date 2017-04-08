@@ -251,7 +251,7 @@
 		</xs:attribute>
                 <xs:attribute name="spectrum_reference" type="xs:string">
 			<xs:annotation>
-				<xs:documentation>Integer reference number of the identified spectrum (or feature)</xs:documentation>
+				<xs:documentation>string reference of the identified spectrum (or feature)</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="RT" type="xs:float">
@@ -369,4 +369,3 @@
 		</xs:attribute>
 	</xs:complexType>
 </xs:schema>
-
