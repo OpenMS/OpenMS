@@ -59,7 +59,17 @@ namespace OpenMS
 
       // Maps String encoding month to the numeric value
       static std::map<String, UInt> months;
+
+      // Decoy string used by xQuest
       static const String decoy_string;
+
+      /**
+       * @brief Removes a substring from a larger string
+       * @param large String from which `small` should be removed
+       * @param small Substring to be removed from `large`
+       */
+      static void removeSubstring(String & large, const String & small);
+
 
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
@@ -78,10 +88,11 @@ namespace OpenMS
       void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
 
       // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+      //void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
 
       //Docu in base class
-      virtual void writeTo(std::ostream & os);
+      //virtual void writeTo(std::ostream & os);
+
 
     private:
    
@@ -90,25 +101,28 @@ namespace OpenMS
       std::vector< std::vector< PeptideIdentification > > & csms_;
       std::vector< ProteinIdentification > & prot_ids_; 
       
-      // Whether or not current xquest result tag comes from OpenProXL
-      bool is_openproxl;
+      // Whether or not current xquest result tag comes from OpenProXL (xQuest otherwise)
+      bool is_openproxl_;
 
       // Set of all protein accessions that are within the ProteinHits.
-      std::set< String > accessions;
+      std::set< String > accessions_;
       
       // The enzyme database for enzyme lookup
-      EnzymesDB * enzymes_db;
+      EnzymesDB * enzymes_db_;
 
       // Keeps track of the charges of the hits
-      std::set< UInt > charges;
-      UInt min_precursor_charge;
-      UInt max_precursor_charge;
+      std::set< UInt > charges_;
+      UInt min_precursor_charge_;
+      UInt max_precursor_charge_;
+
+      // Current Retention time of light spectrum
+      double rt_light_;
 
       // The masses of the Monolinks
-      std::set< double > monolinks_masses;
+      std::set< double > monolinks_masses_;
       
       // The current spectrum search
-      std::vector< PeptideIdentification > current_spectrum_search;
+      std::vector< PeptideIdentification > current_spectrum_search_;
       XQuestResultMeta current_meta_; // The current meta value
       int & n_hits_; // Total no. of hits found in the result XML file
       std::vector< int > * cum_hits_;
@@ -116,25 +130,36 @@ namespace OpenMS
       bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
       
       // Stores the attributes of a record (peptide identification)
-      std::map<String, DataValue> peptide_id_meta_values;
+      std::map<String, DataValue> peptide_id_meta_values_;
 
-      // Extract the DateTime from an xQuest date String
-      inline void extractDateTime(const String & xquest_datetime_string, DateTime & date_time);
+      /**
+       * @brief Extracts the DateTime from datetime string from xQuest
+       * @param xquest_datetime_string The DateTime String to be processed
+       * @param date_time DateTime that reflects the value given in the `xquest_datetime_string`
+       */
+      inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time);
 
-      // Assign all attributes in the peptide_id_attributes map to the MetaInfoInterface object
-      void add_meta_values(MetaInfoInterface & meta_info_interface);
+      /**
+       * @brief Assignes all meta values stored in the peptide_id_attributes member to an meta info interface
+       * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
+       */
+      void addMetaValues_(MetaInfoInterface & meta_info_interface);
 
-      // Retrieves the link location for cross-links and loop links
+      /**
+       * @brief Gets the link location of a xQuest xlinkPositionString
+       */
       void getLinkPosition_(const xercesc::Attributes &, std::pair<SignedSize, SignedSize> &);
       
-      // Sets the Peptide Evidence for alpha or beta
+      /**
+       * @brief Sets the peptide Evidence for Alpha and Beta
+       */
       void setPeptideEvidence_(const String &, PeptideHit &);
 
       /*
        * Sets the meta data for one or both peptide hits
        */
-      void setMetaValue(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */);
-      void setMetaValue(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */, PeptideHit & /* beta */);
+      void setMetaValue_(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */);
+      void setMetaValue_(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */, PeptideHit & /* beta */);
     };
   } // namespace Internal
 } // namespace OpenMS

@@ -76,16 +76,7 @@ namespace OpenMS
   }
 
 
-  /*
-  void XQuestResultXMLFile::store(const String & filename, std::vector<std::vector<PeptideIdentification> > & specta)
-  {
-
-    Internal::XQuestResultXMLHandler handler(filename, )
-    save_(filename, &handler);
-
-  }
-  */
-
+  /* TODO Currently not implemented
   void XQuestResultXMLFile::store(const String & filename, std::vector<std::vector<PeptideIdentification> > & spectra)
   {
     // TODO Currently dummy, needed for the handler
@@ -95,8 +86,7 @@ namespace OpenMS
     this->n_hits_= 0;
     Internal::XQuestResultXMLHandler handler(filename, metas,spectra, prot_ids, this->n_hits_, NULL, 0, false);
   }
-
-
+  */
 
   void XQuestResultXMLFile::delete_cum_hits()
   {

@@ -46,22 +46,16 @@
 #include <iostream>
 #include <utility>
 
+#include <assert.h>
+
 using namespace std;
 using namespace xercesc;
-
-// TODO Switch to Debug mode in CMake and remove this undef
-#undef NDEBUG
-#include <assert.h>
 
 namespace OpenMS
 {
   namespace Internal
   {
-
-    /*
-     *  Helper functions
-     */
-    void removeSubstring(String &  large, const String & small)
+    void XQuestResultXMLHandler::removeSubstring(String &  large, const String & small)
     {
       std::string::size_type i = large.find(small);
       if (i != std::string::npos)
@@ -101,16 +95,16 @@ namespace OpenMS
       // Initialize the one and only protein identification
       this->prot_ids_.clear();
       ProteinIdentification prot_id;
-      prot_id.setSearchEngine("xQuest");
+      prot_id.setSearchEngine("OpenXQuest");
       prot_id.setSearchEngineVersion(VersionInfo::getVersion());
+      prot_id.setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
       this->prot_ids_.push_back(prot_id);
       
       // Fetch the enzymes database
-      this->enzymes_db = EnzymesDB::getInstance();
+      this->enzymes_db_ = EnzymesDB::getInstance();
 
       // Produce some warnings that are associated with the reading of xQuest result files
-      LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n"
-               << "WARNING: Input file might be either from xQuest or from OpenProXL. Assume xQuest here." << std::endl;
+      LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
     }
 
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
@@ -118,11 +112,11 @@ namespace OpenMS
 
     }
 
-    void XQuestResultXMLHandler::extractDateTime(const String & xquest_datetime_string, DateTime & date_time)
+    void XQuestResultXMLHandler::extractDateTime_(const String & xquest_datetime_string, DateTime & date_time)
     {
       StringList xquest_datetime_string_split;
       StringUtils::split(xquest_datetime_string,' ', xquest_datetime_string_split);
-      if (this->is_openproxl)
+      if (this->is_openproxl_)
       {
         // Example: 2017-03-17 23:04:50
         date_time.setDate(xquest_datetime_string_split[0]);
@@ -138,6 +132,7 @@ namespace OpenMS
         date_time.setTime(xquest_datetime_string_split[3]);
       }
     }
+
     // Extracts the position of the Cross-Link for intralinks and crosslinks
     void XQuestResultXMLHandler::getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair)
     {
@@ -162,9 +157,9 @@ namespace OpenMS
         PeptideEvidence pep_ev;
         String accession = *prot_list_it;
         
-        if (this->accessions.find(accession) == this->accessions.end())
+        if (this->accessions_.find(accession) == this->accessions_.end())
         {
-          this->accessions.insert(accession);
+          this->accessions_.insert(accession);
           
           ProteinHit prot_hit;
           prot_hit.setAccession(accession);
@@ -184,19 +179,18 @@ namespace OpenMS
       pep_hit.setPeptideEvidences(evidences);
     }
 
-
     // Assign all attributes in the peptide_id_attributes map to the MetaInfoInterface object
-    void XQuestResultXMLHandler::add_meta_values(MetaInfoInterface & meta_info_interface)
+    void XQuestResultXMLHandler::addMetaValues_(MetaInfoInterface & meta_info_interface)
     {
-      for (std::map<String, DataValue>::const_iterator it = this->peptide_id_meta_values.begin();
-           it != this->peptide_id_meta_values.end(); it++)
+      for (std::map<String, DataValue>::const_iterator it = this->peptide_id_meta_values_.begin();
+           it != this->peptide_id_meta_values_.end(); it++)
       {
         std::pair<String, DataValue> item = *it;
         meta_info_interface.setMetaValue(item.first, item.second);
       }
     }
 
-    void XQuestResultXMLHandler::setMetaValue(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha)
+    void XQuestResultXMLHandler::setMetaValue_(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha)
     {
       pep_id.setMetaValue(key, datavalue);
       if (this->load_to_peptideHit_)
@@ -204,9 +198,9 @@ namespace OpenMS
         alpha.setMetaValue(key, datavalue);
       }
     }
-    void XQuestResultXMLHandler::setMetaValue(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta)
+    void XQuestResultXMLHandler::setMetaValue_(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta)
     {
-      this->setMetaValue(key, datavalue, pep_id, alpha);
+      this->setMetaValue_(key, datavalue, pep_id, alpha);
       if (this->load_to_peptideHit_)
       {
         beta.setMetaValue(key, datavalue);
@@ -220,7 +214,7 @@ namespace OpenMS
       if (tag == "spectrum_search")
       {
         // Push back spectrum search vector
-        size_t current_spectrum_size = this->current_spectrum_search.size();
+        size_t current_spectrum_size = this->current_spectrum_search_.size();
         if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
         {
           /* Currently does not work
@@ -239,26 +233,26 @@ namespace OpenMS
             }
             this->csms_.push_back(newvec);
             */
-          this->csms_.push_back(this->current_spectrum_search);
+          this->csms_.push_back(this->current_spectrum_search_);
 
           if(this->cum_hits_ != NULL)
           {
             this->cum_hits_->push_back(this->n_hits_);
           }
         }
-        this->current_spectrum_search.clear();
+        this->current_spectrum_search_.clear();
       }
       else if (tag == "xquest_results")
       {
         this->metas_.push_back(this->current_meta_);
         this->current_meta_.clearMetaInfo();
         ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
-        search_params.charges = ListUtils::concatenate(this->charges, ",");
-        search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge);
-        search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge);
-        DoubleList monolink_masses_list(this->monolinks_masses.size());
-        for (std::set<double>::const_iterator monolink_masses_it = this->monolinks_masses.begin();
-             monolink_masses_it != this->monolinks_masses.end(); ++monolink_masses_it)
+        search_params.charges = ListUtils::concatenate(this->charges_, ",");
+        search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);
+        search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
+        DoubleList monolink_masses_list(this->monolinks_masses_.size());
+        for (std::set<double>::const_iterator monolink_masses_it = this->monolinks_masses_.begin();
+             monolink_masses_it != this->monolinks_masses_.end(); ++monolink_masses_it)
         {
           monolink_masses_list.push_back(*monolink_masses_it);
         }
@@ -275,11 +269,11 @@ namespace OpenMS
       {
         // Decide whether this Block is original xQuest or OpenProXL
         String xquest_version = this->attributeAsString_(attributes, "xquest_version");
-        this->is_openproxl = xquest_version.hasSubstring("XL");
+        this->is_openproxl_ = xquest_version.hasSubstring("XL");
 
         // Date and Time of Search
         DateTime date_time;
-        this->extractDateTime(this->attributeAsString_(attributes, "date"), date_time);
+        this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
         this->prot_ids_[0].setDateTime(date_time);
 
         /*
@@ -294,19 +288,19 @@ namespace OpenMS
         ProteinIdentification::SearchParameters search_params;
 
         // General
-        if (this->is_openproxl) // Enzyme via name
+        if (this->is_openproxl_) // Enzyme via name
         {
-          search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(this->attributeAsString_(attributes, "enzyme_name"));
+          search_params.digestion_enzyme = *this->enzymes_db_->getEnzyme(this->attributeAsString_(attributes, "enzyme_name"));
         }
         else // Enzyme via enzyme number in xQuest
         {
-          search_params.digestion_enzyme = *this->enzymes_db->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]);
+          search_params.digestion_enzyme = *this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]);
         }
 
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
-        String tolerancemeasure = this->attributeAsString_(attributes, this->is_openproxl ? "tolerancemeasure_ms1" : "tolerancemeasure");
+        String tolerancemeasure = this->attributeAsString_(attributes, this->is_openproxl_ ? "tolerancemeasure_ms1" : "tolerancemeasure");
         search_params.precursor_mass_tolerance_ppm = tolerancemeasure == "ppm";
         search_params.fragment_mass_tolerance = this->attributeAsDouble_(attributes, "ms2tolerance");
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
@@ -334,29 +328,36 @@ namespace OpenMS
       }
       else if (tag == "spectrum_search")
       {
+
+        // Update retention time of light
+        StringList rt_split;
+        StringUtils::split(this->attributeAsString_(attributes, "rtsecscans"), ":", rt_split);
+        this->rt_light_ = rt_split[0].toDouble();
+
         // Update min and max precursor charge
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
-        if (charge_precursor < this->min_precursor_charge)
+        if (charge_precursor < this->min_precursor_charge_)
         {
-          this->min_precursor_charge = charge_precursor;
+          this->min_precursor_charge_ = charge_precursor;
         }
-        if (charge_precursor > this->max_precursor_charge)
+        if (charge_precursor > this->max_precursor_charge_)
         {
-          this->max_precursor_charge = charge_precursor;
+          this->max_precursor_charge_ = charge_precursor;
         }
       }
       else if (tag == "search_hit")
       {
         // Keep track of the charge if this hit
         UInt charge = this->attributeAsInt_(attributes, "charge");
-        this->charges.insert(charge);
+        this->charges_.insert(charge);
 
         this->n_hits_++;
         PeptideIdentification peptide_identification;
 
         // Set Attributes of Peptide Identification
         peptide_identification.setMZ(this->attributeAsDouble_(attributes, "mz"));
-
+        peptide_identification.setRT(this->rt_light_);
+        peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
 
         PeptideHit peptide_hit_alpha;
         vector<PeptideHit> peptide_hits;
@@ -376,35 +377,35 @@ namespace OpenMS
         peptide_hit_alpha.setCharge(charge);
 
         // Get Attributes of Peptide Identification
-        this->peptide_id_meta_values["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
-        this->peptide_id_meta_values["OpenXQuest:xlinkermass"] = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
-        this->peptide_id_meta_values["OpenXQuest:wTIC"] = DataValue(this->attributeAsDouble_(attributes, "wTIC"));
-        this->peptide_id_meta_values["OpenXQuest:percTIC"] = DataValue(this->attributeAsDouble_(attributes, "TIC"));
-        this->peptide_id_meta_values["xl_rank"] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
-        this->peptide_id_meta_values["OpenXQuest:intsum"] = DataValue(this->attributeAsDouble_(attributes, "intsum")/100);
-        this->peptide_id_meta_values["OpenXQuest:match-odds"] = DataValue(this->attributeAsDouble_(attributes, "match_odds"));
-        this->peptide_id_meta_values["OpenXQuest:score"] = DataValue(score);
-        this->peptide_id_meta_values["OpenXQuest:error_rel"] = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
-        this->peptide_id_meta_values["OpenXQuest:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
+        this->peptide_id_meta_values_["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
+        this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
+        this->peptide_id_meta_values_["OpenXQuest:wTIC"] = DataValue(this->attributeAsDouble_(attributes, "wTIC"));
+        this->peptide_id_meta_values_["OpenXQuest:percTIC"] = DataValue(this->attributeAsDouble_(attributes, "TIC"));
+        this->peptide_id_meta_values_["xl_rank"] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
+        this->peptide_id_meta_values_["OpenXQuest:intsum"] = DataValue(this->attributeAsDouble_(attributes, "intsum")/100);
+        this->peptide_id_meta_values_["OpenXQuest:match-odds"] = DataValue(this->attributeAsDouble_(attributes, "match_odds"));
+        this->peptide_id_meta_values_["OpenXQuest:score"] = DataValue(score);
+        this->peptide_id_meta_values_["OpenXQuest:error_rel"] = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
+        this->peptide_id_meta_values_["OpenXQuest:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
 
-        assert(this->peptide_id_meta_values["OpenXQuest:id"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:xlinkermass"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:wTIC"]  != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:percTIC"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:intsum"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:match-odds"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["xl_rank"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:score"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:error_rel"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values["OpenXQuest:structure"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:id"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:wTIC"]  != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:percTIC"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:intsum"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:match-odds"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["xl_rank"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:score"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:error_rel"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenXQuest:structure"] != DataValue::EMPTY);
 
-        this->add_meta_values(peptide_identification);
+        this->addMetaValues_(peptide_identification);
 
         // Store common attributes in Peptide Identification
         // If requested, also write to the peptide_hit_alpha
         if (this->load_to_peptideHit_)
         {
-          this->add_meta_values(peptide_hit_alpha);
+          this->addMetaValues_(peptide_hit_alpha);
         }
 
         // Store specific stuff for peptide hit alpha
@@ -431,16 +432,16 @@ namespace OpenMS
           // If requested, also write to the peptide_hit_beta
           if (this->load_to_peptideHit_)
           {
-            this->add_meta_values(peptide_hit_beta);
+            this->addMetaValues_(peptide_hit_beta);
           }
           // Set xl_type
-          this->setMetaValue("xl_type", DataValue("cross-link"), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
+          this->setMetaValue_("xl_type", DataValue("cross-link"), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
 
           // Set xl positions, depends on xl_type
           std::pair<SignedSize, SignedSize> positions;
           this->getLinkPosition_(attributes, positions);
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
-          peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.second));
+          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
+          peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.second - 1));
 
           // Protein
           String prot2_string = this->attributeAsString_(attributes, "prot2");
@@ -466,12 +467,12 @@ namespace OpenMS
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
 
           // Determine if protein is intra/inter protein, check all protein ID combinations
-          removeSubstring(prot1_string, "reverse_");
-          removeSubstring(prot1_string, XQuestResultXMLHandler::decoy_string);
+          XQuestResultXMLHandler::removeSubstring(prot1_string, "reverse_");
+          XQuestResultXMLHandler::removeSubstring(prot1_string, XQuestResultXMLHandler::decoy_string);
           StringList prot1_list;
           StringUtils::split(prot1_string, ",", prot1_list);
-          removeSubstring(prot2_string, "reverse_");
-          removeSubstring(prot2_string, XQuestResultXMLHandler::decoy_string);
+          XQuestResultXMLHandler::removeSubstring(prot2_string, "reverse_");
+          XQuestResultXMLHandler::removeSubstring(prot2_string, XQuestResultXMLHandler::decoy_string);
           StringList prot2_list;
           StringUtils::split(prot2_string, ",", prot2_list);
 
@@ -479,7 +480,7 @@ namespace OpenMS
           {
             for (StringList::const_iterator it2 = prot2_list.begin(); it2 != prot2_list.end(); it2++)
             {
-              this->setMetaValue((*it1 == *it2) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
+              this->setMetaValue_((*it1 == *it2) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
                                  DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
             }
           }
@@ -488,24 +489,24 @@ namespace OpenMS
         else if (xlink_type_string == "intralink")
         {
           // xl type
-          this->setMetaValue("xl_type", DataValue("loop-link"),peptide_identification,peptide_hit_alpha);
+          this->setMetaValue_("xl_type", DataValue("loop-link"), peptide_identification, peptide_hit_alpha);
 
           // Set xl positions, depends on xl_type
           std::pair<SignedSize, SignedSize> positions;
           this->getLinkPosition_(attributes, positions);
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first));
-          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second));
+          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
+          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
         }
         else if (xlink_type_string == "monolink")
         {
           // Set the monolink mass
-          this->monolinks_masses.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
+          this->monolinks_masses_.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
 
           // xl_type
-          this->setMetaValue("xl_type", DataValue("mono-link"),peptide_identification,peptide_hit_alpha);
+          this->setMetaValue_("xl_type", DataValue("mono-link"),peptide_identification,peptide_hit_alpha);
 
           // Set xl positions_depends on xl_type
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue((SignedSize)this->attributeAsInt_(attributes, "xlinkposition")));
+          peptide_hit_alpha.setMetaValue("xl_pos", DataValue((SignedSize)this->attributeAsInt_(attributes, "xlinkposition") - 1));
         }
         else
         {
@@ -516,23 +517,9 @@ namespace OpenMS
         // Finalize this record
         peptide_hits.push_back(peptide_hit_alpha);
         peptide_identification.setHits(peptide_hits);
-        this->peptide_id_meta_values.clear();
-        this->current_spectrum_search.push_back(peptide_identification);
+        this->peptide_id_meta_values_.clear();
+        this->current_spectrum_search_.push_back(peptide_identification);
       }
     }
-    void XQuestResultXMLHandler::characters(const XMLCh * const chars, const XMLSize_t)
-    {
-    }
-
-
-    void XQuestResultXMLHandler::writeTo(ostream &os)
-    {
-
-
-    }
-
-
-
-
   }   // namespace Internal
 } // namespace OpenMS
