@@ -51,9 +51,9 @@ namespace OpenMS
 {
   namespace Math
   {
-
     /**
         @brief Representation of a histogram, which counts the cumulative number of observations.
+        This can be either in normal or complementary mode.
 
         The first template argument gives the Type of the
         values that are stored in the bins. The second argument

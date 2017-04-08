@@ -46,7 +46,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-
     /** @brief XMLHandler for the result files of XQuest
      */
     class OPENMS_DLLAPI XQuestResultXMLHandler :
@@ -69,7 +68,6 @@ namespace OpenMS
        * @param small Substring to be removed from `large`
        */
       static void removeSubstring(String & large, const String & small);
-
 
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< XQuestResultMeta > & /* metas */,
@@ -94,7 +92,6 @@ namespace OpenMS
 
       //Docu in base class
       //virtual void writeTo(std::ostream & os);
-
 
     private:
    
