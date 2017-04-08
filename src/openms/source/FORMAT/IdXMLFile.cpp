@@ -101,13 +101,13 @@ namespace OpenMS
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/XSL/IdXML.xsl\" ?>\n";
+    os << "<?xml-stylesheet type=\"text/xsl\" href=\"https://www.openms.de/xml-stylesheet/IdXML.xsl\" ?>\n";
     os << "<IdXML version=\"" << getVersion() << "\"";
     if (document_id != "")
     {
       os << " id=\"" << document_id << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/IdXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"https://www.openms.de/xml-schema/IdXML_1_4_1.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     //look up different search parameters
     std::vector<ProteinIdentification::SearchParameters> params;
@@ -215,7 +215,7 @@ namespace OpenMS
         accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
         os << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" ";
         os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
-        
+
         double coverage = protein_ids[i].getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
         {
@@ -618,8 +618,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -635,8 +635,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -653,8 +653,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -670,8 +670,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -692,34 +692,34 @@ namespace OpenMS
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
 
-      if (type == "int") 
-      { 
-        last_meta_->setMetaValue(name, attributeAsInt_(attributes, "value")); 
-      } 
-      else if (type == "float") 
-      { 
-        last_meta_->setMetaValue(name, attributeAsDouble_(attributes, "value")); 
-      } 
-      else if (type == "string") 
-      { 
-        last_meta_->setMetaValue(name, (String)attributeAsString_(attributes, "value")); 
-      } 
-      else if (type == "intList") 
-      { 
-        last_meta_->setMetaValue(name, attributeAsIntList_(attributes, "value")); 
-      } 
-      else if (type == "floatList") 
-      { 
-        last_meta_->setMetaValue(name, attributeAsDoubleList_(attributes, "value")); 
-      } 
-      else if (type == "stringList") 
-      { 
-        last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value")); 
-      } 
-      else 
+      if (type == "int")
+      {
+        last_meta_->setMetaValue(name, attributeAsInt_(attributes, "value"));
+      }
+      else if (type == "float")
+      {
+        last_meta_->setMetaValue(name, attributeAsDouble_(attributes, "value"));
+      }
+      else if (type == "string")
+      {
+        last_meta_->setMetaValue(name, (String)attributeAsString_(attributes, "value"));
+      }
+      else if (type == "intList")
+      {
+        last_meta_->setMetaValue(name, attributeAsIntList_(attributes, "value"));
+      }
+      else if (type == "floatList")
+      {
+        last_meta_->setMetaValue(name, attributeAsDoubleList_(attributes, "value"));
+      }
+      else if (type == "stringList")
+      {
+        last_meta_->setMetaValue(name, attributeAsStringList_(attributes, "value"));
+      }
+      else
       {
         fatalError(LOAD, String("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
-      } 
+      }
     }
   }
 
@@ -851,7 +851,7 @@ namespace OpenMS
 
   String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes)
   {
-    // Check if information on previous/following aa available. If not, we will not write it out 
+    // Check if information on previous/following aa available. If not, we will not write it out
     bool has_aa_before_information(false);
     bool has_aa_after_information(false);
     String aa_string;
@@ -873,7 +873,7 @@ namespace OpenMS
       for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
       {
         if (it == pes.begin())
-        { 
+        {
           aa_string += " aa_before=\"" + String(it->getAABefore());
         }
         else
@@ -889,7 +889,7 @@ namespace OpenMS
       for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
       {
         if (it == pes.begin())
-        { 
+        {
           aa_string += " aa_after=\"" + String(it->getAAAfter());
         }
         else
@@ -927,7 +927,7 @@ namespace OpenMS
         for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
         {
           if (it == pes.begin())
-          { 
+          {
             aa_string += " start=\"" + String(it->getStart());
           }
           else
@@ -943,7 +943,7 @@ namespace OpenMS
         for (std::vector<PeptideEvidence>::const_iterator it = pes.begin(); it != pes.end(); ++it)
         {
           if (it == pes.begin())
-          { 
+          {
             aa_string += " end=\"" + String(it->getEnd());
           }
           else
