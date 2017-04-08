@@ -53,7 +53,7 @@ namespace OpenMS
                                  std::vector< std::vector < PeptideIdentification > > & csms,
                                  std::vector< ProteinIdentification > & prot_ids,
                                  bool calc_cum_hits,
-                                 size_t min_n_ions_per_spectrum,
+                                 Size min_n_ions_per_spectrum,
                                  bool load_to_peptideHit)
   {
    for(std::vector< XQuestResultMeta >::iterator it = metas.begin(); it != metas.end(); it++)

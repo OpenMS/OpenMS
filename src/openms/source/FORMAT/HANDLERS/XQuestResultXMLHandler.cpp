@@ -83,7 +83,7 @@ namespace OpenMS
                                                    double & min_score,
                                                    double & max_score,
                                                    std::vector< int > * cum_hits,
-                                                   size_t min_n_ions_per_spectrum,
+                                                   Size min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit) :
       XMLHandler(filename, "1.0"),
       metas_(metas),
@@ -218,10 +218,10 @@ namespace OpenMS
       if (tag == "spectrum_search")
       {
         // Push back spectrum search vector
-        size_t current_spectrum_size = this->current_spectrum_search_.size();
+        Size current_spectrum_size = this->current_spectrum_search_.size();
         if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
         {
-          /* Currently does not work
+          /* Currently the correct rank order within the xQuest file is assumed
             vector< PeptideIdentification > newvec(current_spectrum_size);
             for(vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
                 it != this->current_spectrum_search.end(); ++it)

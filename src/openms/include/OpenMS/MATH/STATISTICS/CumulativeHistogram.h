@@ -149,14 +149,14 @@ namespace OpenMS
         Size bin_index = this->valToBin_(val);
         if (this->complementary_)
         {
-          for (size_t i = 0; i < bin_index; ++i)
+          for (Size i = 0; i < bin_index; ++i)
           {
            this->bins_[i] += increment;
           }
         }
         else
         {
-          for (size_t i = bin_index + 1; i < this->bins_.size(); ++i)
+          for (Size i = bin_index + 1; i < this->bins_.size(); ++i)
           {
             this->bins_[i] += increment;
           }

@@ -756,7 +756,7 @@ class TOPPXFDR :
       //-------------------------------------------------------------
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
       std::vector< std::vector< double >* > delta_scores;
-      std::vector< size_t > n_min_ions_matched;
+      std::vector< Size > n_min_ions_matched;
 
       // For xQuest input,calculate delta scores and min_ions_matched
       if (is_xquest_input)
@@ -768,9 +768,9 @@ class TOPPXFDR :
         delta_scores.resize(n_spectra);
         n_min_ions_matched.resize(n_spectra);
 
-        for(size_t i = 0; i < delta_scores.size(); ++i)
+        for(Size i = 0; i < delta_scores.size(); ++i)
         {
-          size_t n_hits = spectra[i].size();
+          Size n_hits = spectra[i].size();
           delta_scores[i] = new std::vector<double>(n_hits);
           vector<double> * current = delta_scores[i];
 
@@ -792,10 +792,10 @@ class TOPPXFDR :
           // Calculate delta score
           if (n_hits > 1)
           {
-            for (size_t j = 0; j < n_hits - 1; ++j)
+            for (Size j = 0; j < n_hits - 1; ++j)
             {
               pep_id1 = &spectra[i][j];
-              for (size_t k = 1; j+k < n_hits; ++k )
+              for (Size k = 1; j+k < n_hits; ++k )
               {
                 PeptideIdentification * pep_id2 = &spectra[i][j+k];
                 if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
@@ -817,8 +817,8 @@ class TOPPXFDR :
       /*
        * Sort rank one hits in descending order according to the score
        */
-      vector< UInt > order_score ( boost::counting_iterator<size_t>(0),
-                                   boost::counting_iterator<size_t>(rank_one_ids.size()));
+      vector< UInt > order_score ( boost::counting_iterator<Size>(0),
+                                   boost::counting_iterator<Size>(rank_one_ids.size()));
 
       // Configure the sorting of the Peptide Identifications
       less_than_by_key order_conf = {

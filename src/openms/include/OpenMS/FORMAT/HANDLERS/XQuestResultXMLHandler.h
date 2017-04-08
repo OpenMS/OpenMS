@@ -77,7 +77,7 @@ namespace OpenMS
                              double & min_score,
                              double & max_score,
                              std::vector< int > * cum_hits,
-                             size_t min_n_ions_per_spectrum,
+                             Size min_n_ions_per_spectrum,
                              bool load_to_peptideHit_);
       virtual ~XQuestResultXMLHandler();
 
@@ -129,7 +129,7 @@ namespace OpenMS
       XQuestResultMeta current_meta_; // The current meta value
       int & n_hits_; // Total no. of hits found in the result XML file
       std::vector< int > * cum_hits_;
-      size_t min_n_ions_per_spectrum_;
+      Size min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
       
       // Stores the attributes of a record (peptide identification)
