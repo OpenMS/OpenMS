@@ -22,7 +22,6 @@ TraMLHandler.h
 UnimodXMLHandler.h
 XMLHandler.h
 XQuestResultXMLHandler.h
-XTandemInfileXMLHandler.h
 )
 
 ### add path to the filenames

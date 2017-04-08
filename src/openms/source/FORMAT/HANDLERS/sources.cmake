@@ -22,7 +22,6 @@ set(sources_list
 	UnimodXMLHandler.cpp
 	XMLHandler.cpp
   XQuestResultXMLHandler.cpp
-	XTandemInfileXMLHandler.cpp
 )
 
 ### add path to the filenames
