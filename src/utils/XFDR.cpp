@@ -135,8 +135,6 @@ class TOPPXFDR :
     static const String xlclass_hybriddecoysinterlinks; // hybriddecoysintralinks
 
     // Score range for calculating the FPs
-    static const double fpnum_score_start;
-    static const double fpnum_score_end;
     static const double fpnum_score_step;
 
     TOPPXFDR() :
@@ -214,14 +212,25 @@ class TOPPXFDR :
      * @brief Prepares read vector of PeptideIdentification such that it can be further processed downstream
      * @param pep_ids vector of PeptideIdentification to be prepared
      */
-    static void prepareInput(vector< PeptideIdentification > & pep_ids)
+    void prepareInput(vector< PeptideIdentification > & pep_ids)
     {
       for (vector< PeptideIdentification >::iterator pep_ids_it = pep_ids.begin();
            pep_ids_it != pep_ids.end(); ++pep_ids_it)
       {
         PeptideIdentification & pep_id = *pep_ids_it;
-        const vector< PeptideHit > & pep_hits = pep_id.getHits();
 
+        double score = getXLMetaValue<double>("OpenXQuest:score", pep_id, true);
+
+        if (score < this->min_score)
+        {
+          this->min_score = std::floor(score);
+        }
+        if (score > this->max_score)
+        {
+          this->max_score = std::ceil(score);
+        }
+
+        const vector< PeptideHit > & pep_hits = pep_id.getHits();
         // Set peptide identification to target or decoy
         if (    pep_hits[0].getMetaValue("target_decoy").toString() == "decoy"
                 || (pep_hits.size() == 2 && pep_hits[1].getMetaValue("target_decoy").toString() == "decoy"))
@@ -277,7 +286,7 @@ class TOPPXFDR :
      * @param pep_id Peptide ID to be assigned.
      * @param types Result vector containing the names of the xl classes
      */
-    inline static void assign_types(PeptideIdentification & pep_id, StringList & types)
+    inline static void assignTypes(PeptideIdentification & pep_id, StringList & types)
     {
       types.clear();
       bool pep_is_decoy = pep_id.getMetaValue("target_decoy").toString() == "decoy";
@@ -354,7 +363,7 @@ class TOPPXFDR :
 
         // hybriddecoysintralinks
         if (       pep_id.metaValueExists("OpenXQuest:is_intraprotein")
-                   && ( (! alpha_is_decoy
+                   && (( ! alpha_is_decoy
                         &&     beta_is_decoy)
                         ||     (alpha_is_decoy
                         &&   ! beta_is_decoy)))
@@ -364,7 +373,7 @@ class TOPPXFDR :
 
         // hybriddecoysinterlinks
         if (       pep_id.metaValueExists("OpenXQuest:is_interprotein")
-                   && ( ! (alpha_is_decoy
+                   && (( ! alpha_is_decoy
                         &&     beta_is_decoy)
                         ||     (alpha_is_decoy
                         &&   ! beta_is_decoy)))
@@ -444,8 +453,8 @@ class TOPPXFDR :
                       const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
                       vector< double > & fdr, bool mono)
     {
-      for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
-           current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
+      for (double current_score = this->min_score +  (TOPPXFDR::fpnum_score_step/2) ;
+           current_score <= this->max_score - (TOPPXFDR::fpnum_score_step/2);
            current_score += TOPPXFDR::fpnum_score_step)
       {
         double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score);
@@ -466,7 +475,7 @@ class TOPPXFDR :
     void calc_qfdr(const vector< double > & fdr, vector< double > & qfdr)
     {
       qfdr.resize(fdr.size());
-      for (int i = fdr.size(); i > -1; --i)
+      for (int i = fdr.size() - 1; i > -1; --i)
       {
         double current_fdr = fdr[i];
         double smallest_fdr = current_fdr;
@@ -526,9 +535,14 @@ class TOPPXFDR :
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
     {
+      bool is_xquest_input = false;
+      this->min_score = 0;
+      this->max_score = 0;
+
       //-------------------------------------------------------------
       // parsing parameters
       //-------------------------------------------------------------
+      bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
 
       // Terminate if no output is specified
       String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
@@ -538,8 +552,6 @@ class TOPPXFDR :
         return ILLEGAL_PARAMETERS;
       }
 
-      bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
-      bool is_xquest_input = false;
       double arg_mindeltas = getDoubleOption_(TOPPXFDR::param_mindeltas);
       if (arg_mindeltas < 0)
       {
@@ -657,6 +669,9 @@ class TOPPXFDR :
         XQuestResultXMLFile xquest_result_file;
         xquest_result_file.load(arg_in, metas, spectra, prot_ids, false, 1, true);
 
+        this->min_score = std::floor(xquest_result_file.get_min_score());
+        this->max_score = std::ceil(xquest_result_file.get_max_score());
+
         // currently, cross-link identifications are stored within one ProteinIdentification
         assert(prot_ids.size() == 1);
         //vector< ProteinHit > prot_hits = prot_ids[0].getHits();
@@ -690,7 +705,7 @@ class TOPPXFDR :
       else if (arg_in.hasSuffix("mzid"))
       {
         MzIdentMLFile().load(arg_in, prot_ids, all_ids);
-        TOPPXFDR::prepareInput(all_ids);
+        this->prepareInput(all_ids);
 
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
@@ -715,7 +730,7 @@ class TOPPXFDR :
         }
 
         IdXMLFile().load(arg_in, prot_ids, all_ids);
-        TOPPXFDR::prepareInput(all_ids);
+        this->prepareInput(all_ids);
 
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
@@ -854,7 +869,7 @@ class TOPPXFDR :
           pep_id.setMetaValue("OpenXQuest:xprophet_f", 1);
           unique_ids.insert(id);
           StringList xl_types;
-          assign_types(pep_id, xl_types);
+          assignTypes(pep_id, xl_types);
 
           for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); ++xl_types_it)
           {
@@ -879,6 +894,7 @@ class TOPPXFDR :
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysintralinks );
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysinterlinks );
 
+
       // Print number of scores within each class
       if (arg_verbose)
       {
@@ -901,10 +917,11 @@ class TOPPXFDR :
         vector< double > current_scores = scores_it->second;
         String classname = scores_it->first;
         cum_histograms[classname] = new Math::CumulativeHistogram<>(current_scores.begin(), current_scores.end(),
-                                                                    TOPPXFDR::fpnum_score_start,
-                                                                    TOPPXFDR::fpnum_score_end,
+                                                                    this->min_score,
+                                                                    this->max_score,
                                                                     TOPPXFDR::fpnum_score_step, true, true);
       }
+
       
       // This is currently not needed for the FDR calculation
       //Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
@@ -920,6 +937,7 @@ class TOPPXFDR :
       // Calculate FDR for intralinks
       vector< double > fdr_intralinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, false);
+
       
       // Calculate FDR for monolinks and looplinks
       vector< double > fdr_monolinks;
@@ -927,7 +945,6 @@ class TOPPXFDR :
 
       // Determine whether qTransform should be performed
       bool arg_no_qvalues = getFlag_(TOPPXFDR::param_no_qvalues);
-
 
       if(! arg_no_qvalues)
       {
@@ -962,7 +979,7 @@ class TOPPXFDR :
         double score = getXLMetaValue<double>("OpenXQuest:score", pep_id, true);
         
         StringList xl_types;
-        assign_types(pep_id, xl_types);
+        assignTypes(pep_id, xl_types);
         pep_id.setMetaValue("OpenXQuest:fdr_type", arg_no_qvalues ? "fdr" : "qfdr");
 
         // Assign FDR value
@@ -970,7 +987,7 @@ class TOPPXFDR :
         for(StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
         {
           String xl_type = *xl_types_it;
-          Size idx = std::floor((score - TOPPXFDR::fpnum_score_start) / TOPPXFDR::fpnum_score_step);
+          Size idx = std::floor((score - this->min_score) / TOPPXFDR::fpnum_score_step);
           if (   xl_type == TOPPXFDR::xlclass_fulldecoysinterlinks
                  || xl_type == TOPPXFDR::xlclass_hybriddecoysinterlinks
                  || xl_type == TOPPXFDR::xlclass_interdecoys
@@ -1032,6 +1049,12 @@ class TOPPXFDR :
      */
       return EXECUTION_OK;
     }
+
+  private:
+
+      // Score range for this exection of the tool
+      Int min_score;
+      Int max_score;
 };
 const String TOPPXFDR::param_in = "in";
 const String TOPPXFDR::param_out_idXML = "out_idXML";
@@ -1060,9 +1083,8 @@ const String TOPPXFDR::xlclass_hybriddecoysintralinks = "hybriddecoysintralinks"
 const String TOPPXFDR::xlclass_hybriddecoysinterlinks = "hybriddecoysinterlinks";
 
 // Parameters for actually calculating the number of FPs
-const double TOPPXFDR::fpnum_score_start = 0;
-const double TOPPXFDR::fpnum_score_end = 100;
 const double TOPPXFDR::fpnum_score_step = 0.1;
+
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)

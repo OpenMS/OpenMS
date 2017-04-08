@@ -75,7 +75,6 @@ namespace OpenMS
       {
       }
 
-
       ///Copy constructor
       CumulativeHistogram(const CumulativeHistogram & cum_histogram) :
         Histogram< ValueType, BinSizeType>(cum_histogram),
@@ -83,7 +82,6 @@ namespace OpenMS
         inclusive_(cum_histogram.inclusive_)
       {
       }
-
 
       /**
         @brief constructor with min, max and bin size
@@ -97,7 +95,6 @@ namespace OpenMS
       {
       }
 
-
       /**
         @brief constructor with min, max, bin size, complementary, and inclusive
 
@@ -109,7 +106,6 @@ namespace OpenMS
         inclusive_(inclusive)
       {
       }
-
 
       /**
         @brief constructor with data iterator and min, max, bin_size parameters
@@ -123,7 +119,6 @@ namespace OpenMS
         inclusive_(true)
       {
       }
-
 
       /**
         @brief constructor with data iterator and min, max, bin_size, and complementary parameters
@@ -143,7 +138,6 @@ namespace OpenMS
         }
       }
 
-
       ///returns the highest value of all bins
       ValueType maxValue() const
       {
@@ -155,7 +149,6 @@ namespace OpenMS
       {
         return this->complementary_ ? this->bins_.back() : this->bins_.front();
       }
-
 
       /**
         @brief increases all the bins up to value @p val (or from value @p val if complementary) by @p increment
@@ -196,4 +189,4 @@ namespace OpenMS
   }   // namespace Math
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_HISTOGRAM_H
+#endif // OPENMS_MATH_STATISTICS_CUMULATIVEHISTOGRAM_H

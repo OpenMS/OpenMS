@@ -76,6 +76,8 @@ namespace OpenMS
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
                              std::vector< ProteinIdentification > &,
                              int & n_hits,
+                             double & min_score,
+                             double & max_score,
                              std::vector< int > * cum_hits,
                              size_t min_n_ions_per_spectrum,
                              bool load_to_peptideHit_);
@@ -114,6 +116,10 @@ namespace OpenMS
       std::set< UInt > charges_;
       UInt min_precursor_charge_;
       UInt max_precursor_charge_;
+
+      // Keeps track of the minscore and maxscore encountered
+      double & min_score_;
+      double & max_score_;
 
       // Current Retention time of light spectrum
       double rt_light_;

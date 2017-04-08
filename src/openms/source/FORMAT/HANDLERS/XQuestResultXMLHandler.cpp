@@ -80,6 +80,8 @@ namespace OpenMS
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
                                                    std::vector< ProteinIdentification > & prot_ids,
                                                    int & n_hits_,
+                                                   double & min_score,
+                                                   double & max_score,
                                                    std::vector< int > * cum_hits,
                                                    size_t min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit) :
@@ -88,6 +90,8 @@ namespace OpenMS
       csms_(csms),
       prot_ids_(prot_ids),
       n_hits_(n_hits_),
+      min_score_(min_score),
+      max_score_(max_score),
       cum_hits_(cum_hits),
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
@@ -372,6 +376,16 @@ namespace OpenMS
 
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
+
+        // Set minscore and maxscore encountered
+        if (score < this->min_score_)
+        {
+          this->min_score_ = score;
+        }
+        if (score > this->max_score_)
+        {
+          this->max_score_ = score;
+        }
 
         peptide_hit_alpha.setScore(score);
         peptide_hit_alpha.setSequence(AASequence::fromString(this->attributeAsString_(attributes, "seq1")));

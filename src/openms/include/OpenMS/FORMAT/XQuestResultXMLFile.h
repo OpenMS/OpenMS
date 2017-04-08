@@ -67,6 +67,18 @@ public:
     int get_n_hits() const;
 
     /**
+     * @brief Returns minimum score in file
+     * @return Minimum score in file
+     */
+    double get_min_score() const;
+
+    /**
+     * @brief Returns maximum score in file
+     * @return Maximum score in file
+     */
+    double get_max_score() const;
+
+    /**
      * @brief Returns the cumulative number of hits across the spectra
      * @return Cumulative number of hits across the spectra
      */
@@ -79,6 +91,10 @@ public:
 
 private:
     int n_hits_; // Total number of hits within the result file
+
+    double min_score_; // Minimum score encountered in file
+    double max_score_; // Maximum score encountered in file
+
     std::vector< int > * cum_hits_; // Points to vector with cumulated the number of hits per spectrum in the order they appear in the file
   };
 } // namespace OpenMS
