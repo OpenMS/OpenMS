@@ -108,19 +108,6 @@ namespace OpenMS
       }
 
       /**
-        @brief constructor with data iterator and min, max, bin_size parameters
-
-        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
-      */
-      template <typename DataIterator>
-      CumulativeHistogram(DataIterator begin, DataIterator end, BinSizeType min, BinSizeType max, BinSizeType bin_size) :
-        Histogram< ValueType, BinSizeType >(begin, end, min, max, bin_size),
-        complementary_(false),
-        inclusive_(true)
-      {
-      }
-
-      /**
         @brief constructor with data iterator and min, max, bin_size, and complementary parameters
 
         @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
