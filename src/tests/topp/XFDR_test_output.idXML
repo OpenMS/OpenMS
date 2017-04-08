@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="C:/Data/LRRK2/databases/lrrk2-46-MT.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="C:/Data/LRRK2/databases/lrrk2-46-MT.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 				<UserParam type="string" name="input_decoys" value="C:/Data/LRRK2/databases/decoy_lrrk2-46-MT.fas"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy_"/>
 				<UserParam type="float" name="fragment:mass_tolerance_xlinks" value="20"/>
 				<UserParam type="float" name="cross_link:mass" value="138.068"/>
-				<UserParam type="int" name="precursor:min_charge" value="0"/>
-				<UserParam type="int" name="precursor:max_charge" value="7"/>
 				<UserParam type="floatList" name="cross_link:mass_monolink" value="[]"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-03-19T10:18:40" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >

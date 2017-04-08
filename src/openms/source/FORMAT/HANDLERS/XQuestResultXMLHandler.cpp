@@ -251,9 +251,9 @@ namespace OpenMS
         this->metas_.push_back(this->current_meta_);
         this->current_meta_.clearMetaInfo();
         ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
-        search_params.charges = ListUtils::concatenate(this->charges_, ",");
-        search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);
-        search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
+        //search_params.charges = ListUtils::concatenate(this->charges_, ",");
+        //search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);
+        //search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
         DoubleList monolink_masses_list(this->monolinks_masses_.size());
         for (std::set<double>::const_iterator monolink_masses_it = this->monolinks_masses_.begin();
              monolink_masses_it != this->monolinks_masses_.end(); ++monolink_masses_it)
