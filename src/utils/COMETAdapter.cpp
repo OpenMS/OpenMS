@@ -150,7 +150,7 @@ protected:
 
     //Search Enzyme
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
+    EnzymesDB::getInstance()->getAllCOMETNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
     // TO DO: change selection menue from numbers to valid strings
@@ -252,30 +252,8 @@ protected:
 
     // search enzyme
 
-    // TODO: complete
-    map<String, Size> map_oms2comet;
-    map_oms2comet["Trypsin"] = 1;
-    map_oms2comet["Arg-C"] = 5;
-    map_oms2comet["Asp-N"] = 6;
-    map_oms2comet["Chymotrypsin"] = 10;
-    map_oms2comet["CNBr"] = 7;
-    map_oms2comet["Lys-C"] = 3;
-    map_oms2comet["PepsinA"] = 9;
-    map_oms2comet["Trypsin/P"] = 2;
-    map_oms2comet["no cleavage"] = 0;
-    map_oms2comet["unspecific cleavage"] = 0;
-
-
     String enzyme_name = getStringOption_("enzyme");
-    Size enzyme_number = 1;
-    if (map_oms2comet.find(enzyme_name) != map_oms2comet.end())
-    {
-      enzyme_number = map_oms2comet[enzyme_name];   // replaced .at() with []
-    }
-    else
-    {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Enzyme not supported. " + enzyme_name);
-    }
+    String enzyme_number = EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCOMETid();
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
     os << "num_enzyme_termini = " << getIntOption_("num_enzyme_termini") << "\n";                  // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific

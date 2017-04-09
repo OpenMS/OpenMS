@@ -231,6 +231,14 @@ namespace OpenMS
         }
         continue;
       }
+      if (key.hasSubstring("COMETid"))
+      {
+        if (!key.hasSuffix(":"))
+        {
+          enzy_ptr->setCOMETid(value);
+        }
+        continue;
+      }
       if (key.hasSubstring("OMSSAid"))
       {
         if (!key.hasSuffix(":"))
@@ -268,6 +276,18 @@ namespace OpenMS
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
       if ((*it)->getXTANDEMid() != "")
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+  void EnzymesDB::getAllCOMETNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getCOMETid() != "")
       {
         all_names.push_back((*it)->getName());
       }

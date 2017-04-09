@@ -110,6 +110,9 @@ public:
     /// returns all the enzyme names available for XTandem
     void getAllXTandemNames(std::vector<String>& all_names) const;
     
+    /// returns all the enzyme names available for COMET
+    void getAllCOMETNames(std::vector<String>& all_names) const;
+
     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
 

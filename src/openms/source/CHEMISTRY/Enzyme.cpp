@@ -64,6 +64,7 @@ namespace OpenMS
     c_term_gain_(enzyme.c_term_gain_),
     psi_id_(enzyme.psi_id_),
     xtandem_id_(enzyme.xtandem_id_),
+    comet_id_(enzyme.comet_id_),
     omssa_id_(enzyme.omssa_id_)
   {
   }
@@ -76,6 +77,7 @@ namespace OpenMS
                    EmpiricalFormula c_term_gain,
                    String psi_id,
                    String xtandem_id,
+                   String comet_id,
                    UInt omssa_id) :
     name_(name),
     cleavage_regex_(cleavage_regex),
@@ -85,6 +87,7 @@ namespace OpenMS
     c_term_gain_(c_term_gain),
     psi_id_(psi_id),
     xtandem_id_(xtandem_id),
+    comet_id_(comet_id),
     omssa_id_(omssa_id)
   {
   }
@@ -105,6 +108,7 @@ namespace OpenMS
       c_term_gain_ = enzyme.c_term_gain_;
       psi_id_ = enzyme.psi_id_;
       xtandem_id_ = enzyme.xtandem_id_;
+      comet_id_ = enzyme.comet_id_;
       omssa_id_ = enzyme.omssa_id_;
     }
     return *this;
@@ -195,6 +199,16 @@ namespace OpenMS
     return xtandem_id_;
   }
 
+  void Enzyme::setCOMETid(String value)
+  {
+    comet_id_ = value;
+  }
+
+  String Enzyme::getCOMETid() const
+  {
+    return comet_id_;
+  }
+
   void Enzyme::setOMSSAid(UInt value)
   {
     omssa_id_ = value;
@@ -215,6 +229,7 @@ namespace OpenMS
            c_term_gain_ == enzyme.c_term_gain_ &&
            psi_id_ == enzyme.psi_id_ &&
            xtandem_id_ == enzyme.xtandem_id_ &&
+           comet_id_ == enzyme.comet_id_ &&
            omssa_id_ == enzyme.omssa_id_;
   }
 
