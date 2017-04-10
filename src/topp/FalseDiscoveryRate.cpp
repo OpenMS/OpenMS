@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -73,6 +73,8 @@ using namespace std;
     "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
+    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. A subsequent FDR filtering step needs to be conducted downstream via @ref IDFilter or after exporting the data to a text-based format.
+
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
@@ -103,9 +105,9 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Identification input file containing a search against a concatenated sequence database. Either specify '-in' alone or 'in_target' together with 'in_decoy' as input.");
+    registerInputFile_("in", "<file>", "", "Identifications from searching a target-decoy database.");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
+    registerOutputFile_("out", "<file>", "", "Identifications with annotated FDR");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerFlag_("proteins_only", "If set only the FDR on protein level is calculated");
     registerFlag_("peptides_only", "If set only the FDR on peptide (PSM) level is calculated");
