@@ -217,6 +217,55 @@ public:
         return bin_index;
       }
 
+
+      Size incUntil(BinSizeType val, bool inclusive, ValueType increment = 1)
+      {
+        Size bin_index = this->valToBin_(val);
+        for (Size i = 0; i < bin_index; ++i)
+        {
+         this->bins_[i] += increment;
+        }
+        if (inclusive)
+        {
+          this->bins_[bin_index] += increment;
+        }
+        return bin_index;
+      }
+
+      Size incFrom(BinSizeType val, bool inclusive, ValueType increment = 1)
+      {
+        Size bin_index = this->valToBin_(val);
+        for (Size i = bin_index + 1; i < this->bins_.size(); ++i)
+        {
+          this->bins_[i] += increment;
+        }
+        if (inclusive)
+        {
+          this->bins_[bin_index] += increment;
+        }
+        return bin_index;
+      }
+
+      template< typename DataIterator >
+      static void getCumulativeHistogram(DataIterator begin, DataIterator end,
+                                         bool complement,
+                                         bool inclusive,
+                                         Histogram< ValueType, BinSizeType > & histogram)
+      {
+        for (DataIterator it = begin; it != end; ++it)
+        {
+          if (complement)
+          {
+            histogram.incFrom(*it, inclusive);
+          }
+          else
+          {
+            histogram.incUntil(*it, inclusive);
+          }
+        }
+      }
+
+
       /**
         @brief resets the histogram with the given range and bin size
 
