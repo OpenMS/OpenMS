@@ -108,7 +108,6 @@ class TOPPXFDR :
 
     static const String param_in;  // Parameter for the input file
     static const String param_out_idXML;
-    // static const String param_out_mzid;
     static const String param_minborder;  // minborder  # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -383,67 +382,6 @@ class TOPPXFDR :
       }
     }
 
-
-    /** False positve counting as performed by xProphet software package.
-      *
-      * @brief xprophet  method for FP counting as implemented in xProphet
-      * @param cum_histograms Cumulative score distributions
-      * @param fp_counts Number of FPs for each score threshold.
-      */
-
-    /*
-     void fp_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
-                       Math::Histogram<> & fp_counts)
-     {
-
-       // Required cumulative histograms for FPs
-       Math::CumulativeHistogram<>  intradecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_intradecoys];
-       Math::CumulativeHistogram<>  fulldecoysintralinks_histogram = *cum_histograms[TOPPXFDR::xlclass_fulldecoysintralinks];
-       Math::CumulativeHistogram<>  interdecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_interdecoys];
-       Math::CumulativeHistogram<>  fulldecoysinterlinks_histogram = *cum_histograms[TOPPXFDR::xlclass_fulldecoysinterlinks];
-       Math::CumulativeHistogram<>  monodecoys_histogram = *cum_histograms[TOPPXFDR::xlclass_monodecoys];
-
-       for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
-            current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
-            current_score += TOPPXFDR::fpnum_score_step)
-       {
-           UInt n_intrafp = intradecoys_histogram.binValue(current_score) - 2 * fulldecoysintralinks_histogram.binValue(current_score);
-           UInt n_interfp = interdecoys_histogram.binValue(current_score) - 2 * fulldecoysinterlinks_histogram.binValue(current_score);
-           UInt n_monofp = monodecoys_histogram.binValue(current_score);
-           // Aim for the center of the bin when inserting the score
-           fp_counts.inc(current_score, n_interfp + n_intrafp + n_monofp);
-       }
-    }
-    */
-
-    /** Target counting as performed by the xProphet software package
-       *
-       * @brief xprophet  method for target hits counting as implemented in xProphet
-       * @param cum_histograms Cumulative score distributions
-       * @param target_counts Number of target hits
-       */
-    /*
-      void target_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
-                        Math::Histogram<> & target_counts)
-      {
-        // Required cumulative histograms for target hits
-        Math::CumulativeHistogram<>  intralinks_histogram = *cum_histograms[TOPPXFDR::xlclass_intralinks];
-        Math::CumulativeHistogram<>  interlinks_histogram = *cum_histograms[TOPPXFDR::xlclass_interlinks];
-        Math::CumulativeHistogram<>  monolinks_histogram = *cum_histograms[TOPPXFDR::xlclass_monolinks];
-
-        for (double current_score = TOPPXFDR::fpnum_score_start +  (TOPPXFDR::fpnum_score_step/2) ;
-             current_score <= TOPPXFDR::fpnum_score_end - (TOPPXFDR::fpnum_score_step/2);
-             current_score += TOPPXFDR::fpnum_score_step)
-        {
-            UInt n_intralinks = intralinks_histogram.binValue(current_score);
-            UInt n_interlinks = interlinks_histogram.binValue(current_score);
-            UInt n_monolinks = monolinks_histogram.binValue(current_score);
-            target_counts.inc(current_score, n_intralinks + n_interlinks + n_monolinks);
-        }
-     }
-     */
-    
-
     /** Target counting as performed by the xProphet software package
       *
       * @brief xprophet  method for target hits counting as implemented in xProphet
@@ -505,10 +443,6 @@ class TOPPXFDR :
       // idXML output
       registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", true, false);
       setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
-
-      // mzid output
-      //registerOutputFile_(TOPPXFDR::param_out_mzid, "<mzid_file>", "", "Output as mzid file", false, false);
-      //setValidFormats_(TOPPXFDR::param_out_mzid, ListUtils::create<String>("mzid"));
 
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm)", false);
@@ -674,8 +608,6 @@ class TOPPXFDR :
 
         // currently, cross-link identifications are stored within one ProteinIdentification
         assert(prot_ids.size() == 1);
-        //vector< ProteinHit > prot_hits = prot_ids[0].getHits();
-        //cout << prot_hits.size() << endl;
         n_spectra = spectra.size();
 
         if (arg_verbose)
@@ -894,7 +826,6 @@ class TOPPXFDR :
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysintralinks );
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysinterlinks );
 
-
       // Print number of scores within each class
       if (arg_verbose)
       {
@@ -922,14 +853,6 @@ class TOPPXFDR :
                                                                     TOPPXFDR::fpnum_score_step, true, true);
       }
 
-      
-      // This is currently not needed for the FDR calculation
-      //Math::Histogram<> fp_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
-      //this->fp_xprophet(cum_histograms, fp_counts);
-
-      //Math::Histogram<> target_counts(TOPPXFDR::fpnum_score_start, TOPPXFDR::fpnum_score_end, TOPPXFDR::fpnum_score_step);
-      //this->target_xprophet(cum_histograms, target_counts);
-      
       // Calculate FDR for interlinks
       vector< double > fdr_interlinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, false);
@@ -1039,14 +962,6 @@ class TOPPXFDR :
         IdXMLFile().store( arg_out_idXML, prot_ids, all_ids);
       }
 
-      // Write mzid
-      /*
-     String arg_out_mzid = getStringOption_(TOPPXFDR::param_out_mzid);
-     if ( ! arg_out_mzid.empty())
-     {
-      MzIdentMLFile().store(arg_out_mzid, prot_ids, all_ids);
-     }
-     */
       return EXECUTION_OK;
     }
 
@@ -1058,7 +973,6 @@ class TOPPXFDR :
 };
 const String TOPPXFDR::param_in = "in";
 const String TOPPXFDR::param_out_idXML = "out_idXML";
-//const String TOPPXFDR::param_out_mzid = "out_mzid";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
