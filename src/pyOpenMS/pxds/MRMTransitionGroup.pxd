@@ -40,6 +40,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         libcpp_vector[MRMFeature] getFeatures() nogil except+
         libcpp_vector[MRMFeature] getFeaturesMuteable() nogil except +
         void addFeature(MRMFeature feature) nogil except +
+        MRMFeature getBestFeature() nogil except +
 
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
         MRMTransitionGroup[SpectrumT, TransitionT] subset(libcpp_vector[ libcpp_string ] tr_ids) nogil except +

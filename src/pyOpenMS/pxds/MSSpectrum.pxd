@@ -27,7 +27,9 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum[PeakT] &) nogil except + 
         double getRT() nogil except +
-        void   setRT(double) nogil except +
+        void setRT(double) nogil except +
+        double getDriftTime() nogil except +
+        void setDriftTime(double) nogil except +
         unsigned int getMSLevel() nogil except +
         void setMSLevel(unsigned int) nogil except +
 
