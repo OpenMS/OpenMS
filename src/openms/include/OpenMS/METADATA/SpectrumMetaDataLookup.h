@@ -157,7 +157,6 @@ namespace OpenMS
     static const MetaDataFlags MDF_NATIVEID = 64;
     static const MetaDataFlags MDF_ALL = 127;
 
-    String spectra_data;
 
     /// Meta data of a spectrum
     struct SpectrumMetaData
@@ -181,8 +180,7 @@ namespace OpenMS
     };
 
     /// Constructor
-    SpectrumMetaDataLookup(): SpectrumLookup(),
-      spectra_data()
+    SpectrumMetaDataLookup(): SpectrumLookup()
     {}
 
     /// Destructor
@@ -225,15 +223,16 @@ namespace OpenMS
 
     /**
      * @brief encapsulates readSpectra with file loading convenience if only a file path is given
+     *
      * @param spectra_file file to the SpectrumContainer, must be valid path to mz file
      */
-    void readMzFile(const String& spectra_file)
+    void readMzFileMetaData(const String& spectra_file)
     {
       PeakMap exp;
       FileHandler().loadExperiment(spectra_file, exp, FileTypes::UNKNOWN, ProgressLogger::NONE,
                                    false, false);
-      this->readSpectra(exp.getSpectra());
-      this->setSpectraData(File::absolutePath(spectra_file));
+      readSpectra(exp.getSpectra());
+      setSpectraDataRef(File::absolutePath(spectra_file));
     }
 
     /**
@@ -241,9 +240,9 @@ namespace OpenMS
      *
      * @param spectra_data the name (and path) of the origin of the read SpectrumContainer
      */
-    void setSpectraData(const String& spectra_data)
+    void setSpectraDataRef(const String& spectra_data)
     {
-      this->spectra_data = spectra_data;
+      this->spectra_data_ref = spectra_data;
     }
 
 
@@ -295,29 +294,29 @@ namespace OpenMS
 
        Look-up works by matching the "spectrum_reference" (meta value) of a peptide ID to the native ID of a spectrum. Only peptide IDs without RT (where PeptideIdentification::getRT() returns "NaN") are looked up; the RT is set to that of the corresponding spectrum.
     */
-    static bool addMissingRTsToPeptideIDs(
-      std::vector<PeptideIdentification>& peptides, const SpectrumMetaDataLookup& lookup,
+    static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const String &filename,
       bool stop_on_error = false);
 
     /**
-     * @brief Add missing spectrum_references to peptide identifications vased on raw data
+     * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
      *
      * @param peptides Peptide IDs with or without spectrum_reference
      * @param lookup SpectrumMetaDataLookup with loaded spectra, metadata and optional spectra_data value for Proteins
      * @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
-     * @param override_spectra_data if given ProteinIdentifications should be updated with new spectra_data values from SpectrumMetaDataLookup
+     * @param override_spectra_data if given ProteinIdentifications should be updated with new "spectra_data" values from SpectrumMetaDataLookup
      * @param proteins
      *
-     * @return True if all peptide IDs could be annotated successfully (including if all already had spectrum_referece values), false otherwise.
+     * @return True if all peptide IDs could be annotated successfully (including if all already had "spectrum_reference" values), false otherwise.
      *
      * Look-up works by matching RT of a peptide ID to the native ID of a spectrum. All spectrum_references are updated/added.
      */
-    static bool addMissingSpectrumReferences(std::vector<PeptideIdentification>& peptides, const SpectrumMetaDataLookup& lookup,
+    static bool addMissingSpectrumReferences(std::vector<PeptideIdentification>& peptides, const String& filename,
       bool stop_on_error = false, bool override_spectra_data = false, std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());
 
   protected:
 
     std::vector<SpectrumMetaData> metadata_; ///< Meta data for spectra
+    String spectra_data_ref;
 
   private:
 
