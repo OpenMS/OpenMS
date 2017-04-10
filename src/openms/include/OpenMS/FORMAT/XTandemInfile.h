@@ -181,14 +181,14 @@ public:
     /// returns the max valid E-value allowed in the list
     double getMaxValidEValue() const;
 
-    /// get state of noise suppression
-    bool getNoiseSuppression() const;
-
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
 
     /// set if misassignment of precursor to first and second 13C isotopic peak should also be considered
     void setAllowIsotopeError(const bool allow_isotope_error);
+
+    /// get state of noise suppression
+    bool getNoiseSuppression() const;
 
     /// set state of noise suppression
     void setNoiseSuppression(const bool noise_suppression);
