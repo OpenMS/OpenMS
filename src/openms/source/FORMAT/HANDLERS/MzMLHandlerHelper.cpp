@@ -179,14 +179,24 @@ namespace OpenMS
         data_[i].base64.removeWhitespaces();
       }
 
-      // Catch proteowizard invalid conversion: as numpress arrays are always
-      // 64 bit, this should be safe. However, we cannot generally assume that
-      // DT_NONE means that we are dealing with a 64 bit float type. 
+      // Catch proteowizard invalid conversion where 
+      // (i) no data type is set 
+      // (ii) data type is set to integer for pic compression
+      //
+      // Since numpress arrays are always 64 bit and decode to double arrays,
+      // this should be safe. However, we cannot generally assume that DT_NONE
+      // means that we are dealing with a 64 bit float type. 
       if (data_[i].np_compression != MSNumpressCoder::NONE && 
           data_[i].data_type == BinaryData::DT_NONE)
       {
         MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") + 
             data_[i].meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
+        data_[i].data_type = BinaryData::DT_FLOAT;
+        data_[i].precision = BinaryData::PRE_64;
+      }
+      if (data_[i].np_compression == MSNumpressCoder::PIC && 
+          data_[i].data_type == BinaryData::DT_INT)
+      {
         data_[i].data_type = BinaryData::DT_FLOAT;
         data_[i].precision = BinaryData::PRE_64;
       }
