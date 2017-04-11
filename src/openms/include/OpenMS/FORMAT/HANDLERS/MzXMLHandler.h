@@ -1101,12 +1101,16 @@ private:
       if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size() != 0)
       {
         const Instrument& inst = cexp_->getInstrument();
+        // the Instrument Manufacturer is paramount for some downstream tools
+        // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
+        String mf = inst.getVendor();
+        if (String(inst.getSoftware().getName()).toLower() == "xcalibur")
+        { // MaxQuant's internal parameter defaults require either "Thermo Finnigan" or "Thermo Scientific"
+          mf = "Thermo Finnigan";
+        }
         os << "\t\t<msInstrument>\n" 
-          << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"Thermo Scientific\"/>\n"
-          << "\t\t\t<msModel category=\"msModel\" value=\"unknown\"/>\n";
-           // TODO
-           //<< "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n"
-           //<< "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
+           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << mf << "\"/>\n"
+           << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
         if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
         {
@@ -1173,13 +1177,12 @@ private:
       }
 
       //----------------------------------------------------------------------------------------
-      //data processing (the information of the first spectrum is assigned to the whole file)
+      // data processing (the information of the first spectrum is assigned to the whole file)
       //----------------------------------------------------------------------------------------
-      if (true || cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
+      if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
-           //<< "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
-           << "\t\t\t<software type=\"conversion\" name=\"ReAdW\" version=\"4.3.1(build Sep  9 2009 12:30 : 29)\" />\n"
+           << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
            << "\t\t</dataProcessing>\n";
       }
       else
