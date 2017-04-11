@@ -711,7 +711,7 @@ private:
         }
 
         // Add a new spectrum, initialize and set MS level and RT
-        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !!
+        spectrum_data_.resize(spectrum_data_.size() + 1);
         spectrum_data_.back().peak_count_ = 0;
 
         spectrum_data_.back().spectrum.setMSLevel(ms_level);
@@ -1101,8 +1101,8 @@ private:
       if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size() != 0)
       {
         const Instrument& inst = cexp_->getInstrument();
-        os << "\t\t<msInstrument>\n"
-          << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"Thermo Finnigan\"/>\n"
+        os << "\t\t<msInstrument>\n" 
+          << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"Thermo Scientific\"/>\n"
           << "\t\t\t<msModel category=\"msModel\" value=\"unknown\"/>\n";
            // TODO
            //<< "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n"
@@ -1162,7 +1162,7 @@ private:
 
           os << "/>\n";
         }
-        //writeUserParam_(os, inst, 3);
+        writeUserParam_(os, inst, 3);
 
         if (inst.metaValueExists("#comment"))
         {
@@ -1217,7 +1217,7 @@ private:
             os << "\" completionTime=\"" << data_processing.getCompletionTime().get().substitute(' ', 'T');
           }
           os << "\"/>\n";
-          //writeUserParam_(os, data_processing, 3, "processingOperation");
+          writeUserParam_(os, data_processing, 3, "processingOperation");
 
           os << "\t\t</dataProcessing>\n";
         }
@@ -1390,11 +1390,13 @@ private:
           os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << (int)precursor.getIntensity() << "\"";
           // charge
           if (precursor.getCharge() != 0)
+          {
             os << " precursorCharge=\"" << precursor.getCharge() << "\"";
+          }
           // window size
           if (precursor.getIsolationWindowLowerOffset() + precursor.getIsolationWindowUpperOffset() > 0.0)
           {
-            //os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
+            os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
           }
           if (precursor.getActivationMethods().empty())
           {
@@ -1436,7 +1438,7 @@ private:
           os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" contentType=\"m/z-int\" xsi:nil=\"true\"/>\n";
         }
 
-        //writeUserParam_(os, spec, ms_level + 2);
+        writeUserParam_(os, spec, ms_level + 2);
         if (spec.getComment() != "")
         {
           os << String(ms_level + 2, '\t') << "<comment>" << spec.getComment() << "</comment>\n";
