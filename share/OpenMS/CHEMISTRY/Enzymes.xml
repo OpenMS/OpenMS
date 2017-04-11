@@ -95,9 +95,9 @@
       <ITEM name="Name" value="Lys-N" type="string" />
       <ITEM name="RegEx" value="(?=K)" type="string" />
       <ITEM name="RegExDescription" value="Lys-N cuts before K" type="string" />
-      <ITEM name="NTermGain" value="OH" type="string" />
-      <ITEM name="CTermGain" value="H" type="string" />
-      <ITEM name="PSIid" value="10013??" type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIid" value="" type="string" />
       <ITEM name="XTANDEMid" value="[X]|[K]" type="string" />
       <ITEM name="COMETid" value="4" type="int" />
     </NODE>
