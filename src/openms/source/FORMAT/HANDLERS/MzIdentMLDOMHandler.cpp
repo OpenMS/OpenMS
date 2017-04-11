@@ -1291,7 +1291,7 @@ namespace OpenMS
               {
                 pep_id_->push_back(PeptideIdentification());
                 pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
-                pep_id_->back().setMetaValue("spectrum_reference", spectrumID);  // as spectrumID is taken from the mz_file and varies widely from vendor to vendor, spectrum_reference as string will reference the spectrum internally
+                pep_id_->back().setMetaValue("spectrum_reference", spectrumID);  // SpectrumIdentificationResult attribute spectrumID is taken from the mz_file and should correspond to MSSpectrum.nativeID, thus spectrum_reference will serve as reference. As the format of the 'reference' widely varies from vendor to vendor, spectrum_reference as string will serve best, indices are not recommended.
 
                 //fill pep_id_->back() with content
                 DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
