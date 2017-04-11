@@ -50,6 +50,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         int findNearest(double, double) nogil except+
         int findNearest(double, double, double) nogil except+
 
+        MSSpectrum[PeakT] select(libcpp_vector[ size_t ] & indices) nogil except +
+
         void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) nogil except + # wrap-ignore
         libcpp_vector[PeakT].iterator begin() nogil except +  # wrap-iter-begin:__iter__(PeakT)
         libcpp_vector[PeakT].iterator end()   nogil except +  # wrap-iter-end:__iter__(PeakT)
