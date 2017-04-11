@@ -2901,6 +2901,99 @@ def testMSSpectrum():
 
     assert int(spec.isSorted()) in  (0,1)
 
+    # get data arrays
+    assert len(spec.getStringDataArrays()) == 0
+    string_da = [ pyopenms.StringDataArray() ]
+    string_da[0].push_back("hello")
+    string_da[0].push_back("world")
+    string_da.append( pyopenms.StringDataArray() )
+    string_da[1].push_back("other")
+    spec.setStringDataArrays( string_da )
+    assert len(spec.getStringDataArrays()) == 2
+    assert spec.getStringDataArrays()[0][0] == "hello"
+    assert spec.getStringDataArrays()[1][0] == "other"
+
+    assert len(spec.getIntegerDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].push_back(5)
+    int_da[0].push_back(6)
+    int_da.append( pyopenms.IntegerDataArray() )
+    int_da[1].push_back(8)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 2
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+    assert len(spec.getFloatDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.FloatDataArray() ]
+    int_da[0].push_back(5.0)
+    int_da[0].push_back(6.0)
+    int_da.append( pyopenms.FloatDataArray() )
+    int_da[1].push_back(8.0)
+    spec.setFloatDataArrays( int_da )
+    assert len(spec.getFloatDataArrays()) == 2.0
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+@report
+def testStringDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.StringDataArray()
+    assert da.size() == 0
+    da.push_back("hello")
+    da.push_back("world")
+    assert da.size() == 2
+    assert da[0] == "hello"
+    assert da[1] == "world"
+    da[1] = "hello world"
+    assert da[1] == "hello world", da[1]
+    da.clear()
+    assert da.size() == 0
+    da.push_back("hello")
+    assert da.size() == 1
+
+@report
+def testIntegerDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.IntegerDataArray()
+    assert da.size() == 0
+    da.push_back(1)
+    da.push_back(4)
+    assert da.size() == 2
+    assert da[0] == 1
+    assert da[1] == 4
+    da[1] = 7
+    assert da[1] == 7
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1)
+    assert da.size() == 1
+
+@report
+def testFloatDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.FloatDataArray()
+    assert da.size() == 0
+    da.push_back(1.0)
+    da.push_back(4.0)
+    assert da.size() == 2
+    assert da[0] == 1.0
+    assert da[1] == 4.0
+    da[1] = 7.0
+    assert da[1] == 7.0
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1.0)
+    assert da.size() == 1
+
 @report
 def testMSChromatogram():
     """
