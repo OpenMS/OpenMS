@@ -21,6 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
         # double ISOTOPECORRECTIONS_FOURPLEX()
         # double ISOTOPECORRECTIONS_EIGHTPLEX()
         # double ISOTOPECORRECTIONS_TMT_SIXPLEX()
+
         StringList getIsotopeMatrixAsStringList(int itraq_type, libcpp_vector[Matrix[double] ] & isotope_corrections) nogil except +
         void updateIsotopeMatrixFromStringList(int itraq_type, StringList & channels, libcpp_vector[Matrix[double] ] & isotope_corrections) nogil except +
         # void initChannelMap(int itraq_type, ChannelMapType & map_) nogil except +
@@ -35,8 +36,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
 
     cdef cppclass ChannelInfo "OpenMS::ItraqConstants::ChannelInfo":
         ChannelInfo(ChannelInfo) nogil except + #wrap-ignore
-        # TODO string variable
-        # String description
+        libcpp_string description
         Int name
         Int id
         double center

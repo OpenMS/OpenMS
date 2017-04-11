@@ -4,10 +4,10 @@ from libcpp.vector cimport vector as libcpp_vector
 from PeptideIdentification cimport *
 from AASequence cimport *
 from XMLFile cimport *
+from SpectrumMetaDataLookup cimport *
 from Map cimport *
 from MSExperiment cimport *
 
-# typedef Map<Size, float> RTMapping;
 cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
     
     cdef cppclass MascotXMLFile(XMLFile) :
