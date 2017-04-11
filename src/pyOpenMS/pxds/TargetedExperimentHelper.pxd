@@ -491,6 +491,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         # members
         double avg_mass_delta
-        int location
         double mono_mass_delta
+        int location
+        int unimod_id
 
