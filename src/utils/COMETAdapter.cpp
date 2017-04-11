@@ -282,6 +282,14 @@ protected:
       String term_distance = "-1";
       String nc_term = "0";
 
+      if (residues=="N-term")
+      {
+          residues="n";
+      }
+      if (residues=="C-term")
+      {
+          residues="c";
+      }
       if (mod.getTermSpecificity() == ResidueModification::C_TERM) 
       {
         term_distance = 0;
@@ -292,12 +300,12 @@ protected:
         term_distance = 0;
         nc_term = "2";
       } 
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
       {
         term_distance = 0;
         nc_term = "0";
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM) // not yet available
       {
         term_distance = 0;
         nc_term = "1";
