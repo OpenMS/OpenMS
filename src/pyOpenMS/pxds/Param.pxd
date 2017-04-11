@@ -48,8 +48,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          Param copy(String prefix) nogil except +
 
          # wrapped manually for overloading with dict parameter:
-         void update(Param p_old, bool add_unknow) nogil except + # wrap-ignore
-         void update(Param p_old) nogil except + # wrap-ignore
+         bool update(Param p_old, bool add_unknow) nogil except + # wrap-ignore
+         bool update(Param p_old) nogil except + # wrap-ignore
 
          void merge(Param toMerge) nogil except +
 
@@ -68,7 +68,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
 
          #void parseCommandLine(int argc, char ** argv, String prefix) # wrap-ignore
          #void parseCommandLine(int argc, char ** argv) # wrap-ignore
-
 
          ParamIterator begin() nogil except + # wrap-ignore
          ParamIterator end()   nogil except + # wrap-ignore
