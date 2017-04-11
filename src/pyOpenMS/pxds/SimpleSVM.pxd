@@ -20,7 +20,10 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS::SimpleSVM":
     
     cdef cppclass SVMPrediction "OpenMS::SimpleSVM::Prediction":
+
+        SVMPrediction() nogil except +
         SVMPrediction(SVMPrediction) nogil except + #wrap-ignore
+
         Int label
         libcpp_map[int, double ] probabilities
 
