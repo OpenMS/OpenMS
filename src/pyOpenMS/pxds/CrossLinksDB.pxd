@@ -1,17 +1,19 @@
 from Types cimport *
+from libcpp.vector cimport vector as libcpp_vector
 from Map cimport *
 from String cimport *
 from ResidueModification cimport *
 
-# see ../addons/ModificationsDB.pyx
-cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
+# see ../addons/CrossLinksDB.pyx
+cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
     
-    cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
+    cdef cppclass CrossLinksDB:
         # wrap-manual-memory
 
-        ModificationsDB(ModificationsDB) nogil except + #wrap-ignore
+        CrossLinksDB(CrossLinksDB) nogil except + #wrap-ignore
 
         Size getNumberOfModifications() nogil except +
+
         ResidueModification getModification(Size index) nogil except +
 
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
@@ -41,7 +43,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
 
 ## wrap static methods
-cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
+cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS::CrossLinksDB":
     
-    ModificationsDB* getInstance() nogil except + # wrap-ignore
+    CrossLinksDB* getInstance() nogil except + # wrap-ignore
 

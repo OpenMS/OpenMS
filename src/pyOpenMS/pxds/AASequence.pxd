@@ -3,6 +3,7 @@ from Types cimport *
 from String cimport *
 from Residue cimport *
 from EmpiricalFormula cimport *
+from ResidueModification cimport *
 from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
@@ -42,12 +43,12 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # sets the C-terminal modification
         void setCTerminalModification(String modification) nogil except +
 
-        # CONST POINTER # ResidueModification * getNTerminalModification() nogil except +
+        const ResidueModification * getNTerminalModification() nogil except +
 
         # returns the name (ID) of the C-terminal modification, or an empty string if none is set nogil except +
         String getCTerminalModificationName() nogil except +
 
-        # CONST POINTER # ResidueModification * getCTerminalModification() nogil except +
+        const ResidueModification * getCTerminalModification() nogil except +
 
         # returns the residue at position index
         Residue getResidue(Size index) nogil except +
