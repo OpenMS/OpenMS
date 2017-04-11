@@ -79,13 +79,26 @@ def handle_member_definition(mdef, pxd_class, cnt):
     if not kind in "define property event variable typedef enum function signal prototype friend dcop slot".split(" "):
         raise Exception("Error; something is wrong")
     if kind == "enum" and protection == "public":
+
         cnt.public_enums_total += 1
         cython_file = parse_pxd_file(pxd_class.pxd_path)
         found = False
         for klass in cython_file:
+
             if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
                 found = True
                 break
+
+            # Sometimes we rename things in pyOpenMS for sanity (and namespace consistency) sake
+            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType 
+            # and we have to go back to the full cname. However, the doxygen name needs to be inferred
+            if hasattr(klass[0], "cname") and klass[0].cname.endswith(mdef.get_name()):
+                assumed_fullname = mdef.compoundname + "::" + mdef.get_name()
+                if (assumed_fullname == klass[0].cname):
+                    found = True
+                    break
+                else:
+                    print "Something went wrong, %s is not equal to %s" (assumed_fullname, klass[0].cname)
 
         if not found:
             tres.setPassed(False)
@@ -270,7 +283,7 @@ class DoxygenXMLFile(object):
 
     def parse_doxygen(self):
         try:
-            self.parsed_file =  doxygen_parse(self.fname)
+            self.parsed_file = doxygen_parse(self.fname)
             self.compound = self.parsed_file.get_compounddef()
             return self.parsed_file
         except Exception as e:
@@ -434,6 +447,7 @@ class DoxygenXMLFile(object):
             for mdef_ in sdef.get_memberdef():
                 mdef = DoxygenCppFunction.generate_from_obj(mdef_)
                 mdef.parent_doxy_file = self
+                mdef.compoundname = self.compound.compoundname
                 yield mdef
 
     def isAbstract(self):
@@ -962,7 +976,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             print ""
             print pxd_text
         if len(pxds_out) > 0 and pxd_text is not None:
-            fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+            fname = os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
             with open(fname, "w" ) as f:
                 f.write(pxd_text)
 
@@ -1087,7 +1101,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Loop through all methods which are listed in the doxygen XML file and match them to the pxd file
         classtestresults = []
-        for method_cntr,mdef in enumerate(dfile.iterMemberDef()):
+        for method_cntr, mdef in enumerate(dfile.iterMemberDef()):
 
             if mdef.get_name() in ignorefile.getIgnoredMethods(comp_name):
                 msg = "Ignore member function/attribute : %s %s %s " % (mdef.kind, mdef.prot, mdef.name)
@@ -1116,7 +1130,7 @@ def main(options):
                          options.generate_pxd)
 
 def handle_args():
-    usage = ""
+    usage = "Python extension checker. Run to identify classes and functions that have not been wrapped yet in pyOpenMS. Make sure you run 'make doc_xml' in the build path (--bin_path) first."
 
     parser = argparse.ArgumentParser(description = usage )
     parser.add_argument("--bin_path", dest="bin_path", default=".", help="OpenMS build path")
