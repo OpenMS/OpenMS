@@ -35,20 +35,36 @@ $Authors: Hannes Roest$
 --------------------------------------------------------------------------
 """
 
-# https://pypi.python.org/pypi/breathe
-# $ sudo pip install breathe
-
 import glob, os, sys
 import re, time
 import argparse
+from xml.sax.saxutils import escape as xml_escape
+
 from PythonCheckerLib import parse_pxd_file
 from PythonCheckerLib import create_pxd_file_map
-import breathe.parser
-from breathe.parser.doxygen.compound import parse as doxygen_parse
-from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
-from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
-import yaml
-from xml.sax.saxutils import escape as xml_escape
+
+# Try non-standard libs
+try:
+    import breathe.parser
+    import yaml
+    from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
+    from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
+except ImportError:
+    print "You need to install a few packages for this library to work"
+    print "Please use:"
+    print " pip install breathe"
+    print " pip install pyyaml"
+    print " pip install autowrap"
+    print " pip install Cython"
+    raise ImportError
+
+# Try breathe parser
+try:
+    from breathe.parser.eoxygen.compound import parse as doxygen_parse
+except ImportError:
+    print "importing breathe.parser.doxygen.compound failed, try new API"
+    from breathe.parser.compound import parse as doxygen_parse
+
 
 # Matching function
 def handle_member_definition(mdef, pxd_class, cnt):
