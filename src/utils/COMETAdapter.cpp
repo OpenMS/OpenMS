@@ -253,7 +253,7 @@ protected:
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
-    String enzyme_number = EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCOMETid();
+    String enzyme_number = String(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCOMETid());
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
     os << "num_enzyme_termini = " << getIntOption_("num_enzyme_termini") << "\n";                  // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific

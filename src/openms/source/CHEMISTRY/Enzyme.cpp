@@ -51,6 +51,7 @@ namespace OpenMS
     c_term_gain_(""),
     psi_id_(""),
     xtandem_id_(""),
+    comet_id_(),
     omssa_id_()
   {
   }
@@ -77,7 +78,7 @@ namespace OpenMS
                    EmpiricalFormula c_term_gain,
                    String psi_id,
                    String xtandem_id,
-                   String comet_id,
+                   UInt comet_id,
                    UInt omssa_id) :
     name_(name),
     cleavage_regex_(cleavage_regex),
@@ -199,12 +200,12 @@ namespace OpenMS
     return xtandem_id_;
   }
 
-  void Enzyme::setCOMETid(String value)
+  void Enzyme::setCOMETid(UInt value)
   {
     comet_id_ = value;
   }
 
-  String Enzyme::getCOMETid() const
+  UInt Enzyme::getCOMETid() const
   {
     return comet_id_;
   }

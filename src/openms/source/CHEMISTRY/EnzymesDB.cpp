@@ -235,7 +235,7 @@ namespace OpenMS
       {
         if (!key.hasSuffix(":"))
         {
-          enzy_ptr->setCOMETid(value);
+          enzy_ptr->setCOMETid(value.toInt());
         }
         continue;
       }
@@ -285,9 +285,10 @@ namespace OpenMS
   void EnzymesDB::getAllCOMETNames(vector<String>& all_names) const
   {
     all_names.clear();
+    all_names.push_back("unspecific cleavage");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getCOMETid() != "")
+      if ((*it)->getCOMETid() != 0)
       {
         all_names.push_back((*it)->getName());
       }

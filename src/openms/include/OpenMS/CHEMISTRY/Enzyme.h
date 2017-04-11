@@ -72,7 +72,7 @@ public:
                     EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
                     String psi_id = "",
                     String xtandem_id = "",
-                    String comet_id = "",
+                    UInt comet_id = 0,
                     UInt omssa_id = 0);
 
     /// destructor
@@ -141,10 +141,10 @@ public:
     String getXTANDEMid() const;
 
     /// sets the COMET enzyme id
-    void setCOMETid(String value);
+    void setCOMETid(UInt value);
 
     /// returns the COMET enzyme id
-    String getCOMETid() const;
+    UInt getCOMETid() const;
 
     /// sets the OMSSA enzyme id
     void setOMSSAid(UInt value);
@@ -196,7 +196,7 @@ protected:
 
     String xtandem_id_;
 
-    String comet_id_;
+    UInt comet_id_;
 
     UInt omssa_id_;
   };
