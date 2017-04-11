@@ -768,7 +768,62 @@ def testXTandemXMLFile():
     """
     f = pyopenms.XTandemXMLFile()
     assert f.load is not None
-    assert f.setModificationDefinitionsSet is not None
+
+@report
+def testXTandemInfile():
+    """
+    """
+    f = pyopenms.XTandemInfile()
+
+    f.setFragmentMassTolerance is not None
+    f.getFragmentMassTolerance is not None
+
+    f.setPrecursorMassTolerancePlus is not None
+    f.getPrecursorMassTolerancePlus is not None
+    f.setPrecursorMassToleranceMinus is not None
+    f.getPrecursorMassToleranceMinus is not None
+
+    f.setPrecursorErrorType is not None
+    f.getPrecursorErrorType is not None
+
+    f.setFragmentMassErrorUnit is not None
+    f.getFragmentMassErrorUnit is not None
+    f.setPrecursorMassErrorUnit is not None
+    f.getPrecursorMassErrorUnit is not None
+
+    f.setNumberOfThreads is not None
+    f.getNumberOfThreads is not None
+
+    f.setModifications is not None
+    f.getModifications is not None
+
+    f.setOutputFilename is not None
+    f.getOutputFilename is not None
+    f.setInputFilename is not None
+    f.getInputFilename is not None
+    f.setTaxonomyFilename is not None
+    f.getTaxonomyFilename is not None
+    f.setDefaultParametersFilename is not None
+    f.getDefaultParametersFilename is not None
+
+
+    f.setTaxon("testTaxon")
+    assert f.getTaxon() == "testTaxon"
+
+    assert f.setMaxPrecursorCharge is not None
+    assert f.getMaxPrecursorCharge is not None
+
+    assert f.setNumberOfMissedCleavages is not None
+    assert f.getNumberOfMissedCleavages is not None
+
+    assert f.setMaxValidEValue is not None
+    assert f.getMaxValidEValue is not None
+
+    assert f.setSemiCleavage is not None
+    assert f.setAllowIsotopeError is not None
+    assert f.write is not None
+    assert f.setCleavageSite is not None
+    assert f.getCleavageSite is not None
 
 @report
 def testSignalToNoiseEstimatorMedian():
