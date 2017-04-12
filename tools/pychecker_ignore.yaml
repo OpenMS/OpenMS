@@ -359,6 +359,9 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::PeakPickerSH:
         - pick
+    OpenMS::XTandemInfile:
+        - getNoiseSuppression
+        - setNoiseSuppression
     OpenMS::MzTabFile:
         - storeProteinReliabilityColumn
         - storePeptideReliabilityColumn

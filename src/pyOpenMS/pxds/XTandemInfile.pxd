@@ -59,8 +59,8 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         void setSemiCleavage(bool semi_cleavage) nogil except +
         void setAllowIsotopeError(bool allow_isotope_error) nogil except +
 
-        bool getNoiseSuppression() nogil except +
-        void setNoiseSuppression(bool noise_suppression) nogil except +
+        # bool getNoiseSuppression() nogil except +
+        # void setNoiseSuppression(bool noise_suppression) nogil except +
 
         void write(String filename, bool ignore_member_parameters, bool force_default_mods) nogil except +
 
