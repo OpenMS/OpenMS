@@ -2955,6 +2955,11 @@ def testStringDataArray():
     assert da.size() == 0
     da.push_back("hello")
     assert da.size() == 1
+    da.resize(3)
+    da[0] = "hello"
+    da[1] = ""
+    da[2] = "world"
+    assert da.size() == 3
 
 @report
 def testIntegerDataArray():
@@ -2974,6 +2979,11 @@ def testIntegerDataArray():
     assert da.size() == 0
     da.push_back(1)
     assert da.size() == 1
+    da.resize(3)
+    da[0] = 1
+    da[1] = 2
+    da[2] = 3
+    assert da.size() == 3
 
 @report
 def testFloatDataArray():
@@ -2993,6 +3003,11 @@ def testFloatDataArray():
     assert da.size() == 0
     da.push_back(1.0)
     assert da.size() == 1
+    da.resize(3)
+    da[0] = 1.0
+    da[1] = 2.0
+    da[2] = 3.0
+    assert da.size() == 3
 
 @report
 def testMSChromatogram():
