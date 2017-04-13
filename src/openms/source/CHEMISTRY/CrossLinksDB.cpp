@@ -167,9 +167,8 @@ namespace OpenMS
           if (split[i].hasPrefix("UniMod:"))
           {
             // Parse UniMod identifier to int
-            std::vector<String> unimod_id;
-            split[i].split(":", unimod_id);
-            mod.setUniModRecordId(unimod_id[1].toInt());
+            String identifier = split[i].substr(7, split[i].size());
+            mod.setUniModRecordId(identifier.toInt());
           }
         }
       }
