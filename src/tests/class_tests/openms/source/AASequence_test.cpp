@@ -769,18 +769,26 @@ START_SECTION([EXTRA] Test integer vs float tags)
   AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK"); // UniMod oxMet is 147.035405
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation");
+  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), 35)
+  TEST_EQUAL(seq11[3].getModification()->getUniModAccession(), "UniMod:35")
 
   AASequence seq12 = AASequence::fromString("PEPT[181.014]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Phospho");
+  TEST_EQUAL(seq12[3].getModification()->getUniModRecordId(), 21)
+  TEST_EQUAL(seq12[3].getModification()->getUniModAccession(), "UniMod:21")
 
   AASequence seq13 = AASequence::fromString("PEPY[243.03]TIDEK");
   TEST_EQUAL(seq13.isModified(), true);
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Phospho");
+  TEST_EQUAL(seq13[3].getModification()->getUniModRecordId(), 21)
+  TEST_EQUAL(seq13[3].getModification()->getUniModAccession(), "UniMod:21")
 
   AASequence seq15 = AASequence::fromString("PEPC[160.0306]TIDE");
   TEST_EQUAL(seq15.isModified(), true);
   TEST_STRING_EQUAL(seq15[3].getModificationName(), "Carbamidomethyl");
+  TEST_EQUAL(seq15[3].getModification()->getUniModRecordId(), 4)
+  TEST_EQUAL(seq15[3].getModification()->getUniModAccession(), "UniMod:4")
   }
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
@@ -788,18 +796,22 @@ START_SECTION([EXTRA] Test integer vs float tags)
   AASequence seq11 = AASequence::fromString("PEPM[147.035399]TIDEK"); // PSI-MOD oxMet is 147.035399
   TEST_EQUAL(seq11.isModified(), true);
   TEST_STRING_EQUAL(seq11[3].getModificationName(), "MOD:00719")
+  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
 
   AASequence seq12 = AASequence::fromString("PEPT[181.004]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Sulfo");
+  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
 
   AASequence seq13 = AASequence::fromString("PEPY[243.02]TIDEK");
   TEST_EQUAL(seq13.isModified(), true);
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Sulfo");
+  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
 
   AASequence seq14 = AASequence::fromString("PEPTC[159.035405]IDE");
   TEST_EQUAL(seq14.isModified(), true);
   TEST_STRING_EQUAL(seq14[4].getModificationName(), "Delta:H(4)C(3)O(1)");
+  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
   }
 
 
