@@ -560,7 +560,7 @@ namespace OpenMS
     {
 
       // check whether a unimod definition already exists, then simply add synonyms to it
-      if (it->second.getUniModAccession() != "")
+      if (it->second.getUniModRecordId() > 0)
       {
         //cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
         set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
@@ -603,7 +603,7 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
-      if ((*it)->getUniModAccession() != "")
+      if ((*it)->getUniModRecordId() > 0)
       {
         modifications.push_back((*it)->getFullId());
       }

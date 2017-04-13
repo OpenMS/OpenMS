@@ -181,6 +181,7 @@ namespace OpenMS
 
   const String ResidueModification::getUniModAccession() const
   {
+    if (unimod_record_id_ < 0) return "";
     return String("UniMod:") + unimod_record_id_; // return copy of temp object
   }
 
