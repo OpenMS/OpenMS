@@ -138,7 +138,7 @@ public:
   struct OPENSWATHALGO_DLLAPI LightModification
   {
     int location;
-    std::string unimod_id;
+    int unimod_id;
   };
 
   // A compound is either a peptide or a metabolite
