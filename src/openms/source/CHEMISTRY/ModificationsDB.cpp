@@ -410,7 +410,10 @@ namespace OpenMS
         {
           if (split[i].hasPrefix("UniMod:"))
           {
-            mod.setUniModAccession(split[i].trim());
+            // Parse UniMod identifier to int
+            std::vector<String> unimod_id;
+            split[i].split(":", unimod_id);
+            mod.setUniModRecordId(unimod_id[1].toInt());
           }
         }
       }
