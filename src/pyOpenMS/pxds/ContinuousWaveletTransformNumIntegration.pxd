@@ -9,6 +9,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransformNum
         #  ContinuousWaveletTransform
         ContinuousWaveletTransformNumIntegration() nogil except +
         ContinuousWaveletTransformNumIntegration(ContinuousWaveletTransformNumIntegration) nogil except + #wrap-ignore
+
         # TODO iterator
         # TEMPLATE # void transform(InputPeakIterator begin_input, InputPeakIterator end_input, float resolution, unsigned int zeros) nogil except +
 

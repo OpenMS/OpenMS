@@ -85,6 +85,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         int operator>(ParamIterator) nogil except +
         int operator<=(ParamIterator) nogil except +
         int operator>=(ParamIterator) nogil except +
+
         # Returns the traceback of the opened and closed sections
         libcpp_vector[TraceInfo] getTrace() nogil except +
 

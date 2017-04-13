@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
     cdef cppclass ItraqConstants "OpenMS::ItraqConstants":
         ItraqConstants() nogil except + 
         ItraqConstants(ItraqConstants) nogil except + #wrap-ignore
+
         # Int CHANNEL_COUNT()
         # Int CHANNELS_FOURPLEX()
         # Int CHANNELS_EIGHTPLEX()

@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # sets the N-terminal modification
         void setNTerminalModification(String modification) nogil except +
 
-        # returns the name (ID) of the N-terminal modification, or an empty string if none is set nogil except +
+        # returns the name (ID) of the N-terminal modification, or an empty string if none is set
         String getNTerminalModificationName() nogil except +
 
         # sets the C-terminal modification
@@ -101,6 +101,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns true if any of the residues or termini are modified
         bool isModified() nogil except +
 
+# COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
 
         # static members
