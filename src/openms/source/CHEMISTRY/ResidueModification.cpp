@@ -43,6 +43,7 @@ namespace OpenMS
 {
 
   ResidueModification::ResidueModification() :
+    unimod_record_id_(-1),
     term_spec_(ResidueModification::ANYWHERE),
     classification_(ResidueModification::ARTIFACT),
     average_mass_(0.0),
@@ -58,7 +59,7 @@ namespace OpenMS
     id_(rhs.id_),
     full_id_(rhs.full_id_),
     psi_mod_accession_(rhs.psi_mod_accession_),
-    unimod_accession_(rhs.unimod_accession_),
+    unimod_record_id_(rhs.unimod_record_id_),
     full_name_(rhs.full_name_),
     name_(rhs.name_),
     term_spec_(rhs.term_spec_),
@@ -84,7 +85,7 @@ namespace OpenMS
       id_ = rhs.id_;
       full_id_ = rhs.full_id_;
       psi_mod_accession_ = rhs.psi_mod_accession_;
-      unimod_accession_ = rhs.unimod_accession_;
+      unimod_record_id_ = rhs.unimod_record_id_;
       full_name_ = rhs.full_name_;
       name_ = rhs.name_;
       term_spec_ = rhs.term_spec_;
@@ -110,7 +111,7 @@ namespace OpenMS
     return id_ == rhs.id_ &&
            full_id_ == rhs.full_id_ &&
            psi_mod_accession_ == rhs.psi_mod_accession_ &&
-           unimod_accession_ == rhs.unimod_accession_ &&
+           unimod_record_id_ == rhs.unimod_record_id_ &&
            full_name_ == rhs.full_name_ &&
            name_ == rhs.name_ &&
            term_spec_ == rhs.term_spec_ &&
@@ -168,14 +169,19 @@ namespace OpenMS
     return psi_mod_accession_;
   }
 
-  void ResidueModification::setUniModAccession(const String& id)
+  void ResidueModification::setUniModRecordId(const Int& id)
   {
-    unimod_accession_ = id;
+    unimod_record_id_ = id;
   }
 
-  const String& ResidueModification::getUniModAccession() const
+  const Int& ResidueModification::getUniModRecordId() const
   {
-    return unimod_accession_;
+    return unimod_record_id_;
+  }
+
+  const String ResidueModification::getUniModAccession() const
+  {
+    return String("UniMod:") + unimod_record_id_; // return copy of temp object
   }
 
   void ResidueModification::setFullName(const String& full_name)

@@ -146,13 +146,18 @@ START_SECTION((const String& getFullId() const))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setUniModAccession(const String& id)))
-	ptr->setUniModAccession("blubb_new_UniModAccession");
-	TEST_STRING_EQUAL(ptr->getUniModAccession(), "blubb_new_UniModAccession")
+START_SECTION((void setUniModRecordId(const Int& id)))
+	ptr->setUniModRecordId(42);
+	TEST_EQUAL(ptr->getUniModRecordId(), 42)
+END_SECTION
+
+START_SECTION((const String& getUniModRecordId() const))
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((const String& getUniModAccession() const))
-	NOT_TESTABLE
+	ptr->setUniModRecordId(42);
+	TEST_STRING_EQUAL(ptr->getUniModAccession(), "UniMod:42")
 END_SECTION
 
 START_SECTION((void setPSIMODAccession(const String& id)))
