@@ -177,7 +177,8 @@ protected:
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
 
-    registerFlag_("omit_mzML_index", "Do not write the mzML index to the file when writing mzML files.", true);
+    registerStringOption_("write_mzML_index", "<toogle>", "true", "Toggle writing an mzML index when writing mzML files.", false, true);
+    setValidStrings_("write_mzML_index", ListUtils::create<String>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
@@ -192,7 +193,7 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
-    bool write_mzML_index = !getFlag_("omit_mzML_index");
+    bool write_mzML_index = getStringOption_("write_mzML_index") == "true" ? true : false;;
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
 
