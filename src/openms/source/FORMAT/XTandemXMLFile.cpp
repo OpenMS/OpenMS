@@ -248,7 +248,7 @@ namespace OpenMS
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::N_TERM);
         }
-        else if (mod_pos >= (aa_seq.size() - 1))
+        else if (mod_pos >= static_cast<int>(aa_seq.size() - 1))
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::C_TERM);
         }

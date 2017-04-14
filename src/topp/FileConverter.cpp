@@ -160,26 +160,26 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
-    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
     String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
-    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false);
+    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
     formats = "mzData,mzXML,mzML,cachedMzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
-    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
 
-    registerFlag_("write_mzML_index", "Add an index to the file when writing mzML files (default: no index)");
-    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data)");
-    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy)", false);
+    registerFlag_("omit_mzML_index", "Do not write the mzML index to the file when writing mzML files.", true);
+    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", true);
+    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
@@ -192,7 +192,7 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
-    bool write_mzML_index = getFlag_("write_mzML_index");
+    bool write_mzML_index = !getFlag_("omit_mzML_index");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
 
