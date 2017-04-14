@@ -500,12 +500,17 @@ namespace OpenMS
 #endif
             {
               writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
-              this->setProgress(progress++);
             }
           }
 
         } // continue 2 (no continue due to OpenMP)
       } // continue 1 (no continue due to OpenMP)
+
+#ifdef _OPENMP
+#pragma omp critical (progress)
+#endif
+        this->setProgress(++progress);
+
     }
     this->endProgress();
   }
