@@ -191,6 +191,10 @@ protected:
     setValidStrings_("digest:enzyme", all_enzymes);
     registerStringList_("digest:specificity", "<specificity>", vector<String>(),"");
     setValidStrings_("digest:specificity",specificity);
+    registerIntOption_("digest:missed_cleavages", "<integer>", -1, 
+                       "filter peptide evidences that have more than the specified missed_cleavages\n"
+                       "By default (-1) missed cleavages are ignored",false);
+    setMinInt_("digest:missed_cleavages",-1);
 
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
@@ -424,7 +428,6 @@ protected:
 
     //Filter by digestion enzyme product
 
-
     String protein_fasta = getStringOption_("digest:fasta").trim();
     if (!protein_fasta.empty())
     {
@@ -432,7 +435,6 @@ protected:
       // load protein accessions from FASTA file:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(protein_fasta, fasta);
-
 
       // Configure Enzymatic digestion
       // TODO(Nikos) What about missed_cleavages?
@@ -447,25 +449,38 @@ protected:
         digestion.setSpecificity(digestion.getSpecificityByName(specificity));
       }
 
+      Int missed_cleavages = getIntOption_("digest:missed_cleavages");
+      bool ignore_missed_cleavages = true;
+      if(missed_cleavages > -1)
+      {
+        ignore_missed_cleavages = false;
+        digestion.setMissedCleavages(missed_cleavages);
+      }
+      
       //Build an accession index to avoid the linear search cost
       //Maybe pass search parameters in accession here?
       const IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry> accession_resolver(fasta);
 
       //Build the digest filter function
       const function<bool (const PeptideEvidence&)> digestion_filter =
-        [&digestion, &accession_resolver](const PeptideEvidence& evidence)
+        [&digestion, &accession_resolver, &ignore_missed_cleavages](const PeptideEvidence& evidence)
       {
         // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
-        // TODO(Nikos) IMPORTANT:: what about UNKNOWN_POSITION N_TERMINAL_POSITION
+        if(!evidence.hasValidLimits())
+        {
+          LOG_WARN << "Invalid limits! Peptide "<< evidence.getProteinAccession() <<" not filtered";
+          return true;
+        }
+        
         if(accession_resolver.exists(evidence))
         {
           return digestion.isValidProduct(
             AASequence::fromString(accession_resolver.getValue(evidence).sequence),
-            evidence.getStart(), evidence.getEnd()-evidence.getStart());
+            evidence.getStart(), evidence.getEnd()-evidence.getStart(),false,ignore_missed_cleavages);
         }else
         {
-          // TODO(Nikos) What if we do not find any matching accession?
-          // Now it treats PeptideEvidence as valid product
+          //If accession not available do not filter just warn
+          LOG_WARN << "Accession "<< evidence.getProteinAccession() << " is not found in fasta file. Peptide not filtered";
           return true;
         }
       };
