@@ -187,13 +187,13 @@ protected:
     registerTOPPSubsection_("digest", "Perform protein digestion and filter peptides based on digestion products");
     registerInputFile_("digest:fasta", "<file>", "", "Input sequence database in FASTA format", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("digest:fasta", ListUtils::create<String>("fasta"));
-    registerStringList_("digest:enzyme", "<enzyme>", vector<String>(), "Specify the digestion enzyme");
+    registerStringOption_("digest:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
     setValidStrings_("digest:enzyme", all_enzymes);
-    registerStringList_("digest:specificity", "<specificity>", vector<String>(),"");
+    registerStringOption_("digest:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
     setValidStrings_("digest:specificity",specificity);
     registerIntOption_("digest:missed_cleavages", "<integer>", -1, 
                        "filter peptide evidences that have more than the specified missed_cleavages\n"
-                       "By default (-1) missed cleavages are ignored",false);
+                       "By default missed cleavages are ignored",false);
     setMinInt_("digest:missed_cleavages",-1);
 
 
