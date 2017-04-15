@@ -468,7 +468,7 @@ protected:
         // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
         if(!evidence.hasValidLimits())
         {
-          LOG_WARN << "Invalid limits! Peptide "<< evidence.getProteinAccession() <<" not filtered";
+          LOG_WARN << "Invalid limits! Peptide '"<< evidence.getProteinAccession() <<"' not filtered";
           return true;
         }
         
@@ -476,11 +476,11 @@ protected:
         {
           return digestion.isValidProduct(
             AASequence::fromString(accession_resolver.getValue(evidence).sequence),
-            evidence.getStart(), evidence.getEnd()-evidence.getStart(),false,ignore_missed_cleavages);
+            evidence.getStart(), evidence.getEnd() - evidence.getStart(), false, ignore_missed_cleavages);
         }else
         {
           //If accession not available do not filter just warn
-          LOG_WARN << "Accession "<< evidence.getProteinAccession() << " is not found in fasta file. Peptide not filtered";
+          LOG_WARN << "Accession '" << evidence.getProteinAccession() << "' is not found in fasta file. Peptide not filtered";
           return true;
         }
       };

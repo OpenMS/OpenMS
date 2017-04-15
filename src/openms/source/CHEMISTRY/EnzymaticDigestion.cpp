@@ -134,7 +134,10 @@ namespace OpenMS
     return pep_positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage, bool ignore_missed_cleavages) const
+  bool EnzymaticDigestion::isValidProduct(const AASequence& protein,
+                                          Size pep_pos, Size pep_length,
+                                          bool methionine_cleavage,
+                                          bool ignore_missed_cleavages) const
   {
     if (pep_pos >= protein.size())
     {
@@ -189,7 +192,7 @@ namespace OpenMS
         {
           return true;
         }
-        Size offset = std::distance(begin_pos,end_pos);
+        Size offset = std::distance(begin_pos, end_pos);
         if(offset > (getMissedCleavages() + 1))
         {
           return false;
@@ -246,10 +249,10 @@ namespace OpenMS
     }
     output.push_back(protein.getSubsequence(begin, protein.size() - begin));
 
-    //missed cleavages
-    if (pep_positions.size() > 0 && missed_cleavages_ != 0) //there is at least one cleavage site!
+    // missed cleavages
+    if (pep_positions.size() > 0 && missed_cleavages_ != 0) // there is at least one cleavage site!
     {
-      //generate fragments with missed cleavages
+      // generate fragments with missed cleavages
       for (Size i = 1; ((i <= missed_cleavages) && (count > i)); ++i)
       {
         begin = pep_positions[0];

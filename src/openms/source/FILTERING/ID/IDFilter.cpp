@@ -646,7 +646,7 @@ namespace OpenMS
         vector<PeptideEvidence> evidences;
         remove_copy_if(hit_it->getPeptideEvidences().begin(),
                        hit_it->getPeptideEvidences().end(),
-                       back_inserter(evidences),not1(filter));
+                       back_inserter(evidences), not1(filter));
         hit_it->setPeptideEvidences(evidences);
       }
     }
