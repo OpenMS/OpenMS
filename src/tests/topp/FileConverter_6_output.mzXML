@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd">
-	<msRun scanCount="28">
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" 
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd">
+	<msRun scanCount="3" startTime="PT5.1S" endTime="PT5.4S" >
 		<parentFile fileName="FileConverter_6_input.mzML" fileType="processedData" fileSha1="26026ae4babe7143ea5e205eb01f08d09bfcb418"/>
 		<msInstrument>
 			<msManufacturer category="msManufacturer" value=""/>
 			<msModel category="msModel" value=""/>
 			<msIonisation category="msIonisation" value="ESI"/>
-			<msMassAnalyzer category="msMassAnalyzer" value=""/>
+			<msMassAnalyzer category="msMassAnalyzer" value="Quadrupole Ion Trap"/>
 			<msDetector category="msDetector" value="EMT"/>
 			<software type="acquisition" name="Bioworks" version="3.3.1 sp1"/>
-			<msResolution category="msResolution" value=""/>
 			<operator first="William" last="Pennington" email="wpennington@higglesworth.edu" URI="http://www.higglesworth.edu/"/>
 			<nameValue name="name" value="instrumentConfiguration"/>
 			<nameValue name="instrument serial number" value="23433"/>
@@ -28,8 +29,8 @@
 			<software type="processing" name="FileConverter" version="version_string" completionTime="1999-12-31T23:59:59"/>
 			<processingOperation name="parameter: mode" value="test_mode"/>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" basePeakMz="0" retentionTime="PT5.1S" startMz="400" endMz="1800">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
+		<scan num="1" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" retentionTime="PT5.1S" startMz="400" endMz="1800" lowMz="400.39" highMz="1795.56" basePeakMz="445.347" basePeakIntensity="120054" totIonCurrent="16675500">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
 			<nameValue name="maldi_spot_id" value="M0"/>
 			<nameValue name="lowest observed m/z" value="400.39"/>
 			<nameValue name="highest observed m/z" value="1795.56"/>
@@ -52,10 +53,10 @@
 			<nameValue name="dwell time" value="123.45"/>
 			<nameValue name="mzname" value="mzarray1"/>
 			<nameValue name="itname" value="itarray1"/>
-			<scan num="2" msLevel="2" peaksCount="10" polarity="+" scanType="Full" filterLine="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]" basePeakMz="0" retentionTime="PT5.2S" startMz="100" endMz="500">
-				<precursorMz precursorIntensity="120053" precursorCharge="2" windowWideness="14.43">5.5555</precursorMz>
-				<precursorMz precursorIntensity="0" windowWideness="34.43">15.55</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEGgAABAAAAAQZAAAECAAABBgAAAQMAAAEFgAABBAAAAQUAAAEEgAABBIAAAQUAAAEEAAABBYAAAQMAAAEGAAABAgAAAQZAAAEAAAAA=</peaks>
+			<scan num="2" msLevel="2" peaksCount="10" polarity="+" scanType="Full" filterLine="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]" retentionTime="PT5.2S" startMz="100" endMz="500" lowMz="320.39" highMz="1003.56" basePeakMz="456.347" basePeakIntensity="23433" totIonCurrent="16675500" collisionEnergy="4.2" >
+				<precursorMz precursorIntensity="120053" precursorCharge="2" windowWideness="14.43" activationMethod="CID" >5.5555</precursorMz>
+				<precursorMz precursorIntensity="0" windowWideness="34.43" activationMethod="ETD" >15.55</precursorMz>
+				<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEGgAABAAAAAQZAAAECAAABBgAAAQMAAAEFgAABBAAAAQUAAAEEgAABBIAAAQUAAAEEAAABBYAAAQMAAAEGAAABAgAAAQZAAAEAAAAA=</peaks>
 				<nameValue name="maldi_spot_id" value="M1"/>
 				<nameValue name="lowest observed m/z" value="320.39"/>
 				<nameValue name="highest observed m/z" value="1003.56"/>
@@ -70,8 +71,8 @@
 				<nameValue name="itname" value="itarray2"/>
 			</scan>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" basePeakMz="0" retentionTime="PT5.3S" startMz="400" endMz="1800">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
+		<scan num="3" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" retentionTime="PT5.3S" startMz="400" endMz="1800" lowMz="400.39" highMz="1795.56" basePeakMz="445.347" basePeakIntensity="120054" totIonCurrent="16675500">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
 			<nameValue name="maldi_spot_id" value="M2"/>
 			<nameValue name="lowest observed m/z" value="400.39"/>
 			<nameValue name="highest observed m/z" value="1795.56"/>
@@ -82,110 +83,16 @@
 			<nameValue name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
 			<nameValue name="preset scan configuration" value="3"/>
 		</scan>
-		<scan num="4" msLevel="1" peaksCount="0" polarity="+" scanType="zoom" basePeakMz="0" retentionTime="PT5.4S" startMz="110" endMz="905">
-			<peaks precision="32" byteOrder="network" pairOrder="m/z-int" xsi:nil="true"/>
+		<scan num="4" msLevel="1" peaksCount="0" polarity="+" scanType="zoom" retentionTime="PT5.4S" startMz="110" endMz="905" basePeakMz="0">
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0"  xsi:nil="true" />
 			<nameValue name="sdname" value="spectrumdescription4"/>
-			<scan num="5" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT0S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFwAAA=</peaks>
-			</scan>
-			<scan num="6" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT1S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFgAAA=</peaks>
-			</scan>
-			<scan num="7" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT2S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFQAAA=</peaks>
-			</scan>
-			<scan num="8" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT3S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFAAAA=</peaks>
-			</scan>
-			<scan num="9" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT4S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEwAAA=</peaks>
-			</scan>
-			<scan num="10" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT5S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEgAAA=</peaks>
-			</scan>
-			<scan num="11" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT6S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEQAAA=</peaks>
-			</scan>
-			<scan num="12" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT7S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEAAAA=</peaks>
-			</scan>
-			<scan num="13" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT8S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEDgAAA=</peaks>
-			</scan>
-			<scan num="14" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT9S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEDAAAA=</peaks>
-			</scan>
-			<scan num="15" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT10S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAECgAAA=</peaks>
-			</scan>
-			<scan num="16" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT11S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAECAAAA=</peaks>
-			</scan>
-			<scan num="17" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT12S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEBAAAA=</peaks>
-			</scan>
-			<scan num="18" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT13S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEAAAAA=</peaks>
-			</scan>
-			<scan num="19" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT14S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAD+AAAA=</peaks>
-			</scan>
-			<scan num="20" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT0S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEgAAA=</peaks>
-			</scan>
-			<scan num="21" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT1S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEQAAA=</peaks>
-			</scan>
-			<scan num="22" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT2S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEEAAAA=</peaks>
-			</scan>
-			<scan num="23" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT3S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEDgAAA=</peaks>
-			</scan>
-			<scan num="24" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT4S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEDAAAA=</peaks>
-			</scan>
-			<scan num="25" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT5S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAECgAAA=</peaks>
-			</scan>
-			<scan num="26" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT6S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAECAAAA=</peaks>
-			</scan>
-			<scan num="27" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT7S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEBAAAA=</peaks>
-			</scan>
-			<scan num="28" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT8S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEAAAAA=</peaks>
-			</scan>
-			<scan num="29" msLevel="2" peaksCount="1" polarity="any" basePeakMz="0" retentionTime="PT9S">
-				<precursorMz precursorIntensity="0">0</precursorMz>
-				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAD+AAAA=</peaks>
-			</scan>
 		</scan>
 	</msRun>
-	<indexOffset>0</indexOffset>
+<index name = "scan" >
+<offset id = "1" >2064</offset>
+<offset id = "2" >3870</offset>
+<offset id = "3" >5373</offset>
+<offset id = "4" >6469</offset>
+</index>
+<indexOffset>6810</indexOffset>
 </mzXML>

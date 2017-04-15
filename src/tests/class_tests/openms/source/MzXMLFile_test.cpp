@@ -69,6 +69,7 @@ START_SECTION((~MzXMLFile()))
 	delete ptr;
 END_SECTION
 
+
 START_SECTION(const PeakFileOptions& getOptions() const)
 	MzXMLFile file;
 	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
@@ -548,28 +549,28 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
- 	 f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e1);
+ 	f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e1);
 	TEST_EQUAL(e1.size(), 4)
 
-	f.store(tmp_filename,e1);
-	f.load(tmp_filename,e2);
+	f.store(tmp_filename, e1);
+	f.load(tmp_filename, e2);
 	TEST_EQUAL(e1==e2, true);
-
 END_SECTION
 
 START_SECTION([EXTRA] static bool isValid(const String& filename))
-	std::string tmp_filename;
+  std::string tmp_filename;
   MzXMLFile f;
   MSExperiment<> e;
 
   //Note: empty mzXML files are not valid, thus this test is omitted
 
-	//test if full file is valid
-	NEW_TMP_FILE(tmp_filename);
-	f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
-  f.store(tmp_filename,e);
-  TEST_EQUAL(f.isValid(tmp_filename, std::cerr),true);
+  // test if full file is valid
+  NEW_TMP_FILE(tmp_filename);
+  f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), e);
+  f.store(tmp_filename, e);
+  TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
