@@ -13,9 +13,9 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_4_input.mzXML" location="file:///nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="bfb52b34f2482567ddf4474117ca70c09d96bea1" />
-				<cvParam cvRef="MS" accession="MS:1000566" name="ISB mzXML format" />
+			<sourceFile id="sf_ru_0" name="File_test_1.raw" location="">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0000000000000000000000000000000000000000" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -716,28 +716,28 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=1">6376</offset>
-		<offset idRef="scan=2">12900</offset>
-		<offset idRef="scan=3">19336</offset>
-		<offset idRef="scan=4">25639</offset>
-		<offset idRef="scan=5">31654</offset>
-		<offset idRef="scan=6">37541</offset>
-		<offset idRef="scan=7">43344</offset>
-		<offset idRef="scan=8">49375</offset>
-		<offset idRef="scan=9">55070</offset>
-		<offset idRef="scan=10">60796</offset>
-		<offset idRef="scan=11">66956</offset>
-		<offset idRef="scan=12">78541</offset>
-		<offset idRef="scan=13">95195</offset>
-		<offset idRef="scan=14">98600</offset>
-		<offset idRef="scan=15">116887</offset>
-		<offset idRef="scan=16">120228</offset>
-		<offset idRef="scan=17">123826</offset>
-		<offset idRef="scan=18">127184</offset>
-		<offset idRef="scan=19">143297</offset>
-		<offset idRef="scan=20">147233</offset>
+		<offset idRef="scan=1">6302</offset>
+		<offset idRef="scan=2">12826</offset>
+		<offset idRef="scan=3">19262</offset>
+		<offset idRef="scan=4">25565</offset>
+		<offset idRef="scan=5">31580</offset>
+		<offset idRef="scan=6">37467</offset>
+		<offset idRef="scan=7">43270</offset>
+		<offset idRef="scan=8">49301</offset>
+		<offset idRef="scan=9">54996</offset>
+		<offset idRef="scan=10">60722</offset>
+		<offset idRef="scan=11">66882</offset>
+		<offset idRef="scan=12">78467</offset>
+		<offset idRef="scan=13">95121</offset>
+		<offset idRef="scan=14">98526</offset>
+		<offset idRef="scan=15">116813</offset>
+		<offset idRef="scan=16">120154</offset>
+		<offset idRef="scan=17">123752</offset>
+		<offset idRef="scan=18">127110</offset>
+		<offset idRef="scan=19">143223</offset>
+		<offset idRef="scan=20">147159</offset>
 	</index>
 </indexList>
-<indexListOffset>151084</indexListOffset>
+<indexListOffset>151010</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
