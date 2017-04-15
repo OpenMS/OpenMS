@@ -161,26 +161,45 @@ namespace OpenMS
       bool spec_c = false, spec_n = false;
 
       std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
+      //initialize start and end
+      std::vector<Size>::const_iterator begin_pos, end_pos;
+      begin_pos = end_pos = pep_positions.end();
       // test each end
       if (pep_pos == 0 ||
-          std::find(pep_positions.begin(), pep_positions.end(), pep_pos) != pep_positions.end())
+          (begin_pos = std::find(pep_positions.begin(), pep_positions.end(), pep_pos)) != pep_positions.end())
       {
         spec_n = true;
       }
       // if allow methionine cleavage at the protein start position
       if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
       {
+        //Deal with possible methionine_cleavage
+        begin_pos = pep_positions.begin();
         spec_n = true;
       }
       if (pep_pos + pep_length == protein.size() ||
-          std::find(pep_positions.begin(), pep_positions.end(), pep_pos  + pep_length) != pep_positions.end())
+          (end_pos = std::find(pep_positions.begin(), pep_positions.end(), pep_pos  + pep_length)) != pep_positions.end())
       {
         spec_c = true;
       }
 
       if (spec_n && spec_c)
       {
-        return true; // if both are fine, its definitely valid
+        Size offset = std::distance(begin_pos,end_pos);
+        if(offset > (getMissedCleavages() + 1))
+        {
+          return false;
+        }
+        else if(offset == 0)
+        {
+          //This corner case needs to be checked when peptide is at the start and the end of the protein.
+          //We check with the total number of cleavages.
+          return pep_positions.size() >= (getMissedCleavages() + 1);
+        }
+        else
+        {
+          return true;
+        }
       }
       else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))
       {
