@@ -221,7 +221,7 @@ protected:
       {
         if (meta.metaValueExists(metakey))
         {
-          os << " " << attname << "=\"" << meta.getMetaValue(metakey) << "\" ";
+          os << " " << attname << "=\"" << meta.getMetaValue(metakey) << "\"";
         }
         return os;
       }
@@ -1070,19 +1070,16 @@ private:
           const SourceFile& sf = cexp_->getSourceFiles()[i];
           os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
           //file type is an enum in mzXML => search for 'raw' string
-          String tmp_string = sf.getFileType();
-          tmp_string.toLower();
-          if (tmp_string.hasSubstring("raw"))
+          if (String(sf.getFileType()).toLower().hasSubstring("raw"))
           {
             os << "RAWData";
           }
           else
           {
-            os << "RAWData";
+            os << "processedData";
           }
           //Sha1 checksum must have 40 characters => create a fake if it is unknown
           os << "\" fileSha1=\"";
-          tmp_string = sf.getChecksum();
           if (sf.getChecksum().size() != 40 || sf.getChecksumType() != SourceFile::SHA1)
           {
             os << "0000000000000000000000000000000000000000";
@@ -1103,13 +1100,14 @@ private:
         const Instrument& inst = cexp_->getInstrument();
         // the Instrument Manufacturer is paramount for some downstream tools
         // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
-        String mf = inst.getVendor();
-        if (String(inst.getSoftware().getName()).toLower() == "xcalibur")
+        String manufacturer = inst.getVendor();
+        if (String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur"))
         { // MaxQuant's internal parameter defaults require either "Thermo Finnigan" or "Thermo Scientific"
-          mf = "Thermo Finnigan";
+          manufacturer = "Thermo Finnigan";
+          LOG_INFO << "Detected software '" << inst.getSoftware().getName() << "'. Setting <msManufacturer> as '" << manufacturer << "'." << std::endl;
         }
-        os << "\t\t<msInstrument>\n" 
-           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << mf << "\"/>\n"
+        os << "\t\t<msInstrument>\n"
+          << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << manufacturer << "\"/>\n"
            << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
         if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
@@ -1295,9 +1293,9 @@ private:
         os << String(ms_level + 1, '\t');
         
         scan_index_positions.push_back(IndexPos(spectrum_id, os.tellp())); // remember scan index
-        os << "<scan num=\"" << spectrum_id << "\"\n"
-           << " msLevel=\"" << ms_level << "\"\n"
-           << " peaksCount=\"" << spec.size() << "\"\n"
+        os << "<scan num=\"" << spectrum_id << "\""
+           << " msLevel=\"" << ms_level << "\""
+           << " peaksCount=\"" << spec.size() << "\""
            << " polarity=\"";
         if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
         {
@@ -1311,7 +1309,7 @@ private:
         {
           os << "any";
         }
-
+        os << "\"";
         //scan type
         switch (spec.getInstrumentSettings().getScanMode())
         {
@@ -1323,45 +1321,46 @@ private:
         case InstrumentSettings::MSNSPECTRUM:
           if (spec.getInstrumentSettings().getZoomScan())
           {
-            os << "\"\n scanType=\"zoom";
+            os << " scanType=\"zoom\"";
           }
           else
           {
-            os << "\"\n scanType=\"Full";
+            os << " scanType=\"Full\"";
           }
           break;
 
         case InstrumentSettings::SIM:
-          os << "\"\n scanType=\"SIM";
+          os << " scanType=\"SIM\"";
           break;
 
         case InstrumentSettings::SRM:
-          os << "\" \nscanType=\"SRM";
+          os << " scanType=\"SRM\"";
           break;
 
         case InstrumentSettings::CRM:
-          os << "\"\n scanType=\"CRM";
+          os << " scanType=\"CRM\"";
           break;
 
         default:
-          os << "\"\n scanType=\"Full";
+          os << " scanType=\"Full\"";
           warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
 
         // filter line
         if (spec.metaValueExists("filter string") )
         {
-          os << "\"\n filterLine=\"";
+          os << " filterLine=\"";
           os << writeXMLEscape ( (String)spec.getMetaValue("filter string") );
+          os << "\"";
         }
 
         // retention time
-        os << "\"\n retentionTime=\"";
+        os << " retentionTime=\"";
         if (spec.getRT() < 0) os << "-";
-        os << "PT" << std::fabs(spec.getRT()) << "S\"\n";
+        os << "PT" << std::fabs(spec.getRT()) << "S\"";
         if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
-          //os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
+          os << " startMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].begin << "\" endMz=\"" << spec.getInstrumentSettings().getScanWindows()[0].end << "\"";
         }
         if (spec.getInstrumentSettings().getScanWindows().size() > 1)
         {
@@ -1369,18 +1368,32 @@ private:
         }
 
         // convert meta values to tags
+        writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz");
+        writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz");
+        if (spec.metaValueExists("base peak m/z")) writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz");
+        else
+        { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
+          os << " basePeakMz=\"";
+          double basePeakInt(0), basePeakMz(0);
+          for (Size j = 0; j < spec.size(); j++)
+          {
+            if (spec[j].getIntensity() > basePeakInt)
+            {
+              basePeakInt = spec[j].getIntensity();
+              basePeakMz = spec[j].getMZ();
+            }
+          }
+          os << basePeakMz << "\"";
+        }
 
-        writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz") << "\n";
-        writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz") << "\n";
-        writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz") << "\n";
-        writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity") << "\n";
+        writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity");
         writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent");
 
         if (ms_level == 2 && 
             !spec.getPrecursors().empty() &&
             spec.getPrecursors().front().metaValueExists("collision energy"))
         {
-          os << "\n collisionEnergy=\"" << spec.getPrecursors().front().getMetaValue("collision energy") << "\" \n";
+          os << " collisionEnergy=\"" << spec.getPrecursors().front().getMetaValue("collision energy") << "\" ";
         }
         // end of "scan" attributes
         os << ">\n";
@@ -1401,12 +1414,8 @@ private:
           {
             os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
           }
-          if (precursor.getActivationMethods().empty())
-          {
-            os << " activationMethod=\"unknown\" ";
-          }
-          else
-          {
+          if (!precursor.getActivationMethods().empty() && !Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))].empty())
+          { // must not be empty, but technically only ETD, ECD, CID are allowed in mzXML 3.1
             os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
           }
           
@@ -1420,11 +1429,11 @@ private:
           os << ">" << mz << "</precursorMz>\n";
         }
 
+        os << String(ms_level + 2, '\t') << "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
         if (!spec.empty())
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\">";
-
-          //std::cout << "Writing scan " << s << "\n";
+          os << ">";
+          // for MaxQuant-compatible mzXML, the data type must be 'float', i.e. precision=32 bit. 64bit will crash MaxQuant!
           std::vector<float> tmp;
           for (Size i = 0; i < spec.size(); i++)
           {
@@ -1438,7 +1447,7 @@ private:
         }
         else
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" contentType=\"m/z-int\" xsi:nil=\"true\"/>\n";
+          os << " xsi:nil=\"true\" />\n";
         }
 
         writeUserParam_(os, spec, ms_level + 2);
@@ -1466,7 +1475,7 @@ private:
 
       os << "\t</msRun>\n";
 
-      // create scan index
+      // create scan index (does not take a lot of space and is required for MaxQuant)
       std::ostream::streampos index_offset = os.tellp();
       os << "<index name = \"scan\" >\n";
       for (Size i = 0; i < scan_index_positions.size(); ++i)
@@ -1476,8 +1485,7 @@ private:
       os << "</index>\n";
       os << "<indexOffset>" << index_offset << "</indexOffset>\n";
 
-      os << "<sha1>0000000000000000000000000000000000000000</sha1>\n"
-         << "</mzXML>\n";
+      os << "</mzXML>\n";
 
       logger_.endProgress();
       spec_write_counter_ = 1;
