@@ -185,7 +185,7 @@ protected:
     setValidStrings_("blacklist:modifications", all_mods);
 
     registerTOPPSubsection_("digest", "Perform protein digestion and filter peptides based on digestion products");
-    registerInputFile_("digest:fasta", "<file>", "", "Input sequence database in FASTA format", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("digest:fasta", "<file>", "", "Input sequence database in FASTA format", false);
     setValidFormats_("digest:fasta", ListUtils::create<String>("fasta"));
     registerStringOption_("digest:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
     setValidStrings_("digest:enzyme", all_enzymes);
