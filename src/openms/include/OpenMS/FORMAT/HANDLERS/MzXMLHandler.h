@@ -1052,8 +1052,8 @@ private:
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
          << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\" \n"
          << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n"
-         << " xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 "
-         << "http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
+         << " xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1"
+         << " http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
          << "\t<msRun scanCount=\"" << count_tmp_ << "\" startTime=\"PT" << min_rt << "S\" endTime=\"PT" << max_rt << "S\" >\n";
 
       //----------------------------------------------------------------------------------------

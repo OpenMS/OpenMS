@@ -46,7 +46,7 @@ namespace OpenMS
   class String;
 
   /**
-      @brief File adapter for MzXML 2.1 files
+      @brief File adapter for MzXML 3.1 files
 
       @ingroup FileIO
   */
