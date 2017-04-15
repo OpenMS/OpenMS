@@ -134,7 +134,7 @@ namespace OpenMS
     return pep_positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage) const
+  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage, bool ignore_missed_cleavages) const
   {
     if (pep_pos >= protein.size())
     {
@@ -185,6 +185,10 @@ namespace OpenMS
 
       if (spec_n && spec_c)
       {
+        if(ignore_missed_cleavages)
+        {
+          return true;
+        }
         Size offset = std::distance(begin_pos,end_pos);
         if(offset > (getMissedCleavages() + 1))
         {
