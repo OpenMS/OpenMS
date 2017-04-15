@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -517,7 +518,7 @@ protected:
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile file;
     file.setLogType(log_type_);
     String in_tmp;

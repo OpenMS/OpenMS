@@ -149,7 +149,7 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
@@ -175,7 +175,7 @@ START_SECTION(( OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id) 
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())

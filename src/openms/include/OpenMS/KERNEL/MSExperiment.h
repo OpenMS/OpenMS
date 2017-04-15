@@ -35,12 +35,15 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENT_H
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -55,11 +58,20 @@ namespace OpenMS
   /**
     @brief In-Memory representation of a mass spectrometry experiment.
 
-    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram, which are accessible through the getSpectrum and getChromatogram functions.
+    Contains the data and metadata of an experiment performed with an MS (or
+    HPLC and MS). This representation of an MS experiment is organized as list
+    of spectra and chromatograms and provides an in-memory representation of
+    popular mass-spectrometric file formats such as mzXML or mzML. The
+    meta-data associated with an experiment is contained in
+    ExperimentalSettings (by inheritance) while the raw data (as well as
+    spectra and chromatogram level meta data) is stored in objects of type
+    MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
+    and getChromatogram functions.
 
-    Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
-    stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
-    search for the first spectrum before x that has a lower MS-level!
+    Be careful when changing the order of contained MSSpectrum instances, if
+    tandem-MS data is stored in this class. The only way to find a precursor
+    spectrum of MSSpectrum x is to search for the first spectrum before x that
+    has a lower MS-level!
 
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
     @note Some of the meta data is associated with the spectra directly (e.g. DataProcessing) and therefore the spectra need to be present to retain this information.
@@ -67,13 +79,14 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class MSExperiment :
     public RangeManager<2>,
     public ExperimentalSettings
   {
 
 public:
+    typedef Peak1D PeakT;
+    typedef ChromatogramPeak ChromatogramPeakT;
 
     /// @name Base type definitions
     //@{
@@ -84,9 +97,9 @@ public:
     /// Area type
     typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
-    typedef typename PeakType::CoordinateType CoordinateType;
+    typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
-    typedef typename PeakType::IntensityType IntensityType;
+    typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
     typedef RangeManager<2> RangeManagerType;
     /// Spectrum Type
@@ -100,21 +113,21 @@ public:
     /// @name Iterator type definitions
     //@{
     /// Mutable iterator
-    typedef typename std::vector<SpectrumType>::iterator Iterator;
+    typedef std::vector<SpectrumType>::iterator Iterator;
     /// Non-mutable iterator
-    typedef typename std::vector<SpectrumType>::const_iterator ConstIterator;
+    typedef std::vector<SpectrumType>::const_iterator ConstIterator;
     /// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<PeakT, PeakT &, PeakT *, Iterator, typename SpectrumType::Iterator> AreaIterator;
+    typedef Internal::AreaIterator<PeakT, PeakT &, PeakT *, Iterator, SpectrumType::Iterator> AreaIterator;
     /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<const PeakT, const PeakT &, const PeakT *, ConstIterator, typename SpectrumType::ConstIterator> ConstAreaIterator;
+    typedef Internal::AreaIterator<const PeakT, const PeakT &, const PeakT *, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra
     // Attention: these refer to the spectra vector only!
     //@{
-    typedef typename Base::value_type value_type; 
-    typedef typename Base::iterator iterator; 
-    typedef typename Base::const_iterator const_iterator; 
+    typedef Base::value_type value_type; 
+    typedef Base::iterator iterator; 
+    typedef Base::const_iterator const_iterator; 
 
     inline Size size() const
     {
@@ -411,7 +424,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return lower_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
+      return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
     }
 
     /**
@@ -425,7 +438,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return upper_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
+      return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
     }
 
     /**
@@ -437,7 +450,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return lower_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
+      return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
     }
 
     /**
@@ -449,7 +462,7 @@ public:
     {
       SpectrumType s;
       s.setRT(rt);
-      return upper_bound(spectra_.begin(), spectra_.end(), s, typename SpectrumType::RTLess());
+      return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
     }
 
     //@}
@@ -488,7 +501,7 @@ public:
       }
 
       //update
-      for (typename Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
+      for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
       {
         if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
         {
@@ -547,7 +560,7 @@ public:
 
       //TODO CHROM update intensity, m/z and RT according to chromatograms as well! (done????)
 
-      for (typename std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+      for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
       {
 
         // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
@@ -635,7 +648,7 @@ public:
     */
     void sortSpectra(bool sort_mz = true)
     {
-      std::sort(spectra_.begin(), spectra_.end(), typename SpectrumType::RTLess());
+      std::sort(spectra_.begin(), spectra_.end(), SpectrumType::RTLess());
 
       if (sort_mz)
       {
@@ -655,11 +668,11 @@ public:
     void sortChromatograms(bool sort_rt = true)
     {
       // sort the chromatograms according to their product m/z
-      std::sort(chromatograms_.begin(), chromatograms_.end(), typename ChromatogramType::MZLess());
+      std::sort(chromatograms_.begin(), chromatograms_.end(), ChromatogramType::MZLess());
 
       if (sort_rt)
       {
-        for (typename std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
+        for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
         {
           it->sortByPosition();
         }
@@ -890,13 +903,13 @@ public:
     {
       // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
       MSChromatogram<ChromatogramPeakType> TIC;
-      for (typename Base::const_iterator spec_it = spectra_.begin(); spec_it != spectra_.end(); ++spec_it)
+      for (Base::const_iterator spec_it = spectra_.begin(); spec_it != spectra_.end(); ++spec_it)
       {
         if (spec_it->getMSLevel() == 1)
         {
           double totalIntensity = 0;
           // sum intensities of a spectrum
-          for (typename SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
+          for (SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
           {
             totalIntensity += peak_it->getIntensity();
           }
@@ -1010,7 +1023,7 @@ private:
       @param rt RT of new spectrum
       @return Pointer to newly created spectrum
     */
-    SpectrumType* createSpec_(typename PeakType::CoordinateType rt)
+    SpectrumType* createSpec_(PeakType::CoordinateType rt)
     {
       SpectrumType* spectrum = 0;
       spectra_.insert(spectra_.end(), SpectrumType());
@@ -1027,7 +1040,7 @@ private:
       @param metadata_names Names of floatdata arrays attached to this spectrum
       @return Pointer to newly created spectrum
     */
-    SpectrumType* createSpec_(typename PeakType::CoordinateType rt, const StringList& metadata_names)
+    SpectrumType* createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)
     {
       SpectrumType* spectrum = createSpec_(rt);
       // create metadata arrays
@@ -1043,10 +1056,8 @@ private:
 
   };
 
-
   /// Print the contents to a stream.
-  template <typename PeakT, typename ChromatogramPeakT>
-  std::ostream & operator<<(std::ostream & os, const MSExperiment<PeakT, ChromatogramPeakT> & exp)
+  inline std::ostream & operator<<(std::ostream & os, const MSExperiment & exp)
   {
     os << "-- MSEXPERIMENT BEGIN --" << std::endl;
 
@@ -1054,13 +1065,13 @@ private:
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (typename MSExperiment<PeakT>::const_iterator it = exp.begin(); it != exp.end(); ++it)
+    for (std::vector<MSSpectrum<> >::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
     {
       os << *it;
     }
 
     //chromatograms
-    for (typename std::vector<MSChromatogram<ChromatogramPeakT> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+    for (std::vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
     {
       os << *it;
     }
@@ -1072,4 +1083,7 @@ private:
 
 } // namespace OpenMS
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
 #endif // OPENMS_KERNEL_MSEXPERIMENT_H
+

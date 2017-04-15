@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -58,44 +59,21 @@ namespace OpenMS
           MapType has to be a MSExperiment or have the same interface.
           Do not use this class. It is only needed in MzXMLFile.
     */
-    template <typename MapType>
-    class MzXMLHandler :
+
+    typedef PeakMap MapType;
+    typedef MSSpectrum<> SpectrumType;
+
+    class OPENMS_DLLAPI MzXMLHandler :
       public XMLHandler
     {
 public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a read-only handler
-      MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
-        XMLHandler(filename, version),
-        exp_(&exp),
-        cexp_(0),
-        decoder_(),
-        nesting_level_(0),
-        skip_spectrum_(false),
-        spec_write_counter_(1),
-        consumer_(NULL),
-        scan_count_(0),
-        logger_(logger)
-      {
-        init_();
-      }
+      MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger);
 
       /// Constructor for a write-only handler
-      MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
-        XMLHandler(filename, version),
-        exp_(0),
-        cexp_(&exp),
-        decoder_(),
-        nesting_level_(0),
-        skip_spectrum_(false),
-        spec_write_counter_(1),
-        consumer_(NULL),
-        scan_count_(0),
-        logger_(logger)
-      {
-        init_();
-      }
+      MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzXMLHandler() {}
@@ -126,43 +104,20 @@ public:
       }
 
       /// Set the IMSDataConsumer consumer which will consume the read data
-      void setMSDataConsumer(Interfaces::IMSDataConsumer<MapType> * consumer)
+      void setMSDataConsumer(Interfaces::IMSDataConsumer * consumer)
       {
         consumer_ = consumer;
       }
 
 private:
-      /// initialize members (call from C'tor)
-      void init_()
-      {
-        cv_terms_.resize(6);
-        //Polarity
-        String("any;+;-").split(';', cv_terms_[0]);
-        //Scan type
-        // is no longer used cv_terms_[1] is empty now
-        
-        //Ionization method
-        String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
-        cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
-                
-        //Mass analyzer
-        String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
-        cv_terms_[3].resize(MassAnalyzer::SIZE_OF_ANALYZERTYPE);
-        
-        //Detector
-        String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
-        cv_terms_[4].resize(IonDetector::SIZE_OF_TYPE);
-        
-        //Resolution method
-        String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
-        cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
 
-      }
+      /// initialize members (call from C'tor)
+      void init_();
 
 protected:
 
       /// Peak type
-      typedef typename MapType::PeakType PeakType;
+      typedef MapType::PeakType PeakType;
       /// Spectrum type
       typedef MSSpectrum<PeakType> SpectrumType;
 
@@ -207,7 +162,7 @@ protected:
       UInt spec_write_counter_;
 
       /// Consumer class to work on spectra
-      Interfaces::IMSDataConsumer<MapType>* consumer_;
+      Interfaces::IMSDataConsumer* consumer_;
 
       /// Consumer class to work on spectra
       UInt scan_count_;
@@ -232,15 +187,6 @@ protected:
         std::vector<String> keys; // Vector to hold keys to meta info
         meta.getKeys(keys);
 
-        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
-        {
-          if ((*it)[0] != '#') // internally used meta info start with '#'
-          {
-            os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << writeXMLEscape(meta.getMetaValue(*it)) << "\"/>\n";
-          }
-        }
-      }
-
       /// data processing auxiliary variable
       std::vector< boost::shared_ptr< DataProcessing> > data_processing_;
 
@@ -251,72 +197,7 @@ protected:
           this function will be executed in parallel.
 
       */
-      void doPopulateSpectraWithData_(SpectrumData & spectrum_data)
-      {
-        typedef typename SpectrumType::PeakType PeakType;
-
-        //std::cout << "reading scan" << "\n";
-        if (spectrum_data.char_rest_ == "") // no peaks
-        {
-          return;
-        }
-
-        //remove whitespaces from binary data
-        //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-        spectrum_data.char_rest_.removeWhitespaces();
-
-        if (spectrum_data.precision_ == "64")
-        {
-          std::vector<double> data;
-          if (spectrum_data.compressionType_ == "zlib")
-          {
-            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
-          }
-          else
-          {
-            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
-          }
-          spectrum_data.char_rest_ = "";
-          PeakType peak;
-          //push_back the peaks into the container
-          for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
-          {
-            // check if peak in in the specified m/z  and intensity range
-            if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-               && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
-            {
-              peak.setMZ(data[n]);
-              peak.setIntensity(data[n + 1]);
-              spectrum_data.spectrum.push_back(peak);
-            }
-          }
-        }
-        else //precision 32
-        {
-          std::vector<float> data;
-          if (spectrum_data.compressionType_ == "zlib")
-          {
-            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
-          }
-          else
-          {
-            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
-          }
-          spectrum_data.char_rest_ = "";
-          PeakType peak;
-          //push_back the peaks into the container
-          for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
-          {
-            if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-               && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
-            {
-              peak.setMZ(data[n]);
-              peak.setIntensity(data[n + 1]);
-              spectrum_data.spectrum.push_back(peak);
-            }
-          }
-        }
-      }
+      void doPopulateSpectraWithData_(SpectrumData & spectrum_data);
 
       /**
           @brief Populate all spectra on the stack with data from input
@@ -324,62 +205,7 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
-      void populateSpectraWithData_()
-      {
-
-        // Whether spectrum should be populated with data
-        if (options_.getFillData())
-        {
-          size_t errCount = 0;
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-          for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
-          {
-            // parallel exception catching and re-throwing business
-            if (!errCount) // no need to parse further if already an error was encountered
-            {
-              try
-              {
-                doPopulateSpectraWithData_(spectrum_data_[i]);
-                if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
-                {
-                  spectrum_data_[i].spectrum.sortByPosition();
-                }
-              }
-              catch (...)
-              {
-                #pragma omp critical(HandleException)
-                ++errCount;
-              }
-            }
-          }
-          if (errCount != 0)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data.");
-          }
-        }
-
-        // Append all spectra
-        for (Size i = 0; i < spectrum_data_.size(); i++)
-        {
-          if (consumer_ != NULL)
-          {
-            consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
-            if (options_.getAlwaysAppendData())
-            {
-              exp_->addSpectrum(spectrum_data_[i].spectrum);
-            }
-          }
-          else
-          {
-            exp_->addSpectrum(spectrum_data_[i].spectrum);
-          }
-        }
-
-        // Delete batch
-        spectrum_data_.clear();
-      }
+      void populateSpectraWithData_();
 
 private:
       /// Not implemented
@@ -421,50 +247,7 @@ private:
       static const XMLCh* s_chargedeconvoluted_;
 
       // init all the static members, which is necessary because otherwise the undefined order will cause problems
-      void initStaticMembers_()
-      {
-        static bool init(false);
-        if (!init)
-        {
-          s_value_ = xercesc::XMLString::transcode("value");
-          s_count_ = xercesc::XMLString::transcode("scanCount");
-          s_type_ = xercesc::XMLString::transcode("type");
-          s_name_ = xercesc::XMLString::transcode("name");
-          s_version_ = xercesc::XMLString::transcode("version");
-          s_filename_ = xercesc::XMLString::transcode("fileName");
-          s_filetype_ = xercesc::XMLString::transcode("fileType");
-          s_filesha1_ = xercesc::XMLString::transcode("fileSha1");
-          s_completiontime_ = xercesc::XMLString::transcode("completionTime");
-          s_precision_ = xercesc::XMLString::transcode("precision");
-          s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
-          s_contentType_ = xercesc::XMLString::transcode("contentType");
-          s_compressionType_ = xercesc::XMLString::transcode("compressionType");
-          s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
-          s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
-          s_windowwideness_ = xercesc::XMLString::transcode("windowWideness");
-          s_mslevel_ = xercesc::XMLString::transcode("msLevel");
-          s_peakscount_ = xercesc::XMLString::transcode("peaksCount");
-          s_polarity_ = xercesc::XMLString::transcode("polarity");
-          s_scantype_ = xercesc::XMLString::transcode("scanType");
-          s_filterline_ = xercesc::XMLString::transcode("filterLine");
-          s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
-          s_startmz_ = xercesc::XMLString::transcode("startMz");
-          s_endmz_ = xercesc::XMLString::transcode("endMz");
-          s_first_ = xercesc::XMLString::transcode("first");
-          s_last_ = xercesc::XMLString::transcode("last");
-          s_phone_ = xercesc::XMLString::transcode("phone");
-          s_email_ = xercesc::XMLString::transcode("email");
-          s_uri_ = xercesc::XMLString::transcode("URI");
-          s_num_ = xercesc::XMLString::transcode("num");
-          s_intensitycutoff_ = xercesc::XMLString::transcode("intensityCutoff");
-          s_centroided_ = xercesc::XMLString::transcode("centroided");
-          s_deisotoped_ = xercesc::XMLString::transcode("deisotoped");
-          s_chargedeconvoluted_ = xercesc::XMLString::transcode("chargeDeconvoluted");
-
-          init = true;
-        }
-        return;
-      }
+      void initStaticMembers_();
 
     };
 

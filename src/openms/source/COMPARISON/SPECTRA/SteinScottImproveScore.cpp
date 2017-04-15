@@ -34,6 +34,8 @@
 //
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

@@ -182,6 +182,8 @@ namespace OpenMS
   class OPENMS_DLLAPI OpenSwathWorkflow :
     public ProgressLogger
   {
+    typedef OpenSwath::LightTransition TransitionType;
+    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
   public:
 
@@ -220,7 +222,7 @@ namespace OpenMS
                            FeatureMap& out_featureFile, 
                            bool store_features, 
                            OpenSwathTSVWriter & tsv_writer,
-                           Interfaces::IMSDataConsumer<> * chromConsumer, 
+                           Interfaces::IMSDataConsumer * chromConsumer, 
                            int batchSize,
                            bool load_into_memory);
 
@@ -234,14 +236,14 @@ namespace OpenMS
                                     const FeatureMap & featureFile,
                                     FeatureMap& out_featureFile,
                                     bool store_features,
-                                    Interfaces::IMSDataConsumer<> * chromConsumer);
+                                    Interfaces::IMSDataConsumer * chromConsumer);
 
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps, 
                         std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer<> * chromConsumer, 
+                        Interfaces::IMSDataConsumer * chromConsumer, 
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp, 
                         const TransformationDescription& trafo_inverse,
@@ -343,15 +345,6 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment & transition_exp_used,
       const double rt_extraction_window, const bool ms1) const;
 
-    /** @brief Extract part of a chromatogram inside the extraction windows
-     *
-     * @note The chromatogram will be returned as MSSpectrum<ChromatogramPeak>
-     * which is used by the feature finders.
-     *
-    */
-    void selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-      MSSpectrum<ChromatogramPeak>& chromatogram, double rt_extraction_window, double center_rt);
-
     /**
      * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
      *
@@ -417,7 +410,7 @@ namespace OpenMS
                                 FeatureMap& out_featureFile,
                                 bool store_features, 
                                 OpenSwathTSVWriter & tsv_writer,
-                                Interfaces::IMSDataConsumer<> * chromConsumer, 
+                                Interfaces::IMSDataConsumer * chromConsumer, 
                                 int batchSize,
                                 bool load_into_memory);
 

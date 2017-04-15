@@ -120,7 +120,7 @@ public:
 
     virtual void getIonScores(std::vector<IonScore> & ion_scores, const RichPeakSpectrum & spec) = 0;
 
-    virtual void getIonScores(std::vector<std::vector<IonScore> > & ion_scores, const RichPeakMap & exp) = 0;
+    virtual void getIonScores(std::vector<std::vector<IonScore> > & ion_scores, const PeakMap & exp) = 0;
   };
 
 } // namespace OpenMS

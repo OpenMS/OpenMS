@@ -87,7 +87,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	MzXMLFile file;
 
 	//exception
-	MSExperiment<> e;
+	PeakMap e;
 	TEST_EXCEPTION( Exception::FileNotFound , file.load("dummy/dummy.mzXML",e) )
 
 	//real test
@@ -271,12 +271,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 
 	//load a second time to make sure everything is re-initialized correctly
-	MSExperiment<> e2;
+	PeakMap e2;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e2);
 	TEST_EQUAL(e==e2,true)
 
 	//test reading 64 bit data
-	MSExperiment<> e3;
+	PeakMap e3;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_3_64bit.mzXML"),e3);
 
   TEST_EQUAL(e3.size(), 3)
@@ -310,24 +310,20 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e3[2][4].getIntensity(), 100)
 
 	//loading a minimal file containing one spectrum - with whitespaces inside the base64 data
-	MSExperiment<> e4;
+	PeakMap e4;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_2_minimal.mzXML"),e4);
   TEST_EQUAL(e4.size(),1)
   TEST_EQUAL(e4[0].size(),1)
 
 	//load one extremely long spectrum - tests CDATA splitting
-	MSExperiment<> e5;
+	PeakMap e5;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_4_long.mzXML"),e5);
 	TEST_EQUAL(e5.size(), 1)
 	TEST_EQUAL(e5[0].size(), 997530)
 
-	//test if it works with different peak types
-	MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e_rich);
-
-	//zllib funcionality
-	MSExperiment<> zlib;
-	MSExperiment<> none;
+	//zlib functionality
+	PeakMap zlib;
+	PeakMap none;
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),none);
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1_compressed.mzXML"),zlib);
 	TEST_EQUAL(zlib==none,true)
@@ -336,7 +332,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with metadata only flag))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	MzXMLFile file;
 	file.getOptions().setMetadataOnly(true);
 
@@ -357,7 +353,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with selected MS levels))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	MzXMLFile file;
 
 	// load only MS level 1
@@ -385,7 +381,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with selected MZ range))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	MzXMLFile file;
 
 	file.getOptions().setMZRange(makeRange(115,135));
@@ -415,7 +411,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with RT range))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	MzXMLFile file;
 	file.getOptions().setRTRange(makeRange(100, 200));
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
@@ -448,7 +444,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with intensity range))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	MzXMLFile file;
 	file.getOptions().setIntensityRange(makeRange(150, 350));
 	file.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
@@ -479,7 +475,7 @@ START_SECTION(([EXTRA] load/store for nested scans))
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
   MzXMLFile f;
-	MSExperiment<> e2;
+	PeakMap e2;
 	e2.resize(5);
 
 	//alternating
@@ -545,7 +541,7 @@ END_SECTION
 
 START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))
 	std::string tmp_filename;
-  MSExperiment<> e1, e2;
+  PeakMap e1, e2;
   MzXMLFile f;
 
   NEW_TMP_FILE(tmp_filename);
@@ -560,7 +556,7 @@ END_SECTION
 START_SECTION([EXTRA] static bool isValid(const String& filename))
   std::string tmp_filename;
   MzXMLFile f;
-  MSExperiment<> e;
+  PeakMap e;
 
   //Note: empty mzXML files are not valid, thus this test is omitted
 

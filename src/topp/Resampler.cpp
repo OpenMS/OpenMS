@@ -123,7 +123,7 @@ protected:
     double min_int_cutoff = getDoubleOption_("min_int_cutoff");
     bool align_sampling = getFlag_("align_sampling");
     bool ppm = getFlag_("ppm");
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, exp);

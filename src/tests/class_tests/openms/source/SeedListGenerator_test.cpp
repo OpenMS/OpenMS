@@ -69,9 +69,9 @@ START_SECTION(([EXTRA] ~SeedListGenerator()))
 END_SECTION
 
 
-START_SECTION((void generateSeedList(const MSExperiment<>& experiment, SeedList& seeds)))
+START_SECTION((void generateSeedList(const PeakMap& experiment, SeedList& seeds)))
 {
-	MSExperiment<> experiment;
+	PeakMap experiment;
 	String path = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
 	MzMLFile().load(path, experiment);
 	SeedListGenerator::SeedList seeds;

@@ -95,7 +95,7 @@ namespace OpenMS
   }
 
   void MascotInfile::store(const String& filename,
-                           const MSExperiment<>& experiment,
+                           const PeakMap& experiment,
                            String search_title)
   {
     FILE* fp = fopen(filename.c_str(), "wt");
@@ -291,7 +291,7 @@ namespace OpenMS
 
   void MascotInfile::writeMSExperiment_(FILE* fp,
                                         const String& filename,
-                                        const MSExperiment<>& experiment)
+                                        const PeakMap& experiment)
   {
     String temp_string;
     stringstream ss;

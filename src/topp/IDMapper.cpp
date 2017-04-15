@@ -221,7 +221,7 @@ protected:
       ConsensusMap map;
       file.load(in, map);
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       if (!spectra.empty())
       {
         MzMLFile().load(spectra, exp);
@@ -251,7 +251,7 @@ protected:
       FeatureXMLFile file;
       file.load(in, map);
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
 
       if (!spectra.empty())
       {

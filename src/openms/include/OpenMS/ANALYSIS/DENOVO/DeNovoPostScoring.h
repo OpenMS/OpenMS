@@ -70,7 +70,7 @@ public:
     /// assignment operator
     DeNovoPostScoring & operator=(const DeNovoPostScoring & rhs);
 
-    virtual void apply(std::vector<PeptideIdentification> & identifications, const RichPeakMap & exp) = 0;
+    virtual void apply(std::vector<PeptideIdentification> & identifications, const PeakMap & exp) = 0;
 
     virtual void apply(PeptideIdentification & identification, const RichPeakSpectrum & spec) = 0;
 

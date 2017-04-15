@@ -305,8 +305,10 @@ namespace OpenMS
     {
       const ResidueModification& mod = it->getModification();
       // do the residues match?
+      const String& origin = mod.getOrigin();
       if (!(residue.empty() || (residue == "X") || (residue == ".") ||
-            mod.getOrigin().empty() || (residue == mod.getOrigin()))) continue;
+            origin.empty() || (origin == "N-term") || (origin == "C-term") ||
+            (residue == origin))) continue;
       // do the term specificities match?
       if (!((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
             (term_spec == mod.getTermSpecificity()))) continue;

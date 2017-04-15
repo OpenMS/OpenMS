@@ -132,10 +132,10 @@ protected:
 
     if (in_type == FileTypes::MZML)
     {
-      MSExperiment<> experiment;
+      PeakMap experiment;
       MzMLFile().load(in, experiment);
       // what about unassigned peptide IDs?
-      for (MSExperiment<>::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         peptides.insert(peptides.end(),

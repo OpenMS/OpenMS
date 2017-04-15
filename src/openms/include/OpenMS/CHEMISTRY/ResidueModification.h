@@ -80,7 +80,6 @@ public:
 
             This does not describe the amino acids which are valid for a
             specific amino acid!
-
     */
     enum TermSpecificity
     {
@@ -93,7 +92,6 @@ public:
     };
 
     /** @brief Classification of the modification
-
     */
     enum SourceClassification
     {
@@ -116,8 +114,6 @@ public:
       NUMBER_OF_SOURCE_CLASSIFICATIONS
     };
     //@}
-
-
 
     /** @name Constructors and Destructors
     */
@@ -154,11 +150,14 @@ public:
     /// returns the full id of the mod (UniMod accession + origin, if available)
     const String& getFullId() const;
 
-    /// sets the unimod accession
-    void setUniModAccession(const String& id);
+    /// sets the unimod record id
+    void setUniModRecordId(const Int& id);
+
+    /// sets the unimod record id
+    const Int& getUniModRecordId() const;
 
     /// returns the unimod accession if available
-    const String& getUniModAccession() const;
+    const String getUniModAccession() const;
 
     /// set the MOD:XXXXX accession of PSI-MOD
     void setPSIMODAccession(const String& id);
@@ -190,10 +189,20 @@ public:
     /// returns the terminal specificity name which is set or given as parameter
     String getTermSpecificityName(TermSpecificity = NUMBER_OF_TERM_SPECIFICITY) const;
 
-    ///sets the origin (i.e. amino acid)
+    /**
+       @brief Sets the origin (i.e. amino acid or terminus)
+
+       @see getOrigin()
+    */
     void setOrigin(const String& origin);
 
-    /// returns the origin (i.e. amino acid) if set
+    /**
+       @brief Returns the origin (i.e. amino acid or terminus) if set
+
+       For modifications without terminal specificity, the origin is the residue that gets modified, e.g. "M" for "Oxidation (M)".
+       For modifications with purely terminal specificity, the origin is "N-term" or "C-term", e.g. "N-term" for "Acetyl (N-term)".
+       For modifications with terminal and residue specificity, the origin is the residue, e.g. "E" for "Glu->pyro-Glu (N-term E)".
+    */
     const String& getOrigin() const;
 
     /// classification as defined by the PSI-MOD
@@ -293,7 +302,8 @@ protected:
 
     String psi_mod_accession_;
 
-    String unimod_accession_;
+    // The UniMod record id (an integer)
+    Int unimod_record_id_;
 
     String full_name_;
 
@@ -327,4 +337,4 @@ protected:
   };
 }
 
-#endif
+#endif // OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H

@@ -40,9 +40,12 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
+///////////////////////////
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-///////////////////////////
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -94,13 +97,13 @@ END_SECTION
 
 //TransitionGroupOpenMS
 {
-TransitionGroupOpenMS <MSSpectrum<Peak1D>, ReactionMonitoringTransition>* ptr = 0;
-TransitionGroupOpenMS <MSSpectrum<Peak1D>, ReactionMonitoringTransition>* nullPointer = 0;
+TransitionGroupOpenMS <MSChromatogram<>, ReactionMonitoringTransition>* ptr = 0;
+TransitionGroupOpenMS <MSChromatogram<>, ReactionMonitoringTransition>* nullPointer = 0;
 
 START_SECTION(TransitionGroupOpenMS())
 {
-  MRMTransitionGroup <MSSpectrum <Peak1D>, ReactionMonitoringTransition> trgroup;
-  ptr = new TransitionGroupOpenMS <MSSpectrum <Peak1D>, ReactionMonitoringTransition> (trgroup);
+  MRMTransitionGroup <MSChromatogram<>, ReactionMonitoringTransition> trgroup;
+  ptr = new TransitionGroupOpenMS < MSChromatogram<>, ReactionMonitoringTransition> (trgroup);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -114,13 +117,13 @@ END_SECTION
 
 //SignalToNoiseOpenMS
 {
-SignalToNoiseOpenMS<Peak1D>* ptr = 0;
-SignalToNoiseOpenMS<Peak1D>* nullPointer = 0;
+SignalToNoiseOpenMS<MSSpectrum<> >* ptr = 0;
+SignalToNoiseOpenMS<MSSpectrum<> >* nullPointer = 0;
 
 START_SECTION(SignalToNoiseOpenMS())
 {
   OpenMS::MSSpectrum<> chromat;
-  ptr = new SignalToNoiseOpenMS<Peak1D>(chromat, 1.0, 3.0, true);
+  ptr = new SignalToNoiseOpenMS<MSSpectrum<> >(chromat, 1.0, 3.0, true);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -157,7 +160,7 @@ START_SECTION(double getValueAtRT(double RT))
     p.setIntensity(intensity[i]);
     s.push_back(p);
   }
-  SignalToNoiseOpenMS<Peak1D> ff(s, 200, 50, true);
+  SignalToNoiseOpenMS<MSSpectrum<> > ff(s, 200, 50, true);
 
   double value200 = 0.987854524;
   double value210 = 1.02162;

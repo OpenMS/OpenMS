@@ -74,7 +74,7 @@ START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnow
 	charges_set.insert(1);
 	
 	FeatureMap features;
-	MSExperiment<> exp;
+	PeakMap exp;
 	std::vector<PSLPFormulation::IndexTriple > variable_indices;
 	std::vector<std::vector<std::pair<Size,Size> > > mass_ranges;
 	PSLPFormulation wrapper;
@@ -91,7 +91,7 @@ START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnow
 
 	// now with the same input as with the offline precursor ion selection (can't test them separately)
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_features.featureXML"),map);
-	MSExperiment<> raw_data;
+	PeakMap raw_data;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 	mass_ranges.clear();
 	OfflinePrecursorIonSelection ops;

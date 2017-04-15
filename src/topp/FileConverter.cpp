@@ -41,11 +41,16 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
@@ -243,7 +248,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    typedef MSExperiment<Peak1D> MSExperimentType;
+    typedef PeakMap MSExperimentType;
     MSExperimentType exp;
 
     typedef MSExperimentType::SpectrumType SpectrumType;
@@ -304,7 +309,7 @@ protected:
       f.setLogType(log_type_);
       CachedmzML cacher;
       cacher.setLogType(log_type_);
-      MSExperiment<> tmp_exp;
+      PeakMap tmp_exp;
 
       f.load(in_meta, exp);
       cacher.readMemdump(tmp_exp, in);
@@ -380,7 +385,7 @@ protected:
 
         CachedmzML cacher;
         cacher.setLogType(log_type_);
-        MSExperiment<> exp_meta;
+        PeakMap exp_meta;
 
         MSDataCachedConsumer consumer(out);
         MzMLFile().transform(in, &consumer, exp_meta);

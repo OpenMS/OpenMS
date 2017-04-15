@@ -104,7 +104,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile f;
     f.load(in, exp);
 
@@ -116,11 +116,11 @@ protected:
     exp.updateRanges();
     double max = exp.getMaxInt() / 100.0;
 
-    for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->getMSLevel() < 2)
       {
-        for (MSExperiment<Peak1D>::SpectrumType::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+        for (PeakMap::SpectrumType::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
         {
           it2->setIntensity(it2->getIntensity() / max);
         }

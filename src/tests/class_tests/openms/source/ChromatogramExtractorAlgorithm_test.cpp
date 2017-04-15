@@ -66,7 +66,7 @@ END_SECTION
 START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates > extraction_coordinates, double mz_extraction_window, bool ppm, String filter))
 {
   double extract_window = 0.05;
-  boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+  boost::shared_ptr<PeakMap > exp(new PeakMap);
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
   OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 

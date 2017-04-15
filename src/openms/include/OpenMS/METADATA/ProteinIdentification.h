@@ -44,6 +44,7 @@
 namespace OpenMS
 {
   class PeptideIdentification;
+
   /**
     @brief Representation of a protein identification run
 

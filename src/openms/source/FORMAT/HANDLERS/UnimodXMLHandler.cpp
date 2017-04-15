@@ -76,8 +76,8 @@ namespace OpenMS
         // deleted this in the unimod.xml file
         modification_->setFullName(full_name);
 
-        String record_id(attributeAsString_(attributes, "record_id"));
-        modification_->setUniModAccession("UniMod:" + record_id);
+        Int record_id(attributeAsInt_(attributes, "record_id"));
+        modification_->setUniModRecordId(record_id);
         return;
       }
 

@@ -32,8 +32,10 @@
 // $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
+
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -108,7 +110,7 @@ namespace OpenMS
     }
 
     //~ TODO create MzIdentML instances from MSExperiment which contains much of the information yet needed
-    //~ MzIdentMLHandler(const MSExperiment<>& mx, const String& filename, const String& version, const ProgressLogger& logger)
+    //~ MzIdentMLHandler(const PeakMap& mx, const String& filename, const String& version, const ProgressLogger& logger)
     //~ : XMLHandler(filename, version),
     //~ logger_(logger),
     //~ ms_exp_(mx),
@@ -1219,11 +1221,11 @@ namespace OpenMS
           }
           else
           {
-            String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
-            sii_tmp += String(5, '\t') + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns);
+            String score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
+            sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
             sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                          + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-            LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
+            LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
 

@@ -934,8 +934,7 @@ protected:
     PeakIndex measurement_start_;
 
     /// Data processing setter for peak maps
-    template <typename PeakType>
-    void addDataProcessing_(MSExperiment<PeakType> & map, DataProcessing::ProcessingAction action) const
+    void addDataProcessing_(PeakMap & map, DataProcessing::ProcessingAction action) const
     {
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(action);
