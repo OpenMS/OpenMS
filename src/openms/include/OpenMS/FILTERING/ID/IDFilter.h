@@ -45,6 +45,9 @@
 #include <algorithm>
 #include <climits>
 #include <functional>
+#include <vector>
+#include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -91,7 +94,7 @@ public:
     struct HasGoodScore
     {
       typedef HitType argument_type; // for use as a predicate
-      
+
       double score;
       bool higher_score_better;
 
@@ -220,7 +223,7 @@ public:
       typedef HitType argument_type; // for use as a predicate
 
       const std::set<String>& accessions;
-      
+
       HasMatchingAccession(const std::set<String>& accessions):
         accessions(accessions)
       {}
@@ -235,7 +238,7 @@ public:
         }
         return false;
       }
-      
+
       bool operator()(const ProteinHit& hit) const
       {
         return (accessions.count(hit.getAccession()) > 0);
@@ -246,6 +249,54 @@ public:
         return (accessions.count(evidence.getProteinAccession()) > 0);
       }
     };
+
+    /**
+       @brief Builds a map index of data that have a String index to find matches and return the objects
+
+       @note Currently implemented for FastaEntries and Peptide Evidences
+    */
+    template <class HitType, class Entry>
+    struct GetMatchingItems
+    {
+      typedef HitType argument_type; // for use as a predicate
+      typedef std::map<String, Entry*> ItemMap;//Store pointers to avoid copying data
+      ItemMap items;
+
+
+      GetMatchingItems(std::vector<Entry>& records)
+      {
+        for(typename std::vector<Entry>::iterator rec_it = records.begin();
+            rec_it != records.end(); ++rec_it)
+        {
+          items[getKey(*rec_it)] = &(*rec_it);
+        }
+      }
+
+      const String& getKey(const FASTAFile::FASTAEntry& entry) const
+      {
+        return entry.identifier;
+      }
+
+      bool exists(const HitType& hit) const
+      {
+        return items.count(getHitKey(hit)) > 0;
+      }
+
+      const String& getHitKey(const PeptideEvidence& p) const
+      {
+        return p.getProteinAccession();
+      }
+
+      const Entry& getValue(const PeptideEvidence& evidence) const
+      {
+        if(!exists(evidence)){
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Accesion: '"+ getHitKey(evidence) + "'. peptide evidence accession not in data");
+        }
+        return *(items.find(getHitKey(evidence))->second);
+      }
+
+    };
+
 
     ///@}
 
@@ -262,7 +313,7 @@ public:
 
     /// Does the charge of this peptide hit have at least the given value?
     struct HasMinCharge;
-    
+
     /// Is the m/z error of this peptide hit below the given value?
     struct HasLowMZError;
 
@@ -282,7 +333,7 @@ public:
 
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
-    
+
     ///@}
 
 
@@ -362,12 +413,12 @@ public:
        @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
 
        If there are several hits with the best score, the first one is taken.
-       
+
        @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
        @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
-       
+
        @except Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
-       
+
        @return true if a hit was present, false otherwise
     */
     template <class IdentificationType>
@@ -377,7 +428,7 @@ public:
     {
       if (identifications.empty()) return false;
 
-      typename std::vector<IdentificationType>::const_iterator best_id_it = 
+      typename std::vector<IdentificationType>::const_iterator best_id_it =
         identifications.end();
       typename std::vector<typename IdentificationType::HitType>::const_iterator
         best_hit_it;
@@ -386,7 +437,7 @@ public:
              identifications.begin(); id_it != identifications.end(); ++id_it)
       {
         if (id_it->getHits().empty()) continue;
-        
+
         if (best_id_it == identifications.end()) // no previous "best" hit
         {
           best_id_it = id_it;
@@ -399,12 +450,12 @@ public:
 
         bool higher_better = best_id_it->isHigherScoreBetter();
         for (typename std::vector<typename IdentificationType::HitType>::
-               const_iterator hit_it = id_it->getHits().begin(); hit_it != 
+               const_iterator hit_it = id_it->getHits().begin(); hit_it !=
                id_it->getHits().end(); ++hit_it)
         {
-          if ((higher_better && (hit_it->getScore() > 
+          if ((higher_better && (hit_it->getScore() >
                                  best_hit_it->getScore())) ||
-              (!higher_better && (hit_it->getScore() < 
+              (!higher_better && (hit_it->getScore() <
                                   best_hit_it->getScore())))
           {
             best_hit_it = hit_it;
@@ -424,13 +475,13 @@ public:
 
     /**
        @brief Extracts all unique peptide sequences from a list of peptide IDs
-       
+
        @param peptides Input
        @param sequences Output
        @param ignore_mods Extract sequences without modifications?
     */
     static void extractPeptideSequences(
-      const std::vector<PeptideIdentification>& peptides, 
+      const std::vector<PeptideIdentification>& peptides,
       std::set<String>& sequences, bool ignore_mods = false);
 
     ///@}
@@ -502,7 +553,7 @@ public:
     static void filterHitsByScore(std::vector<IdentificationType>& ids,
                                   double threshold_score)
     {
-      for (typename std::vector<IdentificationType>::iterator id_it = 
+      for (typename std::vector<IdentificationType>::iterator id_it =
              ids.begin(); id_it != ids.end(); ++id_it)
       {
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(
@@ -587,10 +638,10 @@ public:
         }
       }
     }
-    
+
     /**
        @brief Removes hits annotated as decoys from peptide or protein identifications.
-     
+
        Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively.
 
        @note The ranks of the hits may be invalidated.
@@ -598,7 +649,7 @@ public:
     template <class IdentificationType>
     static void removeDecoyHits(std::vector<IdentificationType>& ids)
     {
-      struct HasDecoyAnnotation<typename IdentificationType::HitType> 
+      struct HasDecoyAnnotation<typename IdentificationType::HitType>
         decoy_filter;
       for (typename std::vector<IdentificationType>::iterator id_it =
              ids.begin(); id_it != ids.end(); ++id_it)
@@ -606,7 +657,7 @@ public:
         removeMatchingItems(id_it->getHits(), decoy_filter);
       }
     }
-    
+
     /**
        @brief Filters peptide or protein identifications according to the given proteins (negative).
 
@@ -706,8 +757,19 @@ public:
        @note The ranks of the hits may be invalidated.
     */
     static void filterPeptidesByMZError(
-      std::vector<PeptideIdentification>& peptides, double mass_error, 
+      std::vector<PeptideIdentification>& peptides, double mass_error,
       bool unit_ppm);
+
+
+    /**
+       @brief Digest a collection of proteins and filter PeptideEvidences based on specificity
+       PeptideEvidences of peptides are removed if the digest of a protein did not produce the peptide sequence
+       @param filter filter function on PeptideEvidence level
+       @param peptides PeptideIdentification that will be scanned and filtered
+     */
+    static void filterPeptideEvidences(
+      const std::function<bool (const PeptideEvidence&)>& filter,
+      std::vector<PeptideIdentification>& peptides);
 
 	  /**
        @brief Filters peptide identifications according to p-values from RTPredict.
@@ -770,7 +832,7 @@ public:
     static void removeDuplicatePeptideHits(std::vector<PeptideIdentification>&
                                            peptides, bool seq_only = false);
 
-    ///@}
+ ///@}
 
 
     /// @name Filter functions for MS/MS experiments
@@ -791,10 +853,10 @@ public:
       for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
-        filterHitsByScore(exp_it->getPeptideIdentifications(), 
+        filterHitsByScore(exp_it->getPeptideIdentifications(),
                           peptide_threshold_score);
         removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        updateProteinReferences(exp_it->getPeptideIdentifications(), 
+        updateProteinReferences(exp_it->getPeptideIdentifications(),
                                 experiment.getProteinIdentifications());
       }
       // @TODO: remove proteins that aren't referenced by peptides any more?
@@ -818,7 +880,7 @@ public:
         filterHitsBySignificance(exp_it->getPeptideIdentifications(),
                                  peptide_threshold_fraction);
         removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        updateProteinReferences(exp_it->getPeptideIdentifications(), 
+        updateProteinReferences(exp_it->getPeptideIdentifications(),
                                 experiment.getProteinIdentifications());
       }
       // @TODO: remove proteins that aren't referenced by peptides any more?
@@ -835,11 +897,11 @@ public:
       for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
-        std::vector<PeptideIdentification>& peptides = 
+        std::vector<PeptideIdentification>& peptides =
           exp_it->getPeptideIdentifications();
         keepNBestHits(peptides, n);
         removeEmptyIdentifications(peptides);
-        updateProteinReferences(peptides, 
+        updateProteinReferences(peptides,
                                 experiment.getProteinIdentifications());
         all_peptides.insert(all_peptides.end(), peptides.begin(),
                             peptides.end());
@@ -851,7 +913,7 @@ public:
 
     /// Filters an MS/MS experiment according to the given proteins
     static void keepHitsMatchingProteins(
-      PeakMap& experiment, 
+      PeakMap& experiment,
       const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::set<String> accessions;

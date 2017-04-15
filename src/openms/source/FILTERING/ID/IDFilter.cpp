@@ -33,12 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 #include <cmath>
 #include <climits>
+#include <functional>
 
 using namespace std;
 
@@ -164,7 +166,7 @@ namespace OpenMS
 
     bool operator()(const PeptideHit& hit) const
     {
-      const String& query = (ignore_mods ? 
+      const String& query = (ignore_mods ?
                              hit.getSequence().toUnmodifiedString() :
                              hit.getSequence().toString());
       return (sequences.count(query) > 0);
@@ -226,8 +228,8 @@ namespace OpenMS
     for (vector<PeptideIdentification>::const_iterator pep_it =
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
-      for (vector<PeptideHit>::const_iterator hit_it = 
-             pep_it->getHits().begin(); hit_it != pep_it->getHits().end(); 
+      for (vector<PeptideHit>::const_iterator hit_it =
+             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
            ++hit_it)
       {
         if (ignore_mods)
@@ -249,16 +251,16 @@ namespace OpenMS
   {
     // collect accessions that are referenced by peptides for each ID run:
     map<String, set<String> > run_to_accessions;
-    for (vector<PeptideIdentification>::const_iterator pep_it = 
+    for (vector<PeptideIdentification>::const_iterator pep_it =
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
       const String& run_id = pep_it->getIdentifier();
       // extract protein accessions of each peptide hit:
-      for (vector<PeptideHit>::const_iterator hit_it = 
+      for (vector<PeptideHit>::const_iterator hit_it =
              pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
            ++hit_it)
       {
-        const set<String>& current_accessions = 
+        const set<String>& current_accessions =
           hit_it->extractProteinAccessions();
         run_to_accessions[run_id].insert(current_accessions.begin(),
                                          current_accessions.end());
@@ -283,11 +285,11 @@ namespace OpenMS
   {
     // collect valid protein accessions for each ID run:
     map<String, set<String> > run_to_accessions;
-    for (vector<ProteinIdentification>::const_iterator prot_it = 
+    for (vector<ProteinIdentification>::const_iterator prot_it =
            proteins.begin(); prot_it != proteins.end(); ++prot_it)
     {
       const String& run_id = prot_it->getIdentifier();
-      for (vector<ProteinHit>::const_iterator hit_it = 
+      for (vector<ProteinHit>::const_iterator hit_it =
              prot_it->getHits().begin(); hit_it != prot_it->getHits().end();
            ++hit_it)
       {
@@ -324,7 +326,7 @@ namespace OpenMS
 
 
   bool IDFilter::updateProteinGroups(
-    vector<ProteinIdentification::ProteinGroup>& groups, 
+    vector<ProteinIdentification::ProteinGroup>& groups,
     const vector<ProteinHit>& hits)
   {
     if (groups.empty()) return true; // nothing to update
@@ -510,7 +512,7 @@ namespace OpenMS
 
 
   void IDFilter::removePeptidesWithMatchingModifications(
-    vector<PeptideIdentification>& peptides, 
+    vector<PeptideIdentification>& peptides,
     const set<String>& modifications)
   {
     struct HasMatchingModification mod_filter(modifications);
@@ -523,7 +525,7 @@ namespace OpenMS
 
 
   void IDFilter::keepPeptidesWithMatchingModifications(
-    vector<PeptideIdentification>& peptides, 
+    vector<PeptideIdentification>& peptides,
     const set<String>& modifications)
   {
     struct HasMatchingModification mod_filter(modifications);
@@ -571,7 +573,7 @@ namespace OpenMS
     Size n_initial = 0, n_metavalue = 0; // keep track of numbers of hits
     struct HasMetaValue<PeptideHit> present_filter("protein_references",
                                                    DataValue());
-    struct HasMetaValue<PeptideHit> unique_filter("protein_references", 
+    struct HasMetaValue<PeptideHit> unique_filter("protein_references",
                                                   DataValue("unique"));
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
@@ -629,6 +631,26 @@ namespace OpenMS
       }
       pep_it->getHits().swap(filtered_hits);
     }
+  }
+
+  void IDFilter::filterPeptideEvidences(
+    const function<bool (const PeptideEvidence&)>& filter,
+    vector<PeptideIdentification>& peptides)
+  {
+    for(vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+        pep_it != peptides.end(); ++pep_it)
+    {
+      for(vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+          hit_it != pep_it->getHits().end(); ++hit_it )
+      {
+        vector<PeptideEvidence> evidences;
+        remove_copy_if(hit_it->getPeptideEvidences().begin(),
+                       hit_it->getPeptideEvidences().end(),
+                       back_inserter(evidences),not1(filter));
+        hit_it->setPeptideEvidences(evidences);
+      }
+    }
+
   }
 
 } // namespace OpenMS

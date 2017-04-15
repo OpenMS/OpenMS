@@ -33,7 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -104,7 +107,7 @@ using namespace std;
 
  These filters retain only peptide and protein hits that @e do (whitelist) or <em>do not</em> (blacklist) match any of the proteins from a given set.
  This set of proteins can be given through a FASTA file (<tt>...:proteins</tt>) or as a list of accessions (<tt>...:protein_accessions</tt>).
- 
+
  Note that even in the case of a FASTA file, matching is only done by protein accession, not by sequence.
  If necessary, use @ref TOPP_PeptideIndexer to generate protein references for peptide hits via sequence look-up.
 
@@ -135,7 +138,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     vector<String> all_mods;
+    StringList all_enzymes;
+    StringList specificity;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
 
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -176,6 +183,15 @@ protected:
     registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.", false);
     registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false);
     setValidStrings_("blacklist:modifications", all_mods);
+
+    registerTOPPSubsection_("digest", "Perform protein digestion and filter peptides based on digestion products");
+    registerInputFile_("digest:fasta", "<file>", "", "Input sequence database in FASTA format", true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("digest:fasta", ListUtils::create<String>("fasta"));
+    registerStringList_("digest:enzyme", "<enzyme>", vector<String>(), "Specify the digestion enzyme");
+    setValidStrings_("digest:enzyme", all_enzymes);
+    registerStringList_("digest:specificity", "<specificity>", vector<String>(),"");
+    setValidStrings_("digest:specificity",specificity);
+
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false, true);
@@ -300,13 +316,13 @@ protected:
       IDFilter::keepHitsMatchingProteins(proteins, accessions);
     }
 
-    vector<String> whitelist_accessions = 
+    vector<String> whitelist_accessions =
       getStringList_("whitelist:protein_accessions");
     if (!whitelist_accessions.empty())
     {
       LOG_INFO << "Filtering by protein whitelisting (accessions input)..."
                << endl;
-      set<String> accessions(whitelist_accessions.begin(), 
+      set<String> accessions(whitelist_accessions.begin(),
                              whitelist_accessions.end());
       IDFilter::keepHitsMatchingProteins(peptides, accessions);
       IDFilter::keepHitsMatchingProteins(proteins, accessions);
@@ -351,13 +367,13 @@ protected:
       IDFilter::removeHitsMatchingProteins(proteins, accessions);
     }
 
-    vector<String> blacklist_accessions = 
+    vector<String> blacklist_accessions =
       getStringList_("blacklist:protein_accessions");
     if (!blacklist_accessions.empty())
     {
       LOG_INFO << "Filtering by protein blacklisting (accessions input)..."
                << endl;
-      set<String> accessions(blacklist_accessions.begin(), 
+      set<String> accessions(blacklist_accessions.begin(),
                              blacklist_accessions.end());
       IDFilter::removeHitsMatchingProteins(peptides, accessions);
       IDFilter::removeHitsMatchingProteins(proteins, accessions);
@@ -385,11 +401,13 @@ protected:
       IDFilter::removePeptidesWithMatchingModifications(peptides, bad_mods);
     }
 
+
     if (getFlag_("best:strict"))
     {
       LOG_INFO << "Filtering by best peptide hits..." << endl;
       IDFilter::keepBestPeptideHits(peptides, true);
     }
+
 
     Int min_length = 0, max_length = 0;
     if (parseRange_(getStringOption_("length"), min_length, max_length))
@@ -404,6 +422,58 @@ protected:
                                        Size(max_length));
     }
 
+    //Filter by digestion enzyme product
+
+
+    String protein_fasta = getStringOption_("digest:fasta").trim();
+    if (!protein_fasta.empty())
+    {
+      LOG_INFO << "Filtering peptides by digested protein (FASTA input)..." << endl;
+      // load protein accessions from FASTA file:
+      vector<FASTAFile::FASTAEntry> fasta;
+      FASTAFile().load(protein_fasta, fasta);
+
+
+      // Configure Enzymatic digestion
+      // TODO(Nikos) What about missed_cleavages?
+      EnzymaticDigestion digestion;
+      String enzyme = getStringOption_("digest:enzyme").trim();
+      if(!enzyme.empty()){
+        digestion.setEnzyme(enzyme);
+      }
+
+      String specificity = getStringOption_("digest:enzyme").trim();
+      if(!specificity.empty()){
+        digestion.setSpecificity(digestion.getSpecificityByName(specificity));
+      }
+
+      //Build an accession index to avoid the linear search cost
+      //Maybe pass search parameters in accession here?
+      const IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry> accession_resolver(fasta);
+
+      //Build the digest filter function
+      const function<bool (const PeptideEvidence&)> digestion_filter =
+        [&digestion, &accession_resolver](const PeptideEvidence& evidence)
+      {
+        // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
+        // TODO(Nikos) IMPORTANT:: what about UNKNOWN_POSITION N_TERMINAL_POSITION
+        if(accession_resolver.exists(evidence))
+        {
+          return digestion.isValidProduct(
+            AASequence::fromString(accession_resolver.getValue(evidence).sequence),
+            evidence.getStart(), evidence.getEnd()-evidence.getStart());
+        }else
+        {
+          // TODO(Nikos) What if we do not find any matching accession?
+          // Now it treats PeptideEvidence as valid product
+          return true;
+        }
+      };
+
+      IDFilter::filterPeptideEvidences(digestion_filter, peptides);
+    }
+
+
     if (getFlag_("var_mods"))
     {
       LOG_INFO << "Filtering for variable modifications..." << endl;
@@ -415,7 +485,7 @@ protected:
         const ProteinIdentification::SearchParameters& params =
           prot_it->getSearchParameters();
         for (vector<String>::const_iterator mod_it =
-               params.variable_modifications.begin(); mod_it != 
+               params.variable_modifications.begin(); mod_it !=
                params.variable_modifications.end(); ++mod_it)
         {
           var_mods.insert(*mod_it);
@@ -432,7 +502,7 @@ protected:
       IDFilter::filterHitsByScore(peptides, pep_score);
     }
 
-    Int min_charge = numeric_limits<Int>::min(), max_charge = 
+    Int min_charge = numeric_limits<Int>::min(), max_charge =
       numeric_limits<Int>::max();
     if (parseRange_(getStringOption_("charge"), min_charge, max_charge))
     {
@@ -470,7 +540,7 @@ protected:
 
 
     // Filtering protein identifications according to set criteria
-    
+
     double protein_significance = getDoubleOption_("thresh:prot");
     if (protein_significance > 0)
     {
@@ -492,7 +562,7 @@ protected:
       LOG_INFO << "Filtering by best n protein hits..." << endl;
       IDFilter::keepNBestHits(proteins, best_n_prot);
     }
-        
+
     if (getFlag_("remove_decoys"))
     {
       LOG_INFO << "Removing decoy hits..." << endl;

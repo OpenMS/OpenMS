@@ -134,7 +134,7 @@ namespace OpenMS
     return pep_positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage)
+  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage) const
   {
     if (pep_pos >= protein.size())
     {
