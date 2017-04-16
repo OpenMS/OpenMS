@@ -190,11 +190,11 @@ protected:
     registerStringOption_("digest:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
     setValidStrings_("digest:enzyme", all_enzymes);
     registerStringOption_("digest:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
-    setValidStrings_("digest:specificity",specificity);
+    setValidStrings_("digest:specificity", specificity);
     registerIntOption_("digest:missed_cleavages", "<integer>", -1, 
                        "filter peptide evidences that have more than the specified missed_cleavages\n"
-                       "By default missed cleavages are ignored",false);
-    setMinInt_("digest:missed_cleavages",-1);
+                       "By default missed cleavages are ignored", false);
+    setMinInt_("digest:missed_cleavages", -1);
 
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
@@ -426,7 +426,7 @@ protected:
                                        Size(max_length));
     }
 
-    //Filter by digestion enzyme product
+    // Filter by digestion enzyme product
 
     String protein_fasta = getStringOption_("digest:fasta").trim();
     if (!protein_fasta.empty())
