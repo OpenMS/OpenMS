@@ -444,7 +444,7 @@ protected:
         digestion.setEnzyme(enzyme);
       }
 
-      String specificity = getStringOption_("digest:enzyme").trim();
+      String specificity = getStringOption_("digest:specificity").trim();
       if(!specificity.empty()){
         digestion.setSpecificity(digestion.getSpecificityByName(specificity));
       }
@@ -454,11 +454,15 @@ protected:
       if(missed_cleavages > -1)
       {
         ignore_missed_cleavages = false;
+        if(digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL);
+        {
+          LOG_WARN << "Specificity not full, missed_cleavages option is redundant";
+        }
         digestion.setMissedCleavages(missed_cleavages);
       }
-      
-      //Build an accession index to avoid the linear search cost
-      //Maybe pass search parameters in accession here?
+
+      // Build an accession index to avoid the linear search cost
+      // Maybe pass search parameters in accession here?
       const IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry> accession_resolver(fasta);
 
       //Build the digest filter function
@@ -477,10 +481,17 @@ protected:
           return digestion.isValidProduct(
             AASequence::fromString(accession_resolver.getValue(evidence).sequence),
             evidence.getStart(), evidence.getEnd() - evidence.getStart(), false, ignore_missed_cleavages);
-        }else
+        }
+        else
         {
-          //If accession not available do not filter just warn
-          LOG_WARN << "Accession '" << evidence.getProteinAccession() << "' is not found in fasta file. Peptide not filtered";
+          if(evidence.getProteinAccession().empty())
+          {
+            LOG_WARN << "Peptide accession not available! Skipping Evidence.";
+          }
+          else
+          {
+            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession() << "' not found in fasta file!";
+          }
           return true;
         }
       };

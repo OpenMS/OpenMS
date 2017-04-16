@@ -858,13 +858,24 @@ set_tests_properties("TOPP_IDFilter_10_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1
 add_test("TOPP_IDFilter_11" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_11_input.idXML -out IDFilter_11_output.tmp -remove_decoys -delete_unreferenced_peptide_hits)
 add_test("TOPP_IDFilter_11_out1" ${DIFF} -in1 IDFilter_11_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_11_output.idXML )
 set_tests_properties("TOPP_IDFilter_11_out1" PROPERTIES DEPENDS "TOPP_IDFilter_11")
-# filters by digestion products
-add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta -digest:enzyme Trypsin/P)
-add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
+
+# filters by digestion products 
+# default digestion parameters
+add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out /tmp/IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta)
+add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 /tmp/IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
 set_tests_properties("TOPP_IDFilter_12_out1" PROPERTIES DEPENDS "TOPP_IDFilter_12")
-add_test("TOPP_IDFilter_13" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_13_input.idXML -out IDFilter_13_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_13_input.fasta -digest:enzyme Trypsin/P -digest:missed_cleavages 1)
-add_test("TOPP_IDFilter_13_out1" ${DIFF} -in1 IDFilter_13_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_13_output.idXML )
+# filters by digestion products considering missed cleavages
+add_test("TOPP_IDFilter_13" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_13_input.idXML -out IDFilter_13_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_13_input.fasta -digest:missed_cleavages 1)
+add_test("TOPP_IDFilter_13_out1" ${DIFF} -in1 IDFilter_13_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_13_output.idXML)
 set_tests_properties("TOPP_IDFilter_13_out1" PROPERTIES DEPENDS "TOPP_IDFilter_13")
+# filters by digestion products considering missed cleavages with specific peptide
+add_test("TOPP_IDFilter_14" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_14_input.idXML -out IDFilter_14_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_14_input.fasta -digest:enzyme Trypsin/P -digest:missed_cleavages 1)
+add_test("TOPP_IDFilter_14_out1" ${DIFF} -in1 IDFilter_14_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_14_output.idXML)
+set_tests_properties("TOPP_IDFilter_14_out1" PROPERTIES DEPENDS "TOPP_IDFilter_14")
+# filters by digestion products considering missed cleavages with semi specificity filtering
+add_test("TOPP_IDFilter_15" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_15_input.idXML -out IDFilter_15_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_15_input.fasta -digest:enzyme Trypsin/P -digest:missed_cleavages 1 -digest:specificity semi)
+add_test("TOPP_IDFilter_15_out1" ${DIFF} -in1 IDFilter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_15_output.idXML)
+set_tests_properties("TOPP_IDFilter_15_out1" PROPERTIES DEPENDS "TOPP_IDFilter_15")
 
 
 #------------------------------------------------------------------------------

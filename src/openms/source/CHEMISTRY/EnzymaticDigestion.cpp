@@ -193,7 +193,11 @@ namespace OpenMS
           return true;
         }
         Size offset = std::distance(begin_pos, end_pos);
-        if(offset > (getMissedCleavages() + 1))
+        if(pep_pos + pep_length == protein.size())
+        {
+          return pep_positions.size() <= (getMissedCleavages() + 1);
+        }
+        else if(offset > (getMissedCleavages() + 1))
         {
           return false;
         }
