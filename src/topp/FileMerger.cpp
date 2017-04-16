@@ -312,11 +312,11 @@ protected:
         merged.push_back(entries[0]);
       }
 
-      /*for (std::vector<FASTAFile::FASTAEntry>::iterator it = merged.begin()+1; it!= merged.end(); ++it)
+      for (std::vector<FASTAFile::FASTAEntry>::iterator it = merged.begin()+1; it!= merged.end(); ++it)
       {
         cout<<it->sequence;
         (merged.begin())->sequence += it->sequence;
-      }*/
+      }
 
       fastafile.store(out_file, merged);
 
