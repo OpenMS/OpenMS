@@ -25,10 +25,13 @@
 			<ProteinHit id="PH_0" accession="BSA3" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
+			<ProteinHit id="PH_1" accession="BSA2" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[/Users/timosachsenberg/oms210/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="1063.20983886719" RT="4587.669" spectrum_reference="spectrum=1" >
-			<PeptideHit score="3.864406e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" >
+			<PeptideHit score="3.864406e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" start="1" end="28" protein_refs="PH_1" >
 				<UserParam type="float" name="MS:1002049" value="163"/>
 				<UserParam type="float" name="MS:1002050" value="199"/>
 				<UserParam type="float" name="MS:1002052" value="3.864406e-26"/>

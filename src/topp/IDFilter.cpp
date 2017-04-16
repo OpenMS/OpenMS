@@ -456,7 +456,7 @@ protected:
         ignore_missed_cleavages = false;
         if(digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL);
         {
-          LOG_WARN << "Specificity not full, missed_cleavages option is redundant";
+          LOG_WARN << "Specificity not full, missed_cleavages option is redundant" << endl;
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
@@ -472,7 +472,7 @@ protected:
         // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
         if(!evidence.hasValidLimits())
         {
-          LOG_WARN << "Invalid limits! Peptide '"<< evidence.getProteinAccession() <<"' not filtered";
+          LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << endl;
           return true;
         }
         
@@ -486,11 +486,11 @@ protected:
         {
           if(evidence.getProteinAccession().empty())
           {
-            LOG_WARN << "Peptide accession not available! Skipping Evidence.";
+            LOG_WARN << "Peptide accession not available! Skipping Evidence." << endl;
           }
           else
           {
-            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession() << "' not found in fasta file!";
+            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession() << "' not found in fasta file!" << endl;
           }
           return true;
         }
