@@ -39,9 +39,11 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -57,9 +59,7 @@ using namespace std;
 
 /**
   @page TOPP_FileMerger FileMerger
-
   @brief Merges several files. Multiple output format supported, depending on input format.
-
   <center>
   <table>
   <tr>
@@ -73,10 +73,8 @@ using namespace std;
   </tr>
   </table>
   </center>
-
   The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
   is taken from the first file.
-
   The retention times for the individual scans are taken from either:
   <ul>
   <li>the input file meta data (e.g. mzML)
@@ -84,7 +82,6 @@ using namespace std;
   <li>as a list (one RT for each file)
   <li>or are auto-generated (starting at 1 with 1 second increment).
   </ul>
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FileMerger.cli
   <B>INI file documentation of this tool:</B>
@@ -111,13 +108,13 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML");
+    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML,FASTA"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
     
@@ -299,6 +296,34 @@ protected:
 
       fh.store(out_file, out);
     }
+
+
+    /***FASTA****/
+    else if (force_type == FileTypes::FASTA)
+    {
+      cout<<"Flag 0";
+      FASTAFile fastafile, fastamerged;
+      std::vector<FASTAFile::FASTAEntry> entries,merged;
+
+      for (Size i = 0; i < file_list.size(); ++i)
+      {
+        fastafile.load(file_list[i], entries);
+        cout<<entries[0].sequence<<endl;
+        merged.push_back(entries[0]);
+      }
+
+      for (std::vector<FASTAFile::FASTAEntry>::iterator it = merged.begin()+1; it!= merged.end(); ++it)
+      {
+        cout<<it->sequence;
+        (merged.begin())->sequence += it->sequence;
+      }
+
+      fastafile.store(out_file, merged);
+
+    }
+    /****End****/
+
+
     else // raw data input (e.g. mzML)
     {
       // RT
@@ -319,7 +344,7 @@ protected:
       // MS level
       Int ms_level = getIntOption_("raw:ms_level");
 
-      MSExperiment<> out;
+      PeakMap out;
       UInt rt_auto = 0;
       UInt native_id = 0;
       for (Size i = 0; i < file_list.size(); ++i)
@@ -328,7 +353,7 @@ protected:
 
         // load file
         force_type = file_handler.getType(file_list[i]);
-        MSExperiment<> in;
+        PeakMap in;
         file_handler.loadExperiment(filename, in, force_type, log_type_);
 
         if (in.empty() && in.getChromatograms().empty())
@@ -345,7 +370,7 @@ protected:
         }
 
         // handle special raw data options:
-        for (MSExperiment<>::iterator spec_it = in.begin();
+        for (PeakMap::iterator spec_it = in.begin();
              spec_it != in.end(); ++spec_it)
         {
           float rt_final = spec_it->getRT();
@@ -400,7 +425,7 @@ protected:
         }
 
         // add spectra to output
-        for (MSExperiment<>::const_iterator spec_it = in.begin();
+        for (PeakMap::const_iterator spec_it = in.begin();
              spec_it != in.end(); ++spec_it)
         {
           out.addSpectrum(*spec_it);
