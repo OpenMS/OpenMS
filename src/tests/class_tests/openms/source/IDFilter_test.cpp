@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
-#include <vector>
 
 ///////////////////////////
 
