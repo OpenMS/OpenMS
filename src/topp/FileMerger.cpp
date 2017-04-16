@@ -312,11 +312,11 @@ protected:
         merged.push_back(entries[0]);
       }
 
-      for (std::vector<FASTAFile::FASTAEntry>::iterator it = merged.begin()+1; it!= merged.end(); ++it)
+      /*for (std::vector<FASTAFile::FASTAEntry>::iterator it = merged.begin()+1; it!= merged.end(); ++it)
       {
         cout<<it->sequence;
         (merged.begin())->sequence += it->sequence;
-      }
+      }*/
 
       fastafile.store(out_file, merged);
 
@@ -445,7 +445,7 @@ protected:
         }
         else // otherwise append
         {
-          out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
+          out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be empty if spectrum was annotated above, but that's ok then
         }
       }
 
