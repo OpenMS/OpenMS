@@ -82,7 +82,6 @@ namespace OpenMS
                                                    int & n_hits_,
                                                    double & min_score,
                                                    double & max_score,
-                                                   std::vector< int > * cum_hits,
                                                    Size min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit) :
       XMLHandler(filename, "1.0"),
@@ -92,7 +91,6 @@ namespace OpenMS
       n_hits_(n_hits_),
       min_score_(min_score),
       max_score_(max_score),
-      cum_hits_(cum_hits),
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
     {
@@ -238,11 +236,6 @@ namespace OpenMS
             this->csms_.push_back(newvec);
             */
           this->csms_.push_back(this->current_spectrum_search_);
-
-          if(this->cum_hits_ != NULL)
-          {
-            this->cum_hits_->push_back(this->n_hits_);
-          }
         }
         this->current_spectrum_search_.clear();
       }

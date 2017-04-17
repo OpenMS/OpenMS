@@ -601,7 +601,7 @@ class TOPPXFDR :
         // Currently the XQuestresultMetas are not further used
         vector< XQuestResultMeta > metas;
         XQuestResultXMLFile xquest_result_file;
-        xquest_result_file.load(arg_in, metas, spectra, prot_ids, false, 1, true);
+        xquest_result_file.load(arg_in, metas, spectra, prot_ids, 1, true);
 
         this->min_score = std::floor(xquest_result_file.get_min_score());
         this->max_score = std::ceil(xquest_result_file.get_max_score());

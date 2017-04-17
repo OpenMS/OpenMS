@@ -39,20 +39,17 @@ namespace OpenMS
 {
   XQuestResultXMLFile::XQuestResultXMLFile() :
     XMLFile("/SCHEMAS/xQuest_1_0.xsd", "1.0"),
-    n_hits_(-1),
-    cum_hits_(NULL)
+    n_hits_(-1)
   {
   }
   XQuestResultXMLFile::~XQuestResultXMLFile()
   {
-    delete this->cum_hits_;
   }
 
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector< XQuestResultMeta > & metas,
                                  std::vector< std::vector < PeptideIdentification > > & csms,
                                  std::vector< ProteinIdentification > & prot_ids,
-                                 bool calc_cum_hits,
                                  Size min_n_ions_per_spectrum,
                                  bool load_to_peptideHit)
   {
@@ -63,18 +60,9 @@ namespace OpenMS
    this->n_hits_ = 0;
    this->min_score_ = 0;
    this->max_score_ = 0;
-   delete this->cum_hits_;
 
-   if (calc_cum_hits)
-   {
-     this->cum_hits_ = new std::vector< int >;
-   }
-   else
-   {
-     this->cum_hits_ = NULL;
-   }
    Internal::XQuestResultXMLHandler handler(filename, metas, csms, prot_ids, this->n_hits_, this->min_score_, this->max_score_,
-                                            this->cum_hits_, min_n_ions_per_spectrum, load_to_peptideHit);
+                                            min_n_ions_per_spectrum, load_to_peptideHit);
    this->parse_(filename, &handler);
   }
 
@@ -91,11 +79,7 @@ namespace OpenMS
   }
   */
 
-  void XQuestResultXMLFile::delete_cum_hits()
-  {
-    delete this->cum_hits_;
-    this->cum_hits_ = NULL;
-  }
+
 
   int XQuestResultXMLFile::get_n_hits() const
   {
@@ -110,10 +94,5 @@ namespace OpenMS
   double XQuestResultXMLFile::get_max_score() const
   {
     return this->max_score_;
-  }
-
-  std::vector< int > * XQuestResultXMLFile::get_cum_hits() const
-  {
-    return this->cum_hits_;
   }
 }

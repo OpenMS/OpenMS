@@ -53,7 +53,6 @@ public:
               std::vector< XQuestResultMeta >  &, // Vector to be filled with Metadata about individual XQuest results
               std::vector< std::vector< PeptideIdentification > > &, // Vector of encompassed spectra, each containing associated PeptideIdentifications
               std::vector< ProteinIdentification > &,  // The protein identification of the xQuest result file
-              bool = false,  // Whether or not the cumulated hit no. over the spectra should be calculated
               Size = 0,  // Minimum number of PeptideIdentification a spectrum must contain to be loaded
               bool = false); // Whether the OpenXQuest data will be loaded as Meta Values also into the peptide hits, instead just into the PeptideIdentification
     
@@ -78,24 +77,12 @@ public:
      */
     double get_max_score() const;
 
-    /**
-     * @brief Returns the cumulative number of hits across the spectra
-     * @return Cumulative number of hits across the spectra
-     */
-    std::vector < int > * get_cum_hits() const;
-
-    /**
-     * @brief Deletes the cumulative number of hits across the spectra from this file instance
-     */
-    void delete_cum_hits();
 
 private:
     int n_hits_; // Total number of hits within the result file
 
     double min_score_; // Minimum score encountered in file
     double max_score_; // Maximum score encountered in file
-
-    std::vector< int > * cum_hits_; // Points to vector with cumulated the number of hits per spectrum in the order they appear in the file
   };
 } // namespace OpenMS
 #endif // OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
