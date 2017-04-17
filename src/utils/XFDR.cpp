@@ -143,6 +143,43 @@ class TOPPXFDR :
 
   protected:
 
+    // this function will be used to register the tool parameters
+    // it gets automatically called on tool execution
+    void registerOptionsAndFlags_()
+    {
+      // Verbose Flag
+      registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
+
+      // File input
+      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
+      setValidFormats_(TOPPXFDR::param_in, ListUtils::create<String>("xml,mzid,idXML"));
+
+      // idXML output
+      registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", true, false);
+      setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
+
+      // Minborder
+      registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm)", false);
+
+      // Maxborder
+      registerIntOption_(TOPPXFDR::param_maxborder, "<maxborder>", -1, "Filter for maximum precursor mass error (ppm)", false);
+
+      // Mindeltas
+      registerDoubleOption_(TOPPXFDR::param_mindeltas, "<mindeltas>", 0, "Filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal", false);
+
+      // Minionsmatched
+      registerIntOption_(TOPPXFDR::param_minionsmatched, "<minionsmatched>", 0, "Filter for minimum matched ions per peptide", false);
+
+      // Uniquexl
+      registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based on unique IDs");
+
+      // Qtransform
+      registerFlag_(TOPPXFDR::param_no_qvalues, "Do not transform simple FDR to q-FDR values");
+
+      // Minscore
+      registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
+    }
+
     /**
      * @brief Used to define how PeptideIdentification are to be sorted based on some meta value (usually some score)
      */
@@ -427,43 +464,6 @@ class TOPPXFDR :
         }
         qfdr[i] = smallest_fdr < current_fdr ? smallest_fdr : current_fdr;
       }
-    }
-
-    // this function will be used to register the tool parameters
-    // it gets automatically called on tool execution
-    void registerOptionsAndFlags_()
-    {
-      // Verbose Flag
-      registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
-
-      // File input
-      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
-      setValidFormats_(TOPPXFDR::param_in, ListUtils::create<String>("xml,mzid,idXML"));
-      
-      // idXML output
-      registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", true, false);
-      setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
-
-      // Minborder
-      registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm)", false);
-
-      // Maxborder
-      registerIntOption_(TOPPXFDR::param_maxborder, "<maxborder>", -1, "Filter for maximum precursor mass error (ppm)", false);
-
-      // Mindeltas
-      registerDoubleOption_(TOPPXFDR::param_mindeltas, "<mindeltas>", 0, "Filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal", false);
-
-      // Minionsmatched
-      registerIntOption_(TOPPXFDR::param_minionsmatched, "<minionsmatched>", 0, "Filter for minimum matched ions per peptide", false);
-
-      // Uniquexl
-      registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based on unique IDs");
-
-      // Qtransform
-      registerFlag_(TOPPXFDR::param_no_qvalues, "Do not transform simple FDR to q-FDR values");
-
-      // Minscore
-      registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
     }
 
     // the main_ function is called after all parameters are read
