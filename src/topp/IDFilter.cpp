@@ -45,6 +45,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <limits>
+#include <boost/function.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -466,7 +467,7 @@ protected:
       const IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry> accession_resolver(fasta);
 
       //Build the digest filter function
-      const function<bool (const PeptideEvidence&)> digestion_filter =
+      const boost::function<bool (const PeptideEvidence&)> digestion_filter =
         [&digestion, &accession_resolver, &ignore_missed_cleavages](const PeptideEvidence& evidence)
       {
         // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)

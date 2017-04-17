@@ -634,7 +634,7 @@ namespace OpenMS
   }
 
   void IDFilter::filterPeptideEvidences(
-    const function<bool (const PeptideEvidence&)>& filter,
+    const boost::function<bool (const PeptideEvidence&)>& filter,
     vector<PeptideIdentification>& peptides)
   {
     for(vector<PeptideIdentification>::iterator pep_it = peptides.begin();

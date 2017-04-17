@@ -44,10 +44,10 @@
 
 #include <algorithm>
 #include <climits>
-#include <functional>
 #include <vector>
 #include <set>
 #include <map>
+#include <boost/function.hpp>
 
 namespace OpenMS
 {
@@ -768,7 +768,7 @@ public:
        @param peptides PeptideIdentification that will be scanned and filtered
      */
     static void filterPeptideEvidences(
-      const std::function<bool (const PeptideEvidence&)>& filter,
+      const boost::function<bool (const PeptideEvidence&)>& filter,
       std::vector<PeptideIdentification>& peptides);
 
 	  /**

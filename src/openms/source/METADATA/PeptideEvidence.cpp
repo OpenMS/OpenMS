@@ -99,10 +99,8 @@ namespace OpenMS
   
   bool PeptideEvidence::hasValidLimits() const
   {
-    // getStart() == N_TERMINAL_POSITION: is 0 is it a valid value for start??
     return !(
       getStart() == UNKNOWN_POSITION ||
-      getStart() == N_TERMINAL_POSITION ||
       getEnd() == UNKNOWN_POSITION ||
       getEnd() == N_TERMINAL_POSITION);
   }
