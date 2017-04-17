@@ -603,8 +603,8 @@ class TOPPXFDR :
         XQuestResultXMLFile xquest_result_file;
         xquest_result_file.load(arg_in, metas, spectra, prot_ids, 1, true);
 
-        this->min_score = std::floor(xquest_result_file.get_min_score());
-        this->max_score = std::ceil(xquest_result_file.get_max_score());
+        this->min_score = std::floor(xquest_result_file.getMinScore());
+        this->max_score = std::ceil(xquest_result_file.getMaxScore());
 
         // currently, cross-link identifications are stored within one ProteinIdentification
         assert(prot_ids.size() == 1);
@@ -613,7 +613,7 @@ class TOPPXFDR :
         if (arg_verbose)
         {
           LOG_INFO << "INFO: Total number of spectra: " << n_spectra << "\n"
-                   << "INFO: Total number of hits: "    << xquest_result_file.get_n_hits() << endl;
+                   << "INFO: Total number of hits: "    << xquest_result_file.getNumberOfHits() << endl;
         }
 
         Size rank_counter = 0;

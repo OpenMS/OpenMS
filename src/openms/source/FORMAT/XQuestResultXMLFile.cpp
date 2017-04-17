@@ -81,17 +81,17 @@ namespace OpenMS
 
 
 
-  int XQuestResultXMLFile::get_n_hits() const
+  int XQuestResultXMLFile::getNumberOfHits() const
   {
     return this->n_hits_;
   }
 
-  double XQuestResultXMLFile::get_min_score() const
+  double XQuestResultXMLFile::getMinScore() const
   {
     return this->min_score_;
   }
 
-  double XQuestResultXMLFile::get_max_score() const
+  double XQuestResultXMLFile::getMaxScore() const
   {
     return this->max_score_;
   }

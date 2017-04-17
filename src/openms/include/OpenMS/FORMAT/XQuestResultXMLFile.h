@@ -63,19 +63,19 @@ public:
      * @brief Returns the total number of hits in the file
      * @return total number of hits in the file
      */
-    int get_n_hits() const;
+    int getNumberOfHits() const;
 
     /**
      * @brief Returns minimum score in file
      * @return Minimum score in file
      */
-    double get_min_score() const;
+    double getMinScore() const;
 
     /**
      * @brief Returns maximum score in file
      * @return Maximum score in file
      */
-    double get_max_score() const;
+    double getMaxScore() const;
 
 
 private:
