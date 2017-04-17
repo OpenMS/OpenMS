@@ -35,6 +35,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
@@ -183,7 +184,6 @@ namespace OpenMS
       return hit.getPeptideEvidences().empty();
     }
   };
-
 
   struct IDFilter::HasRTInRange
   {
@@ -632,9 +632,9 @@ namespace OpenMS
       pep_it->getHits().swap(filtered_hits);
     }
   }
-
-  void IDFilter::filterPeptideEvidences(
-    const boost::function<bool (const PeptideEvidence&)>& filter,
+  template<class Filter>
+  void IDFilter::FilterPeptideEvidences<Filter>::operator()(
+    Filter& filter,
     vector<PeptideIdentification>& peptides)
   {
     for(vector<PeptideIdentification>::iterator pep_it = peptides.begin();
@@ -652,5 +652,6 @@ namespace OpenMS
     }
 
   }
+
 
 } // namespace OpenMS

@@ -455,7 +455,7 @@ protected:
       if(missed_cleavages > -1)
       {
         ignore_missed_cleavages = false;
-        if(digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL);
+        if(digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL)
         {
           LOG_WARN << "Specificity not full, missed_cleavages option is redundant" << endl;
         }
@@ -464,40 +464,13 @@ protected:
 
       // Build an accession index to avoid the linear search cost
       // Maybe pass search parameters in accession here?
-      const IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry> accession_resolver(fasta);
+      
+      //IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>resolver(fasta);
 
-      //Build the digest filter function
-      const boost::function<bool (const PeptideEvidence&)> digestion_filter =
-        [&digestion, &accession_resolver, &ignore_missed_cleavages](const PeptideEvidence& evidence)
-      {
-        // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
-        if(!evidence.hasValidLimits())
-        {
-          LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << endl;
-          return true;
-        }
-        
-        if(accession_resolver.exists(evidence))
-        {
-          return digestion.isValidProduct(
-            AASequence::fromString(accession_resolver.getValue(evidence).sequence),
-            evidence.getStart(), evidence.getEnd() - evidence.getStart(), false, ignore_missed_cleavages);
-        }
-        else
-        {
-          if(evidence.getProteinAccession().empty())
-          {
-            LOG_WARN << "Peptide accession not available! Skipping Evidence." << endl;
-          }
-          else
-          {
-            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession() << "' not found in fasta file!" << endl;
-          }
-          return true;
-        }
-      };
-
-      IDFilter::filterPeptideEvidences(digestion_filter, peptides);
+      // Build the digest filter function
+      IDFilter::DigestionFilter filter(fasta, digestion, ignore_missed_cleavages);
+      // Filter peptides
+      IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(filter, peptides);
     }
 
 

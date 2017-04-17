@@ -36,6 +36,7 @@
 #define OPENMS_FILTERING_ID_IDFILTER_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -47,7 +48,6 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <boost/function.hpp>
 
 namespace OpenMS
 {
@@ -262,7 +262,6 @@ public:
       typedef std::map<String, Entry*> ItemMap;//Store pointers to avoid copying data
       ItemMap items;
 
-
       GetMatchingItems(std::vector<Entry>& records)
       {
         for(typename std::vector<Entry>::iterator rec_it = records.begin();
@@ -271,6 +270,8 @@ public:
           items[getKey(*rec_it)] = &(*rec_it);
         }
       }
+
+      GetMatchingItems(){}
 
       const String& getKey(const FASTAFile::FASTAEntry& entry) const
       {
@@ -333,6 +334,53 @@ public:
 
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
+
+    struct DigestionFilter
+    {
+      GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>accession_resolver_;
+      EnzymaticDigestion digestion_;
+      bool ignore_missed_cleavages_;
+      DigestionFilter(std::vector<FASTAFile::FASTAEntry>& entries,
+                      EnzymaticDigestion& digestion, bool ignore_missed_cleavages)
+      {
+        //accession_resolver_(entries);
+        ignore_missed_cleavages_ = ignore_missed_cleavages;
+        digestion_ = digestion;
+      }
+
+      bool operator()(const PeptideEvidence& evidence)
+      {
+        // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
+        if(!evidence.hasValidLimits())
+        {
+          LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
+          return true;
+        }
+        
+        if(accession_resolver_.exists(evidence))
+        {
+          return digestion_.isValidProduct(
+            AASequence::fromString(accession_resolver_.getValue(evidence).sequence),
+            evidence.getStart(), evidence.getEnd() - evidence.getStart(), false, ignore_missed_cleavages_);
+        }
+        else
+        {
+          if(evidence.getProteinAccession().empty())
+          {
+            LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
+          }
+          else
+          {
+            LOG_WARN << "Peptide accession '" << 
+              evidence.getProteinAccession() << 
+              "' not found in fasta file!" << std::endl;
+          }
+          return true;
+        }
+      }
+
+    };
+
 
     ///@}
 
@@ -767,8 +815,9 @@ public:
        @param filter filter function on PeptideEvidence level
        @param peptides PeptideIdentification that will be scanned and filtered
      */
+    template <class Filter>
     static void filterPeptideEvidences(
-      const boost::function<bool (const PeptideEvidence&)>& filter,
+      Filter& filter,
       std::vector<PeptideIdentification>& peptides);
 
 	  /**
@@ -945,7 +994,12 @@ public:
     ///@}
 
   };
-
+  template<class Filter>
+  struct FilterPeptideEvidences{
+  void operator()(
+      Filter& filter,
+      std::vector<PeptideIdentification>& peptides);
+  };
 } // namespace OpenMS
 
 #endif // OPENMS_FILTERING_ID_IDFILTER_H
