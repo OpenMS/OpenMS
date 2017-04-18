@@ -714,9 +714,19 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const AASequence& peptide)
   {
+    // this is basically the implementation of toString
+
+    // deal with N-terminal modifications first
     if (peptide.n_term_mod_ != 0)
     {
-      os << ".(" << peptide.n_term_mod_->getId() << ")";
+      if (peptide.n_term_mod_->getId() != "")
+      {
+        os << ".(" << peptide.n_term_mod_->getId() << ")";
+      }
+      else
+      {
+        os << "." << peptide.n_term_mod_->getFullId() << "";
+      }
     }
 
     for (Size i = 0; i != peptide.size(); ++i)
@@ -761,10 +771,19 @@ namespace OpenMS
       }
     }
     
+    // deal with C-terminal modifications
     if (peptide.c_term_mod_ != 0)
     {
-      os << ".(" << peptide.c_term_mod_->getId() << ")";
+      if (peptide.c_term_mod_->getId() != "")
+      {
+        os << ".(" << peptide.c_term_mod_->getId() << ")";
+      }
+      else
+      {
+        os << "." << peptide.c_term_mod_->getFullId() << "";
+      }
     }
+
     return os;
   }
 
@@ -1021,24 +1040,82 @@ namespace OpenMS
       }
     }
 
-    // create new modification:
-    Residue new_res;
-    new_res.setName(mod);
-    if (residue && delta_mass)
+    // ----------------------------------- 
+    // Dealing with an unknown modification
+    // ----------------------------------- 
+
+    if (specificity == ResidueModification::N_TERM) 
     {
-      new_res.setMonoWeight(mass + residue->getMonoWeight());
-      new_res.setAverageWeight(mass + residue->getAverageWeight());
+      String residue_name = "[" + mod + "]";
+
+      // Check if it already exists, if not create new modification, transfer
+      // ownership to ModDB
+      if (!ModificationsDB::getInstance()->has(residue_name)) 
+      {
+        ResidueModification * new_mod = new ResidueModification();
+        new_mod->setFullId(residue_name);
+        ModificationsDB::getInstance()->addModification(new_mod);
+        aas.n_term_mod_ = new_mod;
+      }
+      else
+      {
+        Size mod_idx = ModificationsDB::getInstance()->findModificationIndex(residue_name);
+          std::cout << " now by index " << mod_idx << std::endl;
+        aas.n_term_mod_ = &ModificationsDB::getInstance()->getModification(mod_idx);
+      }
+      return mod_end;
+    }
+    else if (specificity == ResidueModification::C_TERM)
+    {
+      String residue_name = "[" + mod + "]";
+
+      // Check if it already exists, if not create new modification, transfer
+      // ownership to ModDB
+      if (!ModificationsDB::getInstance()->has(residue_name)) 
+      {
+        ResidueModification * new_mod = new ResidueModification();
+        new_mod->setFullId(residue_name);
+        ModificationsDB::getInstance()->addModification(new_mod);
+        aas.c_term_mod_ = new_mod;
+      }
+      else
+      {
+        Size mod_idx = ModificationsDB::getInstance()->findModificationIndex(residue_name);
+        aas.c_term_mod_ = &ModificationsDB::getInstance()->getModification(mod_idx);
+      }
+      return mod_end;
     }
     else
-    { // mass value is for an internal residue, but methods expect full residue:
-      new_res.setMonoWeight(mass +
-                            Residue::getInternalToFull().getMonoWeight());
-      new_res.setAverageWeight(mass +
-                               Residue::getInternalToFull().getAverageWeight());
+    {
+      String residue_name = aas.peptide_.back()->getOneLetterCode() + "[" + mod + "]"; // e.g. N[12345.6]
+      const Residue* current_res = ResidueDB::getInstance()->getResidue(residue_name);
+      if (current_res != 0)
+      {
+        // great, we already know it, let's just use that one
+        aas.peptide_.back() = current_res; // replace the last parsed residue!
+        return mod_end;
+      }
+
+      // We could not find any modification that would fit
+      Residue new_res;
+      new_res.setName(mod);
+      if (residue && delta_mass)
+      {
+        new_res.setMonoWeight(mass + residue->getMonoWeight());
+        new_res.setAverageWeight(mass + residue->getAverageWeight());
+      }
+      else
+      { // mass value is for an internal residue, but methods expect full residue:
+        new_res.setMonoWeight(mass +
+            Residue::getInternalToFull().getMonoWeight());
+        new_res.setAverageWeight(mass +
+            Residue::getInternalToFull().getAverageWeight());
+      }
+      new_res.setShortName(residue_name);
+      ResidueDB::getInstance()->addResidue(new_res); // add to ResidueDB for next time
+      aas.peptide_.back() = ResidueDB::getInstance()->getResidue(residue_name); // replace the last parsed residue!
+      return mod_end;
     }
-    ResidueDB::getInstance()->addResidue(new_res);
-    aas.peptide_.back() = ResidueDB::getInstance()->getResidue(mod);
-    return mod_end;
   }
 
   void AASequence::parseString_(const String& pep, AASequence& aas,
