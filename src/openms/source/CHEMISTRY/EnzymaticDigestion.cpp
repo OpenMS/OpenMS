@@ -164,7 +164,7 @@ namespace OpenMS
       bool spec_c = false, spec_n = false;
 
       std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
-      //initialize start and end
+      // initialize start and end
       std::vector<Size>::const_iterator begin_pos, end_pos;
       begin_pos = end_pos = pep_positions.end();
       // test each end
@@ -195,17 +195,17 @@ namespace OpenMS
         Size offset = std::distance(begin_pos, end_pos);
         if(pep_pos + pep_length == protein.size())
         {
-          return pep_positions.size() <= (getMissedCleavages() + 1);
+          return (pep_positions.size() <= getMissedCleavages() + 1);
         }
-        else if(offset > (getMissedCleavages() + 1))
+        else if(offset > getMissedCleavages() + 1)
         {
           return false;
         }
         else if(offset == 0)
         {
-          //This corner case needs to be checked when peptide is at the start and the end of the protein.
-          //We check with the total number of cleavages.
-          return pep_positions.size() >= (getMissedCleavages() + 1);
+          // This corner case needs to be checked when peptide is at the start and the end of the protein.
+          // We check with the total number of cleavages.
+          return (pep_positions.size() >= getMissedCleavages() + 1);
         }
         else
         {
