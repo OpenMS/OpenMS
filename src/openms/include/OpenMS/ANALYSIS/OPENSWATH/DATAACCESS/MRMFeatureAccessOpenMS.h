@@ -115,7 +115,7 @@ private:
 
   */
   template <typename SpectrumT, typename TransitionT>
-  class OPENMS_DLLAPI TransitionGroupOpenMS :
+  class TransitionGroupOpenMS :
     public OpenSwath::ITransitionGroup
   {
 public:
@@ -158,7 +158,7 @@ private:
 
   */
   template <typename ContainerT>
-  class OPENMS_DLLAPI SignalToNoiseOpenMS :
+  class SignalToNoiseOpenMS :
     public OpenSwath::ISignalToNoise
   {
 public:
