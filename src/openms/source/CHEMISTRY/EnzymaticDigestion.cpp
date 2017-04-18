@@ -188,20 +188,20 @@ namespace OpenMS
 
       if (spec_n && spec_c)
       {
-        if(ignore_missed_cleavages)
+        if (ignore_missed_cleavages)
         {
           return true;
         }
         Size offset = std::distance(begin_pos, end_pos);
-        if(pep_pos + pep_length == protein.size())
+        if (pep_pos + pep_length == protein.size())
         {
           return (pep_positions.size() <= getMissedCleavages() + 1);
         }
-        else if(offset > getMissedCleavages() + 1)
+        else if (offset > getMissedCleavages() + 1)
         {
           return false;
         }
-        else if(offset == 0)
+        else if (offset == 0)
         {
           // This corner case needs to be checked when peptide is at the start and the end of the protein.
           // We check with the total number of cleavages.

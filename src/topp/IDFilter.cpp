@@ -441,31 +441,28 @@ protected:
       // TODO(Nikos) What about missed_cleavages?
       EnzymaticDigestion digestion;
       String enzyme = getStringOption_("digest:enzyme").trim();
-      if(!enzyme.empty()){
+      if (!enzyme.empty())
+      {
         digestion.setEnzyme(enzyme);
       }
 
       String specificity = getStringOption_("digest:specificity").trim();
-      if(!specificity.empty()){
+      if (!specificity.empty())
+      {
         digestion.setSpecificity(digestion.getSpecificityByName(specificity));
       }
 
       Int missed_cleavages = getIntOption_("digest:missed_cleavages");
       bool ignore_missed_cleavages = true;
-      if(missed_cleavages > -1)
+      if (missed_cleavages > -1)
       {
         ignore_missed_cleavages = false;
-        if(digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL)
+        if (digestion.getSpecificity() == EnzymaticDigestion::SPEC_FULL)
         {
           LOG_WARN << "Specificity not full, missed_cleavages option is redundant" << endl;
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
-
-      // Build an accession index to avoid the linear search cost
-      // Maybe pass search parameters in accession here?
-      
-      //IDFilter::GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>resolver(fasta);
 
       // Build the digest filter function
       IDFilter::DigestionFilter filter(fasta, digestion, ignore_missed_cleavages);
