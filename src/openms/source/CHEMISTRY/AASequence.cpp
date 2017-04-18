@@ -1142,7 +1142,8 @@ namespace OpenMS
 
     if (peptide.empty()) return;
     
-    // detect if this is the new dot notation containing dots for termini and track if last char denoted a terminus
+    // detect if this is the new dot notation containing dots for termini and
+    // track if last char denoted a terminus
     bool dot_terminal(false), dot_notation(false);
 
     static ResidueDB* rdb = ResidueDB::getInstance();
@@ -1176,7 +1177,7 @@ namespace OpenMS
       //   at the terminus we assume we are dealing with a N- or C-terminal modifications
 
       // make str_it point on '[' and set specificty if we are dealing with a terminus
-      if (str_it == peptide.begin())
+      if (str_it == peptide.begin() || (dot_notation && dot_terminal && aas.peptide_.empty()) )
       {
         specificity = ResidueModification::N_TERM;
       }
@@ -1185,6 +1186,10 @@ namespace OpenMS
         // note that still c[...] type substring remains as only single c have been erased before
         // skip 'c', record that we are dealing with a C-terminal
         ++str_it;
+        specificity = ResidueModification::C_TERM;
+      }
+      else if (dot_notation && dot_terminal && !aas.peptide_.empty())
+      {
         specificity = ResidueModification::C_TERM;
       }
      
