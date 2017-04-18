@@ -470,7 +470,7 @@ protected:
       // Build the digest filter function
       IDFilter::DigestionFilter filter(fasta, digestion, ignore_missed_cleavages);
       // Filter peptides
-      IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(filter, peptides);
+      filter.filterPeptideEvidences(peptides);
     }
 
 

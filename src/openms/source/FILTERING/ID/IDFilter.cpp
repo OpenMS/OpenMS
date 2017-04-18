@@ -37,7 +37,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/PeptideEvidence.h>
 
 #include <cmath>
 #include <climits>
@@ -632,26 +631,6 @@ namespace OpenMS
       pep_it->getHits().swap(filtered_hits);
     }
   }
-  template<class Filter>
-  void IDFilter::FilterPeptideEvidences<Filter>::operator()(
-    Filter& filter,
-    vector<PeptideIdentification>& peptides)
-  {
-    for(vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-        pep_it != peptides.end(); ++pep_it)
-    {
-      for(vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-          hit_it != pep_it->getHits().end(); ++hit_it )
-      {
-        vector<PeptideEvidence> evidences;
-        remove_copy_if(hit_it->getPeptideEvidences().begin(),
-                       hit_it->getPeptideEvidences().end(),
-                       back_inserter(evidences), not1(filter));
-        hit_it->setPeptideEvidences(evidences);
-      }
-    }
-
-  }
-
+  
 
 } // namespace OpenMS

@@ -38,6 +38,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -335,20 +336,29 @@ public:
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
 
+    /**
+       @brief Is peptide evidence digestion product of some protein
+
+       Keeps all valid products
+     */
     struct DigestionFilter
     {
-      GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>accession_resolver_;
-      EnzymaticDigestion digestion_;
-      bool ignore_missed_cleavages_;
-      DigestionFilter(std::vector<FASTAFile::FASTAEntry>& entries,
-                      EnzymaticDigestion& digestion, bool ignore_missed_cleavages)
-      {
-        //accession_resolver_(entries);
-        ignore_missed_cleavages_ = ignore_missed_cleavages;
-        digestion_ = digestion;
-      }
+      typedef PeptideEvidence argument_type;
 
-      bool operator()(const PeptideEvidence& evidence)
+      // Build an accession index to avoid the linear search cost
+      GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>accession_resolver_;
+      EnzymaticDigestion& digestion_;
+      bool ignore_missed_cleavages_;
+
+      DigestionFilter(std::vector<FASTAFile::FASTAEntry>& entries,
+                      EnzymaticDigestion& digestion, 
+                      bool ignore_missed_cleavages) : 
+        accession_resolver_(entries), 
+        digestion_(digestion),
+        ignore_missed_cleavages_(ignore_missed_cleavages)
+      {}
+ 
+      bool operator()(const PeptideEvidence& evidence) const
       {
         // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
         if(!evidence.hasValidLimits())
@@ -377,6 +387,11 @@ public:
           }
           return true;
         }
+      }
+      
+      void filterPeptideEvidences(std::vector<PeptideIdentification>& peptides)
+      {
+        IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(*this,peptides);
       }
 
     };
@@ -531,6 +546,33 @@ public:
     static void extractPeptideSequences(
       const std::vector<PeptideIdentification>& peptides,
       std::set<String>& sequences, bool ignore_mods = false);
+
+    /**
+       @brief remove peptide evidences based on a filter
+       
+       @param filter filter function that overloads ()(PeptideEvidence&) operator
+       @param peptides a collection of peptide evidences
+     */
+    template<class EvidenceFilter>
+    static void FilterPeptideEvidences(
+      EvidenceFilter& filter,
+      std::vector<PeptideIdentification>& peptides)
+    {
+      for(std::vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+          pep_it != peptides.end(); ++pep_it)
+      {
+        for(std::vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+            hit_it != pep_it->getHits().end(); ++hit_it )
+        {
+          std::vector<PeptideEvidence> evidences;
+          remove_copy_if(hit_it->getPeptideEvidences().begin(),
+                         hit_it->getPeptideEvidences().end(),
+                         back_inserter(evidences), 
+                         std::not1(filter));
+          hit_it->setPeptideEvidences(evidences);
+        }
+      }
+    }
 
     ///@}
 
@@ -745,6 +787,8 @@ public:
         keepMatchingItems(id_it->getHits(), acc_filter);
       }
     }
+
+    
 
     ///@}
 
@@ -993,13 +1037,9 @@ public:
 
     ///@}
 
+
   };
-  template<class Filter>
-  struct FilterPeptideEvidences{
-  void operator()(
-      Filter& filter,
-      std::vector<PeptideIdentification>& peptides);
-  };
+
 } // namespace OpenMS
 
 #endif // OPENMS_FILTERING_ID_IDFILTER_H
