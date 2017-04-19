@@ -53,7 +53,7 @@ using namespace std;
 /**
         @page UTILS_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
-        @brief MetaboliteSpectralMatcher identify small molecules from trandem MS spectra.
+        @brief MetaboliteSpectralMatcher identify small molecules from tandem MS spectra.
 
         <CENTER>
         <table>
@@ -75,7 +75,7 @@ using namespace std;
         @verbinclude TOPP_MetaboliteSpectralMatcher.cli
 
 
-        MetaboliteSpectralMatcher matches spectra from a spectral library (default: HMDB) with tandem MS spectra.
+        MetaboliteSpectralMatcher matches spectra from a spectral library with tandem MS spectra.
 */
 
 // We do not want this class to show up in the docu:
@@ -86,7 +86,7 @@ class TOPPMetaboliteSpectralMatcher :
 {
 public:
   TOPPMetaboliteSpectralMatcher() :
-      TOPPBase("MetaboliteSpectralMatcher", "Find potential HMDB ids within the given mass error window.", false)
+      TOPPBase("MetaboliteSpectralMatcher", "Perform a spectral library search.", false)
   {
   }
 
@@ -94,12 +94,12 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "mzML file");
+    registerInputFile_("in", "<file>", "", "Input spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "mzML file", false);
+    registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "Default spectral database.", false);
     setValidFormats_("database", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("csv"));
+    setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -117,7 +117,15 @@ protected:
 
     String in = getStringOption_("in");
     String database = getStringOption_("database");
-    String spec_db_filename = database == "CHEMISTRY/MetaboliteSpectralDB.mzML" ? File::find("CHEMISTRY/MetaboliteSpectralDB.mzML") : database;
+    String spec_db_filename(database);
+
+    // default path? retrieve file path in share folder
+    if (database == "CHEMISTRY/MetaboliteSpectralDB.mzML")
+    {
+      // throws Exception::FileNotFound if file does not exist
+      spec_db_filename = File::find("CHEMISTRY/MetaboliteSpectralDB.mzML");
+    }
+
     String out = getStringOption_("out");
 
     //-------------------------------------------------------------
