@@ -206,6 +206,20 @@ namespace OpenMS
       }
     }
 
+    double XQuestResultXMLHandler::getMinScore() const
+    {
+      return this->min_score_;
+    }
+
+    double XQuestResultXMLHandler::getMaxScore() const
+    {
+      return this->max_score_;
+    }
+
+    int XQuestResultXMLHandler::getNumberOfHits() const
+    {
+      return this->n_hits_;
+    }
 
     void XQuestResultXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
     {

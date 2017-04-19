@@ -84,11 +84,10 @@ namespace OpenMS
       // Docu in base class
       void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
 
-      // Docu in base class
-      //void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
-
-      //Docu in base class
-      //virtual void writeTo(std::ostream & os);
+      // Getter for certain attributes of the xQuest file
+      double getMinScore() const;
+      double getMaxScore() const;
+      int getNumberOfHits() const;
 
     private:
    
@@ -111,8 +110,8 @@ namespace OpenMS
       UInt max_precursor_charge_;
 
       // Keeps track of the minscore and maxscore encountered
-      double & min_score_;
-      double & max_score_;
+      double min_score_;
+      double max_score_;
 
       // Current Retention time of light spectrum
       double rt_light_;
@@ -122,7 +121,7 @@ namespace OpenMS
       
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
-      int & n_hits_; // Total no. of hits found in the result XML file
+      int n_hits_; // Total no. of hits found in the result XML file
       Size min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
       
