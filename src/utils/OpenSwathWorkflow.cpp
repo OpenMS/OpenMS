@@ -774,6 +774,42 @@ protected:
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
 
+    ///////////////////////////////////
+    // Load the transitions
+    ///////////////////////////////////
+    OpenSwath::LightTargetedExperiment transition_exp;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, 1, "Load TraML file");
+    if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    {
+      TargetedExperiment targeted_exp;
+      TraMLFile().load(tr_file, targeted_exp);
+      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+    }
+    else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
+    {
+      TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+
+      remove(out_osw.c_str());
+      if (!out_osw.empty())
+      {
+        std::ifstream  src(tr_file.c_str(), std::ios::binary);
+        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
+
+        dst << src.rdbuf();
+      }
+    }
+    else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
+    {
+      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+    }
+    else
+    {
+      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      return PARSE_ERROR;
+    }
+    progresslogger.endProgress();
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -850,47 +886,10 @@ protected:
         sonar);
 
     ///////////////////////////////////
-    // Load the transitions
-    ///////////////////////////////////
-    OpenSwath::LightTargetedExperiment transition_exp;
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
-    if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
-    {
-      TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
-      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
-    }
-    else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
-    {
-      TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
-
-      remove(out_osw.c_str());
-      if (!out_osw.empty())
-      {
-        std::ifstream  src(tr_file.c_str(), std::ios::binary);
-        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
-
-        dst << src.rdbuf();
-      }
-    }
-    else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
-    {
-      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-    }
-    else
-    {
-      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
-      return PARSE_ERROR;
-    }
-    progresslogger.endProgress();
-
-    ///////////////////////////////////
     // Set up chromatogram output
     // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
-    Interfaces::IMSDataConsumer<> * chromatogramConsumer;
+    Interfaces::IMSDataConsumer * chromatogramConsumer;
     if (!out_chrom.empty())
     {
       if (out_chrom.hasSuffix(".sqMass"))

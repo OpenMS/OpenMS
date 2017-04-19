@@ -159,6 +159,7 @@ namespace OpenMS
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
     std::map<std::string, double> best_features = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
       estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
+    LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
 
     // Create pairs vector and store peaks
     OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType trgrmap_allpeaks; // store all peaks above cutoff
@@ -201,6 +202,7 @@ namespace OpenMS
         String("Illegal argument '") + outlier_method +
         "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
+    LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << std::endl;
 
     // 5. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.

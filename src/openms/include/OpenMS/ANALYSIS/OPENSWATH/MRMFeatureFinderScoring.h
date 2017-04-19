@@ -164,50 +164,6 @@ public:
     void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp);
     //@}
 
-    /** @brief Splits combined transition groups into detection transition groups
-     *
-     * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
-     *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_detection To be filled with detecting transitions
-    */
-    void splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection);
-
-    /** @brief Splits combined transition groups into identification transition groups
-     *
-     * For standard assays, transition_group_identification is empty. When UIS scoring
-     * is enabled, it contains the corresponding identification transitions.
-     *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_identification To be filled with identifying transitions
-     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
-    */
-    void splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy);
-
-    /** @brief Provides scoring for target and decoy identification against detecting transitions
-     *
-     * The function is used twice, for target and decoy identification transitions. The results are
-     * reported analogously to the ones for detecting transitions but must be stored separately.
-     *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_identification Containing all detecting and identifying transitions
-     * @param scorer An instance of OpenSwathScoring
-     * @param feature_idx The index of the current feature
-     * @param native_ids_detection The native IDs of the detecting transitions
-     * @param sn_win_len_ The signal to noise window length
-     * @param sn_bin_count_ The signal to noise bin count
-     * @param write_log_messages Whether to write signal to noise log messages
-     * @value a struct of type OpenSwath_Scores containing either target or decoy values
-    */
-    OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
-                                          OpenSwathScoring& scorer,
-                                          const size_t feature_idx,
-                                          const std::vector<std::string> native_ids_detection,
-                                          const double sn_win_len_,
-                                          const unsigned int sn_bin_count_,
-                                          bool write_log_messages,
-                                          std::vector<OpenSwath::SwathMap> swath_maps);
-
     /** @brief Score all peak groups of a transition group
      *
      * Iterate through all features found along the chromatograms of the
@@ -268,6 +224,50 @@ public:
     void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
                                        TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
 private:
+
+    /** @brief Splits combined transition groups into detection transition groups
+     *
+     * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_detection To be filled with detecting transitions
+    */
+    void splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection);
+
+    /** @brief Splits combined transition groups into identification transition groups
+     *
+     * For standard assays, transition_group_identification is empty. When UIS scoring
+     * is enabled, it contains the corresponding identification transitions.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_identification To be filled with identifying transitions
+     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
+    */
+    void splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy);
+
+    /** @brief Provides scoring for target and decoy identification against detecting transitions
+     *
+     * The function is used twice, for target and decoy identification transitions. The results are
+     * reported analogously to the ones for detecting transitions but must be stored separately.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_identification Containing all detecting and identifying transitions
+     * @param scorer An instance of OpenSwathScoring
+     * @param feature_idx The index of the current feature
+     * @param native_ids_detection The native IDs of the detecting transitions
+     * @param sn_win_len_ The signal to noise window length
+     * @param sn_bin_count_ The signal to noise bin count
+     * @param write_log_messages Whether to write signal to noise log messages
+     * @value a struct of type OpenSwath_Scores containing either target or decoy values
+    */
+    OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+                                          OpenSwathScoring& scorer,
+                                          const size_t feature_idx,
+                                          const std::vector<std::string> native_ids_detection,
+                                          const double sn_win_len_,
+                                          const unsigned int sn_bin_count_,
+                                          bool write_log_messages,
+                                          std::vector<OpenSwath::SwathMap> swath_maps);
 
     /// Synchronize members with param class
     void updateMembers_();

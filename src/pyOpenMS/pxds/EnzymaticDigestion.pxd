@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       void setMissedCleavages(SignedSize missed_cleavages) nogil except +
 
       # not wrapped due to name clash with Enzyme.h
+
       # Enzyme getEnzyme()  nogil except +
       # void setEnzyme(Enzyme enzyme) nogil except +
       # Enzyme getEnzymeByName(String & name) nogil except +
@@ -24,10 +25,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
       # Returns the specificity for the digestion
       Specificity getSpecificity() nogil except +
-
       # Sets the specificity for the digestion (default is SPEC_FULL).
       void setSpecificity(Specificity spec) nogil except +
-
       # convert spec string name to enum
       Specificity getSpecificityByName(String name)nogil except +
 

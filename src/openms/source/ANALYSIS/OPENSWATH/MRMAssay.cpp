@@ -102,23 +102,6 @@ namespace OpenMS
     }
   }
 
-  void MRMAssay::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                                  int location, ResidueModification& rmod)
-  {
-    TargetedExperiment::Peptide::Modification mod;
-    String unimod_str = rmod.getUniModAccession();
-    mod.location = location;
-    mod.mono_mass_delta = rmod.getDiffMonoMass();
-    mod.avg_mass_delta = rmod.getDiffAverageMass();
-    // CV term with the full unimod accession number and name
-    CVTerm unimod_name;
-    unimod_name.setCVIdentifierRef("UNIMOD");
-    unimod_name.setAccession(unimod_str.toUpper());
-    unimod_name.setName(rmod.getName());
-    mod.addCVTerm(unimod_name);
-    mods.push_back(mod);
-  }
-
   std::string MRMAssay::getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
                                            pseudoRNG)
   {

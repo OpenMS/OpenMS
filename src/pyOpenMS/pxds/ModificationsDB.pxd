@@ -3,6 +3,7 @@ from Map cimport *
 from String cimport *
 from ResidueModification cimport *
 
+# see ../addons/ModificationsDB.pyx
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
     
     cdef cppclass ModificationsDB "OpenMS::ModificationsDB":

@@ -18,6 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
         #  DefaultParamHandler
         MRMTransitionGroupPicker() nogil except +
         MRMTransitionGroupPicker(MRMTransitionGroupPicker) nogil except + #wrap-ignore
+
         # TEMPLATE # void pickTransitionGroup(MRMTransitionGroup[ SpectrumT, TransitionT ] & transition_group) nogil except +
         # TEMPLATE # MRMFeature createMRMFeature(MRMTransitionGroup[ SpectrumT, TransitionT ] & transition_group, libcpp_vector[ SpectrumT ] & picked_chroms, int & chr_idx, int & peak_idx) nogil except +
         # TEMPLATE # void remove_overlapping_features(libcpp_vector[ SpectrumT ] & picked_chroms, double best_left, double best_right) nogil except +

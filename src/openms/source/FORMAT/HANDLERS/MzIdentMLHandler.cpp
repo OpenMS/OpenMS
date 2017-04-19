@@ -1221,11 +1221,11 @@ namespace OpenMS
           }
           else
           {
-            String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
-            sii_tmp += String(5, '\t') + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns);
+            String score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
+            sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
             sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                          + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-            LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
+            LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
 

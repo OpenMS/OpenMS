@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, $
+// $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -53,7 +53,7 @@ using namespace std;
 /**
         @page UTILS_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
-        @brief MetaboliteSpectralMatcher assembles metabolite features from singleton mass traces.
+        @brief MetaboliteSpectralMatcher identify small molecules from tandem MS spectra.
 
         <CENTER>
         <table>
@@ -63,25 +63,19 @@ using namespace std;
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref PeakPickerHiRes </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> processing in R </td>
         </tr>
         </table>
         </CENTER>
 
-        Mass traces alone would allow for further analyzes such as metabolite ID or statistical
-        evaluation. However, in general, monoisotopic mass traces are accompanied with satellite
-        C13 peaks and thus may render the analysis more difficult. @ref MetaboliteSpectralMatcher fulfills
-        a further data reduction step by assembling compatible mass traces to metabolite features
-        (that is, mass traces all stemming from one metabolite). To this end, multiple metabolite
-        hypotheses are formulated and scored according to how well differences in RT and m/z or
-        intensity ratios match to those of theoretical isotope patterns.
-
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_MetaboliteSpectralMatcher.cli
+
+
+        MetaboliteSpectralMatcher matches spectra from a spectral library with tandem MS spectra.
 */
 
 // We do not want this class to show up in the docu:
@@ -91,106 +85,112 @@ class TOPPMetaboliteSpectralMatcher :
         public TOPPBase
 {
 public:
-    TOPPMetaboliteSpectralMatcher() :
-        TOPPBase("MetaboliteSpectralMatcher", "Find potential HMDB ids within the given mass error window.", false)
-    {
-    }
+  TOPPMetaboliteSpectralMatcher() :
+      TOPPBase("MetaboliteSpectralMatcher", "Perform a spectral library search.", false)
+  {
+  }
 
 protected:
 
-    void registerOptionsAndFlags_()
-    {
-        registerInputFile_("in", "<file>", "", "mzML file");
-        setValidFormats_("in", ListUtils::create<String>("mzML"));
-        registerOutputFile_("out", "<file>", "", "mzTab file");
-        setValidFormats_("out", ListUtils::create<String>("csv"));
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "Input spectra.");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "Default spectral database.", false);
+    setValidFormats_("database", ListUtils::create<String>("mzML"));
+    registerOutputFile_("out", "<file>", "", "mzTab file");
+    setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-        // addEmptyLine_();
-        // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
-        registerSubsection_("algorithm", "Algorithm parameters section");
+    registerSubsection_("algorithm", "Algorithm parameters section");
+  }
+
+  Param getSubsectionDefaults_(const String& /*section*/) const
+  {
+    return MetaboliteSpectralMatching().getDefaults();
+  }
+
+  ExitCodes main_(int, const char**)
+  {
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+
+    String in = getStringOption_("in");
+    String database = getStringOption_("database");
+    String spec_db_filename(database);
+
+    // default path? retrieve file path in share folder
+    if (database == "CHEMISTRY/MetaboliteSpectralDB.mzML")
+    {
+      // throws Exception::FileNotFound if file does not exist
+      spec_db_filename = File::find("CHEMISTRY/MetaboliteSpectralDB.mzML");
     }
 
-    Param getSubsectionDefaults_(const String& /*section*/) const
+    String out = getStringOption_("out");
+
+    //-------------------------------------------------------------
+    // loading input
+    //-------------------------------------------------------------
+
+    MzMLFile mz_file;
+    mz_file.setLogType(log_type_);
+    std::vector<Int> ms_level(1,2);
+    mz_file.getOptions().setMSLevels(ms_level);
+
+    PeakMap ms_peakmap;
+    mz_file.load(in, ms_peakmap);
+
+    if (ms_peakmap.empty())
     {
-        return MetaboliteSpectralMatching().getDefaults();
+      LOG_WARN << "The input file does not contain any spectra.";
+      return INCOMPATIBLE_INPUT_DATA;
     }
 
-    ExitCodes main_(int, const char**)
+    MzTab mztab_output;
+    MzTabFile mztab_outfile;
+
+    //-------------------------------------------------------------
+    // get parameters
+    //-------------------------------------------------------------
+
+    Param ams_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to MetaboliteSpectralMatcher", ams_param, 3);
+
+    //-------------------------------------------------------------
+    // load database
+    //-------------------------------------------------------------
+
+    PeakMap spec_db;
+    mz_file.load(spec_db_filename, spec_db);
+
+    if (spec_db.empty())
     {
-
-        //-------------------------------------------------------------
-        // parameter handling
-        //-------------------------------------------------------------
-
-        String in = getStringOption_("in");
-        String out = getStringOption_("out");
-
-        //-------------------------------------------------------------
-        // loading input
-        //-------------------------------------------------------------
-
-        MzMLFile mz_data_file;
-        mz_data_file.setLogType(log_type_);
-        PeakMap ms_peakmap;
-        std::vector<Int> ms_level(1,2);
-        (mz_data_file.getOptions()).setMSLevels(ms_level);
-        mz_data_file.load(in, ms_peakmap);
-
-        if (ms_peakmap.empty())
-        {
-            LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                        " contain chromatograms. This tool currently cannot handle them, sorry.";
-            return INCOMPATIBLE_INPUT_DATA;
-        }
-
-//        FeatureMap ms_feat_map;
-        MzTab mztab_output;
-
-//        FeatureXMLFile().load(in, ms_feat_map);
-        MzTabFile mztab_outfile;
-
-        //-------------------------------------------------------------
-        // get parameters
-        //-------------------------------------------------------------
-
-        Param ams_param = getParam_().copy("algorithm:", true);
-        writeDebug_("Parameters passed to MetaboliteSpectralMatcher", ams_param, 3);
-
-
-        //-------------------------------------------------------------
-        // do the work
-        //-------------------------------------------------------------
-
-        MetaboliteSpectralMatching ams;
-        ams.setParameters(ams_param);
-
-        ams.run(ms_peakmap, mztab_output);
-
-        //std::vector<String> results;
-
-        // ams.queryByMass(308.09, results);
-
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
-
-        // annotate output with data processing info
-        //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-
-        mztab_outfile.store(out, mztab_output);
-
-        //FeatureXMLFile().store(out, ms_feat_map);
-
-        return EXECUTION_OK;
+      LOG_WARN << "The spectral library does not contain any spectra.";
+      return INCOMPATIBLE_INPUT_DATA;
     }
+
+    //-------------------------------------------------------------
+    // run spectral library search
+    //-------------------------------------------------------------
+    MetaboliteSpectralMatching ams;
+    ams.setParameters(ams_param);
+    ams.run(ms_peakmap, spec_db, mztab_output);
+
+    //-------------------------------------------------------------
+    // store results
+    //-------------------------------------------------------------
+    mztab_outfile.store(out, mztab_output);
+
+    return EXECUTION_OK;
+  }
 
 };
 
 
 int main(int argc, const char** argv)
 {
-    TOPPMetaboliteSpectralMatcher tool;
-    return tool.main(argc, argv);
+  TOPPMetaboliteSpectralMatcher tool;
+  return tool.main(argc, argv);
 }
 
 /// @endcond

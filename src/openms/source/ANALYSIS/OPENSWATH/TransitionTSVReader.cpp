@@ -1056,7 +1056,9 @@ namespace OpenMS
 
     AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
 
-    // in TraML, the modification the AA starts with residue 1 but the
+    // Unfortunately, we cannot store an AASequence here but have to work with
+    // the TraML modification object.
+    // In TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
     if (std::string::npos == tr_it->FullPeptideName.find("["))
@@ -1139,16 +1141,10 @@ namespace OpenMS
                                              int location, const ResidueModification& rmod)
   {
     TargetedExperiment::Peptide::Modification mod;
-    String unimod_str = rmod.getUniModAccession();
     mod.location = location;
     mod.mono_mass_delta = rmod.getDiffMonoMass();
     mod.avg_mass_delta = rmod.getDiffAverageMass();
-    // CV term with the full unimod accession number and name
-    CVTerm unimod_name;
-    unimod_name.setCVIdentifierRef("UNIMOD");
-    unimod_name.setAccession(unimod_str.toUpper());
-    unimod_name.setName(rmod.getId());
-    mod.addCVTerm(unimod_name);
+    mod.unimod_id = rmod.getUniModRecordId();
     mods.push_back(mod);
   }
 
@@ -1168,7 +1164,7 @@ namespace OpenMS
       mytransition.group_id = it->getPeptideRef();
 
   #ifdef TRANSITIONTSVREADER_TESTING
-    std::cout << "Peptide rts empty " <<
+      std::cout << "Peptide rts empty " <<
       pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
   #endif
 
@@ -1210,7 +1206,7 @@ namespace OpenMS
           {
             if (lightpep.modifications[modloc].location == loc)
             {
-              mytransition.FullPeptideName += "(" + lightpep.modifications[modloc].unimod_id + ")";
+              mytransition.FullPeptideName += "(UniMod:" + String(lightpep.modifications[modloc].unimod_id) + ")";
             }
           }
         }
