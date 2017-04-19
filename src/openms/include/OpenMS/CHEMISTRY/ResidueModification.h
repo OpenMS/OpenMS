@@ -48,19 +48,31 @@ namespace OpenMS
 
   /** @brief Representation of a modification
 
-          This class represents a modification of a residue. A residue modification
-          has several attributes like the diff formula, a terminal specificity
-          a mass and maybe an origin which means a specific residue which it can
-          be applied to. A residue modification can be represented by its UniMod name
-          identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
-          only occurs once in an OpenMS instance stored in the ModificationsDB.
+      This class represents a modification of a residue. A residue modification
+      has several attributes like the diff formula, a terminal specificity
+      a mass and maybe an origin which means a specific residue which it can
+      be applied to. A residue modification can be represented by its UniMod name
+      identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
+      only occurs once in an OpenMS instance stored in the ModificationsDB.
 
-          Example: methionine sulfoxide formation by oxidation of methionine
+      Example: methionine sulfoxide formation by oxidation of methionine
 
-          getFullId()           = "Oxidation (M)"
-          getId()               = "Oxidation"
-          getFullName()         = "Oxidation or Hydroxylation"
-          getUniModAccession()  = "UniMod:312"
+      Function              | Result
+      ----------------------------------------------------
+      getFullId()           | "Oxidation (M)"
+      getId()               | "Oxidation"
+      getFullName()         | "Oxidation or Hydroxylation"
+      getUniModAccession()  | "UniMod:312"
+
+      Note that some modifications are not explicitely defined from an input
+      file but get added on the fly when reading amino acid sequences with
+      bracket notation, e.g. "PEPTX[999]IDE". If there is no known modification
+      corresponding to the indicated mass, then a new ResidueModification will
+      be created which will return the initial string through "getFullId()" --
+      which will either be "[999]" for internal modifications or ".[999]" for
+      N/C-terminal modifications. Please use "isUserDefined" to check for
+      user-defined modifications.
+
   */
   class OPENMS_DLLAPI ResidueModification
   {
@@ -286,6 +298,9 @@ public:
     //@{
     /// returns true if a neutral loss formula is set
     bool hasNeutralLoss() const;
+
+    /// returns true if it is a user-defined modification (empty id)
+    bool isUserDefined() const;
 
     /// equality operator
     bool operator==(const ResidueModification& modification) const;

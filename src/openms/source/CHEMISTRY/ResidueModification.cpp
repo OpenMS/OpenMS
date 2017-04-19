@@ -518,4 +518,9 @@ namespace OpenMS
     return !neutral_loss_diff_formula_.isEmpty() && !neutral_loss_diff_formula_.isCharged();
   }
 
+  bool ResidueModification::isUserDefined() const
+  {
+    return id_.empty() && !full_id_.empty();
+  }
+
 }

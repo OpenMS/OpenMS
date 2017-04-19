@@ -31,7 +31,6 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -795,7 +794,6 @@ namespace OpenMS
 
     return os;
   }
-
 
   String::ConstIterator AASequence::parseModRoundBrackets_(
     const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal)
