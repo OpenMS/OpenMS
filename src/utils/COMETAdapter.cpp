@@ -159,8 +159,8 @@ protected:
 
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (COMET)", false, true);
-    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.4, "fragment_bin_offset (COMET)", false, true);
-    registerIntOption_("theoretical_fragment_ions", "<num>", 1, "theoretical fragment ion peak representation, 0==sum of intensites plus flanking bins, 1==sum of intensities of central bin only", false, true);
+    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.25, "fragment_bin_offset (COMET)", false, true);
+    registerIntOption_("theoretical_fragment_ions", "<num>", 0, "theoretical fragment ion peak representation, 0==sum of intensites plus flanking bins, 1==sum of intensities of central bin only", false, true);
     registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, true);
     registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, true);
     registerIntOption_("use_C_ions","<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, true);
@@ -201,6 +201,7 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     setValidStrings_("variable_modifications", all_mods);
+    registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "", false, true);
     
   }
 
@@ -298,7 +299,7 @@ protected:
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
         term_distance = 0;
-        nc_term = "2";
+        nc_term = "0";
       } 
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
       {
@@ -318,10 +319,10 @@ protected:
     // fill remaining modification slots (if any) in Comet with "no modification"
     for (; var_mod_index < 9; ++var_mod_index)
     {
-      os << "variable_mod0" << var_mod_index << " = " << "0.0 X 0 3 -1 0 0" << "\n";
+      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0" << "\n";
     }
 
-    os << "max_variable_mods_in_peptide = " << 5 << "\n";
+    os << "max_variable_mods_in_peptide = " << getIntOption_("max_variable_mods_in_peptide") << "\n";
     os << "require_variable_mod = " << 0 << "\n";
 
     // fragment ions
