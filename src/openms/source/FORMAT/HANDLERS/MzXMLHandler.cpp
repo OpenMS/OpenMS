@@ -39,6 +39,17 @@ namespace OpenMS
   namespace Internal
   {
 
+    // class holding the byte offsets to '<scan>' tags in the mzXML file; req. to create the index at the end
+    struct IndexPos
+    {
+      Size id_;
+      std::ostream::streampos pos_;
+      IndexPos(const Size id, const std::ostream::streampos pos)
+        : id_(id),
+        pos_(pos) {}
+    };
+
+
     //--------------------------------------------------------------------------------
 
     // this cannot be moved into a function as VS2008 does not allow more than 31 static members in a function .. don't ask...
@@ -825,14 +836,6 @@ namespace OpenMS
         warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'scan='. The spectra are renumbered and the native IDs are lost!");
       }
 
-      // local class holding the byte offsets to '<scan>' tags in the mzXML file; req. to create the index at the end
-      struct IndexPos
-      {
-        Size id_; std::ostream::streampos pos_;
-        IndexPos(const Size id, const std::ostream::streampos pos)
-          : id_(id),
-          pos_(pos) {}
-      };
       std::vector<IndexPos> scan_index_positions;
 
       // write scans
