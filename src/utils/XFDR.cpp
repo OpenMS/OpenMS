@@ -50,7 +50,6 @@
 
 #include <string>
 #include <math.h>
-#include <algorithm>
 
 #include <assert.h>
 
@@ -206,6 +205,11 @@ class TOPPXFDR :
      */
     static bool isSortedDescending(vector< UInt > & order, vector< PeptideIdentification > & all_ids, vector< UInt > & rank_one_ids )
     {
+      if (order.empty())
+      {
+        return true;
+      }
+
       for (Size i = 0; i < order.size() - 1; ++i)
       {
         if (  getXLMetaValue<double>("OpenXQuest:score", all_ids[rank_one_ids[order[i]]], true)
