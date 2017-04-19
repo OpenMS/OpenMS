@@ -309,6 +309,8 @@ namespace OpenMS
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);
     modification_names_[new_mod->getUniModAccession()].insert(new_mod);
+
+    mods_.push_back(new_mod); // we probably want that
   }
 
   void ModificationsDB::readFromOBOFile(const String& filename)
