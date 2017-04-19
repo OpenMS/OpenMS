@@ -245,7 +245,6 @@ set(math_executables_list
   BilinearInterpolation_test
   BSpline2d_test
   CubicSpline2d_test
-  CumulativeHistogram_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
