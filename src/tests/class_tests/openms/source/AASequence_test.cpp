@@ -810,6 +810,8 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 
   TEST_EQUAL(test6[4].isModified(), true)
   TEST_REAL_SIMILAR(test6[4].getModification()->getMonoMass(), 1600.230654 + 18.0105650638) // because of the H2O loss
+  TEST_REAL_SIMILAR(test6[4].getMonoWeight(), 1600.230654 + 18.0105650638) // computed as full (not internal) -> H2O loss
+  TEST_REAL_SIMILAR(test6[4].getMonoWeight(Residue::Internal), 1600.230654)
   TEST_REAL_SIMILAR(test6.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
 
   AASequence test7 = AASequence::fromString(test6.toString());
@@ -892,6 +894,41 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     test_other = AASequence::fromString(test_seq.toBracketString(false));
     TEST_EQUAL(test_other.size(), 3)
     TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+  }
+
+  // test from #2320
+  {
+    AASequence aa_original = AASequence::fromString("DFPANGER");
+    TEST_REAL_SIMILAR(aa_original.getMonoWeight(), 904.4038997864)
+
+    AASequence aa_withX_original = AASequence::fromString("DFPANGERX");
+    TEST_REAL_SIMILAR(aa_withX_original.getMonoWeight(), 904.4038997864  - 18.0105650638)
+    AASequence aa_withX2_original = AASequence::fromString("DFPANXGER");
+    TEST_REAL_SIMILAR(aa_withX2_original.getMonoWeight(), 904.4038997864  - 18.0105650638)
+
+    AASequence test_seq = AASequence::fromString("DFPANGERX[113.0840643509]");
+    TEST_EQUAL(test_seq.size(), 9)
+    TEST_EQUAL(test_seq.toString(), "DFPANGERX[113.0840643509]")
+    TEST_EQUAL(test_seq.toBracketString(true), "DFPANGERX[113]")
+    TEST_EQUAL(test_seq.toBracketString(false), "DFPANGERX[113.0840643509]")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "DFPANGERX")
+    TEST_EQUAL(test_seq.hasNTerminalModification(), false)
+    TEST_EQUAL(test_seq.hasCTerminalModification(), false)
+    TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_original.getMonoWeight() + 113.0840643509)
+
+    AASequence test_internal_seq = AASequence::fromString("DFPANGEX[113.0840643509]R");
+    TEST_REAL_SIMILAR(test_internal_seq.getMonoWeight(), aa_original.getMonoWeight() + 113.0840643509)
+
+    TEST_EQUAL(test_seq[8].isModified(), true)
+    TEST_REAL_SIMILAR(test_seq[8].getMonoWeight(), 113.0840643509 + 18.0105650638) // computed as full (not internal) -> H2O loss
+    TEST_REAL_SIMILAR(test_seq[8].getMonoWeight(Residue::Internal), 113.0840643509)
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_seq.size(), 9)
+    TEST_EQUAL(test_seq.toString(), "DFPANGERX[113.0840643509]")
 
     TEST_EQUAL(test_seq, test_other) // the peptides should be equal
   }
