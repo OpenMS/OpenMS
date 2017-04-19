@@ -33,20 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/KERNEL/ChromatogramPeak.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
-  MRMTransitionGroup<MSSpectrum<Peak1D>, ReactionMonitoringTransition> default_mrmtransitiongroup_;
-  MRMTransitionGroup<MSSpectrum<Peak1D>, OpenSwath::LightTransition> default_openswath_mrmtransitiongroup_;
-  MRMTransitionGroup<MSSpectrum<ChromatogramPeak>, ReactionMonitoringTransition> default_chrompeak_mrmtransitiongroup_; // legacy, remove
-  MRMTransitionGroup<MSSpectrum<ChromatogramPeak>, OpenSwath::LightTransition> default_chrompeak_openswath_mrmtransitiongroup_; // legacy, remove
-  MRMTransitionGroup<MSChromatogram<ChromatogramPeak>, ReactionMonitoringTransition> default_chrom_chrompeak_mrmtransitiongroup_;
-  MRMTransitionGroup<MSChromatogram<ChromatogramPeak>, OpenSwath::LightTransition> default_chrom_chrompeak_openswath_mrmtransitiongroup_;
 }
 
