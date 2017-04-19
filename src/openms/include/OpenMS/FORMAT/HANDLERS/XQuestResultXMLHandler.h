@@ -36,7 +36,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -70,7 +69,6 @@ namespace OpenMS
       static void removeSubstring(String & large, const String & small);
 
       XQuestResultXMLHandler(const String & /* filename */,
-                             std::vector< XQuestResultMeta > & /* metas */,
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
                              std::vector< ProteinIdentification > &,
                              int & n_hits,
@@ -95,7 +93,6 @@ namespace OpenMS
     private:
    
       // Main data structures that are populated during loading the file
-      std::vector< XQuestResultMeta > & metas_;
       std::vector< std::vector< PeptideIdentification > > & csms_;
       std::vector< ProteinIdentification > & prot_ids_; 
       
@@ -125,7 +122,6 @@ namespace OpenMS
       
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
-      XQuestResultMeta current_meta_; // The current meta value
       int & n_hits_; // Total no. of hits found in the result XML file
       Size min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit

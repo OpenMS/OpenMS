@@ -35,7 +35,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -597,10 +596,8 @@ class TOPPXFDR :
       {
         is_xquest_input = true;
         
-        // Currently the XQuestresultMetas are not further used
-        vector< XQuestResultMeta > metas;
         XQuestResultXMLFile xquest_result_file;
-        xquest_result_file.load(arg_in, metas, spectra, prot_ids, 1, true);
+        xquest_result_file.load(arg_in, spectra, prot_ids, 1, true);
 
         this->min_score = std::floor(xquest_result_file.getMinScore());
         this->max_score = std::ceil(xquest_result_file.getMaxScore());

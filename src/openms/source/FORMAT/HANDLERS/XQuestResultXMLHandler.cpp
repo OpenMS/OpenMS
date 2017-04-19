@@ -34,13 +34,12 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <xercesc/sax2/Attributes.hpp>
-#include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <boost/assign/list_of.hpp>
 #include <iostream>
@@ -76,7 +75,6 @@ namespace OpenMS
     const String XQuestResultXMLHandler::decoy_string = "decoy_";
 
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
-                                                   vector< XQuestResultMeta> & metas,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
                                                    std::vector< ProteinIdentification > & prot_ids,
                                                    int & n_hits_,
@@ -85,7 +83,6 @@ namespace OpenMS
                                                    Size min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit) :
       XMLHandler(filename, "1.0"),
-      metas_(metas),
       csms_(csms),
       prot_ids_(prot_ids),
       n_hits_(n_hits_),
@@ -241,8 +238,6 @@ namespace OpenMS
       }
       else if (tag == "xquest_results")
       {
-        this->metas_.push_back(this->current_meta_);
-        this->current_meta_.clearMetaInfo();
         ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
         //search_params.charges = ListUtils::concatenate(this->charges_, ",");
         //search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);

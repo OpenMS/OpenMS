@@ -35,7 +35,6 @@
 #define OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/METADATA/XQuestResultMeta.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -50,7 +49,6 @@ public:
     ~XQuestResultXMLFile();
 
     void load(const String &,  // filename
-              std::vector< XQuestResultMeta >  &, // Vector to be filled with Metadata about individual XQuest results
               std::vector< std::vector< PeptideIdentification > > &, // Vector of encompassed spectra, each containing associated PeptideIdentifications
               std::vector< ProteinIdentification > &,  // The protein identification of the xQuest result file
               Size = 0,  // Minimum number of PeptideIdentification a spectrum must contain to be loaded
