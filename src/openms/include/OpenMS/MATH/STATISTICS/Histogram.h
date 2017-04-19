@@ -256,11 +256,11 @@ public:
         {
           if (complement)
           {
-            histogram.incFrom(*it, inclusive);
+            histogram.incUntil(*it, inclusive);
           }
           else
           {
-            histogram.incUntil(*it, inclusive);
+            histogram.incFrom(*it, inclusive);
           }
         }
       }
