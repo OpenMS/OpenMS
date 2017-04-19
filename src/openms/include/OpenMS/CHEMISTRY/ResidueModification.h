@@ -166,6 +166,15 @@ public:
     void setFullId(const String& full_id = "");
 
     /// returns the full identifier of the mod (Unimod accession + origin, if available)
+    /**
+       @brief Returns the full identifier (Unimod Accession + origin, if available)
+
+       @note This field is used for user-defined modifications as well and will
+       be set to a string such as "[999]" for internal modifications or
+       ".[999]" for N/C-terminal modifications. Please use "isUserDefined" to
+       check for user-defined modifications.
+
+    */
     const String& getFullId() const;
 
     /// sets the unimod record id
