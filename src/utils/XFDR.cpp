@@ -50,6 +50,7 @@
 
 #include <string>
 #include <math.h>
+#include <algorithm>
 
 #include <assert.h>
 
@@ -180,8 +181,9 @@ class TOPPXFDR :
 
     /**
      * @brief Used to define how PeptideIdentification are to be sorted based on some meta value (usually some score)
+     * "greater_than" ensures that the sorting will be in descending Order
      */
-    struct less_than_by_key
+    struct greater_than_by_key
     {
       //Indizes of the rank one elements within the all_ids vector
       const vector < PeptideIdentification > & all_ids;
@@ -749,7 +751,7 @@ class TOPPXFDR :
                                    boost::counting_iterator<Size>(rank_one_ids.size()));
 
       // Configure the sorting of the Peptide Identifications
-      less_than_by_key order_conf = {
+      greater_than_by_key order_conf = {
         all_ids,
         rank_one_ids,
         "OpenXQuest:score"

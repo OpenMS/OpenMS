@@ -77,17 +77,14 @@ namespace OpenMS
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
                                                    std::vector< ProteinIdentification > & prot_ids,
-                                                   int & n_hits_,
-                                                   double & min_score,
-                                                   double & max_score,
                                                    Size min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit) :
       XMLHandler(filename, "1.0"),
       csms_(csms),
       prot_ids_(prot_ids),
-      n_hits_(n_hits_),
-      min_score_(min_score),
-      max_score_(max_score),
+      n_hits_(0),
+      min_score_(0),
+      max_score_(0),
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
     {
@@ -216,7 +213,7 @@ namespace OpenMS
       return this->max_score_;
     }
 
-    int XQuestResultXMLHandler::getNumberOfHits() const
+    UInt XQuestResultXMLHandler::getNumberOfHits() const
     {
       return this->n_hits_;
     }
@@ -281,14 +278,6 @@ namespace OpenMS
         DateTime date_time;
         this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
         this->prot_ids_[0].setDateTime(date_time);
-
-        /*
-        for(XMLSize_t i = 0; i < attributes.getLength(); ++i)
-        {
-            this->current_meta_.setMetaValue(XMLString::transcode(attributes.getQName(i)),
-                                   DataValue(XMLString::transcode(attributes.getValue(i))));
-        }
-        */
 
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;

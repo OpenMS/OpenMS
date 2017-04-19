@@ -71,9 +71,6 @@ namespace OpenMS
       XQuestResultXMLHandler(const String & /* filename */,
                              std::vector< std::vector< PeptideIdentification > > & /* csms */,
                              std::vector< ProteinIdentification > &,
-                             int & n_hits,
-                             double & min_score,
-                             double & max_score,
                              Size min_n_ions_per_spectrum,
                              bool load_to_peptideHit_);
       virtual ~XQuestResultXMLHandler();
@@ -87,7 +84,7 @@ namespace OpenMS
       // Getter for certain attributes of the xQuest file
       double getMinScore() const;
       double getMaxScore() const;
-      int getNumberOfHits() const;
+      UInt getNumberOfHits() const;
 
     private:
    
@@ -121,7 +118,7 @@ namespace OpenMS
       
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
-      int n_hits_; // Total no. of hits found in the result XML file
+      UInt n_hits_; // Total no. of hits found in the result XML file
       Size min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
       
