@@ -139,7 +139,7 @@ namespace OpenMS
         }
         else
         {
-          mod_mask_map[*mod_it] = tmp_mod.getOrigin() + "(" + tmp_mod.getId() + ")";
+          mod_mask_map[*mod_it] = String(tmp_mod.getOrigin()) + "(" + tmp_mod.getId() + ")";
         }
       }
       else
