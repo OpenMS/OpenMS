@@ -35,10 +35,12 @@
 #ifndef OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
 #define OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 #include <map>
 #include <set>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {

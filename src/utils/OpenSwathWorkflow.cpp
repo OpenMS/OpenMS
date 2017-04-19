@@ -761,6 +761,27 @@ protected:
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
 
+    ///////////////////////////////////
+    // Load the transitions
+    ///////////////////////////////////
+    OpenSwath::LightTargetedExperiment transition_exp;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, 1, "Load TraML file");
+    FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);
+    if (tr_file_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    {
+      TargetedExperiment targeted_exp;
+      TraMLFile().load(tr_file, targeted_exp);
+      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+    }
+    else
+    {
+      std::cout << " ok here!!" << std::endl;
+      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+    }
+    progresslogger.endProgress();
+
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -837,26 +858,6 @@ protected:
         sonar);
 
     ///////////////////////////////////
-    // Load the transitions
-    ///////////////////////////////////
-    OpenSwath::LightTargetedExperiment transition_exp;
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
-    FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);
-    if (tr_file_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
-    {
-      TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
-      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
-    }
-    else
-    {
-      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-    }
-    progresslogger.endProgress();
-
-    ///////////////////////////////////
     // Set up chrom.mzML output
     ///////////////////////////////////
     MSDataWritingConsumer * chromConsumer;
@@ -867,10 +868,22 @@ protected:
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
-      chromConsumer->getOptions().setCompression(true); // compress data
-      chromConsumer->getOptions().setMz32Bit(true); // store RT data in 32 bit
-      chromConsumer->getOptions().setIntensity32Bit(true); // store Intensity data with 32 bit
       chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+
+      // prepare data structures for lossy compression
+      MSNumpressCoder::NumpressConfig npconfig_mz;
+      MSNumpressCoder::NumpressConfig npconfig_int;
+      npconfig_mz.estimate_fixed_point = true; // critical
+      npconfig_int.estimate_fixed_point = true; // critical
+      npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
+      npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
+      npconfig_mz.setCompression("linear");
+      npconfig_int.setCompression("slof");
+      npconfig_mz.linear_fp_mass_acc = 0.05; // set the desired RT accuracy in seconds
+
+      chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+      chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
+      // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
     }
     else
     {

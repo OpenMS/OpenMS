@@ -73,7 +73,7 @@ START_SECTION((double computeHyperScore(MSSpectrum< Peak1D >, MSSpectrum< Peak1D
 }
 END_SECTION
 
-START_SECTION((void run(MSExperiment<> &, MzTab &)))
+START_SECTION((void run(PeakMap &, MzTab &)))
 {
   // TODO
 }

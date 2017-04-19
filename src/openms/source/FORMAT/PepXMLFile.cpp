@@ -45,6 +45,9 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <fstream>
 #include <iostream>
 #include <boost/regex.hpp>
@@ -119,7 +122,7 @@ namespace OpenMS
       base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
 
-      MSExperiment<> experiment;
+      PeakMap experiment;
       FileHandler fh;
       fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
@@ -514,7 +517,7 @@ namespace OpenMS
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
-              if (it->metaValueExists("nextscore"))
+              if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
               }
@@ -523,11 +526,11 @@ namespace OpenMS
                 f << h.getScore() << "\"" << "/>\n";
               }
             }
-            else if (it->metaValueExists("XTandem_score"))
+            else if (h.metaValueExists("XTandem_score"))
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
-              if (it->metaValueExists("nextscore"))
+              if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
               }

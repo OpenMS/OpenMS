@@ -129,8 +129,8 @@ protected:
     bool nostrict = getFlag_("no-strict");
 
     OpenMS::TargetedExperiment targeted_exp;
-    OpenMS::MSExperiment<ChromatogramPeak> chromatogram_map;
-    OpenMS::MSExperiment<ChromatogramPeak> output;
+    OpenMS::PeakMap chromatogram_map;
+    OpenMS::PeakMap output;
 
     TraMLFile().load(tr_file, targeted_exp);
     MzMLFile().load(in, chromatogram_map);
@@ -180,7 +180,7 @@ protected:
               break;
             }
           }
-          // add precursor to spectrum
+          // add precursor to chromatogram
           chromatogram.setPrecursor(precursor);
 
           // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)

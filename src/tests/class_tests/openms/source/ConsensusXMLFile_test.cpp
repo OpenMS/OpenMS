@@ -34,12 +34,14 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 

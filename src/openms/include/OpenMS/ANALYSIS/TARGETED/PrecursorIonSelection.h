@@ -178,7 +178,7 @@ public:
     void simulateRun(FeatureMap & features, std::vector<PeptideIdentification> & pep_ids,
                      std::vector<ProteinIdentification> & prot_ids,
                      PrecursorIonSelectionPreprocessing & preprocessed_db,
-                     String path, MSExperiment<> & experiment, String precursor_path = "");
+                     String path, PeakMap & experiment, String precursor_path = "");
 
     void setLPSolver(LPWrapper::SOLVER solver)
     {
@@ -199,7 +199,7 @@ public:
     }
 
 private:
-    void simulateILPBasedIPSRun_(FeatureMap & features, MSExperiment<> & experiment,
+    void simulateILPBasedIPSRun_(FeatureMap & features, PeakMap & experiment,
                                  std::vector<PeptideIdentification> & pep_ids,
                                  std::vector<ProteinIdentification> & prot_ids,
                                  PrecursorIonSelectionPreprocessing & preprocessed_db,

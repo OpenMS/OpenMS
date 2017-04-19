@@ -957,12 +957,16 @@ namespace OpenMS
                       }
                       else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        // TODO: add support for protein N-terminal modifications in unimod
+                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
                         mod = m.getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        // TODO: add support for protein C-terminal modifications in unimod
+                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
                         mod = m.getFullId();
                       }
                     }
@@ -2493,8 +2497,9 @@ namespace OpenMS
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
           current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
-
+          String origin = mod.getOrigin();
+          if (origin == "X") origin = ".";
+          current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
           current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
           current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
@@ -2509,8 +2514,9 @@ namespace OpenMS
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
           current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
-
+          String origin = mod.getOrigin();
+          if (origin == "X") origin = ".";
+          current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
           current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
           current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
@@ -2529,8 +2535,7 @@ namespace OpenMS
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
             current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));
             current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
-            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod->getOrigin().c_str()));
-
+            current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(String(mod->getOrigin()).c_str()));
             current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
             current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
             current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));

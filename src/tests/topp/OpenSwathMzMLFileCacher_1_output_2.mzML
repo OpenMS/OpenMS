@@ -234,25 +234,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3000.34" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="18816">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -279,25 +272,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3003.77" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17240">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -324,25 +310,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3007.19" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="19456">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -369,25 +348,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3010.62" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17624">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -414,25 +386,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3014.05" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="15040">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -459,25 +424,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3017.47" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="15808">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -504,25 +462,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3020.9" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="14848">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -549,25 +500,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3024.33" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="14476">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -594,25 +538,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3027.75" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12480">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -639,25 +576,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3031.18" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12556">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -684,25 +614,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3034.6" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="11712">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -729,25 +652,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3038.03" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="11392">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -774,25 +690,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3041.46" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="11084">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -819,25 +728,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3044.88" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="13696">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -864,25 +766,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3048.31" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="11776">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -909,25 +804,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3051.74" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16684">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -954,25 +842,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3055.16" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16812">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -999,25 +880,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3058.59" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17984">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1044,25 +918,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3062.02" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="14060">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1089,25 +956,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3065.44" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="13420">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1134,25 +994,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3068.87" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="13952">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1179,25 +1032,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3072.29" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12940">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1224,25 +1070,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3075.72" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12344">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1269,25 +1108,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3079.15" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="13312">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1314,25 +1146,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3082.57" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12652">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1359,25 +1184,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3086" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="14220">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1404,25 +1222,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3089.43" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="15224">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1449,25 +1260,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3092.85" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17516">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1494,25 +1298,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3096.28" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16952">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1539,25 +1336,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3099.7" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="18764">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1584,25 +1374,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3103.13" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="21304">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1629,25 +1412,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3106.56" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="18200">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1674,25 +1450,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3109.98" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17420">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1719,25 +1488,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3113.41" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="18348">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1764,25 +1526,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3116.84" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="18828">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1809,25 +1564,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3120.26" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="22072">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1854,25 +1602,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3123.69" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="20684">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1899,25 +1640,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3127.11" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="19008">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1944,25 +1678,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3130.54" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="19288">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1989,25 +1716,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3133.97" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17964">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2034,25 +1754,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3137.4" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="15136">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2079,25 +1792,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3140.82" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="15992">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2124,25 +1830,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3144.25" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="14880">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2169,25 +1868,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3147.68" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16576">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2214,25 +1906,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3151.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="11468">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2259,25 +1944,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3154.53" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16320">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2304,25 +1982,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3157.95" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16216">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2349,25 +2020,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3161.38" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12908">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2394,25 +2058,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3164.81" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="15020">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2439,25 +2096,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3168.23" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12440">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2484,25 +2134,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3171.66" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="13804">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2529,25 +2172,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3175.08" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16920">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2574,25 +2210,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3178.51" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="12536">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2619,25 +2248,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3181.94" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16224">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2664,25 +2286,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3185.37" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="14656">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2709,25 +2324,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3188.79" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="16160">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2754,25 +2362,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3192.22" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="17804">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2799,25 +2400,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3195.65" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="19832">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2844,25 +2438,18 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3199.07" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="20664">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -2884,66 +2471,66 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="scan=876">16322</offset>
-		<offset idRef="scan=877">47287</offset>
-		<offset idRef="scan=878">75860</offset>
-		<offset idRef="scan=879">107757</offset>
-		<offset idRef="scan=880">136906</offset>
-		<offset idRef="scan=881">162179</offset>
-		<offset idRef="scan=882">188604</offset>
-		<offset idRef="scan=883">213588</offset>
-		<offset idRef="scan=884">238017</offset>
-		<offset idRef="scan=885">259450</offset>
-		<offset idRef="scan=886">280999</offset>
-		<offset idRef="scan=887">301280</offset>
-		<offset idRef="scan=888">321082</offset>
-		<offset idRef="scan=889">340424</offset>
-		<offset idRef="scan=890">363682</offset>
-		<offset idRef="scan=891">384060</offset>
-		<offset idRef="scan=892">411802</offset>
-		<offset idRef="scan=893">439736</offset>
-		<offset idRef="scan=894">469426</offset>
-		<offset idRef="scan=895">493232</offset>
-		<offset idRef="scan=896">516078</offset>
-		<offset idRef="scan=897">539720</offset>
-		<offset idRef="scan=898">561846</offset>
-		<offset idRef="scan=899">583076</offset>
-		<offset idRef="scan=900">605758</offset>
-		<offset idRef="scan=901">627452</offset>
-		<offset idRef="scan=902">651495</offset>
-		<offset idRef="scan=903">677045</offset>
-		<offset idRef="scan=904">706035</offset>
-		<offset idRef="scan=905">734177</offset>
-		<offset idRef="scan=906">765038</offset>
-		<offset idRef="scan=907">799709</offset>
-		<offset idRef="scan=908">829723</offset>
-		<offset idRef="scan=909">858569</offset>
-		<offset idRef="scan=910">888807</offset>
-		<offset idRef="scan=911">919765</offset>
-		<offset idRef="scan=912">955588</offset>
-		<offset idRef="scan=913">989331</offset>
-		<offset idRef="scan=914">1020557</offset>
-		<offset idRef="scan=915">1052203</offset>
-		<offset idRef="scan=916">1081865</offset>
-		<offset idRef="scan=917">1107282</offset>
-		<offset idRef="scan=918">1133984</offset>
-		<offset idRef="scan=919">1159018</offset>
-		<offset idRef="scan=920">1186596</offset>
-		<offset idRef="scan=921">1206513</offset>
-		<offset idRef="scan=922">1233707</offset>
-		<offset idRef="scan=923">1260745</offset>
-		<offset idRef="scan=924">1282823</offset>
-		<offset idRef="scan=925">1308069</offset>
-		<offset idRef="scan=926">1329443</offset>
-		<offset idRef="scan=927">1352865</offset>
-		<offset idRef="scan=928">1380959</offset>
-		<offset idRef="scan=929">1402477</offset>
-		<offset idRef="scan=930">1429527</offset>
-		<offset idRef="scan=931">1454225</offset>
-		<offset idRef="scan=932">1481179</offset>
-		<offset idRef="scan=933">1510601</offset>
-		<offset idRef="scan=934">1543063</offset>
+		<offset idRef="scan=877">46794</offset>
+		<offset idRef="scan=878">74874</offset>
+		<offset idRef="scan=879">106278</offset>
+		<offset idRef="scan=880">134934</offset>
+		<offset idRef="scan=881">159714</offset>
+		<offset idRef="scan=882">185646</offset>
+		<offset idRef="scan=883">210137</offset>
+		<offset idRef="scan=884">234073</offset>
+		<offset idRef="scan=885">255013</offset>
+		<offset idRef="scan=886">276069</offset>
+		<offset idRef="scan=887">295857</offset>
+		<offset idRef="scan=888">315166</offset>
+		<offset idRef="scan=889">334015</offset>
+		<offset idRef="scan=890">356780</offset>
+		<offset idRef="scan=891">376665</offset>
+		<offset idRef="scan=892">403914</offset>
+		<offset idRef="scan=893">431355</offset>
+		<offset idRef="scan=894">460552</offset>
+		<offset idRef="scan=895">483865</offset>
+		<offset idRef="scan=896">506218</offset>
+		<offset idRef="scan=897">529367</offset>
+		<offset idRef="scan=898">551000</offset>
+		<offset idRef="scan=899">571737</offset>
+		<offset idRef="scan=900">593926</offset>
+		<offset idRef="scan=901">615127</offset>
+		<offset idRef="scan=902">638677</offset>
+		<offset idRef="scan=903">663734</offset>
+		<offset idRef="scan=904">692231</offset>
+		<offset idRef="scan=905">719880</offset>
+		<offset idRef="scan=906">750248</offset>
+		<offset idRef="scan=907">784426</offset>
+		<offset idRef="scan=908">813947</offset>
+		<offset idRef="scan=909">842300</offset>
+		<offset idRef="scan=910">872045</offset>
+		<offset idRef="scan=911">902510</offset>
+		<offset idRef="scan=912">937840</offset>
+		<offset idRef="scan=913">971090</offset>
+		<offset idRef="scan=914">1001823</offset>
+		<offset idRef="scan=915">1032976</offset>
+		<offset idRef="scan=916">1062145</offset>
+		<offset idRef="scan=917">1087069</offset>
+		<offset idRef="scan=918">1113278</offset>
+		<offset idRef="scan=919">1137819</offset>
+		<offset idRef="scan=920">1164904</offset>
+		<offset idRef="scan=921">1184328</offset>
+		<offset idRef="scan=922">1211029</offset>
+		<offset idRef="scan=923">1237574</offset>
+		<offset idRef="scan=924">1259159</offset>
+		<offset idRef="scan=925">1283912</offset>
+		<offset idRef="scan=926">1304793</offset>
+		<offset idRef="scan=927">1327722</offset>
+		<offset idRef="scan=928">1355323</offset>
+		<offset idRef="scan=929">1376348</offset>
+		<offset idRef="scan=930">1402905</offset>
+		<offset idRef="scan=931">1427110</offset>
+		<offset idRef="scan=932">1453571</offset>
+		<offset idRef="scan=933">1482500</offset>
+		<offset idRef="scan=934">1514469</offset>
 	</index>
 </indexList>
-<indexListOffset>1576804</indexListOffset>
+<indexListOffset>1547717</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

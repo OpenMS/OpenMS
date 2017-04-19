@@ -8,10 +8,10 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
         ChromatogramTools() nogil except +
 
         void convertChromatogramsToSpectra(
-                MSExperiment[Peak1D, ChromatogramPeak] & epx
+                MSExperiment & epx
                 ) nogil except +
 
         void convertSpectraToChromatograms(
-                MSExperiment[Peak1D, ChromatogramPeak] & epx,
+                MSExperiment & epx,
                 int remove_spectra
                 ) nogil except +

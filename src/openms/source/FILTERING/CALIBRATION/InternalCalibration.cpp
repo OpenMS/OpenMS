@@ -65,9 +65,9 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::applyTransformation_(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo)
+  void InternalCalibration::applyTransformation_(PeakMap::SpectrumType& spec, const MZTrafoModel& trafo)
   {
-    typedef MSExperiment<>::SpectrumType::Iterator SpecIt;
+    typedef PeakMap::SpectrumType::Iterator SpecIt;
 
     // calibrate the spectrum itself
     for (SpecIt it = spec.begin(); it != spec.end(); ++it)
@@ -76,7 +76,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::applyTransformation(MSExperiment<>::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo)
+  void InternalCalibration::applyTransformation(PeakMap::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo)
   {
     // calibrate the peaks?
     if (ListUtils::contains(target_mslvl, spec.getMSLevel()))
@@ -90,15 +90,15 @@ namespace OpenMS
     }     
   }
 
-  void InternalCalibration::applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
+  void InternalCalibration::applyTransformation(PeakMap& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
   {
-    for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
       applyTransformation(*it, target_mslvl, trafo);
     }
   }
 
-  Size InternalCalibration::fillCalibrants(const MSExperiment<> exp,
+  Size InternalCalibration::fillCalibrants(const PeakMap exp,
                                            const std::vector<InternalCalibration::LockMass>& ref_masses,
                                            double tol_ppm,
                                            bool lock_require_mono,
@@ -112,7 +112,7 @@ namespace OpenMS
     // find lock masses in data and build calibrant table
     //
     std::map<Size, Size> stats_cal_per_spectrum;
-    typedef MSExperiment<>::ConstIterator ExpCIt;
+    typedef PeakMap::ConstIterator ExpCIt;
     for (ExpCIt it = exp.begin(); it != exp.end(); ++it)
     {
       // empty spectrum
@@ -254,7 +254,7 @@ namespace OpenMS
     return cal_data_;
   }
 
-  bool InternalCalibration::calibrate(MSExperiment<>& exp, 
+  bool InternalCalibration::calibrate(PeakMap& exp, 
                                       const IntList& target_mslvl,
                                       MZTrafoModel::MODELTYPE model_type,
                                       double rt_chunk,
@@ -296,7 +296,7 @@ namespace OpenMS
       tms.reserve(exp.size());
       // go through spectra and calibrate
       Size i(0), i_mslvl(0);
-      for (MSExperiment<>::Iterator it = exp.begin(); it != exp.end(); ++it, ++i)
+      for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it, ++i)
       {
         setProgress(i);
 

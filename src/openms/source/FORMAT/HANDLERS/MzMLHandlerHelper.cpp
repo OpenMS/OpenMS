@@ -54,45 +54,56 @@ namespace OpenMS
       LOG_WARN << error_message_ << std::endl;
     }
 
-  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, bool use_numpress)
+  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
   {
     if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
     {
       // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
-      // It is technically possible but
+      // It is technically possible, but is illegal according to the standard:
       //
       // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
+      //
+      // If you comment out the exception, it will work though.
       //
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
     }
 
-    if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)
+    String np_term;
+    switch (np.np_compression)
     {
-      if (opt.getCompression())
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
-      }
-      else
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-      }
+      case MSNumpressCoder::LINEAR:
+        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+        break;
+      case MSNumpressCoder::PIC:
+        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+        break;
+      case MSNumpressCoder::SLOF:
+        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+        break;
+      case MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION:
+        np_term = "";
+        break;
+      case MSNumpressCoder::NONE:
+        np_term = "";
+        break;
     }
-    else if (np.np_compression == MSNumpressCoder::LINEAR)
+
+    // force numpress term to be empty
+    if (!use_numpress) np_term = "";
+
+    if (opt.getCompression())
     {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+      return indent + np_term + "\n" + indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
     }
-    else if (np.np_compression == MSNumpressCoder::PIC)
+    else if (!np_term.empty())
     {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
-    }
-    else if (np.np_compression == MSNumpressCoder::SLOF)
-    {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+      // only return the numpress term if its not empty
+      return indent + np_term;
     }
     else
     {
       // default
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+      return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
     }
   }
 
@@ -168,14 +179,24 @@ namespace OpenMS
         data_[i].base64.removeWhitespaces();
       }
 
-      // Catch proteowizard invalid conversion: as numpress arrays are always
-      // 64 bit, this should be safe. However, we cannot generally assume that
-      // DT_NONE means that we are dealing with a 64 bit float type. 
+      // Catch proteowizard invalid conversion where 
+      // (i) no data type is set 
+      // (ii) data type is set to integer for pic compression
+      //
+      // Since numpress arrays are always 64 bit and decode to double arrays,
+      // this should be safe. However, we cannot generally assume that DT_NONE
+      // means that we are dealing with a 64 bit float type. 
       if (data_[i].np_compression != MSNumpressCoder::NONE && 
           data_[i].data_type == BinaryData::DT_NONE)
       {
         MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") + 
             data_[i].meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
+        data_[i].data_type = BinaryData::DT_FLOAT;
+        data_[i].precision = BinaryData::PRE_64;
+      }
+      if (data_[i].np_compression == MSNumpressCoder::PIC && 
+          data_[i].data_type == BinaryData::DT_INT)
+      {
         data_[i].data_type = BinaryData::DT_FLOAT;
         data_[i].precision = BinaryData::PRE_64;
       }

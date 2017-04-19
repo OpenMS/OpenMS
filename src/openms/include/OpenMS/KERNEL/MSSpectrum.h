@@ -35,10 +35,12 @@
 #ifndef OPENMS_KERNEL_MSSPECTRUM_H
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 namespace OpenMS
 {
@@ -62,31 +64,13 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT = Peak1D>
+  template <typename PeakT>
   class MSSpectrum :
     private std::vector<PeakT>,
     public RangeManager<1>,
     public SpectrumSettings
   {
 public:
-
-    ///Float data array class
-    class FloatDataArray :
-      public MetaInfoDescription,
-      public std::vector<float>
-    {};
-
-    ///Integer data array class
-    class IntegerDataArray :
-      public MetaInfoDescription,
-      public std::vector<Int>
-    {};
-
-    ///String data array class
-    class StringDataArray :
-      public MetaInfoDescription,
-      public std::vector<String>
-    {};
 
     ///Comparator for the retention time.
     struct RTLess :
@@ -108,10 +92,13 @@ public:
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
     /// Float data array vector type
+    typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
     /// String data array vector type
+    typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
     typedef std::vector<StringDataArray> StringDataArrays;
     /// Integer data array vector type
+    typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
     typedef std::vector<IntegerDataArray> IntegerDataArrays;
     //@}
 
@@ -206,6 +193,13 @@ public:
       string_data_arrays_ = source.string_data_arrays_;
       integer_data_arrays_ = source.integer_data_arrays_;
 
+      return *this;
+    }
+
+    /// Assignment operator
+    MSSpectrum& operator=(const SpectrumSettings & source)
+    {
+      SpectrumSettings::operator=(source);
       return *this;
     }
 
@@ -331,6 +325,12 @@ public:
       return float_data_arrays_;
     }
 
+    /// Sets the float meta data arrays
+    inline void setFloatDataArrays(const FloatDataArrays& fda)
+    {
+      float_data_arrays_ = fda;
+    }
+
     /// Returns a const reference to the string meta data arrays
     inline const StringDataArrays& getStringDataArrays() const
     {
@@ -343,6 +343,12 @@ public:
       return string_data_arrays_;
     }
 
+    /// Sets the string meta data arrays
+    inline void setStringDataArrays(const StringDataArrays& sda)
+    {
+      string_data_arrays_ = sda;
+    }
+
     /// Returns a const reference to the integer meta data arrays
     inline const IntegerDataArrays& getIntegerDataArrays() const
     {
@@ -353,6 +359,12 @@ public:
     inline IntegerDataArrays& getIntegerDataArrays()
     {
       return integer_data_arrays_;
+    }
+
+    /// Sets the integer meta data arrays
+    inline void setIntegerDataArrays(const IntegerDataArrays& ida)
+    {
+      integer_data_arrays_ = ida;
     }
 
     //@}

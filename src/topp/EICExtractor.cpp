@@ -263,7 +263,7 @@ public:
     //-------------------------------------------------------------
     MzMLFile mzml_file;
     mzml_file.setLogType(log_type_);
-    MSExperiment<Peak1D> exp, exp_pp;
+    PeakMap exp, exp_pp;
 
     EDTAFile ed;
     ConsensusMap cm;
@@ -332,7 +332,7 @@ public:
 
         if (!out_TIC_debug.empty()) // if debug file was given
         { // store intermediate steps for debug
-          MSExperiment<> out_debug;
+          PeakMap out_debug;
           out_debug.addChromatogram(toChromatogram(tics));
           out_debug.addChromatogram(toChromatogram(tic_gf));
 
@@ -424,7 +424,7 @@ public:
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
         double mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
-        MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
+        PeakMap::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
                                                                   cm[i].getRT() + rttol / 2,
                                                                   cm[i].getMZ() - mz_da,
                                                                   cm[i].getMZ() + mz_da);
@@ -453,10 +453,10 @@ public:
         {
           // take median for m/z found
           std::vector<double> mz;
-          MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
+          PeakMap::Iterator itm = exp.RTBegin(max_peak.getRT());
           SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
           SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()) - 1, rt_collect);
-          MSExperiment<>::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
+          PeakMap::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
           for (; itt != exp.areaEnd(); ++itt)
           {
             mz.push_back(itt->getMZ());

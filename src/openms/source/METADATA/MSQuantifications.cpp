@@ -184,7 +184,7 @@ namespace OpenMS
     }
   }
 
-  void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, double> > > label)
+  void MSQuantifications::registerExperiment(PeakMap & exp, std::vector<std::vector<std::pair<String, double> > > label)
   {
     for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
     {

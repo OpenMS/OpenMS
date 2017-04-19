@@ -29,71 +29,26 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Katharina Albers $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
+#ifndef OPENMS_KERNEL_FORWARD_H
+#define OPENMS_KERNEL_FORWARD_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-
+// Forward declarations
 namespace OpenMS
 {
-  /**
-     @deprecated Deprecated in OpenMS 1.7.
+  class Peak1D;
+  class RichPeak1D;
+  class ChromatogramPeak;
 
-   @brief A map feature grouping algorithm for identified features.
+  template <typename PeakT = Peak1D>
+  class MSSpectrum;
 
-   It takes many maps and searches for corresponding features.
-   The corresponding features must be aligned, but may have small position deviations.
+  template <typename PeakT = ChromatogramPeak>
+  class MSChromatogram;
 
-   @htmlinclude OpenMS_FeatureGroupingAlgorithmIdentification.parameters
-
-   @ingroup FeatureGrouping
-   */
-  class OPENMS_DLLAPI FeatureGroupingAlgorithmIdentification :
-    public FeatureGroupingAlgorithm
-  {
-public:
-    /// Default constructor
-    FeatureGroupingAlgorithmIdentification();
-
-    /// Destructor
-    virtual
-    ~FeatureGroupingAlgorithmIdentification();
-
-    /**
-     @brief Applies the algorithm
-
-     @exception IllegalArgument is thrown if less than two input maps are given.
-     */
-    virtual void
-    group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
-
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm *
-    create()
-    {
-      return new FeatureGroupingAlgorithmIdentification();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String
-    getProductName()
-    {
-      return "identification";
-    }
-
-private:
-
-    /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmIdentification(const FeatureGroupingAlgorithmIdentification &);
-    /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmIdentification &
-    operator=(const FeatureGroupingAlgorithmIdentification &);
-
-  };
-
-} // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
+  class MSExperiment;
+  class ExperimentalSettings;
+}
+#endif // OPENMS_KERNEL_FORWARD_H

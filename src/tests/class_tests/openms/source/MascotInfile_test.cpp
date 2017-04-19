@@ -236,10 +236,10 @@ START_SECTION((const String& getCharges()))
 	TEST_EQUAL(file.getCharges(), "1+, 2+ and 3+")
 END_SECTION
 
-START_SECTION((void store(const String &filename, const MSExperiment<> &experiment, String search_title)))
-	MSExperiment<> exp;
-	MSExperiment<>::SpectrumType spec;
-	MSExperiment<>::PeakType peak;
+START_SECTION((void store(const String &filename, const PeakMap &experiment, String search_title)))
+	PeakMap exp;
+	PeakMap::SpectrumType spec;
+	PeakMap::PeakType peak;
 
 	// first spectrum (MS)
 	spec.setRT(11.1);
@@ -297,8 +297,8 @@ END_SECTION
 
 START_SECTION(template <typename MapType> void load(const String &filename, MapType &exp))
 	MascotInfile infile;
-	MSExperiment<> experiment;
-	MSExperiment<>::SpectrumType spectrum;
+	PeakMap experiment;
+	PeakMap::SpectrumType spectrum;
 	
 	infile.load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), experiment);
 	spectrum = experiment[0];

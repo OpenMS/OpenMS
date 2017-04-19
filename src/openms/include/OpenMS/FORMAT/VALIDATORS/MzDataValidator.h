@@ -35,10 +35,7 @@
 #ifndef OPENMS_FORMAT_VALIDATORS_MZDATAVALIDATOR_H
 #define OPENMS_FORMAT_VALIDATORS_MZDATAVALIDATOR_H
 
-
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-
 
 namespace OpenMS
 {

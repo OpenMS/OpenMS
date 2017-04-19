@@ -107,7 +107,7 @@ public:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerModelOptions_(const String &default_model)
   {

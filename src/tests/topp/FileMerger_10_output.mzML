@@ -19,17 +19,17 @@
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
-			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
+			<sourceFile id="sf_ru_1" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0e3787759e3b0d2ca8e321527f759879f94a4829" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
-			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
+			<sourceFile id="sf_sp_1" name="tiny1.dta" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 			</sourceFile>
-			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
+			<sourceFile id="sf_sp_3" name="tiny1.dta" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
@@ -116,7 +116,7 @@
 		<userParam name="flag" type="xsd:string" value=""/>
 		<userParam name="float" type="xsd:double" value="5.11"/>
 		<spectrumList count="4" defaultDataProcessingRef="dp_sp_0">
-			<spectrum id="spectrum=0" index="0" defaultArrayLength="10" dataProcessingRef="dp_sp_1">
+			<spectrum id="spectrum=0" index="0" defaultArrayLength="10" dataProcessingRef="dp_sp_0">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
@@ -140,12 +140,10 @@
 						</scanWindowList>
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -159,7 +157,7 @@
 							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="108">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -175,7 +173,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="spectrum=1" index="1" defaultArrayLength="0" sourceFileRef="sf_sp_2" dataProcessingRef="dp_sp_1">
+			<spectrum id="spectrum=1" index="1" defaultArrayLength="0" sourceFileRef="sf_sp_1">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
@@ -188,7 +186,7 @@
 					</scan>
 				</scanList>
 			</spectrum>
-			<spectrum id="spectrum=2" index="2" defaultArrayLength="10" dataProcessingRef="dp_sp_1">
+			<spectrum id="spectrum=2" index="2" defaultArrayLength="10" dataProcessingRef="dp_sp_2">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
@@ -200,11 +198,11 @@
 				<userParam name="name" type="xsd:string" value="scan2"/>
 				<userParam name="filter string" type="xsd:string" value="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="4"/>
-                <userParam name="original_RT" type="xsd:double" value="5.99049997329712"/>
+				<userParam name="original_RT" type="xsd:double" value="5.99049997329712"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="16.09049987792969" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="16.0904998779705" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="110" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -213,12 +211,10 @@
 						</scanWindowList>
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="445.34" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -232,7 +228,7 @@
 							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="108">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -248,17 +244,17 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="spectrum=3" index="3" defaultArrayLength="0" sourceFileRef="sf_sp_2" dataProcessingRef="dp_sp_1">
+			<spectrum id="spectrum=3" index="3" defaultArrayLength="0" sourceFileRef="sf_sp_3" dataProcessingRef="dp_sp_3">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
 				<userParam name="name" type="xsd:string" value="spectrum3"/>
-                <userParam name="original_RT" type="xsd:double" value="6.09049987792969"/>
+				<userParam name="original_RT" type="xsd:double" value="6.09049987792969"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan externalSpectrumID="0">
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="16.19049987792969" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="16.1904997826031" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
 			</spectrum>
@@ -267,12 +263,12 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=0">8</offset>
-		<offset idRef="spectrum=1">1</offset>
-		<offset idRef="spectrum=2">1</offset>
-		<offset idRef="spectrum=3">1</offset>
+		<offset idRef="spectrum=0">8036</offset>
+		<offset idRef="spectrum=1">12007</offset>
+		<offset idRef="spectrum=2">12788</offset>
+		<offset idRef="spectrum=3">16838</offset>
 	</index>
 </indexList>
-<indexListOffset>1</indexListOffset>
+<indexListOffset>17756</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
