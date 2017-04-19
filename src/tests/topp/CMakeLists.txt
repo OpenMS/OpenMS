@@ -418,6 +418,10 @@ set_tests_properties("TOPP_FileConverter_24_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_25" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_25.tmp -process_lowmemory -in_type mzML -out_type mzML -lossy_compression)
 add_test("TOPP_FileConverter_25_out" ${DIFF} -in1 FileConverter_25.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_25_output.mzML )
 set_tests_properties("TOPP_FileConverter_25_out" PROPERTIES DEPENDS "TOPP_FileConverter_25")
+# Purpose: test  mzXML conversion with MaxQuant compatibility options (should add a scan index, thermo manufacturer and other things)
+add_test("TOPP_FileConverter_26" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_26.tmp -force_MaxQuant_compatibility -out_type mzXML)
+add_test("TOPP_FileConverter_26_out" ${DIFF} -in1 FileConverter_26.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_26_output.mzML )
+set_tests_properties("TOPP_FileConverter_26_out" PROPERTIES DEPENDS "TOPP_FileConverter_26")
 
 #------------------------------------------------------------------------------
 # FileFilter tests

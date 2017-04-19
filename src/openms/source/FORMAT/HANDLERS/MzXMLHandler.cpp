@@ -677,7 +677,8 @@ namespace OpenMS
         // the Instrument Manufacturer is paramount for some downstream tools
         // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
         String manufacturer = inst.getVendor();
-        if (String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur"))
+        if (options_.getForceMQCompatability() || 
+            (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
         { // MaxQuant's internal parameter defaults require either "Thermo Scientific" (MaxQuant 1.2 - 1.5), or "Thermo Finnigan" (MaxQuant 1.3 - 1.5)
           manufacturer = "Thermo Scientific";
           LOG_INFO << "Detected software '" << inst.getSoftware().getName() << "'. Setting <msManufacturer> as '" << manufacturer << "'." << std::endl;
@@ -687,24 +688,26 @@ namespace OpenMS
           << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
 
         if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
-        {
+        { // can be empty for MaxQuant
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
         else
         {
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
         }
+        
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
         if (analyzers.empty() || cv_terms_[3][analyzers[0].getType()].empty())
-        {
+        { // can be empty for MaxQuant
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
         }
         else
         {
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()] << "\"/>\n";
         }
+
         if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType() || cv_terms_[4][inst.getIonDetectors()[0].getType()].empty())
-        {
+        { // can be empty for MaxQuant
           os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
         }
         else
@@ -998,7 +1001,12 @@ namespace OpenMS
         }
 
         // note: line breaks between attributes are required here! (MaxQuants mzXML reader will fail otherwise! -- dont ask..)
-        os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ";
+        String s_peaks("<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ");
+        if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
+        { // internal check against inadvertedly removing line breaks above!
+          fatalError(ActionMode::STORE, "Internal error: <peaks> tag does not contain newlines as required by MaxQuant. Please report this as a bug.", __LINE__, 0);
+        }
+        os << String(ms_level + 2, '\t') << s_peaks;
         if (!spec.empty())
         {
           os << ">";
@@ -1044,15 +1052,21 @@ namespace OpenMS
 
       os << "\t</msRun>\n";
 
-      // create scan index (does not take a lot of space and is required for MaxQuant)
-      std::ostream::streampos index_offset = os.tellp();
-      os << "<index name = \"scan\" >\n";
-      for (Size i = 0; i < scan_index_positions.size(); ++i)
-      {
-        os << "<offset id = \"" << scan_index_positions[i].id_ << "\" >" << scan_index_positions[i].pos_ << "</offset>\n";
+      if (options_.getWriteIndex() || options_.getForceMQCompatability())
+      { // create scan index (does not take a lot of space and is required for MaxQuant)
+        if (!options_.getWriteIndex())
+        {
+          LOG_INFO << "mzXML: index was not requested, but will be written to maintain MaxQuant compatibility." << std::endl;
+        }
+        std::ostream::streampos index_offset = os.tellp();
+        os << "<index name = \"scan\" >\n";
+        for (Size i = 0; i < scan_index_positions.size(); ++i)
+        {
+          os << "<offset id = \"" << scan_index_positions[i].id_ << "\" >" << scan_index_positions[i].pos_ << "</offset>\n";
+        }
+        os << "</index>\n";
+        os << "<indexOffset>" << index_offset << "</indexOffset>\n";
       }
-      os << "</index>\n";
-      os << "<indexOffset>" << index_offset << "</indexOffset>\n";
 
       os << "</mzXML>\n";
 

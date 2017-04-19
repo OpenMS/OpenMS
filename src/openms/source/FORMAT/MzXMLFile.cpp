@@ -84,6 +84,7 @@ namespace OpenMS
   void MzXMLFile::store(const String & filename, const MapType & map) const
   {
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    handler.setOptions(options_);
     save_(filename, &handler);
   }
 
