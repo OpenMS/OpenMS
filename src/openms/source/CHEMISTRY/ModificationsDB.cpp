@@ -199,10 +199,12 @@ namespace OpenMS
   }
 
 
-  const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue,
+                                                                            ResidueModification::TermSpecificity term_spec)
   {
     double min_error = max_error;
     const ResidueModification* mod = 0;
+    const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue); // is NULL if not found
     for (vector<ResidueModification*>::const_iterator it = mods_.begin();
          it != mods_.end(); ++it)
     {
@@ -213,8 +215,7 @@ namespace OpenMS
         // map to multiple residues), we calculate a monoisotopic mass from the
         // delta mass.
         // First the internal (inside an AA chain) weight of the residue:
-        const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
-        if (residue_ == 0) continue; // @TODO: throw an exception here?
+        if (residue_ != NULL) continue; // @TODO: throw an exception here?
         double internal_weight = residue_->getMonoWeight() -
           residue_->getInternalToFull().getMonoWeight();
         mono_mass = (*it)->getDiffMonoMass() + internal_weight;

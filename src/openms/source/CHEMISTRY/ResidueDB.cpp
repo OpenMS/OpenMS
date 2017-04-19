@@ -68,7 +68,7 @@ namespace OpenMS
     {
       return residue_names_.at(name);
     }
-    return 0;
+    return NULL;
   }
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
