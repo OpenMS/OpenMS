@@ -146,7 +146,7 @@ namespace OpenMS
 
   Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
-    Size idx(0);
+    Int idx(-1);
     if (modification_names_.has(mod_name))
     {
       if (modification_names_[mod_name].size() > 1)
@@ -168,6 +168,13 @@ namespace OpenMS
         break;
       }
     }
+
+    // throw if we did not find the modification
+    if (idx < 0)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
+    }
+
     return idx;
   }
 
