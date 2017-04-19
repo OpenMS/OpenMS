@@ -349,11 +349,14 @@ namespace OpenMS
 //    double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
 //    DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
     String mono_masses;
-    for (Size k = 0; k < cross_link_mass_mono_link.size()-1; ++k)
+    if (cross_link_mass_mono_link.size() > 1)
     {
-      mono_masses += String(cross_link_mass_mono_link[k]) + ", ";
+      for (Size k = 0; k < cross_link_mass_mono_link.size()-1; ++k)
+      {
+        mono_masses += String(cross_link_mass_mono_link[k]) + ", ";
+      }
+      mono_masses += cross_link_mass_mono_link[cross_link_mass_mono_link.size()-1];
     }
-    mono_masses += cross_link_mass_mono_link[cross_link_mass_mono_link.size()-1];
 
 //    const string in_fasta(getStringOption_("database"));
 //    const string in_decoy_fasta(getStringOption_("decoy_database"));
