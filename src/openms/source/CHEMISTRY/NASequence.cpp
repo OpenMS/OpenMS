@@ -28,9 +28,9 @@ NASequence& NASequence::operator=(const NASequence& rhs){
 
 bool NASequence::operator==(const NASequence& rhs) const{
     if (s_==rhs.getSequence())
-        return TRUE;
+        return true;
     else
-        return FALSE;
+        return false;
 }
 
 NASequence::~NASequence(){
@@ -48,9 +48,9 @@ String NASequence::getSequence() const
 
 bool NASequence::empty() const{
     if (s_.empty())
-        return TRUE;
+        return true;
     else
-        return FALSE;
+        return false;
 }
 
 size_t NASequence::size() const{

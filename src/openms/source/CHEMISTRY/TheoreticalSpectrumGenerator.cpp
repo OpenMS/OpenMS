@@ -745,7 +745,6 @@ void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const N
   void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge) const
   {
     if (peptide.empty())
-^^^^^^^^^^^^^^^^^^^^
     {
       return;
     }

@@ -150,6 +150,7 @@ public:
       AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
       BIon,           // MS:1001224 N-terminus up to the peptide bond
       CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+      DIon,           // D-ion for nucleic acid support
       XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
       YIon,           // MS:1001220 peptide bond up to the C-terminus
       ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond

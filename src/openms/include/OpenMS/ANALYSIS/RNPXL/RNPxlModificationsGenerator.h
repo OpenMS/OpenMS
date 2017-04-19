@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <vector>
 #include <map>
 #include <set>

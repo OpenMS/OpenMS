@@ -286,10 +286,10 @@ MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
   this->setLogType(CMD);
 }
 
-MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
-{
+//MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
+//{
 
-}
+//}
 
 
 /// public methods
