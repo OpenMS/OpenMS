@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ namespace OpenMS
     }
     else
     {
-      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Precursor charge, no Model available", String(precursor_charge));
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Precursor charge, no Model available", String(precursor_charge));
     }
   }
 
@@ -107,7 +107,7 @@ namespace OpenMS
 
       if (spl.size() != 2 || precursor_charge < 1)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *it, " Invalid entry in SVM model File");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *it, " Invalid entry in SVM model File");
       }
 
       //load the model into the map
@@ -134,7 +134,7 @@ namespace OpenMS
     std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(prec_charge);
     if (it == simulators_.end())
     {
-      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Precursor charge, no Model available", String(prec_charge));
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Precursor charge, no Model available", String(prec_charge));
     }
     return it->second;
   }

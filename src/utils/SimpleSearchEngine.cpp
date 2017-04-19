@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -158,6 +159,7 @@ class SimpleSearchEngine :
 
       registerTOPPSubsection_("peptide", "Peptide Options");
       registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
+      registerIntOption_("peptide:max_size", "<num>", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).", false, true);
       registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
       registerTOPPSubsection_("report", "Reporting Options");
@@ -177,23 +179,6 @@ class SimpleSearchEngine :
 
       return modifications;
     }
-
-    // check if for minimum size
-    class HasInvalidPeptideLengthPredicate
-    {
-        public:
-          explicit HasInvalidPeptideLengthPredicate(Size min_size)
-            :min_size_(min_size)
-          {
-          }
-
-          bool operator()(const AASequence& aas)
-          {
-            return (aas.size() < min_size_);
-          }
-      private:
-          Size min_size_;
-    };
 
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     template <typename SpectrumType>
@@ -325,68 +310,6 @@ class SimpleSearchEngine :
       in.sortByPosition();
     }
 
-    double logfactorial(UInt x)
-    {
-      UInt y;
-
-      if (x < 2)
-        return 1;
-      else
-      {
-        double z = 0;
-        for (y = 2; y <= x; y++)
-        {
-          z = log((double)y) + z;
-        }
-
-        return z;
-      }
-    }
-
-    double computeHyperScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<Peak1D>& exp_spectrum, const MSSpectrum<RichPeak1D>& theo_spectrum)
-    {
-      double dot_product = 0.0;
-      UInt y_ion_count = 0;
-      UInt b_ion_count = 0;
-
-      for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
-      {
-        const double& theo_mz = theo_peak_it->getMZ();
-
-        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-        double exp_mz = exp_spectrum[index].getMZ();
-
-        // found peak match
-        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
-        {
-          dot_product += exp_spectrum[index].getIntensity();
-          if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
-          {
-            ++y_ion_count;
-          }
-          else
-          {
-            ++b_ion_count;
-          }
-        }
-      }
-
-      if (dot_product > 1e-1)
-      {
-        double yFact = logfactorial(y_ion_count);
-        double bFact = logfactorial(b_ion_count);
-        double hyperScore = log(dot_product) + yFact + bFact;
-        return hyperScore;
-      }
-      else
-      {
-        return 0;
-      }
-    }
-
     void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
     {
       // filter MS2 map
@@ -450,21 +373,30 @@ class SimpleSearchEngine :
         }
       }
 
-      IDFilter filter;
-
       // only store top n hits
-      for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
-      {
-        PeptideIdentification& pi = *pids_it;
-        PeptideIdentification temp_identification = pi;
-        filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
-      }
+      IDFilter::keepNBestHits(peptide_ids, top_hits);
 
       // protein identifications (leave as is...)
       protein_ids = vector<ProteinIdentification>(1);
       protein_ids[0].setDateTime(DateTime::now());
       protein_ids[0].setSearchEngine("SimpleSearchEngine");
       protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+
+      ProteinIdentification::SearchParameters search_parameters;
+      search_parameters.db = getStringOption_("database");
+      search_parameters.charges = "+" + String(getIntOption_("precursor:min_charge")) + "-+" + String(getIntOption_("precursor:max_charge"));
+
+      ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+      search_parameters.mass_type = mass_type;
+      search_parameters.fixed_modifications = getStringList_("modifications:fixed");
+      search_parameters.variable_modifications = getStringList_("modifications:variable");
+      search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
+      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+      search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
+      search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
+      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+      protein_ids[0].setSearchParameters(search_parameters);
     }
 
     ExitCodes main_(int, const char**)
@@ -549,6 +481,10 @@ class SimpleSearchEngine :
 
       // create spectrum generator
       TheoreticalSpectrumGenerator spectrum_generator;
+      Param param(spectrum_generator.getParameters());
+      param.setValue("add_first_prefix_ion", "true");
+      param.setValue("add_metainfo", "true");
+      spectrum_generator.setParameters(param);
 
       vector<vector<PeptideHit> > peptide_hits(spectra.size(), vector<PeptideHit>());
 
@@ -566,10 +502,11 @@ class SimpleSearchEngine :
       progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
       // lookup for processed peptides. must be defined outside of omp section and synchronized
-      set<std::string> processed_petides;
+      set<StringView> processed_petides;
 
-      // set minimum size of peptide after digestion
-      HasInvalidPeptideLengthPredicate has_invalid_length(getIntOption_("peptide:min_size"));
+      // set minimum / maximum size of peptide after digestion
+      Size min_peptide_length = getIntOption_("peptide:min_size");
+      Size max_peptide_length = getIntOption_("peptide:max_size");
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -581,24 +518,17 @@ class SimpleSearchEngine :
           progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
         }
 
-        const AASequence& seq = AASequence::fromString(fasta_db[fasta_index].sequence);
+        vector<StringView> current_digest;
+        digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
-        vector<AASequence> current_digest;
-        digestor.digest(seq, current_digest);
-
-        // c++ STL pattern for deleting entries from vector based on predicate evaluation
-        current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), has_invalid_length), current_digest.end());
-
-        for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+        for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
         {
-          const std::string& s = cit->toUnmodifiedString();
-
           bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            if (processed_petides.find(s) != processed_petides.end())
+            if (processed_petides.find(*cit) != processed_petides.end())
             {
               // peptide (and all modified variants) already processed so skip it
               already_processed = true;
@@ -614,7 +544,7 @@ class SimpleSearchEngine :
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            processed_petides.insert(s);
+            processed_petides.insert(*cit);
           }
 
           vector<AASequence> all_modified_peptides;
@@ -624,8 +554,9 @@ class SimpleSearchEngine :
 #pragma omp critical (residuedb_access)
 #endif
           {
-            ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
-            ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
+            AASequence aas = AASequence::fromString(cit->getString());
+            ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), aas);
+            ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
           }
 
           for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
@@ -667,7 +598,7 @@ class SimpleSearchEngine :
               const Size& scan_index = low_it->second;
               const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
 
-              double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
               // no hit
               if (score < 1e-16)
@@ -698,6 +629,7 @@ class SimpleSearchEngine :
       progresslogger.endProgress();
 
       protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 

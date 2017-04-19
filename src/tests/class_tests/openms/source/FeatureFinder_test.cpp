@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ START_SECTION((template <class PeakType, class FeatureType> void run(const Strin
 	FeatureMap features;
 
 	//empty map works -> nothing to do
-	MSExperiment<Peak1D> map;
+	PeakMap map;
 	ff.run("none", map, features, Param(), FeatureMap());
 
 	//no updateRanges -> exception
@@ -92,7 +92,7 @@ END_SECTION
 START_SECTION((const Flag& getPeakFlag(const IndexPair& index) const))
 	FeatureFinder ff;
 	FeatureMap features;
-	MSExperiment<Peak1D> map;
+	PeakMap map;
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);
@@ -105,7 +105,7 @@ END_SECTION
 START_SECTION((Flag& getPeakFlag(const IndexPair& index)))
 	FeatureFinder ff;
 	FeatureMap features;
-	MSExperiment<Peak1D> map;
+	PeakMap map;
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);

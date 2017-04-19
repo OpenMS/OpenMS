@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
@@ -44,7 +43,6 @@
 #include <QtGui/QImage>
 
 using namespace OpenMS;
-using namespace OpenMS::Math;
 using namespace std;
 
 //-------------------------------------------------------------
@@ -125,7 +123,7 @@ protected:
     double min_int_cutoff = getDoubleOption_("min_int_cutoff");
     bool align_sampling = getFlag_("align_sampling");
     bool ppm = getFlag_("ppm");
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, exp);

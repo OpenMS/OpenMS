@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -241,6 +241,87 @@ START_SECTION((TargetedExperiment& operator=(const TargetedExperiment &rhs)))
   // TODO
 }
 END_SECTION
+
+START_SECTION( bool TargetedExperiment::containsInvalidReferences() )
+{
+  // wrong references
+  {
+    TargetedExperiment tr;
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.id = "peptide1";
+    peptide.protein_refs.push_back("protein1");
+    tr.addPeptide(peptide);
+
+    // now should be invalid due to a missing protein
+    TEST_EQUAL(tr.containsInvalidReferences(), true)
+
+    OpenMS::TargetedExperiment::Protein protein;
+    protein.id = "protein1";
+    tr.addProtein(protein);
+
+    // now should be valid again
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+
+    OpenMS::ReactionMonitoringTransition t;
+    t.setNativeID("tr1");
+    t.setPeptideRef("peptide1");
+    tr.addTransition(t);
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+    OpenMS::ReactionMonitoringTransition t2;
+    t2.setNativeID("tr2");
+    t2.setCompoundRef("compound1");
+    tr.addTransition(t2);
+    TEST_EQUAL(tr.containsInvalidReferences(), true)
+
+    OpenMS::TargetedExperiment::Compound comp;
+    comp.id = "compound1";
+    tr.addCompound(comp);
+
+    // now should be valid again
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+  }
+
+  // duplications
+  {
+    TargetedExperiment tr;
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+
+    OpenMS::TargetedExperiment::Peptide peptide;
+    peptide.id = "peptide1";
+    tr.addPeptide(peptide);
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+    tr.addPeptide(peptide);
+    TEST_EQUAL(tr.containsInvalidReferences(), true)
+  }
+
+  {
+    TargetedExperiment tr;
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+
+    OpenMS::ReactionMonitoringTransition t;
+    t.setNativeID("tr1");
+    tr.addTransition(t);
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+    tr.addTransition(t);
+    TEST_EQUAL(tr.containsInvalidReferences(), true)
+  }
+
+  {
+    TargetedExperiment tr;
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+
+    OpenMS::TargetedExperiment::Protein protein;
+    protein.id = "protein1";
+    tr.addProtein(protein);
+    TEST_EQUAL(tr.containsInvalidReferences(), false)
+    tr.addProtein(protein);
+    TEST_EQUAL(tr.containsInvalidReferences(), true)
+  }
+}
+END_SECTION
+
 
 START_SECTION(OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide &peptide))
 {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ public:
           matrix_ = NULL;
           dimensionsize_ = 0;
           init_size_ = 0;
-          throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, (UInt)((((dimensionsize - 2) * (dimensionsize - 1)) / 2) * sizeof(ValueType)));
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (UInt)((((dimensionsize - 2) * (dimensionsize - 1)) / 2) * sizeof(ValueType)));
         }
       }
       if (matrix_ != NULL)
@@ -159,7 +159,7 @@ public:
           dimensionsize_ = 0;
           init_size_ = 0;
           min_element_ = std::make_pair(0, 0);
-          throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, (UInt)((((dimensionsize_ - 2) * (dimensionsize_ - 1)) / 2) * sizeof(ValueType)));
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (UInt)((((dimensionsize_ - 2) * (dimensionsize_ - 1)) / 2) * sizeof(ValueType)));
         }
       }
       if (matrix_ != NULL)
@@ -214,7 +214,7 @@ public:
     {
       if (i >= dimensionsize_ || j >= dimensionsize_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       // elements on main diagonal are not stored and assumed to be 0
       if (i == j)
@@ -239,7 +239,7 @@ public:
     {
       if (i >= dimensionsize_ || j >= dimensionsize_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       // elements on main diagonal are not stored and assumed to be 0
       if (i == j)
@@ -265,7 +265,7 @@ public:
     {
       if (i >= dimensionsize_ || j >= dimensionsize_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       // elements on main diagonal are not stored and assumed to be 0
       if (i != j)
@@ -311,7 +311,7 @@ public:
     {
       if (i >= dimensionsize_ || j >= dimensionsize_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       // elements on main diagonal are not stored and assumed to be 0
       if (i != j)
@@ -371,7 +371,7 @@ public:
           matrix_ = NULL;
           dimensionsize_ = 0;
           init_size_ = 0;
-          throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, (UInt)((((dimensionsize_ - 2) * (dimensionsize_ - 1)) / 2) * sizeof(Value)));
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (UInt)((((dimensionsize_ - 2) * (dimensionsize_ - 1)) / 2) * sizeof(Value)));
         }
       }
       if (matrix_ != NULL)
@@ -399,7 +399,7 @@ public:
     {
       if (j >= dimensionsize_)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       //delete row j and therefor overwrite with row j+1 and iterate like this to last row
       SizeType i = j + 1;
@@ -432,7 +432,7 @@ public:
       //error if dimensionsize_<1, return if dimensionsize_ == 1, else
       if (dimensionsize_ < 1)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       if (dimensionsize_ != 1) //else matrix has one element: (1,0)
       {
@@ -478,7 +478,7 @@ public:
     {
       if (dimensionsize_ == 0)
       {
-        throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       return min_element_;
     }
@@ -488,7 +488,7 @@ protected:
     ValueType** matrix_;
     /// number of actually stored rows
     SizeType init_size_; // actual size of outer array
-    /// number of accessably stored rows (i.e. number of columns)
+    /// number of accessibly stored rows (i.e. number of columns)
     SizeType dimensionsize_; //number of virtual elements: ((dimensionsize-1)*(dimensionsize))/2
     /// index of minimal element(i.e. number in underlying SparseVector)
     std::pair<SizeType, SizeType> min_element_;

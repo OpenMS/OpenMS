@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -137,7 +137,6 @@ START_SECTION((void addModification(const ModificationDefinition& mod_def)))
   mod_def.setModification("Phospho (Y)");
   mod_def.setFixedModification(true);
 
-
   ModificationDefinitionsSet mod_set;
   mod_set.addModification(mod_def);
 
@@ -214,11 +213,11 @@ START_SECTION((std::set<ModificationDefinition> getModifications() const ))
   {
     if (it->isFixedModification())
     {
-      TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
+      TEST_EQUAL(fixed_mods.find(it->getModificationName()) != fixed_mods.end(), true)
     }
     else
     {
-      TEST_EQUAL(var_mods.find(it->getModification()) != var_mods.end(), true)
+      TEST_EQUAL(var_mods.find(it->getModificationName()) != var_mods.end(), true)
     }
   }
 
@@ -238,7 +237,7 @@ START_SECTION(const std::set<ModificationDefinition>& getFixedModifications() co
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {
     TEST_EQUAL(it->isFixedModification(), true)
-    TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
+    TEST_EQUAL(fixed_mods.find(it->getModificationName()) != fixed_mods.end(), true)
   }
 }
 END_SECTION
@@ -255,7 +254,7 @@ START_SECTION(const std::set<ModificationDefinition>& getVariableModifications()
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {
     TEST_EQUAL(it->isFixedModification(), false)
-    TEST_EQUAL(mods.find(it->getModification()) != mods.end(), true)
+    TEST_EQUAL(mods.find(it->getModificationName()) != mods.end(), true)
   }
 }
 END_SECTION
@@ -402,9 +401,38 @@ START_SECTION((bool isCompatible(const AASequence &peptide) const))
 }
 END_SECTION
 
+START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const))
+{
+  ModificationDefinitionsSet mod_set;
+  mod_set.setModifications("Gln->pyro-Glu (N-term Q)", "Glu->pyro-Glu (N-term E),Oxidation (M)");
+  multimap<double, ModificationDefinition> matches;
+  // nothing to consider:
+  TEST_EXCEPTION(Exception::IllegalArgument, mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, false, false, true, 0.1));
+  // wrong term. spec.:
+  mod_set.findMatches(matches, -18, "E", ResidueModification::ANYWHERE, true, true, true, 0.1);
+  TEST_EQUAL(matches.empty(), true);
+  // wrong residue:
+  mod_set.findMatches(matches, -18, "Q", ResidueModification::N_TERM, true, true, true, 0.1);
+  TEST_EQUAL(matches.empty(), true);
+  // wrong fixed/variable:
+  mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, true, false, true, 0.1);
+  TEST_EQUAL(matches.empty(), true);
+  // residue, low tolerance:
+  mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, true, true, true, 0.1);
+  TEST_EQUAL(matches.size(), 1);
+  TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
+  // no residue, low tolerance:
+  mod_set.findMatches(matches, -18, "", ResidueModification::N_TERM, true, true, true, 0.1);
+  TEST_EQUAL(matches.size(), 1); 
+  TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
+  // no residue, high tolerance:
+  mod_set.findMatches(matches, -18, "", ResidueModification::N_TERM, true, true, true, 2);
+  TEST_EQUAL(matches.size(), 2);
+  TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
+  TEST_EQUAL((++matches.begin())->second.getModificationName(), "Gln->pyro-Glu (N-term Q)");
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

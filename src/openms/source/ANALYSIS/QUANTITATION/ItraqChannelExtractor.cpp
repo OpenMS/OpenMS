@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -103,20 +103,20 @@ namespace OpenMS
   /// @param ms_exp_data Raw data to read
   /// @param consensus_map Output each MS² scan as a consensus feature
   /// @throws Exception::MissingInformation if no scans present or MS² scan has no precursor
-  void ItraqChannelExtractor::run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
+  void ItraqChannelExtractor::run(const PeakMap& ms_exp_data, ConsensusMap& consensus_map)
   {
     if (ms_exp_data.empty())
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Experiment has no scans!");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Experiment has no scans!");
     }
 
-    MSExperiment<> ms_exp_MS2;
+    PeakMap ms_exp_MS2;
 
     String mode = (String) param_.getValue("select_activation");
     std::cout << "Selecting scans with activation mode: " << (mode == "" ? "any" : mode) << "\n";
-    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(ListUtils::create<String>(mode));
+    HasActivationMethod<PeakMap::SpectrumType> activation_predicate(ListUtils::create<String>(mode));
 
     for (size_t idx = 0; idx < ms_exp_data.size(); ++idx)
     {
@@ -171,7 +171,7 @@ namespace OpenMS
     // --> assign peaks to channels
     UInt element_index(0);
 
-    for (MSExperiment<>::ConstIterator it = ms_exp_MS2.begin(); it != ms_exp_MS2.end(); ++it)
+    for (PeakMap::ConstIterator it = ms_exp_MS2.begin(); it != ms_exp_MS2.end(); ++it)
     {
       // store RT&MZ of parent ion as centroid of ConsensusFeature
       ConsensusFeature cf;
@@ -183,7 +183,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("No precursor information given for scan native ID ") + String(it->getNativeID()) + " with RT " + String(it->getRT()));
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + String(it->getNativeID()) + " with RT " + String(it->getRT()));
       }
 
       Peak2D channel_value;
@@ -199,7 +199,7 @@ namespace OpenMS
         channel_value.setIntensity(0);
 
         //add up all signals
-        for (MSExperiment<>::SpectrumType::ConstIterator mz_it =
+        for (PeakMap::SpectrumType::ConstIterator mz_it =
                it->MZBegin(cm_it->second.center - allowed_deviation)
              ; mz_it != it->MZEnd(cm_it->second.center + allowed_deviation)
              ; ++mz_it

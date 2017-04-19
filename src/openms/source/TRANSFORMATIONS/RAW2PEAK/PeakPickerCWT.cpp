@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 
@@ -1042,7 +1042,7 @@ namespace OpenMS
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
 
-  void PeakPickerCWT::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  void PeakPickerCWT::pickExperiment(const PeakMap & input, PeakMap & output)
   {
     // if estimatePeakWidth-flag is set estimate it
     if (param_.getValue("estimate_peak_width") == "true")
@@ -1050,7 +1050,7 @@ namespace OpenMS
       double p_w = estimatePeakWidth(input);
       if (p_w == 0.)
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "estimatePeakWidth()", "Peak width could not be determined from data!");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "estimatePeakWidth()", "Peak width could not be determined from data!");
       }
       else
       {
@@ -1447,7 +1447,7 @@ namespace OpenMS
     }         // if (peak_shapes.size() > 0)
   }
 
-  double PeakPickerCWT::estimatePeakWidth(const MSExperiment<> & input)
+  double PeakPickerCWT::estimatePeakWidth(const PeakMap & input)
   {
     // The peak widths which are tested
     // Note that the limit is 1 Da in Peak Width. The Wavelet has a certain tolerance, but very broad peaks (e.g. top-down MS) will not be found

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,12 +40,14 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 using namespace OpenMS;
 using namespace std;
 
-typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 typedef OpenMS::ReactionMonitoringTransition TransitionType;
-typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
+typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
 ///////////////////////////
 
@@ -70,8 +72,8 @@ START_SECTION(~MRMTransitionGroup())
 END_SECTION
 
 
-RichPeakChromatogram chrom1;
-RichPeakChromatogram chrom2;
+MSChromatogram<> chrom1;
+MSChromatogram<> chrom2;
 TransitionType trans1;
 TransitionType trans2;
 MRMFeature feature1;
@@ -282,6 +284,57 @@ START_SECTION ( void getLibraryIntensity(std::vector<double> & result) const)
   mrmtrgroup.addTransition(new_trans2, "dummy2");
   std::vector< double > result;
   mrmtrgroup.getLibraryIntensity(result);
+  TEST_EQUAL(result.size(), 2)
+  TEST_REAL_SIMILAR(result[0], 3)
+  TEST_REAL_SIMILAR(result[1], 0)
+}
+END_SECTION
+
+START_SECTION ( MRMTransitionGroup subset(std::vector<std::string> tr_ids))
+{
+  TransitionType new_trans1;
+  TransitionType new_trans2;
+  MRMTransitionGroupType mrmtrgroup, mrmtrgroupsub;
+  new_trans1.setLibraryIntensity(3);
+  new_trans1.setNativeID("new_trans1");
+  new_trans1.setMetaValue("detecting_transition","true");
+  new_trans2.setLibraryIntensity(-2);
+  new_trans2.setNativeID("new_trans2");
+  new_trans2.setMetaValue("detecting_transition","false");
+  mrmtrgroup.addTransition(new_trans1, "new_trans1");
+  mrmtrgroup.addTransition(new_trans2, "new_trans2");
+  std::vector< std::string > transition_ids;
+  transition_ids.push_back("new_trans1");
+
+  std::vector< double > result;
+  mrmtrgroupsub = mrmtrgroup.subset(transition_ids);
+  mrmtrgroupsub.getLibraryIntensity(result);
+  TEST_EQUAL(result.size(), 1)
+  TEST_REAL_SIMILAR(result[0], 3)
+}
+END_SECTION
+
+
+START_SECTION ( MRMTransitionGroup subsetDependent(std::vector<std::string> tr_ids))
+{
+  TransitionType new_trans1;
+  TransitionType new_trans2;
+  MRMTransitionGroupType mrmtrgroup, mrmtrgroupsub;
+  new_trans1.setLibraryIntensity(3);
+  new_trans1.setNativeID("new_trans1");
+  new_trans1.setMetaValue("detecting_transition","true");
+  new_trans2.setLibraryIntensity(-2);
+  new_trans2.setNativeID("new_trans2");
+  new_trans2.setMetaValue("detecting_transition","false");
+  mrmtrgroup.addTransition(new_trans1, "new_trans1");
+  mrmtrgroup.addTransition(new_trans2, "new_trans2");
+  std::vector< std::string > transition_ids;
+  transition_ids.push_back("new_trans1");
+  transition_ids.push_back("new_trans2");
+
+  std::vector< double > result;
+  mrmtrgroupsub = mrmtrgroup.subset(transition_ids);
+  mrmtrgroupsub.getLibraryIntensity(result);
   TEST_EQUAL(result.size(), 2)
   TEST_REAL_SIMILAR(result[0], 3)
   TEST_REAL_SIMILAR(result[1], 0)

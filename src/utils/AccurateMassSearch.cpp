@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -109,9 +109,9 @@ protected:
         // move some params from algorithm section to top level (to support input file functionality)
         Param p = AccurateMassSearchEngine().getDefaults();
         registerTOPPSubsection_("db", "Database files which contain the identifications");
-        registerInputFile_("db:mapping", "<file>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
+        registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
         setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
-        registerInputFile_("db:struct", "<file>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
+        registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
         setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
         registerInputFile_("positive_adducts_file", "<file>", p.getValue("positive_adducts_file"), p.getDescription("positive_adducts_file"), true, false, ListUtils::create<String>("skipexists"));
         setValidFormats_("positive_adducts_file", ListUtils::create<String>("tsv"));
@@ -143,10 +143,10 @@ protected:
         String out = getStringOption_("out");
         String file_ann = getStringOption_("out_annotation");
 
-         Param ams_param = getParam_().copy("algorithm:", true);
+        Param ams_param = getParam_().copy("algorithm:", true);
         // copy top-level params to algorithm
-        ams_param.setValue("db:mapping", getStringOption_("db:mapping"));
-        ams_param.setValue("db:struct", getStringOption_("db:struct"));
+        ams_param.setValue("db:mapping", getStringList_("db:mapping"));
+        ams_param.setValue("db:struct", getStringList_("db:struct"));
         ams_param.setValue("positive_adducts_file", getStringOption_("positive_adducts_file"));
         ams_param.setValue("negative_adducts_file", getStringOption_("negative_adducts_file"));
 

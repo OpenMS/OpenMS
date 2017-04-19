@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,8 +59,11 @@ namespace OpenMS
 
     @note This implementation is @a not thread-safe since it keeps internally a
     single file access pointer which it moves when accessing a specific
-    data item. The caller is responsible to ensure that access is performed
-    atomically.
+    data item. Please provide a separate copy to each thread, e.g. 
+
+    @code
+    #pragma omp parallel for firstprivate(ondisc_map) 
+    @endcode
 
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
@@ -69,19 +72,22 @@ namespace OpenMS
 
 public:
 
-    OnDiscMSExperiment() {}
-
     /**
       @brief Constructor
 
-      This initializes the object and attempts to read the indexed mzML by
-      parsing the index and then reading the meta information into memory.
+      This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment(const String& filename)
-    {
-      openFile(filename);
-    }
+    OnDiscMSExperiment() {}
 
+    /**
+      @brief Open a specific file on disk.
+
+      This tries to read the indexed mzML by parsing the index and then reading
+      the meta information into memory.
+
+      @return Whether the parsing of the file was successful (if false, the
+      file most likely was not an indexed mzML file)
+    */
     bool openFile(const String& filename, bool skipMetaData = false)
     {
       filename_ = filename;
@@ -246,7 +252,7 @@ private:
 
     void loadMetaData_(const String& filename)
     {
-      meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
+      meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
 
       MzMLFile f;
       PeakFileOptions options = f.getOptions();
@@ -263,8 +269,10 @@ protected:
     /// The index of the underlying data file
     IndexedMzMLFile indexed_mzml_file_;
     /// The meta-data
-    boost::shared_ptr<MSExperiment<> > meta_ms_experiment_;
+    boost::shared_ptr<PeakMap > meta_ms_experiment_;
   };
+
+typedef OpenMS::OnDiscMSExperiment<> OnDiscPeakMap;
 
 } // namespace OpenMS
 

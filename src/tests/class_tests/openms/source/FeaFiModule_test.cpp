@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ START_SECTION((virtual ~FeaFiModule()))
 END_SECTION
 
 //create dummy MSExperiment
-MSExperiment<Peak1D> exp;
+PeakMap exp;
 exp.resize(2);
 exp[0].setMSLevel(1);
 exp[0].setRT(1.1);
@@ -169,7 +169,7 @@ END_SECTION
 
 START_SECTION(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 
-	MSExperiment<Peak1D> exp2 = exp;
+	PeakMap exp2 = exp;
 	exp2.resize(3);
 	exp2[2].resize(1);
 	exp2[2][0].setMZ(800.0);
@@ -242,7 +242,7 @@ START_SECTION(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 END_SECTION
 
 START_SECTION(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
-	MSExperiment<Peak1D> exp2 = exp;
+	PeakMap exp2 = exp;
 	exp2[1].resize(4);
 	exp2[1][0].setMZ(599.0);
 	exp2[1][1].setMZ(799.0);
@@ -322,7 +322,7 @@ START_SECTION(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature
 	p.getPosition()[0] = 1237.93;   p.getPosition()[1] = 688.4;     peak_array.push_back(p);
 
 	std::sort(peak_array.begin(),peak_array.end(),Peak2D::PositionLess());
-	MSExperiment<Peak1D> exp2;
+	PeakMap exp2;
 	exp2.set2DData(peak_array);
 
 	FeaFiModule<Peak1D> t(&exp2,0,0);

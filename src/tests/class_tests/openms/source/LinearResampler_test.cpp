@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
@@ -131,7 +131,7 @@ END_SECTION
 
 START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))
 {
-  MSSpectrum< RichPeak1D > spec;
+  MSSpectrum< Peak1D > spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -144,7 +144,7 @@ START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment
   spec[4].setMZ(1.8);
   spec[4].setIntensity(1.0f);
 
-  MSExperiment< RichPeak1D > exp;
+  PeakMap exp;
   exp.addSpectrum(spec);
   exp.addSpectrum(spec);
 

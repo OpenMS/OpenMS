@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMS_H
 #define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMS_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -53,7 +54,7 @@ namespace OpenMS
     public OpenSwath::ISpectrumAccess
   {
 public:
-    typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
+    typedef OpenMS::PeakMap MSExperimentType;
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
@@ -63,10 +64,24 @@ public:
     /// Destructor
     ~SpectrumAccessOpenMS();
 
-    /// Copy constructor
+    /**
+      @brief Copy constructor
+
+      Performs a light copy operation when another SpectrumAccessOpenMS
+      instance is given: only a copy of the pointer to the underlying
+      MSExperiment is stored, so after this, both instances (rhs and *this)
+      will point to the same MSExperiment.
+
+    */
     SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs);
 
-    /// Light clone operator (actual data will not get copied)
+    /**
+      @brief Light clone operator (actual data will not get copied)
+
+      Creates a light clone of the current instance, with the clone pointing to
+      the same underlying MSExperiment.
+
+    */
     boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id);

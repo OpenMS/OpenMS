@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 #include <OpenMS/FORMAT/Base64.h>
 
+#include <string>
+
 namespace OpenMS
 {
   const double BinaryDataEncoder_default_numpressErrorTolerance = .0001; // 1/100th of one percent
@@ -55,7 +57,9 @@ namespace OpenMS
 
 public:
 
-    enum NumpressCompression { NONE, LINEAR, PIC, SLOF };
+    enum NumpressCompression { NONE, LINEAR, PIC, SLOF, SIZE_OF_NUMPRESSCOMPRESSION };
+    /// Names of compression schemes
+    static const std::string NamesOfNumpressCompression[SIZE_OF_NUMPRESSCOMPRESSION];
 
     /**
       @brief Configuration class for MSNumpress
@@ -68,13 +72,34 @@ public:
       double numpressErrorTolerance;  /// check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything
       NumpressCompression np_compression; /// which compression schema to use
       bool estimate_fixed_point; /// whether to estimate the fixed point or use the one proved with numpressFixedPoint
+      double linear_fp_mass_acc; /// desired mass accuracy for linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
       NumpressConfig () :
         numpressFixedPoint(0.0),
         numpressErrorTolerance(BinaryDataEncoder_default_numpressErrorTolerance),
         np_compression(NONE),
-        estimate_fixed_point(false)
+        estimate_fixed_point(false),
+        linear_fp_mass_acc(-1)
       {
+      }
+
+      /**
+        @brief set compression using a string mapping to enum NumpressCompression.
+
+        @param compression A string from NamesOfNumpressCompression[]
+
+        @throws Exception::InvalidParameter if compression is unknown.
+      */
+      void setCompression(const std::string& compression)
+      {
+        const std::string* match = std::find(NamesOfNumpressCompression, NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION, compression);
+        
+        if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + compression + "' is not a valid Numpress compression scheme.");
+        }
+        
+        np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);
       }
 
     };

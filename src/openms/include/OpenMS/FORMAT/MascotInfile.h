@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -47,14 +47,14 @@
 namespace OpenMS
 {
   /**
-      @brief Mascot input file adapter.
+    @brief Mascot input file adapter.
 
-  @deprecated Use MascotGenericFile.h instead, which uses DefaultParamHandler, is more up to date and avoids weird behaviors of this class (especially in terms of
-              MIME boundaries when writing MGF....
+    @deprecated Use MascotGenericFile.h instead, which uses DefaultParamHandler, is more up to date and avoids weird behaviors of this class (especially in terms of
+              MIME boundaries when writing MGF. This class is currently only used by MascotAdapter.cpp.
 
-      Creates a file that can be used for Mascot search from a peak list or a whole experiment.
+    Creates a file that can be used for Mascot search from a peak list or a whole experiment.
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI MascotInfile :
     public ProgressLogger
@@ -71,7 +71,7 @@ public:
     void store(const String & filename, const PeakSpectrum & spec, double mz, double retention_time, String search_title);
 
     /// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
-    void store(const String & filename, const MSExperiment<> & experiment, String search_title);
+    void store(const String & filename, const PeakMap & experiment, String search_title);
 
     /** loads a Mascot Generic File into a PeakMap
 
@@ -85,7 +85,7 @@ public:
       exp.reset();
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       std::ifstream is(filename.c_str());
@@ -269,7 +269,7 @@ protected:
     /// writes the MSExperiment
     void writeMSExperiment_(FILE * fp,
                             const String & filename,
-                            const MSExperiment<> & experiment);
+                            const PeakMap & experiment);
 
     bool getNextSpectrum_(std::istream & is, std::vector<std::pair<double, double> > & spectrum, UInt & charge, double & precursor_mz, double & precursor_int, double & rt, String & title);
   };

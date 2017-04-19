@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
@@ -109,12 +109,33 @@ public:
     const SimTypes::MSSimExperiment& getPeakMap() const;
 
     /**
+      @brief Access the simulated identifications (proteins and peptides)
+
+      If an MS2 signal has been simulated, identifications are generated based on
+      their corresponding MS2 spectra. If MS2 simulation has been disabled,
+      peptide IDs are generated from feature annotations. Otherwise, the -out_id
+      idXML file would be empty if MS2 simulation is disabled (which is the default).
+
+      @param proteins Will be filled with a single ProteinIdentification holding all ProteinHits.
+      @param peptides Will be filled with PeptideIdentifications.
+    */
+    void getIdentifications(std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides) const;
+
+    /**
       @brief Access the simulated MS2 identifications (proteins and peptides)
 
       @param proteins Will be filled with a single ProteinIdentification holding all ProteinHits used in the simulated MS2 spectra.
       @param peptides Will be filled with PeptideIdentifications for each simulated MS2 spectra holding all contributing peptides scored by their intensity contribution.
     */
     void getMS2Identifications(std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides) const;
+
+    /**
+      @brief Access the simulated identifications (proteins and peptides) from feature annotations
+
+      @param proteins Will be filled with a single ProteinIdentification holding all ProteinHits.
+      @param peptides Will be filled with PeptideIdentifications for all simulated features.
+    */
+    void getFeatureIdentifications(std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides) const;
 
     /// Returns the default parameters for simulation including the labeling technique with name @p labeling_name
     Param getParameters() const;

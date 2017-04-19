@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -103,8 +103,8 @@ using namespace std;
 
     The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
-    MS2 and higher spectra can be filtered according to precursor m/z (see 'pc_mz'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
-    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'pc_mz' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
+    MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
 
     @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
 
@@ -242,27 +242,26 @@ private:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerOptionsAndFlags_()
   {
-    String formats("mzML,featureXML,consensusXML");
+    std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>(formats));
+    setValidFormats_("in", formats);
 
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>(formats));
+    setValidStrings_("in_type", formats);
 
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>(formats));
+    setValidFormats_("out", formats);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
-    setValidStrings_("out_type", ListUtils::create<String>(formats));
+    setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
-    registerStringOption_("pc_mz", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
 
     registerFlag_("sort", "Sorts the output according to RT and m/z.");
@@ -270,6 +269,8 @@ protected:
     registerTOPPSubsection_("peak_options", "Peak data options");
     registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "Write peaks with S/N > 'sn' values only", false);
     registerIntList_("peak_options:rm_pc_charge", "i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
+    registerStringOption_("peak_options:pc_mz_range", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
+    registerDoubleList_("peak_options:pc_mz_list", "mz_1 mz_2 ...", DoubleList(), "List of m/z values. If a precursor window covers ANY of these values, the corresponding MS/MS spectrum will be kept.", false);
     registerIntList_("peak_options:level", "i j ...", ListUtils::create<Int>("1,2,3"), "MS levels to extract", false);
     registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
@@ -281,53 +282,42 @@ protected:
     registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
+    setValidStrings_("peak_options:zlib_compression", ListUtils::create<String>("true,false"));
+
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
-    setValidStrings_("peak_options:numpress:masstime", ListUtils::create<String>("none,linear,pic,slof"));
-    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
+    setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
+    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (default 10 ppm at 100 m/z; set to 0.5 for pic or negative to disable check and speed up conversion)", false);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
-    setValidStrings_("peak_options:numpress:intensity", ListUtils::create<String>("none,linear,pic,slof"));
-    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
+    setValidStrings_("peak_options:numpress:intensity", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
+    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic or negative to disable check and speed up conversion)", false);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
     registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode", false);
-    StringList mode_list;
-    for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
-    {
-      mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
-    }
-    setValidStrings_("spectra:remove_mode", mode_list);
+    setValidStrings_("spectra:remove_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
 
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
-    StringList activation_list;
-    for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
-    {
-      activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
-    }
-    setValidStrings_("spectra:remove_activation", activation_list);
+    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+
     registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
-    setValidStrings_("spectra:select_mode", mode_list);
+    setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
     registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:select_activation", activation_list);
+    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
     registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
-    StringList polarity_list;
-    for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
-    {
-      polarity_list.push_back(IonSource::NamesOfPolarity[i]);
-    }
-    setValidStrings_("spectra:select_polarity", polarity_list);
+    setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
 
 
     addEmptyLine_();
@@ -426,7 +416,7 @@ protected:
     else
     {
       writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Illegal meta value filtering operator!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
     }
   }
 
@@ -478,7 +468,7 @@ protected:
 
     String rt = getStringOption_("rt");
     String mz = getStringOption_("mz");
-    String pc_mz = getStringOption_("pc_mz");
+    String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
     String it = getStringOption_("int");
     IntList levels = getIntList_("peak_options:level");
     IntList maps = getIntList_("consensus:map");
@@ -496,6 +486,10 @@ protected:
     bool indexed_file;
     if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
     else {indexed_file = false; }
+    bool zlib_compression;
+    if (getStringOption_("peak_options:zlib_compression") == "true") {zlib_compression = true; }
+    else {zlib_compression = false; }
+
 
     MSNumpressCoder::NumpressConfig npconfig_mz;
     MSNumpressCoder::NumpressConfig npconfig_int;
@@ -503,29 +497,11 @@ protected:
     npconfig_int.estimate_fixed_point = true; // critical
     npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
     npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
+    npconfig_mz.setCompression(getStringOption_("peak_options:numpress:masstime"));
+    npconfig_int.setCompression(getStringOption_("peak_options:numpress:intensity"));
     if (getStringOption_("peak_options:numpress:masstime") == "linear")
     {
-      npconfig_mz.np_compression = MSNumpressCoder::LINEAR;
-    }
-    else if (getStringOption_("peak_options:numpress:masstime") == "pic")
-    {
-      npconfig_mz.np_compression = MSNumpressCoder::PIC;
-    }
-    else if (getStringOption_("peak_options:numpress:masstime") == "slof")
-    {
-      npconfig_mz.np_compression = MSNumpressCoder::SLOF;
-    }
-    if (getStringOption_("peak_options:numpress:intensity") == "linear")
-    {
-      npconfig_int.np_compression = MSNumpressCoder::LINEAR;
-    }
-    else if (getStringOption_("peak_options:numpress:intensity") == "pic")
-    {
-      npconfig_int.np_compression = MSNumpressCoder::PIC;
-    }
-    else if (getStringOption_("peak_options:numpress:intensity") == "slof")
-    {
-      npconfig_int.np_compression = MSNumpressCoder::SLOF;
+      npconfig_mz.linear_fp_mass_acc = getDoubleOption_("peak_options:numpress:masstime_error"); // set the desired mass accuracy
     }
 
     //id-filtering parameters
@@ -545,7 +521,7 @@ protected:
       //mz
       parseRange_(mz, mz_l, mz_u);
       //mz precursor
-      parseRange_(pc_mz, pc_left, pc_right);
+      parseRange_(pc_mz_range, pc_left, pc_right);
       //int
       parseRange_(it, it_l, it_u);
       //charge (features only)
@@ -609,6 +585,7 @@ protected:
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
+      f.getOptions().setCompression(zlib_compression);
       // numpress compression
       f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
@@ -652,10 +629,18 @@ protected:
 
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
-      if (!pc_mz.empty())
+      if (!pc_mz_range.empty())
       {
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
       }
+
+      // keep MS/MS spectra whose precursors cover at least of the given m/z values
+      std::vector<double> vec_mz = getDoubleList_("peak_options:pc_mz_list");
+      if (!vec_mz.empty())
+      {
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
+      }
+      
 
       // remove by scan mode (might be a lot of spectra)
       String remove_mode = getStringOption_("spectra:remove_mode");
@@ -744,24 +729,24 @@ protected:
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
       //remove empty scans
@@ -1154,7 +1139,7 @@ protected:
     }
 
 
-    MSExperiment<> exp2 = exp;
+    PeakMap exp2 = exp;
     exp2.clear(false);
 
     for (Size i = 0; i != exp.size(); ++i)
@@ -1226,7 +1211,7 @@ protected:
     }
 
     // create new experiment
-    MSExperiment<> exp2 = exp; // copy meta data
+    PeakMap exp2 = exp; // copy meta data
     exp2.clear(false); // clear spectra
 
     for (Size i = 0; i != exp.size(); ++i)

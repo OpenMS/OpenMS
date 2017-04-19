@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -77,10 +77,10 @@ START_SECTION(~MapAlignmentTransformer())
 }
 END_SECTION
 
-START_SECTION((static void transformRetentionTimes(MSExperiment<>& msexp, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(PeakMap& msexp, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
-  MSExperiment<> exp;
-  MSExperiment<>::SpectrumType spec;
+  PeakMap exp;
+  PeakMap::SpectrumType spec;
 
   // first spectrum (MS)
   spec.setRT(11.1);

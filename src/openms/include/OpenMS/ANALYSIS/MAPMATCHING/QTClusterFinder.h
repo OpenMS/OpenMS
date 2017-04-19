@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,17 +143,6 @@ private:
     */
     double getDistance_(const OpenMS::GridFeature* left, const
         OpenMS::GridFeature* right);
-
-    /**
-       @brief Checks whether the peptide IDs of a cluster and a neighboring
-       feature are compatible.
-
-       A neighboring feature without identification is always compatible.
-       Otherwise, the cluster and feature are compatible if the best peptide
-       hits of each of their identifications have the same sequences.
-    */
-    bool compatibleIDs_(QTCluster& cluster, 
-        const OpenMS::GridFeature* neighbor);
 
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);

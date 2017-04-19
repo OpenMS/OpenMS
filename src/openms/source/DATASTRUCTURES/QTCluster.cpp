@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -140,12 +140,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(!finalized_,
         "Cannot perform operation on cluster that is not initialized")
     // ensure we only add compatible peptide annotations
-    OPENMS_PRECONDITION(
-        !use_IDs_ ||
-        (element->getAnnotations().empty() || 
-         center_point_->getAnnotations().empty() ||
-         element->getAnnotations() == center_point_->getAnnotations()),
-        "Annotations need to be compatible")
     OPENMS_PRECONDITION(distance <= max_distance_,
         "Distance cannot be larger than max_distance")
     // collect_annotations_ implies tmp_neighbors_ != NULL, 
@@ -153,6 +147,23 @@ namespace OpenMS
         "Initialize the cluster first before adding elements")
 
     Size map_index = element->getMapIndex();
+
+    // Ensure we only add compatible peptide annotations. If the cluster center
+    // has an annotation, then each added neighbor should have the same
+    // annotation. If the center element has no annotation we add all elements
+    // and select the optimal annotation later, using optimizeAnnotations_ 
+    if (use_IDs_)
+    {
+      bool one_empty = (center_point_->getAnnotations().empty() || element->getAnnotations().empty());
+      if (!one_empty) // both are annotated
+      {
+        if (center_point_->getAnnotations() != element->getAnnotations()) 
+        {
+          // Both annotations are non-empty and are unequal, we don't add
+          return;
+        }
+      }
+    }
 
     // We have to store annotations in a temporary map first if we collect all
     // annotations
@@ -377,6 +388,7 @@ namespace OpenMS
         best_total = total;
       }
     }
+
     if (best_pos != seq_table.end())
     {
       annotations_ = best_pos->first;
@@ -413,7 +425,7 @@ namespace OpenMS
     // calls computeQuality_ if something changed since initialization. In
     // turn, computeQuality_ calls optimizeAnnotations_ if necessary which
     // ensures that the neighbors_ hash is populated correctly.
-    getQuality(); 
+    getQuality();
 
     finalized_ = true;
 

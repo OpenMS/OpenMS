@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -74,8 +73,6 @@ namespace OpenMS
       LabelType (free text, optional description of which label was used, e.g. heavy or light)
       detecting_transition (bool, should this transition be used for peak-picking (detection) of the peak group?)
       identifying_transition (bool, should this transition be used for UIS identification together with the detecting transitions?)
-      site_identifying_transition (String contains the information for which sites the transition is diagnostic)
-      site_identifying_class (String, contains the diagnostic class for each site)
       quantifying_transition (bool, should this transition be used for quantification?)
 
   @htmlinclude OpenMS_TransitionTSVReader.parameters
@@ -116,10 +113,13 @@ private:
       String ProteinName;
       String Annotation;
       String FullPeptideName;
-      int precursor_charge;
+      String CompoundName;
+      String SMILES;
+      String SumFormula;
+      String precursor_charge;
       String peptide_group_label;
       String label_type;
-      int fragment_charge;
+      String fragment_charge;
       int fragment_nr;
       double fragment_mzdelta;
       int fragment_modification;
@@ -127,9 +127,29 @@ private:
       String uniprot_id;
       bool detecting_transition;
       bool identifying_transition;
-      String site_identifying_transition;
-      String site_identifying_class;
       bool quantifying_transition;
+
+      TSVTransition() :
+        precursor(-1),
+        product(-1),
+        rt_calibrated(-1),
+        CE(-1),
+        library_intensity(-1),
+        decoy(0),
+        fragment_charge("NA"),
+        fragment_nr(-1),
+        fragment_mzdelta(-1),
+        fragment_modification(0),
+        detecting_transition(true),
+        identifying_transition(false),
+        quantifying_transition(true)
+      {}
+
+      // By convention, if there is no (metabolic) compound name, it is a peptide 
+      bool isPeptide() 
+      {
+        return CompoundName.empty();
+      }
     };
 
     static const char* strarray_[];
@@ -201,14 +221,23 @@ private:
      */
     void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list);
 
+    /// Populate a new ReactionMonitoringTransition object from a row in the csv
     void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
 
+    /// Populate a new TargetedExperiment::Protein object from a row in the csv
     void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
 
+    /// Helper function to assign retention times to compounds and peptides
+    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retentiont_times, const OpenMS::DataValue rt_value);
+
+    /// Populate a new TargetedExperiment::Peptide object from a row in the csv
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
+    /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
+    void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
+
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                          int location, ResidueModification& rmod, const String& name);
+                          int location, const ResidueModification& rmod);
     //@}
 
 
@@ -266,4 +295,5 @@ public:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
+

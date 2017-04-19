@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -371,6 +371,19 @@ START_SECTION((const HandleSetType& getFeatures() const))
   TEST_EQUAL(it->getIntensity(),200)
 END_SECTION
 
+START_SECTION(( std::vector<FeatureHandle> getFeatureList() const))
+  ConsensusFeature cons;
+  cons.insert(2,tmp_feature);
+  const ConsensusFeature cons_copy(cons);
+
+  std::vector<FeatureHandle> group = cons_copy.getFeatureList();
+
+  TEST_EQUAL(group.size(),1)
+
+  TEST_EQUAL(group[0].getMapIndex(),2)
+  TEST_EQUAL(group[0].getUniqueId(),3)
+  TEST_EQUAL(group[0].getIntensity(),200)
+END_SECTION
 
 
 START_SECTION((void insert(const ConsensusFeature& cf)))

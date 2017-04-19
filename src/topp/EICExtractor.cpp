@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,13 @@
 
 #include <functional>
 #include <numeric>
-
+#include <boost/accumulators/accumulators.hpp> //SPW: refactor stats to use boost's accumulators
+#include <boost/accumulators/statistics.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/max.hpp>
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
 using namespace OpenMS;
 using namespace std;
 
@@ -257,7 +263,7 @@ public:
     //-------------------------------------------------------------
     MzMLFile mzml_file;
     mzml_file.setLogType(log_type_);
-    MSExperiment<Peak1D> exp, exp_pp;
+    PeakMap exp, exp_pp;
 
     EDTAFile ed;
     ConsensusMap cm;
@@ -326,7 +332,7 @@ public:
 
         if (!out_TIC_debug.empty()) // if debug file was given
         { // store intermediate steps for debug
-          MSExperiment<> out_debug;
+          PeakMap out_debug;
           out_debug.addChromatogram(toChromatogram(tics));
           out_debug.addChromatogram(toChromatogram(tic_gf));
 
@@ -410,23 +416,26 @@ public:
       // 5 entries for each input file
       tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
-      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
+      // SPW added AUC, AvgINT, variance for my specific use case
+      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity" << "AUC" << "AvgINT" << "variance";
 
       for (Size i = 0; i < cm.size(); ++i)
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
         double mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
-        MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
+        PeakMap::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
                                                                   cm[i].getRT() + rttol / 2,
                                                                   cm[i].getMZ() - mz_da,
                                                                   cm[i].getMZ() + mz_da);
+        boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::mean, boost::accumulators::tag::max, boost::accumulators::tag::sum, boost::accumulators::tag::variance > > acc;
         Peak2D max_peak;
         max_peak.setIntensity(0);
         max_peak.setRT(cm[i].getRT());
         max_peak.setMZ(cm[i].getMZ());
         for (; it != exp.areaEndConst(); ++it)
         {
+            acc(it->getIntensity());//add each intensity to our accumulator
           if (max_peak.getIntensity() < it->getIntensity())
           {
             max_peak.setIntensity(it->getIntensity());
@@ -444,10 +453,10 @@ public:
         {
           // take median for m/z found
           std::vector<double> mz;
-          MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
+          PeakMap::Iterator itm = exp.RTBegin(max_peak.getRT());
           SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
           SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()) - 1, rt_collect);
-          MSExperiment<>::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
+          PeakMap::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
           for (; itt != exp.areaEnd(); ++itt)
           {
             mz.push_back(itt->getMZ());
@@ -478,7 +487,10 @@ public:
                          String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                          String(max_peak.getMZ()) + out_sep +
                          String(ppm)  + out_sep +
-                         String(max_peak.getIntensity());
+                         String(max_peak.getIntensity()) + out_sep +
+                         String(boost::accumulators::extract_result <boost::accumulators::tag::sum>(acc)) + out_sep +
+                         String(boost::accumulators::extract_result <boost::accumulators::tag::mean>(acc)) + out_sep +
+                         String(boost::accumulators::extract_result <boost::accumulators::tag::variance>(acc));
       }
 
       if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";

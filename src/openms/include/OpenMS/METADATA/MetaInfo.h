@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -48,17 +48,19 @@ namespace OpenMS
   /**
       @brief A Type-Name-Value tuple class.
 
-      MetaInfo maps an index (an integer corresponding to a string) to DataValue objects.
-      The mapping of strings to the index is performed by the MetaInfoRegistry,
-      which can be accessed by the method registry().
+      MetaInfo maps an index (an integer corresponding to a string) to
+      DataValue objects.  The mapping of strings to the index is performed by
+      the MetaInfoRegistry, which can be accessed by the method registry().
 
-      There are two versions of nearly all members. One which operates with a string name and another
-      one which operates on an index. The index version is always faster, as it does not need to look
-      up the index corresponding to the the string in the MetaInfoRegistry.
+      There are two versions of nearly all members. One which operates with a
+      string name and another one which operates on an index. The index version
+      is always faster, as it does not need to look up the index corresponding
+      to the string in the MetaInfoRegistry.
 
-      If you wish to add one MetaInfo member to a class, consider deriving that class from
-      MetaInfoInterface, instead of simply adding MetaInfo as member. MetaInfoInterface implements
-      a full interface to a MetaInfo member.
+      If you wish to add a MetaInfo member to a class, consider deriving that
+      class from MetaInfoInterface, instead of simply adding MetaInfo as
+      member. MetaInfoInterface implements a full interface to a MetaInfo
+      member and is more memory efficient if no meta info gets added.
 
       @ingroup Metadata
   */

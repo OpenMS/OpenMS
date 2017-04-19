@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,6 +184,20 @@ END_SECTION
 START_SECTION(static String getUserDirectory())
   TEST_NOT_EQUAL(File::getUserDirectory(), String())
   TEST_EQUAL(File::exists(File::getUserDirectory()), true)
+
+  // set user directory to a path set by environmental variable and test that
+  // it is correctly set (no changes on the file system occur)
+  QDir d;
+  String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+  TEST_EQUAL(d.mkpath(dirname.toQString()), TRUE);
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv_s("OPENMS_HOME_PATH", dirname.c_str());  
+#else
+  setenv("OPENMS_HOME_PATH", dirname.c_str(), 0);  
+#endif
+  TEST_EQUAL(File::getUserDirectory(), dirname)
+  // Note: this does not guarantee any more that the user directory or an
+  // OpenMS.ini file exists at the new location.
 END_SECTION
 
 START_SECTION(static Param getSystemParameters())
@@ -200,7 +214,6 @@ START_SECTION(static String findDatabase(const String &db_name))
   TEST_EQUAL(db.hasSubstring("share/OpenMS"), true)
 
 END_SECTION
-
 
 START_SECTION(static String findExecutable(const OpenMS::String& toolName))
 {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -108,7 +109,7 @@ protected:
       ///Controlled vocabulary for modifications (unimod from OpenMS/share/OpenMS/CV/unimod.obo)
       ControlledVocabulary unimod_;
 
-      //~ MSExperiment<>* ms_exp_;
+      //~ PeakMap* ms_exp_;
 
       ///XML tag parse element
       String tag_;
@@ -146,16 +147,27 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
 
-      /// Helper method that writes the modification search params
-      void writeModParam_(String& s, const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;
+      /// Helper method that writes the modification search params (fixed or variable)
+      void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
+
+      /// Helper method that writes the FragmentAnnotations section of a spectrum identification
+      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const;
+
+      /// Convenience method to remove the [] from OpenMS internal file uri representation
+      String trimOpenMSfileURI(const String file) const;
 
 private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
       Map<String, AASequence> pep_sequences_;
+      std::map<String, String> pp_identifier_2_sil_; //mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
+      std::map<String, String> sil_2_sdb_; //mapping spectrumidentificationlist to the search data bases
+      std::map<String, String> sil_2_sdat_; //mapping spectrumidentificationlist to the search input
+      std::map<String, String> ph_2_sdat_; //mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
+      std::map<String, String> sil_2_sip_; //mapping spectrumidentificationlist to the search protocol (where the params are at)
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;

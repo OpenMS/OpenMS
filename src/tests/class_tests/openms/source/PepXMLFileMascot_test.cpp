@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $ 
+// $Maintainer: Timo Sachsenberg $ 
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
@@ -108,7 +108,7 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[1].toUnmodifiedString(), "VLALYRAAQAR")
 	TEST_EQUAL(temp_sequences[1].toString(), "VLALYRAAQ(Deamidated)AR")			
 	TEST_EQUAL(temp_sequences[2].toUnmodifiedString(), "RTLLMSLTGLK")
-	TEST_EQUAL(temp_sequences[2].toString(), "RTLLMSLTGLK")			
+	TEST_EQUAL(temp_sequences[2].toString(), "RTLLMSLTGLK")		
 	TEST_EQUAL(temp_sequences[3].toUnmodifiedString(), "LLGLSRFGLQK")
 	TEST_EQUAL(temp_sequences[3].toString(), "LLGLSRFGLQ(Deamidated)K")			
 	TEST_EQUAL(temp_sequences[4].toUnmodifiedString(), "MGGIALLDEIGK")
@@ -116,7 +116,7 @@ START_SECTION(void load(const String& filename,  std::map<String, std::vector<AA
 	TEST_EQUAL(temp_sequences[5].toUnmodifiedString(), "DQMDNALRIR")
 	TEST_EQUAL(temp_sequences[5].toString(), "DQMDN(Deamidated)ALRIR")			
 	TEST_EQUAL(temp_sequences[6].toUnmodifiedString(), "QTLAGRMVVQK")
-	TEST_EQUAL(temp_sequences[6].toString(), "Q(Deamidated)TLAGRMVVQ(Deamidated)K")				
+	TEST_EQUAL(temp_sequences[6].toString(), "Q(Deamidated)TLAGRMVVQ(Deamidated)K")	
 END_SECTION
 
 

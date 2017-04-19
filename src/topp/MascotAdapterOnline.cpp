@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -166,8 +166,8 @@ protected:
     PeakMap exp;
     // keep only MS2 spectra
     fh.getOptions().addMSLevel(2);
-    fh.loadExperiment(in, exp, in_type, log_type_);
-    writeDebug_(String("Spectra loaded: ") + exp.size(), 2);
+    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
+    writeLog_("Number of spectra loaded: " + String(exp.size()));
 
     if (exp.getSpectra().empty())
     {
@@ -190,7 +190,13 @@ protected:
     //-------------------------------------------------------------
 
     Param mascot_param = getParam_().copy("Mascot_parameters:", true);
-    mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+
+    // overwrite default search title with filename
+    if (mascot_param.getValue("search_title") == "OpenMS_search")
+    {
+      mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+    }
+
     mascot_param.setValue("internal:HTTP_format", "true");
     MascotGenericFile mgf_file;
     mgf_file.setParameters(mascot_param);

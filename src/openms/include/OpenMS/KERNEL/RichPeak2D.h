@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -65,26 +65,32 @@ public:
     {}
 
     /// Copy constructor
-    RichPeak2D(const RichPeak2D & p) :
+    RichPeak2D(const RichPeak2D& p) :
       Peak2D(p),
       MetaInfoInterface(p),
       UniqueIdInterface(p)
     {}
 
     /// Constructor from Peak2D
-    explicit RichPeak2D(const Peak2D & p) :
+    explicit RichPeak2D(const Peak2D& p) :
       Peak2D(p),
       MetaInfoInterface()
     {
       UniqueIdInterface::clearUniqueId();
     }
 
+    /// Member constructor
+    explicit RichPeak2D(const PositionType& pos, const IntensityType in) :
+      Peak2D(pos, in),
+      MetaInfoInterface()
+    {}
+
     /// Destructor
     ~RichPeak2D()
     {}
 
     /// Assignment operator
-    RichPeak2D & operator=(const RichPeak2D & rhs)
+    RichPeak2D & operator=(const RichPeak2D& rhs)
     {
       if (this == &rhs) return *this;
 
@@ -96,7 +102,7 @@ public:
     }
 
     /// Assignment operator
-    RichPeak2D & operator=(const Peak2D & rhs)
+    RichPeak2D & operator=(const Peak2D& rhs)
     {
       if (this == &rhs) return *this;
 
@@ -108,7 +114,7 @@ public:
     }
 
     /// Equality operator
-    bool operator==(const RichPeak2D & rhs) const
+    bool operator==(const RichPeak2D& rhs) const
     {
       return Peak2D::operator==(rhs) &&
              MetaInfoInterface::operator==(rhs) &&
@@ -116,7 +122,7 @@ public:
     }
 
     /// Equality operator
-    bool operator!=(const RichPeak2D & rhs) const
+    bool operator!=(const RichPeak2D& rhs) const
     {
       return !(operator==(rhs));
     }

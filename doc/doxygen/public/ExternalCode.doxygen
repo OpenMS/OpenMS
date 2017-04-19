@@ -22,9 +22,8 @@
 	be available to you.
 	The most important variables are:
 	<UL>
-	<LI>OPENMS_INCLUDE_DIRS - all include directories containing %OpenMS headers
+	<LI>OpenMS_INCLUDE_DIRECTORIES - all include directories containing %OpenMS headers
 	<LI>OPENMS_ADDCXX_FLAGS - preprocessor macros we require written as (-DMACRO1 -DMACRO2) etc
-	<LI>OPENMS_DEFINITIONS - compiler flags (e.g. to disable certain compiler warnings)
 	</UL>
 	and the %OpenMS target itself (which you can link against).
 	<br>	
@@ -50,7 +49,7 @@ cmake -G "<generator>" .
 @section development_external_ship Shipping your external code to a new machine
 
   If you've modified %OpenMS itself and not used an external project you can just use our installer scripts,
-	to build your own %OpenMS installer for your platform (see our internal FAQ which is build using "make doc_internal") and ship that to a client machine.
+	to build your own %OpenMS installer for your platform (see our internal FAQ which is built using "make doc_internal") and ship that to a client machine.
 	
 	If you've used an external project and have a new executable (+ an optional new library), you can use the 
 	installer approach as well, and manually copy the new executable to the TOPP/UTILS binary directory (e.g. on

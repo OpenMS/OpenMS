@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <new> // std::nothrow
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -73,7 +74,7 @@ namespace OpenMS
       {
         std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
         std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to a 64 bit integer.");
       }
 
@@ -83,7 +84,7 @@ namespace OpenMS
         std::cerr << "Your system may not support addressing a file of this size,"
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
           " bit integer are supported on your system." << std::endl;
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to an integer on your system.");
       }
 
@@ -97,6 +98,11 @@ namespace OpenMS
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------
     std::ifstream f(filename.c_str());
+    if (!f.is_open())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
+
     // get length of file:
     f.seekg(0, f.end);
     std::streampos length = f.tellg();
@@ -111,10 +117,23 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Read full end of file to parse offsets for spectra and chroms
     //-------------------------------------------------------------
-    // read data as a block:
-    // allocate memory:
+    // read data as a block into a buffer
+
+    // allocate enough memory in buffer (+1 for string termination)
     std::streampos readl = length - indexoffset;
-    char* buffer = new char[ readl + std::streampos(1)];
+    char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
+
+    // catch case where not enough memory is available
+    if (buffer == NULL)
+    {
+      // Warning: Index takes up more than 10 % of the whole file, please check your input file." << std::endl;
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl; 
+      std::cerr << "IndexedMzMLDecoder::parseOffsets calculated index offset " << indexoffset << " and file length " << length << 
+        ", consequently tried to read into memory " << readl << " bytes." << std::endl;
+      return -1;
+    }
+
+    // read into memory
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
@@ -143,7 +162,7 @@ namespace OpenMS
 
     if (!f.is_open())
     {
-      return indexoffset;
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     // Read the last few bytes and hope our offset is there to be found
@@ -177,7 +196,7 @@ namespace OpenMS
         // free resources and re-throw
         delete[] buffer;
         f.close();
-        throw;
+        throw;  // re-throw conversion error
       }
     }
     else

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OpenMS_ANALYSIS_RNPXL_RNPxlMarkerIonExtractor
-#define OpenMS_ANALYSIS_RNPXL_RNPxlMarkerIonExtractor
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMARKERIONEXTRACTOR_H
+#define OPENMS_ANALYSIS_RNPXL_RNPXLMARKERIONEXTRACTOR_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 

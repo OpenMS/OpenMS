@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -64,27 +64,40 @@ END_SECTION
 // Create a test data set
 vector<double> x_axis(10);
 vector<double> y_axis(10);
+vector<double> y_axis0(10);
 vector<double> weight(10);
 for (int i=0; i < 10; ++i)
 {
   x_axis[i]=i;
   y_axis[i]=2*i+4;
+  y_axis0[i]=2*i; // no intercept
   weight[i]=1+i;
 }
 
-LinearRegression lin_reg;
+LinearRegression lin_reg, lin_reg2;
 
-START_SECTION((template < typename Iterator > void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
+START_SECTION((template < typename Iterator > void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, bool compute_goodness = true)))
   lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
   TEST_REAL_SIMILAR(lin_reg.getChiSquared(),0.0)
+
+  lin_reg2.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis0.begin());
+  TEST_REAL_SIMILAR(lin_reg2.getSlope(), 2.0)
+  TEST_REAL_SIMILAR(lin_reg2.getIntercept(), 0.0)
+  TEST_REAL_SIMILAR(lin_reg2.getChiSquared(), 0.0)
 END_SECTION
 
-START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
-  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin());
-  TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
-  TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
+START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, bool compute_goodness = true)))
+  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin(), false);
+  TEST_REAL_SIMILAR(lin_reg.getSlope(), 2.0)
+  TEST_REAL_SIMILAR(lin_reg.getIntercept(), 4.0)
+  lin_reg2.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis0.begin(),weight.begin(), false);
+  TEST_REAL_SIMILAR(lin_reg2.getSlope(), 2.0)
+  TEST_REAL_SIMILAR(lin_reg2.getIntercept(), 0.0)
+
+
+  lin_reg.computeRegressionWeighted(0.95,x_axis.begin(),x_axis.end(),y_axis.begin(),weight.begin(), true); // to get meta stats (tested below)
 END_SECTION
 
 START_SECTION((double getChiSquared() const))
@@ -134,13 +147,6 @@ END_SECTION
 START_SECTION((double getMeanRes() const))
   TEST_REAL_SIMILAR(lin_reg.getMeanRes(),0.0)
 END_SECTION
-
-//test with no intercept
-for (int i=0; i < 10; ++i)
-{
-  y_axis[i]=2*i;
-}
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -1,24 +1,39 @@
 ## This is an R script to produce the figures that are attached to the qcML format
+library("ggplot2")
+library(scales)
+options(warn=-1) #suppress warnings
 
 #options
 options(digits=10)
 
+file_p<-commandArgs(TRUE)[1]
+file_id<-commandArgs(TRUE)[2]
+post<-commandArgs(TRUE)[3]
+png(post)
+#file_p<-"/tmp/TOPPAS_out/024-QCExtractor-out_csv/old1.csv"
+#file_id<-"/tmp/TOPPAS_out/023-QCExtractor-out_csv/old1.csv"
+#precs<-read.table(file_p, header=TRUE, sep="", na.strings="NA", dec=".", strip.white=TRUE)
+#ids<-read.table(file_id, header=TRUE, sep="", na.strings="NA", dec=".", strip.white=TRUE)
+precs<-read.csv(file=file_p,head=TRUE,sep="\t")
+ids<-read.csv(file=file_id,head=TRUE,sep="\t")
+names(precs)<- c("RT", "MZ")
+names(ids)<- c("RT", "MZ", "Score", "PeptideSequence", "Charge", "TheoreticalWeight", "DeltaPpm")
+
 ##########################
 ###IDs on rt/mz map vs precursors
 ##########################
-file_p<-read.table(commandArgs(TRUE)[1], header=TRUE, sep="", na.strings="NA", dec=".", strip.white=TRUE)
-file_id<-read.table(commandArgs(TRUE)[2], header=TRUE, sep="", na.strings="NA", dec=".", strip.white=TRUE)
-post<-commandArgs(TRUE)[3]
 
-file_p$RT_.sec. = file_p$RT_.sec./60
-file_id$RT = file_id$RT/60
+spec<-cbind(precs[])
+id<-cbind(ids[,1:2])
+spec$color<-"is_recorded"
+id$color<-"is_identified"
+spec$rt<-as.POSIXct(as.character(0),format="%S")+spec$RT
+id$rt<-as.POSIXct(as.character(0),format="%S")+id$RT
 
-spec<-cbind(file_p,col=rep(1,length(file_p$RT_.sec.)))
-id<-cbind(file_id[,1:2],rep(2,length(file_id$RT)))
-all<-rbind(as.matrix(spec),as.matrix(id))
-
-png(post)
-plot(all,col=all[,3], xlab="RT[sec]", ylab="mz", pch=4, cex=0.3)
-legend("topleft",c("recorded spectra","identified spectra"),pch=19,col=c(1,2))
+ggplot(spec, aes(rt, MZ, color=color)) + 
+  geom_point() + 
+  geom_point(data=id, aes(rt, MZ, color=color)) +
+  xlab("RT (HH:MM)") 
 ######################################
-dev.off()
+garbage<-dev.off()
+

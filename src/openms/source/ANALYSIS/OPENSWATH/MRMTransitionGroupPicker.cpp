@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,10 +92,10 @@ namespace OpenMS
     min_peak_width_ = (double)param_.getValue("min_peak_width");
   }
 
-  double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& chromatogram, double best_left, double best_right)
+  double MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right)
   {
     // determine (in the chromatogram) the intensity at the left / right border
-    RichPeakChromatogram::const_iterator it = chromatogram.begin();
+    MSChromatogram<>::const_iterator it = chromatogram.begin();
     int nr_points = 0;
     for (; it != chromatogram.end(); ++it)
     {
@@ -129,7 +129,7 @@ namespace OpenMS
     return avg_noise_level * nr_points;
   }
 
-  void MRMTransitionGroupPicker::findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx)
+  void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram<> >& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
     ChromatogramPeak largest_pos;

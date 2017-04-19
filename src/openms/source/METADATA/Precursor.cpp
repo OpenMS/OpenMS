@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,7 @@ namespace OpenMS
     activation_energy_(0.0),
     window_low_(0.0),
     window_up_(0.0),
+    drift_time_(-1),
     charge_(0),
     possible_charge_states_()
   {
@@ -60,6 +61,7 @@ namespace OpenMS
     activation_energy_(source.activation_energy_),
     window_low_(source.window_low_),
     window_up_(source.window_up_),
+    drift_time_(source.drift_time_),
     charge_(source.charge_),
     possible_charge_states_(source.possible_charge_states_)
   {
@@ -80,6 +82,7 @@ namespace OpenMS
     activation_energy_ = source.activation_energy_;
     window_low_ = source.window_low_;
     window_up_ = source.window_up_;
+    drift_time_ = source.drift_time_;
     charge_ = source.charge_;
     possible_charge_states_ = source.possible_charge_states_;
 
@@ -92,6 +95,7 @@ namespace OpenMS
            activation_energy_ == rhs.activation_energy_ &&
            window_low_ == rhs.window_low_ &&
            window_up_ == rhs.window_up_ &&
+           drift_time_ == rhs.drift_time_ &&
            charge_ == rhs.charge_ &&
            possible_charge_states_ == rhs.possible_charge_states_ &&
            Peak1D::operator==(rhs) &&
@@ -135,6 +139,7 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowLowerOffset(double bound)
   {
+    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound));
     window_low_ = bound;
   }
 
@@ -145,7 +150,18 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowUpperOffset(double bound)
   {
+    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound));
     window_up_ = bound;
+  }
+
+  double Precursor::getDriftTime() const
+  {
+    return drift_time_;
+  }
+
+  void Precursor::setDriftTime(double drift_time)
+  {
+    drift_time_ = drift_time;
   }
 
   Int Precursor::getCharge() const

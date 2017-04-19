@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -44,12 +47,14 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
@@ -82,6 +87,7 @@
 
 
 //Qt
+#include <QtCore/QSettings>
 #include <QtCore/QDate>
 #include <QtCore/QDir>
 #include <QtCore/QTime>
@@ -289,6 +295,7 @@ namespace OpenMS
 
     //--Basic tool bar for all views--
     tool_bar_ = addToolBar("Basic tool bar");
+    tool_bar_->setObjectName("tool_bar");
 
     //intensity modes
     intensity_button_group_ = new QButtonGroup(tool_bar_);
@@ -345,6 +352,7 @@ namespace OpenMS
 
     //--1D toolbar--
     tool_bar_1d_ = addToolBar("1D tool bar");
+    tool_bar_1d_->setObjectName("1d_tool_bar");
 
     //draw modes 1D
     draw_group_1d_ = new QButtonGroup(tool_bar_1d_);
@@ -355,7 +363,7 @@ namespace OpenMS
     b->setToolTip("Peak mode");
     b->setShortcut(Qt::Key_I);
     b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are diplayed as sticks.");
+    b->setWhatsThis("1D Draw mode: Peaks<BR><BR>Peaks are displayed as sticks.");
     draw_group_1d_->addButton(b, Spectrum1DCanvas::DM_PEAKS);
     tool_bar_1d_->addWidget(b);
 
@@ -364,7 +372,7 @@ namespace OpenMS
     b->setToolTip("Raw data mode");
     b->setShortcut(Qt::Key_R);
     b->setCheckable(true);
-    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are diplayed as a continuous line.");
+    b->setWhatsThis("1D Draw mode: Raw data<BR><BR>Peaks are displayed as a continuous line.");
     draw_group_1d_->addButton(b, Spectrum1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
@@ -373,6 +381,7 @@ namespace OpenMS
 
     //--2D peak toolbar--
     tool_bar_2d_peak_ = addToolBar("2D peak tool bar");
+    tool_bar_2d_peak_->setObjectName("2d_tool_bar");
 
     dm_precursors_2d_ = tool_bar_2d_peak_->addAction(QIcon(":/precursors.png"), "Show fragment scan precursors");
     dm_precursors_2d_->setCheckable(true);
@@ -387,6 +396,7 @@ namespace OpenMS
 
     //--2D feature toolbar--
     tool_bar_2d_feat_ = addToolBar("2D feature tool bar");
+    tool_bar_2d_feat_->setObjectName("2d_feature_tool_bar");
 
     dm_hull_2d_ = tool_bar_2d_feat_->addAction(QIcon(":/convexhull.png"), "Show feature convex hull");
     dm_hull_2d_->setCheckable(true);
@@ -451,6 +461,7 @@ namespace OpenMS
 
     //--2D consensus toolbar--
     tool_bar_2d_cons_ = addToolBar("2D peak tool bar");
+    tool_bar_2d_cons_->setObjectName("2d_peak_tool_bar");
 
     dm_elements_2d_ = tool_bar_2d_cons_->addAction(QIcon(":/elements.png"), "Show consensus feature element positions");
     dm_elements_2d_->setCheckable(true);
@@ -460,6 +471,7 @@ namespace OpenMS
 
     //--2D identifications toolbar--
     tool_bar_2d_ident_ = addToolBar("2D identifications tool bar");
+    tool_bar_2d_ident_->setObjectName("2d_ident_tool_bar");
 
     dm_ident_2d_ = tool_bar_2d_ident_->addAction(QIcon(":/peptidemz.png"), "Use theoretical peptide mass for m/z positions (default: precursor mass)");
     dm_ident_2d_->setCheckable(true);
@@ -470,6 +482,7 @@ namespace OpenMS
     //################## Dock widgets #################
     // layer dock widget
     layer_dock_widget_ = new QDockWidget("Layers", this);
+    layer_dock_widget_->setObjectName("layer_dock_widget");
     addDockWidget(Qt::RightDockWidgetArea, layer_dock_widget_);
     layer_manager_ = new QListWidget(layer_dock_widget_);
     layer_manager_->setWhatsThis("Layer bar<BR><BR>Here the available layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.");
@@ -486,29 +499,30 @@ namespace OpenMS
 
     // Views dock widget
     views_dockwidget_ = new QDockWidget("Views", this);
+    views_dockwidget_->setObjectName("views_dock_widget");
     addDockWidget(Qt::RightDockWidgetArea, views_dockwidget_);
     views_tabwidget_ = new QTabWidget(views_dockwidget_);
     views_dockwidget_->setWidget(views_tabwidget_);
 
+    // create both controller for spectra and identification view
+    spectraview_behavior_ = new TOPPViewSpectraViewBehavior(this);
+    identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
+
+      // Hook-up controller and views for spectra inspection
     spectra_view_widget_ = new SpectraViewWidget();
     connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
     connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
     connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
-    connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
-    connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
+    connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), spectraview_behavior_, SLOT(activate1DSpectrum(int)));
+    connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), spectraview_behavior_, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
     connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
     connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
 
-    spectraview_behavior_ = new TOPPViewSpectraViewBehavior(this);
-    view_behavior_ = spectraview_behavior_;
-
+    // Hook-up controller and views for identification inspection
     spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
-    connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), this, SLOT(deactivate1DSpectrum(int)));
+    connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), identificationview_behavior_, SLOT(deactivate1DSpectrum(int)));
     connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-    // connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
-    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
-    //connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
-    identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
+    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), identificationview_behavior_, SLOT(activate1DSpectrum(int)));
     connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
@@ -524,8 +538,9 @@ namespace OpenMS
 
     // filter dock widget
     filter_dock_widget_ = new QDockWidget("Data filters", this);
+    filter_dock_widget_->setObjectName("filter_dock_widget");
     addDockWidget(Qt::RightDockWidgetArea, filter_dock_widget_);
-    QWidget* tmp_widget = new QWidget(); //dummy widget as QDockWidget takes only one widget
+    QWidget* tmp_widget = new QWidget(); // dummy widget as QDockWidget takes only one widget
     filter_dock_widget_->setWidget(tmp_widget);
 
     QVBoxLayout* vbl = new QVBoxLayout(tmp_widget);
@@ -546,6 +561,7 @@ namespace OpenMS
 
     //log window
     QDockWidget* log_bar = new QDockWidget("Log", this);
+    log_bar->setObjectName("log_bar");
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
     log_ = new QTextEdit(log_bar);
     log_->setReadOnly(true);
@@ -569,6 +585,10 @@ namespace OpenMS
 
     //update the menu
     updateMenu();
+
+    QSettings settings("OpenMS", "TOPPView");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
 
     topp_.process = 0;
 
@@ -624,6 +644,9 @@ namespace OpenMS
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
     ws_->closeAllWindows();
+    QSettings settings("OpenMS", "TOPPView");
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
     event->accept();
   }
 
@@ -685,14 +708,13 @@ namespace OpenMS
   }
 
   // static
-  UInt TOPPViewBase::countMS1Zeros(const ExperimentType& exp)
+  bool TOPPViewBase::hasMS1Zeros( const ExperimentType& exp )
   {
     if (!TOPPViewBase::containsMS1Scans(exp))
     {
-      return 0;
+      return false;
     }
 
-    UInt zeros = 0;
     for (Size i = 0; i != exp.size(); ++i)
     {
       if (exp[i].getMSLevel() != 1) // skip non MS1-level scans
@@ -701,14 +723,13 @@ namespace OpenMS
       }
       for (Size j = 0; j != exp[i].size(); ++j)
       {
-        double intensity = exp[i][j].getIntensity();
-        if (intensity == 0.0)
+        if (exp[i][j].getIntensity() == 0.0)
         {
-          zeros++;
+          return true;
         }
       }
     }
-    return zeros;
+    return false;
   }
 
   // static
@@ -1092,7 +1113,7 @@ namespace OpenMS
         IdXMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
         }
         // check if RT (and sequence) information is present:
         vector<PeptideIdentification> peptides_with_rt;
@@ -1114,7 +1135,40 @@ namespace OpenMS
         }
         if (peptides_with_rt.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
+        }
+        peptides.swap(peptides_with_rt);
+        data_type = LayerData::DT_IDENT;
+      }
+      else if (file_type == FileTypes::MZIDENTML)
+      {
+        vector<ProteinIdentification> proteins; // not needed later
+        MzIdentMLFile().load(abs_filename, proteins, peptides);
+        if (peptides.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
+        }
+        // check if RT (and sequence) information is present:
+        vector<PeptideIdentification> peptides_with_rt;
+        for (vector<PeptideIdentification>::const_iterator it =
+               peptides.begin(); it != peptides.end(); ++it)
+        {
+          if (!it->getHits().empty() && it->hasRT())
+          {
+            peptides_with_rt.push_back(*it);
+          }
+        }
+        Size diff = peptides.size() - peptides_with_rt.size();
+        if (diff)
+        {
+          String msg = String(diff) + " peptide identification(s) without"
+                                      " sequence and/or retention time information were removed.\n" +
+                       peptides_with_rt.size() + " peptide identification(s) remaining.";
+          showLogMessage_(LS_WARNING, "While loading file:", msg);
+        }
+        if (peptides_with_rt.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
@@ -1311,15 +1365,14 @@ namespace OpenMS
         }
         else // no mower, hide zeros if wanted
         {
-          Int n_zeros = TOPPViewBase::countMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData()));
-          if (n_zeros > 0)
+          if (TOPPViewBase::hasMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData())))
           {
             //create filter
             DataFilters::DataFilter filter;
             filter.field = DataFilters::INTENSITY;
             filter.op = DataFilters::GREATER_EQUAL;
             filter.value = 0.001;
-            QMessageBox::question(this, "Note:", "Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
+            statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
             ///add filter
             DataFilters filters;
             filters.add(filter);
@@ -1567,21 +1620,6 @@ namespace OpenMS
     if (w)
     {
       intensity_button_group_->button(index)->setChecked(true);
-      Spectrum2DWidget* w2d = dynamic_cast<Spectrum2DWidget*>(w);
-      // 2D widget and intensity mode changed?
-      if (w2d && w2d->canvas()->getIntensityMode() != index)
-      {
-        if (index == OpenMS::SpectrumCanvas::IM_LOG)
-        {
-          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString());
-          w2d->canvas()->recalculateCurrentLayerDotGradient();
-        }
-        else if (index != OpenMS::SpectrumCanvas::IM_LOG)
-        {
-          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLinearIntensityMode().toString());
-          w2d->canvas()->recalculateCurrentLayerDotGradient();
-        }
-      }
       w->setIntensityMode((OpenMS::SpectrumCanvas::IntensityModes)index);
     }
   }
@@ -1717,7 +1755,7 @@ namespace OpenMS
       }
       else
       {
-        showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__, "Button for intensity mode does not exist");
+        showLogMessage_(LS_ERROR, OPENMS_PRETTY_FUNCTION, "Button for intensity mode does not exist");
       }
     }
 
@@ -1899,34 +1937,31 @@ namespace OpenMS
 
   void TOPPViewBase::viewChanged(int tab_index)
   {
-    // notify that behavior will be deactivated
-    view_behavior_->deactivateBehavior();
-
     // set new behavior
     if (views_tabwidget_->tabText(tab_index) == "Scan view")
     {
+      identificationview_behavior_->deactivateBehavior(); // finalize old behavior
       layer_dock_widget_->show();
       filter_dock_widget_->show();
-      view_behavior_ = spectraview_behavior_;
+      spectraview_behavior_->activateBehavior(); // initialize new behavior
     }
     else if (views_tabwidget_->tabText(tab_index) == "Identification view")
     {
+      spectraview_behavior_->deactivateBehavior();
       layer_dock_widget_->show();
       filter_dock_widget_->show();
       if (getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
       }
-      view_behavior_ = identificationview_behavior_;
+      identificationview_behavior_->activateBehavior();
     }
     else
     {
       cerr << "Error: tab_index " << tab_index << endl;
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    // notify that new behavior has been activated
-    view_behavior_->activateBehavior();
     updateViewBar();
   }
 
@@ -1976,7 +2011,7 @@ namespace OpenMS
       //rename layer
       else if (selected != 0 && selected->text() == "Rename")
       {
-        QString name = QInputDialog::getText(this, "Rename layer", "Name:");
+        QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, getActiveCanvas()->getLayerName(layer).toQString());
         if (name != "")
         {
           getActiveCanvas()->setLayerName(layer, name);
@@ -2466,33 +2501,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::activate1DSpectrum(int index)
-  {
-    Spectrum1DWidget* w = getActive1DWidget();
-    if (w)
-    {
-      view_behavior_->activate1DSpectrum(index);
-    }
-  }
-
-  void TOPPViewBase::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
-  {
-    Spectrum1DWidget* w = getActive1DWidget();
-    if (w)
-    {
-      view_behavior_->activate1DSpectrum(indices);
-    }
-  }
-
-  void TOPPViewBase::deactivate1DSpectrum(int index)
-  {
-    Spectrum1DWidget* w = getActive1DWidget();
-    if (w)
-    {
-      view_behavior_->deactivate1DSpectrum(index);
-    }
-  }
-
   EnhancedWorkspace* TOPPViewBase::getWorkspace() const
   {
     return ws_;
@@ -2519,32 +2527,17 @@ namespace OpenMS
 
   Spectrum1DWidget* TOPPViewBase::getActive1DWidget() const
   {
-    Spectrum1DWidget* w = qobject_cast<Spectrum1DWidget*>(getActiveSpectrumWidget());
-    if (!w)
-    {
-      return 0;
-    }
-    return w;
+    return qobject_cast<Spectrum1DWidget*>(getActiveSpectrumWidget());
   }
 
   Spectrum2DWidget* TOPPViewBase::getActive2DWidget() const
   {
-    Spectrum2DWidget* w = qobject_cast<Spectrum2DWidget*>(getActiveSpectrumWidget());
-    if (!w)
-    {
-      return 0;
-    }
-    return w;
+    return qobject_cast<Spectrum2DWidget*>(getActiveSpectrumWidget());
   }
 
   Spectrum3DWidget* TOPPViewBase::getActive3DWidget() const
   {
-    Spectrum3DWidget* w = qobject_cast<Spectrum3DWidget*>(getActiveSpectrumWidget());
-    if (!w)
-    {
-      return 0;
-    }
-    return w;
+    return qobject_cast<Spectrum3DWidget*>(getActiveSpectrumWidget());
   }
 
   void TOPPViewBase::loadPreferences(String filename)
@@ -2982,9 +2975,9 @@ namespace OpenMS
     {
       IDMapper im;
       Param p = im.getParameters();
-      p.setValue("rt_tolerance", 5.0);
+      p.setValue("rt_tolerance", 30.0);
       im.setParameters(p);
-      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 5 sec tolerance and no m/z limit to spectra...");
+      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
       im.annotate((*layer.getPeakData()), identifications, true, true);
     }
     else
@@ -2993,7 +2986,6 @@ namespace OpenMS
     }
     return true;
   }
-
 
   void TOPPViewBase::annotateWithID()
   {
@@ -3009,7 +3001,8 @@ namespace OpenMS
     QString fname = QFileDialog::getOpenFileName(this,
                                                 "Select protein/AMT identification data",
                                                 current_path_.toQString(),
-                                                "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
+                                                "idXML files (*.idXML); mzIdentML files (*.mzid,*.mzIdentML); featureXML files (*.featureXML); all files (*.*)");
+
     if (fname.isEmpty()) return;
 
     FileTypes::Type type = FileHandler::getType(fname);
@@ -3073,7 +3066,42 @@ namespace OpenMS
         mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
       }
     }
-    else // file type other than idXML or featureXML
+    else if (type == FileTypes::MZIDENTML)
+    {
+      vector<PeptideIdentification> identifications;
+      vector<ProteinIdentification> protein_identifications;
+
+      try
+      {
+        MzIdentMLFile().load(fname, protein_identifications, identifications);
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
+        return;
+      }
+
+      IDMapper mapper;
+      if (layer.type == LayerData::DT_PEAK)
+      {
+        Param p = mapper.getDefaults();
+        p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+        p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+        p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+        mapper.setParameters(p);
+        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications, true);
+        views_tabwidget_->setTabEnabled(1, true); // enable identification view
+      }
+      else if (layer.type == LayerData::DT_FEATURE)
+      {
+        mapper.annotate(*layer.getFeatureMap(), identifications, protein_identifications);
+      }
+      else
+      {
+        mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
+      }
+    }
+    else // file type other than mzIdentML, idXML or featureXML
     {
       QMessageBox::warning(this, "Error", QString("Unknown file type. No annotation performed."));
       return;
@@ -3420,8 +3448,6 @@ namespace OpenMS
       {
         spectraview_behavior_->showSpectrumAs1D(indices);
       }
-
-
     }
     else if (widget_2d)
     {
@@ -3429,7 +3455,6 @@ namespace OpenMS
       {
         spectraview_behavior_->showSpectrumAs1D(indices);
       }
-
 
     }
 
@@ -3559,7 +3584,7 @@ namespace OpenMS
                            "Version: %1%2<BR>"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
-                           "BSD 3-Clause Licence (BSD-new)<BR>"
+                           "BSD 3-Clause License (BSD-new)<BR>"
                            "<BR>"
                            "<BR>"
                            "<BR>"

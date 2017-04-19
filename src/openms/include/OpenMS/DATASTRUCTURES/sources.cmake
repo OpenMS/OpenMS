@@ -6,6 +6,7 @@ set(sources_list_h
 Adduct.h
 BigString.h
 BinaryTreeNode.h
+CalibrationData.h
 ChargePair.h
 Compomer.h
 ConstRefVector.h
@@ -25,6 +26,7 @@ DefaultParamHandler.h
 DistanceMatrix.h
 GridFeature.h
 IsotopeCluster.h
+KDTree.h
 ListUtils.h
 ListUtilsIO.h
 Map.h
@@ -37,11 +39,6 @@ SparseVector.h
 String.h
 StringUtils.h
 StringListUtils.h
-SuffixArray.h
-SuffixArrayPeptideFinder.h
-SuffixArraySeqan.h
-SuffixArrayTrypticCompressed.h
-SuffixArrayTrypticSeqan.h
 ToolDescription.h
 LPWrapper.h
 )

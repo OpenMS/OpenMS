@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,11 +106,13 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     addEmptyLine_();
-    registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied.", false, false);
-    setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,quantile"));
+    registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied. 'robust_regression' scales each map by a fator computed from the ratios of non-differential background features (as determined by the ratio_threshold parameter), 'quantile' performs quantile normalization, 'median' scales all maps to the same median intensity, 'median_shift' shifts the median instead of scaling (WARNING: if you have regular, log-normal MS data, 'median_shift' is probably the wrong choice. Use only if you know what you're doing!)", false, false);
+    setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,median_shift,quantile"));
     registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
     setMinFloat_("ratio_threshold", 0.001);
     setMaxFloat_("ratio_threshold", 1.0);
+    registerStringOption_("accession_filter", "<regexp>", "", "Use only features with accessions (partially) matching this regular expression for computing the normalization factors. Useful, e.g., if you have known house keeping proteins in your samples. When this parameter is empty or the regular expression matches the empty string, all features are used (even those without an ID). No effect if quantile normalization is used.", false, true);
+    registerStringOption_("description_filter", "<regexp>", "", "Use only features with description (partially) matching this regular expression for computing the normalization factors. Useful, e.g., if you have known house keeping proteins in your samples. When this parameter is empty or the regular expression matches the empty string, all features are used (even those without an ID). No effect if quantile normalization is used.", false, true);
   }
 
   ExitCodes main_(int, const char **)
@@ -118,6 +120,8 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String algo_type = getStringOption_("algorithm_type");
+    String acc_filter = getStringOption_("accession_filter");
+    String desc_filter = getStringOption_("description_filter");
     double ratio_threshold = getDoubleOption_("ratio_threshold");
 
     ConsensusXMLFile infile;
@@ -129,15 +133,23 @@ protected:
     if (algo_type == "robust_regression")
     {
       map.sortBySize();
-      vector<double> results = ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(map, ratio_threshold);
+      vector<double> results = ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(map, ratio_threshold, acc_filter, desc_filter);
       ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(map, results);
     }
     else if (algo_type == "median")
     {
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map);
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, acc_filter, desc_filter);
+    }
+    else if (algo_type == "median_shift")
+    {
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(map, ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, acc_filter, desc_filter);
     }
     else if (algo_type == "quantile")
     {
+      if (acc_filter != "" || desc_filter != "")
+      {
+        LOG_WARN << endl << "NOTE: Accession / description filtering is not supported in quantile normalization mode. Ignoring filters." << endl << endl;
+      }
       ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(map);
     }
     else
@@ -152,7 +164,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 

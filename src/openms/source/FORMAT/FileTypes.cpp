@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -100,6 +100,7 @@ namespace OpenMS
     targetMap[FileTypes::TOPPAS] = "toppas";
     targetMap[FileTypes::TRANSFORMATIONXML] = "trafoXML";
     targetMap[FileTypes::MZML] = "mzML";
+    targetMap[FileTypes::CACHEDMZML] = "cachedMzML";
     targetMap[FileTypes::MS2] = "ms2";
     targetMap[FileTypes::PEPXML] = "pepXML";
     targetMap[FileTypes::PROTXML] = "protXML";
@@ -129,6 +130,7 @@ namespace OpenMS
     targetMap[FileTypes::PSQ] = "psq";
     targetMap[FileTypes::MRM] = "mrm";
     targetMap[FileTypes::PSMS] = "psms";
+    targetMap[FileTypes::PARAMXML] = "paramXML";
 
     return targetMap;
   }

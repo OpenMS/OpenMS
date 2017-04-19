@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,10 +112,10 @@ START_SECTION((ItraqChannelExtractor& operator=(const ItraqChannelExtractor &rhs
 }
 END_SECTION
 
-START_SECTION((void run(const MSExperiment< Peak1D > &ms_exp_data, ConsensusMap &consensus_map)))
+START_SECTION((void run(const PeakMap &ms_exp_data, ConsensusMap &consensus_map)))
 {
 	MzDataFile mz_data_file;
-	MSExperiment<Peak1D > exp;
+	PeakMap exp;
 	mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"),exp);
 	Param p;
 	p.setValue("channel_active", ListUtils::create<String>("114:ref,115:something,116:else"));

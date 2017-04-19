@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,7 +117,7 @@ public:
        violated and @ref force_constraints_ is true).
     */
     std::pair<bool, double> operator()(const BaseFeature & left,
-                                           const BaseFeature & right);
+                                       const BaseFeature & right);
 
 protected:
 
@@ -133,7 +133,7 @@ protected:
         {
           max_diff_ppm = (param.getValue("unit") == "ppm");
         }
-        else 
+        else
         {
           max_diff_ppm = false;
         }
@@ -174,6 +174,9 @@ protected:
 
     /// Always return @ref infinity if "max. difference" constraints are not met?
     bool force_constraints_;
+
+    /// Log-transform intensities when computing intensity distance?
+    bool log_transform_;
   };
 
 } // namespace OpenMS

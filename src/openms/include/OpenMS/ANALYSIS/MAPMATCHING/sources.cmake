@@ -10,12 +10,13 @@ ConsensusMapNormalizerAlgorithmMedian.h
 ConsensusMapNormalizerAlgorithmQuantile.h
 FeatureDistance.h
 FeatureGroupingAlgorithm.h
-FeatureGroupingAlgorithmIdentification.h
 FeatureGroupingAlgorithmLabeled.h
+FeatureGroupingAlgorithmKD.h
 FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
 LabeledPairFinder.h
 MapAlignmentAlgorithmIdentification.h
+MapAlignmentAlgorithmKD.h
 MapAlignmentAlgorithmPoseClustering.h
 MapAlignmentAlgorithmSpectrumAlignment.h
 MapAlignmentEvaluationAlgorithm.h
@@ -31,6 +32,7 @@ TransformationDescription.h
 TransformationModel.h
 TransformationModelBSpline.h
 TransformationModelLinear.h
+TransformationModelLowess.h
 TransformationModelInterpolated.h
 )
 

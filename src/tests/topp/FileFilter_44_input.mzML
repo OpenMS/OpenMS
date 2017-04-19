@@ -74,6 +74,46 @@
               <binary>57h9NJ4keUA0c267qSR5QCtGWEx2jHlA7SMB64GMeUCvAaqJjYx5QOODVSiZjHlAiKoDx6SMeUBzReLpEgx8QNzomRYfDHxARYxRQysMfEDSXBqnSVx8QGpyLuVVXHxAAohCI2JcfED02BwZdRt+QM2wQ7aBG35ApohqU44bfkCVad5qpHWAQK07KAOrdYBA</binary>
             </binaryDataArray>
             <binaryDataArray encodedLength="28">
+                <!-- note that according to the standard, either MS:1000521 (32 bit) or MS:1000521 (64 bit) is required here,
+                     but we also want to be able to parse invalid files -->
+              <cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <binary>WrOIWrNas1N3iFqziFqziFqziFqz</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="0" id="sample=2 period=2 cycle=2 experiment=2" defaultArrayLength="18">
+          <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" value=""/>
+          <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907.0" unitCvRef="MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+          <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981167" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+          <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585.0" unitCvRef="MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+          <scanList count="1">
+            <cvParam cvRef="MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="0.00455" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+              <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="1"/>
+              <scanWindowList count="1">
+                <scanWindow>
+                  <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400.0" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+                  <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1500.0" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+                </scanWindow>
+              </scanWindowList>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="192">
+              <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+              <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <binary>57h9NJ4keUA0c267qSR5QCtGWEx2jHlA7SMB64GMeUCvAaqJjYx5QOODVSiZjHlAiKoDx6SMeUBzReLpEgx8QNzomRYfDHxARYxRQysMfEDSXBqnSVx8QGpyLuVVXHxAAohCI2JcfED02BwZdRt+QM2wQ7aBG35ApohqU44bfkCVad5qpHWAQK07KAOrdYBA</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="28">
+                <!-- note that using MS:1000521 (32 bit) instead of MS:1000521 (64 bit) is invalid or at least highly 
+                     inconsistent here as numpress arrays are always 64 bit, but we also want to be able to parse invalid files -->
+              <cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" value=""/>
               <cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" value=""/>
               <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
               <binary>WrOIWrNas1N3iFqziFqziFqziFqz</binary>

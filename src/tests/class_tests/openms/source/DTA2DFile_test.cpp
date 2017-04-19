@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -85,7 +86,7 @@ END_SECTION
 START_SECTION((template<typename MapType> void load(const String& filename, MapType& map) ))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	DTA2DFile file;
 
 	//test exception
@@ -111,7 +112,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_STRING_EQUAL(e[7].getNativeID(),"index=7")
 	TEST_STRING_EQUAL(e[8].getNativeID(),"index=8")
 
-	MSExperiment<>::const_iterator it(e.begin());
+	PeakMap::const_iterator it(e.begin());
 	TEST_REAL_SIMILAR((*it)[0].getPosition()[0], 230.02)
 	TEST_REAL_SIMILAR(it->getRT(), 4711.1)
 	TEST_REAL_SIMILAR((*it)[0].getIntensity(), 47218.89)
@@ -221,12 +222,12 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(it2->getIntensity(), 73629.98)
 
 
-	MSExperiment<> e3;
+	PeakMap e3;
 	file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e3);
 	TEST_EQUAL(e3.size(), 9);
 	ABORT_IF(e3.size() != 9)
 
-	MSExperiment<>::const_iterator it3(e3.begin());
+	PeakMap::const_iterator it3(e3.begin());
 	TEST_EQUAL(it3->size(), 3);
 	ABORT_IF(it3->size() != 3)
 	TEST_REAL_SIMILAR(it3->getRT(), 4711.1)
@@ -278,7 +279,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR((*it3)[0].getIntensity(), 73629.98)
 
 	//test with header and minutes instead of seconds
-  MSExperiment<> e4;
+  PeakMap e4;
   file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_3.dta2d"),e4);
   TEST_EQUAL(e4.size(),9)
 	TEST_REAL_SIMILAR(e4[0].getRT(), 282666)
@@ -287,23 +288,19 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e4[3].getRT(), 282684)
 	TEST_REAL_SIMILAR(e4[4].getRT(), 282690)
 
-	//test if it works with different peak types
-	MSExperiment<RichPeak1D> e_rich;
-  file.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_3.dta2d"),e_rich);
-
 END_SECTION
 
 START_SECTION((template<typename MapType> void store(const String& filename, const MapType& map) const ))
 	TOLERANCE_ABSOLUTE(0.1)
 	std::string tmp_filename;
-  MSExperiment<> e;
+  PeakMap e;
   DTA2DFile f;
 
   NEW_TMP_FILE(tmp_filename);
   f.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 	f.store(tmp_filename,e);
 
-	MSExperiment<> e2;
+	PeakMap e2;
 	f.load(tmp_filename,e2);
 	std::vector<Peak2D> array;
 	e2.get2DData(array);
@@ -366,7 +363,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
 	TEST_REAL_SIMILAR(it2->getRT(), 4711.9)
 	TEST_REAL_SIMILAR(it2->getIntensity(), 73629.98)
 
-	MSExperiment<> e3;
+	PeakMap e3;
 	f.load(tmp_filename,e3);
 	std::vector<Peak2D > array2;
 	e2.get2DData(array2);
@@ -435,14 +432,14 @@ END_SECTION
 START_SECTION((template<typename MapType> void storeTIC(const String& filename, const MapType& map) const ))
 	TOLERANCE_ABSOLUTE(0.1)
 	std::string tmp_filename;
-  MSExperiment<> e;
+  PeakMap e;
   DTA2DFile f;
 
   NEW_TMP_FILE(tmp_filename);
   f.load(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"),e);
 	f.storeTIC(tmp_filename,e);
 
-	MSExperiment<> e2;
+	PeakMap e2;
 	f.load(tmp_filename,e2);
 	std::vector<Peak2D> array;
 	e2.get2DData(array);
@@ -499,7 +496,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with RT range))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	DTA2DFile file;
 
 	file.getOptions().setRTRange(makeRange(4711.15, 4711.45));
@@ -527,7 +524,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with MZ range))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	DTA2DFile file;
 
 	file.getOptions().setMZRange(makeRange(150, 220));
@@ -565,7 +562,7 @@ END_SECTION
 START_SECTION(([EXTRA] load with intensity range))
 	TOLERANCE_ABSOLUTE(0.01)
 
-	MSExperiment<> e;
+	PeakMap e;
 	DTA2DFile file;
 
 	file.getOptions().setIntensityRange(makeRange(30000, 70000));

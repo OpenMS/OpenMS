@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -51,7 +51,7 @@ namespace OpenMS
           This class represents a modification of a residue. A residue modification
           has several attributes like the diff formula, a terminal specificity
           a mass and maybe an origin which means a specific residue which it can
-          be applied to. A residue modification can be represented by its UniMod name
+          be applied to. A residue modification can be represented by its Unimod name
           identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
           only occurs once in an OpenMS instance stored in the ModificationsDB.
 
@@ -80,9 +80,8 @@ public:
 
             This does not describe the amino acids which are valid for a
             specific amino acid!
-
     */
-    enum Term_Specificity
+    enum TermSpecificity
     {
       ANYWHERE = 0,
       C_TERM = 1,
@@ -93,9 +92,8 @@ public:
     };
 
     /** @brief Classification of the modification
-
     */
-    enum Source_Classification
+    enum SourceClassification
     {
       ARTIFACT = 0,
       HYPOTHETICAL,
@@ -117,8 +115,6 @@ public:
     };
     //@}
 
-
-
     /** @name Constructors and Destructors
     */
     //@{
@@ -126,7 +122,7 @@ public:
     ResidueModification();
 
     /// copy constructor
-    ResidueModification(const ResidueModification & modification);
+    ResidueModification(const ResidueModification& modification);
 
     /// destructor
     virtual ~ResidueModification();
@@ -136,77 +132,108 @@ public:
     */
     //@{
     /// assignment operator
-    ResidueModification & operator=(const ResidueModification & modification);
+    ResidueModification& operator=(const ResidueModification& modification);
     //@}
 
     /** @name Accessors
     */
     //@{
     /// set the identifier of the modification
-    void setId(const String & id);
+    void setId(const String& id);
 
     /// returns the identifier of the modification
-    const String & getId() const;
+    const String& getId() const;
 
-    /// set full identifier (UniMod Accession + origin, if available)
-    void setFullId(const String & full_id);
+    /**
+       @brief Sets the full identifier (Unimod Accession + origin, if available)
 
-    /// returns the full id of the mod (UniMod accession + origin, if available)
-    const String & getFullId() const;
+       With empty argument, create a full ID based on (short) ID, terminal specificity and residue of origin.
 
-    /// sets the unimod accession
-    void setUniModAccession(const String & id);
+       @throw Exception::MissingInformation if both argument @p full_id and member @p id_ are empty.
+    */
+    void setFullId(const String& full_id = "");
+
+    /// returns the full identifier of the mod (Unimod accession + origin, if available)
+    const String& getFullId() const;
+
+    /// sets the unimod record id
+    void setUniModRecordId(const Int& id);
+
+    /// sets the unimod record id
+    const Int& getUniModRecordId() const;
 
     /// returns the unimod accession if available
-    const String & getUniModAccession() const;
+    const String getUniModAccession() const;
 
     /// set the MOD:XXXXX accession of PSI-MOD
-    void setPSIMODAccession(const String & id);
+    void setPSIMODAccession(const String& id);
 
     /// returns the PSI-MOD accession if available
-    const String & getPSIMODAccession() const;
+    const String& getPSIMODAccession() const;
 
     /// sets the full name of the modification
-    void setFullName(const String & full_name);
+    void setFullName(const String& full_name);
 
     /// returns the full name of the modification
-    const String & getFullName() const;
+    const String& getFullName() const;
 
     /// sets the name of modification
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the PSI-MS-label if available; e.g. Mascot uses this name
-    const String & getName() const;
+    const String& getName() const;
 
-    /// sets the term specificity
-    void setTermSpecificity(Term_Specificity term_spec);
+    /**
+       @brief Sets the term specificity
 
-    /// sets the terminal specificity using a name (valid: "C-term","N-term","none")
-    void setTermSpecificity(const String & name);
+       @throw Exception::InvalidValue if no valid specificity was given
+    */
+    void setTermSpecificity(TermSpecificity term_spec);
+
+    /**
+       @brief Sets the terminal specificity using a name
+
+       Valid names: "C-term", "N-term", "none"
+      
+       @throw Exception::InvalidValue if no valid specificity was given
+    */
+    void setTermSpecificity(const String& name);
 
     /// returns terminal specificity
-    Term_Specificity getTermSpecificity() const;
+    TermSpecificity getTermSpecificity() const;
 
-    /// returns the terminal specificity name which is set or given as parameter
-    String getTermSpecificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
+    /**
+       @brief Returns the name of the terminal specificity
 
-    ///sets the origin (i.e. amino acid)
-    void setOrigin(const String & origin);
+       By default, returns the name of the specificity set in member @p term_spec_.
+       Alternatively, returns the name corresponding to argument @p term_spec.
+    */
+    String getTermSpecificityName(TermSpecificity term_spec = NUMBER_OF_TERM_SPECIFICITY) const;
 
-    /// returns the origin (i.e. amino acid) if set
-    const String & getOrigin() const;
+    /**
+       @brief Sets the origin (i.e. modified amino acid)
+
+       @p origin must be a valid amino acid one-letter code or X, i.e. a letter from A to Y, excluding B and J.
+       X represents any amino acid (for modifications with terminal specificity).
+
+       @throw Exception::InvalidValue if @p origin is not in the valid range
+    */
+    void setOrigin(char origin);
+
+    /// Returns the origin (i.e. modified amino acid)
+    char getOrigin() const;
 
     /// classification as defined by the PSI-MOD
-    void setSourceClassification(const String & classification);
+    void setSourceClassification(const String& classification);
 
     /// sets the source classification
-    void setSourceClassification(Source_Classification classification);
+    void setSourceClassification(SourceClassification classification);
 
     /// returns the source classification, if none was set, it is unspecific
-    Source_Classification getSourceClassification() const;
+    SourceClassification getSourceClassification() const;
 
     /// returns the classification
-    String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
+    String getSourceClassificationName(SourceClassification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 
     /// sets the average mass
     void setAverageMass(double mass);
@@ -233,31 +260,31 @@ public:
     double getDiffMonoMass() const;
 
     /// set the formula
-    void setFormula(const String & composition);
+    void setFormula(const String& composition);
 
     /// returns the chemical formula if set
-    const String & getFormula() const;
+    const String& getFormula() const;
 
     /// sets diff formula
-    void setDiffFormula(const EmpiricalFormula & diff_formula);
+    void setDiffFormula(const EmpiricalFormula& diff_formula);
 
     /// returns the diff formula if one was set
-    const EmpiricalFormula & getDiffFormula() const;
+    const EmpiricalFormula& getDiffFormula() const;
 
     /// sets the synonyms of that modification
-    void setSynonyms(const std::set<String> & synonyms);
+    void setSynonyms(const std::set<String>& synonyms);
 
     /// adds a synonym to the unique list
-    void addSynonym(const String & synonym);
+    void addSynonym(const String& synonym);
 
     /// returns the set of synonyms
-    const std::set<String> & getSynonyms() const;
+    const std::set<String>& getSynonyms() const;
 
     /// sets the neutral loss formula
-    void setNeutralLossDiffFormula(const EmpiricalFormula & loss);
+    void setNeutralLossDiffFormula(const EmpiricalFormula& loss);
 
     /// returns the neutral loss diff formula (if available)
-    const EmpiricalFormula & getNeutralLossDiffFormula() const;
+    const EmpiricalFormula& getNeutralLossDiffFormula() const;
 
     /// set the neutral loss mono weight
     void setNeutralLossMonoMass(double mono_mass);
@@ -279,10 +306,10 @@ public:
     bool hasNeutralLoss() const;
 
     /// equality operator
-    bool operator==(const ResidueModification & modification) const;
+    bool operator==(const ResidueModification& modification) const;
 
     /// inequality operator
-    bool operator!=(const ResidueModification & modification) const;
+    bool operator!=(const ResidueModification& modification) const;
     //@}
 
 protected:
@@ -293,17 +320,18 @@ protected:
 
     String psi_mod_accession_;
 
-    String unimod_accession_;
+    // The UniMod record id (an integer)
+    Int unimod_record_id_;
 
     String full_name_;
 
     String name_;
 
-    Term_Specificity term_spec_;
+    TermSpecificity term_spec_;
 
-    String origin_;
+    char origin_;
 
-    Source_Classification classification_;
+    SourceClassification classification_;
 
     double average_mass_;
 
@@ -327,4 +355,4 @@ protected:
   };
 }
 
-#endif
+#endif // OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Mathias Walzer $
+// $Authors: Lars Nilse, Timo Sachsenberg, Samuel Wein, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -57,6 +57,9 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
@@ -153,10 +156,11 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  String spectrum_type_;
   String averagine_type_;
 
   // section "labels"
-  map<String, double> label_massshift_;
+  map<String, double> label_mass_shift_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -213,45 +217,26 @@ public:
       defaults.setValue("averagine_similarity_scaling", 0.75, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("averagine_similarity_scaling", 0.0);
       defaults.setMaxFloat("averagine_similarity_scaling", 1.0);
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
+      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
-      defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide");
-      defaults.setValidStrings("averagine_type", ListUtils::create<String>("RNA,peptide,DNA"));
+      defaults.setValue("spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. 'automatic' determines the spectrum type directly from the input mzML file.", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
+      defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     }
 
     if (section == "labels")
     {
-      // create labels that can be chosen in section "algorithm/labels"
-      defaults.setValue("Arg6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.008268600, "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg10", 0.0);
-      defaults.setValue("Lys4", 4.0251069836, "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys4", 0.0);
-      defaults.setValue("Lys6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys6", 0.0);
-      defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("Dimethyl0", 28.031300, "Dimethyl  |  H(4) C(2)  |  unimod #36", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl0", 0.0);
-      defaults.setValue("Dimethyl4", 32.056407, "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl4", 0.0);
-      defaults.setValue("Dimethyl6", 34.063117, "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl6", 0.0);
-      defaults.setValue("Dimethyl8", 36.075670, "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl8", 0.0);
-      defaults.setValue("ICPL0", 105.021464, "ICPL  |  H(3) C(6) N O  |  unimod #365", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL0", 0.0);
-      defaults.setValue("ICPL4", 109.046571, "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL4", 0.0);
-      defaults.setValue("ICPL6", 111.041593, "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL6", 0.0);
-      defaults.setValue("ICPL10", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL10", 0.0);
-      //defaults.setValue("18O", 2.004246, "Label:18O(1)  |  O(-1) 18O  |  unimod #258", ListUtils::create<String>("advanced"));
-      //defaults.setMinFloat("18O", 0.0);
+      MultiplexDeltaMassesGenerator generator;
+      Param p = generator.getParameters();
+      
+      for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
+      {
+        defaults.setValue(it->name, it->value, it->description, ListUtils::create<String>("advanced"));
+        defaults.setMinFloat(it->name, 0.0);
+      }
     }
 
     return defaults;
@@ -309,6 +294,7 @@ public:
     averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
+    spectrum_type_ = getParam_().getValue("algorithm:spectrum_type");
     averagine_type_ = getParam_().getValue("algorithm:averagine_type");
   }
 
@@ -317,267 +303,13 @@ public:
    */
   void getParameters_labels_()
   {
+    Param p = getParam_();
+    
     // create map of pairs (label as string, mass shift as double)
-    label_massshift_.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
-    label_massshift_.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
-    label_massshift_.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
-    label_massshift_.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
-    label_massshift_.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_massshift_.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
-    label_massshift_.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
-    label_massshift_.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
-    label_massshift_.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
-    label_massshift_.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
-    label_massshift_.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
-    label_massshift_.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
-    label_massshift_.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
-  }
-
-  /**
-   * @brief generate list of mass patterns
-   *
-   * @return list of mass patterns
-   */
-  std::vector<MassPattern> generateMassPatterns_()
-  {
-    // SILAC, Dimethyl, ICPL or no labelling ??
-
-    bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
-    bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
-    bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
-    bool labelling_none = labels_.empty() || (labels_ == "[]") || (labels_ == "()") || (labels_ == "{}");
-
-    bool SILAC = (labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool Dimethyl = (!labelling_SILAC && labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool ICPL = (!labelling_SILAC && !labelling_Dimethyl && labelling_ICPL && !labelling_none);
-    bool none = (!labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && labelling_none);
-
-    if (!(SILAC || Dimethyl || ICPL || none))
+    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
-    }
-
-    // debug output labels
-    cout << "\n";
-    for (unsigned i = 0; i < samples_labels_.size(); ++i)
-    {
-      cout << "sample " << (i + 1) << ":   ";
-      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
-      {
-        cout << samples_labels_[i][j] << " ";
-      }
-      cout << "\n";
-    }
-
-    // check if the labels are included in advanced section "labels"
-    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
-    for (unsigned i = 0; i < samples_labels_.size(); i++)
-    {
-      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
-      {
-        if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
-        {
-          std::stringstream stream;
-          stream << "The label " << samples_labels_[i][j] << " is unknown.";
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
-        }
-      }
-    }
-
-    // generate mass shift list
-    std::vector<MassPattern> list;
-    if (SILAC)
-    {
-      // SILAC
-      // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
-
-      for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= missed_cleavages_ + 1; ArgPerPeptide++)
-      {
-        for (unsigned LysPerPeptide = 0; LysPerPeptide <= missed_cleavages_ + 1; LysPerPeptide++)
-        {
-          if (ArgPerPeptide + LysPerPeptide <= missed_cleavages_ + 1)
-          {
-            MassPattern temp;
-            temp.push_back(0);
-            for (unsigned i = 0; i < samples_labels_.size(); i++)
-            {
-              double mass_shift = 0;
-              // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There && Lys6There && Lys8There == false) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
-              bool goAhead_Lys = false;
-              bool goAhead_Arg = false;
-
-              for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
-              {
-                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos); // Is Arg6 in the SILAC label?
-                bool Arg10There = (samples_labels_[i][j].find("Arg10") != std::string::npos);
-                bool Lys4There = (samples_labels_[i][j].find("Lys4") != std::string::npos);
-                bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
-                bool Lys8There = (samples_labels_[i][j].find("Lys8") != std::string::npos);
-
-                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_massshift_["Arg6"] + Arg10There * label_massshift_["Arg10"]) + LysPerPeptide * (Lys4There * label_massshift_["Lys4"] + Lys6There * label_massshift_["Lys6"] + Lys8There * label_massshift_["Lys8"]);
-
-                goAhead_Arg = goAhead_Arg || !(ArgPerPeptide != 0 && !Arg6There && !Arg10There);
-                goAhead_Lys = goAhead_Lys || !(LysPerPeptide != 0 && !Lys4There && !Lys6There && !Lys8There);
-              }
-
-              if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
-              {
-                temp.push_back(mass_shift);
-              }
-            }
-
-            if (temp.size() > 1)
-            {
-              list.push_back(temp);
-            }
-          }
-        }
-      }
-
-    }
-    else if (Dimethyl || ICPL)
-    {
-      // Dimethyl or ICPL
-      // We assume each sample to be labelled only once.
-
-      for (unsigned mc = 0; mc <= missed_cleavages_; ++mc)
-      {
-        MassPattern temp;
-        for (unsigned i = 0; i < samples_labels_.size(); i++)
-        {
-          temp.push_back((mc + 1) * (label_massshift_[samples_labels_[i][0]] - label_massshift_[samples_labels_[0][0]]));
-        }
-        list.push_back(temp);
-      }
-
-    }
-    else
-    {
-      // none (singlet detection)
-      MassPattern temp;
-      temp.push_back(0);
-      list.push_back(temp);
-    }
-
-    // sort mass patterns
-    // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
-    std::sort(list.begin(), list.end());
-
-    // generate additional mass shifts due to knock-outs
-    if (knock_out_ && list[0].size() == 1)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
-    }
-    else if (knock_out_ && list[0].size() <= 4)
-    {
-      generateKnockoutMassShifts(list);
-    }
-    else if (knock_out_ && list[0].size() > 4)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
-    }
-
-    // debug output mass shifts
-    cout << "\n";
-    for (unsigned i = 0; i < list.size(); ++i)
-    {
-      std::cout << "mass shift " << (i + 1) << ":    ";
-      MassPattern temp = list[i];
-      for (unsigned j = 0; j < temp.size(); ++j)
-      {
-        std::cout << temp[j] << "  ";
-      }
-      std::cout << "\n";
-    }
-    std::cout << "\n";
-
-    return list;
-  }
-
-  /**
-   * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
-   * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
-   *
-   * @param list of mass shifts to be extended
-   */
-  void generateKnockoutMassShifts(std::vector<MassPattern>& list)
-  {
-    unsigned n = list[0].size(); // n=2 for doublets, n=3 for triplets, n=4 for quadruplets
-    if (knock_out_ && n == 4)
-    {
-      unsigned m = list.size();
-      for (unsigned i = 0; i < m; ++i)
-      {
-        MassPattern triplet1(1, 0);
-        triplet1.push_back(list[i][2] - list[i][1]);
-        triplet1.push_back(list[i][3] - list[i][1]);
-        list.push_back(triplet1);
-
-        MassPattern triplet2(1, 0);
-        triplet2.push_back(list[i][2] - list[i][0]);
-        triplet2.push_back(list[i][3] - list[i][0]);
-        list.push_back(triplet2);
-
-        MassPattern triplet3(1, 0);
-        triplet3.push_back(list[i][1] - list[i][0]);
-        triplet3.push_back(list[i][2] - list[i][0]);
-        list.push_back(triplet3);
-
-
-        MassPattern doublet1(1, 0);
-        doublet1.push_back(list[i][1]);
-        list.push_back(doublet1);
-
-        MassPattern doublet2(1, 0);
-        doublet2.push_back(list[i][2]);
-        list.push_back(doublet2);
-
-        MassPattern doublet3(1, 0);
-        doublet3.push_back(list[i][3]);
-        list.push_back(doublet3);
-
-        MassPattern doublet4(1, 0);
-        doublet4.push_back(list[i][2] - list[i][1]);
-        list.push_back(doublet4);
-
-        MassPattern doublet5(1, 0);
-        doublet5.push_back(list[i][3] - list[i][1]);
-        list.push_back(doublet5);
-
-        MassPattern doublet6(1, 0);
-        doublet6.push_back(list[i][3] - list[i][2]);
-        list.push_back(doublet6);
-      }
-
-      MassPattern singlet(1, 0);
-      list.push_back(singlet);
-    }
-    else if (knock_out_ && n == 3)
-    {
-      unsigned m = list.size();
-      for (unsigned i = 0; i < m; ++i)
-      {
-        MassPattern doublet1(1, 0);
-        doublet1.push_back(list[i][1]);
-        list.push_back(doublet1);
-
-        MassPattern doublet2(1, 0);
-        doublet2.push_back(list[i][2] - list[i][1]);
-        list.push_back(doublet2);
-
-        MassPattern doublet3(1, 0);
-        doublet3.push_back(list[i][2]);
-        list.push_back(doublet3);
-      }
-
-      MassPattern singlet(1, 0);
-      list.push_back(singlet);
-    }
-    else if (knock_out_ && n == 2)
-    {
-      MassPattern singlet(1, 0);
-      list.push_back(singlet);
-    }
+      label_mass_shift_.insert(make_pair(it->name, it->value));
+    }    
   }
 
   /**
@@ -633,7 +365,7 @@ public:
    *
    * @return true if pattern1 should be searched before pattern2
    */
-  static bool less_pattern(const MultiplexPeakPattern& pattern1, const MultiplexPeakPattern& pattern2)
+  static bool less_pattern(const MultiplexIsotopicPeakPattern& pattern1, const MultiplexIsotopicPeakPattern& pattern2)
   {
     if (pattern1.getMassShiftCount() == pattern2.getMassShiftCount())
     {
@@ -665,18 +397,18 @@ public:
   }
 
   /**
-   * @brief generate list of mass shifts
+   * @brief generate list of m/z shifts
    *
    * @param charge_min    minimum charge
    * @param charge_max    maximum charge
    * @param peaks_per_peptide_max    maximum number of isotopes in peptide
    * @param mass_pattern_list    mass shifts due to labelling
    *
-   * @return list of mass shifts
+   * @return list of m/z shifts
    */
-  std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MassPattern> mass_pattern_list)
+  std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
   {
-    std::vector<MultiplexPeakPattern> list;
+    std::vector<MultiplexIsotopicPeakPattern> list;
 
     // iterate over all charge states
     for (int c = charge_max; c >= charge_min; --c)
@@ -684,7 +416,7 @@ public:
       // iterate over all mass shifts
       for (unsigned i = 0; i < mass_pattern_list.size(); ++i)
       {
-        MultiplexPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
+        MultiplexIsotopicPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
         list.push_back(pattern);
       }
     }
@@ -714,7 +446,7 @@ public:
     {
       if (all_intensities[i].size() != count)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The profile intensity vectors for each peptide are not of the same size.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The profile intensity vectors for each peptide are not of the same size.");
       }
     }
 
@@ -790,7 +522,7 @@ public:
    * @param consensus_map    consensus map with peptide multiplets (to be filled)
    * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMaps_(bool centroided, std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  void generateMaps_(bool centroided, std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -821,9 +553,9 @@ public:
         // loop over points in cluster
         for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
         {
-          int index = (*point_it);
+          int idx = (*point_it);
 
-          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(idx);
           double rt = result_peak.getRT();
 
           for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
@@ -950,7 +682,7 @@ public:
    * @param consensus_map    consensus map with complete quantitative information
    * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
    */
-  void generateMSQuantifications(MSExperiment<Peak1D>& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
+  void generateMSQuantifications(PeakMap& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
   {
     // generate the labels
     // (for each sample a list of (label string, mass shift) pairs)
@@ -973,7 +705,7 @@ public:
         }
         else
         {
-          shift = label_massshift_[label_string];
+          shift = label_mass_shift_[label_string];
         }
 
         single_label_map[shift] = label_string;
@@ -1186,7 +918,7 @@ private:
      * load input
      */
     MzMLFile file;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
 
     // only read MS1 spectra
     std::vector<int> levels;
@@ -1215,12 +947,24 @@ private:
       spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
     }
 
-    bool centroided = spectrum_type == SpectrumSettings::PEAKS;
+    bool centroided;
+    if (spectrum_type_=="automatic")
+    {
+      centroided = spectrum_type == SpectrumSettings::PEAKS;
+    }
+    else if (spectrum_type_=="centroid")
+    {
+      centroided = true;
+    }
+    else  // "profile"
+    {
+      centroided = false;
+    }
 
     /**
      * pick peaks
      */
-    MSExperiment<Peak1D> exp_picked;
+    PeakMap exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
 
@@ -1239,10 +983,18 @@ private:
     /**
      * filter for peak patterns
      */
-    bool missing_peaks_ = false;
-    std::vector<MassPattern> masses = generateMassPatterns_();
-    std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_mass_shift_);
+    if (knock_out_)
+    {
+      generator.generateKnockoutDeltaMasses();
+    }
+    generator.printSamplesLabelsList();
+    generator.printDeltaMassesList();
+    
+    std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
+    std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
+    bool missing_peaks_ = false;
     std::vector<MultiplexFilterResult> filter_results;
     if (centroided)
     {

@@ -1,11 +1,12 @@
 OpenMS
 ====== 
 
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.ohloh.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms)
+[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms/README.html)
 
 
-
-OpenMS is an open-source software C++ library for LC-MS data management and
+<a href="http://www.openms.org/" target="_blank">OpenMS</a> 
+is an open-source software C++ library for LC-MS data management and
 analyses. It offers an infrastructure for the rapid development of mass
 spectrometry related software. OpenMS is free software available under the
 three clause BSD license and runs under Windows, MacOSX and Linux. 
@@ -33,16 +34,17 @@ Features
 --------
 - Core C++ library
 - TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
-- Support for all major platforms (Windows [XP, 7, 8], Linux, MacOS).
+- Support for all major platforms (Windows [XP, 7, 8, 10], Linux, MacOS).
 
 Licence
 -------
-OpenMS is released under the three clause BSD licence.
+OpenMS is released under the [three clause BSD licence](LICENSE).
 
 Authors
 -------
-The file AUTHORS contains a full list of all authors who worked on OpenMS
+The file [AUTHORS](AUTHORS) contains a full list of all authors who worked on OpenMS
 
-Wiki
+Documentation
 -------------
-Users and developers should start by reading the OpenMS wiki:  https://github.com/OpenMS/OpenMS/wiki
+Users and developers should start by reading the [OpenMS wiki](https://github.com/OpenMS/OpenMS/wiki) and consult the [current documentation](http://www.openms.de/current_doxygen/).
+

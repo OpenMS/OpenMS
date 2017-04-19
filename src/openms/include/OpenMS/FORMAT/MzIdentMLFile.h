@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,6 +57,11 @@ namespace OpenMS
         MzIdentML features can be supported. Development for these structures will be discontinued, a new
         interface with appropriate structures will be provided.
       @note If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
+
+      @note All PSM will be read into PeptideIdentification, even the passThreshold=false, threshold will be
+        read into ProteinIdentification (i.e. one id run), considered at writing also will only be the
+        threshold set in ProteinIdentification
+      @note All PSM will be read into PeptideIdentification, even the passThreshold=false
 
       @ingroup FileIO
   */

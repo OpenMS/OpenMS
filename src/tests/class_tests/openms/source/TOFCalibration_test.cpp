@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -115,10 +115,10 @@ END_SECTION
 
 
 
-START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+START_SECTION((template<typename PeakType> void pickAndCalibrate(PeakMap &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   std::cout.precision(writtenDigits<double>(0.0));
-  MSExperiment<Peak1D> calib_exp;
-  MSExperiment<Peak1D> exp,res_exp;
+  PeakMap calib_exp;
+  PeakMap exp,res_exp;
   MzDataFile file;
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants.mzData"),calib_exp);
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test.mzData"),exp);
@@ -171,10 +171,10 @@ END_SECTION
 
 tc = TOFCalibration();
 
-START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+START_SECTION((template<typename PeakType> void calibrate(PeakMap &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   std::cout.precision(writtenDigits<>(double(0.0)));
-  MSExperiment<> calib_exp;
-  MSExperiment<> exp,res_exp;
+  PeakMap calib_exp;
+  PeakMap exp,res_exp;
   MzDataFile file;
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants2.mzData"),calib_exp);
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test2.mzData"),exp);

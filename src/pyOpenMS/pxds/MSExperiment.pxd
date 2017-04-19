@@ -14,45 +14,40 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment[PeakT, ChromoPeakT](ExperimentalSettings, RangeManager2):
+    cdef cppclass MSExperiment(ExperimentalSettings, RangeManager2):
         # wrap-inherits:
         #   ExperimentalSettings
         #   RangeManager2
-        #
-        # wrap-instances:
-        #   MSExperiment := MSExperiment[Peak1D, ChromatogramPeak]
-        #   RichMSExperiment := MSExperiment[RichPeak1D, ChromatogramPeak]
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment[PeakT, ChromoPeakT] &)  nogil except +
+        MSExperiment(MSExperiment &)  nogil except +
 
-        bool operator==(MSExperiment[PeakT, ChromatogramPeak]) nogil except +
+        bool operator==(MSExperiment) nogil except +
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
-        void setPrimaryMSRunPath(StringList& s) nogil except +
         StringList getPrimaryMSRunPath() nogil except +
 
-        void swap(MSExperiment[PeakT, ChromoPeakT]) nogil except +
+        void swap(MSExperiment) nogil except +
 
         # Spectra functions
-        void addSpectrum(MSSpectrum[PeakT] spec) nogil except +
-        MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()  # TODO deprecate for 1.12
-        MSSpectrum[PeakT] getSpectrum(Size id_) nogil except +
-        void setSpectra(libcpp_vector[ MSSpectrum[ PeakT ] ] & spectra) nogil except +
-        libcpp_vector[MSSpectrum[PeakT]] getSpectra() nogil except +  # TODO deprecate for 1.12
+        void addSpectrum(MSSpectrum[Peak1D] spec) nogil except +
+        MSSpectrum[Peak1D] operator[](int)      nogil except + # wrap-upper-limit:size()  # TODO deprecate for 1.12
+        MSSpectrum[Peak1D] getSpectrum(Size id_) nogil except +
+        void setSpectra(libcpp_vector[ MSSpectrum[ Peak1D ] ] & spectra) nogil except +
+        libcpp_vector[MSSpectrum[Peak1D]] getSpectra() nogil except +  # TODO deprecate for 1.12
 
-        libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[PeakT])
-        libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[PeakT])
+        libcpp_vector[MSSpectrum[Peak1D]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[Peak1D])
+        libcpp_vector[MSSpectrum[Peak1D]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[Peak1D])
 
         # Chromatogram functions
-        MSChromatogram[ ChromoPeakT ]  getChromatogram(Size id_) nogil except +
-        void addChromatogram(MSChromatogram[ChromoPeakT] chromatogram) nogil except +
-        void setChromatograms(libcpp_vector[MSChromatogram[ChromoPeakT]] chromatograms) nogil except +
-        libcpp_vector[MSChromatogram[ChromoPeakT]] getChromatograms() nogil except + # TODO deprecate for 1.12
+        MSChromatogram[ ChromatogramPeak ]  getChromatogram(Size id_) nogil except +
+        void addChromatogram(MSChromatogram[ChromatogramPeak] chromatogram) nogil except +
+        void setChromatograms(libcpp_vector[MSChromatogram[ChromatogramPeak]] chromatograms) nogil except +
+        libcpp_vector[MSChromatogram[ChromatogramPeak]] getChromatograms() nogil except + # TODO deprecate for 1.12
 
-        MSChromatogram[ChromoPeakT] getTIC() nogil except +
+        MSChromatogram[ChromatogramPeak] getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
         void updateRanges() nogil except +

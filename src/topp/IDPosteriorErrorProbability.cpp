@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
@@ -141,7 +141,7 @@ protected:
     }
     else 
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
     }
     return p;
   }
@@ -192,13 +192,31 @@ protected:
         return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
       }
     }
-    else if (engine == "MSGFPlus")
+    else if ((engine == "MSGFPlus") || (engine == "MS-GF+"))
     {
-      return (-1) * log10(max(hit.getScore(), smallest_e_value_));
+      if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
+      }
+      else if (hit.metaValueExists("expect"))
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+      }
+    }
+    else if (engine == "Comet")
+    {
+      if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
+      }
+      else if (hit.metaValueExists("expect"))
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+      }
     }
     else
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
     }
 
     // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
@@ -238,7 +256,7 @@ protected:
     set<Int> charges;
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
-    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus");
+    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet");
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -254,7 +272,7 @@ protected:
       }
       if (charges.empty())
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no charges found!");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no charges found!");
       }
     }
     for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
@@ -269,7 +287,7 @@ protected:
     set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
     if (split_charge && charges.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'split_charge' is set, but the list of charge states is empty");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
     }
     map<String, vector<vector<double> > > all_scores;
     char splitter = ','; // to split the engine from the charge state later on

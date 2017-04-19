@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@
 namespace OpenMS
 {
 
-  IsobaricChannelExtractor::PuritySate_::PuritySate_(const MSExperiment<>& targetExp) :
+  IsobaricChannelExtractor::PuritySate_::PuritySate_(const PeakMap& targetExp) :
     baseExperiment(targetExp)
   {
     // initialize precursorScan with end(), it will be updated later on
@@ -213,10 +213,10 @@ namespace OpenMS
     return false;
   }
 
-  double IsobaricChannelExtractor::computeSingleScanPrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const
+  double IsobaricChannelExtractor::computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const
   {
 
-    typedef MSExperiment<>::SpectrumType::ConstIterator const_spec_iterator;
+    typedef PeakMap::SpectrumType::ConstIterator const_spec_iterator;
 
     // compute distance between isotopic peaks based on the precursor charge.
     const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
@@ -388,7 +388,7 @@ namespace OpenMS
     return precursor_intensity / total_intensity;
   }
 
-  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate_& pState) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
@@ -423,13 +423,13 @@ namespace OpenMS
     }
   }
 
-  void IsobaricChannelExtractor::extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
+  void IsobaricChannelExtractor::extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map)
   {
     if (ms_exp_data.empty())
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.\n";
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Experiment has no scans!");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Experiment has no scans!");
     }
 
     // clear the output map
@@ -438,7 +438,7 @@ namespace OpenMS
 
     // create predicate for spectrum checking
     LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << "\n";
-    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
+    HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
     // now we have picked data
     // --> assign peaks to channels
@@ -447,7 +447,7 @@ namespace OpenMS
     // remember the current precursor spectrum
     PuritySate_ pState(ms_exp_data);
 
-    for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
+    for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
       if (it->getMSLevel() ==  1)
@@ -469,7 +469,7 @@ namespace OpenMS
         // check if precursor is available
         if (it->getPrecursors().empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
         }
 
         // check precursor constraints
@@ -517,10 +517,10 @@ namespace OpenMS
           channel_value.setIntensity(0);
 
           // as every evaluation requires time, we cache the MZEnd iterator
-          const MSExperiment<Peak1D>::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + reporter_mass_shift_);
+          const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + reporter_mass_shift_);
 
           // add up all signals
-          for (MSExperiment<Peak1D>::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - reporter_mass_shift_);
+          for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - reporter_mass_shift_);
                mz_it != mz_end;
                ++mz_it)
           {

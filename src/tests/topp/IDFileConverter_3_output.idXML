@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/share/usr/bertsch/sequences/uniprot_sprot_human_55.4.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/share/usr/bertsch/sequences/uniprot_sprot_human_55.4.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 	</SearchParameters>
 	<IdentificationRun date="0200-09-04T11:14:47" search_engine="proteinprophet" search_engine_version=" Insilicos_LabKey_C++ (TPP v3.5 SQUALL (pre-release) rev.4, Build 200806091442 (linux))" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="P02787|TRFE_HUMAN" score="0.999000012874603" sequence="" >
+			<ProteinHit id="PH_0" accession="P02787|TRFE_HUMAN" score="0.999000012874603" coverage="8.6" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="P02768|ALBU_HUMAN" score="0.996999979019165" sequence="" >
+			<ProteinHit id="PH_1" accession="P02768|ALBU_HUMAN" score="0.996999979019165" coverage="10" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="P01009|A1AT_HUMAN" score="0.905099987983704" sequence="" >
+			<ProteinHit id="PH_2" accession="P01009|A1AT_HUMAN" score="0.905099987983704" coverage="5.7" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="P01876|IGHA1_HUMAN" score="0.478799998760223" sequence="" >
+			<ProteinHit id="PH_3" accession="P01876|IGHA1_HUMAN" score="0.478799998760223" coverage="5" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_4" accession="P01877|IGHA2_HUMAN" score="0.478799998760223" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="P00738|HPT_HUMAN" score="0.266299992799759" sequence="" >
+			<ProteinHit id="PH_5" accession="P00738|HPT_HUMAN" score="0.266299992799759" coverage="3.4" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_6" accession="P00739|HPTR_HUMAN" score="0.266299992799759" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="Q96PD5|PGRP2_HUMAN" score="0.205899998545647" sequence="" >
+			<ProteinHit id="PH_7" accession="Q96PD5|PGRP2_HUMAN" score="0.205899998545647" coverage="2.6" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="P04217|A1BG_HUMAN" score="0.202600002288818" sequence="" >
+			<ProteinHit id="PH_8" accession="P04217|A1BG_HUMAN" score="0.202600002288818" coverage="2" sequence="" >
 			</ProteinHit>
 			<UserParam type="string" name="protein_group_0" value="0.999,PH_0"/>
 			<UserParam type="string" name="protein_group_1" value="0.997,PH_1"/>

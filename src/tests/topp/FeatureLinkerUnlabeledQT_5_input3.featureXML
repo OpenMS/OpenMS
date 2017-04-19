@@ -19,7 +19,7 @@
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="sequence" value="PEPTIDER"/>
+			<UserParam type="string" name="sequence" value="PEPTIDER"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">420</position>
@@ -33,7 +33,7 @@
 				<PeptideHit score="0" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="sequence" value="PEPTIDEA"/>
+			<UserParam type="string" name="sequence" value="PEPTIDEA"/>
 		</feature>
 		<feature id="f_0">
 			<position dim="0">520</position>
@@ -47,7 +47,7 @@
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
-			<userParam type="string" name="sequence" value="PEPTIDEK"/>
+			<UserParam type="string" name="sequence" value="PEPTIDEK"/>
 		</feature>
 	</featureList>
 </featureMap>

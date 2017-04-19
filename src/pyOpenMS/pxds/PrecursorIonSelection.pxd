@@ -15,12 +15,15 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         #  DefaultParamHandler
         PrecursorIonSelection() nogil except +
         PrecursorIonSelection(PrecursorIonSelection) nogil except +
+
         double  getMaxScore() nogil except +
         void setMaxScore(double & max_score) nogil except +
         void sortByTotalScore(FeatureMap & features) nogil except +
         void getNextPrecursors(FeatureMap & features, FeatureMap & next_features, UInt number) nogil except +
+
         # TODO immutable types by reference
         # void getNextPrecursorsSeq(FeatureMap & features, FeatureMap & next_features, UInt number, double & rt) nogil except +
+
         void getNextPrecursors(libcpp_vector[ int ] & solution_indices,
                                libcpp_vector[ IndexTriple ] & variable_indices,
                                libcpp_set[ int ] & measured_variables,
@@ -29,7 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
                                UInt step_size,
                                PSLPFormulation & ilp) nogil except +
         void rescore(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & new_pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values) nogil except +
-        void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment[Peak1D, ChromatogramPeak] & experiment, String precursor_path) nogil except +
+        void simulateRun(FeatureMap & features, libcpp_vector[ PeptideIdentification ] & pep_ids, libcpp_vector[ ProteinIdentification ] & prot_ids, PrecursorIonSelectionPreprocessing & preprocessed_db, String path, MSExperiment & experiment, String precursor_path) nogil except +
         void setLPSolver(SOLVER solver) nogil except +
         SOLVER getLPSolver() nogil except +
         void reset() nogil except +

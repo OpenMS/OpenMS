@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,15 +36,17 @@
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -112,7 +114,7 @@ protected:
     void registerOptionsAndFlags_()
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("tsv"));
     }
@@ -299,6 +301,7 @@ protected:
  
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename)
     {
+      LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       MzTabMetaData meta_data;
 
@@ -324,7 +327,7 @@ protected:
       meta_data.description = MzTabString("Export from featureXML");
 
       MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString("null"); // TODO: file origin of ms run (e.g. mzML) not stored in featureXML so far
+      ms_run.location = feature_map.getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(feature_map.getPrimaryMSRunPath()[0]);
       meta_data.ms_run[1] = ms_run;
       meta_data.uri[1] = MzTabString(filename);
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
@@ -456,6 +459,7 @@ protected:
 
     static MzTab exportIdentificationsToMzTab(const vector<ProteinIdentification>& prot_ids, const vector<PeptideIdentification>& peptide_ids, const String& filename)
     {
+      LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
       vector<PeptideIdentification> pep_ids = peptide_ids;
       MzTab mztab;
       MzTabMetaData meta_data;
@@ -486,12 +490,18 @@ protected:
         // generate protein section
         MzTabProteinSectionRows protein_rows;
 
+        Size current_run_index(1);
         for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin();
-         it != prot_ids.end(); ++it)
+         it != prot_ids.end(); ++it, ++current_run_index)
         {
           const std::vector<ProteinIdentification::ProteinGroup> protein_groups = it->getProteinGroups();
           const std::vector<ProteinIdentification::ProteinGroup> indist_groups = it->getIndistinguishableProteins();
           const std::vector<ProteinHit> protein_hits = it->getHits();
+
+          MzTabMSRunMetaData ms_run;
+          ms_run.location = it->getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(it->getPrimaryMSRunPath()[0]);
+          // TODO: add processing information that this file has been exported from "filename"
+          meta_data.ms_run[current_run_index] = ms_run;
 
           // pre-analyze data for occuring meta values at protein hit level
           // these are used to build optional columns containing the meta values in internal data structures
@@ -619,9 +629,6 @@ protected:
       psm_search_engine_score.fromCellString("[,," + search_engine + "," + search_engine_version + "]");
       meta_data.psm_search_engine_score[1] = psm_search_engine_score;
 
-      MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString(filename);
-      meta_data.ms_run[1] = ms_run;
       mztab.setMetaData(meta_data);
 
       MzTabPSMSectionRows rows;
@@ -705,15 +712,13 @@ protected:
 
       if (aas.isModified())
       {
-        ModificationsDB* mod_db = ModificationsDB::getInstance();
-
         if (aas.hasNTerminalModification())
         {
           MzTabModification mod;
-          String mod_name = aas.getNTerminalModification();
-          if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+          const ResidueModification& res_mod = *(aas.getNTerminalModification());
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
           {
-            MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::N_TERM).getUniModAccession());
+            MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(0, MzTabParameter()));
             mod.setModificationIdentifier(unimod_accession);
@@ -724,14 +729,14 @@ protected:
 
         for (Size ai = 0; ai != aas.size(); ++ai)
         {
-          if (aas.isModified(ai))
+          if (aas[ai].isModified())
           {
             MzTabModification mod;
-            String mod_name = aas[ai].getModification();
-            if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+            const ResidueModification& res_mod = *(aas[ai].getModification());
+            if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
             {
               // MzTab standard is to just report Unimod accession.
-              MzTabString unimod_accession = MzTabString(mod_db->getModification(aas[ai].getOneLetterCode(), mod_name, ResidueModification::ANYWHERE).getUniModAccession());
+              MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
               vector<std::pair<Size, MzTabParameter> > pos;
               pos.push_back(make_pair(ai + 1, MzTabParameter()));
               mod.setPositionsAndParameters(pos);
@@ -744,10 +749,10 @@ protected:
         if (aas.hasCTerminalModification())
         {
           MzTabModification mod;
-          String mod_name = aas.getCTerminalModification();
-          if (std::find(fixed_mods.begin(), fixed_mods.end(), mod_name) == fixed_mods.end())
+          const ResidueModification& res_mod = *(aas.getCTerminalModification());
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
           {
-            MzTabString unimod_accession = MzTabString(mod_db->getTerminalModification(mod_name, ResidueModification::C_TERM).getUniModAccession());
+            MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
             mod.setPositionsAndParameters(pos);
@@ -759,9 +764,10 @@ protected:
       mod_list.set(mods);
       return mod_list;
     }
-  
+
     static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
     {
+      LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
@@ -775,8 +781,7 @@ protected:
         db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
       }
 
-      // currently we don't save how many channels we saved in a consensus feature so we scan the file
-      // for the maximum map index in a consensus feature and take this as number of study variables
+      // determine number of channels
       Size n_study_variables = consensus_map.getFileDescriptions().size();
 
       MzTabMetaData meta_data;
@@ -794,8 +799,13 @@ protected:
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString(filename);
-      meta_data.ms_run[1] = ms_run;
+      StringList ms_runs = consensus_map.getPrimaryMSRunPath();
+      for (Size i = 0; i != ms_runs.size(); ++i)
+      {
+        ms_run.location = MzTabString(ms_runs[i]);
+        meta_data.ms_run[i + 1] = ms_run;
+      }
+
       mztab.setMetaData(meta_data);
 
       // pre-analyze data for occuring meta values at consensus feature and peptide hit level
@@ -865,6 +875,7 @@ protected:
         MzTabDoubleList rt_window;
         row.retention_time_window = rt_window;
         row.charge = MzTabInteger(c.getCharge());
+        row.best_search_engine_score[1] = MzTabDouble();
 
         // initialize columns
         for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
@@ -872,6 +883,11 @@ protected:
           row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
           row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
           row.peptide_abundance_study_variable[study_variable] = MzTabDouble();
+        }
+
+        for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+        {
+          row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
         }
 
         ConsensusFeature::HandleSetType fs = c.getFeatures();
@@ -882,9 +898,6 @@ protected:
           row.peptide_abundance_std_error_study_variable[study_variable];
           row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
         }
-
-        row.best_search_engine_score[1] = MzTabDouble();
-        row.search_engine_score_ms_run[1][1] = MzTabDouble();
 
         vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
         if (!pep_ids.empty())
@@ -909,6 +922,12 @@ protected:
           row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
 
           row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
+
+          // TODO: support run level scores - for now we assume we got the same score from every ms run
+          for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+          {
+            row.search_engine_score_ms_run[1][ms_run] = MzTabDouble(best_ph.getScore());
+          }
 
           // fill opt_ columns
 
@@ -998,13 +1017,23 @@ protected:
         mztab = exportFeatureMapToMzTab(feature_map, in);
       }
 
-      // export identification data
+      // export identification data from idXML
       if (in_type == FileTypes::IDXML)
       {
         String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
+      }
+
+      // export identification data from mzIdentML
+      if (in_type == FileTypes::MZIDENTML)
+      {
+        String document_id;
+        vector<ProteinIdentification> prot_ids;
+        vector<PeptideIdentification> pep_ids;
+        MzIdentMLFile().load(in, prot_ids, pep_ids);
         mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
       }
 

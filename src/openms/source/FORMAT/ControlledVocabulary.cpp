@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,11 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch  $
+// $Maintainer: Timo Sachsenberg  $
 // $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 #include <fstream>
@@ -121,12 +122,33 @@ namespace OpenMS
     }
   }
 
+//  bool ControlledVocabulary::CVTerm::isSearchEngineSpecificScore()
+//  { //maybe unsafe?
+//    if (this->parents.find("MS:1001143")!=this->parents.end()) return true;
+//    return false;
+//  }
+
+  bool ControlledVocabulary::CVTerm::isHigherBetterScore(ControlledVocabulary::CVTerm term)
+  {
+//      for (StringList::const_iterator unp = this->unparsed.begin(); unp != this->unparsed.end(); ++unp)
+//      {
+//        if (unp->hasPrefix("relationship: has_order MS:1002108")) return true;
+//      }
+//      return false;
+      //most scores are higher better, but most entries in CV for these are not annotated -> default is true
+      for (StringList::const_iterator unp = term.unparsed.begin(); unp != term.unparsed.end(); ++unp)
+      {
+        if (unp->hasPrefix("relationship: has_order MS:1002109")) return false;
+      }
+      return true;
+  }
+
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
   {
-    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.empty())
     {
-      s += "\" value=\"" + value;
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
     }
     s +=  "\"/>";
     return s;
@@ -135,15 +157,16 @@ namespace OpenMS
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const OpenMS::DataValue& value) const
   {
-    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + name;
+    String s =  "<cvParam accession=\"" + id + "\" cvRef=\"" + ref + "\" name=\"" + Internal::XMLHandler::writeXMLEscape(name);
     if (!value.isEmpty())
     {
-      s += "\" value=\"" + (String)value;
+      s += "\" value=\"" + Internal::XMLHandler::writeXMLEscape(value);
     }
     if (value.hasUnit())
     {
+      String un = *(this->units.begin());
       //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
-      s += "\" unitAccession=\"" + value.getUnit() + "\" unitName=\"" + "\" unitCvRef=\"" + value.getUnit().prefix(2);
+      s += "\" unitAccession=\"" + un + "\" unitName=\"" + value.getUnit() + "\" unitCvRef=\"" + un.prefix(2);
     }
     s +=  "\"/>";
     return s;
@@ -169,7 +192,7 @@ namespace OpenMS
     ifstream is(filename.c_str());
     if (!is)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     String line, line_wo_spaces;
@@ -424,7 +447,7 @@ namespace OpenMS
     Map<String, CVTerm>::const_iterator it = terms_.find(id);
     if (it == terms_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid CV identifier!", id);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
     return it->second;
   }
@@ -457,12 +480,12 @@ namespace OpenMS
         it = namesToIds_.find(String(name + desc));
         if (it == namesToIds_.end())
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid CV name!", name);
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV name!", name);
         }
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid CV name!", name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV name!", name);
       }
     }
 

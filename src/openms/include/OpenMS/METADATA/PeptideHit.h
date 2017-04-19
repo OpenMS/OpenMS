@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -57,6 +57,64 @@ namespace OpenMS
   {
 public:
 
+  struct FragmentAnnotation
+  {
+    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]5+
+    int charge;
+    double mz;
+    double intensity;
+
+    bool operator<(const PeptideHit::FragmentAnnotation& other) const
+    {
+      if (charge < other.charge)
+      {
+        return true;
+      }
+      else if (charge > other.charge)
+      {
+        return false;
+      }
+
+      if (annotation< other.annotation)
+      {
+        return true;
+      }
+      else if (annotation> other.annotation)
+      {
+        return false;
+      }
+
+      if (mz < other.mz)
+      {
+        return true;
+      }
+      else if (mz > other.mz)
+      {
+        return false;
+      }
+
+      if (intensity < other.intensity)
+      {
+        return true;
+      }
+      else if (intensity > other.intensity)
+      {
+        return false;
+      }
+
+      return false;
+    }
+
+    bool operator==(const PeptideHit::FragmentAnnotation& other) const
+    {
+      if (charge != other.charge || mz != other.mz || 
+          intensity != other.intensity || annotation != other.annotation) return false;
+      return true;
+    }
+};
+
+public:
+
     /// @name Comparators for PeptideHit and ProteinHit
     //@{
     /// Greater predicate for scores of hits
@@ -81,6 +139,31 @@ public:
         return a.getScore() < b.getScore();
       }
 
+    };
+
+    /// Lesser predicate for scores of hits
+    class OPENMS_DLLAPI RankLess
+    {
+public:
+      template <typename Arg>
+      bool operator()(const Arg& a, const Arg& b)
+      {
+        return a.getRank() < b.getRank();
+      }
+
+    };
+    //@}
+
+    
+    /// Lesser predicate for (modified) sequence of hits
+    class OPENMS_DLLAPI SequenceLessComparator
+    {
+      template <typename Arg>
+      bool operator()(const Arg& a, const Arg& b)
+      {
+        if (a.getSequence().toString() < b.getSequence().toString()) return true;
+        return false;
+      }
     };
     //@}
 
@@ -184,6 +267,13 @@ public:
 
     /// sets the PSM rank
     void setRank(UInt newrank);
+
+    /// returns the fragment annotations
+    std::vector<PeptideHit::FragmentAnnotation> getFragmentAnnotations() const;
+
+    /// sets the fragment annotations
+    void setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations);
+
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
@@ -206,6 +296,9 @@ protected:
 
     /// information on the potential peptides observed through this PSM.
     std::vector<PeptideEvidence> peptide_evidences_;
+
+    /// annotations of fragments in the corresponding spectrum
+    std::vector<PeptideHit::FragmentAnnotation> fragment_annotations_;
   };
 
 } // namespace OpenMS

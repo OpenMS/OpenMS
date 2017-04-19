@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -36,8 +36,9 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/MzMLFile.h>
+///////////////////////////
+
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -72,7 +73,7 @@ START_TEST(MzMLFile, "$Id$")
 //}
 //
 //MSSpectrum<> spec;
-//MSExperiment<> exp;
+//PeakMap exp;
 //Size spectrum_number = 0;
 //Size array_number = 1;
 //
@@ -221,7 +222,7 @@ TOLERANCE_ABSOLUTE(0.01)
 
 START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
   MzMLFile file;
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   //test DocumentIdentifier addition
@@ -315,6 +316,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getFloatDataArrays().size(),0)
     TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
     TEST_REAL_SIMILAR(spec.getRT(),5.1)
+    TEST_REAL_SIMILAR(spec.getDriftTime(),7.1)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),1)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,400.0)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].end,1800.0)
@@ -364,6 +366,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getInstrumentSettings().getScanMode(),InstrumentSettings::MSNSPECTRUM)
     TEST_EQUAL(spec.getType(),SpectrumSettings::PEAKS)
     TEST_REAL_SIMILAR(spec.getRT(),5.2)
+    // in the mzML, drift time is stored in precursor only but we still create a spectrum attribute for convenience
+    TEST_REAL_SIMILAR(spec.getDriftTime(),8.1)
     TEST_EQUAL(spec.getInstrumentSettings().getPolarity(),IonSource::POSITIVE)
     TEST_EQUAL(spec.getInstrumentSettings().getScanWindows().size(),3)
     TEST_REAL_SIMILAR(spec.getInstrumentSettings().getScanWindows()[0].begin,100.0)
@@ -393,6 +397,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIntensity(),120053)
     TEST_EQUAL(spec.getPrecursors()[0].getCharge(),2)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(),5.55)
+    TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
     TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
@@ -404,6 +409,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[1],3)
     TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[2],4)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(),15.55)
+    TEST_REAL_SIMILAR(spec.getPrecursors()[1].getDriftTime(),-1) // none set
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
     TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)
@@ -628,27 +634,27 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   /////////////////////// TESTING SPECIAL CASES ///////////////////////
 
   //load a second time to make sure everything is re-initialized correctly
-  MSExperiment<> exp2;
+  PeakMap exp2;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp2);
   TEST_EQUAL(exp==exp2,true)
 
   //load minimal file
-  MSExperiment<> exp3;
+  PeakMap exp3;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_2_minimal.mzML"),exp3);
   TEST_EQUAL(exp3.size(), 0)
 
   //load file with huge CDATA and whitespaces in CDATA
-  MSExperiment<> exp4;
+  PeakMap exp4;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp4);
   TEST_EQUAL(exp4.size(), 1)
   TEST_EQUAL(exp4[0].size(), 997530)
 
   //test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
-  MSExperiment<> exp_ucomp;
+  PeakMap exp_ucomp;
   STATUS("Reading uncompressed...")
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"), exp_ucomp);
   STATUS("Reading uncompressed done.")
-  MSExperiment<> exp_comp;
+  PeakMap exp_comp;
   STATUS("Reading compressed...")
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_compressed.mzML"), exp_comp);
   STATUS("Reading compressed done.")
@@ -693,7 +699,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   }
 
   //Testing gzip compression of a whole file
-  MSExperiment<> exp_whole_comp;
+  PeakMap exp_whole_comp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz"),exp_whole_comp);
   TEST_EQUAL(exp_ucomp.size(),exp_whole_comp.size())
   for (Size s=0; s< exp_ucomp.size(); ++s)
@@ -736,7 +742,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   }
 
   //Testing bzip2 compression of a whole file
-  MSExperiment<> exp_bz;
+  PeakMap exp_bz;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2"),exp_bz);
   TEST_EQUAL(exp_ucomp.size(),exp_bz.size())
   for (Size s=0; s< exp_ucomp.size(); ++s)
@@ -778,14 +784,14 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
   }
   //Testing corrupted files
-  MSExperiment<> exp_cor;
+  PeakMap exp_cor;
   TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
-  MSExperiment<> exp_cor2;
+  PeakMap exp_cor2;
   TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
 
   {
     //Testing automated sorting of files
-    MSExperiment<> exp_inverse;
+    PeakMap exp_inverse;
     MSSpectrum<> spec;
     MSChromatogram<> chrom;
     Peak1D sp;
@@ -800,7 +806,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
     exp_inverse.addSpectrum(spec);
     exp_inverse.addChromatogram(chrom);
-    MSExperiment<> exp_sorted(exp_inverse);
+    PeakMap exp_sorted(exp_inverse);
     exp_sorted.sortSpectra(true);
     exp_sorted.sortChromatograms(true);
     MzMLFile file;
@@ -809,7 +815,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(exp_inverse.getSpectrum(0).isSorted(), false);
     TEST_EQUAL(exp_inverse.getChromatogram(0).isSorted(), false);
     file.store(tmp_filename, exp_inverse);
-    MSExperiment<> exp_sorted_on_load;
+    PeakMap exp_sorted_on_load;
     file.load(tmp_filename, exp_sorted_on_load);
     TEST_EQUAL(exp_sorted_on_load.getSpectrum(0).isSorted(), true);
     TEST_EQUAL(exp_sorted_on_load.getChromatogram(0).isSorted(), true);
@@ -819,7 +825,7 @@ END_SECTION
 START_SECTION([EXTRA] load only meta data)
   MzMLFile file;
   file.getOptions().setMetadataOnly(true);
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),0)
@@ -833,7 +839,7 @@ END_SECTION
 START_SECTION([EXTRA] load with restricted MS levels)
   MzMLFile file;
   file.getOptions().addMSLevel(1);
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),3)
@@ -846,7 +852,7 @@ END_SECTION
 START_SECTION([EXTRA] load with restricted RT range)
   MzMLFile file;
   file.getOptions().setRTRange(makeRange(5.15,5.35));
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
   TEST_EQUAL(exp.size(),2)
   TEST_REAL_SIMILAR(exp[0].getRT(),5.2)
@@ -856,7 +862,7 @@ END_SECTION
 START_SECTION([EXTRA] load with restricted m/z range)
   MzMLFile file;
   file.getOptions().setMZRange(makeRange(6.5,9.5));
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),4)
@@ -876,7 +882,7 @@ END_SECTION
 START_SECTION([EXTRA] load intensity range)
   MzMLFile file;
   file.getOptions().setIntensityRange(makeRange(6.5,9.5));
-  MSExperiment<> exp;
+  PeakMap exp;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(exp.size(),4)
@@ -910,14 +916,14 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
   //test with full file
   {
     //load map
-    MSExperiment<> exp_original;
+    PeakMap exp_original;
     file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
     //store map
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     file.store(tmp_filename,exp_original);
     //load written map
-    MSExperiment<> exp;
+    PeakMap exp;
     file.load(tmp_filename,exp);
     //test if everything worked
     TEST_EQUAL(exp==exp_original,true)
@@ -939,7 +945,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
   //test with empty map
   {
 
-    MSExperiment<> empty, exp;
+    PeakMap empty, exp;
 
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
@@ -950,7 +956,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
   //test with one empty spectrum
   {
-    MSExperiment<> empty, exp;
+    PeakMap empty, exp;
     empty.resize(1);
     empty[0].setRT(17.1234);
 
@@ -978,7 +984,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
   //test 32/64 bit floats, 32/64 bit integer, null terminated strings, zlib compression
   {
     //load map
-    MSExperiment<> exp_original;
+    PeakMap exp_original;
     file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML"),exp_original);
     //store map
     std::string tmp_filename;
@@ -986,7 +992,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     file.getOptions().setCompression(true);
     file.store(tmp_filename,exp_original);
     //load written map
-    MSExperiment<> exp;
+    PeakMap exp;
     file.load(tmp_filename,exp);
     //test if everything worked
     TEST_EQUAL(exp == exp_original,true)
@@ -997,7 +1003,7 @@ END_SECTION
 START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
   std::string tmp_filename;
   MzMLFile file;
-  MSExperiment<> e;
+  PeakMap e;
 
   //written empty file
   NEW_TMP_FILE(tmp_filename);
@@ -1018,7 +1024,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
   std::string tmp_filename;
   MzMLFile file;
   StringList errors, warnings;
-  MSExperiment<> e;
+  PeakMap e;
 
   //written empty file
   NEW_TMP_FILE(tmp_filename);
@@ -1033,7 +1039,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
   file.store(tmp_filename,e);
   TEST_EQUAL(file.isSemanticallyValid(tmp_filename, errors, warnings),true);
   TEST_EQUAL(errors.size(),0)
-  TEST_EQUAL(warnings.size(),8) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
+  TEST_EQUAL(warnings.size(),2) // add mappings for chromatogram/precursor/activation and selectedIon to reduce that count
 
   //valid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), errors, warnings),true)

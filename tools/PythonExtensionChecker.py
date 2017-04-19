@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
 """
-=========================================================================
-        msproteomicstools -- Mass Spectrometry Proteomics Tools
-=========================================================================
-
-Copyright (c) 2013, ETH Zurich
-For a full list of authors, refer to the file AUTHORS.
+--------------------------------------------------------------------------
+                  OpenMS -- Open-Source Mass Spectrometry
+--------------------------------------------------------------------------
+Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -17,6 +16,7 @@ This software is released under a three-clause BSD license:
  * Neither the name of any author or any participating institution
    may be used to endorse or promote products derived from this software
    without specific prior written permission.
+For a full list of authors, refer to the file AUTHORS.
 --------------------------------------------------------------------------
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -35,20 +35,36 @@ $Authors: Hannes Roest$
 --------------------------------------------------------------------------
 """
 
-# https://pypi.python.org/pypi/breathe
-# $ sudo pip install breathe
-
 import glob, os, sys
 import re, time
 import argparse
+from xml.sax.saxutils import escape as xml_escape
+
 from PythonCheckerLib import parse_pxd_file
 from PythonCheckerLib import create_pxd_file_map
-import breathe.parser
-from breathe.parser.doxygen.compound import parse as doxygen_parse
-from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
-from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
-import yaml
-from xml.sax.saxutils import escape as xml_escape
+
+# Try non-standard libs
+try:
+    import breathe.parser
+    import yaml
+    from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
+    from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
+except ImportError:
+    print "You need to install a few packages for this library to work"
+    print "Please use:"
+    print " pip install breathe"
+    print " pip install pyyaml"
+    print " pip install autowrap"
+    print " pip install Cython"
+    raise ImportError
+
+# Try breathe parser
+try:
+    from breathe.parser.eoxygen.compound import parse as doxygen_parse
+except ImportError:
+    print "importing breathe.parser.doxygen.compound failed, try new API"
+    from breathe.parser.compound import parse as doxygen_parse
+
 
 # Matching function
 def handle_member_definition(mdef, pxd_class, cnt):
@@ -63,13 +79,26 @@ def handle_member_definition(mdef, pxd_class, cnt):
     if not kind in "define property event variable typedef enum function signal prototype friend dcop slot".split(" "):
         raise Exception("Error; something is wrong")
     if kind == "enum" and protection == "public":
+
         cnt.public_enums_total += 1
         cython_file = parse_pxd_file(pxd_class.pxd_path)
         found = False
         for klass in cython_file:
+
             if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
                 found = True
                 break
+
+            # Sometimes we rename things in pyOpenMS for sanity (and namespace consistency) sake
+            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType 
+            # and we have to go back to the full cname. However, the doxygen name needs to be inferred
+            if hasattr(klass[0], "cname") and klass[0].cname.endswith(mdef.get_name()):
+                assumed_fullname = mdef.compoundname + "::" + mdef.get_name()
+                if (assumed_fullname == klass[0].cname):
+                    found = True
+                    break
+                else:
+                    print "Something went wrong, %s is not equal to %s" (assumed_fullname, klass[0].cname)
 
         if not found:
             tres.setPassed(False)
@@ -77,7 +106,10 @@ def handle_member_definition(mdef, pxd_class, cnt):
             cnt.public_enums_missing += 1
             comp_name = mdef.parent_doxy_file.compound.get_compoundname()
             file_location = mdef.parent_doxy_file.getCompoundFileLocation()
-            internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+            if (len(file_location.split("/include/OpenMS")) > 1):
+                internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
+            elif (len(file_location.split("/OpenMS")) > 1):
+                internal_file_name = "OpenMS" + file_location.split("/OpenMS")[1]
             namespace = comp_name
             true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
             enumr  = "\n"
@@ -251,7 +283,7 @@ class DoxygenXMLFile(object):
 
     def parse_doxygen(self):
         try:
-            self.parsed_file =  doxygen_parse(self.fname)
+            self.parsed_file = doxygen_parse(self.fname)
             self.compound = self.parsed_file.get_compounddef()
             return self.parsed_file
         except Exception as e:
@@ -415,6 +447,7 @@ class DoxygenXMLFile(object):
             for mdef_ in sdef.get_memberdef():
                 mdef = DoxygenCppFunction.generate_from_obj(mdef_)
                 mdef.parent_doxy_file = self
+                mdef.compoundname = self.compound.compoundname
                 yield mdef
 
     def isAbstract(self):
@@ -943,7 +976,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             print ""
             print pxd_text
         if len(pxds_out) > 0 and pxd_text is not None:
-            fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+            fname = os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
             with open(fname, "w" ) as f:
                 f.write(pxd_text)
 
@@ -1033,6 +1066,8 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         file_location_key = file_location
         if len(file_location.split("include/")) > 1:
             file_location_key = file_location.split("include/")[1]
+        elif len(file_location.split("OpenMS/")) > 1:
+            file_location_key = "OpenMS/" + file_location.split("OpenMS/")[-1]
 
         if file_location_key in pxd_file_matching:
             pxdfiles = pxd_file_matching[file_location_key]
@@ -1066,7 +1101,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Loop through all methods which are listed in the doxygen XML file and match them to the pxd file
         classtestresults = []
-        for method_cntr,mdef in enumerate(dfile.iterMemberDef()):
+        for method_cntr, mdef in enumerate(dfile.iterMemberDef()):
 
             if mdef.get_name() in ignorefile.getIgnoredMethods(comp_name):
                 msg = "Ignore member function/attribute : %s %s %s " % (mdef.kind, mdef.prot, mdef.name)
@@ -1095,7 +1130,7 @@ def main(options):
                          options.generate_pxd)
 
 def handle_args():
-    usage = ""
+    usage = "Python extension checker. Run to identify classes and functions that have not been wrapped yet in pyOpenMS. Make sure you run 'make doc_xml' in the build path (--bin_path) first."
 
     parser = argparse.ArgumentParser(description = usage )
     parser.add_argument("--bin_path", dest="bin_path", default=".", help="OpenMS build path")

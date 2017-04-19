@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,19 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer$
+# $Authors: Stephan Aiche, Julianus Pfeuffer$
 # --------------------------------------------------------------------------
 
 # path were the CTDs will be stored
 set(KNIME_PLUGIN_DIRECTORY ${PROJECT_BINARY_DIR}/ctds CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
 set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
 
-# path were the executables can be found
-set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
-if(WIN32)
-  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/$(ConfigurationName))
+# path where the executables can be found
+if(CMAKE_CONFIGURATION_TYPES)
+  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+else()
+  set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 endif()
 
 # payload paths
@@ -67,16 +68,6 @@ else()
   set(PLATFORM "lnx")
 endif()
 
-##
-function(remove_parameter_from_ctd toolname param)
-  set(FILE_CONTENT "")
-  file(READ ${CTD_PATH}/${toolname}.ctd FILE_CONTENT)
-  foreach(LINE ${FILE_CONTENT})
-    message(STATUS ${FILE})
-  endforeach()
-endfunction()
-
-
 # create the target directory
 file(MAKE_DIRECTORY ${KNIME_PLUGIN_DIRECTORY})
 
@@ -88,13 +79,13 @@ add_custom_target(
 # copy the icons
 file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
      DESTINATION ${KNIME_PLUGIN_DIRECTORY}
-     PATTERN ".svn" EXCLUDE)
+     PATTERN ".git" EXCLUDE)
 
 # list of all tools that can generate CTDs
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
+list(REMOVE_ITEM CTD_executables OpenMSInfo GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
 
 # pseudo-ctd target
 add_custom_target(
@@ -121,13 +112,12 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # XTandemAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=default_input_file -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # IDPosteriorErrorProbability
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=IDPosteriorErrorProbability -DPARAM=output_name -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MyriMatchAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MyriMatchAdapter -DPARAM=myrimatch_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MSGFPlusAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # LuciPhorAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # FidoAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
@@ -264,15 +254,19 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
+set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our OpenMS/THIRDPARTY Git repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
+
 # check if we have valid search engines
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. Call cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE> .")
+  message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). Please check use the one from the SVN.")
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). ${FOLDER_STRUCTURE_MESSAGE}")
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout. Please check use the one from the SVN.")
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (MyriMatch is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 endif()
 
 add_custom_target(
@@ -287,7 +281,7 @@ add_custom_target(
   prepare_knime_payload
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
   DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
-  )
+)
 
 add_custom_target(
   prepare_meta_information
@@ -299,4 +293,4 @@ add_custom_target(
 add_custom_target(
   prepare_knime_package
   DEPENDS prepare_meta_information configure_plugin_properties prepare_knime_descriptors prepare_knime_payload
-  )
+)

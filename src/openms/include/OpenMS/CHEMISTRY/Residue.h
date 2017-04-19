@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -37,6 +37,7 @@
 #define OPENMS_CHEMISTRY_RESIDUE_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -46,7 +47,6 @@
 
 namespace OpenMS
 {
-
   /**
       @ingroup Chemistry
 
@@ -61,6 +61,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI Residue
   {
+    friend class ResidueDB;
+
 public:
 
     /** @name Typedefs and Constants
@@ -141,19 +143,23 @@ public:
     //@{
     enum ResidueType
     {
-      Full = 0,           // with N-terminus and C-terminus
-      Internal,           // internal, without any termini
-      NTerminal,           // only N-terminus
-      CTerminal,           // only C-terminus
-      AIon,           // N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           // N-terminus up to the peptide bond
-      CIon,           // N-terminus up to the amide/C-alpha bond
-      XIon,           // amide/C-alpha bond up to the C-terminus
-      YIon,           // peptide bond up to the C-terminus
-      ZIon,            // C-alpha/carbonyl carbon bond
-      ZIonPlusOne,            // C-alpha/carbonyl carbon bond
-      ZIonPlusTwo,            // C-alpha/carbonyl carbon bond
-      DIon,             //D ion, added for nucleic acid support
+      Full = 0,       // with N-terminus and C-terminus
+      Internal,       // internal, without any termini
+      NTerminal,      // only N-terminus
+      CTerminal,      // only C-terminus
+      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           // MS:1001224 N-terminus up to the peptide bond
+      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           // MS:1001220 peptide bond up to the C-terminus
+      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      // MS:1001523 Precursor ion
+      BIonMinusH20,   // MS:1001222 b ion without water
+      YIonMinusH20,   // MS:1001223 y ion without water
+      BIonMinusNH3,   // MS:1001232 b ion without ammonia
+      YIonMinusNH3,   // MS:1001233 y ion without ammonia
+      NonIdentified,  // MS:1001240 Non-identified ion
+      Unannotated,    // no stored annotation      DIon,             //D ion, added for nucleic acid support
       WIon,             //W ion, added for nucleic acid support
       AminusB,        //A ion with base loss, added for nucleic acid support
       SizeOfResidueType
@@ -171,13 +177,13 @@ public:
     Residue();
 
     /// copy constructor
-    Residue(const Residue & residue);
+    Residue(const Residue& residue);
 
     /// detailed constructor
-    Residue(const String & name,
-            const String & three_letter_code,
-            const String & one_letter_code,
-            const EmpiricalFormula & formula);
+    Residue(const String& name,
+            const String& three_letter_code,
+            const String& one_letter_code,
+            const EmpiricalFormula& formula);
 
     /// destructor
     virtual ~Residue();
@@ -187,83 +193,83 @@ public:
      */
     //@{
     /// assignment operator
-    Residue & operator=(const Residue & residue);
+    Residue& operator=(const Residue& residue);
     //@}
 
     /** Accessors
     */
     //@{
     /// sets the name of the residue
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the name of the residue
-    const String & getName() const;
+    const String& getName() const;
 
     /// sets the short name of the residue, this name is used in the PeptideSequence for output
-    void setShortName(const String & short_name);
+    void setShortName(const String& short_name);
 
     /// returns the short name of the residue
-    const String & getShortName() const;
+    const String& getShortName() const;
 
     /// sets the synonyms
-    void setSynonyms(const std::set<String> & synonyms);
+    void setSynonyms(const std::set<String>& synonyms);
 
     /// adds a synonym
-    void addSynonym(const String & synonym);
+    void addSynonym(const String& synonym);
 
     /// returns the synonyms
-    const std::set<String> & getSynonyms() const;
+    const std::set<String>& getSynonyms() const;
 
     /// sets the name of the residue as three letter code
-    void setThreeLetterCode(const String & three_letter_code);
+    void setThreeLetterCode(const String& three_letter_code);
 
     /// returns the name of the residue as three letter code
-    const String & getThreeLetterCode() const;
+    const String& getThreeLetterCode() const;
 
     /// sets the name as one letter code
-    void setOneLetterCode(const String & one_letter_code);
+    void setOneLetterCode(const String& one_letter_code);
 
     /// returns the name as one letter code
-    const String & getOneLetterCode() const;
+    const String& getOneLetterCode() const;
 
     /// adds a neutral loss formula
-    void addLossFormula(const EmpiricalFormula &);
+    void addLossFormula(const EmpiricalFormula&);
 
     /// sets the neutral loss formulas
-    void setLossFormulas(const std::vector<EmpiricalFormula> &);
+    void setLossFormulas(const std::vector<EmpiricalFormula>&);
 
     /// adds N-terminal losses
-    void addNTermLossFormula(const EmpiricalFormula &);
+    void addNTermLossFormula(const EmpiricalFormula&);
 
     /// sets the N-terminal losses
-    void setNTermLossFormulas(const std::vector<EmpiricalFormula> &);
+    void setNTermLossFormulas(const std::vector<EmpiricalFormula>&);
 
     /// returns the neutral loss formulas
-    const std::vector<EmpiricalFormula> & getLossFormulas() const;
+    const std::vector<EmpiricalFormula>& getLossFormulas() const;
 
     /// returns N-terminal loss formulas
-    const std::vector<EmpiricalFormula> & getNTermLossFormulas() const;
+    const std::vector<EmpiricalFormula>& getNTermLossFormulas() const;
 
     /// set the neutral loss molecule name
-    void setLossNames(const std::vector<String> & name);
+    void setLossNames(const std::vector<String>& name);
 
     /// sets the N-terminal loss names
-    void setNTermLossNames(const std::vector<String> & name);
+    void setNTermLossNames(const std::vector<String>& name);
 
     /// add neutral loss molecule name
-    void addLossName(const String & name);
+    void addLossName(const String& name);
 
     /// adds a N-terminal loss name
-    void addNTermLossName(const String & name);
+    void addNTermLossName(const String& name);
 
     /// gets neutral loss name (if there is one, else returns an empty string)
-    const std::vector<String> & getLossNames() const;
+    const std::vector<String>& getLossNames() const;
 
     /// returns the N-terminal loss names
-    const std::vector<String> & getNTermLossNames() const;
+    const std::vector<String>& getNTermLossNames() const;
 
     /// set empirical formula of the residue (must be full, with N and C-terminus)
-    void setFormula(const EmpiricalFormula & formula);
+    void setFormula(const EmpiricalFormula& formula);
 
     /// returns the empirical formula of the residue
     EmpiricalFormula getFormula(ResidueType res_type = Full) const;
@@ -274,32 +280,35 @@ public:
     /// returns average weight of the residue
     double getAverageWeight(ResidueType res_type = Full) const;
 
-    /// sets mono weight of the residue (must be full, with N and C-terminus)
+    /// sets monoisotopic weight of the residue (must be full, with N and C-terminus)
     void setMonoWeight(double weight);
 
-    /// returns mono weight of the residue
+    /// returns monoisotopic weight of the residue
     double getMonoWeight(ResidueType res_type = Full) const;
 
-    /// sets by the name, this mod should be present in ModificationsDB
-    void setModification(const String & name);
+    /// returns a pointer to the modification, or zero if none is set
+    const ResidueModification* getModification() const;
 
-    /// returns the name of the modification to the modification
-    const String & getModification() const;
+    /// sets the modification by name; the mod should be present in ModificationsDB
+    void setModification(const String& name);
+
+    /// returns the name (ID) of the modification, or an empty string if none is set
+    const String& getModificationName() const;
 
     /// sets the low mass marker ions as a vector of formulas
-    void setLowMassIons(const std::vector<EmpiricalFormula> & low_mass_ions);
+    void setLowMassIons(const std::vector<EmpiricalFormula>& low_mass_ions);
 
     /// returns a vector of formulas with the low mass markers of the residue
-    const std::vector<EmpiricalFormula> & getLowMassIons() const;
+    const std::vector<EmpiricalFormula>& getLowMassIons() const;
 
     /// sets the residue sets the amino acid is contained in
-    void setResidueSets(const std::set<String> & residues_sets);
+    void setResidueSets(const std::set<String>& residues_sets);
 
     /// adds a residue set to the residue sets
-    void addResidueSet(const String & residue_sets);
+    void addResidueSet(const String& residue_sets);
 
     /// returns the residue sets this residue is contained in
-    const std::set<String> & getResidueSets() const;
+    const std::set<String>& getResidueSets() const;
     //@}
 
     /** @name Predicates
@@ -312,10 +321,10 @@ public:
     bool hasNTermNeutralLosses() const;
 
     /// equality operator
-    bool operator==(const Residue & residue) const;
+    bool operator==(const Residue& residue) const;
 
     /// inequality operator
-    bool operator!=(const Residue & residue) const;
+    bool operator!=(const Residue& residue) const;
 
     /// equality operator for one letter code
     bool operator==(char one_letter_code) const;
@@ -366,11 +375,11 @@ public:
     bool isModified() const;
 
     /// true if the residue is contained in the set
-    bool isInResidueSet(const String & residue_set);
+    bool isInResidueSet(const String& residue_set);
     //@}
 
     /// ostream iterator to write the residue to a stream
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Residue & residue);
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 protected:
 
@@ -394,11 +403,7 @@ protected:
     double mono_weight_;
 
     // modification
-    bool is_modified_;
-
-    String pre_mod_name_;
-
-    String modification_;
+    const ResidueModification* modification_;
 
     // loss
     std::vector<String> loss_names_;
@@ -434,9 +439,12 @@ protected:
     // residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
+    /// sets the modification (helper function)
+    void setModification_(const ResidueModification& mod);
+
   };
 
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Residue & residue);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }
 

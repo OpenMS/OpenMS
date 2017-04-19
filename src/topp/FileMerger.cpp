@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -319,7 +320,7 @@ protected:
       // MS level
       Int ms_level = getIntOption_("raw:ms_level");
 
-      MSExperiment<> out;
+      PeakMap out;
       UInt rt_auto = 0;
       UInt native_id = 0;
       for (Size i = 0; i < file_list.size(); ++i)
@@ -328,7 +329,7 @@ protected:
 
         // load file
         force_type = file_handler.getType(file_list[i]);
-        MSExperiment<> in;
+        PeakMap in;
         file_handler.loadExperiment(filename, in, force_type, log_type_);
 
         if (in.empty() && in.getChromatograms().empty())
@@ -345,7 +346,7 @@ protected:
         }
 
         // handle special raw data options:
-        for (MSExperiment<>::iterator spec_it = in.begin();
+        for (PeakMap::iterator spec_it = in.begin();
              spec_it != in.end(); ++spec_it)
         {
           float rt_final = spec_it->getRT();
@@ -400,7 +401,7 @@ protected:
         }
 
         // add spectra to output
-        for (MSExperiment<>::const_iterator spec_it = in.begin();
+        for (PeakMap::const_iterator spec_it = in.begin();
              spec_it != in.end(); ++spec_it)
         {
           out.addSpectrum(*spec_it);

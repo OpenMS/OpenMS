@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@ using namespace OpenMS;
 
 START_TEST(PeakWidthEstimator, "$Id$")
 
-MSExperiment<> exp;
+PeakMap exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), exp);
 
 PeakPickerHiRes picker;
@@ -55,13 +55,13 @@ picker.setParameters(param);
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
 
-MSExperiment<Peak1D> exp_picked;
+PeakMap exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 PeakWidthEstimator* nullPointer = 0;
 PeakWidthEstimator* ptr;
 
-START_SECTION(PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries))
+START_SECTION(PeakWidthEstimator(const PeakMap & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries))
 {
   PeakWidthEstimator estimator(exp_picked, boundaries_exp_s);
   TEST_REAL_SIMILAR(estimator.getPeakWidth(365.3),0.00886469661896705);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -433,20 +433,19 @@ END_SECTION
 
 START_SECTION((Int toInt() const))
 	String s;
-	s = "123.456";
+	s = "123";
 	TEST_EQUAL(s.toInt(),123);
-	s = "-123.456";
+	s = "-123";
 	TEST_EQUAL(s.toInt(),-123);
-	s = "123.9";
-	TEST_EQUAL(s.toInt(),123);
-	s = "73629.00";
-	TEST_EQUAL(s.toInt(),73629);
-	s = "73629.50";
-	TEST_EQUAL(s.toInt(),73629);
-	s = "73629.99";
-	TEST_EQUAL(s.toInt(),73629);
+  s = "  -123";
+  TEST_EQUAL(s.toInt(),-123);
+  s = "-123  ";
+  TEST_EQUAL(s.toInt(),-123);
+  s = "  -123  ";
+  TEST_EQUAL(s.toInt(),-123);
+  // expect errors:
   s = "524 starts with an int";
-  TEST_EQUAL(s.toInt(), 524)
+  TEST_EXCEPTION(Exception::ConversionError, s.toInt())
   s = "not an int";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
   s = "contains an 13135 int";
@@ -467,7 +466,7 @@ START_SECTION((float toFloat() const))
 	TEST_EQUAL(String(s.toFloat()),"73629.9");
 	s = "47218.8";
 	TEST_EQUAL(String(s.toFloat()),"47218.8");
-  s = "nan";
+  s = String("nan");
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);

@@ -10,6 +10,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DistanceMatrix.h>" namespace "OpenMS":
         DistanceMatrix() nogil except +
         DistanceMatrix(DistanceMatrix) nogil except +
         DistanceMatrix(size_t dimensionsize, Value value) nogil except +
+
         # ValueType operator()(size_t i, size_t j) nogil except +
         # ValueType operator()(size_t i, size_t j) nogil except +
         Value getValue(size_t i, size_t j) nogil except +

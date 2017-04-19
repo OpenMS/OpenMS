@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 namespace OpenMS
@@ -114,6 +115,16 @@ namespace OpenMS
     return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
   }
 
+  std::vector<std::string> MRMFeatureOpenMS::getNativeIDs() const
+  {
+    std::vector<std::string> v;
+    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = features_.begin(); it != features_.end(); ++it)
+    {
+      v.push_back(it->first);
+    }
+    return v;
+  }
+
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
     std::vector<std::string> v;
@@ -140,8 +151,10 @@ namespace OpenMS
   }
 
   // default instances
-  MSSpectrum<Peak1D> chromat;
-  SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 1.0, 3, true);
+  MSSpectrum<> spec;
+  MSChromatogram<> chrom;
+  SignalToNoiseOpenMS< MSSpectrum<> > spec_signal_to_noise_openms(spec, 1.0, 3, true);
+  SignalToNoiseOpenMS< MSChromatogram<> > chrom_signal_to_noise_openms(chrom, 1.0, 3, true);
 
   MRMTransitionGroup<MSSpectrum<Peak1D>, ReactionMonitoringTransition> trgroup;
   TransitionGroupOpenMS<MSSpectrum<Peak1D>, ReactionMonitoringTransition> default_transition_group_openms(trgroup);

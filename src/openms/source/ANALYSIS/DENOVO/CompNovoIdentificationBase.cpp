@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -667,16 +667,16 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
-      ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
+      ResidueModification mod = it->getModification();
       char aa = ' ';
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
-        cerr << "Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+        cerr << "Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        aa = mod.getOrigin()[0];
+        aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
@@ -691,14 +691,14 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         }
         else
         {
-          cerr << "Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+          cerr << "Warning: cannot handle modification " << mod.getName() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
 
       //cerr << "Setting fixed modification " << it->getModification() << " of amino acid '" << aa << "'; weight = " << aa_to_weight_[aa] << endl;
 
-      const Residue * res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModificationName());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }
@@ -708,19 +708,19 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
-      ResidueModification mod = ModificationsDB::getInstance()->getModification(it->getModification());
+      ResidueModification mod = it->getModification();
       char aa = (*actual_mod_name)[0];
       char origin_aa = ' ';
       ++actual_mod_name;
 
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
-        cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
+        cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        origin_aa = mod.getOrigin()[0];
+        origin_aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
@@ -735,13 +735,13 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         }
         else
         {
-          cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << it->getModification() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
+          cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << mod.getName() << ", because no monoisotopic mass value was found! Ignoring modification!" << endl;
           continue;
         }
       }
 
       //cerr << "Mapping variable modification " << it->getModification() << " to letter '" << aa << "' (@" << origin_aa << "); weight = " << aa_to_weight_[aa] << endl;
-      const Residue * res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModificationName());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }

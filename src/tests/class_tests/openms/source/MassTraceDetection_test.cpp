@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar$
 // --------------------------------------------------------------------------
 
@@ -100,7 +100,7 @@ START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &
 END_SECTION
 
 // load a mzML file for testing the algorithm
-MSExperiment<Peak1D> input;
+PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
 Size exp_mt_lengths[3] = {86, 31, 16};
@@ -113,7 +113,7 @@ std::vector<MassTrace> output_mt;
 Param p_mtd = MassTraceDetection().getDefaults();
 p_mtd.setValue("min_trace_length", 3.0);
 
-START_SECTION((void run(const MSExperiment< Peak1D > &, std::vector< MassTrace > &)))
+START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
 {
     test_mtd.run(input, output_mt);
 
@@ -139,7 +139,7 @@ START_SECTION((void run(const MSExperiment< Peak1D > &, std::vector< MassTrace >
     // Regression test for bug #1633
     // Test by adding MS2 spectra to the input
     {
-      MSExperiment<> input_new;
+      PeakMap input_new;
       MSSpectrum<> s;
       s.setMSLevel(2);
       {
@@ -190,15 +190,15 @@ std::vector<MassTrace> filt;
 //}
 //END_SECTION
 
-MSExperiment<Peak1D>::ConstAreaIterator mt_it1 = input.areaBeginConst(335.0, 385.0, 437.1, 437.4);
-MSExperiment<Peak1D>::ConstAreaIterator mt_it2 = input.areaBeginConst(335.0, 385.0, 438.2, 438.4);
-MSExperiment<Peak1D>::ConstAreaIterator mt_it3 = input.areaBeginConst(335.0, 385.0, 439.2, 439.4);
+PeakMap::ConstAreaIterator mt_it1 = input.areaBeginConst(335.0, 385.0, 437.1, 437.4);
+PeakMap::ConstAreaIterator mt_it2 = input.areaBeginConst(335.0, 385.0, 438.2, 438.4);
+PeakMap::ConstAreaIterator mt_it3 = input.areaBeginConst(335.0, 385.0, 439.2, 439.4);
 
 std::vector<MassTrace> found_mtraces;
 
-MSExperiment<Peak1D>::ConstAreaIterator mt_end = input.areaEndConst();
+PeakMap::ConstAreaIterator mt_end = input.areaEndConst();
 
-START_SECTION((void run(MSExperiment< Peak1D >::ConstAreaIterator &begin, MSExperiment< Peak1D >::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
+START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
 {
 
     NOT_TESTABLE

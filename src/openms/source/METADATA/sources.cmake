@@ -7,8 +7,10 @@ Acquisition.cpp
 AcquisitionInfo.cpp
 CVTerm.cpp
 CVTermList.cpp
+CVTermListInterface.cpp
 ChromatogramSettings.cpp
 ContactPerson.cpp
+DataArrays.cpp
 DataProcessing.cpp
 Digestion.cpp
 DocumentIDTagger.cpp

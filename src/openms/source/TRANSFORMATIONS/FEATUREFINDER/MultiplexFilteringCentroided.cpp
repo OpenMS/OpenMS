@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
@@ -60,12 +60,12 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
   {
 
     // fill peak registry and initialise blacklist
-    MSExperiment<Peak1D>::Iterator it_rt;
+    PeakMap::Iterator it_rt;
     blacklist_.reserve(exp_picked_.getNrSpectra());
     registry_.reserve(exp_picked_.getNrSpectra());
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
@@ -130,7 +130,7 @@ namespace OpenMS
       MultiplexFilterResult result;
 
       // iterate over spectra
-      for (MSExperiment<Peak1D>::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
+      for (PeakMap::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
       {
         // skip empty spectra
         if (it_rt_picked->empty())
@@ -168,7 +168,7 @@ namespace OpenMS
           mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
           mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
 
-          int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
+          int peaks_found_in_all_peptides = positionsAndBlacklistFilter_(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
             continue;
@@ -178,7 +178,7 @@ namespace OpenMS
            * Filter (2): blunt intensity filter
            * Are the mono-isotopic peak intensities of all peptides above the cutoff?
            */
-          bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
+          bool bluntVeto = monoIsotopicPeakIntensityFilter_(patterns_[pattern], spectrum, mz_shifts_actual_indices);
           if (bluntVeto)
           {
             continue;
@@ -189,7 +189,7 @@ namespace OpenMS
            * Are the peak intensities of all peptides above the cutoff?
            */
           std::vector<double> intensities_actual; // peak intensities @ m/z peak position + actual m/z shift
-          int peaks_found_in_all_peptides_centroided = nonLocalIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices, intensities_actual, peaks_found_in_all_peptides);
+          int peaks_found_in_all_peptides_centroided = nonLocalIntensityFilter_(patterns_[pattern], spectrum, mz_shifts_actual_indices, intensities_actual, peaks_found_in_all_peptides);
           if (peaks_found_in_all_peptides_centroided < peaks_per_peptide_min_)
           {
             continue;
@@ -200,7 +200,7 @@ namespace OpenMS
            * There should not be a significant peak to the left of the mono-isotopic
            * (i.e. first) peak.
            */
-          bool zero_peak = zerothPeakFilter(patterns_[pattern], intensities_actual);
+          bool zero_peak = zerothPeakFilter_(patterns_[pattern], intensities_actual);
           if (zero_peak)
           {
             continue;
@@ -210,7 +210,7 @@ namespace OpenMS
            * Filter (5): peptide similarity filter
            * How similar are the isotope patterns of the peptides?
            */
-          bool peptide_similarity = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_centroided);
+          bool peptide_similarity = peptideSimilarityFilter_(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_centroided);
           if (!peptide_similarity)
           {
             continue;
@@ -220,7 +220,7 @@ namespace OpenMS
            * Filter (6): averagine similarity filter
            * Does each individual isotope pattern resemble a peptide?
            */
-          bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_centroided, peak_position[peak]);
+          bool averagine_similarity = averagineSimilarityFilter_(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_centroided, peak_position[peak]);
           if (!averagine_similarity)
           {
             continue;
@@ -234,7 +234,7 @@ namespace OpenMS
           result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
 
           // blacklist peaks in the current spectrum and the two neighbouring ones
-          blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_centroided);
+          blacklistPeaks_(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_centroided);
 
         }
       }
@@ -248,9 +248,9 @@ namespace OpenMS
     return filter_results;
   }
 
-  int MultiplexFilteringCentroided::nonLocalIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
+  int MultiplexFilteringCentroided::nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
   {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
+    PeakMap::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
 
     // read out peak intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)

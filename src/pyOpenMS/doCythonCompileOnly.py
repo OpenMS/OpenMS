@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -56,17 +56,12 @@ except IOError:
     print("The file include_dir.bin does not yet exist, please run setup.py first to create it.")
 
 from Cython.Compiler.Main import compile, CompilationOptions
-from Cython.Compiler.Options import directive_defaults
 import Cython
 print("Will try to compile with Cython version", Cython.__version__)
 
 # Prepare options
-directive_defaults["boundscheck"] = False
-directive_defaults["wraparound"] = False
 print "include:", autowrap_include_dirs
-print "defaults:", directive_defaults
 options = dict(include_path=autowrap_include_dirs,
-               compiler_directives=directive_defaults,
                #output_dir=".",
                #gdb_debug=True,
                cplus=True)

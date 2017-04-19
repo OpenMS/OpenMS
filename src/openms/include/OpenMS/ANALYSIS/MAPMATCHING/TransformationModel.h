@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -36,7 +36,6 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <boost/noncopyable.hpp> // to prevent copy/assignment
 
 namespace OpenMS
 {
@@ -49,7 +48,7 @@ namespace OpenMS
 
     @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel : boost::noncopyable
+  class OPENMS_DLLAPI TransformationModel
   {
   public:
     /// Coordinate pair
@@ -61,6 +60,7 @@ namespace OpenMS
     TransformationModel() {}
 
     /// Alternative constructor (derived classes should implement this one!)
+    /// Both data and params must be provided, since some derived classes require both to create a model!
     TransformationModel(const TransformationModel::DataPoints&, const Param&);
 
     /// Destructor
@@ -78,6 +78,13 @@ namespace OpenMS
   protected:
     /// Parameters
     Param params_;
+
+  private:
+    /// do not allow copy
+    TransformationModel( const TransformationModel& );
+    /// do not allow assignment
+    const TransformationModel& operator=( const TransformationModel& );
+
   };
 
 } // end of namespace OpenMS

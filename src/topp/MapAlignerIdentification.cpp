@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,10 +80,11 @@ using namespace std;
     @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
 		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
-		
+
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
     - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
+    - @ref OpenMS::TransformationModelLowess "lowess": Local regression (non-linear).
     - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
 
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
@@ -204,7 +205,7 @@ private:
       FileTypes::Type filetype = FileHandler::getType(reference_file);
       if (filetype == FileTypes::MZML)
       {
-        MSExperiment<> experiment;
+        PeakMap experiment;
         MzMLFile().load(reference_file, experiment);
         algorithm.setReference(experiment);
       }

@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+        <VariableModification name="Acetyl (N-term)" />
+        <VariableModification name="Carbamidomethyl (N-term)" />
+        <VariableModification name="Deamidated (N)" />
+        <VariableModification name="Deamidated (Q)" />
+        <VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2015-05-22T13:31:21" search_engine="Percolator" search_engine_version="" search_parameters_ref="SP_0" >
+  <IdentificationRun date="2015-10-28T13:51:28" search_engine="Percolator" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Augustus2_AUGUSTUS00000009543_5_25910749-25909503_1" score="0" sequence="" >
 			</ProteinHit>
@@ -2505,7 +2510,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="596.77612" RT="2303.32" >
-			<PeptideHit score="0" sequence="(Acetyl)EAESSPFVER" charge="2" protein_refs="PH_289 PH_627" >
+			<PeptideHit score="0" sequence=".(Acetyl)EAESSPFVER" charge="2" protein_refs="PH_289 PH_627" >
 				<UserParam type="float" name="Percolator_score" value="4.29846"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0"/>
 				<UserParam type="float" name="Percolator_PEP" value="8.73504e-06"/>
@@ -2757,7 +2762,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="519.25708" RT="2498.24" >
-			<PeptideHit score="0.000132074" sequence="(Acetyl)VNFAM(Oxidation)NVGK" charge="2" protein_refs="PH_286 PH_287 PH_288 PH_419 PH_647 PH_665 PH_767 PH_872 PH_1044 PH_1045 PH_1059 PH_1061" >
+			<PeptideHit score="0.000132074" sequence=".(Acetyl)VNFAM(Oxidation)NVGK" charge="2" protein_refs="PH_286 PH_287 PH_288 PH_419 PH_647 PH_665 PH_767 PH_872 PH_1044 PH_1045 PH_1059 PH_1061" >
 				<UserParam type="float" name="Percolator_score" value="2.15281"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000132074"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00096205"/>
@@ -2834,7 +2839,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="442.76447" RT="2988.18" >
-			<PeptideHit score="0.000268723" sequence="(Acetyl)VATVSLPR" charge="2" protein_refs="PH_7" >
+			<PeptideHit score="0.000268723" sequence=".(Acetyl)VATVSLPR" charge="2" protein_refs="PH_7" >
 				<UserParam type="float" name="Percolator_score" value="1.7864"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.000268723"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.00207556"/>
@@ -3016,7 +3021,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="433.73349" RT="2095.35" >
-			<PeptideHit score="0.00458149" sequence="(Carbamidomethyl)YLSALN(Deamidated)K" charge="2" protein_refs="PH_1125" >
+			<PeptideHit score="0.00458149" sequence=".(Carbamidomethyl)YLSALN(Deamidated)K" charge="2" protein_refs="PH_1125" >
 				<UserParam type="float" name="Percolator_score" value="0.337635"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00458149"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.0830843"/>
@@ -3030,7 +3035,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="584.30249" RT="2663.68" >
-			<PeptideHit score="0.00605916" sequence="(Acetyl)LRTEGDGVYTLNDKK" charge="3" protein_refs="PH_1 PH_129 PH_184 PH_185 PH_186 PH_187 PH_222 PH_223 PH_224 PH_700 PH_705 PH_977 PH_1035 PH_1048 PH_1054 PH_1057 PH_1067" >
+			<PeptideHit score="0.00605916" sequence=".(Acetyl)LRTEGDGVYTLNDKK" charge="3" protein_refs="PH_1 PH_129 PH_184 PH_185 PH_186 PH_187 PH_222 PH_223 PH_224 PH_700 PH_705 PH_977 PH_1035 PH_1048 PH_1054 PH_1057 PH_1067" >
 				<UserParam type="float" name="Percolator_score" value="0.201002"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.00605916"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.127366"/>
@@ -3093,7 +3098,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="951.48413" RT="3058.62" >
-			<PeptideHit score="0.0352042" sequence="(Acetyl)KPGAAGQHPAPFDPQSVR" charge="2" protein_refs="PH_1127" >
+			<PeptideHit score="0.0352042" sequence=".(Acetyl)KPGAAGQHPAPFDPQSVR" charge="2" protein_refs="PH_1127" >
 				<UserParam type="float" name="Percolator_score" value="-0.634256"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0352042"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.722362"/>
@@ -3121,14 +3126,14 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="664.31238" RT="3596.01" >
-			<PeptideHit score="0.0622534" sequence="(Acetyl)SKCFASN(Deamidated)SQ(Deamidated)LLYSQGEK" charge="3" protein_refs="PH_1124" >
+			<PeptideHit score="0.0622534" sequence=".(Acetyl)SKCFASN(Deamidated)SQ(Deamidated)LLYSQGEK" charge="3" protein_refs="PH_1124" >
 				<UserParam type="float" name="Percolator_score" value="-1.09757"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0622534"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.94086"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="730.34552" RT="2652.62" >
-			<PeptideHit score="0.0647164" sequence="(Carbamidomethyl)NN(Deamidated)PVMSLQDQ(Deamidated)VR" charge="2" protein_refs="PH_22 PH_192 PH_437 PH_438 PH_439 PH_748 PH_749 PH_750 PH_1080" >
+			<PeptideHit score="0.0647164" sequence=".(Carbamidomethyl)NN(Deamidated)PVMSLQDQ(Deamidated)VR" charge="2" protein_refs="PH_22 PH_192 PH_437 PH_438 PH_439 PH_748 PH_749 PH_750 PH_1080" >
 				<UserParam type="float" name="Percolator_score" value="-1.13897"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0647164"/>
 				<UserParam type="float" name="Percolator_PEP" value="0.964364"/>
@@ -3142,7 +3147,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="634.33673" RT="1983.63" >
-			<PeptideHit score="0.0885601" sequence="(Acetyl)KGLDVAEPGPSR" charge="2" protein_refs="PH_357 PH_598 PH_948" >
+			<PeptideHit score="0.0885601" sequence=".(Acetyl)KGLDVAEPGPSR" charge="2" protein_refs="PH_357 PH_598 PH_948" >
 				<UserParam type="float" name="Percolator_score" value="-1.63897"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.0885601"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>
@@ -3156,14 +3161,14 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="943.40503" RT="1694.59" >
-			<PeptideHit score="0.100208" sequence="(Acetyl)YEDSQQ(Deamidated)EEAQ(Deamidated)YGAMFQ(Deamidated)EQLM(Oxidation)TLK" charge="3" protein_refs="PH_103 PH_387 PH_388 PH_389 PH_390 PH_709 PH_781 PH_982 PH_1109 PH_1117" >
+			<PeptideHit score="0.100208" sequence=".(Acetyl)YEDSQQ(Deamidated)EEAQ(Deamidated)YGAMFQ(Deamidated)EQLM(Oxidation)TLK" charge="3" protein_refs="PH_103 PH_387 PH_388 PH_389 PH_390 PH_709 PH_781 PH_982 PH_1109 PH_1117" >
 				<UserParam type="float" name="Percolator_score" value="-2.1027"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.100208"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="660.8255" RT="2297.68" >
-			<PeptideHit score="0.104155" sequence="(Carbamidomethyl)AHN(Deamidated)FDERVFK" charge="2" protein_refs="PH_468 PH_469 PH_626 PH_1032" >
+			<PeptideHit score="0.104155" sequence=".(Carbamidomethyl)AHN(Deamidated)FDERVFK" charge="2" protein_refs="PH_468 PH_469 PH_626 PH_1032" >
 				<UserParam type="float" name="Percolator_score" value="-2.46345"/>
 				<UserParam type="float" name="Percolator_qvalue" value="0.104155"/>
 				<UserParam type="float" name="Percolator_PEP" value="1"/>

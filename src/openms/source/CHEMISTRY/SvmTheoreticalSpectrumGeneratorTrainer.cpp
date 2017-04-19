@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -365,7 +365,7 @@ namespace OpenMS
       double gamma_step_size = (double)param_.getValue("svm:svr:gamma_step_size");
       if (!additive_cv && gamma_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
       double gamma_stop = (double)param_.getValue("svm:svr:degree_stop");
       start_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
@@ -382,7 +382,7 @@ namespace OpenMS
         degree_step_size = (Int)param_.getValue("svm:svr:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
         degree_stop = (Int)param_.getValue("svm:svr:degree_stop");
 
@@ -397,7 +397,7 @@ namespace OpenMS
         double p_step_size = (double)param_.getValue("svm:svr:p_step_size");
         if (!additive_cv && p_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of p <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of p <= 1 and additive_cv is false. Aborting!");
         }
         double p_stop = (double)param_.getValue("svm:svr:p_stop");
 
@@ -410,7 +410,7 @@ namespace OpenMS
       double c_step_size = (double)param_.getValue("svm:svr:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
       double c_stop = (double)param_.getValue("svm:svr:c_stop");
 
@@ -424,7 +424,7 @@ namespace OpenMS
         double nu_step_size = (double)param_.getValue("svm:svr:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
         double nu_stop = (double)param_.getValue("svm:svr:nu_stop");
 
@@ -443,7 +443,7 @@ namespace OpenMS
       double gamma_step_size = (double)param_.getValue("svm:svc:gamma_step_size");
       if (!additive_cv && gamma_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
       double gamma_stop = (double)param_.getValue("svm:svc:degree_stop");
       start_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
@@ -456,7 +456,7 @@ namespace OpenMS
         UInt degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
         UInt degree_stop = (Int)param_.getValue("svm:svc:degree_stop");
 
@@ -469,7 +469,7 @@ namespace OpenMS
       double c_step_size = (double)param_.getValue("svm:svc:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
       double c_stop = (double)param_.getValue("svm:svc:c_stop");
 
@@ -483,7 +483,7 @@ namespace OpenMS
         double nu_step_size = (double)param_.getValue("svm:svc:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
         double nu_stop = (double)param_.getValue("svm:svc:nu_stop");
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_XTANDEMINFILE_H
 #define OPENMS_FORMAT_XTANDEMINFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 
@@ -45,7 +44,13 @@ namespace OpenMS
   /**
     @brief XTandem input file.
 
-    This class is able to create a X!Tandem configuration files to be used with Xtandem.
+    This class is able to load/write a X!Tandem configuration file.
+
+    These files store parameters within 'note' tags, e.g.,
+    @verbatim
+      <note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
+    	<note type="input" label="output, proteins">yes</note>
+    @endverbatim
 
     @ingroup FileIO
   */
@@ -73,18 +78,6 @@ public:
 
     /// constructor
     virtual ~XTandemInfile();
-
-    //<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-    //<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
-    //<note type="input" label="spectrum, parent monoisotopic mass error plus">100</note>
-    //<note type="input" label="spectrum, parent monoisotopic mass error minus">100</note>
-    //<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-    //<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
-    //<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
-    //<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
-    //<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
-    //<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
-    //<note>values are monoisotopic|average </note>
 
     /// setter for the fragment mass tolerance
     void setFragmentMassTolerance(double tolerance);
@@ -188,46 +181,37 @@ public:
     /// returns the max valid E-value allowed in the list
     double getMaxValidEValue() const;
 
-    /// get state of refine setting
-    bool isRefining() const;
-
-    /// get state of noise suppression
-    bool getNoiseSuppression() const;
-
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
 
     /// set if misassignment of precursor to first and second 13C isotopic peak should also be considered
     void setAllowIsotopeError(const bool allow_isotope_error);
 
-    /// set state of refine setting
-    void setRefine(const bool refine);
+    /// get state of noise suppression
+    bool getNoiseSuppression() const;
 
     /// set state of noise suppression
     void setNoiseSuppression(const bool noise_suppression);
 
-    /// set the cleavage site with a xtandem conform regex
+    /// set the cleavage site with a X! Tandem conform regex
     void setCleavageSite(const String& cleavage_site);
     
     /// returns the cleavage site regex
     const String& getCleavageSite() const;
 
     /** 
-      @brief Writes the XTandemInfile to the given file
+      @brief Writes the X! Tandem input file to the given filename
 
+      If @p ignore_member_parameters is true, only a very limited number of
+      tags fed by member variables (i.e. in, out, database/taxonomy) is written.
+      
       @param filename the name of the file which is written
+      @param ignore_member_parameters Do not write tags for class members
+      @param force_default_mods Force writing of mods covered by special parameters
       @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void write(const String& filename);
-
-    /** 
-      @brief Reads the information from the given filename
-
-      @param filename the file which should be read from
-      @throw FileNotFound is thrown if the given file could not be found
-      @throw ParseError is thrown if the given file could not be parsed
-    */
-    void load(const String& filename);
+    void write(const String& filename, bool ignore_member_parameters = false,
+               bool force_default_mods = false);
 
 protected:
 
@@ -235,21 +219,28 @@ protected:
 
     XTandemInfile& operator=(const XTandemInfile& rhs);
 
-    void writeTo_(std::ostream& os);
+    void writeTo_(std::ostream& os, bool ignore_member_parameters);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
+    void writeNote_(std::ostream& os, const String& label, const String& value);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
+    void writeNote_(std::ostream& os, const String& label, const char* value);
 
-    void writeNote_(std::ostream& os, const String& type, const String& label, bool value);
+    void writeNote_(std::ostream& os, const String& label, bool value);
 
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
 
-      @param mods The modifications to convert.
-      @return A X!Tandem compatible string representation.
+      The set affected_origins can be used to avoid duplicate modifications, which are not supported in X! Tandem.
+      Currently, a warning message is printed.
+      Also, if a fixed mod is already given, a corresponding variable mods needs to have its delta mass reduced by the fixed modifications mass.
+      This is also done automatically here.
+
+      @param mods The modifications to convert
+      @param affected_origins Set of origins, which were used previously. Will be augmented with the current mods.
+
+      @return An X! Tandem compatible string representation.
     */
-    String convertModificationSet_(const std::set<ModificationDefinition>& mods) const;
+    String convertModificationSet_(const std::set<ModificationDefinition>& mods, std::map<String, double>& affected_origins) const;
 
     double fragment_mass_tolerance_;
 
@@ -257,13 +248,13 @@ protected:
 
     double precursor_mass_tolerance_minus_;
 
-    MassType precursor_mass_type_;
+    ErrorUnit fragment_mass_error_unit_;
 
     ErrorUnit precursor_mass_error_unit_;
 
-    ErrorUnit fragment_mass_error_unit_;
-
     MassType fragment_mass_type_;
+
+    MassType precursor_mass_type_;
 
     UInt max_precursor_charge_;
 
@@ -287,18 +278,10 @@ protected:
 
     String cleavage_site_;
 
-    /// Enable/disable xtandem refinement
-    bool refine_;
-
-    /// Enable/disable xtandem noise suppression routine
-    bool noise_suppression_;
-
     /// semi cleavage
     bool semi_cleavage_;
 
     bool allow_isotope_error_;
-
-    double refine_max_valid_evalue_;
 
     // scoring
     UInt number_of_missed_cleavages_;
@@ -310,11 +293,9 @@ protected:
 
     double max_valid_evalue_;
 
-    /** 
-      Holds additional nodes that were not translated to member variables, but are conserved for storing.
-      &ltnote type="input" label="spectrum, fragment monoisotopic mass error"&gt;0.4&lt;/note&gt;
-    */
-    std::vector<Internal::XTandemInfileNote> notes_;
+    // force writing of mods covered by special parameters?
+    bool force_default_mods_;
+
   };
 
 } // namespace OpenMS

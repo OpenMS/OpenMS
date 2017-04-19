@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
@@ -160,6 +161,10 @@ protected:
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
     registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
+
+    registerTOPPSubsection_("spectra", "Additional options for mzML input");
+    registerInputFile_("spectra:in", "<file>", "", "MS run used to annotated unidentified spectra to features or consensus features.", false);
+    setValidFormats_("spectra:in", ListUtils::create<String>("mzML"));
   }
 
   ExitCodes main_(int, const char**)
@@ -185,11 +190,12 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       __PRETTY_FUNCTION__,
+                                       OPENMS_PRETTY_FUNCTION,
                                        "wrong id fileformat");
     }
 
     String in = getStringOption_("in");
+    String spectra = getStringOption_("spectra:in");
     String out = getStringOption_("out");
     in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
@@ -215,10 +221,19 @@ protected:
       ConsensusMap map;
       file.load(in, map);
 
+      PeakMap exp;
+      if (!spectra.empty())
+      {
+        MzMLFile().load(spectra, exp);
+      }
+
+
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
-      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements);
+      mapper.annotate(map, peptide_ids, protein_ids, 
+                      measure_from_subelements, annotate_ids_with_subelements,
+                      exp);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
@@ -236,9 +251,17 @@ protected:
       FeatureXMLFile file;
       file.load(in, map);
 
+      PeakMap exp;
+
+      if (!spectra.empty())
+      {
+        MzMLFile().load(spectra, exp);
+      }
+
       mapper.annotate(map, peptide_ids, protein_ids,
                       getFlag_("feature:use_centroid_rt"),
-                      getFlag_("feature:use_centroid_mz"));
+                      getFlag_("feature:use_centroid_mz"),
+                      exp);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));

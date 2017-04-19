@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -43,7 +46,8 @@ namespace OpenMS
 
     void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
     {
-      OPENMS_PRECONDITION(location >= -1 && location <= max_size, (String("Location has invalid value") + (String)location).c_str() )
+      OPENMS_PRECONDITION(location >= -1 && location <= max_size, 
+          (String("Location has invalid value") + (String)location).c_str() )
 
       if (location == -1)
       {
@@ -61,47 +65,46 @@ namespace OpenMS
 
     OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
     {
+
+      // Note that the peptide.sequence is the "naked sequence" without any
+      // modifications on it, therefore we have to populate the AASequence with
+      // the correct modifications afterwards.
       OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
       OpenMS::AASequence aas = AASequence::fromString(peptide.sequence);
 
-      for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
+      // Populate the AASequence with the correct modifications derived from
+      // the Peptide::Modification objects.
+      for (std::vector<Peptide::Modification>::const_iterator it = peptide.mods.begin(); 
+          it != peptide.mods.end(); ++it)
       {
-        // Step 1: First look for a cv term that says which unimod nr it is...
-        // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
-        int nr_modifications_added = 0;
-        Map<String, std::vector<CVTerm> > cv_terms = it->getCVTerms();
-        for (Map<String, std::vector<CVTerm> >::iterator li = cv_terms.begin(); li != cv_terms.end(); ++li)
+        // Step 1: First look whether the UniMod ID is set (we don't use a CVTerm any more but a member)
+        if (it->unimod_id != -1)
         {
-          std::vector<CVTerm> mods = (*li).second;
-          for (std::vector<CVTerm>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
-          {
-            // if we find a CV term that starts with UniMod, chances are we can use the UniMod accession number
-            if (mo->getAccession().size() > 7 && mo->getAccession().prefix(7).toLower() == String("unimod:"))
-            {
-              nr_modifications_added++;
-              setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), "UniMod:" + mo->getAccession().substr(7), aas);
-            }
-          }
+          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
+              "UniMod:" + String(it->unimod_id), aas);
+          continue;
         }
+
+        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+          ". Will try to infer modification id by mass next." << std::endl;
+
+        // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
 
         // Step 2: If the above step fails, try to find the correct
         // modification by using the mass difference
-        if (nr_modifications_added == 0)
+        const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
+          it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
+        if (mod != NULL)
         {
-          const ResidueModification * mod = mod_db->getBestModificationsByDiffMonoMass(
-                 peptide.sequence[it->location], it->mono_mass_delta, 1.0);
-          if (mod != NULL)
-          {
-            setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
-          }
-          else
-          {
-            // could not find any modification ...
-            std::cerr << "Warning: Could not determine modification with delta mass " <<
-              it->mono_mass_delta << " for peptide " << peptide.sequence <<
-              " at position " << it->location << std::endl;
-            std::cerr << "Skipping this modifcation" << std::endl;
-          }
+          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
+        }
+        else
+        {
+          // could not find any modification ...
+          std::cerr << "Warning: Could not determine modification with delta mass " <<
+            it->mono_mass_delta << " for peptide " << peptide.sequence <<
+            " at position " << it->location << std::endl;
+          std::cerr << "Skipping this modifcation" << std::endl;
         }
       }
       return aas;

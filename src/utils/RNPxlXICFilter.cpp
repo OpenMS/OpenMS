@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML"));    
   }
 
-  void filterByFoldChange(const MSExperiment<>& exp1, const MSExperiment<>& exp2,
+  void filterByFoldChange(const PeakMap& exp1, const PeakMap& exp2,
                           const vector<double>& pc_ms2_rts, const vector<double>& pc_mzs,
                           const double rttol, const double mztol, double fold_change,
                           vector<double>& control_XIC_larger,
@@ -126,8 +126,8 @@ protected:
       double rt_start = pc_ms2_rts[i] - rttol / 2.0;
 
       // get area iterator (is MS1 only!) for rt and mz window
-      MSExperiment<>::ConstAreaIterator it1 = exp1.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz  + mz_da);
-      MSExperiment<>::ConstAreaIterator it2 = exp2.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz  + mz_da);
+      PeakMap::ConstAreaIterator it1 = exp1.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz  + mz_da);
+      PeakMap::ConstAreaIterator it2 = exp2.areaBeginConst(pc_ms2_rt - rttol / 2, pc_ms2_rt + rttol / 2, pc_mz - mz_da, pc_mz  + mz_da);
 
       // determine maximum number of MS1 scans in retention time window
       set<double> rts1;
@@ -225,11 +225,11 @@ protected:
     const double rt_tolerance_s = getDoubleOption_("rt_tol");
 
     // load experiments
-    MSExperiment<> exp_control;
+    PeakMap exp_control;
     MzMLFile mzml_file;
     mzml_file.load(control_mzml, exp_control);
 
-    MSExperiment<> exp_treatment;
+    PeakMap exp_treatment;
     mzml_file.load(treatment_mzml, exp_treatment);
 
     // extract precursor mz and rts
@@ -262,7 +262,7 @@ protected:
                        indifferent_XICs_rts);
 
 
-    MSExperiment<> exp_out = exp_treatment;
+    PeakMap exp_out = exp_treatment;
     exp_out.clear(false); // don't clear meta-data
 
     for (Size i = 0; i != exp_treatment.size(); ++i)

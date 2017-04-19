@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -37,7 +37,6 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -54,15 +53,10 @@ START_TEST(XTandemXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-XTandemXMLFile xml_file;
 XTandemXMLFile* ptr;
 XTandemXMLFile* nullPointer = 0;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
-String date_string_1;
-String date_string_2;
-PeptideHit peptide_hit;
 
 START_SECTION((XTandemXMLFile()))
 	ptr = new XTandemXMLFile();
@@ -73,20 +67,27 @@ START_SECTION(~XTandemXMLFile())
 	delete ptr;
 END_SECTION
 
-ptr = new XTandemXMLFile();
+XTandemXMLFile xml_file;
 
-START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, ModificationDefinitionsSet& mod_def_set))
+{
 	ModificationDefinitionsSet mod_set(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
 
-	ptr->setModificationDefinitionsSet(mod_set);
-	NOT_TESTABLE
-END_SECTION
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications, mod_set);
+	TEST_EQUAL(peptide_identifications.size(), 303);
+	TEST_EQUAL(protein_identification.getHits().size(), 497);
+  // should have picked up the default N-terminal modifications:
+  TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 6);
+  TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 0);
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data))
-	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications);
-	TEST_EQUAL(peptide_identifications.size(), 303)
-	TEST_EQUAL(protein_identification.getHits().size(), 497)
-	ptr->load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications);
+  mod_set.setModifications("", "Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)");
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications, mod_set);
+	TEST_EQUAL(peptide_identifications.size(), 2);
+	TEST_EQUAL(protein_identification.getHits().size(), 21);
+  // no additional modifications in this case:
+  TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 3);
+  TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 0);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

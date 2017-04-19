@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,11 +81,11 @@ namespace OpenMS
     updateMembers_();
   }
 
-  void PeakPickerMRM::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogram(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
   {
     if (!chromatogram.isSorted())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Chromatogram must be sorted by position");
     }
 
@@ -109,7 +109,7 @@ namespace OpenMS
     }
 
     // Smooth the chromatogram
-    RichPeakChromatogram smoothed_chrom = chromatogram;
+    MSChromatogram<> smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
       SavitzkyGolayFilter sgolay;
@@ -137,6 +137,7 @@ namespace OpenMS
     pepi_param.setValue("spacing_difference_gap", 0.0);
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
+    LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {
@@ -175,9 +176,9 @@ namespace OpenMS
     }
   }
 
-  void PeakPickerMRM::pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogram_(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
   {
-    SignalToNoiseEstimatorMedian<RichPeakChromatogram> snt;
+    SignalToNoiseEstimatorMedian<MSChromatogram<> > snt;
     Param snt_parameters = snt.getParameters();
     snt_parameters.setValue("win_len", sn_win_len_);
     snt_parameters.setValue("bin_count", sn_bin_count_);
@@ -240,7 +241,7 @@ namespace OpenMS
   }
 
 #ifdef WITH_CRAWDAD
-  void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
   {
     LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
@@ -298,14 +299,14 @@ namespace OpenMS
 
   }
 #else
-  void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram<>& /* chromatogram */, MSChromatogram<>& /* picked_chrom */)
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
 #endif
 
-  void PeakPickerMRM::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
   {
     if (picked_chrom.empty()) {return; }
     LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
@@ -367,7 +368,7 @@ namespace OpenMS
     }
   }
 
-  Size PeakPickerMRM::findClosestPeak_(const RichPeakChromatogram& chromatogram, double central_peak_mz, Size current_peak)
+  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram<>& chromatogram, double central_peak_mz, Size current_peak)
   {
     while (current_peak < chromatogram.size())
     {
@@ -389,7 +390,7 @@ namespace OpenMS
     return current_peak;
   }
 
-  void PeakPickerMRM::integratePeaks_(const RichPeakChromatogram& chromatogram)
+  void PeakPickerMRM::integratePeaks_(const MSChromatogram<>& chromatogram)
   {
     for (Size i = 0; i < left_width_.size(); i++)
     {
@@ -422,14 +423,14 @@ namespace OpenMS
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Method needs to be one of: crawdad, corrected, legacy");
     }
 
 #ifndef WITH_CRAWDAD
     if (method_ == "crawdad")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
     }
 #endif

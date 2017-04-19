@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -208,7 +208,7 @@ namespace OpenMS
       for (RoundPackageConstIt ite = pkg[round].begin();
            ite != pkg[round].end(); ++ite)
       {
-        files.append(ite->second.filenames); // concat filenames from all incoming edges
+        files.append(ite->second.filenames.get()); // concat filenames from all incoming edges
       }
       Size round_index = (round_based_mode_ ? round : 0);
       output_files_[round_index][-1].filenames.append(files); // concat over all rounds (if required)

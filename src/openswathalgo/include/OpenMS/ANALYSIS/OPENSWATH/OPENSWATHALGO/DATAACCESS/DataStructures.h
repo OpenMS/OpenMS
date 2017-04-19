@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, Witold Wolski $
+// $Maintainer: Hannes Roest $
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ namespace OpenSwath
   /// A single chromatogram.
   struct OPENSWATHALGO_DLLAPI OSChromatogram
   {
+private:
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
 
@@ -107,6 +108,7 @@ namespace OpenSwath
 
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
+public:
 
     OSChromatogram() :
       defaultArrayLength(2),
@@ -171,6 +173,16 @@ public:
     {
     }
 
+    ///Comparator for the retention time.
+    struct RTLess :
+      public std::binary_function<OSSpectrumMeta, OSSpectrumMeta, bool>
+    {
+      inline bool operator()(const OSSpectrumMeta& a, const OSSpectrumMeta& b) const
+      {
+        return a.RT < b.RT;
+      }
+    };
+
   };
   typedef OSSpectrumMeta SpectrumMeta;
   typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
@@ -178,11 +190,11 @@ public:
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENSWATHALGO_DLLAPI OSSpectrum
   {
+private:
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
 
     /// list of binary data arrays.
-private:
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
 public:
     OSSpectrum() :

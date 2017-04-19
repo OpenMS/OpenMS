@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,19 +32,25 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+///////////////////////////
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+///////////////////////////
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <boost/assign/std/vector.hpp>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-
 using namespace OpenMS;
 using namespace std;
 
-typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
+typedef MSChromatogram<> RichPeakChromatogram;
 // TODO also test the picker with the LightTransition interface
 // typedef MRMTransitionGroup<RichPeakChromatogram, OpenSwath::LightTransition> MRMTransitionGroupType;
 typedef MRMTransitionGroup<RichPeakChromatogram, ReactionMonitoringTransition> MRMTransitionGroupType;
@@ -85,6 +91,8 @@ sum(datapoints[3:10])
 
   // Transition trace 1
   {
+  ReactionMonitoringTransition transition;
+  transition.setNativeID("1");
   RichPeakChromatogram chromatogram;
   for (int k = 0; k < 18; k++)
   {   
@@ -96,10 +104,13 @@ sum(datapoints[3:10])
   chromatogram.setMetaValue("product_mz", 618.31);
   chromatogram.setNativeID("1");
   transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+  transition_group.addTransition(transition, transition.getNativeID());
   }
 
   // Transition trace 2
   {
+  ReactionMonitoringTransition transition;
+  transition.setNativeID("2");
   RichPeakChromatogram chromatogram;
   for (int k = 0; k < 18; k++)
   {   
@@ -111,6 +122,7 @@ sum(datapoints[3:10])
   chromatogram.setMetaValue("product_mz", 619.31);
   chromatogram.setNativeID("2");
   transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+  transition_group.addTransition(transition, transition.getNativeID());
   }
 
   // MS1 trace
@@ -236,6 +248,7 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     picked_chrom.getFloatDataArrays()[0].push_back(1000.0);
     picked_chrom.getFloatDataArrays()[1].push_back(left_start);
     picked_chrom.getFloatDataArrays()[2].push_back(right_end);
+    picked_chrom.setNativeID(transition_group.getChromatograms()[k].getNativeID());
 
     picked_chroms.push_back(picked_chrom);
   }

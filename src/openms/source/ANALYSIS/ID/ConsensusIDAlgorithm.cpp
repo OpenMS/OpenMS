@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h> // for "OPENMS_PRECONDITION"
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 using namespace std;
 
@@ -88,12 +89,14 @@ namespace OpenMS
          pep_it != ids.end(); ++pep_it)
     {
       pep_it->sort();
-      if ((considered_hits_ > 0) && 
+      if ((considered_hits_ > 0) &&
           (pep_it->getHits().size() > considered_hits_))
       {
         pep_it->getHits().resize(considered_hits_);
       }
     }
+    // make sure there are no duplicated hits (by sequence):
+    IDFilter::removeDuplicatePeptideHits(ids, true);
 
     SequenceGrouping results;
     apply_(ids, results); // actual (subclass-specific) processing
@@ -145,7 +148,7 @@ namespace OpenMS
       String msg = "Conflicting charge states found for peptide '" +
         peptide.toString() + "': " + String(recorded_charge) + ", " + 
         String(new_charge);
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                     msg, String(new_charge));
     }
   }

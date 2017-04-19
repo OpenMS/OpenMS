@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
+// $Maintainer: Timo Sachsenberg,Andreas Bertsch$
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ namespace OpenMS
     Size index_start = getIndex_(start);
     if (index_start != getIndex_(start + length))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entries", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "desired peptide is part of 2 fasta entries", "");
     }
     entry.first = FASTA_header_[index_start];
     entry.second = big_string_.substr(start, length);

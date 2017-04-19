@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,14 +67,14 @@ using namespace OpenMS;
   SRM instrument) and a TraML file that contains the data that was used to
   generate the instrument method to measure said data. It then maps the
   transitions in the TraML file to the chromatograms found in the mzML file
-  and stores the mapping by replacing the "id" paramter in the mzML with the
+  and stores the mapping by replacing the "id" parameter in the mzML with the
   "id" of the transition in the TraML file. It removes chromatograms for
   which it cannot find a mapping and throws an error if more than one
   transitions maps to a chromatogram.
   In strict mode (default) it also throws an error it not all chromatograms
-  could be found in the TraML file.
+  are found in the TraML file.
 
-  The thus mapped file can then be used in a downstream analysis.
+  The thus mapped mzML file can then be used in a downstream analysis.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MRMMapper.cli
@@ -129,8 +129,8 @@ protected:
     bool nostrict = getFlag_("no-strict");
 
     OpenMS::TargetedExperiment targeted_exp;
-    OpenMS::MSExperiment<ChromatogramPeak> chromatogram_map;
-    OpenMS::MSExperiment<ChromatogramPeak> output;
+    OpenMS::PeakMap chromatogram_map;
+    OpenMS::PeakMap output;
 
     TraMLFile().load(tr_file, targeted_exp);
     MzMLFile().load(in, chromatogram_map);
@@ -161,7 +161,7 @@ protected:
           // ensure: map every chromatogram to only one transition
           if (mapped_already)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Already mapped chromatogram " + String(i) + \
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Already mapped chromatogram " + String(i) + \
              " with " + String(chromatogram.getPrecursor().getMZ()) + \
               " -> " + String(chromatogram.getProduct().getMZ()) +  \
                 "! Maybe try to decrease your mapping tolerance.");
@@ -180,7 +180,7 @@ protected:
               break;
             }
           }
-          // add precursor to spectrum
+          // add precursor to chromatogram
           chromatogram.setPrecursor(precursor);
 
           // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
@@ -196,7 +196,7 @@ protected:
         notmapped++;
         if (!nostrict)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
         }
       }
       else

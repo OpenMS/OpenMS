@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,7 @@ namespace OpenMS
 
     if (data.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "'b_spline' model requires more data");
     }
     Size boundary_condition = params_.getValue("boundary_condition");
@@ -72,7 +72,7 @@ namespace OpenMS
     double wavelength = params_.getValue("wavelength");
     if (wavelength > (xmax_ - xmin_))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "B-spline 'wavelength' can't be larger than the data range (here: " + String(xmax_ - xmin_) + ").", String(wavelength));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "B-spline 'wavelength' can't be larger than the data range (here: " + String(xmax_ - xmin_) + ").", String(wavelength));
     }
 
     // since we can't initialize a BSpline2d object in the init list (no c'tor
@@ -82,7 +82,7 @@ namespace OpenMS
 
     if (!spline_->ok())
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                    "TransformationModelBSpline", 
                                    "Unable to fit B-spline to data points.");
     }
@@ -126,7 +126,6 @@ namespace OpenMS
     if (spline_) delete spline_;
   }
 
-
   double TransformationModelBSpline::evaluate(double value) const
   {
     if ((value < xmin_) && (extrapolate_ != EX_BSPLINE)) // extrapolate (left)
@@ -153,7 +152,6 @@ namespace OpenMS
     }
     return spline_->eval(value);
   }
-
 
   void TransformationModelBSpline::getDefaultParameters(Param& params)
   {

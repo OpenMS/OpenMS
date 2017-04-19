@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -12,8 +13,8 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_2_input.someInputDTA2D" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="ceb081c5241c5cc9aedf0dd9f705b7620a7c2267" />
+			<sourceFile id="sf_ru_0" name="FileConverter_2_input.someInputDTA2D" location="file:///nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="c41fb12cb7ece46af63a79006662af9fa735e9f5" />
 				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
@@ -257,3 +258,18 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="index=0">3746</offset>
+		<offset idRef="index=1">5194</offset>
+		<offset idRef="index=2">6614</offset>
+		<offset idRef="index=3">8034</offset>
+		<offset idRef="index=4">9454</offset>
+		<offset idRef="index=5">10874</offset>
+		<offset idRef="index=6">12294</offset>
+		<offset idRef="index=7">13714</offset>
+	</index>
+</indexList>
+<indexListOffset>15164</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -99,11 +99,11 @@ START_SECTION((IsobaricChannelExtractor& operator=(const IsobaricChannelExtracto
 
 END_SECTION
 
-START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, ConsensusMap & consensus_map)))
+START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & consensus_map)))
 {
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -241,7 +241,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   { // test -> keep_unannotated_precursor
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_7.mzML"), exp);
 
@@ -280,7 +280,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -314,7 +314,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -399,7 +399,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -466,7 +466,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     // - dataset contains 2 ms1 and 5 ms2 spectra
     //   with the purity values listed below
 
-    MSExperiment<Peak1D> exp_purity;
+    PeakMap exp_purity;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
 
@@ -522,7 +522,7 @@ START_SECTION(([EXTRA] purity computation without interpolation))
   // - dataset contains 2 ms1 and 5 ms2 spectra
   //   with the purity values listed below
 
-  MSExperiment<Peak1D> exp_purity;
+  PeakMap exp_purity;
   MzMLFile mzmlfile;
   mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
 
@@ -575,7 +575,7 @@ END_SECTION
 // extra test for tmt10plex to ensure high-res extraction works
 START_SECTION(([EXTRA] TMT 10plex support))
 {
-  MSExperiment<Peak1D> tmt10plex_exp;
+  PeakMap tmt10plex_exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_8.mzML"), tmt10plex_exp);
 
   TMTTenPlexQuantitationMethod tmt10plex;

@@ -1,26 +1,23 @@
 ## This is an R script to produce the figures that are attached to the qcML format
+library("ggplot2")
+library(scales)
+options(warn=-1) #suppress warnings
 
 #options
 options(digits=10)
 
 file<-commandArgs(TRUE)[1]
 post<-commandArgs(TRUE)[2]
-######
-###TIC
-######
-a<-read.csv(file=file,head=TRUE,sep="\t")
-######################################
+knime.in<-read.csv(file=file,head=TRUE,sep="\t")
+names(knime.in)<- c("RT", "TIC")
 png(post)
-res = barplot(t(a$TIC), xlab="RT (min)",ylab="Intensity")
-time_seq = seq(min(a$RT),max(a$RT),1200)
-time_seq = round(time_seq)/60
-t<-which(time_seq %% 1==0 & duplicated(time_seq)==F)
-tmp = seq(min(res),max(res),max(res)/(length(time_seq)))
-axis(1,at=tmp[t],labels=time_seq[t])
 ######################################
-dev.off()
-#
-#
-#
-#
-#
+###TIC
+######################################
+knime.in$rt <- as.POSIXct(as.character(0),format="%S")+knime.in$RT
+ggplot(data=knime.in, aes(x=rt, y=TIC)) + 
+  geom_line() + 
+  #scale_x_datetime( breaks="5 mins",  minor_breaks="1 mins", labels=date_format("%H:%M")) + 
+  xlab("RT (HH:MM)") 
+######################################
+garbage<-dev.off()

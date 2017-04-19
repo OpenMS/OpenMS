@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,11 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 void FunctionChangeSpectrum (OpenMS::MSSpectrum<OpenMS::Peak1D> & s)
@@ -77,7 +77,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   MSSpectrum<> first_spectrum = exp.getSpectrum(0);
@@ -95,7 +95,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
   MSChromatogram<> first_chromatogram = exp.getChromatogram(0);
@@ -130,7 +130,7 @@ START_SECTION((virtual void setSpectraProcessingPtr( void (*sproptr)(SpectrumTyp
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   exp.getSpectrum(0).sortByPosition();
@@ -152,7 +152,7 @@ START_SECTION((virtual void setChromatogramProcessingPtr( void (*cproptr)(Chroma
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
   exp.getChromatogram(0).sortByPosition();

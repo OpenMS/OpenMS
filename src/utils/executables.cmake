@@ -6,6 +6,7 @@ set(UTILS_executables
 AccurateMassSearch
 CVInspector
 DecoyDatabase
+DatabaseFilter
 DeMeanderize
 Digestor
 DigestorMotif
@@ -30,6 +31,8 @@ MSSimulator
 NucleotideID
 NucleotideIDAMSDBCreator
 NucSpectrumGen
+MultiplexResolver
+MzMLSplitter
 OpenMSInfo
 PeakPickerIterative
 QCCalculator
@@ -41,16 +44,18 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
+RNPxlSearch
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
-#SimpleSearchEngine
+SimpleSearchEngine
 SpecLibCreator
+SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
+TICCalculator
 TransformationEvaluation
 TopPerc
 XMLValidator
-#RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)
@@ -61,6 +66,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow
+    OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML
     MRMTransitionGroupPicker
   )

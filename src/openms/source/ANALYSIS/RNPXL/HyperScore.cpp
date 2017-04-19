@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,22 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+
+#include <vector>
+#include <map>
+#include <cmath>
+#include <iostream>
+
+using std::vector;
 
 namespace OpenMS
 {
-  double HyperScore::logfactorial(UInt x)
+  double HyperScore::logfactorial_(UInt x)
   {
     UInt y;
 
@@ -63,7 +73,14 @@ namespace OpenMS
 
     for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
     {
+      if (!theo_peak_it->metaValueExists("IonName"))
+      {
+        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
+        return 0.0;
+      }
+
       const double& theo_mz = theo_peak_it->getMZ();
+      const double& theo_intensity = theo_peak_it->getIntensity();
 
       double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
@@ -74,23 +91,29 @@ namespace OpenMS
       // found peak match
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
-        dot_product += exp_spectrum[index].getIntensity();
+        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
         if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
         {
+          #ifdef DEBUG_HYPERSCORE
+            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+          #endif
           ++y_ion_count;
         }
-        else
+        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
         {
+          #ifdef DEBUG_HYPERSCORE
+            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+          #endif
           ++b_ion_count;
-        }
+        }       
       }
     }
 
     // discard very low scoring hits (basically no matching peaks)
     if (dot_product > 1e-1)
     {
-      double yFact = logfactorial(y_ion_count);
-      double bFact = logfactorial(b_ion_count);
+      double yFact = logfactorial_(y_ion_count);
+      double bFact = logfactorial_(b_ion_count);
       double hyperScore = log(dot_product) + yFact + bFact;
       return hyperScore;
     }
@@ -99,5 +122,6 @@ namespace OpenMS
       return 0;
     }
   }
+
 }
 

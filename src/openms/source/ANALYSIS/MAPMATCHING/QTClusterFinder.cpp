@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,11 +42,14 @@
 #include <vector>
 #include <algorithm> // for max
 
+// #define DEBUG_QTCLUSTERFINDER
 
 using std::list;
 using std::vector;
 using std::max;
 using std::make_pair;
+
+#include <iostream>
 
 namespace OpenMS
 {
@@ -58,7 +61,7 @@ namespace OpenMS
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
-    defaults_.setValue("nr_partitions", 1, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
+    defaults_.setValue("nr_partitions", 100, "How many partitions in m/z space should be used for the algorithm (more partitions means faster runtime and more memory efficient execution )");
     defaults_.setMinInt("nr_partitions", 1);
 
 
@@ -76,7 +79,7 @@ namespace OpenMS
       String msg = "Maximum m/z or intensity out of range (m/z: " + 
         String(max_mz) + ", intensity: " + String(max_intensity) + "). "
         "Has 'updateRanges' been called on the input maps?";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
@@ -100,7 +103,7 @@ namespace OpenMS
                              ConsensusMap& result_map)
   {
     // update parameters (dummy)
-    setParameters_(1, 1); 
+    setParameters_(1, 1);
 
     result_map.clear(false);
 
@@ -130,11 +133,20 @@ namespace OpenMS
       double massrange_diff = max_diff_mz_;
       int pts_per_partition = massrange.size() / nr_partitions_;
 
+      // if m/z tolerance is specified in ppm, we adapt massrange_diff
+      // in each iteration below
+      bool mz_ppm = param_.getValue("distance_MZ:unit") == "ppm";
+      double mz_tol = param_.getValue("distance_MZ:max_difference");
+
       // compute partition boundaries
       std::vector< double > partition_boundaries; 
       partition_boundaries.push_back(massrange.front());
       for (size_t j = 0; j < massrange.size()-1; j++)
       {
+        if (mz_ppm)
+        {
+          massrange_diff = mz_tol * 1e-6 * massrange[j+1];
+        }
         if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
         {
           if (j >= (partition_boundaries.size() ) * pts_per_partition  )
@@ -190,24 +202,24 @@ namespace OpenMS
     num_maps_ = input_maps.size();
     if (num_maps_ < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "At least two input maps required");
     }
 
-    // set up the distance functor (and set other parameters):
+    // set up the distance functor (and set other parameters)
+    // for the current partition
     double max_intensity = 0.0;
     double max_mz = 0.0;
     for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
          map_it != input_maps.end(); ++map_it)
     {
       max_intensity = max(max_intensity, map_it->getMaxInt());
-      max_mz = max(max_mz, map_it->getMax()[0]);
+      max_mz = max(max_mz, map_it->getMax().getY());
     }
-
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:
-    //cout << "Hashing..." << endl;
+    // std::cout << "Hashing..." << std::endl;
     list<OpenMS::GridFeature> grid_features;
     Grid grid(Grid::ClusterCenter(max_diff_rt_, max_diff_mz_));
     for (Size map_index = 0; map_index < num_maps_; ++map_index)
@@ -233,7 +245,7 @@ namespace OpenMS
     }
 
     // compute QT clustering:
-    //cout << "Clustering..." << endl;
+    // std::cout << "Clustering..." << std::endl;
     list<QTCluster> clustering;
     computeClustering_(grid, clustering);
     // number of clusters == number of data points:
@@ -276,7 +288,7 @@ namespace OpenMS
 
     while (!clustering.empty())
     {
-      // cout << "Clusters: " << clustering.size() << endl;
+      // std::cout << "Clusters: " << clustering.size() << std::endl;
       ConsensusFeature consensus_feature;
       makeConsensusFeature_(clustering, consensus_feature, element_mapping, grid);
       if (!clustering.empty())
@@ -322,8 +334,10 @@ namespace OpenMS
 
     OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> elements;
     best->getElements(elements);
-    // cout << "Elements: " << elements.size() << " with best "
-    //      << best->getQuality() << " invalid " << best->isInvalid() << endl;
+#ifdef DEBUG_QTCLUSTERFINDER
+    std::cout << "Elements: " << elements.size() << " with best "
+         << best->getQuality() << " invalid " << best->isInvalid() << std::endl;
+#endif
 
     // create consensus feature from best cluster:
     feature.setQuality(best->getQuality());
@@ -333,6 +347,15 @@ namespace OpenMS
       feature.insert(it->first, it->second->getFeature());
     }
     feature.computeConsensus();
+
+#ifdef DEBUG_QTCLUSTERFINDER
+    std::cout << " create new consensus feature " << feature.getRT() << " " << feature.getMZ() << " from " << best->getCenterPoint()->getFeature().getUniqueId() << std::endl;
+    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+         it = elements.begin(); it != elements.end(); ++it)
+    {
+      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
+    }
+#endif
 
     // Store the id of already used features (important: needs to be done
     // before the large loop below)
@@ -401,10 +424,10 @@ namespace OpenMS
       }
 
       for (ElementMapping::iterator it = tmp_element_mapping.begin(); 
-          it != tmp_element_mapping.end(); it++ )
+          it != tmp_element_mapping.end(); ++it )
       {
         for (std::vector<QTCluster*>::iterator it2 = it->second.begin();
-            it2 != it->second.end(); it2++)
+            it2 != it->second.end(); ++it2)
         {
           element_mapping[ it->first ].push_back(*it2);
         }
@@ -416,6 +439,15 @@ namespace OpenMS
     const OpenMS::GridFeature* center_feature)
   {
     cluster.initializeCluster();
+
+#ifdef DEBUG_QTCLUSTERFINDER
+    std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
+    std::set<AASequence> a = cluster.getAnnotations();
+    std::cout << " with annotations: ";
+    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+    std::cout << std::endl;
+#endif
+
 
     // iterate over neighboring grid cells (1st dimension):
     for (int i = x - 1; i <= x + 1; ++i)
@@ -431,6 +463,10 @@ namespace OpenMS
                it_cell != act_pos.end(); ++it_cell)
           {
             OpenMS::GridFeature* neighbor_feature = it_cell->second;
+
+#ifdef DEBUG_QTCLUSTERFINDER
+            std::cout << " considering to add feature " << neighbor_feature->getFeature().getUniqueId() << " to cluster " <<  center_feature->getFeature().getUniqueId()<< std::endl;
+#endif
 
             // Skip features that we have already used -> we cannot add them to
             // be neighbors any more
@@ -450,10 +486,7 @@ namespace OpenMS
                 continue; // conditions not satisfied
               }
               // if neighbor point is a possible cluster point, add it:
-              if (!use_IDs_ || compatibleIDs_(cluster, neighbor_feature))
-              {
-                cluster.add(neighbor_feature, dist);
-              }
+              cluster.add(neighbor_feature, dist);
             }
           }
         }
@@ -464,6 +497,26 @@ namespace OpenMS
     }
 
     cluster.finalizeCluster();
+
+#ifdef DEBUG_QTCLUSTERFINDER
+    OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> elements;
+    cluster.getElements(elements);
+    std::cout << " Done with cluster -> get quality " << cluster.getQuality() << " and nr elements " << elements.size() << std::endl;
+    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+         it = elements.begin(); it != elements.end(); ++it)
+    {
+      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
+    }
+
+    {
+      std::set<AASequence> a = cluster.getAnnotations();
+      std::cout << " FINAL with annotations: ";
+      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+      std::cout << std::endl;
+    }
+#endif
+
+
   }
 
   void QTClusterFinder::run(const vector<ConsensusMap>& input_maps,
@@ -507,18 +560,7 @@ namespace OpenMS
   {
     return feature_distance_(left->getFeature(), right->getFeature()).second;
   }
-
-  bool QTClusterFinder::compatibleIDs_(QTCluster& cluster,
-                                       const OpenMS::GridFeature* neighbor)
-  {
-    if (cluster.getAnnotations().empty())
-      return true;
-
-    if (neighbor->getAnnotations().empty())
-      return true;
-
-    return cluster.getAnnotations() == neighbor->getAnnotations();
-  }
+  
 
   QTClusterFinder::~QTClusterFinder()
   {

@@ -54,6 +54,8 @@ PyOpenMSChecker:
     OpenMS::Param:
         # argc **
         - parseCommandLine
+        - findFirst # iterator
+        - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
     OpenMS::BinnedSpectrum:
@@ -69,10 +71,12 @@ PyOpenMSChecker:
         - getNavigator
     OpenMS::ComplementMarker:
         - getProductName
+    OpenMS::TheoreticalSpectrumGenerator:
+        - updateMembers_
     OpenMS::PeakPickerIterative:
         - updateMembers_
-    OpenMS::InternalCalibration:
-        - calibrateMapList
+    OpenMS::Normalizer:
+        - updateMembers_
     OpenMS::QTCluster:
         - add
         - getElements
@@ -91,12 +95,13 @@ PyOpenMSChecker:
         - generateRTMapping # it
     OpenMS::ControlledVocabulary:
         - getTerms
-    OpenMS::PILISIdentification:
-        - getIdentifications
     OpenMS::OpenSwathScoring:
+        ## ptr to abstract base class
         - calculateChromatographicScores
+        - calculateChromatographicIdScores
         - calculateLibraryScores
         - calculateDIAScores
+        - calculateDIAIdScores
     OpenMS::PeptideAndProteinQuant:
         # wrapped key map
         - getPeptideResults
@@ -159,18 +164,6 @@ PyOpenMSChecker:
         # unwrappable type (QByteArray)
         - decodeSingleString
 
-    OpenMS::ResidueDB:
-        - getResidue
-        - getModifiedResidue
-        - getModifiedResidue
-        # POINTER # libcpp_set[ Residue * ] getResidues(String & residue_set) nogil except +
-        - getResidues
-        # Cannot get ResidueDB since its constructor and destructor is private ... 
-        - getInstance
-        # iterator
-        - beginResidue
-        - endResidue
-
     OpenMS::SimTypes::SimRandomNumberGenerator:
         - getBiologicalRng
         - getTechnicalRng
@@ -187,17 +180,6 @@ PyOpenMSChecker:
         - int_coef
         - min_rt
         - max_rt
-
-    OpenMS::ModificationsDB:
-        # Cannot get ModificationsDB since its constructor and destructor is private ... 
-        # POINTER 
-        - getInstance
-        - searchTerminalModifications
-        - searchModifications
-        - searchModifications
-        - getBestModificationsByMonoMass
-        - getBestModificationsByDiffMonoMass
-
     OpenMS::ModifiedRep:
         # TODO immutable types by reference
         - getModificationsForMass
@@ -212,14 +194,28 @@ PyOpenMSChecker:
         - mod_combinations
         - mod_formula_idx
 
-    OpenMS::ElementDB:
-        # const pointer and Map
+    OpenMS::ResidueDB:
+        # wrapped statically
         - getInstance
+        # iterator
+        - beginResidue
+        - endResidue
+
+    OpenMS::ModificationsDB:
+        # wrapped statically
+        - getInstance
+
+    OpenMS::EnzymesDB:
+        # wrapped statically
+        - getInstance
+
+    OpenMS::ElementDB:
+        # wrapped statically
+        - getInstance
+        # const pointer and Map
         - getNames
         - getSymbols
         - getAtomicNumbers
-        - getElement
-        - getElement
 
     OpenMS::IsobaricQuantifierStatistics:
         # STL attributes
@@ -239,9 +235,6 @@ PyOpenMSChecker:
     OpenMS::DIAScoring:
         - dia_isotope_scores
         - dia_massdiff_score
-    OpenMS::PILISCrossValidation:
-        - setOptions
-        - scoreHits
     OpenMS::ims::IntegerMassDecomposer:
         - getDecomposition
         - getAllDecompositions
@@ -366,6 +359,9 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::PeakPickerSH:
         - pick
+    OpenMS::XTandemInfile:
+        - getNoiseSuppression
+        - setNoiseSuppression
     OpenMS::MzTabFile:
         - storeProteinReliabilityColumn
         - storePeptideReliabilityColumn
@@ -386,8 +382,14 @@ PyOpenMSChecker:
         # names
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
+    OpenMS::PercolatorOutfile:
+        - score_type_names 
     OpenMS::BaseFeature:
         - NamesOfAnnotationState 
+    OpenMS::MSNumpressCoder:
+        - NamesOfNumpressCompression
+    OpenMS::Modification:
+        - NamesOfSpecificityType
     OpenMS::MassAnalyzer:
         - NamesOfAnalyzerType
         - NamesOfResolutionMethod
@@ -395,9 +397,12 @@ PyOpenMSChecker:
         - NamesOfScanDirection
         - NamesOfScanLaw
         - NamesOfReflectronState
+    MZTrafoModel:
+      - names_of_modeltype
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
         - NamesOfSpecificity
+        - digestUnmodifiedString
     OpenMS::SourceFile:
         - NamesOfChecksumType
     OpenMS::Precursor:
@@ -429,9 +434,6 @@ PyOpenMSChecker:
         - getNextPrecursorsSeq # immutable types by reference
         - getPeptideProteinCounter # not implemented
     OpenMS::PeakShape:
-        - Type
-    OpenMS::PILISCrossValidation::Option:
-        - Option # renamed constructor
         - Type
     OpenMS::LPWrapper:
         - Type
@@ -469,18 +471,20 @@ PyOpenMSChecker:
         - empty
         - getExperimentalSettings # TODO 
 
-    OpenMS::OptimizationFunctions::PenaltyFactors:
-        # renamed constructor
-        - PenaltyFactors
-        - PenaltyFactors
-
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed methods
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    OpenMS::InternalCalibration::LockMass:
+        - LockMass
     OpenMS::DeNovoIonScoring::IonScore:
         - IonScore
+    OpenMS::TargetedExperimentHelper::Interpretation:
+        - Interpretation
     OpenMS::TargetedExperimentHelper::Instrument:
         - Instrument
+    OpenMS::TargetedExperimentHelper::Peptide::Modification:
+        - Modification
     OpenMS::ControlledVocabulary::CVTerm:
         - CVTerm
     OpenMS::PeptideAndProteinQuant::PeptideData:
@@ -488,10 +492,15 @@ PyOpenMSChecker:
         # attributes
         - abundances
         - total_abundances
-    OpenMS::PILISCrossValidation::Peptide:
-        - Peptide
     OpenMS::MassTrace:
         - MassTrace
+        - names_of_quantmethod
+    OpenMS::OptimizationFunctions::PenaltyFactors:
+        - PenaltyFactors
+    OpenMS::MultiplexDeltaMassesGenerator::Label:
+        - Label
+    OpenMS::ConnectedComponent:
+        - ConnectedComponent
 
     # Static methods that are not seen by the checker script
     OpenMS::FileHandler:
@@ -504,20 +513,7 @@ PyOpenMSChecker:
     OpenMS::MSChromatogram:
         - RTBegin
         - RTEnd
-        # Maybe TODO 
-        - getFloatDataArrays
-        - getStringDataArrays
-        - getIntegerDataArrays
-
-    # std::ifstream/ofstream
-    OpenMS::CachedmzML:
-        - readSingleSpectrum
-        - readSpectrumFast
-        - readChromatogramFast
-    OpenMS::ParamXMLFile:
-        - writeXMLToStream
-    OpenMS::XMLFile:
-        - isValid
+        - MZend
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Iterators / Streams
@@ -554,6 +550,18 @@ PyOpenMSChecker:
         - findEntry
         - findNode
 
+    # std::ifstream/ofstream
+    OpenMS::CachedmzML:
+        - readSingleSpectrum
+        - readSpectrumFast
+        - readChromatogramFast
+    OpenMS::ParamXMLFile:
+        - writeXMLToStream
+    OpenMS::XMLFile:
+        - isValid
+    OpenMS::TransformationDescription:
+        - printSummary
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Others
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -583,10 +591,6 @@ PyOpenMSChecker:
         - MZBegin
         - MZEnd
         - MZEnd
-        # Maybe TODO 
-        - getFloatDataArrays
-        - getStringDataArrays
-        - getIntegerDataArrays
 
     OpenMS::ConsensusMap:
         - swap
@@ -607,6 +611,7 @@ PyOpenMSChecker:
         - getSVCProbabilities
         - getLabels
         - kernelOligo
+        - mergePartitions
     OpenMS::FeatureDistance:
         - infinity
     OpenMS::Digestion:
@@ -627,12 +632,6 @@ PyOpenMSChecker:
         - mapExperimentToTransitionList
         - scorePeakgroups
 
-    OpenMS::SpectrumAccessOpenMS:
-        - getSpectraMetaInfo
-        - getChromatogramMetaInfo
-        - getSpectrumMetaById
-        - lightClone
-
     OpenMS::Spectrum:
         - defaultArrayLength
 
@@ -642,6 +641,8 @@ PyOpenMSChecker:
         - initializeMS1XCorr
         - calcLibraryScore
         - calcSNScore
+        - initializeXCorrIdMatrix
+        - calcIndSNScore
 
     OpenMS::MRMTransitionGroupPicker:
         - pickTransitionGroup
@@ -683,11 +684,7 @@ PyOpenMSChecker:
         - defaultArrayLength
         - binaryDataArrayPtrs
 
-    OpenMS::SpectrumAccessOpenMSCached:
-        - getSpectrumMetaById
-        - getSpectraMetaInfo
-        - getChromatogramMetaInfo
-        - lightClone
+
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Raw pointers
@@ -873,6 +870,50 @@ PyOpenMSChecker:
         - getTolerance
         - isAtEnd
         - create # factory pattern
+    OpenMS::SpectrumAccessOpenMS:
+        - getSpectrumById
+        - getSpectraByRT
+        - getNrSpectra
+        - getChromatogramById
+        - getNrChromatograms
+        - getChromatogramNativeID
+
+        - getSpectrumMetaById # todo 
+        - getSpectraMetaInfo # todo 
+        - getChromatogramMetaInfo # todo 
+        - lightClone # todo 
+    OpenMS::SpectrumAccessQuadMZTransforming:
+        - getSpectrumById
+        - getSpectrumMetaById # todo 
+        - getSpectraMetaInfo # todo 
+        - getChromatogramMetaInfo # todo 
+        - lightClone # todo 
+
+    OpenMS::SpectrumAccessOpenMSCached:
+        - getSpectrumById
+        - getSpectraByRT
+        - getNrSpectra
+        - getChromatogramById
+        - getNrChromatograms
+        - getChromatogramNativeID
+
+        - getSpectrumMetaById # todo 
+        - getSpectraMetaInfo # todo 
+        - getChromatogramMetaInfo # todo 
+        - lightClone # todo 
+    OpenMS::SpectrumAccessOpenMSInMemory:
+        - getSpectrumById
+        - getSpectraByRT
+        - getNrSpectra
+        - getChromatogramById
+        - getNrChromatograms
+        - getChromatogramNativeID
+
+        - getSpectrumMetaById # todo 
+        - getSpectraMetaInfo # todo 
+        - getChromatogramMetaInfo # todo 
+        - lightClone # todo 
+
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Special classes
@@ -899,6 +940,10 @@ PyOpenMSChecker:
     # renamed classes (they exist but under a different name)
     - OpenMS::PeakShape::Type
     - OpenMS::ResidueModification::Term_Specificity
+    - OpenMS::ControlledVocabulary::CVTerm
+    - OpenMS::MZTrafoModel::MODELTYPE
+    - OpenMS::ControlledVocabulary::CVTerm::XRefType
+    - OpenMS::PeakShape
 
     # rarely used classes
     - OpenMS::WeightWrapper
@@ -923,6 +968,12 @@ PyOpenMSChecker:
     - OpenMS::MSDataChainingConsumer 
     - OpenMS::GUIProgressLoggerImpl
     - OpenMS::ProgressLogger::ProgressLoggerImpl
+    - OpenMS::UpdateCheck
+    - OpenMS::ListUtils
+    - OpenMS::SysInfo
+    - OpenMS::NetworkGetRequest
+    # Python has its own R wrapper
+    - OpenMS::RWrapper
 
     # MzTab internals -> maybe when its finished!
     - OpenMS::MzTabSpectraRef
@@ -976,11 +1027,9 @@ PyOpenMSChecker:
 
     # Do not expose List, String and Utils methods - Python has better ones
     - OpenMS::String
+    - OpenMS::StringView
     - OpenMS::StringUtils
     - OpenMS::StringListUtils
-    - OpenMS::ListUtils
-    - OpenMS::SysInfo
-
 
     # CONCEPT
     - OpenMS::SingletonRegistry
@@ -1195,6 +1244,8 @@ PyOpenMSChecker:
     - OpenMS::PrecursorIonSelection::TotalScoreMore
     - OpenMS::ProteinHit::ScoreMore
     - OpenMS::CmpMassTraceByMZ
+    - OpenMS::PeptideHit::RankLess
+    - OpenMS::PeptideHit::SequenceLessComparator
 
     # RangeUtils - we probably cannot use them in Python
     - OpenMS::InIntensityRange
@@ -1211,6 +1262,16 @@ PyOpenMSChecker:
     - OpenMS::HasMetaValue
     - OpenMS::IsInCollisionEnergyRange
     - OpenMS::IsInIsolationWindowSizeRange
+    - OpenMS::IsInIsolationWindow
+
+    # internal IDFilter
+    - OpenMS::HasDecoyAnnotation
+    - OpenMS::HasGoodScore
+    - OpenMS::HasMatchingAccession
+    - OpenMS::HasMaxMetaValue
+    - OpenMS::HasMaxRank
+    - OpenMS::HasMetaValue
+    - OpenMS::HasNoHits
 
     # OPENSWATH classes
     - OpenSwath::mySqrt
@@ -1228,18 +1289,20 @@ PyOpenMSChecker:
     - OpenSwath::DataMatrix
     - OpenSwath::ITransitionGroup
     - OpenSwath::Peptide
-    - OpenSwath::IMRMFeature
     - OpenSwath::MockFeature
     - OpenMS::OpenSwath_Scores
     - OpenMS::FeatureOpenMS
     - OpenMS::SignalToNoiseOpenMS
-    - OpenMS::MRMFeatureOpenMS
     - OpenMS::TransitionGroupOpenMS
     - OpenMS::DiaPrescore
     - OpenMS::SpectrumAddition
     - OpenSwath::ChromatogramMeta
     - OpenSwath::ISpectrumAccess
     - OpenSwath::SpectrumMeta
+    - OpenMS::SpectrumAccessTransforming # abstract class
+    - OpenMS::OpenSwathRetentionTimeNormalization
+    - OpenMS::SONARScoring
+    - OpenSwath::OSSpectrumMeta::RTLess
 
     # SuperHirn classes
     - OpenMS::DeconvPeak
@@ -1370,6 +1433,7 @@ PyOpenMSChecker:
     - OpenMS::SparseVector::SparseVectorIterator
     - OpenMS::SparseVector::SparseVectorReverseIterator
     - OpenMS::SparseVector::ValueProxy
+    - OpenMS::TransformationModelInterpolated::Interpolator
 
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
@@ -1443,6 +1507,7 @@ PyOpenMSChecker:
     - OpenMS::Exception::UnableToFit
     - OpenMS::Exception::UnregisteredParameter
     - OpenMS::Exception::WrongParameterType
+    - OpenMS::Exception::FileNameTooLong
 
     # GUI files
     - OpenMS::AxisTickCalculator
@@ -1573,6 +1638,9 @@ PyOpenMSChecker:
     - OpenMS::TOPPASScene::TOPPProcess
     - OpenMS::TOPPASVertex::VertexRoundPackage
     - OpenMS::Annotation1DCaret
+    - OpenMS::TOPPASSplitterVertex
+    - OpenMS::TOPPASVertex::TOPPASFilenames
+    - OpenMS::GUIHelpers
     - TOPPPCV
 
     # APPLICATION
@@ -1581,6 +1649,7 @@ PyOpenMSChecker:
     - OpenMS::ToolHandler
     - OpenMS::ConsoleUtils
     - OpenMS::OpenSwathWorkflow
+    - OpenMS::OpenSwathWorkflowSonar
     - OpenMS::OpenSwathWindowLoader
     - OpenMS::OpenSwathWorkflow::ChromExtractParams
     - OpenMS::OpenSwathTSVWriter 

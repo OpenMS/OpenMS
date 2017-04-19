@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -189,7 +189,7 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0].size(), 6)
   ABORT_IF(feature_maps[0].size() != 6)
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK.(Label:18O(2))")
 
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
@@ -235,10 +235,10 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
   ABORT_IF(feature_maps[0].size() != 7)
 
   TEST_EQUAL(feature_maps[0][0].getIntensity(), 24.5)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(2))")
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK.(Label:18O(2))")
 
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 21)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:18O(1))")
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK.(Label:18O(1))")
 
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 204.5)
   TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")

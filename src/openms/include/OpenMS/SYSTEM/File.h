@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -142,22 +142,31 @@ public:
       @exception FileNotFound is thrown, if the file is not found
     */
     static String findDoc(const String& filename);
-
-
+    
     /// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
     static String getUniqueName();
 
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
     static String getOpenMSDataPath();
 
+    /// Returns the OpenMS home path (environment variable overwrites the default home path)
+    static String getOpenMSHomePath();
+
     /// The current OpenMS temporary data path (for temporary files)
     static String getTempDirectory();
 
     /// The current OpenMS user data path (for result files)
+    /// Tries to set the user directory in following order:
+    ///   1. OPENMS_HOME_DIR if environmental variable set
+    ///   2. "home_dir" entry in OpenMS.ini
+    ///   3. user home directory
     static String getUserDirectory();
 
     /// get the system's default OpenMS.ini file in the users home directory (&lt;home&gt;/OpenMS/OpenMS.ini)
     /// or create/repair it if required
+    /// order:
+    ///   1. &lt;OPENMS_HOME_DIR&gt;/OpenMS/OpenMS.ini if environmental variable set
+    ///   2. user home directory &lt;home&gt;/OpenMS/OpenMS.ini
     static Param getSystemParameters();
 
     /// uses File::find() to search for a file names @p db_name
@@ -173,6 +182,24 @@ public:
     */
     static String findExecutable(const String& toolName);
 
+    /**
+      @brief Obtain a temporary filename, ensuring automatic deletion upon exit
+
+      The file is not actually created and only deleted at exit if it exists.
+      
+      However, if 'alternative_file' is given and not empty, no temporary filename
+      is created and 'alternative_file' is returned (and not destroyed upon exit).
+      This is useful if you have an optional
+      output file, which may, or may not be requested, but you need its content regardless,
+      e.g. for intermediate plotting with R.
+      Thus you can just call this function to get a file which can be used and gets automatically
+      destroyed if needed.
+
+      @param alternative_file If this string is not empty, no action is taken and it is used as return value
+      @return Full path to a temporary file
+    */
+    static const String& getTemporaryFile(const String& alternative_file = "");
+
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.
@@ -180,6 +207,28 @@ private:
 
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const String& path);
+
+
+    /**
+      @brief Internal helper class, which holds temporary filenames and deletes these file at program exit
+    */
+    class TemporaryFiles_
+    {
+      public:
+        TemporaryFiles_();
+        /// create a new filename and queue internally for deletion
+        const String& newFile();
+
+        ~TemporaryFiles_();
+      private:
+        TemporaryFiles_(const TemporaryFiles_&); // copy is forbidden
+        StringList filenames_;
+    };
+
+
+    /// private list of temporary filenames, which are deleted upon program exit
+    static TemporaryFiles_ temporary_files_;
+
   };
 
 }

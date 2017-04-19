@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,7 @@ namespace OpenMS
     else if (iterator_pos % 2 == 0)
     {
       // even case
-      // compute the arithmethic mean between the two middle elements
+      // compute the arithmetic mean between the two middle elements
       double f = *(first + iterator_pos / 2);
       std::nth_element(first, first + iterator_pos / 2 -1, last);
       double s = *(first + iterator_pos / 2 - 1);

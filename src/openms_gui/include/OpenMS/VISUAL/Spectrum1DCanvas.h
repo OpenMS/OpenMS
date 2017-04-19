@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,7 +129,7 @@ public:
     /// ----- Annotations
 
     /// Add an annotation item for the given peak
-    Annotation1DItem * addPeakAnnotation(PeakIndex peak_index, QString text, QColor color);
+    Annotation1DItem * addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color);
 
     /// Draws all annotation items of @p layer_index on @p painter
     void drawAnnotations(Size layer_index, QPainter & painter);

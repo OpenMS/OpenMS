@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,21 +32,39 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE
-#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE
+#ifndef OPENMS_ANALYSIS_RNPXL_HYPERSCORE_H
+#define OPENMS_ANALYSIS_RNPXL_HYPERSCORE_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Macros.h>
+#include <vector>
 
 namespace OpenMS
 {
 
+/**
+ *  @brief An implementation of the X!Tandem HyperScore PSM scoring function
+ */               
+
 struct OPENMS_DLLAPI HyperScore
 {
-  // compute the X!Tandem HyperScore
+  typedef std::pair<Size, double> IndexScorePair; 
+
+  /* @brief compute the (ln transformed) X!Tandem HyperScore 
+   *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
+   *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
+   * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities
+   * @param fragment_mass_tolerance mass tolerance applied left and right of the theoretical spectrum peak position
+   * @param fragment_mass_tolerance_unit_ppm Unit of the mass tolerance is: Thomson if false, ppm if true
+   * @param exp_spectrum measured spectrum
+   * @param theo_spectrum theoretical spectrum Peaks need to contain an ion annotation as provided by TheoreticalSpectrumGenerator.
+   */
   static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum);
 
-  // helper to compute the log factorial
-  static double logfactorial(UInt x);
+  private:
+    // helper to compute the log factorial
+    static double logfactorial_(UInt x);
 };
 
 }

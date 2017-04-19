@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
@@ -68,13 +68,13 @@ std::vector<ProteinIdentification> prot_ids;
 
 FeatureMap map;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_features.featureXML"),map);
-MSExperiment<> raw_data;
+PeakMap raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
 
 START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(const FeatureMap &features, const MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
 {
-	MSExperiment<Peak1D> ms2;
+	PeakMap ms2;
 	std::set<Int> charges_set;
 	charges_set.insert(1);
 	bool feature_based = true;
@@ -126,7 +126,7 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
   FeatureMap map2;
   map2.push_back(map[1]);
   /// test for empty experiment
-  MSExperiment<> empty_map;
+  PeakMap empty_map;
   TEST_EXCEPTION(Exception::InvalidSize, ptr->getMassRanges(map,empty_map,indices));
   MSSpectrum<> spec;
   Peak1D p;

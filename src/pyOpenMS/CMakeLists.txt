@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -92,21 +92,36 @@ if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
 	set(CYTHON_MISSING TRUE)
 endif()
 
+# check minor version of Cython (0.xx.yy)
+# Working versions (tested manually) are 0.22, 0.23, 0.24 and 0.25
+set(CYTHON_VERSION_OK FALSE)
 if(CYTHON_MISSING)
 	message(FATAL_ERROR "Looking for cython - not found")
 else()
-  # find out cython version info
   execute_process(
-       COMMAND
-       ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
-       OUTPUT_VARIABLE CYTHON_VERSION
-       OUTPUT_STRIP_TRAILING_WHITESPACE
+      COMMAND
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) >= 22)"
+      RESULT_VARIABLE _CYTHON_VERSION_OK
+      ERROR_QUIET
+      OUTPUT_QUIET
   )
-  message(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
+  execute_process(
+      COMMAND
+      ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
+      OUTPUT_VARIABLE CYTHON_VERSION
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(_CYTHON_VERSION_OK)
+      message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
+      set(CYTHON_VERSION_OK TRUE)
+  else()
+      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.22 is required)")
+      message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
+  endif()
 endif()
 
 #------------------------------------------------------------------------------
-# Check for autowrap Cython
+# Check for autowrap
 execute_process(
      COMMAND
      ${PYTHON_EXECUTABLE} -c "import autowrap"
@@ -116,20 +131,19 @@ execute_process(
 )
 
 set(AUTOWRAP_VERSION_OK FALSE)
-
 if(AUTOWRAP_MISSING)
 	message(STATUS "Looking for autowrap - not found")
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 5, 1))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 8, 0))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;import autowrap; print ('%d.%d.%d' % (autowrap.version))"
+        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import autowrap; print ('%d.%d.%d' % (autowrap.version))"
         OUTPUT_VARIABLE AUTOWRAP_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -137,7 +151,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.5.1 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.8.0 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -190,10 +204,64 @@ else()
 	message(STATUS "Looking for numpy - found")
 endif()
 
+
+#------------------------------------------------------------------------------
+# Check for setuptools
+
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import setuptools"
+     RESULT_VARIABLE SETUPTOOLS_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+set(SETUPTOOLS_VERSION_OK FALSE)
+
+if(SETUPTOOLS_MISSING)
+	message(STATUS "Looking for setuptools - not found")
+else()
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "import setuptools; exit(int(setuptools.__version__.split('.')[0]) >= 12)"
+        RESULT_VARIABLE _SETUPTOOLS_VERSION_OK
+        ERROR_QUIET
+        OUTPUT_QUIET
+    )
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;import setuptools; print(setuptools.__version__)"
+        OUTPUT_VARIABLE SETUPTOOLS_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(_SETUPTOOLS_VERSION_OK)
+        message(STATUS "Looking for setuptools - found setuptools ${SETUPTOOLS_VERSION}, version ok")
+        set(SETUPTOOLS_VERSION_OK TRUE)
+    else()
+        message(STATUS "Found setuptools version ${SETUPTOOLS_VERSION}. The version is too old (>= 12.0 is required)")
+        message(FATAL_ERROR "Please upgrade setuptools or disable pyOpenMS.")
+    endif()
+endif()
+
+#------------------------------------------------------------------------------
+# Check for python wheel
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import wheel"
+     RESULT_VARIABLE WHEEL_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+if(WHEEL_MISSING)
+  message(FATAL_ERROR "Looking for python wheel - not found")
+endif()
+
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING)
+if(NUMPY_MISSING OR CYTHON_MISSING OR NOT CYTHON_VERSION_OK OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING
+   OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
 
@@ -227,6 +295,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
@@ -237,6 +306,7 @@ _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/py
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/" "*.mzXML" ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/memoryleaktests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/integration_tests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
+file(COPY ${PROJECT_SOURCE_DIR}/../../share DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 
 # list of files required for the pyOpenMS build system
 set(_pyopenms_files
@@ -244,11 +314,11 @@ set(_pyopenms_files
   README.rst
   setup.py
   create_cpp_extension.py
-  distribute_setup.py
   version.py
   run_nose.py
   run_memleaks.py
   doCythonCompileOnly.py
+  fix_pyopenms_dependencies_on_mac.sh
 )
 
 foreach(pyfile ${_pyopenms_files})
@@ -273,11 +343,11 @@ if(WIN32)
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
             file(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
             set(FOUND_XERCES TRUE)
+            message(STATUS "found xerces-c-3_1_dll")
         endif()
     endforeach()
     if(NOT FOUND_XERCES)
-        message(STATUS "could not find xerces dll in contrib dir")
-        RETURN()
+        message(FATAL_ERROR "could not find xerces-c_3_1.dll in contrib dir")
     endif()
 endif()
 
@@ -339,13 +409,26 @@ add_custom_target(pyopenms_create_cpp
 	DEPENDS OpenMS SuperHirn
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
-add_custom_target(pyopenms
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-	DEPENDS pyopenms_create_cpp
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_custom_target(pyopenms
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+        COMMAND ${CMAKE_BINARY_DIR}/pyOpenMS/fix_pyopenms_dependencies_on_mac.sh
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+        DEPENDS pyopenms_create_cpp
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+    add_custom_target(pyopenms
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+        DEPENDS pyopenms_create_cpp
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
 
 add_dependencies(pyopenms OpenMS)
 

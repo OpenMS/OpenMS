@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
@@ -64,7 +64,7 @@ namespace OpenMS
    * MultiplexFilteringCentroided and MultiplexFilteringProfile contain
    * specific functions and the primary filter() method.
    *
-   * @see MultiplexPeakPattern
+   * @see MultiplexIsotopicPeakPattern
    * @see MultiplexFilterResult
    * @see MultiplexFilteringCentroided
    * @see MultiplexFilteringProfile
@@ -80,7 +80,7 @@ public:
      * contains the indices of peaks with same m/z in the previous and
      * next spectrum. If none is present -1.
      *
-     * @see blacklistPeaks
+     * @see blacklistPeaks_
      */
     struct PeakReference
     {
@@ -117,7 +117,7 @@ public:
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      */
-    MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFiltering(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
 protected:
     /**
@@ -135,7 +135,7 @@ protected:
      *
      * @return number of isotopic peaks seen for each peptide
      */
-    int positionsAndBlacklistFilter(const MultiplexPeakPattern& pattern, int spectrum,
+    int positionsAndBlacklistFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum,
                                     const std::vector<double>& peak_position, int peak, std::vector<double>& mz_shifts_actual,
                                     std::vector<int>& mz_shifts_actual_indices) const;
 
@@ -151,7 +151,7 @@ protected:
      *
      * @return true if all intensities above threshold
      */
-    bool monoIsotopicPeakIntensityFilter(const MultiplexPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices) const;
+    bool monoIsotopicPeakIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices) const;
 
     /**
      * @brief zeroth peak filter
@@ -165,7 +165,7 @@ protected:
      *
      * @return true if there are high-intensity zeroth peaks
      */
-    bool zerothPeakFilter(const MultiplexPeakPattern& pattern, const std::vector<double>& intensities_actual) const;
+    bool zerothPeakFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual) const;
 
     /**
      * @brief peptide similarity filter
@@ -182,7 +182,7 @@ protected:
      *
      * @return true if peptide isotope patterns are similar
      */
-    bool peptideSimilarityFilter(const MultiplexPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const;
+    bool peptideSimilarityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const;
 
     /**
      * @brief averagine similarity filter
@@ -197,7 +197,7 @@ protected:
      *
      * @return true if isotope distribution looks like an average peptide
      */
-    bool averagineSimilarityFilter(const MultiplexPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const;
+    bool averagineSimilarityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const;
 
 
     /**
@@ -209,7 +209,7 @@ protected:
      * @param spectrum    index of the spectrum in exp_picked_ and boundaries_
      * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
      */
-    void blacklistPeaks(const MultiplexPeakPattern& pattern, int spectrum, const std::vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
+    void blacklistPeaks_(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const std::vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
 
     /**
      * @brief returns the index of a peak at m/z
@@ -222,7 +222,7 @@ protected:
      *
      * @return index of the peak in spectrum
      */
-    int getPeakIndex(const std::vector<double>& peak_position, int start, double mz, double scaling) const;
+    int getPeakIndex_(const std::vector<double>& peak_position, int start, double mz, double scaling) const;
 
     /**
      * @brief returns similarity of two isotope patterns
@@ -233,7 +233,7 @@ protected:
      *
      * @return similarity (+1 best, -1 worst)
      */
-    double getPatternSimilarity(const std::vector<double>& pattern1, const std::vector<double>& pattern2) const;
+    double getPatternSimilarity_(const std::vector<double>& pattern1, const std::vector<double>& pattern2) const;
 
     /**
      * @brief returns similarity of an isotope pattern and an averagine pattern at mass m
@@ -244,12 +244,12 @@ protected:
      * @return similarity (+1 best, -1 worst)
      */
 
-    double getAveragineSimilarity(const std::vector<double>& pattern, double m) const;
+    double getAveragineSimilarity_(const std::vector<double>& pattern, double m) const;
 
     /**
     * @brief centroided experimental data
     */
-    MSExperiment<Peak1D> exp_picked_;
+    PeakMap exp_picked_;
 
     /**
     * @brief auxiliary structs for navigation and blacklisting
@@ -260,7 +260,7 @@ protected:
     /**
      * @brief list of peak patterns
      */
-    std::vector<MultiplexPeakPattern> patterns_;
+    std::vector<MultiplexIsotopicPeakPattern> patterns_;
 
     /**
      * @brief minimum number of isotopic peaks per peptide

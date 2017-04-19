@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -60,6 +60,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QMap>
 #include <QtCore/QSet>
+#include <QtCore/QSettings>
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>
 #include <QtGui/QCheckBox>
@@ -220,6 +221,7 @@ namespace OpenMS
     //################## Dock widgets #################
     //TOPP tools window
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
+    topp_tools_bar->setObjectName("TOPP_tools_bar");
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
     tools_tree_view_ = createTOPPToolsTreeWidget(topp_tools_bar);
     topp_tools_bar->setWidget(tools_tree_view_);
@@ -228,6 +230,7 @@ namespace OpenMS
 
     //log window
     QDockWidget* log_bar = new QDockWidget("Log", this);
+    log_bar->setObjectName("log_bar");
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
     log_ = new TOPPASLogWindow(log_bar);
     log_->setReadOnly(true);
@@ -239,6 +242,7 @@ namespace OpenMS
 
     //workflow description window
     QDockWidget* description_bar = new QDockWidget("Workflow Description", this);
+    description_bar->setObjectName("workflow_description_bar");
     addDockWidget(Qt::RightDockWidgetArea, description_bar);
     desc_ = new QTextEdit(description_bar);
     desc_->setTextColor(Qt::black);
@@ -271,6 +275,10 @@ namespace OpenMS
 
     // update the menu
     updateMenu(); 
+
+    QSettings settings("OpenMS", "TOPPAS");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
   }
 
 
@@ -898,8 +906,10 @@ namespace OpenMS
     }
     if (close)
     {
-      //ws_->closeAllWindows();
       event->accept();
+      QSettings settings("OpenMS", "TOPPAS");
+      settings.setValue("geometry", saveGeometry());
+      settings.setValue("windowState", saveState());
     }
     else
     {

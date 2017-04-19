@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,19 +41,17 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <numeric>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 // Cross-correlation
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+
+#include <numeric>
 
 //#define DEBUG_TRANSITIONGROUPPICKER
 
@@ -84,9 +82,6 @@ namespace OpenMS
 
 public:
 
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-
     //@{
     /// Constructor
     MRMTransitionGroupPicker();
@@ -101,8 +96,11 @@ public:
       Will identify peaks in a set of chromatograms that belong to the same
       peptide. The chromatograms are given in the MRMTransitionGroup container
       which also contains the mapping of the chromatograms to their metadata.
+      Only chromatograms from detecting transitions are used for peak picking.
+      Identifying transitions will be processed alongside but do not contribute
+      to the meta-data, e.g. total_xic or peak_apices_sum.
 
-      The resulting features are added added to the MRMTransitionGroup. Each feature contains the following meta-data:
+      The resulting features are added to the MRMTransitionGroup. Each feature contains the following meta-data:
 
       - PeptideRef
       - leftWidth
@@ -114,7 +112,7 @@ public:
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
-      std::vector<RichPeakChromatogram> picked_chroms_;
+      std::vector<MSChromatogram<> > picked_chroms_;
 
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
@@ -122,13 +120,20 @@ public:
       // Pick chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
-        RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
+        MSChromatogram<>& chromatogram = transition_group.getChromatograms()[k];
+        String native_id = chromatogram.getNativeID();
+        if (transition_group.getTransitions().size() > 0 && 
+            transition_group.hasTransition(native_id)  && 
+            !transition_group.getTransition(native_id).isDetectingTransition() )
+        {
+          continue;
+        }
+
         if (!chromatogram.isSorted())
         {
           chromatogram.sortByPosition();
         }
-
-        RichPeakChromatogram picked_chrom;
+        MSChromatogram<> picked_chrom;
         picker.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
@@ -228,16 +233,19 @@ public:
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      const SpectrumT& ref_chromatogram = transition_group.getChromatogram(picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
 
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
-      for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+      for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
-        for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+        const SpectrumT& chromatogram = transition_group.getChromatogram(transition_group.getTransitions()[k].getNativeID());
+        if (transition_group.getTransitions()[k].isDetectingTransition())
         {
-          total_xic += it->getIntensity();
+          for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+          {
+            total_xic += it->getIntensity();
+          }
         }
 
         // resample the current chromatogram
@@ -277,7 +285,7 @@ public:
           double background = 0;
           if (background_subtraction_ == "smoothed")
           {
-            throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
             /*
              * Currently we do not have access to the smoothed chromatogram any more
             if (smoothed_chroms_.size() <= k)
@@ -315,8 +323,11 @@ public:
         //f.setMetaValue("leftWidth", best_left);
         //f.setMetaValue("rightWidth", best_right);
 
-        total_intensity += intensity_sum;
-        total_peak_apices += peak_apex_int;
+        if (transition_group.getTransitions()[k].isDetectingTransition())
+        {
+          total_intensity += intensity_sum;
+          total_peak_apices += peak_apex_int;
+        }
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
@@ -435,7 +446,7 @@ public:
     }
 
     /// Find largest peak in a vector of chromatograms
-    void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
+    void findLargestPeak(std::vector<MSChromatogram<> >& picked_chroms, int& chr_idx, int& peak_idx);
 
 protected:
 
@@ -472,12 +483,12 @@ protected:
       // side to correctly identify shoulders etc.
       double resample_boundary = 15.0; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      const SpectrumT& ref_chromatogram = transition_group.getChromatogram(picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
       std::vector<std::vector<double> > all_ints;
-      for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+      for (Size k = 0; k < picked_chroms.size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
+        const SpectrumT& chromatogram = transition_group.getChromatogram(picked_chroms[k].getNativeID());
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, 
             master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
 
@@ -702,22 +713,40 @@ protected:
 
     /// @name Resampling methods
     //@{
-    /// create an empty master peak container that has the correct mz / RT values set
+
+    /**
+      @brief Create an empty master peak container that has the correct mz / RT values set
+
+      The empty master peak container fill be filled with mz / RT values at the
+      positions where the reference chromatogram has values. The container will
+      only be populated between the boundaries given. The output container
+      will contain peaks with mz / RT values but all intensity values will be zero.
+
+      @param ref_chromatogram Reference chromatogram containing mz / RT values (possibly beyond the desired range)
+      @param master_peak_container Output container to be populated
+      @param left_boundary Left boundary of values the container should be populated with
+      @param right_boundary Right boundary of values the container should be populated with
+
+    */
     template <typename SpectrumT>
     void prepareMasterContainer_(const SpectrumT& ref_chromatogram,
-                                 SpectrumT& master_peak_container, double best_left, double best_right)
+                                 SpectrumT& master_peak_container, double left_boundary, double right_boundary)
     {
-      // search for begin / end of the reference chromatogram (and add one more point)
+      OPENMS_PRECONDITION(master_peak_container.empty(), "Master peak container must be empty")
+
+      // get the start / end point of this chromatogram => then add one more
+      // point beyond the two boundaries to make the resampling accurate also
+      // at the edge.
       typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
-      while (begin != ref_chromatogram.end() && begin->getMZ() < best_left) {begin++; }
+      while (begin != ref_chromatogram.end() && begin->getMZ() < left_boundary) {begin++; }
       if (begin != ref_chromatogram.begin()) {begin--; }
 
       typename SpectrumT::const_iterator end = begin;
-      while (end != ref_chromatogram.end() && end->getMZ() < best_right) {end++; }
+      while (end != ref_chromatogram.end() && end->getMZ() < right_boundary) {end++; }
       if (end != ref_chromatogram.end()) {end++; }
 
       // resize the master container and set the m/z values to the ones of the master container
-      master_peak_container.resize(distance(begin, end));
+      master_peak_container.resize(distance(begin, end)); // initialize to zero
       typename SpectrumT::iterator it = master_peak_container.begin();
       for (typename SpectrumT::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
       {
@@ -725,21 +754,30 @@ protected:
       }
     }
 
-    /// use the master container from above to resample a chromatogram at those points stored in the master container
+    /**
+      @brief Resample a container at the positions indicated by the master peak container
+
+      @param chromatogram Container with the input data
+      @param master_peak_container Container with the mz / RT values at which to resample
+      @param left_boundary Left boundary of values the container should be resampled
+      @param right_boundary Right boundary of values the container should be resampled
+
+      @return A container which contains the data from the input chromatogram resampled at the positions of the master container
+    */
     template <typename SpectrumT>
     SpectrumT resampleChromatogram_(const SpectrumT& chromatogram,
-                                    SpectrumT& master_peak_container, double best_left, double best_right)
+                                    const SpectrumT& master_peak_container, double left_boundary, double right_boundary)
     {
-      // get the start / end point of this chromatogram => go one past
-      // best_left / best_right to make the resampling accurate also at the
-      // edge.
+      // get the start / end point of this chromatogram => then add one more
+      // point beyond the two boundaries to make the resampling accurate also
+      // at the edge.
       typename SpectrumT::const_iterator begin = chromatogram.begin();
-      while (begin != chromatogram.end() && begin->getMZ() < best_left) {begin++; }
-      if (begin != chromatogram.begin()) {begin--; }
+      while (begin != chromatogram.end() && begin->getMZ() < left_boundary) {begin++;}
+      if (begin != chromatogram.begin()) {begin--;}
 
       typename SpectrumT::const_iterator end = begin;
-      while (end != chromatogram.end() && end->getMZ() < best_right) {end++; }
-      if (end != chromatogram.end()) {end++; }
+      while (end != chromatogram.end() && end->getMZ() < right_boundary) {end++;}
+      if (end != chromatogram.end()) {end++;}
 
       SpectrumT resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
       LinearResamplerAlign lresampler;
@@ -756,7 +794,7 @@ protected:
       The background is estimated by averaging the noise on either side of the
       peak and then subtracting that from the total intensity.
     */
-    double calculateBgEstimation_(const RichPeakChromatogram& chromatogram, double best_left, double best_right);
+    double calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right);
 
     // Members
     String background_subtraction_;

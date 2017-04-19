@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,18 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <fstream>
 
 using namespace std;
@@ -45,7 +47,12 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.5"), XMLFile("/SCHEMAS/ConsensusXML_1_5.xsd", "1.5"), ProgressLogger(), consensus_map_(0), act_cons_element_(), last_meta_(0)
+    XMLHandler("", "1.7"), 
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
+    ProgressLogger(), 
+    consensus_map_(0), 
+    act_cons_element_(), 
+    last_meta_(0)
   {
   }
 
@@ -90,6 +97,15 @@ namespace OpenMS
     else if (tag == "SearchParameters")
     {
       prot_id_.setSearchParameters(search_param_);
+      search_param_ = ProteinIdentification::SearchParameters();
+    }
+    else if (tag == "FixedModification")
+    {
+      last_meta_ = &search_param_;
+    }
+    else if (tag == "VariableModification")
+    {
+      last_meta_ = &search_param_;
     }
     else if (tag == "ProteinHit")
     {
@@ -283,11 +299,11 @@ namespace OpenMS
       }
       last_meta_ = consensus_map_;
     }
-    else if (tag == "userParam")
+    else if (tag == "userParam" || tag == "UserParam") // remain backwards compatible. Correct is "UserParam"
     {
       if (last_meta_ == 0)
       {
-        fatalError(LOAD, String("Unexpected userParam in tag '") + parent_tag + "'");
+        fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
 
       String name = attributeAsString_(attributes, "name");
@@ -319,7 +335,7 @@ namespace OpenMS
       }
       else
       {
-        fatalError(LOAD, String("Invalid userParam type '") + type + "'");
+        fatalError(LOAD, String("Invalid UserParam type '") + type + "'");
       }
     }
     else if (tag == "IdentificationRun")
@@ -330,8 +346,21 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
       //set identifier
       String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      prot_id_.setIdentifier(identifier);
-      id_identifier_[attributeAsString_(attributes, "id")] = identifier;
+      String id = attributeAsString_(attributes, "id");
+
+      if (!id_identifier_.has(id))
+      {
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
+      else
+      {
+        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
+        UInt64 uid = UniqueIdGenerator::getUniqueId();
+        identifier = identifier + String(uid);
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
     }
     else if (tag == "SearchParameters")
     {
@@ -341,8 +370,14 @@ namespace OpenMS
       optionalAttributeAsString_(search_param_.taxonomy, attributes, "taxonomy");
       search_param_.charges = attributeAsString_(attributes, "charges");
       optionalAttributeAsUInt_(search_param_.missed_cleavages, attributes, "missed_cleavages");
-      search_param_.peak_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
-      search_param_.precursor_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      search_param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
+      String peak_unit;
+      optionalAttributeAsString_(peak_unit, attributes, "peak_mass_tolerance_ppm");
+      search_param_.fragment_mass_tolerance_ppm = peak_unit == "true" ? true : false;
+      search_param_.precursor_mass_tolerance = attributeAsDouble_(attributes, "precursor_peak_tolerance");
+      String precursor_unit;
+      optionalAttributeAsString_(precursor_unit, attributes, "precursor_peak_tolerance_ppm");
+      search_param_.precursor_mass_tolerance_ppm = precursor_unit == "true" ? true : false;
       //mass type
       String mass_type = attributeAsString_(attributes, "mass_type");
       if (mass_type == "monoisotopic")
@@ -356,29 +391,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (enzyme == "trypsin")
+      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.enzyme = ProteinIdentification::TRYPSIN;
-      }
-      else if (enzyme == "pepsin_a")
-      {
-        search_param_.enzyme = ProteinIdentification::PEPSIN_A;
-      }
-      else if (enzyme == "protease_k")
-      {
-        search_param_.enzyme = ProteinIdentification::PROTEASE_K;
-      }
-      else if (enzyme == "chymotrypsin")
-      {
-        search_param_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-      }
-      else if (enzyme == "no_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::NO_ENZYME;
-      }
-      else if (enzyme == "unknown_enzyme")
-      {
-        search_param_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       }
       last_meta_ = &search_param_;
     }
@@ -418,6 +433,14 @@ namespace OpenMS
       String accession = attributeAsString_(attributes, "accession");
       prot_hit_.setAccession(accession);
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
+
+      // coverage
+      double coverage = -std::numeric_limits<double>::max();
+      optionalAttributeAsDouble_(coverage, attributes, "coverage");
+      if (coverage != -std::numeric_limits<double>::max())
+      {
+        prot_hit_.setCoverage(coverage);
+      }
 
       //sequence
       String tmp = "";
@@ -517,28 +540,68 @@ namespace OpenMS
       optionalAttributeAsString_(tmp, attributes, "aa_before");
       if (!tmp.empty())
       {
-        // so far no peptide evidence information -> create an empty one
-        if (peptide_evidences_.empty())
-        {
-          peptide_evidences_.push_back(PeptideEvidence());
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAABefore(splitted[i][0]);
         }
-
-        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
-        peptide_evidences_[0].setAABefore(tmp[0]);
       }
+
       //aa_after
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "aa_after");
       if (!tmp.empty())
       {
-        // so far no peptide evidence information -> create an empty one
-        if (peptide_evidences_.empty())
-        {
-          peptide_evidences_.push_back(PeptideEvidence());
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setAAAfter(splitted[i][0]);
         }
+      }
 
-        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
-        peptide_evidences_[0].setAAAfter(tmp[0]);
+      //start
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "start");
+
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setStart(splitted[i].toInt());
+        }
+      }
+
+      //end
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "end");
+      if (!tmp.empty())
+      {
+        std::vector<String> splitted;
+        tmp.split(' ', splitted);
+        for (Size i = 0; i != splitted.size(); ++i)
+        { 
+          if (peptide_evidences_.size() < i + 1) 
+          {
+            peptide_evidences_.push_back(PeptideEvidence());
+          }
+          peptide_evidences_[i].setEnd(splitted[i].toInt());
+        }
       }
 
       last_meta_ = &pep_hit_;
@@ -575,7 +638,7 @@ namespace OpenMS
     if (!consensus_map.isMapConsistent(&LOG_WARN))
     {
       // Currently it is possible that FeatureLinkerUnlabeledQT triggers this exception
-      // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
+      // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
       std::cerr << "The ConsensusXML file contains invalid maps or references thereof. Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file! Note that this warning will be a fatal error in the next version of OpenMS!" << std::endl;
     }
 
@@ -608,7 +671,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     os.precision(writtenDigits<double>(0.0));
@@ -642,10 +705,10 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
-    writeUserParam_("userParam", os, consensus_map, 1);
+    writeUserParam_("UserParam", os, consensus_map, 1);
     setProgress(++progress_);
 
     // write data processing
@@ -658,7 +721,7 @@ namespace OpenMS
       {
         os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
       }
-      writeUserParam_("userParam", os, processing, 2);
+      writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
     setProgress(++progress_);
@@ -690,32 +753,17 @@ namespace OpenMS
         os << "mass_type=\"average\" ";
       }
       os << "charges=\"" << search_param.charges << "\" ";
-      if (search_param.enzyme == ProteinIdentification::TRYPSIN)
-      {
-        os << "enzyme=\"trypsin\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PEPSIN_A)
-      {
-        os << "enzyme=\"pepsin_a\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::PROTEASE_K)
-      {
-        os << "enzyme=\"protease_k\" ";
-      }
-      if (search_param.enzyme == ProteinIdentification::CHYMOTRYPSIN)
-      {
-        os << "enzyme=\"chymotrypsin\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::NO_ENZYME)
-      {
-        os << "enzyme=\"no_enzyme\" ";
-      }
-      else if (search_param.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
-      {
-        os << "enzyme=\"unknown_enzyme\" ";
-      }
-      os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" " << "precursor_peak_tolerance=\"" << search_param.precursor_tolerance << "\" "
-         << "peak_mass_tolerance=\"" << search_param.peak_mass_tolerance << "\" " << ">\n";
+      String enzyme_name = search_param.digestion_enzyme.getName();
+      os << "enzyme=\"" << enzyme_name.toLower() << "\" ";
+      String precursor_unit = search_param.precursor_mass_tolerance_ppm ? "true" : "false";
+      String peak_unit = search_param.fragment_mass_tolerance_ppm ? "true" : "false";
+
+      os << "missed_cleavages=\"" << search_param.missed_cleavages << "\" "
+         << "precursor_peak_tolerance=\"" << search_param.precursor_mass_tolerance << "\" ";
+      os << "precursor_peak_tolerance_ppm=\"" << precursor_unit << "\" ";
+      os << "peak_mass_tolerance=\"" << search_param.fragment_mass_tolerance << "\" ";
+      os << "peak_mass_tolerance_ppm=\"" << peak_unit << "\" ";
+      os << ">\n";
 
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)
@@ -751,14 +799,21 @@ namespace OpenMS
 
         os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
+        
+        double coverage = current_prot_id.getHits()[j].getCoverage();
+        if (coverage != ProteinHit::COVERAGE_UNKNOWN)
+        {
+          os << " coverage=\"" << coverage << "\"";
+        }
+        
         os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
 
-        writeUserParam_("userParam", os, current_prot_id.getHits()[j], 4);
+        writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
 
         os << "\t\t\t</ProteinHit>\n";
       }
 
-      writeUserParam_("userParam", os, current_prot_id, 3);
+      writeUserParam_("UserParam", os, current_prot_id, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -783,7 +838,7 @@ namespace OpenMS
       }
       os << "\" label=\"" << it->second.label;
       os << "\" size=\"" << it->second.size << "\">\n";
-      writeUserParam_("userParam", os, it->second, 3);
+      writeUserParam_("UserParam", os, it->second, 3);
       os << "\t\t</map>\n";
     }
     os << "\t</mapList>\n";
@@ -828,7 +883,7 @@ namespace OpenMS
         writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
       }
 
-      writeUserParam_("userParam", os, elem, 3);
+      writeUserParam_("UserParam", os, elem, 3);
       os << "\t\t</consensusElement>\n";
     }
     os << "\t</consensusElementList>\n";
@@ -859,7 +914,7 @@ namespace OpenMS
     if (!map.isMapConsistent(&LOG_WARN)) // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
-      // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
+      // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
 
     }
 
@@ -927,22 +982,8 @@ namespace OpenMS
 
       vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
 
-      // do we have peptide evidence information? store information of the first one (consensusXML doesn't support multiple PeptideEvidences except multiple accessions)
-      if (!pes.empty())
-      {
-        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
-        }
-      }
-
-      if (!pes.empty())
-      {
-        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
-        {
-          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
-        }
-      }
+      os << IdXMLFile::createFlankingAAXMLString_(pes);
+      os << IdXMLFile::createPositionXMLString_(pes);
 
       set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
 
@@ -968,14 +1009,14 @@ namespace OpenMS
         }
       }
       os << ">\n";
-      writeUserParam_("userParam", os, id.getHits()[j], indentation_level + 2);
+      writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }
 
     // do not write "spectrum_reference" since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
-    writeUserParam_("userParam", os, tmp, indentation_level + 1);
+    writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }
 

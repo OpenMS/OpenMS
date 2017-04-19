@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -75,26 +75,20 @@ START_SECTION(const ResidueModification& getModification(Size index) const)
 	TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
 END_SECTION
 
-START_SECTION(void searchModifications(std::set<const ResidueModification*>& mods, const String& orgin, const String& mod_name, ResidueModification::Term_Specificity term_spec) const)
-	set<const ResidueModification*> mods;
-	ptr->searchModifications(mods, "T", "Phosphorylation", ResidueModification::ANYWHERE);
-	TEST_EQUAL(mods.size(), 1)
-	TEST_STRING_EQUAL((*mods.begin())->getFullId(), "Phospho (T)")
-END_SECTION
-
-START_SECTION((void searchTerminalModifications(std::set< const ResidueModification * > &mods, const String &name, ResidueModification::Term_Specificity term_spec) const))
-	set<const ResidueModification*> mods;
-	ptr->searchTerminalModifications(mods, "NIC", ResidueModification::N_TERM);
-	TEST_EQUAL(mods.size(), 1)
-END_SECTION
-
-START_SECTION((void searchModifications(std::set< const ResidueModification * > &mods, const String &mod_name, ResidueModification::Term_Specificity term_spec) const ))
+  START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
 {
   set<const ResidueModification*> mods;
-  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::ANYWHERE);
+  ptr->searchModifications(mods, "Phosphorylation", "T", ResidueModification::ANYWHERE);
+  TEST_EQUAL(mods.size(), 1);
+  TEST_STRING_EQUAL((*mods.begin())->getFullId(), "Phospho (T)");
+  // terminal mod:
+  ptr->searchModifications(mods, "NIC", "", ResidueModification::N_TERM);
+  TEST_EQUAL(mods.size(), 1);
 
-  TEST_EQUAL(mods.size(), 4)
-  ABORT_IF(mods.size() != 4)
+  ptr->searchModifications(mods, "Label:18O(1)");
+
+  TEST_EQUAL(mods.size(), 4);
+  ABORT_IF(mods.size() != 4);
 
   // Create a sorted set (sorted by getOrigin) instead of sorted by pointer
   // value -> this is more robust on different platforms.
@@ -109,26 +103,26 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
 
   set<const ResidueModification*, ResidueModificationOriginCmp>::const_iterator mod_it = mods_sorted.begin();
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'S')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'T')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
   ++mod_it;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "T")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'Y')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
 
-  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::C_TERM);
+  ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::C_TERM);
 
   TEST_EQUAL(mods.size(), 1)
   ABORT_IF(mods.size() != 1)
@@ -141,118 +135,121 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
   }
 
   mod_it = mods_sorted.begin();
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
-  // this will find one match
-  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::C_TERM);
   // no match, thus mods should be empty
-  ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::N_TERM);
+  ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::N_TERM);
 
   TEST_EQUAL(mods.size(), 0)
-  ABORT_IF( !mods.empty() )
 }
 END_SECTION
 
 
-START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error, ResidueModification::Term_Specificity term_spec)))
-	vector<String> mods;
-	ptr->getTerminalModificationsByDiffMonoMass(mods, 42, 0.1, ResidueModification::N_TERM);
-	set<String> uniq_mods;
-	for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
-	{
-		uniq_mods.insert(*it);
-	}
-	TEST_EQUAL(mods.size(), 18)
-	TEST_EQUAL(uniq_mods.size(), 18)
-	TEST_EQUAL(uniq_mods.find("Acetyl (N-term)") != uniq_mods.end(), true)
+START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)))
+{
+  vector<String> mods;
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 0.1, "S");
+  TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true);
+  TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true);
 
   // something exotic.. mods should return empty (without clearing it before)
-  ptr->getTerminalModificationsByDiffMonoMass(mods, 4200000, 0.1, ResidueModification::N_TERM);
-  TEST_EQUAL(mods.size(), 0)
+  ptr->searchModificationsByDiffMonoMass(mods, 800000000.0, 0.1, "S");
+  TEST_EQUAL(mods.size(), 0);
 
-END_SECTION
-
-START_SECTION(const ResidueModification& getModification(const String & modification) const)
-	TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getFullId(), "Carboxymethyl (C)")
-	TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getId(), "Carboxymethyl")
-END_SECTION
-
-START_SECTION((const ResidueModification& getModification(const String &residue_name, const String &mod_name, ResidueModification::Term_Specificity term_spec) const))
-	TEST_EQUAL(ptr->getModification("S", "Phosphorylation", ResidueModification::ANYWHERE).getId(), "Phospho")
-	TEST_EQUAL(ptr->getModification("S", "Phosphorylation", ResidueModification::ANYWHERE).getFullId(), "Phospho (S)")
-END_SECTION
-
-START_SECTION(Size findModificationIndex(const String &mod_name) const)
-	Size index = numeric_limits<Size>::max();
-	index = ptr->findModificationIndex("Phospho (T)");
-	TEST_NOT_EQUAL(index, numeric_limits<Size>::max())
-END_SECTION
-    
-START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error=0.0))
-	vector<String> mods;
-	ptr->getModificationsByDiffMonoMass(mods, 80.0, 0.1);
-	set<String> uniq_mods;
-	for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
-	{
-		uniq_mods.insert(*it);
-	}
-
-	TEST_EQUAL(uniq_mods.find("Phospho (S)") != uniq_mods.end(), true)
-	TEST_EQUAL(uniq_mods.find("Phospho (T)") != uniq_mods.end(), true)
-	TEST_EQUAL(uniq_mods.find("Phospho (Y)") != uniq_mods.end(), true)
-	TEST_EQUAL(uniq_mods.find("Sulfo (S)") != uniq_mods.end(), true)
+  // terminal mod:
+  ptr->searchModificationsByDiffMonoMass(mods, 42, 0.1, "", ResidueModification::N_TERM);
+  set<String> uniq_mods;
+  for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+  {
+    uniq_mods.insert(*it);
+  }
+  TEST_EQUAL(mods.size(), 18);
+  TEST_EQUAL(uniq_mods.size(), 18);
+  TEST_EQUAL(uniq_mods.find("Acetyl (N-term)") != uniq_mods.end(), true);
 
   // something exotic.. mods should return empty (without clearing it before)
-  ptr->getModificationsByDiffMonoMass(mods, 800000000.0, 0.1);
-  TEST_EQUAL(mods.size(), 0)
+  ptr->searchModificationsByDiffMonoMass(mods, 4200000, 0.1, "", ResidueModification::N_TERM);
+  TEST_EQUAL(mods.size(), 0);
+
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 0.1);
+  uniq_mods.clear();
+  for (vector<String>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+  {
+    uniq_mods.insert(*it);
+  }
+
+  TEST_EQUAL(uniq_mods.find("Phospho (S)") != uniq_mods.end(), true);
+  TEST_EQUAL(uniq_mods.find("Phospho (T)") != uniq_mods.end(), true);
+  TEST_EQUAL(uniq_mods.find("Phospho (Y)") != uniq_mods.end(), true);
+  TEST_EQUAL(uniq_mods.find("Sulfo (S)") != uniq_mods.end(), true);
+
+  // something exotic.. mods should return empty (without clearing it before)
+  ptr->searchModificationsByDiffMonoMass(mods, 800000000.0, 0.1);
+  TEST_EQUAL(mods.size(), 0);
+}
 END_SECTION
 
-START_SECTION(void readFromOBOFile(const String &filename))
+START_SECTION((const ResidueModification& getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
+{
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getFullId(), "Carboxymethyl (C)");
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getId(), "Carboxymethyl");
+
+  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE).getId(), "Phospho");
+  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE).getFullId(), "Phospho (S)");
+
+  // terminal mod:
+  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM).getId(), "NIC");
+  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM).getFullId(), "NIC (N-term)");
+  TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM).getFullId(), "Acetyl (N-term)");
+}
+END_SECTION
+
+START_SECTION((Size findModificationIndex(const String& mod_name) const))
+{
+  Size index = numeric_limits<Size>::max();
+  index = ptr->findModificationIndex("Phospho (T)");
+  TEST_NOT_EQUAL(index, numeric_limits<Size>::max());
+}
+END_SECTION
+
+START_SECTION(void readFromOBOFile(const String& filename))
 	// implicitely tested above
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void readFromUnimodXMLFile(const String &filename))
+START_SECTION(void readFromUnimodXMLFile(const String& filename))
 	// just provided for convenience at the moment
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((const ResidueModification& getTerminalModification(const String &name, ResidueModification::Term_Specificity term_spec) const))
-	TEST_EQUAL(ptr->getTerminalModification("NIC", ResidueModification::N_TERM).getId(), "NIC")
-	TEST_EQUAL(ptr->getTerminalModification("NIC", ResidueModification::N_TERM).getFullId(), "NIC (N-term)")
-	TEST_EQUAL(ptr->getTerminalModification("Acetyl", ResidueModification::N_TERM).getFullId(), "Acetyl (N-term)")	
-END_SECTION
-
-START_SECTION((void getModificationsByDiffMonoMass(std::vector< String > &mods, const String &residue, double mass, double error=0.0)))
-	vector<String> mods;
-	ptr->getModificationsByDiffMonoMass(mods, "S", 80.0, 0.1);
-	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true)
-	TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true)
-  
-  // something exotic.. mods should return empty (without clearing it before)
-  ptr->getModificationsByDiffMonoMass(mods, "S", 800000000.0, 0.1);
-  TEST_EQUAL(mods.size(), 0)
-END_SECTION
-
-START_SECTION((void getAllSearchModifications(std::vector< String > &modifications)))
-	vector<String> mods;
-	ptr->getAllSearchModifications(mods);
-	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true)
-	TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true)
-	TEST_EQUAL(find(mods.begin(), mods.end(), "NIC (N-term)") != mods.end(), true)
-	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho") != mods.end(), false)
-	TEST_EQUAL(find(mods.begin(), mods.end(), "Dehydrated (N-term C)") != mods.end(), true)
+START_SECTION((void getAllSearchModifications(std::vector<String>& modifications)))
+{
+  vector<String> mods;
+  ptr->getAllSearchModifications(mods);
+  TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true);
+  TEST_EQUAL(find(mods.begin(), mods.end(), "Sulfo (S)") != mods.end(), true);
+  TEST_EQUAL(find(mods.begin(), mods.end(), "NIC (N-term)") != mods.end(), true);
+  TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho") != mods.end(), false);
+  TEST_EQUAL(find(mods.begin(), mods.end(), "Dehydrated (N-term C)") != mods.end(), true);
 
   // repeat search .. return size should be the same
   Size old_size=mods.size();
   ptr->getAllSearchModifications(mods);
-  TEST_EQUAL(mods.size(), old_size)
+  TEST_EQUAL(mods.size(), old_size);
+}
 END_SECTION
 
-
-
+START_SECTION((bool addModification(ResidueModification* modification)))
+{
+  TEST_EQUAL(ptr->has("Phospho (E)"), false);
+  ResidueModification* modification = new ResidueModification();
+  modification->setFullId("Phospho (E)");
+  ptr->addModification(modification);
+  TEST_EQUAL(ptr->has("Phospho (E)"), true);
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

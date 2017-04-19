@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace std;
 
@@ -46,7 +48,7 @@ namespace OpenMS
   {
     if (index >= n_spectra_)
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      index, n_spectra_);
     }
     meta = metadata_[index];
@@ -173,6 +175,7 @@ namespace OpenMS
           Size index = findByRegExpMatch_(spectrum_ref, it->str(), match);
           meta = metadata_[index];
         }
+        return; // use the first reference format that matches
       }
     }
   }
@@ -182,7 +185,7 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides, const String& filename,
     bool stop_on_error)
   {
-    MSExperiment<> exp;
+    PeakMap exp;
     SpectrumLookup lookup;
     bool success = true;
     for (vector<PeptideIdentification>::iterator it = peptides.begin();

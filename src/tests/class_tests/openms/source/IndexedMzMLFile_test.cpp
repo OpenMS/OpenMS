@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,7 @@ START_TEST(IndexedMzMLFile, "$Id$")
 IndexedMzMLFile* ptr = 0;
 IndexedMzMLFile* nullPointer = 0;
 START_SECTION((IndexedMzMLFile(String filename) ))
-	ptr = new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("small.pwiz.1.1.test.mzML"));
+	ptr = new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -99,8 +99,12 @@ END_SECTION
 START_SECTION(( bool getParsingSuccess() const))
 {
   {
-    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist"));
+    IndexedMzMLFile file;
     TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    file.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML") );
+    TEST_EQUAL(file.getParsingSuccess(), true)
   }
 
   {
@@ -118,7 +122,7 @@ END_SECTION
 START_SECTION(( void openFile(String filename) ))
 {
   IndexedMzMLFile file;
-  file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist"));
+  TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")))
   TEST_EQUAL(file.getParsingSuccess(), false)
   file.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
   TEST_EQUAL(file.getParsingSuccess(), false)
@@ -145,7 +149,7 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
@@ -159,7 +163,8 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
   TEST_EXCEPTION(Exception::IllegalArgument,file.getSpectrumById( file.getNrSpectra()+1));
 
   {
-    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist"));
+    IndexedMzMLFile file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
     TEST_EXCEPTION(Exception::ParseError,file.getSpectrumById( 0 ));
   }
@@ -170,7 +175,7 @@ START_SECTION(( OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id) 
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	MSExperiment<> exp;
+	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())

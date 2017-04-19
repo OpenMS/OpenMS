@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,16 +120,16 @@ START_SECTION(static void selectSwathTransitions(const OpenSwath::LightTargetedE
 }
 END_SECTION
 
-START_SECTION( (template < class TargetedExperimentT > static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment< Peak1D > &exp, const TargetedExperimentT &targeted_exp, TargetedExperimentT &transition_exp_used, double min_upper_edge_dist)))
+START_SECTION( (template < class TargetedExperimentT > static bool checkSwathMapAndSelectTransitions(const OpenMS::PeakMap &exp, const TargetedExperimentT &targeted_exp, TargetedExperimentT &transition_exp_used, double min_upper_edge_dist)))
 {
   // tested above already
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment< Peak1D > &swath_map, double &lower, double &upper))
+START_SECTION(static void checkSwathMap(const OpenMS::PeakMap &swath_map, double &lower, double &upper))
 {
-  OpenMS::MSExperiment<Peak1D> swath_map;
+  OpenMS::PeakMap swath_map;
   OpenMS::MSSpectrum<Peak1D> spectrum;
   OpenMS::Precursor prec;
   std::vector<Precursor> precursors;
@@ -152,20 +152,20 @@ START_SECTION((static std::pair<double,double> estimateRTRange(OpenSwath::LightT
 {
   LightTargetedExperiment exp;
 
-  LightPeptide pep1;
-  LightPeptide pep2;
-  LightPeptide pep3;
+  LightCompound pep1;
+  LightCompound pep2;
+  LightCompound pep3;
 
   pep1.rt = -100.0;
   pep2.rt = 900.0;
   pep3.rt = 300.0;
 
-  std::vector<LightPeptide> peptides;
+  std::vector<LightCompound> peptides;
   peptides.push_back(pep1);
   peptides.push_back(pep2);
   peptides.push_back(pep3);
 
-  exp.peptides = peptides;
+  exp.compounds = peptides;
 
   std::pair<double, double> range = OpenSwathHelper::estimateRTRange(exp);
   TEST_REAL_SIMILAR(range.first, -100)

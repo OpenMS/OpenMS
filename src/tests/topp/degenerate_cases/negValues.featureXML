@@ -3,15 +3,15 @@
 	<dataProcessing completion_time="2011-02-17T10:50:26">
 		<software name="FileConverter" version="1.8.0" />
 		<processingAction name="File format conversion" />
-		<userParam type="string" name="parameter: in" value="test.dta2d"/>
-		<userParam type="string" name="parameter: out" value="test.featureXML"/>
-		<userParam type="string" name="parameter: in_type" value=""/>
-		<userParam type="string" name="parameter: out_type" value=""/>
-		<userParam type="string" name="parameter: log" value=""/>
-		<userParam type="int" name="parameter: debug" value="0"/>
-		<userParam type="int" name="parameter: threads" value="1"/>
-		<userParam type="string" name="parameter: no_progress" value="false"/>
-		<userParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: in" value="test.dta2d"/>
+		<UserParam type="string" name="parameter: out" value="test.featureXML"/>
+		<UserParam type="string" name="parameter: in_type" value=""/>
+		<UserParam type="string" name="parameter: out_type" value=""/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
 	</dataProcessing>
 	<featureList count="69">
 		<feature id="f_18213770910675354071">

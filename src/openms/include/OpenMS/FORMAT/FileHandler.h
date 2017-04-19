@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -37,26 +37,15 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/FORMAT/MS2File.h>
-#include <OpenMS/FORMAT/XMassFile.h>
-
-#include <OpenMS/FORMAT/MsInspectFile.h>
-#include <OpenMS/FORMAT/SpecArrayFile.h>
-#include <OpenMS/FORMAT/KroenikFile.h>
-
-#include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
 namespace OpenMS
 {
+  class PeakFileOptions;
+  class MSExperiment;
+  class FeatureMap;
+
   /**
     @brief Facilitates file handling by file type recognition.
 
@@ -113,131 +102,15 @@ public:
       @param exp The experiment to load the data into.
       @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
       @param log Progress logging mode
-      @param compute_hash Computes a hash value for the loaded file and stores it in the SourceFile
+      @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
+      @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
 
       @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <class PeakType>
-    bool loadExperiment(const String& filename, MSExperiment<PeakType>& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool compute_hash = true)
-    {
-      //determine file type
-      FileTypes::Type type;
-      if (force_type != FileTypes::UNKNOWN)
-      {
-        type = force_type;
-      }
-      else
-      {
-        try
-        {
-          type = getType(filename);
-        }
-        catch (Exception::FileNotFound)
-        {
-          return false;
-        }
-      }
-
-      //load right file
-      switch (type)
-      {
-      case FileTypes::DTA:
-        exp.reset();
-        exp.resize(1);
-        DTAFile().load(filename, exp[0]);
-        break;
-
-      case FileTypes::DTA2D:
-      {
-        DTA2DFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::MZXML:
-      {
-        MzXMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::MZDATA:
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-      break;
-
-      case FileTypes::MZML:
-      {
-        MzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-        ChromatogramTools().convertSpectraToChromatograms<MSExperiment<PeakType> >(exp, true);
-      }
-      break;
-
-      case FileTypes::MGF:
-      {
-        MascotGenericFile f;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::MS2:
-      {
-        MS2File f;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-
-      break;
-
-      case FileTypes::XMASS:
-        exp.reset();
-        exp.resize(1);
-        XMassFile().load(filename, exp[0]);
-        XMassFile().importExperimentalSettings(filename, exp);
-
-        break;
-
-      default:
-        return false;
-
-        break;
-      }
-
-      SourceFile src_file;
-      src_file.setNameOfFile(File::basename(filename));
-      src_file.setPathToFile(String("file:///") + File::path(filename));
-      // this is more complicated since the data formats allowed by mzML are very verbose.
-      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
-      src_file.setFileType(FileTypes::typeToMZML(type));
-
-      if (compute_hash)
-      {
-        src_file.setChecksum(computeFileHash_(filename), SourceFile::SHA1);
-      }
-
-      exp.getSourceFiles().clear();
-      exp.getSourceFiles().push_back(src_file);
-
-      return true;
-    }
+    bool loadExperiment(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true);
 
     /**
       @brief Stores an MSExperiment to a file
@@ -250,67 +123,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    template <class PeakType>
-    void storeExperiment(const String& filename, const MSExperiment<PeakType>& exp, ProgressLogger::LogType log = ProgressLogger::NONE)
-    {
-      //load right file
-      switch (getTypeByFileName(filename))
-      {
-      case FileTypes::DTA2D:
-      {
-        DTA2DFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.store(filename, exp);
-      }
-      break;
-
-      case FileTypes::MZXML:
-      {
-        MzXMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        if (!exp.getChromatograms().empty())
-        {
-          MSExperiment<PeakType> exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
-          f.store(filename, exp2);
-        }
-        else
-        {
-          f.store(filename, exp);
-        }
-      }
-      break;
-
-      case FileTypes::MZDATA:
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        if (!exp.getChromatograms().empty())
-        {
-          MSExperiment<PeakType> exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<MSExperiment<PeakType> >(exp2);
-          f.store(filename, exp2);
-        }
-        else
-        {
-          f.store(filename, exp);
-        }
-      }
-      break;
-
-      default:
-      {
-        MzMLFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.store(filename, exp);
-      }
-      break;
-      }
-    }
+    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a FeatureMap
@@ -326,15 +139,16 @@ public:
     */
     bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
 
-private:
-    PeakFileOptions options_;
-
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.
 
       @return The SHA-1 hash of the given file.
     */
-    String computeFileHash_(const String& filename) const;
+    static String computeFileHash(const String& filename);
+
+private:
+    PeakFileOptions options_;
+
   };
 
 } //namespace

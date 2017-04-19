@@ -7,6 +7,7 @@ BaseModel.cpp
 BiGaussFitter1D.cpp
 BiGaussModel.cpp
 EGHTraceFitter.cpp
+ElutionModelFitter.cpp
 EmgFitter1D.cpp
 EmgModel.cpp
 EmgScoring.cpp
@@ -32,13 +33,15 @@ LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 MultiplexClustering.cpp
+MultiplexDeltaMasses.cpp
+MultiplexDeltaMassesGenerator.cpp
 MultiplexFiltering.cpp
 MultiplexFilteringCentroided.cpp
 MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
-MultiplexPeakPattern.cpp
+MultiplexIsotopicPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp
