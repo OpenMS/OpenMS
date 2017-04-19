@@ -40,7 +40,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <OpenMS/MATH/STATISTICS/CumulativeHistogram.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -424,7 +423,7 @@ class TOPPXFDR :
       * @brief xprophet  method for target hits counting as implemented in xProphet
       * @param cum_histograms Cumulative score distributions
       */
-    void fdr_xprophet(std::map< String, Math::CumulativeHistogram<>  * > & cum_histograms,
+    void fdr_xprophet(std::map< String, Math::Histogram<>  * > & cum_histograms,
                       const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
                       vector< double > & fdr, bool mono)
     {
@@ -841,16 +840,15 @@ class TOPPXFDR :
 
       // Generate Histograms of the scores for each class
       // Use cumulative histograms to count the number of scores above consecutive thresholds
-      std::map< String, Math::CumulativeHistogram<>  * >  cum_histograms;
+      std::map< String, Math::Histogram<>  * >  cum_histograms;
       for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
            scores_it != scores.end(); ++scores_it)
       {
         vector< double > current_scores = scores_it->second;
         String classname = scores_it->first;
-        cum_histograms[classname] = new Math::CumulativeHistogram<>(current_scores.begin(), current_scores.end(),
-                                                                    this->min_score,
-                                                                    this->max_score,
-                                                                    TOPPXFDR::fpnum_score_step, true, true);
+        Math::Histogram<> * histogram = new Math::Histogram<>(this->min_score, this->max_score, TOPPXFDR::fpnum_score_step);
+        Math::Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, *histogram);
+        cum_histograms[classname] = histogram;
       }
 
       // Calculate FDR for interlinks
@@ -950,7 +948,7 @@ class TOPPXFDR :
       }
 
       // Delete cumulative_histograms
-      for (std::map< String, Math::CumulativeHistogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
+      for (std::map< String, Math::Histogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
            cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
       {
         delete cum_histograms_it->second;

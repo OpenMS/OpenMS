@@ -6,7 +6,6 @@ set(sources_list_h
 AsymmetricStatistics.h
 AveragePosition.h
 BasicStatistics.h
-CumulativeHistogram.h
 GammaDistributionFitter.h
 GaussFitter.h
 GumbelDistributionFitter.h
