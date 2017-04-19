@@ -739,6 +739,7 @@ namespace OpenMS
         }
         else
         {
+          OPENMS_PRECONDITION(false, "Something went wrong, this should never happen"); // we should not end up here any more
           os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
         }
         const String& id = peptide.peptide_[i]->getModificationName();
@@ -748,6 +749,8 @@ namespace OpenMS
         }
         else
         {
+          // what is this syntax? we have no idea, we probably should never be here
+          OPENMS_PRECONDITION(false, "Something went wrong, this should never happen"); // we should not end up here any more
           os << "([" << precisionWrapper(peptide.peptide_[i]->getModification()->getDiffMonoMass()) << "])";
         }
       }
@@ -765,6 +768,7 @@ namespace OpenMS
           }
           else
           {
+            OPENMS_PRECONDITION(false, "Something went wrong, this should never happen"); // we should not end up here any more
             os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
           }
         }
