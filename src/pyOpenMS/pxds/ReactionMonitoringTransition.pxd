@@ -39,15 +39,14 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         void setIntermediateProducts(libcpp_vector[ TraMLProduct ] & products)nogil except +
 
         void setProduct(TraMLProduct product)nogil except +
-        TraMLProduct  getProduct()nogil except +
-
+        TraMLProduct getProduct()nogil except +
         void setRetentionTime(RetentionTime rt)nogil except +
-        RetentionTime  getRetentionTime()nogil except +
+        RetentionTime getRetentionTime()nogil except +
 
-        bool hasPrediction() nogil except +
         void setPrediction(Prediction & prediction)nogil except +
         void addPredictionTerm(CVTerm & prediction)nogil except +
-        Prediction  getPrediction()nogil except +
+        bool hasPrediction() nogil except +
+        Prediction getPrediction()nogil except +
 
         void setDecoyTransitionType(DecoyTransitionType & d)nogil except +
 

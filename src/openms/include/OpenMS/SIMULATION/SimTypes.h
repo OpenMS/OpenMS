@@ -43,6 +43,7 @@
 
 #include <boost/random/mersenne_twister.hpp>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -103,7 +104,7 @@ namespace OpenMS
     typedef std::vector<FeatureMapSim> FeatureMapSimVector;
 
     /// Sim MSExperiment type
-    typedef MSExperiment<SimPointType> MSSimExperiment;
+    typedef PeakMap MSSimExperiment;
 
     /**
       @brief Wrapper class for random number generators used by the simulation classes

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

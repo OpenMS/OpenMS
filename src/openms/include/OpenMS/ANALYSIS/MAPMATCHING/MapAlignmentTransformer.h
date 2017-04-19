@@ -39,6 +39,7 @@
 #include <vector>
 #include <OpenMS/config.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -58,7 +59,7 @@ namespace OpenMS
 
   public:
     /// Applies the given transformation to a peak map
-    static void transformRetentionTimes(MSExperiment<>& msexp,
+    static void transformRetentionTimes(PeakMap& msexp,
                                         const TransformationDescription& trafo,
                                         bool store_original_rt = false);
 

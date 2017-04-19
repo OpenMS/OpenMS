@@ -20,18 +20,18 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
         MRMTransitionGroupPicker() nogil except +
         MRMTransitionGroupPicker(MRMTransitionGroupPicker) nogil except + #wrap-ignore
 
-        void pickTransitionGroup(MRMTransitionGroup[MSSpectrum[ChromatogramPeak], LightTransition] transition_group) nogil except +
-        void pickTransitionGroup(MRMTransitionGroup[MSSpectrum[ChromatogramPeak], ReactionMonitoringTransition] transition_group) nogil except +
+        void pickTransitionGroup(MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition] transition_group) nogil except +
+        void pickTransitionGroup(MRMTransitionGroup[MSChromatogram[ChromatogramPeak], ReactionMonitoringTransition] transition_group) nogil except +
 
 
-        MRMFeature createMRMFeature(MRMTransitionGroup[ MSSpectrum[ChromatogramPeak], LightTransition] transition_group,
-                                    libcpp_vector[ MSSpectrum[ChromatogramPeak] ] & picked_chroms,
+        MRMFeature createMRMFeature(MRMTransitionGroup[ MSChromatogram[ChromatogramPeak], LightTransition] transition_group,
+                                    libcpp_vector[ MSChromatogram[ChromatogramPeak] ] & picked_chroms,
                                     const int chr_idx,
                                     const int peak_idx) nogil except +
 
-        void remove_overlapping_features(libcpp_vector[ MSSpectrum[ChromatogramPeak] ] & picked_chroms, 
+        void remove_overlapping_features(libcpp_vector[ MSChromatogram[ChromatogramPeak] ] & picked_chroms, 
                                          double best_left, 
                                          double best_right) nogil except +
 
-        void findLargestPeak(libcpp_vector[ MSSpectrum[ChromatogramPeak] ] & picked_chroms, int & chr_idx, int & peak_idx) nogil except +
+        void findLargestPeak(libcpp_vector[ MSChromatogram[ChromatogramPeak] ] & picked_chroms, int & chr_idx, int & peak_idx) nogil except +
 

@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <cmath>
 #define PI 3.141592653589793
@@ -344,7 +346,7 @@ START_SECTION([EXTRA](pick multiple peaks SN))
 END_SECTION
 
 TOLERANCE_RELATIVE(1.00001);
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 
 /////////////////////////
 // ORBITRAP data tests //

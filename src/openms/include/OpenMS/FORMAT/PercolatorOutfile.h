@@ -77,6 +77,9 @@ namespace OpenMS
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
 
+    /// Resolve cases where N-terminal modifications may be misassigned to the first residue (for X! Tandem results)
+    void resolveMisassignedNTermMods_(String& peptide) const;
+
     /// Extracts allowed modifications from the search results
     void getSearchModifications_(
       const std::vector<PeptideIdentification>& peptides,

@@ -120,16 +120,16 @@ START_SECTION(static void selectSwathTransitions(const OpenSwath::LightTargetedE
 }
 END_SECTION
 
-START_SECTION( (template < class TargetedExperimentT > static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment< Peak1D > &exp, const TargetedExperimentT &targeted_exp, TargetedExperimentT &transition_exp_used, double min_upper_edge_dist)))
+START_SECTION( (template < class TargetedExperimentT > static bool checkSwathMapAndSelectTransitions(const OpenMS::PeakMap &exp, const TargetedExperimentT &targeted_exp, TargetedExperimentT &transition_exp_used, double min_upper_edge_dist)))
 {
   // tested above already
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment< Peak1D > &swath_map, double &lower, double &upper))
+START_SECTION(static void checkSwathMap(const OpenMS::PeakMap &swath_map, double &lower, double &upper))
 {
-  OpenMS::MSExperiment<Peak1D> swath_map;
+  OpenMS::PeakMap swath_map;
   OpenMS::MSSpectrum<Peak1D> spectrum;
   OpenMS::Precursor prec;
   std::vector<Precursor> precursors;

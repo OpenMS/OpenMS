@@ -81,6 +81,8 @@ public:
       return db_;
     }
 
+    friend class CrossLinksDB;
+
     /// Returns the number of modifications read from the unimod.xml file
     Size getNumberOfModifications() const;
 
@@ -204,7 +206,7 @@ protected:
     Map<String, std::set<const ResidueModification*> > modification_names_;
 
     /// Helper function to check if a residue matches the origin for a modification
-    bool residuesMatch_(const String& residue, const String& origin) const;
+    bool residuesMatch_(const String& residue, char origin) const;
 
 private:
 

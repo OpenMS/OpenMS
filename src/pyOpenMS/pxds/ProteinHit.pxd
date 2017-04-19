@@ -9,10 +9,12 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
     cdef cppclass ProteinHit:
 
-
         ProteinHit() nogil except +
         ProteinHit(double score, UInt rank, String accession, String sequence) nogil except +
         ProteinHit(ProteinHit) nogil except +
+
+        # const members
+        ## double COVERAGE_UNKNOWN
 
         float getScore() nogil except +
         UInt getRank() nogil except +
@@ -46,8 +48,5 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
-
-
-
 
 

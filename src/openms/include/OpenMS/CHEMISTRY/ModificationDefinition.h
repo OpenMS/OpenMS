@@ -73,12 +73,6 @@ public:
     /** @name Accessors
     */
     //@{
-    /// sets the allowed position of the modification
-    void setTermSpecificity(ResidueModification::TermSpecificity pos);
-
-    /// returns the allowed position of the modification
-    ResidueModification::TermSpecificity getTermSpecificity() const;
-
     /// sets whether this modification definition is fixed or variable (modification must occur vs. can occur)
     void setFixedModification(bool fixed);
 
@@ -91,11 +85,18 @@ public:
     /// returns the maximal number of occurences per peptide
     UInt getMaxOccurences() const;
 
-    /// returns the modification set
-    String getModification() const;
+    /// returns the name of the modification
+    String getModificationName() const;
 
     /// sets the modification, allowed are unique names provided by ModificationsDB
     void setModification(const String& modification);
+
+    /**
+       @brief Returns the modification
+
+       @throw Exception::InvalidValue if no modification was set
+    */
+    const ResidueModification& getModification() const;
     //@}
 
     /** @name Assignment
@@ -119,9 +120,6 @@ public:
     //@}
 
 protected:
-
-    /// allowed position
-    ResidueModification::TermSpecificity term_spec_;
 
     /// the modification
     const ResidueModification* mod_;

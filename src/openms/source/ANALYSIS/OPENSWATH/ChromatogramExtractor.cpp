@@ -83,19 +83,28 @@ namespace OpenMS
         coord.id = transition.getNativeID();
       }
 
-      if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+      if (rt_extraction_window < 0)
       {
-        // we don't have retention times -> this is only a problem if we actually
-        // wanted to use the RT limit feature.
-        if (rt_extraction_window < 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
-        }
         coord.rt_end = -1;
         coord.rt_start = 0;
       }
-      else
+      else if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+      {
+        // we don't have retention times -> this is only a problem if we actually
+        // wanted to use the RT limit feature.
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
+      }
+      else if (boost::math::isnan(rt_extraction_window))
+      {
+        if (pep.rts.size() != 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Expected exactly two retention time entries for peptide '" + pep.id + "', found " + String(pep.rts.size()));
+        }
+        coord.rt_start = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+        coord.rt_end = pep.rts[1].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      }
+      else // if 'rt_extraction_window' is zero, just write the (first) RT value for later processing
       {
         double rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
         coord.rt_start = rt - rt_extraction_window / 2.0;

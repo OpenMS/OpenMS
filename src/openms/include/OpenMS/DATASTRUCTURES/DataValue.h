@@ -356,7 +356,11 @@ public:
     /// assignment operator
     DataValue& operator=(const DataValue&);
 
-    /// test if the value is empty
+    /**
+       @brief Test if the value is empty
+
+       @note A DataValue containing an empty string ("") does not count as empty!
+    */
     inline bool isEmpty() const
     {
       return value_type_ == EMPTY_VALUE;

@@ -487,8 +487,7 @@ public:
      * @param output  output map with picked peaks
      * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
-    template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
+    void pickExperiment(const PeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const
     {
         std::vector<std::vector<PeakBoundary> > boundaries_spec;
         std::vector<std::vector<PeakBoundary> > boundaries_chrom;
@@ -506,8 +505,7 @@ public:
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
      * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
-    template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
+    void pickExperiment(const PeakMap& input, PeakMap& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -551,7 +549,7 @@ public:
 
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
-        MSChromatogram<ChromatogramPeakT> chromatogram;
+        MSChromatogram<> chromatogram;
         std::vector<PeakBoundary> boundaries_c; // peak boundaries of a single chromatogram
         pick(input.getChromatograms()[i], chromatogram, boundaries_c);
         output.addChromatogram(chromatogram);
@@ -570,8 +568,7 @@ public:
 
       Currently we have to give up const-correctness but we know that everything on disc is constant
     */
-    template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
+    void pickExperiment(/* const */ OnDiscPeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -596,7 +593,7 @@ public:
           }
           else
           {
-            MSSpectrum<PeakType> s = input[scan_idx];
+            MSSpectrum<> s = input[scan_idx];
             s.sortByPosition();
 
             // determine type of spectral data (profile or centroided)
@@ -615,7 +612,7 @@ public:
 
       for (Size i = 0; i < input.getNrChromatograms(); ++i)
       {
-        MSChromatogram<ChromatogramPeakT> chromatogram;
+        MSChromatogram<> chromatogram;
         pick(input.getChromatogram(i), chromatogram);
         output.addChromatogram(chromatogram);
         setProgress(++progress);

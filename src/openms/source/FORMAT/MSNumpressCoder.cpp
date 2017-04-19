@@ -92,10 +92,23 @@ namespace OpenMS
       {
       case LINEAR:
       {
-        if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize); }
+        if (config.estimate_fixed_point)
+        {
+          // estimate fixed point either by mass accuracy or by using maximal permissable value
+          if (config.linear_fp_mass_acc > 0)
+          {
+            fixedPoint = numpress::MSNumpress::optimalLinearFixedPointMass(&in[0], dataSize, config.linear_fp_mass_acc);
+            // catch failure
+            if (fixedPoint < 0.0) fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+          }
+          else
+          {
+            fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+          }
+        }
         byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeLinear(numpressed, unpressed);
         }
@@ -106,7 +119,7 @@ namespace OpenMS
       {
         byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodePic(numpressed, unpressed);
         }
@@ -118,7 +131,7 @@ namespace OpenMS
         if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeSlof(numpressed, unpressed);
         }
@@ -146,7 +159,7 @@ namespace OpenMS
 
       // 3. Now check to see if encoding introduces excessive error
       int n = -1;
-      if (config.numpressErrorTolerance)
+      if (config.numpressErrorTolerance > 0.0)
       {
         if (PIC == config.np_compression) // integer rounding, abs accuracy is +- 0.5
         {
@@ -217,7 +230,11 @@ namespace OpenMS
     }
     catch (int e)
     {
-      std::cerr << "MZNumpress encoder threw exception: " << e << std::endl;
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+    }
+    catch (char const * e)
+    {
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
     catch (...)
     {

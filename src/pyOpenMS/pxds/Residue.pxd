@@ -1,6 +1,7 @@
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
+from ResidueModification cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
@@ -118,7 +119,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # returns monoisotopic weight of the residue
         double getMonoWeight(ResidueType res_type) nogil except +
 
-        # CONST POINTER # ResidueModification * getModification() nogil except +
+        const ResidueModification * getModification() nogil except +
 
         # sets the modification by name; the mod should be present in ModificationsDB
         void setModification(String name) nogil except +
@@ -219,7 +220,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
       XIon,           # MS:1001228 amide/C-alpha bond up to the C-terminus
       YIon,           # MS:1001220 peptide bond up to the C-terminus
       ZIon,           # MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor,      # MS:1001523 Precursor ion
+      Precursor_ion,  # MS:1001523 Precursor ion
       BIonMinusH20,   # MS:1001222 b ion without water
       YIonMinusH20,   # MS:1001223 y ion without water
       BIonMinusNH3,   # MS:1001232 b ion without ammonia

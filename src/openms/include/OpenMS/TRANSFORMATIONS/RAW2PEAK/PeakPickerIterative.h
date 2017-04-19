@@ -399,8 +399,7 @@ public:
       output.sortByPosition();
     }
 
-    template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
+    void pickExperiment(const PeakMap& input, PeakMap& output)
     {
       // make sure that output is clear
       output.clear(true);

@@ -53,7 +53,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathHelper::checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+  void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper)
   {
     if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)

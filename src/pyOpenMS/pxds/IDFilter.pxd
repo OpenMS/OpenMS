@@ -88,10 +88,10 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void removeDuplicatePeptideHits(libcpp_vector[PeptideIdentification]& peptides) nogil except +
 
-        void filterHitsByScore(MSExperiment[Peak1D, ChromatogramPeak]& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
+        void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
 
-        void filterHitsBySignificance(MSExperiment[Peak1D, ChromatogramPeak]& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
+        void filterHitsBySignificance(MSExperiment& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
 
-        void keepNBestHits(MSExperiment[Peak1D, ChromatogramPeak]& experiment, Size n) nogil except +
+        void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
 
-        void keepHitsMatchingProteins(MSExperiment[Peak1D, ChromatogramPeak]& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
+        void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +

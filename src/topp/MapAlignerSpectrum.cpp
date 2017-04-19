@@ -146,7 +146,7 @@ protected:
     progresslogger.setLogType(log_type_);
 
     // load input
-    std::vector<MSExperiment<> > peak_maps(ins.size());
+    std::vector<PeakMap > peak_maps(ins.size());
     MzMLFile f;
     f.setLogType(log_type_);
     progresslogger.startProgress(0, ins.size(), "loading input files");

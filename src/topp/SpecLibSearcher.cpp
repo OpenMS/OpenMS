@@ -176,7 +176,7 @@ protected:
 
     time_t prog_time = time(NULL);
     MSPFile spectral_library;
-    RichPeakMap query, library;
+    PeakMap query, library;
     //spectrum which will be identified
     MzMLFile spectra;
     spectra.setLogType(log_type_);
@@ -192,7 +192,7 @@ protected:
 
     map<Size, vector<PeakSpectrum> > MSLibrary;
     {
-      RichPeakMap::iterator s_it;
+      PeakMap::iterator s_it;
       vector<PeptideIdentification>::iterator it;
       ModificationsDB* mdb = ModificationsDB::getInstance();
       for (s_it = library.begin(), it = ids.begin(); s_it < library.end(); ++s_it, ++it)
@@ -214,7 +214,7 @@ protected:
             const Residue& mod = aaseq.getResidue(j);
             for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
+              if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
               {
                 fixed_modifications_ok = false;
                 break;
@@ -232,7 +232,7 @@ protected:
               const Residue& mod = aaseq.getResidue(j);
               for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
+                if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
                 {
                   variable_modifications_ok = false;
                   break;
@@ -246,13 +246,21 @@ protected:
           PeptideIdentification& translocate_pid = *it;
           librar.getPeptideIdentifications().push_back(translocate_pid);
           librar.setPrecursors(s_it->getPrecursors());
+
+          // empty array would segfault
+          if ( (*s_it).getStringDataArrays().empty() )
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
+          }
+
           //library entry transformation
           for (UInt l = 0; l < s_it->size(); ++l)
           {
             Peak1D peak;
             if ((*s_it)[l].getIntensity() >  remove_peaks_below_threshold)
             {
-              const String& info = (*s_it)[l].getMetaValue("MSPPeakInfo");
+              // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
+              const String& info = (*s_it).getStringDataArrays()[0][l];
               if (info[0] == '?')
               {
                 peak.setIntensity(sqrt(0.2 * (*s_it)[l].getIntensity()));
@@ -360,7 +368,7 @@ protected:
           bool charge_one = false;
           Int percent = (Int) Math::round((query[j].size() / 100.0) * 3.0);
           Int margin  = (Int) Math::round((query[j].size() / 100.0) * 1.0);
-          for (vector<RichPeak1D>::iterator peak = query[j].end() - 1; percent >= 0; --peak, --percent)
+          for (vector<Peak1D>::iterator peak = query[j].end() - 1; percent >= 0; --peak, --percent)
           {
             if (peak->getMZ() < query_MZ)
             {

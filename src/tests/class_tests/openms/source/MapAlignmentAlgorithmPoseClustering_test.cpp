@@ -69,10 +69,10 @@ START_SECTION((template <typename MapType> void setReference(const MapType& map)
 }
 END_SECTION
 
-START_SECTION((void align(const MSExperiment<>& map, TransformationDescription& trafo)))
+START_SECTION((void align(const PeakMap& map, TransformationDescription& trafo)))
 {
   MzMLFile f;
-  std::vector<MSExperiment<> > maps(2);
+  std::vector<PeakMap > maps(2);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), maps[0]);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), maps[1]);
 

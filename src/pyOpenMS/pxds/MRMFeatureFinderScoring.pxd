@@ -30,11 +30,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
 
         MRMFeatureFinderScoring() nogil except +
 
-        void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] & chromatograms,
+        void pickExperiment(MSExperiment & chromatograms,
                             FeatureMap & output,
                             TargetedExperiment & transition_exp_,
                             TransformationDescription trafo,
-                            MSExperiment[Peak1D, ChromatogramPeak] & swath_map) nogil except +
+                            MSExperiment & swath_map) nogil except +
 
         # void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
         #                     TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map);

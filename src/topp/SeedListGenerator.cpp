@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -164,7 +165,7 @@ protected:
       }
       else if (in_type == FileTypes::MZML)
       {
-        MSExperiment<> experiment;
+        PeakMap experiment;
         MzMLFile().load(in, experiment);
         seed_gen.generateSeedList(experiment, seed_lists[0]);
       }

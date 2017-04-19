@@ -266,6 +266,88 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.046495)
 END_SECTION
 
+START_SECTION(void IsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
+	IsotopeDistribution iso;
+	IsotopeDistribution iso2;
+	std::set<UInt> precursor_isotopes;
+	// We're isolating the M+2 precursor isotopes
+	precursor_isotopes.insert(2);
+	// These are regression tests, but the results also follow an expected pattern.
+
+	// With 0 sulfurs, it should be somewhat unlikely for the fragment to be M+2.
+	iso.estimateForFragmentFromPeptideWeightAndS(200.0, 0, 100.0, 0, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.355445559123552)
+
+	// At such a small size, the regular averagine method should also result in 0 sulfurs.
+	// The approximate EmpiricalFormulas should be the same, and therefore so should
+	// their isotopic distributions.
+	iso2.estimateForFragmentFromPeptideWeight(200.0, 100.0, precursor_isotopes);
+	iso2.renormalize();
+
+	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso2.begin());
+	for (; it1 != iso.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_SIMILAR(it2->second, it2->second)
+	}
+
+	// With the only sulfur being in the fragment, it's much more likely that the fragment
+	// is M+2.
+	iso.estimateForFragmentFromPeptideWeightAndS(200.0, 1, 100.0, 1, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.900804974056174)
+	// Both sulfurs are in the fragment, so it's even more likely for the fragment to be M+2
+	iso.estimateForFragmentFromPeptideWeightAndS(200.0, 2, 100.0, 2, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.947862830751023)
+	// All 3 sulfurs are in the fragment
+	iso.estimateForFragmentFromPeptideWeightAndS(200.0, 3, 100.0, 3, precursor_isotopes);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.969454586761089)
+	// Any more sulfurs while keeping the masses constant would violate the function preconditions
+
+END_SECTION
+
+START_SECTION(void IsotopeDistribution::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
+	IsotopeDistribution iso(3);
+	IsotopeDistribution iso2(3);
+	// These are regression tests, but the results also follow an expected pattern.
+
+	// With 0 sulfurs, it should be very unlikely for this tiny peptide to be M+2.
+	iso.estimateFromPeptideWeightAndS(100.0, 0);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.00290370998965918)
+
+	// At such a small size, the regular averagine method should also result in 0 sulfurs.
+	// The approximate EmpiricalFormulas should be the same, and therefore so should
+	// their isotopic distributions.
+	iso2.estimateFromPeptideWeightAndS(100.0, 0);
+	iso2.renormalize();
+
+	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso2.begin());
+	for (; it1 != iso.end(); ++it1, ++it2)
+	{
+		TEST_EQUAL(it1->first, it2->first)
+		TEST_REAL_SIMILAR(it2->second, it2->second)
+	}
+
+	// With one sulfur, it's more likely that the precursor is M+2 compared to having 0 sulfurs.
+	iso.estimateFromPeptideWeightAndS(100.0, 1);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.0439547771832361)
+	// With two sulfurs, the M+2 isotope is more likely
+	iso.estimateFromPeptideWeightAndS(100.0, 2);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.0804989104418586)
+	// With three sulfurs, the M+2 isotope is even more likely
+	iso.estimateFromPeptideWeightAndS(100.0, 3);
+	iso.renormalize();
+	TEST_REAL_SIMILAR(iso.rbegin()->second, 0.117023432503842)
+	// Any more sulfurs while keeping the masses constant would violate the function preconditions
+
+END_SECTION
+
 START_SECTION(void estimateFromRNAWeight(double average_weight))
     // hard to test as this is an rough estimate
     IsotopeDistribution iso(3);

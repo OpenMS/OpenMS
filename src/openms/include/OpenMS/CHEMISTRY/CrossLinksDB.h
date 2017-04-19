@@ -29,78 +29,65 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
+#ifndef CROSSLINKSDB_H
+#define CROSSLINKSDB_H
 
-using namespace std;
-using namespace xercesc;
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 namespace OpenMS
 {
-  namespace Internal
+  class OPENMS_DLLAPI CrossLinksDB :
+      public ModificationsDB
   {
+  public:
 
-    XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String & filename, vector<XTandemInfileNote> & notes) :
-      XMLHandler(filename, ""),
-      notes_(notes), // this is a reference!
-      actual_note_(),
-      tag_()
+    /// Returns a pointer to the modifications DB (singleton)
+    inline static CrossLinksDB* getInstance()
     {
-    }
-
-    XTandemInfileXMLHandler::~XTandemInfileXMLHandler()
-    {
-    }
-
-    void XTandemInfileXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
-    {
-
-      tag_.push_back(String(sm_.convert(qname)));
-
-      if (tag_.back() == "note")
+      static CrossLinksDB* db_ = 0;
+      if (db_ == 0)
       {
-        int type_idx = attributes.getIndex(sm_.convert("type"));
-        int label_idx = attributes.getIndex(sm_.convert("label"));
-
-        if (type_idx != -1)
-        {
-          actual_note_.note_type = String(sm_.convert(attributes.getValue(type_idx)));
-        }
-        if (label_idx != -1)
-        {
-          actual_note_.note_label = String(sm_.convert(attributes.getValue(label_idx)));
-        }
+        db_ = new CrossLinksDB;
       }
-
+      return db_;
     }
 
-    void XTandemInfileXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
-    {
-      String tag_close = String(sm_.convert(qname)).trim();
-      if (tag_.back() != tag_close)
-      {
-        fatalError(LOAD, "Invalid closing/opening tag sequence. Unexpected tag '</ " + tag_close + ">'!");
-      }
-      if (tag_.back() == "note")
-      {
-        notes_.push_back(actual_note_);
-        // prepare for new note
-        actual_note_ = XTandemInfileNote();
-      }
-      
-      tag_.pop_back();
-    }
+    /**
+      @brief Adds modifications from a given file in OBO format
 
-    void XTandemInfileXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
-    {
-      if (tag_.back() == "note")
-      {
-        actual_note_.note_value = ((String)sm_.convert(chars)).trim();
-      }
-    }
+      @throw Exception::ParseError if the file cannot be parsed correctly
+    */
+    void readFromOBOFile(const String& filename);
 
-  }   // namespace Internal
-} // namespace OpenMS
+    /// Collects all modifications that can be used for identification searches
+    void getAllSearchModifications(std::vector<String>& modifications) const;
+
+  private:
+
+      /** @name Constructors and Destructors
+       */
+      //@{
+      /// Default constructor
+      CrossLinksDB();
+
+      /// Copy constructor
+      CrossLinksDB(const CrossLinksDB& residue_db);
+
+      /// Destructor
+      virtual ~CrossLinksDB();
+      //@}
+
+      /** @name Assignment
+       */
+      //@{
+      /// Assignment operator
+      CrossLinksDB & operator=(const CrossLinksDB& aa);
+      //@}
+
+  };
+}
+
+#endif // CROSSLINKSDB_H

@@ -1,0 +1,2132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/share/usr/bertsch/sequences/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta.pro" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+3" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2009-10-06T18:05:57" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="Q29443|TRFE_BOVIN" score="-456.600006103516" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="P00634|PPB_ECOLI" score="-326.899993896484" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="P02769|ALBU_BOVIN" score="-299.399993896484" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="P00722|BGAL_ECOLI" score="-265.5" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="P00432|CATA_BOVIN" score="-223.899993896484" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="P00489|PYGM_RABIT" score="-166" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="P62739|ACTA_BOVIN" score="-152.300003051758" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="P06278|AMY_BACLI" score="-139.5" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="P46406|G3P_RABIT" score="-128.699996948242" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="P00921|CAH2_BOVIN" score="-113.300003051758" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="P00946|MANA_ECOLI" score="-81.1999969482422" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="P02754|LACB_BOVIN" score="-70.0999984741211" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="P62894|CYC_BOVIN" score="-69.6999969482422" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="sp|P69327|AMYG_ASPAW" score="-49.4000015258789" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="P01012|OVAL_CHICK" score="-48.0999984741211" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="P02666|CASB_BOVIN" score="-47.2000007629395" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="P02602|MLE1_RABIT" score="-32" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="sp|P02586|TNNC2_RABIT" score="-22.7999992370605" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="P00711|LALBA_BOVIN" score="-16.5" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="sp|P62975|UBIQ_RABIT" score="-15.8999996185303" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="sp|P0AF93|YJGF_ECOLI" score="-15.6000003814697" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="sp|P02057|HBB_RABIT" score="-11.8000001907349" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="P68082|MYG_HORSE" score="-7.90000009536743" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="sp|P02608|MLRS_RABIT" score="-6.30000019073486" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="sp|P02643|TNNI2_RABIT" score="-6" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="sp|O46375|TTHY_BOVIN" score="-4.59999990463257" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="P06871|TRY1_CANFA" score="-4.40000009536743" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="P00761|TRYP_PIG" score="-4.40000009536743" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="sp|P01948|HBA_RABIT" score="-2.90000009536743" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="tr|A9GPZ6|A9GPZ6_SORC5rev" score="-2.40000009536743" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="tr|A9F7Y8|A9F7Y8_SORC5rev" score="-2" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="tr|A9G6B1|A9G6B1_SORC5rev" score="-2" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="tr|A9FES0|A9FES0_SORC5" score="-1.79999995231628" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="tr|A9G8J3|A9G8J3_SORC5rev" score="-1.70000004768372" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_34" accession="tr|A9FLI0|A9FLI0_SORC5rev" score="-1.70000004768372" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_35" accession="tr|A9G476|A9G476_SORC5rev" score="-1.60000002384186" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_36" accession="tr|A9FW07|A9FW07_SORC5" score="-1.5" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_37" accession="tr|A9G2T4|A9G2T4_SORC5rev" score="-1.5" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_38" accession="tr|A9GGP4|A9GGP4_SORC5rev" score="-1.39999997615814" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_39" accession="tr|A9GQ30|A9GQ30_SORC5" score="-1.29999995231628" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_40" accession="P35047|TRYC_MANSErev" score="-1.29999995231628" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_41" accession="tr|A9GXM7|A9GXM7_SORC5rev" score="-1.20000004768372" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_42" accession="tr|A9GIA4|A9GIA4_SORC5rev" score="-1.10000002384186" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_43" accession="tr|A9GJK0|A9GJK0_SORC5rev" score="-1.10000002384186" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_44" accession="tr|A9FJP0|A9FJP0_SORC5rev" score="-1.10000002384186" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_45" accession="tr|A9FIK0|A9FIK0_SORC5" score="-1.10000002384186" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_46" accession="tr|A9F217|A9F217_SORC5" score="-1.10000002384186" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_47" accession="tr|A9GPB6|A9GPB6_SORC5rev" score="-1" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_48" accession="tr|A9GKY5|A9GKY5_SORC5rev" score="-1" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_49" accession="tr|A9FSK3|A9FSK3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_50" accession="tr|A9FSJ9|A9FSJ9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_51" accession="tr|A9FSD6|A9FSD6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_52" accession="tr|A9FKM3|A9FKM3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_53" accession="tr|A9FKX1|A9FKX1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_54" accession="tr|A9FS95|A9FS95_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_55" accession="tr|A9FS20|A9FS20_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_56" accession="tr|A9FRW7|A9FRW7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_57" accession="tr|A9EPS4|A9EPS4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_58" accession="tr|A9FRU6|A9FRU6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_59" accession="tr|A9FRJ0|A9FRJ0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_60" accession="tr|A9FRI3|A9FRI3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_61" accession="tr|A9FRB3|A9FRB3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_62" accession="tr|A9FRB0|A9FRB0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_63" accession="tr|A9FV80|A9FV80_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_64" accession="tr|A9FV76|A9FV76_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_65" accession="tr|A9FV32|A9FV32_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_66" accession="tr|A9EQ14|A9EQ14_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_67" accession="tr|A9FUX4|A9FUX4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_68" accession="tr|A9FUW1|A9FUW1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_69" accession="tr|A9FUU6|A9FUU6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_70" accession="tr|A9FUK9|A9FUK9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_71" accession="tr|A9FKE7|A9FKE7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_72" accession="tr|A9FUD7|A9FUD7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_73" accession="tr|A9FUA5|A9FUA5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_74" accession="tr|A9FU56|A9FU56_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_75" accession="tr|A9FU41|A9FU41_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_76" accession="tr|A9FU05|A9FU05_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_77" accession="tr|A9FTX4|A9FTX4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_78" accession="tr|A9FTF1|A9FTF1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_79" accession="tr|A9FT30|A9FT30_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_80" accession="tr|A9FSY6|A9FSY6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_81" accession="tr|A9FN07|A9FN07_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_82" accession="tr|A9FN58|A9FN58_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_83" accession="tr|A9FNG2|A9FNG2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_84" accession="tr|A9FNH0|A9FNH0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_85" accession="tr|A9FNK8|A9FNK8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_86" accession="tr|A9FNM8|A9FNM8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_87" accession="tr|A9EPK2|A9EPK2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_88" accession="tr|A9FPC7|A9FPC7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_89" accession="tr|A9EPK7|A9EPK7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_90" accession="tr|A9FPN0|A9FPN0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_91" accession="tr|A9FPW5|A9FPW5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_92" accession="tr|A9FQG4|A9FQG4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_93" accession="tr|A9FQC6|A9FQC6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_94" accession="tr|A9FQ98|A9FQ98_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_95" accession="tr|A9FQ88|A9FQ88_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_96" accession="tr|A9FQ76|A9FQ76_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_97" accession="tr|A9FQ23|A9FQ23_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_98" accession="tr|A9FPY1|A9FPY1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_99" accession="tr|A9FR11|A9FR11_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_100" accession="tr|A9FQX5|A9FQX5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_101" accession="tr|A9FQU1|A9FQU1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_102" accession="tr|A9FKY5|A9FKY5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_103" accession="tr|A9EPN9|A9EPN9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_104" accession="tr|A9FL39|A9FL39_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_105" accession="sp|A9GPH2|GLYA_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_106" accession="tr|A9FL51|A9FL51_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_107" accession="tr|A9FL61|A9FL61_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_108" accession="tr|A9FLE5|A9FLE5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_109" accession="tr|A9FLK0|A9FLK0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_110" accession="tr|A9FM02|A9FM02_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_111" accession="tr|A9FM42|A9FM42_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_112" accession="tr|A9FM54|A9FM54_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_113" accession="tr|A9FM83|A9FM83_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_114" accession="tr|A9FMA1|A9FMA1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_115" accession="tr|A9FMU4|A9FMU4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_116" accession="tr|A9FMV5|A9FMV5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_117" accession="tr|A9G4M9|A9G4M9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_118" accession="tr|A9G4G4|A9G4G4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_119" accession="tr|A9G4B1|A9G4B1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_120" accession="tr|A9G449|A9G449_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_121" accession="tr|A9G3L1|A9G3L1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_122" accession="tr|A9G3H9|A9G3H9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_123" accession="tr|A9G3G6|A9G3G6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_124" accession="tr|A9G334|A9G334_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_125" accession="tr|A9EQP9|A9EQP9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_126" accession="tr|A9G2Z6|A9G2Z6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_127" accession="tr|A9G2T4|A9G2T4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_128" accession="tr|A9G2J7|A9G2J7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_129" accession="tr|A9G256|A9G256_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_130" accession="tr|A9G1W9|A9G1W9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_131" accession="tr|A9G1U1|A9G1U1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_132" accession="tr|A9EQL0|A9EQL0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_133" accession="tr|A9G1L1|A9G1L1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_134" accession="tr|A9G127|A9G127_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_135" accession="tr|A9G0V4|A9G0V4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_136" accession="tr|A9G0A1|A9G0A1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_137" accession="tr|A9G6J4|A9G6J4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_138" accession="tr|A9G6E2|A9G6E2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_139" accession="tr|A9G6D9|A9G6D9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_140" accession="tr|A9G6A1|A9G6A1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_141" accession="tr|A9G5Z5|A9G5Z5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_142" accession="tr|A9G5Y5|A9G5Y5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_143" accession="tr|A9G5V0|A9G5V0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_144" accession="tr|A9G5T8|A9G5T8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_145" accession="tr|A9G5S7|A9G5S7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_146" accession="tr|A9G5P3|A9G5P3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_147" accession="tr|A9G5M1|A9G5M1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_148" accession="tr|A9G5L9|A9G5L9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_149" accession="tr|A9G5L1|A9G5L1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_150" accession="tr|A9G5H7|A9G5H7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_151" accession="tr|A9G5H3|A9G5H3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_152" accession="tr|A9G5E9|A9G5E9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_153" accession="tr|A9G541|A9G541_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_154" accession="tr|A9G536|A9G536_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_155" accession="tr|A9G512|A9G512_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_156" accession="tr|A9EQV6|A9EQV6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_157" accession="tr|A9FYC9|A9FYC9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_158" accession="tr|A9FY99|A9FY99_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_159" accession="tr|A9FY51|A9FY51_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_160" accession="tr|A9FY32|A9FY32_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_161" accession="tr|A9FY30|A9FY30_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_162" accession="tr|A9FY12|A9FY12_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_163" accession="tr|A9FXY7|A9FXY7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_164" accession="tr|A9FXI9|A9FXI9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_165" accession="tr|A9EQ83|A9EQ83_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_166" accession="tr|A9FX88|A9FX88_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_167" accession="tr|A9FWU5|A9FWU5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_168" accession="tr|A9EQ65|A9EQ65_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_169" accession="tr|A9FWN4|A9FWN4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_170" accession="tr|A9FWG7|A9FWG7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_171" accession="tr|A9FW83|A9FW83_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_172" accession="tr|A9FW03|A9FW03_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_173" accession="tr|A9FVM5|A9FVM5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_174" accession="tr|A9FVM3|A9FVM3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_175" accession="tr|A9EQ32|A9EQ32_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_176" accession="tr|A9FVC7|A9FVC7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_177" accession="tr|A9G078|A9G078_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_178" accession="tr|A9G076|A9G076_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_179" accession="tr|A9G031|A9G031_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_180" accession="tr|A9G026|A9G026_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_181" accession="tr|A9G006|A9G006_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_182" accession="tr|A9EQF2|A9EQF2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_183" accession="tr|A9FZT0|A9FZT0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_184" accession="tr|A9FZS1|A9FZS1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_185" accession="tr|A9FZL3|A9FZL3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_186" accession="tr|A9FZB2|A9FZB2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_187" accession="tr|A9FZ33|A9FZ33_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_188" accession="tr|A9FZ16|A9FZ16_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_189" accession="tr|A9FZ08|A9FZ08_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_190" accession="tr|A9FYW4|A9FYW4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_191" accession="tr|A9FYS3|A9FYS3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_192" accession="tr|A9FYR7|A9FYR7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_193" accession="tr|A9FYR0|A9FYR0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_194" accession="tr|A9FYJ8|A9FYJ8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_195" accession="tr|A9FYI7|A9FYI7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_196" accession="tr|A9FYE3|A9FYE3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_197" accession="tr|A9F8A4|A9F8A4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_198" accession="tr|A9F893|A9F893_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_199" accession="tr|A9F873|A9F873_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_200" accession="tr|A9F861|A9F861_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_201" accession="tr|A9F7X0|A9F7X0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_202" accession="tr|A9F7S5|A9F7S5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_203" accession="tr|A9F7N6|A9F7N6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_204" accession="sp|A9GEU3|COXX_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_205" accession="tr|A9F7G9|A9F7G9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_206" accession="tr|A9F7G1|A9F7G1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_207" accession="tr|A9F7A1|A9F7A1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_208" accession="tr|A9F745|A9F745_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_209" accession="tr|A9F709|A9F709_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_210" accession="tr|A9F6Q8|A9F6Q8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_211" accession="tr|A9F6P0|A9F6P0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_212" accession="tr|A9F6F9|A9F6F9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_213" accession="tr|A9F686|A9F686_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_214" accession="tr|A9F676|A9F676_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_215" accession="tr|A9F5Z4|A9F5Z4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_216" accession="tr|A9FAE7|A9FAE7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_217" accession="tr|A9FAB8|A9FAB8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_218" accession="tr|A9ENF4|A9ENF4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_219" accession="tr|A9FA64|A9FA64_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_220" accession="tr|A9FA17|A9FA17_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_221" accession="tr|A9F9Y4|A9F9Y4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_222" accession="tr|A9F9S7|A9F9S7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_223" accession="tr|A9F9R2|A9F9R2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_224" accession="tr|A9F9Q6|A9F9Q6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_225" accession="tr|A9F9N0|A9F9N0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_226" accession="tr|A9F9M6|A9F9M6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_227" accession="tr|A9F9L5|A9F9L5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_228" accession="tr|A9F9I1|A9F9I1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_229" accession="tr|A9F9H9|A9F9H9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_230" accession="tr|A9F9G1|A9F9G1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_231" accession="tr|A9F922|A9F922_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_232" accession="tr|A9F8V6|A9F8V6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_233" accession="tr|A9F8N6|A9F8N6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_234" accession="tr|A9F8J5|A9F8J5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_235" accession="tr|A9F8B6|A9F8B6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_236" accession="tr|A9GXH5|A9GXH5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_237" accession="tr|A9GX65|A9GX65_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_238" accession="tr|A9GX11|A9GX11_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_239" accession="tr|A9GX03|A9GX03_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_240" accession="tr|A9GWZ1|A9GWZ1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_241" accession="tr|A9GWW7|A9GWW7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_242" accession="tr|A9GWU7|A9GWU7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_243" accession="tr|A9GWM7|A9GWM7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_244" accession="tr|A9GWM2|A9GWM2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_245" accession="tr|A9GWJ6|A9GWJ6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_246" accession="tr|A9GW68|A9GW68_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_247" accession="tr|A9GVY8|A9GVY8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_248" accession="tr|A9GVM3|A9GVM3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_249" accession="tr|A9GVK8|A9GVK8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_250" accession="tr|A9GVJ6|A9GVJ6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_251" accession="tr|A9GVI1|A9GVI1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_252" accession="tr|A9GVD9|A9GVD9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_253" accession="tr|A9F4Q4|A9F4Q4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_254" accession="tr|A9F4P7|A9F4P7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_255" accession="tr|A9F5Q9|A9F5Q9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_256" accession="sp|Q08043|ACTN3_HUMANrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_257" accession="Q29443|TRFE_BOVINrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_258" accession="P24664|TRYP_SACERrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_259" accession="P06871|TRY1_CANFArev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_260" accession="O43790|KRT86_HUMANrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_261" accession="P78385|KRT83_HUMANrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_262" accession="Q14533|KRT81_HUMANrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_263" accession="O76015|KRT38_HUMANrev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_264" accession="tr|A9GYJ1|A9GYJ1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_265" accession="tr|A9GYA8|A9GYA8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_266" accession="tr|A9EMY8|A9EMY8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_267" accession="tr|A9GY69|A9GY69_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_268" accession="tr|A9F541|A9F541_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_269" accession="tr|A9GY33|A9GY33_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_270" accession="tr|A9GY28|A9GY28_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_271" accession="tr|A9GXY7|A9GXY7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_272" accession="tr|A9GXY5|A9GXY5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_273" accession="tr|A9GXW8|A9GXW8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_274" accession="tr|A9GXQ4|A9GXQ4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_275" accession="tr|A9EP27|A9EP27_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_276" accession="tr|A9FI10|A9FI10_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_277" accession="tr|A9FHT2|A9FHT2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_278" accession="tr|A9FHS1|A9FHS1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_279" accession="tr|A9FHP4|A9FHP4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_280" accession="tr|A9EP00|A9EP00_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_281" accession="tr|A9FH30|A9FH30_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_282" accession="tr|A9FGW9|A9FGW9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_283" accession="tr|A9FFZ0|A9FFZ0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_284" accession="tr|A9ENX1|A9ENX1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_285" accession="tr|A9FFV4|A9FFV4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_286" accession="tr|A9FFT5|A9FFT5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_287" accession="tr|A9FFG5|A9FFG5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_288" accession="tr|A9FFE0|A9FFE0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_289" accession="tr|A9FFC9|A9FFC9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_290" accession="tr|A9FF75|A9FF75_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_291" accession="tr|A9FF67|A9FF67_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_292" accession="tr|A9FF50|A9FF50_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_293" accession="tr|A9FEU0|A9FEU0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_294" accession="tr|A9FKC6|A9FKC6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_295" accession="tr|A9FKA4|A9FKA4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_296" accession="tr|A9FK99|A9FK99_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_297" accession="tr|A9FK80|A9FK80_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_298" accession="tr|A9FK16|A9FK16_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_299" accession="tr|A9FK04|A9FK04_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_300" accession="tr|A9FK01|A9FK01_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_301" accession="tr|A9FJS0|A9FJS0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_302" accession="tr|A9EP78|A9EP78_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_303" accession="tr|A9FJM3|A9FJM3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_304" accession="tr|A9EP72|A9EP72_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_305" accession="tr|A9EP70|A9EP70_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_306" accession="tr|A9FJG6|A9FJG6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_307" accession="tr|A9FJG5|A9FJG5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_308" accession="tr|A9FJA6|A9FJA6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_309" accession="tr|A9FJ56|A9FJ56_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_310" accession="tr|A9FJ10|A9FJ10_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_311" accession="tr|A9FJ03|A9FJ03_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_312" accession="tr|A9FIY0|A9FIY0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_313" accession="tr|A9FIE2|A9FIE2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_314" accession="tr|A9FCN7|A9FCN7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_315" accession="tr|A9FCG4|A9FCG4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_316" accession="tr|A9FCF5|A9FCF5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_317" accession="tr|A9FCA0|A9FCA0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_318" accession="tr|A9FC30|A9FC30_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_319" accession="tr|A9ENK6|A9ENK6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_320" accession="tr|A9FBX4|A9FBX4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_321" accession="tr|A9FBW4|A9FBW4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_322" accession="tr|A9FBT9|A9FBT9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_323" accession="tr|A9FBN7|A9FBN7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_324" accession="tr|A9FBL3|A9FBL3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_325" accession="tr|A9FBL0|A9FBL0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_326" accession="tr|A9FBG1|A9FBG1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_327" accession="tr|A9FBB8|A9FBB8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_328" accession="tr|A9FBB1|A9FBB1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_329" accession="tr|A9FB45|A9FB45_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_330" accession="tr|A9FAW0|A9FAW0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_331" accession="tr|A9FAT5|A9FAT5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_332" accession="tr|A9FAT0|A9FAT0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_333" accession="tr|A9ENG5|A9ENG5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_334" accession="tr|A9FER7|A9FER7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_335" accession="tr|A9FEP4|A9FEP4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_336" accession="tr|A9FEL7|A9FEL7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_337" accession="tr|A9FEI9|A9FEI9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_338" accession="tr|A9FEF0|A9FEF0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_339" accession="sp|A9ETD1|EFTU_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_340" accession="tr|A9FEA4|A9FEA4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_341" accession="tr|A9ENR5|A9ENR5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_342" accession="tr|A9FE05|A9FE05_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_343" accession="tr|A9FDV9|A9FDV9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_344" accession="tr|A9FDU6|A9FDU6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_345" accession="tr|A9FDT5|A9FDT5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_346" accession="tr|A9FDR7|A9FDR7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_347" accession="tr|A9FDQ9|A9FDQ9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_348" accession="tr|A9FDL8|A9FDL8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_349" accession="tr|A9FDI3|A9FDI3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_350" accession="tr|A9FDD5|A9FDD5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_351" accession="tr|A9FD70|A9FD70_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_352" accession="tr|A9FD38|A9FD38_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_353" accession="tr|A9FCZ6|A9FCZ6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_354" accession="tr|A9GSY2|A9GSY2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_355" accession="tr|A9GSX5|A9GSX5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_356" accession="tr|A9GSP1|A9GSP1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_357" accession="tr|A9GSK5|A9GSK5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_358" accession="tr|A9GSK2|A9GSK2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_359" accession="tr|A9GSI5|A9GSI5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_360" accession="tr|A9GSI1|A9GSI1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_361" accession="tr|A9GSG6|A9GSG6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_362" accession="tr|A9GS83|A9GS83_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_363" accession="tr|A9GS25|A9GS25_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_364" accession="sp|A9FYZ4|PUR5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_365" accession="tr|A9GRS4|A9GRS4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_366" accession="tr|A9GRQ2|A9GRQ2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_367" accession="tr|A9GRH2|A9GRH2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_368" accession="tr|A9GRF9|A9GRF9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_369" accession="tr|A9GR56|A9GR56_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_370" accession="tr|A9GR07|A9GR07_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_371" accession="tr|A9GQZ9|A9GQZ9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_372" accession="tr|A9GQY2|A9GQY2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_373" accession="tr|A9GQW7|A9GQW7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_374" accession="tr|A9GVF4|A9GVF4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_375" accession="tr|A9GV72|A9GV72_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_376" accession="tr|A9GV07|A9GV07_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_377" accession="tr|A9GUW0|A9GUW0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_378" accession="tr|A9GUP9|A9GUP9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_379" accession="tr|A9EUK1|A9EUK1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_380" accession="tr|A9GUI2|A9GUI2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_381" accession="tr|A9GUE3|A9GUE3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_382" accession="tr|A9GUC4|A9GUC4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_383" accession="tr|A9GU80|A9GU80_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_384" accession="tr|A9GU77|A9GU77_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_385" accession="tr|A9GU74|A9GU74_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_386" accession="tr|A9GU55|A9GU55_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_387" accession="tr|A9GU27|A9GU27_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_388" accession="tr|A9GTT5|A9GTT5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_389" accession="tr|A9GTS3|A9GTS3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_390" accession="tr|A9GTM2|A9GTM2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_391" accession="tr|A9GTF7|A9GTF7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_392" accession="tr|A9GT86|A9GT86_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_393" accession="tr|A9GT62|A9GT62_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_394" accession="tr|A9GNT4|A9GNT4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_395" accession="tr|A9GNJ1|A9GNJ1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_396" accession="tr|A9GNI8|A9GNI8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_397" accession="tr|A9GN46|A9GN46_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_398" accession="tr|A9GN37|A9GN37_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_399" accession="tr|A9GMZ5|A9GMZ5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_400" accession="tr|A9GMZ2|A9GMZ2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_401" accession="tr|A9GMW9|A9GMW9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_402" accession="tr|A9GMV3|A9GMV3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_403" accession="tr|A9GMU1|A9GMU1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_404" accession="tr|A9GMR9|A9GMR9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_405" accession="tr|A9GMI5|A9GMI5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_406" accession="tr|A9GME2|A9GME2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_407" accession="tr|A9GM76|A9GM76_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_408" accession="tr|A9GM64|A9GM64_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_409" accession="tr|A9GM19|A9GM19_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_410" accession="tr|A9GLZ6|A9GLZ6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_411" accession="sp|A9G9T3|NUOD2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_412" accession="tr|A9GLU9|A9GLU9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_413" accession="tr|A9GLK2|A9GLK2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_414" accession="tr|A9GQV4|A9GQV4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_415" accession="tr|A9GQT3|A9GQT3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_416" accession="tr|A9GQT0|A9GQT0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_417" accession="tr|A9GQP9|A9GQP9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_418" accession="tr|A9ETX5|A9ETX5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_419" accession="tr|A9GQ97|A9GQ97_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_420" accession="tr|A9GQ78|A9GQ78_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_421" accession="tr|A9GQ58|A9GQ58_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_422" accession="tr|A9GQ22|A9GQ22_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_423" accession="tr|A9GPY5|A9GPY5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_424" accession="tr|A9GPX5|A9GPX5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_425" accession="tr|A9GPN9|A9GPN9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_426" accession="tr|A9GPK4|A9GPK4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_427" accession="tr|A9GPI4|A9GPI4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_428" accession="tr|A9ETR7|A9ETR7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_429" accession="tr|A9GPA3|A9GPA3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_430" accession="tr|A9GP23|A9GP23_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_431" accession="tr|A9GNV4|A9GNV4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_432" accession="tr|A9GNT9|A9GNT9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_433" accession="tr|A9GNT7|A9GNT7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_434" accession="tr|A9EPE3|A9EPE3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_435" accession="tr|A9EVK9|A9EVK9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_436" accession="tr|A9EPA7|A9EPA7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_437" accession="tr|A9EP92|A9EP92_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_438" accession="tr|A9EP67|A9EP67_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_439" accession="tr|A9EP43|A9EP43_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_440" accession="tr|A9EP20|A9EP20_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_441" accession="tr|A9ENE5|A9ENE5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_442" accession="tr|A9ENC4|A9ENC4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_443" accession="tr|A9EN15|A9EN15_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_444" accession="tr|A9EMW7|A9EMW7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_445" accession="tr|A9EMV5|A9EMV5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_446" accession="sp|A9GBR2|SYN_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_447" accession="sp|A9GUD0|SYGA_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_448" accession="sp|A9GI17|SECA_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_449" accession="sp|A9GRB1|RPOB_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_450" accession="sp|A9EPV3|RLMN2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_451" accession="sp|A9GVS8|PROA_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_452" accession="sp|A9G9T3|NUOD2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_453" accession="sp|A9FGE0|KAD_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_454" accession="tr|A9ER03|A9ER03_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_455" accession="tr|A9EQV6|A9EQV6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_456" accession="tr|A9EQU1|A9EQU1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_457" accession="tr|A9EQS0|A9EQS0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_458" accession="tr|A9EQR5|A9EQR5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_459" accession="tr|A9EQJ9|A9EQJ9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_460" accession="tr|A9EQG0|A9EQG0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_461" accession="tr|A9EQE6|A9EQE6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_462" accession="tr|A9EVR0|A9EVR0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_463" accession="tr|A9EQC1|A9EQC1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_464" accession="tr|A9EVQ2|A9EVQ2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_465" accession="tr|A9EPW6|A9EPW6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_466" accession="tr|A9EVN0|A9EVN0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_467" accession="tr|A9EPT6|A9EPT6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_468" accession="tr|A9EPR7|A9EPR7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_469" accession="tr|A9EPQ8|A9EPQ8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_470" accession="tr|A9EPN6|A9EPN6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_471" accession="tr|A9EPJ3|A9EPJ3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_472" accession="tr|A9EPG0|A9EPG0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_473" accession="tr|A9EPF7|A9EPF7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_474" accession="tr|A9GXF6|A9GXF6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_475" accession="tr|A9GXD6|A9GXD6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_476" accession="tr|A9GX11|A9GX11_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_477" accession="tr|A9GWY9|A9GWY9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_478" accession="tr|A9GWR7|A9GWR7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_479" accession="tr|A9GWR0|A9GWR0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_480" accession="tr|A9GWP7|A9GWP7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_481" accession="tr|A9GWL9|A9GWL9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_482" accession="tr|A9GWG4|A9GWG4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_483" accession="tr|A9GWC5|A9GWC5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_484" accession="tr|A9GW97|A9GW97_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_485" accession="tr|A9GW88|A9GW88_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_486" accession="tr|A9GW71|A9GW71_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_487" accession="tr|A9GW59|A9GW59_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_488" accession="tr|A9GW19|A9GW19_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_489" accession="tr|A9GVW3|A9GVW3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_490" accession="tr|A9GVV0|A9GVV0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_491" accession="tr|A9GVQ6|A9GVQ6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_492" accession="tr|A9GVN7|A9GVN7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_493" accession="tr|A9GVI9|A9GVI9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_494" accession="sp|A9F8E5|IF3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_495" accession="sp|A9FL08|FMT_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_496" accession="sp|A9FA52|ENO_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_497" accession="sp|A9GS95|CAAL_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_498" accession="sp|P58772|TPM1_RABIT" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_499" accession="sp|P0A6F3|GLPK_ECOLI" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_500" accession="P54628|TRYT_DROER" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_501" accession="P06872|TRY2_CANFA" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_502" accession="tr|A9EV47|A9EV47_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_503" accession="tr|A9GYG7|A9GYG7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_504" accession="tr|A9GYC7|A9GYC7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_505" accession="tr|A9GY93|A9GY93_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_506" accession="tr|A9GY51|A9GY51_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_507" accession="tr|A9GXY7|A9GXY7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_508" accession="tr|A9GXW8|A9GXW8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_509" accession="tr|A9GXW1|A9GXW1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_510" accession="tr|A9GXV3|A9GXV3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_511" accession="tr|A9GXJ2|A9GXJ2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_512" accession="tr|A9EUZ3|A9EUZ3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_513" accession="tr|A9GXF9|A9GXF9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_514" accession="tr|A9GCZ8|A9GCZ8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_515" accession="tr|A9GCS4|A9GCS4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_516" accession="tr|A9GCH7|A9GCH7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_517" accession="tr|A9GC46|A9GC46_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_518" accession="tr|A9GBY9|A9GBY9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_519" accession="tr|A9GBT0|A9GBT0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_520" accession="tr|A9GBS5|A9GBS5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_521" accession="tr|A9GBS2|A9GBS2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_522" accession="tr|A9GBN7|A9GBN7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_523" accession="tr|A9GBJ4|A9GBJ4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_524" accession="tr|A9GBI3|A9GBI3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_525" accession="tr|A9GAY2|A9GAY2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_526" accession="tr|A9GAW6|A9GAW6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_527" accession="tr|A9GAU2|A9GAU2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_528" accession="tr|A9GAE6|A9GAE6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_529" accession="tr|A9GA77|A9GA77_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_530" accession="tr|A9GA31|A9GA31_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_531" accession="tr|A9G9U0|A9G9U0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_532" accession="tr|A9G9Q3|A9G9Q3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_533" accession="tr|A9G9P6|A9G9P6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_534" accession="tr|A9GEU0|A9GEU0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_535" accession="tr|A9GEL6|A9GEL6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_536" accession="tr|A9ES51|A9ES51_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_537" accession="tr|A9GEC0|A9GEC0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_538" accession="tr|A9GEB7|A9GEB7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_539" accession="tr|A9GE31|A9GE31_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_540" accession="tr|A9GE21|A9GE21_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_541" accession="tr|A9GE11|A9GE11_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_542" accession="tr|A9GE02|A9GE02_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_543" accession="tr|A9GDX4|A9GDX4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_544" accession="tr|A9GDU9|A9GDU9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_545" accession="tr|A9GDU2|A9GDU2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_546" accession="tr|A9GDR9|A9GDR9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_547" accession="tr|A9GDP5|A9GDP5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_548" accession="tr|A9GDP0|A9GDP0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_549" accession="tr|A9GDK7|A9GDK7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_550" accession="tr|A9GDG9|A9GDG9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_551" accession="tr|A9GDB7|A9GDB7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_552" accession="tr|A9ERY7|A9ERY7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_553" accession="tr|A9GD16|A9GD16_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_554" accession="tr|A9G8L0|A9G8L0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_555" accession="tr|A9G8I0|A9G8I0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_556" accession="tr|A9G899|A9G899_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_557" accession="tr|A9G876|A9G876_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_558" accession="tr|A9G836|A9G836_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_559" accession="tr|A9ER72|A9ER72_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_560" accession="tr|A9G7Z1|A9G7Z1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_561" accession="tr|A9ER61|A9ER61_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_562" accession="tr|A9G7S2|A9G7S2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_563" accession="tr|A9G7N3|A9G7N3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_564" accession="tr|A9G7J5|A9G7J5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_565" accession="tr|A9G7D9|A9G7D9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_566" accession="tr|A9G7D3|A9G7D3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_567" accession="tr|A9G732|A9G732_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_568" accession="tr|A9G6W0|A9G6W0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_569" accession="tr|A9G6V7|A9G6V7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_570" accession="tr|A9G6S9|A9G6S9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_571" accession="tr|A9G6P9|A9G6P9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_572" accession="tr|A9G6L4|A9G6L4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_573" accession="tr|A9G6K1|A9G6K1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_574" accession="tr|A9G9N3|A9G9N3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_575" accession="tr|A9G9M5|A9G9M5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_576" accession="tr|A9G9M3|A9G9M3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_577" accession="tr|A9ERE8|A9ERE8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_578" accession="tr|A9G9E1|A9G9E1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_579" accession="tr|A9G9D6|A9G9D6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_580" accession="tr|A9ERD0|A9ERD0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_581" accession="tr|A9G965|A9G965_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_582" accession="tr|A9G933|A9G933_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_583" accession="tr|A9G925|A9G925_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_584" accession="tr|A9G923|A9G923_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_585" accession="tr|A9G918|A9G918_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_586" accession="tr|A9G905|A9G905_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_587" accession="tr|A9G900|A9G900_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_588" accession="tr|A9G8Y7|A9G8Y7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_589" accession="tr|A9G8V3|A9G8V3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_590" accession="tr|A9G8T0|A9G8T0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_591" accession="tr|A9G8S0|A9G8S0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_592" accession="tr|A9G8R1|A9G8R1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_593" accession="tr|A9G8M0|A9G8M0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_594" accession="tr|A9GJ37|A9GJ37_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_595" accession="tr|A9GJ35|A9GJ35_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_596" accession="tr|A9GJ30|A9GJ30_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_597" accession="tr|A9GIZ0|A9GIZ0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_598" accession="tr|A9EST3|A9EST3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_599" accession="tr|A9GIU8|A9GIU8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_600" accession="tr|A9GIQ8|A9GIQ8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_601" accession="tr|A9GIQ5|A9GIQ5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_602" accession="tr|A9GIK2|A9GIK2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_603" accession="tr|A9GIJ8|A9GIJ8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_604" accession="tr|A9GIJ6|A9GIJ6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_605" accession="tr|A9GIG8|A9GIG8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_606" accession="tr|A9GIF3|A9GIF3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_607" accession="tr|A9GIE1|A9GIE1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_608" accession="tr|A9GID4|A9GID4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_609" accession="tr|A9GIA7|A9GIA7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_610" accession="tr|A9GIA2|A9GIA2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_611" accession="tr|A9GI99|A9GI99_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_612" accession="tr|A9GI83|A9GI83_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_613" accession="tr|A9GI62|A9GI62_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_614" accession="tr|A9GL46|A9GL46_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_615" accession="tr|A9GKR7|A9GKR7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_616" accession="tr|A9GKK9|A9GKK9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_617" accession="tr|A9ET26|A9ET26_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_618" accession="tr|A9GKG8|A9GKG8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_619" accession="tr|A9GK92|A9GK92_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_620" accession="tr|A9GK67|A9GK67_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_621" accession="tr|A9GK18|A9GK18_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_622" accession="tr|A9GK13|A9GK13_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_623" accession="tr|A9GJU5|A9GJU5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_624" accession="tr|A9GJP7|A9GJP7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_625" accession="tr|A9GJJ7|A9GJJ7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_626" accession="tr|A9ESW6|A9ESW6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_627" accession="tr|A9GJF9|A9GJF9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_628" accession="tr|A9GJC9|A9GJC9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_629" accession="tr|A9GJA9|A9GJA9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_630" accession="tr|A9GJA3|A9GJA3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_631" accession="tr|A9GJ82|A9GJ82_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_632" accession="tr|A9GJ47|A9GJ47_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_633" accession="tr|A9GJ42|A9GJ42_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_634" accession="tr|A9GFV3|A9GFV3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_635" accession="tr|A9GFT3|A9GFT3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_636" accession="tr|A9GFP5|A9GFP5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_637" accession="tr|A9GFK1|A9GFK1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_638" accession="tr|A9GFJ6|A9GFJ6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_639" accession="tr|A9GFI1|A9GFI1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_640" accession="tr|A9GFE8|A9GFE8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_641" accession="tr|A9GFE5|A9GFE5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_642" accession="tr|A9GFC9|A9GFC9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_643" accession="tr|A9GFC5|A9GFC5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_644" accession="tr|A9GF96|A9GF96_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_645" accession="tr|A9GF92|A9GF92_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_646" accession="tr|A9GF75|A9GF75_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_647" accession="tr|A9GF38|A9GF38_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_648" accession="tr|A9GF34|A9GF34_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_649" accession="tr|A9GEZ7|A9GEZ7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_650" accession="tr|A9GEY6|A9GEY6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_651" accession="tr|A9GEV6|A9GEV6_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_652" accession="tr|A9ES72|A9ES72_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_653" accession="tr|A9GEV1|A9GEV1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_654" accession="tr|A9ESM9|A9ESM9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_655" accession="tr|A9GHX2|A9GHX2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_656" accession="tr|A9GHX0|A9GHX0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_657" accession="tr|A9GHV0|A9GHV0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_658" accession="tr|A9GHT8|A9GHT8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_659" accession="tr|A9GHT5|A9GHT5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_660" accession="tr|A9GHS8|A9GHS8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_661" accession="tr|A9GHQ0|A9GHQ0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_662" accession="tr|A9GHK0|A9GHK0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_663" accession="tr|A9GHF1|A9GHF1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_664" accession="tr|A9GHD0|A9GHD0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_665" accession="tr|A9GH32|A9GH32_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_666" accession="tr|A9GGY5|A9GGY5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_667" accession="tr|A9GGY0|A9GGY0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_668" accession="tr|A9GGT2|A9GGT2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_669" accession="tr|A9GGM8|A9GGM8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_670" accession="tr|A9GGG3|A9GGG3_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_671" accession="tr|A9GGD0|A9GGD0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_672" accession="tr|A9GG73|A9GG73_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_673" accession="tr|A9ESD0|A9ESD0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_674" accession="tr|A9GFY4|A9GFY4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_675" accession="tr|A9FMF5|A9FMF5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_676" accession="tr|A9FM83|A9FM83_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_677" accession="tr|A9FLZ4|A9FLZ4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_678" accession="tr|A9FLV4|A9FLV4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_679" accession="tr|A9FLR1|A9FLR1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_680" accession="tr|A9FLL6|A9FLL6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_681" accession="tr|A9FL01|A9FL01_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_682" accession="tr|A9FKW9|A9FKW9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_683" accession="tr|A9FKP5|A9FKP5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_684" accession="tr|A9EYZ9|A9EYZ9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_685" accession="tr|A9FKG5|A9FKG5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_686" accession="tr|A9FKD8|A9FKD8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_687" accession="tr|A9FJY4|A9FJY4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_688" accession="tr|A9FJX9|A9FJX9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_689" accession="tr|A9FJW0|A9FJW0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_690" accession="tr|A9FJS7|A9FJS7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_691" accession="tr|A9FJQ4|A9FJQ4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_692" accession="tr|A9EYU7|A9EYU7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_693" accession="tr|A9FJI7|A9FJI7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_694" accession="tr|A9FJG2|A9FJG2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_695" accession="tr|A9EZE4|A9EZE4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_696" accession="tr|A9FPJ5|A9FPJ5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_697" accession="tr|A9FPG7|A9FPG7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_698" accession="tr|A9FPB6|A9FPB6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_699" accession="tr|A9FPA8|A9FPA8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_700" accession="tr|A9FP35|A9FP35_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_701" accession="tr|A9FP27|A9FP27_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_702" accession="tr|A9FNY7|A9FNY7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_703" accession="tr|A9FNY0|A9FNY0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_704" accession="tr|A9EZB8|A9EZB8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_705" accession="tr|A9FNR4|A9FNR4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_706" accession="tr|A9EZB0|A9EZB0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_707" accession="tr|A9FNN9|A9FNN9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_708" accession="tr|A9FNK4|A9FNK4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_709" accession="tr|A9FNI5|A9FNI5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_710" accession="tr|A9FNA4|A9FNA4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_711" accession="tr|A9FN58|A9FN58_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_712" accession="tr|A9FN07|A9FN07_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_713" accession="tr|A9FMZ7|A9FMZ7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_714" accession="tr|A9FMP6|A9FMP6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_715" accession="tr|A9EZ68|A9EZ68_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_716" accession="tr|A9FG96|A9FG96_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_717" accession="tr|A9FG77|A9FG77_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_718" accession="tr|A9FG00|A9FG00_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_719" accession="tr|A9FFL8|A9FFL8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_720" accession="tr|A9FEU8|A9FEU8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_721" accession="tr|A9FET7|A9FET7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_722" accession="tr|A9FES0|A9FES0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_723" accession="tr|A9EYA9|A9EYA9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_724" accession="tr|A9FEJ7|A9FEJ7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_725" accession="tr|A9FEG4|A9FEG4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_726" accession="tr|A9EYA1|A9EYA1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_727" accession="tr|A9FEC2|A9FEC2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_728" accession="tr|A9FE51|A9FE51_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_729" accession="tr|A9FE05|A9FE05_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_730" accession="tr|A9FDZ6|A9FDZ6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_731" accession="tr|A9FDT5|A9FDT5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_732" accession="tr|A9FDR7|A9FDR7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_733" accession="tr|A9FDL8|A9FDL8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_734" accession="tr|A9FDK6|A9FDK6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_735" accession="tr|A9FDK2|A9FDK2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_736" accession="tr|A9FJE2|A9FJE2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_737" accession="tr|A9FJ93|A9FJ93_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_738" accession="tr|A9FJ77|A9FJ77_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_739" accession="tr|A9FJ74|A9FJ74_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_740" accession="tr|A9FJ10|A9FJ10_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_741" accession="tr|A9FIZ9|A9FIZ9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_742" accession="tr|A9FIV8|A9FIV8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_743" accession="tr|A9FIR6|A9FIR6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_744" accession="tr|A9FII1|A9FII1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_745" accession="tr|A9FIE9|A9FIE9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_746" accession="tr|A9FHU2|A9FHU2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_747" accession="tr|A9FHQ6|A9FHQ6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_748" accession="tr|A9FHP4|A9FHP4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_749" accession="tr|A9FHH6|A9FHH6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_750" accession="tr|A9FHG9|A9FHG9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_751" accession="tr|A9FHD9|A9FHD9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_752" accession="tr|A9FHC9|A9FHC9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_753" accession="tr|A9FH10|A9FH10_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_754" accession="tr|A9FGW9|A9FGW9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_755" accession="tr|A9FGU1|A9FGU1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_756" accession="tr|A9FGL6|A9FGL6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_757" accession="tr|A9FXC4|A9FXC4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_758" accession="tr|A9FX44|A9FX44_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_759" accession="sp|A9GHR3|ATPG_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_760" accession="tr|A9FWY4|A9FWY4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_761" accession="tr|A9FWX8|A9FWX8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_762" accession="tr|A9FWS2|A9FWS2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_763" accession="tr|A9FWR8|A9FWR8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_764" accession="tr|A9FWM2|A9FWM2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_765" accession="tr|A9FWC6|A9FWC6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_766" accession="tr|A9FWA1|A9FWA1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_767" accession="tr|A9FW66|A9FW66_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_768" accession="tr|A9FW62|A9FW62_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_769" accession="sp|A9FGG6|RS8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_770" accession="tr|A9FVR9|A9FVR9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_771" accession="tr|A9F012|A9F012_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_772" accession="tr|A9FVB4|A9FVB4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_773" accession="tr|A9FUX4|A9FUX4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_774" accession="tr|A9FUX0|A9FUX0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_775" accession="tr|A9EZY5|A9EZY5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_776" accession="tr|A9FUR4|A9FUR4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_777" accession="tr|A9G0B1|A9G0B1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_778" accession="tr|A9F0H5|A9F0H5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_779" accession="tr|A9FZX3|A9FZX3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_780" accession="tr|A9FZU6|A9FZU6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_781" accession="tr|A9FZ90|A9FZ90_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_782" accession="tr|A9FZ80|A9FZ80_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_783" accession="tr|A9FZ33|A9FZ33_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_784" accession="tr|A9FYM0|A9FYM0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_785" accession="tr|A9FYG6|A9FYG6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_786" accession="tr|A9FYD8|A9FYD8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_787" accession="tr|A9FYC9|A9FYC9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_788" accession="tr|A9FYC5|A9FYC5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_789" accession="tr|A9FY86|A9FY86_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_790" accession="tr|A9FY66|A9FY66_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_791" accession="tr|A9FY17|A9FY17_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_792" accession="tr|A9FY08|A9FY08_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_793" accession="tr|A9FXU2|A9FXU2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_794" accession="tr|A9FXR7|A9FXR7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_795" accession="tr|A9FXR4|A9FXR4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_796" accession="tr|A9FXR0|A9FXR0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_797" accession="tr|A9F073|A9F073_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_798" accession="tr|A9FRI6|A9FRI6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_799" accession="tr|A9FRH3|A9FRH3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_800" accession="tr|A9FRE6|A9FRE6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_801" accession="tr|A9FRC6|A9FRC6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_802" accession="tr|A9EZK0|A9EZK0_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_803" accession="tr|A9FR99|A9FR99_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_804" accession="tr|A9FR97|A9FR97_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_805" accession="tr|A9FR39|A9FR39_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_806" accession="tr|A9FR32|A9FR32_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_807" accession="tr|A9FR14|A9FR14_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_808" accession="tr|A9FQW6|A9FQW6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_809" accession="tr|A9FQT3|A9FQT3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_810" accession="tr|A9FQL9|A9FQL9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_811" accession="tr|A9FQK2|A9FQK2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_812" accession="tr|A9FQI5|A9FQI5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_813" accession="tr|A9FQF6|A9FQF6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_814" accession="tr|A9FQ94|A9FQ94_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_815" accession="tr|A9EZG7|A9EZG7_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_816" accession="tr|A9FQ64|A9FQ64_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_817" accession="tr|A9FQ19|A9FQ19_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_818" accession="tr|A9FQ15|A9FQ15_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_819" accession="tr|A9FUL5|A9FUL5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_820" accession="tr|A9EZX5|A9EZX5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_821" accession="tr|A9FUI6|A9FUI6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_822" accession="tr|A9FUD7|A9FUD7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_823" accession="tr|A9FUD4|A9FUD4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_824" accession="tr|A9FU46|A9FU46_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_825" accession="tr|A9FTX0|A9FTX0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_826" accession="tr|A9EZU2|A9EZU2_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_827" accession="tr|A9FTG0|A9FTG0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_828" accession="tr|A9FTA2|A9FTA2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_829" accession="tr|A9FT20|A9FT20_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_830" accession="tr|A9FSY0|A9FSY0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_831" accession="tr|A9FSI5|A9FSI5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_832" accession="tr|A9FSH8|A9FSH8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_833" accession="tr|A9FSF5|A9FSF5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_834" accession="tr|A9FSE5|A9FSE5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_835" accession="tr|A9FS85|A9FS85_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_836" accession="tr|A9FS73|A9FS73_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_837" accession="tr|A9FS23|A9FS23_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_838" accession="tr|A9FRX1|A9FRX1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_839" accession="tr|A9FRW7|A9FRW7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_840" accession="tr|A9EYK6|A9EYK6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_841" accession="tr|A9EYD8|A9EYD8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_842" accession="tr|A9EYD4|A9EYD4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_843" accession="tr|A9EY59|A9EY59_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_844" accession="tr|A9EXK9|A9EXK9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_845" accession="tr|A9EXK6|A9EXK6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_846" accession="tr|A9EWQ7|A9EWQ7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_847" accession="tr|A9EWL8|A9EWL8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_848" accession="tr|A9EWL4|A9EWL4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_849" accession="tr|A9EWG2|A9EWG2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_850" accession="tr|A9EWA3|A9EWA3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_851" accession="tr|A9EWA0|A9EWA0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_852" accession="tr|A9EW96|A9EW96_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_853" accession="tr|A9EW87|A9EW87_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_854" accession="tr|A9EW83|A9EW83_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_855" accession="tr|A9EW73|A9EW73_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_856" accession="tr|A9EW19|A9EW19_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_857" accession="tr|A9EW16|A9EW16_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_858" accession="tr|A9EVX1|A9EVX1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_859" accession="tr|A9EVS0|A9EVS0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_860" accession="tr|A9F284|A9F284_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_861" accession="tr|A9F233|A9F233_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_862" accession="tr|A9F223|A9F223_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_863" accession="tr|A9F1V4|A9F1V4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_864" accession="tr|A9EWU9|A9EWU9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_865" accession="tr|A9F1I3|A9F1I3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_866" accession="tr|A9F1H2|A9F1H2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_867" accession="tr|A9F1B5|A9F1B5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_868" accession="tr|A9F1A2|A9F1A2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_869" accession="tr|A9F191|A9F191_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_870" accession="tr|A9F150|A9F150_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_871" accession="tr|A9F100|A9F100_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_872" accession="tr|A9F0Y9|A9F0Y9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_873" accession="tr|A9EWR9|A9EWR9_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_874" accession="tr|A9F077|A9F077_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_875" accession="tr|A9EZH0|A9EZH0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_876" accession="tr|A9EZD4|A9EZD4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_877" accession="tr|A9EZA2|A9EZA2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_878" accession="tr|A9EYW4|A9EYW4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_879" accession="tr|A9EYU3|A9EYU3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_880" accession="tr|A9EYM5|A9EYM5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_881" accession="tr|A9ETG6|A9ETG6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_882" accession="tr|A9ETD9|A9ETD9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_883" accession="tr|A9ETB1|A9ETB1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_884" accession="tr|A9ESY1|A9ESY1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_885" accession="tr|A9ESS1|A9ESS1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_886" accession="tr|A9ESM5|A9ESM5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_887" accession="tr|A9ESE1|A9ESE1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_888" accession="tr|A9ESC2|A9ESC2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_889" accession="tr|A9ES72|A9ES72_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_890" accession="tr|A9ES51|A9ES51_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_891" accession="tr|A9ES33|A9ES33_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_892" accession="tr|A9ES18|A9ES18_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_893" accession="tr|A9ERY7|A9ERY7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_894" accession="tr|A9EVX1|A9EVX1_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_895" accession="tr|A9ERW7|A9ERW7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_896" accession="tr|A9ERR5|A9ERR5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_897" accession="tr|A9ERP2|A9ERP2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_898" accession="tr|A9ERD8|A9ERD8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_899" accession="tr|A9ER80|A9ER80_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_900" accession="2009-10-06_180538_pride_30561_1_tandem_input_file.mzData scan 1 (charge 3)" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_901" accession="tr|A9EW96|A9EW96_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_902" accession="tr|A9EW87|A9EW87_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_903" accession="tr|A9EVG4|A9EVG4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_904" accession="tr|A9EVD9|A9EVD9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_905" accession="tr|A9EW83|A9EW83_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_906" accession="tr|A9EVC8|A9EVC8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_907" accession="tr|A9EVB1|A9EVB1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_908" accession="tr|A9EV63|A9EV63_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_909" accession="tr|A9EV04|A9EV04_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_910" accession="tr|A9EUZ3|A9EUZ3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_911" accession="tr|A9EUR8|A9EUR8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_912" accession="tr|A9EUN3|A9EUN3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_913" accession="tr|A9EUI6|A9EUI6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_914" accession="tr|A9EU91|A9EU91_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_915" accession="tr|A9EU46|A9EU46_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_916" accession="tr|A9EW34|A9EW34_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_917" accession="tr|A9EU12|A9EU12_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_918" accession="tr|A9EW30|A9EW30_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_919" accession="tr|A9ETU3|A9ETU3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_920" accession="tr|A9ETN3|A9ETN3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_921" accession="tr|A9EW19|A9EW19_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_922" accession="tr|A9FAK3|A9FAK3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_923" accession="tr|A9FAJ2|A9FAJ2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_924" accession="tr|A9FAG8|A9FAG8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_925" accession="tr|A9FAF9|A9FAF9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_926" accession="tr|A9FAB8|A9FAB8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_927" accession="tr|A9FA01|A9FA01_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_928" accession="tr|A9F9V9|A9F9V9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_929" accession="tr|A9F9R2|A9F9R2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_930" accession="tr|A9EXQ4|A9EXQ4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_931" accession="tr|A9EXP8|A9EXP8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_932" accession="tr|A9EXP5|A9EXP5_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_933" accession="tr|A9F9B0|A9F9B0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_934" accession="tr|A9F8Y3|A9F8Y3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_935" accession="tr|A9EXL8|A9EXL8_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_936" accession="tr|A9F8J1|A9F8J1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_937" accession="tr|A9F8F6|A9F8F6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_938" accession="tr|A9F845|A9F845_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_939" accession="tr|A9F812|A9F812_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_940" accession="tr|A9F7T8|A9F7T8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_941" accession="tr|A9F7T4|A9F7T4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_942" accession="tr|A9FDG9|A9FDG9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_943" accession="tr|A9FDD6|A9FDD6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_944" accession="tr|A9FDD5|A9FDD5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_945" accession="tr|A9FDB2|A9FDB2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_946" accession="tr|A9FCZ6|A9FCZ6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_947" accession="tr|A9FCT8|A9FCT8_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_948" accession="tr|A9FCL7|A9FCL7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_949" accession="tr|A9FCJ4|A9FCJ4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_950" accession="tr|A9FCD3|A9FCD3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_951" accession="tr|A9FCB9|A9FCB9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_952" accession="tr|A9FBQ7|A9FBQ7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_953" accession="tr|A9FBD4|A9FBD4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_954" accession="tr|A9FBD0|A9FBD0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_955" accession="tr|A9FBA1|A9FBA1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_956" accession="tr|A9FB65|A9FB65_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_957" accession="tr|A9FB47|A9FB47_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_958" accession="tr|A9FB10|A9FB10_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_959" accession="tr|A9FAZ2|A9FAZ2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_960" accession="tr|A9FAV3|A9FAV3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_961" accession="tr|A9FAN7|A9FAN7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_962" accession="tr|A9FAL7|A9FAL7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_963" accession="tr|A9F4D7|A9F4D7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_964" accession="tr|A9F4C9|A9F4C9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_965" accession="tr|A9F3U4|A9F3U4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_966" accession="tr|A9F3K7|A9F3K7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_967" accession="tr|A9F3J1|A9F3J1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_968" accession="tr|A9EX21|A9EX21_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_969" accession="tr|A9F3H5|A9F3H5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_970" accession="tr|A9F3D4|A9F3D4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_971" accession="tr|A9F393|A9F393_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_972" accession="tr|A9EX05|A9EX05_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_973" accession="tr|A9EX01|A9EX01_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_974" accession="tr|A9F2V9|A9F2V9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_975" accession="tr|A9F2V6|A9F2V6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_976" accession="tr|A9F2U3|A9F2U3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_977" accession="tr|A9F2R4|A9F2R4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_978" accession="tr|A9F2N9|A9F2N9_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_979" accession="tr|A9F2N5|A9F2N5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_980" accession="tr|A9F2I4|A9F2I4_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_981" accession="tr|A9F2A0|A9F2A0_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_982" accession="tr|A9F296|A9F296_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_983" accession="tr|A9EWX4|A9EWX4_SORC5" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_984" accession="tr|A9F7N6|A9F7N6_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_985" accession="tr|A9F786|A9F786_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_986" accession="tr|A9F719|A9F719_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_987" accession="tr|A9F6T2|A9F6T2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_988" accession="tr|A9F6R1|A9F6R1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_989" accession="tr|A9F6I2|A9F6I2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_990" accession="tr|A9F6F5|A9F6F5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_991" accession="tr|A9F5Y2|A9F5Y2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_992" accession="tr|A9F5W7|A9F5W7_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_993" accession="tr|A9F5R2|A9F5R2_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_994" accession="tr|A9F5L5|A9F5L5_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_995" accession="tr|A9F5I3|A9F5I3_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_996" accession="tr|A9F532|A9F532_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_997" accession="tr|A9F504|A9F504_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_998" accession="tr|A9F4W1|A9F4W1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_999" accession="tr|A9F4M1|A9F4M1_SORC5rev" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="309.203125" RT="230.609" >
+			<PeptideHit score="0.999999703800026" sequence="RSPLALLR" charge="3" aa_before="R" aa_after="R" protein_refs="PH_182" >
+				<UserParam type="float" name="E-Value" value="0.79432823472"/>
+				<UserParam type="float" name="XTandem_score" value="13.1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="309.2026978" RT="444.348" >
+			<PeptideHit score="0.999997619610497" sequence="SRALPLLR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_919" >
+				<UserParam type="float" name="E-Value" value="0.34673685045"/>
+				<UserParam type="float" name="XTandem_score" value="12.1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="380.6954346" RT="778.61" >
+			<PeptideHit score="0.999996682184601" sequence="EAQSPTK" charge="2" aa_before="R" aa_after="F" protein_refs="PH_463" >
+				<UserParam type="float" name="E-Value" value="0.30199517204"/>
+				<UserParam type="float" name="XTandem_score" value="19.3"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="380.6931152" RT="847.233" >
+			<PeptideHit score="0.999977806014592" sequence="EASAAPSK" charge="2" aa_before="R" aa_after="R" protein_refs="PH_756" >
+				<UserParam type="float" name="E-Value" value="0.13182567386"/>
+				<UserParam type="float" name="XTandem_score" value="13.7"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="375.6966248" RT="998.481" >
+			<PeptideHit score="0.999799808981541" sequence="VANYQR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_4" >
+				<UserParam type="float" name="E-Value" value="0.0457088189615"/>
+				<UserParam type="float" name="XTandem_score" value="17.3"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="308.8884277" RT="1225.87" >
+			<PeptideHit score="0.99972646822851" sequence="VIALLIGII" charge="3" aa_before="F" aa_after="P" protein_refs="PH_31" >
+				<UserParam type="float" name="E-Value" value="0.0389045144994"/>
+				<UserParam type="float" name="XTandem_score" value="9.4"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="381.180481" RT="1232.33" >
+			<PeptideHit score="0.995387619683354" sequence="GTAGDDDKAYK" charge="3" aa_before="R" aa_after="N" protein_refs="PH_994" >
+				<UserParam type="float" name="E-Value" value="0.00851138038202"/>
+				<UserParam type="float" name="XTandem_score" value="14.4"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="479.899231" RT="1257.34" >
+			<PeptideHit score="0.99519248174031" sequence="ELDEETSELFPK" charge="3" aa_before="R" aa_after="A" protein_refs="PH_909" >
+				<UserParam type="float" name="E-Value" value="0.00831763771103"/>
+				<UserParam type="float" name="XTandem_score" value="15.1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="401.8580933" RT="1261.06" >
+			<PeptideHit score="0.993318846453717" sequence="HQGVM(Oxidation)VGM(Oxidation)GQK" charge="3" aa_before="R" aa_after="D" protein_refs="PH_6" >
+				<UserParam type="float" name="E-Value" value="0.00691830970919"/>
+				<UserParam type="float" name="XTandem_score" value="16.8"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="410.1930237" RT="1270.41" >
+			<PeptideHit score="0.992137188268975" sequence="MLC(Carbamidomethyl)EGGYLER" charge="3" aa_before="R" aa_after="A" protein_refs="PH_905" >
+				<UserParam type="float" name="E-Value" value="0.0063095734448"/>
+				<UserParam type="float" name="XTandem_score" value="14.2"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="614.2841187" RT="1273.15" >
+			<PeptideHit score="0.915003523314301" sequence="EGTEKSEEYR" charge="2" aa_before="R" aa_after="G" protein_refs="PH_751" >
+				<UserParam type="float" name="E-Value" value="0.00144543977075"/>
+				<UserParam type="float" name="XTandem_score" value="16"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="358.6814575" RT="1276.4" >
+			<PeptideHit score="0.453250508471886" sequence="LTDDPR" charge="2" aa_before="R" aa_after="W" protein_refs="PH_3" >
+				<UserParam type="float" name="E-Value" value="0.000223872113857"/>
+				<UserParam type="float" name="XTandem_score" value="21"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="367.5293884" RT="1282.27" >
+			<PeptideHit score="0.205898136317334" sequence="AAAGGGAAAGAGAAR" charge="3" aa_before="R" aa_after="Q" protein_refs="PH_117" >
+				<UserParam type="float" name="E-Value" value="7.58577575029e-05"/>
+				<UserParam type="float" name="XTandem_score" value="22.7"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="488.5325623" RT="1292.89" >
+			<PeptideHit score="0.105295709433451" sequence="TC(Carbamidomethyl)VADESHAGC(Carbamidomethyl)EK" charge="3" aa_before="K" aa_after="S" protein_refs="PH_2" >
+				<UserParam type="float" name="E-Value" value="3.0199517204e-05"/>
+				<UserParam type="float" name="XTandem_score" value="23.4"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="483.5588684" RT="1293.91" >
+			<PeptideHit score="0.0829167864461242" sequence="GTGKEC(Carbamidomethyl)VPNSNER" charge="3" aa_before="K" aa_after="Y" protein_refs="PH_0" >
+				<UserParam type="float" name="E-Value" value="2.08929613085e-05"/>
+				<UserParam type="float" name="XTandem_score" value="23.1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="732.7969971" RT="1294.92" >
+			<PeptideHit score="0.0552026346076845" sequence="TC(Carbamidomethyl)VADESHAGC(Carbamidomethyl)EK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_2" >
+				<UserParam type="float" name="E-Value" value="1e-05"/>
+				<UserParam type="float" name="XTandem_score" value="24.9"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="378.5280457" RT="1297" >
+			<PeptideHit score="0.039216373494282" sequence="M(Oxidation)NVVAADGGKR" charge="3" aa_before="R" aa_after="K" protein_refs="PH_841" >
+				<UserParam type="float" name="E-Value" value="4.78630092323e-06"/>
+				<UserParam type="float" name="XTandem_score" value="21.3"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="703.8060913" RT="1303.03" >
+			<PeptideHit score="0.0265340096810519" sequence="IGGDDSWSPSVSAE" charge="2" aa_before="G" aa_after="F" protein_refs="PH_3" >
+				<UserParam type="float" name="E-Value" value="2.08929613085e-06"/>
+				<UserParam type="float" name="XTandem_score" value="14.3"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="323.2014771" RT="1308.11" >
+			<PeptideHit score="0.0201592377248982" sequence="IHSEILKK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_5" >
+				<UserParam type="float" name="E-Value" value="1.17489755494e-06"/>
+				<UserParam type="float" name="XTandem_score" value="22.2"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="434.2138367" RT="1315.16" >
+			<PeptideHit score="0.00935505970276241" sequence=".(Ammonia-loss)C(Carbamidomethyl)HVANRK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_914" >
+				<UserParam type="float" name="E-Value" value="2.39883291902e-07"/>
+				<UserParam type="float" name="XTandem_score" value="13.5"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

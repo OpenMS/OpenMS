@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>

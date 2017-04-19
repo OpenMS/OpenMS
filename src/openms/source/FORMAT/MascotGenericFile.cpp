@@ -33,6 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotGenericFile.h>
+
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 

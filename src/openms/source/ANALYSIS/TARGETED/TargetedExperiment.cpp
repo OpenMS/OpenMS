@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
 

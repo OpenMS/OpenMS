@@ -150,4 +150,5 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_CONSENSUSXMLFILE_H
+#endif // OPENMS_FORMAT_CONSENSUSXMLFILE_H
+

@@ -41,7 +41,6 @@ using namespace std;
 namespace OpenMS
 {
   ModificationDefinition::ModificationDefinition() :
-    term_spec_(ResidueModification::ANYWHERE),
     mod_(0),
     fixed_modification_(true),
     max_occurences_(0)
@@ -49,7 +48,6 @@ namespace OpenMS
   }
 
   ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) :
-    term_spec_(rhs.term_spec_),
     mod_(rhs.mod_),
     fixed_modification_(rhs.fixed_modification_),
     max_occurences_(rhs.max_occurences_)
@@ -57,7 +55,6 @@ namespace OpenMS
   }
 
   ModificationDefinition::ModificationDefinition(const String& mod) :
-    term_spec_(ResidueModification::ANYWHERE),
     mod_(0),
     fixed_modification_(true),
     max_occurences_(0)
@@ -69,7 +66,6 @@ namespace OpenMS
   {
     if (this != &rhs)
     {
-      term_spec_ = rhs.term_spec_;
       mod_ = rhs.mod_;
       fixed_modification_ = rhs.fixed_modification_;
       max_occurences_ = rhs.max_occurences_;
@@ -79,8 +75,7 @@ namespace OpenMS
 
   bool ModificationDefinition::operator==(const ModificationDefinition& rhs) const
   {
-    return term_spec_ == rhs.term_spec_ &&
-           mod_ == rhs.mod_ &&
+    return mod_ == rhs.mod_ &&
            fixed_modification_ == rhs.fixed_modification_ &&
            max_occurences_ == rhs.max_occurences_;
   }
@@ -96,17 +91,7 @@ namespace OpenMS
 
   bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {
-    return this->getModification() < rhs.getModification();
-  }
-
-  void ModificationDefinition::setTermSpecificity(ResidueModification::TermSpecificity pos)
-  {
-    term_spec_ = pos;
-  }
-
-  ResidueModification::TermSpecificity ModificationDefinition::getTermSpecificity() const
-  {
-    return term_spec_;
+    return this->getModificationName() < rhs.getModificationName();
   }
 
   void ModificationDefinition::setFixedModification(bool fixed_mod)
@@ -126,7 +111,17 @@ namespace OpenMS
     //cerr << "setModification: id=" << mod_->getId() << ", full_id=" << mod_->getFullId() << ", UniMod=" << mod_->getUniModAccession() << ", origin=" << mod_->getOrigin() << ", PSI-MOD=" << mod_->getPSIMODAccession() << endl;
   }
 
-  String ModificationDefinition::getModification() const
+  const ResidueModification& ModificationDefinition::getModification() const
+  {
+    if (!mod_)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "No modification defined", 0);
+    }
+    return *mod_;
+  }
+
+  String ModificationDefinition::getModificationName() const
   {
     if (mod_ != 0)
     {

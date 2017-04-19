@@ -270,6 +270,27 @@ START_SECTION(([PeptideHit::ScoreMore] template < typename Arg > bool operator()
   TEST_EQUAL(PeptideHit::ScoreMore().operator()(a,a), false)
 }
 END_SECTION
+
+START_SECTION((void setFragmentAnnotations(const vector<PeptideHit::FragmentAnnotation> & fragment_annotations)))
+  PeptideHit hit;
+  vector<PeptideHit::FragmentAnnotation> frag_annos(2, PeptideHit::FragmentAnnotation());
+  frag_annos[0].annotation = "test string";
+  frag_annos[0].charge = 2;
+  frag_annos[0].mz = 1234.567;
+  frag_annos[0].intensity = 1.0;
+  frag_annos[1].annotation = "second test string";
+  frag_annos[1].charge = 1;
+  frag_annos[1].mz = 89.10;
+  frag_annos[1].intensity = 0.5;
+  hit.setFragmentAnnotations(frag_annos);
+  TEST_EQUAL(hit.getFragmentAnnotations().size(), 2)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].annotation == "test string", true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].charge == 2, true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].mz == 1234.567, true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].intensity == 1.0, true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[1].annotation == "second test string", true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[1].mz == 89.1, true)
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

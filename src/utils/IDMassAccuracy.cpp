@@ -45,6 +45,10 @@
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
@@ -178,7 +182,7 @@ protected:
     }
 
     // read mzML files
-    vector<RichPeakMap> maps_raw;
+    vector<PeakMap> maps_raw;
     maps_raw.resize(in_raw.size());
 
     MzMLFile mzml_file;
@@ -200,9 +204,9 @@ protected:
 
     // normalize the spectra
     Normalizer normalizer;
-    for (vector<RichPeakMap>::iterator it1 = maps_raw.begin(); it1 != maps_raw.end(); ++it1)
+    for (vector<PeakMap>::iterator it1 = maps_raw.begin(); it1 != maps_raw.end(); ++it1)
     {
-      for (RichPeakMap::Iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
+      for (PeakMap::Iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
       {
         normalizer.filterSpectrum(*it2);
       }

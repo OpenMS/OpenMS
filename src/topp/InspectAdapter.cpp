@@ -358,7 +358,7 @@ protected:
       string_buffer = File::absolutePath(string_buffer);
       if (inspect_in)
       {
-        MSExperiment<Peak1D> experiment;
+        PeakMap experiment;
         String type;
         try
         {

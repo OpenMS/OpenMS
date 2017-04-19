@@ -36,15 +36,17 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
+///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 
 using namespace OpenMS;
 using namespace std;
 
-///////////////////////////
 
 START_TEST(SpectrumPrecursorComparator, "$Id$")
 

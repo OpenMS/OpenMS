@@ -72,12 +72,14 @@ public:
       double numpressErrorTolerance;  /// check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything
       NumpressCompression np_compression; /// which compression schema to use
       bool estimate_fixed_point; /// whether to estimate the fixed point or use the one proved with numpressFixedPoint
+      double linear_fp_mass_acc; /// desired mass accuracy for linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
       NumpressConfig () :
         numpressFixedPoint(0.0),
         numpressErrorTolerance(BinaryDataEncoder_default_numpressErrorTolerance),
         np_compression(NONE),
-        estimate_fixed_point(false)
+        estimate_fixed_point(false),
+        linear_fp_mass_acc(-1)
       {
       }
 
