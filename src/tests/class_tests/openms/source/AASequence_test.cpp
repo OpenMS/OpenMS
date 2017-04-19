@@ -731,7 +731,7 @@ START_SECTION([EXTRA] Tag in peptides)
 }
 END_SECTION
 
-START_SECTION([EXTRA] Arbitrary tag in peptides)
+START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 {
   // test arbitrary modification
   AASequence aa = AASequence::fromString("PEPTXIDE");
@@ -749,6 +749,64 @@ START_SECTION([EXTRA] Arbitrary tag in peptides)
   TEST_REAL_SIMILAR(test4.getMonoWeight(), 959.49066)
   AASequence test5 = AASequence::fromString("PEPTX[160.230654]IDE");
   TEST_REAL_SIMILAR(test5.getMonoWeight(), 959.59066)
+
+  // test arbitrary differences when writing them out
+  AASequence test6 = AASequence::fromString("PEPTX[1600.230654]IDE");
+  TEST_EQUAL(test6.size(), 8)
+  TEST_EQUAL(test6.toString(), "PEPTX[1600.230654]IDE")
+
+  // TODO there is still some work here:
+  //   X[1600] is not represented as a true residue with a modification but as
+  //   a fully functional residue with a new weight, it is thus not completely
+  //   accurately represented.
+  TEST_EQUAL(test6[4].isModified(), false)
+
+  AASequence test7 = AASequence::fromString(test6.toString());
+  TEST_EQUAL(test7.size(), 8)
+  TEST_EQUAL(test7.toString(), "PEPTX[1600.230654]IDE")
+
+  TEST_EQUAL(test6, test7) // the peptides should be equal
+
+  // test arbitrary modification on N
+  {
+    AASequence test_seq = AASequence::fromString("PEPTN[1600.230654]IDE");
+    TEST_EQUAL(test_seq.size(), 8)
+    TEST_EQUAL(test_seq.toString(), "PEPTN[1600.230654]IDE")
+
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 8)
+    TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+
+    TEST_EQUAL(test_other, test_seq) // the peptides should be equal
+  }
+
+  // test N-terminal modification
+  {
+    AASequence test_seq = AASequence::fromString("[1600.230654]IDE");
+    TEST_EQUAL(test_seq.size(), 3)
+    TEST_EQUAL(test_seq.toString(), ".[1600.230654]IDE")
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+  }
+
+  // test C-terminal modification
+  {
+    AASequence test_seq = AASequence::fromString("IDE.[1600.230654]");
+    TEST_EQUAL(test_seq.size(), 3)
+    TEST_EQUAL(test_seq.toString(), "IDE.[1600.230654]")
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+  }
 
   // Faulty / nonsense calculations ...
   AASequence test;
