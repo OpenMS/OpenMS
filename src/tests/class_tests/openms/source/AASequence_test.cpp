@@ -801,6 +801,8 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
   AASequence test6 = AASequence::fromString("PEPTX[1600.230654]IDE");
   TEST_EQUAL(test6.size(), 8)
   TEST_EQUAL(test6.toString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test6.toBracketString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test6.toUnmodifiedString(), "PEPTXIDE")
 
   TEST_EQUAL(test6[4].isModified(), true)
   TEST_REAL_SIMILAR(test6[4].getModification()->getMonoMass(), 1600.230654 + 18.0105650638) // because of the H2O loss
@@ -809,19 +811,34 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
   AASequence test7 = AASequence::fromString(test6.toString());
   TEST_EQUAL(test7.size(), 8)
   TEST_EQUAL(test7.toString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test7.toBracketString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test7.toUnmodifiedString(), "PEPTXIDE")
   TEST_EQUAL(test6, test7) // the peptides should be equal
-
 
   // test arbitrary modification on N
   {
     AASequence test_seq = AASequence::fromString("PEPTN[1600.230654]IDE");
     TEST_EQUAL(test_seq.size(), 8)
     TEST_EQUAL(test_seq.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toBracketString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "PEPTNIDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
 
+    // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
     TEST_EQUAL(test_other.size(), 8)
     TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
+
+    TEST_EQUAL(test_other, test_seq) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString());
+    TEST_EQUAL(test_other.size(), 8)
+    TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
 
     TEST_EQUAL(test_other, test_seq) // the peptides should be equal
   }
@@ -831,10 +848,19 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("[1600.230654]IDE");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_EQUAL(test_seq.toString(), ".[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toBracketString(), "n[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
 
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString());
     TEST_EQUAL(test_other.size(), 3)
     TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
 
@@ -846,10 +872,19 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("IDE.[1600.230654]");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_EQUAL(test_seq.toString(), "IDE.[1600.230654]")
+    TEST_EQUAL(test_seq.toBracketString(), "IDEc[1600.230654]")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
 
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString());
     TEST_EQUAL(test_other.size(), 3)
     TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
 
