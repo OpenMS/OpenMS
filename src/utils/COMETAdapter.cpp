@@ -299,7 +299,7 @@ protected:
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
         term_distance = 0;
-        nc_term = "0";
+        nc_term = "2";
       } 
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
       {
