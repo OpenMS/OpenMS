@@ -904,9 +904,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     TEST_REAL_SIMILAR(aa_original.getMonoWeight(), 904.4038997864)
 
     AASequence aa_withX_original = AASequence::fromString("DFPANGERX");
-    TEST_REAL_SIMILAR(aa_withX_original.getMonoWeight(), 904.4038997864  - 18.0105650638)
-    AASequence aa_withX2_original = AASequence::fromString("DFPANXGER");
-    TEST_REAL_SIMILAR(aa_withX2_original.getMonoWeight(), 904.4038997864  - 18.0105650638)
+    // TEST_REAL_SIMILAR(aa_withX_original.getMonoWeight(), 904.4038997864) // cannot call weight on AASequence with X
 
     AASequence test_seq = AASequence::fromString("DFPANGERX[113.0840643509]");
     TEST_EQUAL(test_seq.size(), 9)
