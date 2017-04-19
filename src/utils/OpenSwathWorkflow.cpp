@@ -761,6 +761,27 @@ protected:
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
 
+    ///////////////////////////////////
+    // Load the transitions
+    ///////////////////////////////////
+    OpenSwath::LightTargetedExperiment transition_exp;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    progresslogger.startProgress(0, 1, "Load TraML file");
+    FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);
+    if (tr_file_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    {
+      TargetedExperiment targeted_exp;
+      TraMLFile().load(tr_file, targeted_exp);
+      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+    }
+    else
+    {
+      std::cout << " ok here!!" << std::endl;
+      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+    }
+    progresslogger.endProgress();
+
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -835,26 +856,6 @@ protected:
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
         sonar);
-
-    ///////////////////////////////////
-    // Load the transitions
-    ///////////////////////////////////
-    OpenSwath::LightTargetedExperiment transition_exp;
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, swath_maps.size(), "Load TraML file");
-    FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);
-    if (tr_file_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
-    {
-      TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
-      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
-    }
-    else
-    {
-      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-    }
-    progresslogger.endProgress();
 
     ///////////////////////////////////
     // Set up chrom.mzML output

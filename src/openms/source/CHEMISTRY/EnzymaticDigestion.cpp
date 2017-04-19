@@ -138,12 +138,12 @@ namespace OpenMS
   {
     if (pep_pos >= protein.size())
     {
-      LOG_WARN << "Error: start of peptide is beyond end of protein!" << endl;
+      LOG_WARN << "Error: start of peptide (" << pep_pos << ") is beyond end of protein '" << protein.toString() << "'!" << endl;
       return false;
     }
     else if (pep_pos + pep_length > protein.size())
     {
-      LOG_WARN << "Error: end of peptide is beyond end of protein!" << endl;
+      LOG_WARN << "Error: end of peptide (" << (pep_pos + pep_length) << ") is beyond end of protein '" << protein.toString() << "'!" << endl;
       return false;
     }
     else if (pep_length == 0 || protein.size() == 0)

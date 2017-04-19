@@ -170,15 +170,6 @@ protected:
     bool isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz);
 
     /**
-      @brief Adds ResidueModification to vector of modifications
-
-      @param mods a vector of targeted experiment modifications
-      @param location the residue location of the modification
-      @param rmod the residue modification
-    */
-    void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods, int location, ResidueModification& rmod);
-
-    /**
       @brief Generates random peptide sequence
 
       @param sequence_size length of peptide sequence

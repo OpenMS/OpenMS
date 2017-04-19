@@ -80,7 +80,6 @@ public:
 
             This does not describe the amino acids which are valid for a
             specific amino acid!
-
     */
     enum TermSpecificity
     {
@@ -93,7 +92,6 @@ public:
     };
 
     /** @brief Classification of the modification
-
     */
     enum SourceClassification
     {
@@ -116,8 +114,6 @@ public:
       NUMBER_OF_SOURCE_CLASSIFICATIONS
     };
     //@}
-
-
 
     /** @name Constructors and Destructors
     */
@@ -160,11 +156,14 @@ public:
     /// returns the full identifier of the mod (Unimod accession + origin, if available)
     const String& getFullId() const;
 
-    /// sets the Unimod accession
-    void setUniModAccession(const String& id);
+    /// sets the unimod record id
+    void setUniModRecordId(const Int& id);
 
-    /// returns the Unimod accession if available
-    const String& getUniModAccession() const;
+    /// sets the unimod record id
+    const Int& getUniModRecordId() const;
+
+    /// returns the unimod accession if available
+    const String getUniModAccession() const;
 
     /// set the MOD:XXXXX accession of PSI-MOD
     void setPSIMODAccession(const String& id);
@@ -321,7 +320,8 @@ protected:
 
     String psi_mod_accession_;
 
-    String unimod_accession_;
+    // The UniMod record id (an integer)
+    Int unimod_record_id_;
 
     String full_name_;
 
@@ -355,4 +355,4 @@ protected:
   };
 }
 
-#endif
+#endif // OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H

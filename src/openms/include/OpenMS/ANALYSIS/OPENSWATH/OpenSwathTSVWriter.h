@@ -194,7 +194,7 @@ namespace OpenMS
             {
               if (pep.modifications[modloc].location == loc)
               {
-                full_peptide_name += "(" + pep.modifications[modloc].unimod_id + ")";
+                full_peptide_name += "(UniMod:" + String(pep.modifications[modloc].unimod_id) + ")";
               }
             }
           }
@@ -204,6 +204,7 @@ namespace OpenMS
           String group_label = pep.peptide_group_label;
           if (group_label.empty()) group_label = id;
           if (group_label == "light") group_label = id; // legacy fix since there are many TraMLs floating around which have "light" in there
+          if (group_label == "NA") group_label = id; // legacy fix since there are many TraMLs floating around which have "NA" in there
 
           // If a protein is present, take the first one
           String protein_name = "";

@@ -55,7 +55,7 @@
 namespace OpenMS
 {
 
-  AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, uint mol_multiplier)
+  AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
     : 
     name_(name),
     ef_(adduct),
