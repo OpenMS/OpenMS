@@ -113,7 +113,6 @@ class TOPPXFDR :
     static const String param_uniquexl; // calculate statistics based on unique IDs
     static const String param_no_qvalues; // Do not transform to qvalues
     static const String param_minscore; // minscore 0 # minimum ld-score to be considered
-    static const String param_verbose; // Whether or not the output of the tool should be verbose.
 
     // Number of ranks used
     static const UInt n_rank;
@@ -151,9 +150,6 @@ class TOPPXFDR :
     // it gets automatically called on tool execution
     void registerOptionsAndFlags_()
     {
-      // Verbose Flag
-      registerFlag_(TOPPXFDR::param_verbose, "Whether the log of information will be loud and noisy");
-
       // File input
       registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
       setValidFormats_(TOPPXFDR::param_in, ListUtils::create<String>("xml,mzid,idXML"));
@@ -367,6 +363,7 @@ class TOPPXFDR :
       }
     }
 
+
     /**
      * @brief Inspects PeptideIdentification pep_id and assigns all cross-link types that this identification belongs to
      * @param pep_id Peptide ID to be assigned.
@@ -528,7 +525,6 @@ class TOPPXFDR :
       //-------------------------------------------------------------
       // parsing parameters
       //-------------------------------------------------------------
-      bool arg_verbose = getFlag_(TOPPXFDR::param_verbose);
 
       // Terminate if no output is specified
       String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
@@ -572,70 +568,28 @@ class TOPPXFDR :
       bool arg_uniquex = getFlag_(TOPPXFDR::param_uniquexl);
 
       //-------------------------------------------------------------
-      // Printing parameters
+      // Printing parameters to log
       //-------------------------------------------------------------
-      if (arg_verbose)
-      {
-        if (arg_minborder != -1)
-        {
-          LOG_INFO << "Lower bound for precursor mass error for FDR calculation is " << arg_minborder << " ppm\n";
-        }
-        else
-        {
-          LOG_INFO << "No lower bound for precursor mass error for FDR calculation\n";
-        }
-        if (arg_maxborder != -1)
-        {
-          LOG_INFO << "Upper bound for precursor mass error for FDR calculation is " << arg_maxborder << " ppm\n";
-        }
-        else
-        {
-          LOG_INFO << "No upper bound for precursor mass error for FDR calculation\n";
-        }
-        if (arg_mindeltas != 0)
-        {
-          LOG_INFO << "Filtering of hits by a deltascore of " << arg_mindeltas << " is used.\n";
-        }
-        else
-        {
-          LOG_INFO << "No filtering of hits by deltascore" << endl;
-        }
-        if (arg_minionsmatched > 0)
-        {
-          LOG_INFO << "Filtering of hits by minimum ions matched: " << arg_minionsmatched << " is used\n";
-        }
-        else
-        {
-          LOG_INFO << "No filtering of hits by minimum ions matched.\n";
-        }
-        if (arg_minscore > 0)
-        {
-          LOG_INFO << "Filtering of hits by minimum score of " << arg_minscore << " is used.\n";
-        }
-        else
-        {
-          LOG_INFO << "No filtering of hits by minimum score.\n";
-        }
-        if (arg_uniquex)
-        {
-          LOG_INFO << "Error model is generated based on unique cross-links.\n";
-        }
-        else
-        {
-          LOG_INFO << "Error model is generated based on redundant cross-links.\n";
-        }
-        LOG_INFO << "-----------------------------------------\n" << endl;
-      }
+
+      writeLog_(arg_minborder != -1 ? "Lower bound for precursor mass error for FDR calculation is " + String(arg_minborder) + " ppm"
+                                    : "No lower bound for precursor mass error for FDR calculation");
+      writeLog_(arg_maxborder != -1 ? "Upper bound for precursor mass error for FDR calculation is " + String(arg_maxborder) + " ppm"
+                                    : "No upper bound for precursor mass error for FDR calculation");
+      writeLog_(arg_mindeltas != 0  ? "Filtering of hits by a deltascore of " + String(arg_mindeltas) + " is used."
+                                    : "No filtering of hits by deltascore");
+      writeLog_(arg_minionsmatched > 0 ? "Filtering of hits by minimum ions matched: " + String(arg_minionsmatched) + " is used"
+                                       : "No filtering of hits by minimum ions matched.");
+      writeLog_(arg_minscore > 0 ? "Filtering of hits by minimum score of " + String(arg_minscore) + " is used."
+                                 : "No filtering of hits by minimum score.");
+      writeLog_(arg_uniquex ? "Error model is generated based on unique cross-links."
+                            : "Error model is generated based on redundant cross-links.");
 
       //-------------------------------------------------------------
       // Parse the input file
       //-------------------------------------------------------------
       String arg_in = getStringOption_(TOPPXFDR::param_in);
+      writeLog_("INFO: Parsing input file: " + arg_in );
 
-      if (arg_verbose)
-      {
-        LOG_INFO << "INFO: Parsing input file: " << arg_in << endl;
-      }
       Size pep_id_index = TOPPXFDR::n_rank - 1;
       Size n_spectra;
 
@@ -659,12 +613,8 @@ class TOPPXFDR :
         // currently, cross-link identifications are stored within one ProteinIdentification
         assert(prot_ids.size() == 1);
         n_spectra = spectra.size();
-
-        if (arg_verbose)
-        {
-          LOG_INFO << "INFO: Total number of spectra: " << n_spectra << "\n"
-                   << "INFO: Total number of hits: "    << xquest_result_file.getNumberOfHits() << endl;
-        }
+        writeLog_("Total number of spectra: " + String(n_spectra)  +
+                  "\nTotal number of hits: " + String(xquest_result_file.getNumberOfHits()));
 
         Size rank_counter = 0;
         for (vector < vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
@@ -772,10 +722,7 @@ class TOPPXFDR :
       // For xQuest input,calculate delta scores and min_ions_matched
       if (is_xquest_input)
       {
-        if (arg_verbose)
-        {
-          LOG_INFO << "Input is XQuest. Compute the delta scores and the number of matched ions" << endl;
-        }
+        writeLog_("Input is a xQuest result file. Compute the delta scores and the number of matched ions");
         delta_scores.resize(n_spectra);
         n_min_ions_matched.resize(n_spectra);
 
@@ -820,9 +767,9 @@ class TOPPXFDR :
           }
         }
       }
-      else if (arg_verbose)
+      else
       {
-        LOG_INFO << "INFO: Input is not xQuest. Omit computing delta score and min. number of matched ions." << endl;
+        writeLog_("Input is not xQuest. Omit computing delta score and min. number of matched ions");
       }
 
       /*
@@ -888,10 +835,8 @@ class TOPPXFDR :
           }
         }
       }
-      if (arg_verbose)
-      {
-        LOG_INFO << "INFO: " << num_flagged << " hits have been used to calculate FDR" << std::endl;
-      }
+      writeLog_(this->toolName_() + " has used " + num_flagged + " hits to calculate the FDR");
+
       // Push empty vector for all remaining empty classes
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_intradecoys);
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_fulldecoysintralinks);
@@ -906,16 +851,14 @@ class TOPPXFDR :
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysinterlinks );
 
       // Print number of scores within each class
-      if (arg_verbose)
-      {
-        LOG_INFO << "\nINFO: Number of Scores for each class:" << endl;
 
-        for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
-             scores_it != scores.end(); ++scores_it)
-        {
-          std::pair< String, vector< double > > pair = *scores_it;
-          LOG_INFO << pair.first << ": " << pair.second.size() << endl;
-        }
+      writeLog_("Number of Scores for each class:");
+
+      for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
+           scores_it != scores.end(); ++scores_it)
+      {
+        std::pair< String, vector< double > > pair = *scores_it;
+        writeLog_(pair.first + ": " + pair.second.size());
       }
 
       // Generate Histograms of the scores for each class
@@ -949,10 +892,8 @@ class TOPPXFDR :
 
       if(! arg_no_qvalues)
       {
-        if (arg_verbose)
-        {
-          LOG_INFO << "INFO: Performing qFDR transformation" << endl;
-        }
+        writeLog_("Performing qFDR transformation");
+
         vector< double > qfdr_interlinks;
         this->calc_qfdr(fdr_interlinks, qfdr_interlinks);
 
@@ -1058,7 +999,6 @@ const String TOPPXFDR::param_minionsmatched = "minionsmatched";
 const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_no_qvalues = "no_qvalues";
 const String TOPPXFDR::param_minscore = "minscore";
-const String TOPPXFDR::param_verbose = "verbose";
 
 const UInt TOPPXFDR::n_rank = 1; //  Number of ranks used
 
