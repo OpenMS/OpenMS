@@ -271,8 +271,7 @@ protected:
               PeptideHit hit = *it->getHits().begin();
 
               PeakSpectrum theo_spec;
-              tsg.addPeaks(theo_spec, hit.getSequence(), Residue::YIon);
-              tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);
+              tsg.getSpectrum(theo_spec, hit.getSequence());
 
               vector<pair<Size, Size> > pairs;
               sa.getSpectrumAlignment(pairs, theo_spec, maps_raw[i][j]);
