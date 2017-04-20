@@ -182,7 +182,7 @@ protected:
     //Misc. parameters
     registerStringOption_("digest_mass_range", "[min] [max]", "600.0 5000.0", "MH+ peptide mass range to analyze", false, true);
     registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, false);
-    registerIntOption_("max_precursor_charge", "<num>", 3, "set maximum precursor charge state to analyze (allowed max 9)", false, true);
+    registerStringOption_("max_precursor_charge", "<num>", "0+", "set maximum precursor charge state to analyze (allowed max 9)", false, true);
     registerIntOption_("clip_nterm_methionine", "<num>", 0, "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
     registerIntOption_("spectrum_batch_size", "<num>", 0, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, true);
     registerStringOption_("mass_offsets", "<offset>", "", "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, true);
@@ -248,7 +248,7 @@ protected:
     os << "peptide_mass_units = " << getIntOption_("precursor_error_units") << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
-    os << "precursor_tolerance_type = " << 1 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
+    os << "precursor_tolerance_type = " << 0 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
     os << "isotope_error = " << getIntOption_("isotope_error") << "\n";                      // 0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)
 
     // search enzyme
@@ -350,7 +350,7 @@ protected:
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
     os << "num_output_lines = " << getIntOption_("num_hits") << "\n";                    // num peptide results to show
     os << "show_fragment_ions = " << 0 << "\n";                  // 0=no, 1=yes for out files only
-    os << "sample_enzyme_number = " << 0 << "\n";                // Sample enzyme which is possibly different than the one applied to the search.
+    os << "sample_enzyme_number = " << enzyme_number << "\n";                // Sample enzyme which is possibly different than the one applied to the search.
 
     // mzXML parameters
     os << "scan_range = " << "0 0" << "\n";                        // start and scan scan range to search; 0 as 1st entry ignores parameter
@@ -364,7 +364,7 @@ protected:
     os << "num_results = " << 100 << "\n";                       // number of search hits to store internally
     os << "skip_researching = " << 1 << "\n";                    // for '.out' file output only, 0=search everything again (default), 1=dont search if .out exists
     os << "max_fragment_charge = " << getIntOption_("max_fragment_charge") << "\n";                 // set maximum fragment charge state to analyze (allowed max 5)
-    os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
+    os << "max_precursor_charge = " << getStringOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << getIntOption_("clip_nterm_methionine") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
