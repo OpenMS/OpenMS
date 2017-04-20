@@ -65,8 +65,7 @@ namespace OpenMS
       generator.setParameters(p);
 
       PeakSpectrum spec;
-      generator.addPeaks(spec, a, Residue::BIon, charge);
-      generator.addPeaks(spec, a, Residue::YIon, charge);
+      generator.getSpectrum(spec, a, charge, charge);
 
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
 
@@ -92,11 +91,10 @@ namespace OpenMS
       Param p;
       p.setValue("add_metainfo", "false",
                  "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+      p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
       generator.setParameters(p);
       PeakSpectrum spec;
-      generator.addPeaks(spec, a, Residue::BIon, charge);
-      generator.addPeaks(spec, a, Residue::YIon, charge);
-      generator.addPrecursorPeaks(spec, a, charge);
+      generator.getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();
            it != spec.end(); ++it)
       {
