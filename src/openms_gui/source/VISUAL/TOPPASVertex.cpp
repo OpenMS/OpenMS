@@ -38,6 +38,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 
@@ -90,11 +91,20 @@ namespace OpenMS
 
   void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
   {
-    const int max_filename_length = 255; // the usual NTFS and Ext2/3/4 limit
-    if (filename.count() >= max_filename_length)
+    const int max_filename_length = 255;
+#ifdef _WIN32
+    // on Windows, constraint applies to the whole path:
+    if (filename.count() > max_filename_length)
     {
       throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename.toStdString(), max_filename_length);
     }
+#else
+    // on Unix (Linux/Mac), constraint applies to the file name:
+    if (File::basename(filename).size() > max_filename_length)
+    {
+      throw Exception::FileNameTooLong(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, File::basename(filename), max_filename_length);
+    }
+#endif
   }
 
 
