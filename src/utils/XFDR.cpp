@@ -227,33 +227,6 @@ class TOPPXFDR :
     }
 
     /**
-     * Searches for a meta value in the cross-link peptide ID. First in PeptideIdentification itself, then
-     * in the associated Peptide hits.
-     */
-    template<typename T>
-    static T getXLMetaValue(const String & name, const PeptideIdentification & pep_id, bool is_score)
-    {
-      if( pep_id.metaValueExists(name))
-      {
-        return static_cast<T>(pep_id.getMetaValue(name));
-      }
-      const vector< PeptideHit > & pep_hits = pep_id.getHits();
-      if (is_score)
-      {
-        return static_cast<T>(pep_hits[0].getScore());
-      }
-      if (pep_hits[0].metaValueExists(name))
-      {
-        return static_cast<T>(pep_hits[0].getMetaValue(name));
-      }
-      if (pep_hits.size() == 2 && pep_hits[1].metaValueExists(name))
-      {
-        return static_cast<T>(pep_hits[1].getMetaValue(name));
-      }
-      return DataValue::EMPTY;
-    }
-
-    /**
      * @brief Returns the score of a XL peptide Identification.
      * @param pep_id Which pep_id the score should be taken from
      * @return XL score of that peptide identification
@@ -715,7 +688,7 @@ class TOPPXFDR :
         {
           PeptideIdentification pep_id = *all_ids_it;
 
-          if (getXLMetaValue<int>(TOPPXFDR::xl_rank, pep_id, false) == 1)
+          if (static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
           {
             rank_one_ids.push_back(rank_counter);
           }
@@ -740,7 +713,7 @@ class TOPPXFDR :
         {
           PeptideIdentification pep_id = *all_ids_it;
           
-          if (getXLMetaValue<int>(TOPPXFDR::xl_rank, pep_id, false) == 1)
+          if ( static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
           {
             rank_one_ids.push_back(rank_counter);
           }
