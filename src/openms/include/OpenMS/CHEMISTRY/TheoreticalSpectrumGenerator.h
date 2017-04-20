@@ -75,16 +75,7 @@ namespace OpenMS
      */
     //@{
     /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-
-    /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addPeaks(PeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
-
-    /// adds the precursor peaks to the spectrum
-    virtual void addPrecursorPeaks(PeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-
-    /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
-    void addAbundantImmoniumIons(PeakSpectrum & spec, const AASequence& peptide) const;
+    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge = 1, Int max_charge = 1) const;
 
     /// overwrite
     void updateMembers_();
@@ -92,6 +83,15 @@ namespace OpenMS
     //@}
 
     protected:
+      /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
+      virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
+
+      /// adds the precursor peaks to the spectrum
+      virtual void addPrecursorPeaks_(PeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
+
+      /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
+      void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide) const;
+
       /// helper to add an isotope cluster to a spectrum
       void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
 
@@ -111,8 +111,9 @@ namespace OpenMS
       bool add_losses_;
       bool add_metainfo_;
       bool add_isotopes_;
-      bool add_precursor_peaks;
-      bool add_abundant_immonium_ions;
+      bool add_precursor_peaks_;
+      bool add_all_precursor_charges_ ;
+      bool add_abundant_immonium_ions_;
       double a_intensity_;
       double b_intensity_;
       double c_intensity_;

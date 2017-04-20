@@ -70,6 +70,9 @@ namespace OpenMS
     defaults_.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
     defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("add_all_precursor_charges", "false", "Adds precursor peaks with all charges in the given range");
+    defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
+
     defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
     defaults_.setValidStrings("add_abundant_immonium_ions", ListUtils::create<String>("true,false"));
 
@@ -131,41 +134,50 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const AASequence & peptide, Int charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const AASequence & peptide, Int min_charge, Int max_charge) const
   {
-    spectrum.clear(true);
+//    spectrum.clear(true);
 
-    for (Int z = 1; z <= charge; ++z)
+    for (Int z = min_charge; z <= max_charge; ++z)
     {
       if (add_b_ions_)
-        addPeaks(spectrum, peptide, Residue::BIon, z);
+        addPeaks_(spectrum, peptide, Residue::BIon, z);
       if (add_y_ions_)
-        addPeaks(spectrum, peptide, Residue::YIon, z);
+        addPeaks_(spectrum, peptide, Residue::YIon, z);
       if (add_a_ions_)
-        addPeaks(spectrum, peptide, Residue::AIon, z);
+        addPeaks_(spectrum, peptide, Residue::AIon, z);
       if (add_c_ions_)
-        addPeaks(spectrum, peptide, Residue::CIon, z);
+        addPeaks_(spectrum, peptide, Residue::CIon, z);
       if (add_x_ions_)
-        addPeaks(spectrum, peptide, Residue::XIon, z);
+        addPeaks_(spectrum, peptide, Residue::XIon, z);
       if (add_z_ions_)
-        addPeaks(spectrum, peptide, Residue::ZIon, z);
+        addPeaks_(spectrum, peptide, Residue::ZIon, z);
     }
 
-    if (add_precursor_peaks)
+    if (add_precursor_peaks_)
     {
-      addPrecursorPeaks(spectrum, peptide, charge);
+      if (add_all_precursor_charges_)
+      {
+        for (Int z = min_charge; z <= max_charge; ++z)
+        {
+          addPrecursorPeaks_(spectrum, peptide, z);
+        }
+      } else // add_all_precursor_charges_ = false, only add precursor with highest charge
+      {
+        addPrecursorPeaks_(spectrum, peptide, max_charge);
+      }
     }
 
-    if (add_abundant_immonium_ions)
+    if (add_abundant_immonium_ions_)
     {
-      addAbundantImmoniumIons(spectrum, peptide);
+      addAbundantImmoniumIons_(spectrum, peptide);
     }
 
     spectrum.sortByPosition();
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(PeakSpectrum & spectrum, const AASequence& peptide) const
+  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum & spectrum, const AASequence& peptide) const
   {
     Peak1D p;
 
@@ -402,7 +414,7 @@ namespace OpenMS
 
   }
 
-  void TheoreticalSpectrumGenerator::addPeaks(PeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge) const
   {
     if (peptide.empty())
     {
@@ -557,7 +569,7 @@ namespace OpenMS
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addPrecursorPeaks(PeakSpectrum & spectrum, const AASequence & peptide, Int charge) const
+  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, Int charge) const
   {
     Peak1D p;
 
@@ -690,8 +702,9 @@ namespace OpenMS
     add_losses_ = param_.getValue("add_losses").toBool();
     add_metainfo_ = param_.getValue("add_metainfo").toBool();
     add_isotopes_ = param_.getValue("add_isotopes").toBool();
-    add_precursor_peaks = param_.getValue("add_precursor_peaks").toBool();
-    add_abundant_immonium_ions = param_.getValue("add_abundant_immonium_ions").toBool();
+    add_precursor_peaks_ = param_.getValue("add_precursor_peaks").toBool();
+    add_all_precursor_charges_ = param_.getValue("add_all_precursor_charges").toBool();
+    add_abundant_immonium_ions_ = param_.getValue("add_abundant_immonium_ions").toBool();
     a_intensity_ = (double)param_.getValue("a_intensity");
     b_intensity_ = (double)param_.getValue("b_intensity");
     c_intensity_ = (double)param_.getValue("c_intensity");
