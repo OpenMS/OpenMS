@@ -137,6 +137,7 @@ class TOPPXFDR :
     // Meta values used to identify cross-links
     static const String xl_type;
     static const String xl_rank;
+    static const String target_decoy;
 
 
     TOPPXFDR() :
@@ -272,7 +273,14 @@ class TOPPXFDR :
 
 
     /**
-     * @brief Prepares read vector of PeptideIdentification such that it can be further processed downstream
+     * @brief Prepares vector of PeptideIdentification such that it can be processed downstream.
+     * The encompassed steps are:
+     *  * Set min_score and max_score encountered in the data
+     *  * Ensure that xl_type and xl_rank are available in the PeptideIdentification
+     *  * Define peptide_identification as decoy if at least one of the peptide_hits is decoy
+     *    (this semantic is also used by the XQuestResultXMLHandler)
+     *  * Define the cross-link as either inter/or intraprotein
+     *
      * @param pep_ids vector of PeptideIdentification to be prepared
      */
     bool prepareInput(vector< PeptideIdentification > & pep_ids)
@@ -309,14 +317,14 @@ class TOPPXFDR :
         }
 
         // Set peptide identification to target or decoy
-        if (    pep_hits[0].getMetaValue("target_decoy").toString() == "decoy"
-                || (n_hits == 2 && pep_hits[1].getMetaValue("target_decoy").toString() == "decoy"))
+        if (    pep_hits[0].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy"
+                || (n_hits == 2 && pep_hits[1].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy"))
         {
-          pep_id.setMetaValue("target_decoy", DataValue("decoy"));
+          pep_id.setMetaValue(TOPPXFDR::target_decoy, DataValue("decoy"));
         }
         else
         {
-          pep_id.setMetaValue("target_decoy", DataValue("target"));
+          pep_id.setMetaValue(TOPPXFDR::target_decoy, DataValue("target"));
         }
 
         // figure out if cross-link is inter- or intra protein
@@ -347,7 +355,7 @@ class TOPPXFDR :
     }
 
     /**
-     * @brief Add class to the scores Map, of not already present
+     * @brief Add class to the scores Map if not already present
      * @param scores Map where the empty xl class should be added to
      * @param name name of the xl class to be added
      */
@@ -494,11 +502,11 @@ class TOPPXFDR :
     void calc_qfdr(const vector< double > & fdr, vector< double > & qfdr)
     {
       qfdr.resize(fdr.size());
-      for (int i = fdr.size() - 1; i > -1; --i)
+      for (Int i = fdr.size() - 1; i >= 0; --i)
       {
         double current_fdr = fdr[i];
         double smallest_fdr = current_fdr;
-        for (int j = i; j > -1; j--)
+        for (Int j = i; j >= 0; j--)
         {
           double fdr_to_check = fdr[j];
           if (fdr_to_check < smallest_fdr)
@@ -675,6 +683,34 @@ class TOPPXFDR :
             rank_counter++;
           }
         }
+        for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
+             all_ids_it != all_ids.end(); ++ all_ids_it)
+        {
+          const PeptideIdentification & pep_id = *all_ids_it;
+          const vector< PeptideHit > & pep_hits = pep_id.getHits();
+          UInt n_hits = pep_hits.size();
+          String pep_id_target_decoy = pep_id.getMetaValue("target_decoy").toString();
+          String alpha_target_decoy = pep_hits[0].getMetaValue("target_decoy").toString();
+
+          if (n_hits == 1)
+          {
+            assert(    (alpha_target_decoy == "decoy" && pep_id_target_decoy == "decoy")
+                    || (alpha_target_decoy == "target" && pep_id_target_decoy == "target"));
+
+          }
+          else if (n_hits == 2)
+          {
+            String beta_target_decoy = pep_hits[1].getMetaValue("target_decoy").toString();
+            if (alpha_target_decoy == "target" && beta_target_decoy == "target" )
+            {
+              assert(pep_id_target_decoy == "target");
+            }
+            else
+            {
+              assert(pep_id_target_decoy == "decoy");
+            }
+          }
+       }
       }
       // TODO Currently not supported
       else if (arg_in.hasSuffix("mzid"))
@@ -1044,6 +1080,7 @@ const double TOPPXFDR::fpnum_score_step = 0.1;
 // meta values for xlink identifications
 const String TOPPXFDR::xl_type = "xl_type";
 const String TOPPXFDR::xl_rank = "xl_rank";
+const String TOPPXFDR::target_decoy = "target_decoy";
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
