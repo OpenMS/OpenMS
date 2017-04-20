@@ -43,6 +43,7 @@
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
@@ -68,7 +69,7 @@ namespace OpenMS
     {
       return residue_names_.at(name);
     }
-    return 0;
+    return NULL;
   }
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
@@ -147,6 +148,7 @@ namespace OpenMS
 
       mod_names.push_back(mod->getId());
       mod_names.push_back(mod->getFullName());
+      mod_names.push_back(mod->getFullId());
       const set<String>& mod_synonyms = mod->getSynonyms();
       for (set<String>::const_iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
       {
@@ -157,6 +159,7 @@ namespace OpenMS
       {
         for (vector<String>::const_iterator mod_it = mod_names.begin(); mod_it != mod_names.end(); ++mod_it)
         {
+          if ( mod_it->empty() || it->empty() ) continue;
           residue_mod_names_[*it][*mod_it] = r;
         }
       }
@@ -457,6 +460,7 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
+    OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
     // search if the mod already exists
     String res_name = residue->getName();
 
@@ -469,6 +473,7 @@ namespace OpenMS
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     String id = mod.getId();
+    if (id.empty()) id = mod.getFullId();
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {
