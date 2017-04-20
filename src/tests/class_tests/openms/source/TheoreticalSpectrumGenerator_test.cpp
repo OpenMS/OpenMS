@@ -83,81 +83,6 @@ START_SECTION(TheoreticalSpectrumGenerator& operator = (const TheoreticalSpectru
   TEST_EQUAL(copy.getParameters(), ptr->getParameters())
 END_SECTION
 
-//START_SECTION(void addPeaks(PeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge = 1))
-//  PeakSpectrum y_spec, b_spec, a_spec;
-
-//  ptr->addPeaks(y_spec, peptide, Residue::YIon, 1);
-//  ptr->addPeaks(b_spec, peptide, Residue::BIon, 1);
-//  ptr->addPeaks(a_spec, peptide, Residue::AIon, 1);
-
-//  TOLERANCE_ABSOLUTE(0.001)
-//  double y_result[] = {147.113, 204.135, 303.203, 431.262, 518.294, 665.362};
-//  for (Size i = 0; i != y_spec.size(); ++i)
-//  {
-//    TEST_REAL_SIMILAR(y_spec[i].getPosition()[0], y_result[i])
-//  }
-//  double b_result[] = {/*115.1,*/ 261.16, 348.192, 476.251, 575.319, 632.341};
-//  for (Size i = 0; i != b_spec.size(); ++i)
-//  {
-//    TEST_REAL_SIMILAR(b_spec[i].getPosition()[0], b_result[i])
-//  }
-
-//  double a_result[] = {/*87.1048,*/ 233.165, 320.197, 448.256, 547.324, 604.346};
-//  for (Size i = 0; i != a_spec.size(); ++i)
-//  {
-//    TEST_REAL_SIMILAR(a_spec[i].getPosition()[0], a_result[i])
-//  }
-
-//  PeakSpectrum y_spec2;
-//  ptr->addPeaks(y_spec2, peptide, Residue::YIon, 2);
-//  TOLERANCE_ABSOLUTE(0.01)
-//  for (Size i = 0; i != y_spec2.size(); ++i)
-//  {
-//    TEST_REAL_SIMILAR(y_spec2[i].getPosition()[0], (y_result[i]+1.0)/2.0)
-//  }
-//END_SECTION
-
-//START_SECTION(void addAbundantImmoniumIons(PeakSpectrum& spec))
-//  PeakSpectrum spec;
-//  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("HFYLWCP"));
-//  TEST_EQUAL(spec.size(), 7)
-//  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
-//  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221)
-//  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 86.09698)
-//  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 110.0718)
-//  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 120.0813)
-//  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 136.0762)
-//  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 159.0922)
-
-//  spec.clear(true);
-//  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("H"));
-//  TEST_EQUAL(spec.size(), 1)
-
-//  spec.clear(true);
-//  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("A"));
-//  TEST_EQUAL(spec.size(), 0)
-//END_SECTION
-
-
-//START_SECTION(void addPrecursorPeaks(PeakSpectrum& spec, const AASequence& peptide, Int charge = 1))
-//  PeakSpectrum spec;
-//  ptr->addPrecursorPeaks(spec, peptide, 1);
-//  double result[] = {760.4352, 761.4192, 778.4457};
-//  for (Size i = 0; i != spec.size(); ++i)
-//  {
-//    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
-//  }
-
-//  PeakSpectrum spec2;
-//  ptr->addPrecursorPeaks(spec2, peptide, 2);
-//  double result2[] = {380.7212, 381.2132, 389.7265};
-//  for (Size i = 0; i != spec2.size(); ++i)
-//  {
-//    TEST_REAL_SIMILAR(spec2[i].getPosition()[0], result2[i])
-//  }
-
-//END_SECTION
-
 START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge = 1, Int max_charge = 1))
   PeakSpectrum spec;
   ptr->getSpectrum(spec, peptide, 1, 1);
@@ -406,7 +331,6 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
   t_gen.setParameters(params);
 
   t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
-//  t_gen.addPeaks(tmp, tmp_aa, Residue::AIon);
   TEST_EQUAL(tmp.size(), 212)
 }
 END_SECTION
@@ -492,7 +416,6 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   params.setValue("add_y_ions", "false");
 
   t_gen.setParameters(params);
-//  t_gen.addPrecursorPeaks(spec, tmp_aa, 2);
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
   TEST_EQUAL(spec.size(), 6)
 
