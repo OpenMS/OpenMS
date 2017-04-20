@@ -587,7 +587,7 @@ class SimpleSearchEngine :
             PeakSpectrum theo_spectrum;
 
             //add peaks for b and y ions with charge 1
-            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
+            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
 
             //sort by mz
             theo_spectrum.sortByPosition();

@@ -175,7 +175,7 @@ namespace OpenMS
       }
       else
       {
-        simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+        simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
       }
       for (Size peak = 0; peak < tmp_spec.size(); ++peak)
       {
@@ -359,7 +359,7 @@ namespace OpenMS
         }
         else
         {
-          simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+          simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
         }
 
         // scale intensity and copy 
