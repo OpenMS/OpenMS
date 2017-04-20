@@ -299,7 +299,6 @@ namespace OpenMS
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
-    TheoreticalSpectrumGenerator spectrum_generator;
     
     PeakSpectrum spectrum_first = th_spectra[candidates.seq_1];
     PeakSpectrum spectrum_second = th_spectra[candidates.seq_2];
@@ -493,9 +492,8 @@ namespace OpenMS
         }
       }
 
-      // we mono-charge spectra
-      spectrum_generator.addPeaks(th_spectra[i], seq, Residue::BIon, 1);
-      spectrum_generator.addPeaks(th_spectra[i], seq, Residue::YIon, 1);
+      // we mono-charge spectra, generating b- and y-ions with charge 1 is the default behavior of the TSG
+      spectrum_generator.getSpectrum(th_spectra[i], seq);
       th_spectra[i].setName(seq.toString());
     }
     return th_spectra;

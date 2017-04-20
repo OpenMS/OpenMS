@@ -985,18 +985,16 @@ protected:
           // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
           PeakSpectrum total_loss_spectrum;
 
-          // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge  
+          // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
 
-          for (Size z = 1; z <= precursor_charge; ++z)
-          {
-            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::AIon, z);
-            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::BIon, z);
-            spectrum_generator.addPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, Residue::YIon, z);
-            // generate MS2 precursor peaks of the total loss peptide for all z <= precursor charge  
-            spectrum_generator.addPrecursorPeaks(total_loss_spectrum, fixed_and_variable_modified_peptide, z);
-          }
-
-          total_loss_spectrum.sortByPosition();
+          Param params;
+          params.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
+          params.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+          params.setValue("add_all_precursor_charges", "true", "Adds precursor peaks with all charges in the given range");
+          params.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+          params.setValue("add_first_prefix_ion", "true");
+          spectrum_generator.setParameters(params);
+          spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
           // TODO: generate unshifted immonium ions to gain confidence in identified peptide sequence
 
@@ -1113,15 +1111,19 @@ protected:
             PeakSpectrum::StringDataArray& shifted_series_annotations = shifted_series_peaks.getStringDataArrays()[0];
             PeakSpectrum::IntegerDataArray& shifted_series_charges = shifted_series_peaks.getIntegerDataArrays()[0];
 
+            Param params;
+            params.setValue("add_a_ions", "true");
+            params.setValue("add_precursor_peaks", "true");
+            params.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+            params.setValue("add_first_prefix_ion", "true");
+            spectrum_generator.setParameters(params);
+
             // For every charge state
             for (Size z = 1; z <= precursor_charge; ++z)
             {
               // 1. create unshifted peaks
               PeakSpectrum tmp_shifted_series_peaks;
-              spectrum_generator.addPeaks(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, Residue::AIon, z);
-              spectrum_generator.addPeaks(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, Residue::BIon, z);
-              spectrum_generator.addPeaks(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, Residue::YIon, z);
-              spectrum_generator.addPrecursorPeaks(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z);
+              spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
 
               PeakSpectrum::StringDataArray& tmp_shifted_series_annotations = tmp_shifted_series_peaks.getStringDataArrays()[0];
               PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
@@ -2141,7 +2143,7 @@ protected:
             //add peaks for b and y ions with charge 1
             if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
-              spectrum_generator.getSpectrum(complete_loss_spectrum, candidate, 1);
+              spectrum_generator.getSpectrum(complete_loss_spectrum, candidate, 1, 1);
               complete_loss_spectrum.sortByPosition(); //sort by mz
             }
 
