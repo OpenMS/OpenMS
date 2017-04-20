@@ -80,7 +80,7 @@ using namespace std;
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on the output format</td>
   </tr>
   <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzXML) </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzML) </td>
   </tr>
   </table>
   </CENTER>
@@ -90,6 +90,8 @@ using namespace std;
   the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
 
+  For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
+
   Many different format conversions are supported, and some may be more useful than others. Depending on the
   file formats involved, information can be lost during conversion, e.g. when converting featureXML to mzData.
   In such cases a warning is shown.
@@ -98,7 +100,7 @@ using namespace std;
   files. If file type determination is not possible, the input or output file type has to be given explicitly.
 
   Conversion with the same output as input format is supported. In some cases, this can be helpful to remove
-  errors from files, to update file formats to new versions, or to check whether information is lost upon
+  errors from files (e.g. the index), to update file formats to new versions, or to check whether information is lost upon
   reading or writing.
 
   Some information about the supported input types:
@@ -152,7 +154,6 @@ public:
   TOPPFileConverter() :
     TOPPBase("FileConverter", "Converts between different MS file formats.")
   {
-
   }
 
 protected:
@@ -176,9 +177,10 @@ protected:
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
+    registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
 
-    registerStringOption_("write_mzML_index", "<toogle>", "true", "Toggle writing an mzML index when writing mzML files.", false, true);
-    setValidStrings_("write_mzML_index", ListUtils::create<String>("true,false"));
+    registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
+    setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
@@ -193,7 +195,8 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
-    bool write_mzML_index = getStringOption_("write_mzML_index") == "true" ? true : false;;
+    bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
+    bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
 
@@ -225,7 +228,7 @@ protected:
     }
 
 
-    //output file names and types
+    // output file names and types
     String out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
@@ -351,7 +354,7 @@ protected:
       {
         // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
-        consumer.getOptions().setWriteIndex(write_mzML_index);
+        consumer.getOptions().setWriteIndex(write_scan_index);
         bool skip_full_count = false;
         // numpress compression
         if (lossy_compression)
@@ -418,7 +421,7 @@ protected:
                                                  CONVERSION_MZML));
       MzMLFile f;
       f.setLogType(log_type_);
-      f.getOptions().setWriteIndex(write_mzML_index);
+      f.getOptions().setWriteIndex(write_scan_index);
       // numpress compression
       if (lossy_compression)
       {
@@ -447,7 +450,9 @@ protected:
                                                  CONVERSION_MZXML));
       MzXMLFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
+      f.getOptions().setWriteIndex(write_scan_index);
+      //ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::DTA2D)
