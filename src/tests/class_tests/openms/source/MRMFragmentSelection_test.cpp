@@ -97,8 +97,7 @@ START_SECTION((void selectFragments(std::vector< Peak1D > &selected_peaks, const
 	Param tsg_param(tsg.getParameters());
 	tsg_param.setValue("add_metainfo", "true");
 	tsg.setParameters(tsg_param);
-	tsg.addPeaks(spec, AASequence::fromString("DFPIANGER"), Residue::YIon, 1);
-	tsg.addPeaks(spec, AASequence::fromString("DFPIANGER"), Residue::BIon, 1);
+	tsg.getSpectrum(spec, AASequence::fromString("DFPIANGER"));
 
 	spec.sortByPosition();
 	Precursor prec;
