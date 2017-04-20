@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/function.hpp>
@@ -105,6 +106,7 @@ class TOPPXFDR :
   public:
 
     static const String param_in;  // Parameter for the input file
+    static const String param_in_type;
     static const String param_out_idXML;
     static const String param_minborder;  // minborder  # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  # filter for maximum precursor mass error (ppm)
@@ -150,9 +152,15 @@ class TOPPXFDR :
     // it gets automatically called on tool execution
     void registerOptionsAndFlags_()
     {
+      StringList formats = ListUtils::create<String>("xml,idXML");
+
       // File input
       registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
-      setValidFormats_(TOPPXFDR::param_in, ListUtils::create<String>("xml,mzid,idXML"));
+      setValidFormats_(TOPPXFDR::param_in, formats);
+
+      // File input type (if ommitted, guessed from the file extension)
+      registerStringOption_(TOPPXFDR::param_in_type, "<in_type>", "", "Type of input file provided with -in", false, false);
+      setValidStrings_(TOPPXFDR::param_in_type, formats);
 
       // idXML output
       registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", true, false);
@@ -518,15 +526,17 @@ class TOPPXFDR :
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
     {
+      //-------------------------------------------------------------
+      // Initialize instance variables
+      //-------------------------------------------------------------
       bool is_xquest_input = false;
       this->min_score = 0;
       this->max_score = 0;
 
-      //-------------------------------------------------------------
-      // parsing parameters
-      //-------------------------------------------------------------
+      //----------------------------------------------------------------
+      // parsing parameters, terminate if invalid values are encountered
+      //----------------------------------------------------------------
 
-      // Terminate if no output is specified
       String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
       if (arg_out_idXML.empty())
       {
@@ -585,11 +595,22 @@ class TOPPXFDR :
                             : "Error model is generated based on redundant cross-links.");
 
       //-------------------------------------------------------------
-      // Parse the input file
+      // Determine type of input file
       //-------------------------------------------------------------
       String arg_in = getStringOption_(TOPPXFDR::param_in);
-      writeLog_("INFO: Parsing input file: " + arg_in );
+      if (arg_in.empty())
+      {
+        LOG_ERROR << "ERROR: Input file is empty. Terminating." << endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      String arg_in_type = getStringOption_(TOPPXFDR::param_in_type);
+      FileTypes::Type in_type = arg_in_type.empty() ? FileHandler::getType(arg_in)
+                                                    : FileTypes::nameToType(arg_in_type);
 
+
+      //-------------------------------------------------------------
+      // Declare important variables
+      //-------------------------------------------------------------
       Size pep_id_index = TOPPXFDR::n_rank - 1;
       Size n_spectra;
 
@@ -599,8 +620,12 @@ class TOPPXFDR :
       vector < UInt > rank_one_ids; // Stores the indizes of the rank one hits within all_ids
       vector < vector < PeptideIdentification > > spectra;
 
-      // assume XQuestXML here
-      if (arg_in.hasSuffix("xml"))
+
+      //-------------------------------------------------------------
+      // Parse the input file
+      //-------------------------------------------------------------
+
+      if (in_type == FileTypes::XML)
       {
         is_xquest_input = true;
         
@@ -663,7 +688,7 @@ class TOPPXFDR :
        }
       }
       // TODO Currently not supported
-      else if (arg_in.hasSuffix("mzid"))
+      else if (in_type == FileTypes::MZIDENTML)
       {
         MzIdentMLFile().load(arg_in, prot_ids, all_ids);
         this->prepareInput(all_ids);
@@ -681,7 +706,7 @@ class TOPPXFDR :
           rank_counter++;
         }
       }
-      else if (arg_in.hasSuffix("idXML"))
+      else if (in_type == FileTypes::IDXML)
       {
         // Prevent filter options for this input (currently not supported)
         if (arg_uniquex || arg_minborder != -1 || arg_maxborder != -1 || arg_minionsmatched != 0 || arg_mindeltas != 0)
@@ -991,6 +1016,7 @@ class TOPPXFDR :
     Int max_score;
 };
 const String TOPPXFDR::param_in = "in";
+const String TOPPXFDR::param_in_type = "in_type";
 const String TOPPXFDR::param_out_idXML = "out_idXML";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
