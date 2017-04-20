@@ -184,8 +184,8 @@ namespace OpenMS
       registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
     }
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
-    registerFlag_("-help", "Shows options");
-    registerFlag_("-helphelp", "Shows all options (including advanced)", false);
+    registerFlag_("help", "Shows options");
+    registerFlag_("helphelp", "Shows all options (including advanced)", false);
 
     // parse command line parameters:
     try
@@ -233,7 +233,7 @@ namespace OpenMS
     }
 
     // '--help' given
-    if (param_cmdline_.exists("-help") || param_cmdline_.exists("-helphelp"))
+    if (param_cmdline_.exists("help") || param_cmdline_.exists("helphelp"))
     {
       printUsage_();
       return EXECUTION_OK;
@@ -574,7 +574,7 @@ namespace OpenMS
   void TOPPBase::printUsage_()
   {
     // show advanced options?
-    bool verbose = getFlag_("-helphelp");
+    bool verbose = getFlag_("helphelp");
 
     //common output
     cerr << "\n"
@@ -653,6 +653,7 @@ namespace OpenMS
 
       //NAME + ARGUMENT
       String str_tmp = "  -";
+      if (it->type == ParameterInformation::FLAG) str_tmp += "-"; // use "--" for flags (even though "-" would suffice)
       str_tmp += it->name + " " + it->argument;
       if (it->required)
         str_tmp += '*';
@@ -2032,7 +2033,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_wsdl" || it->name == "write_ctd") // do not store those params in ini file
+      if (it->name == "ini" || it->name == "help" || it->name == "helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_wsdl" || it->name == "write_ctd") // do not store those params in ini file
       {
         continue;
       }
@@ -2586,6 +2587,7 @@ namespace OpenMS
     for (int i = argc - 1; i > 0; --i)
     {
       String arg = argv[i];
+      if (arg.hasPrefix("--")) arg = arg.substr(1); // replace '--' by '-' such that it's found in param_map
       // options start with "-" or "--" followed by a letter:
       bool is_option = (arg.size() >= 2) && (arg[0] == '-') && (isalpha(arg[1]) || ((arg[1] == '-') && (arg.size() >= 3) &&  isalpha(arg[2])));
       if (is_option) // process content of the queue

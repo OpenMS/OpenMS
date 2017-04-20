@@ -1644,7 +1644,7 @@ namespace OpenMS
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
           alpha.push_back(i);
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
           beta.push_back(i);
         }
@@ -1670,7 +1670,7 @@ namespace OpenMS
             xl_type = "loop-link";
           }
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
             // do nothing. Must be a mono-link, which is already set
         }
