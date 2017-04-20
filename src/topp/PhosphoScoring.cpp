@@ -73,10 +73,10 @@ using namespace std;
   In the output the score of the peptide hit describes the peptide score, which is a weighted average of all ten scores of the selected peptide sequence. 
   For each phosphorylation site an individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1, AScore_2).
   
-  The Ascore results of this TOPP tool differes with the results of the Ascore calculation provided on the website <a href="http://ascore.med.harvard.edu/ascore.html">,
+  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided on the website <a href="http://ascore.med.harvard.edu/ascore.html">,
   but it seems that the implementation according to Beausoleil <em>et al.</em> has some calculation errors. 
   It is not possible to recalculate the Ascore using the cumulative binomial probability formula with the given values (see Fig. 3c). 
-  In addition the site determining ions calculation seems not reliable, because in some test cases more site determining ions were calculated than it could be possible.
+  In addition the site determining ions calculation seems unreliable, because in some test cases more site determining ions were calculated than it could be possible.
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
