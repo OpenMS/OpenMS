@@ -384,6 +384,10 @@ namespace OpenMS
     Param p;
     p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
 
+    // these two are true by default, initialize to false here and set to true in the loop below
+    p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
+    p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
+
     p.setValue("max_isotope", tv_params.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
     p.setValue("add_losses", tv_params.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
@@ -396,48 +400,23 @@ namespace OpenMS
     p.setValue("y_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
     p.setValue("z_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
     p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
-    generator.setParameters(p);
+
+    p.setValue("add_a_ions", tv_params.getValue("preferences:idview:show_a_ions"), "Add peaks of a-ions to the spectrum");
+    p.setValue("add_b_ions", tv_params.getValue("preferences:idview:show_b_ions"), "Add peaks of b-ions to the spectrum");
+    p.setValue("add_c_ions", tv_params.getValue("preferences:idview:show_c_ions"), "Add peaks of c-ions to the spectrum");
+    p.setValue("add_x_ions", tv_params.getValue("preferences:idview:show_x_ions"), "Add peaks of x-ions to the spectrum");
+    p.setValue("add_y_ions", tv_params.getValue("preferences:idview:show_y_ions"), "Add peaks of y-ions to the spectrum");
+    p.setValue("add_z_ions", tv_params.getValue("preferences:idview:show_z_ions"), "Add peaks of z-ions to the spectrum");
+    p.setValue("add_precursor_peaks", tv_params.getValue("preferences:idview:show_precursor"), "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
 
     try
     {
       Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
-      // generate mass ladder for each charge state
-      for (Int charge = 1; charge <= max_charge; ++charge)
-      {
-        if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
-        {
-          generator.addPeaks(spectrum, aa_sequence, Residue::AIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
-        {
-          generator.addPeaks(spectrum, aa_sequence, Residue::BIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
-        {
-          generator.addPeaks(spectrum, aa_sequence, Residue::CIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
-        {
-          generator.addPeaks(spectrum, aa_sequence, Residue::XIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
-        {
-          generator.addPeaks(spectrum, aa_sequence, Residue::YIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
-        {
-          generator.addPeaks(spectrum, aa_sequence, Residue::ZIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
-        {
-          generator.addPrecursorPeaks(spectrum, aa_sequence, charge);
-        }
-      }
-      if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
-      {
-        generator.addAbundantImmoniumIons(spectrum, aa_sequence);
-      }
+      // generate mass ladder for all charge states
+      generator.setParameters(p);
+      generator.getSpectrum(spectrum, aa_sequence, 1, max_charge);
+
     }
     catch (Exception::BaseException & e)
     {
