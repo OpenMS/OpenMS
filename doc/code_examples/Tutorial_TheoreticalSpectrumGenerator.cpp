@@ -44,9 +44,15 @@ Int main()
   PeakSpectrum spec1, spec2;
   AASequence peptide = AASequence::fromString("DFPIANGER");
 
-  tsg.addPeaks(spec1, peptide, Residue::YIon, 1);
+  // standard behavior is adding b- and y-ions of charge 1
+  Param p;
+  p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
+  tsg.setParameters(p);
+  tsg.getSpectrum(spec1, peptide, 1, 1);
 
-  tsg.getSpectrum(spec2, peptide, 2);
+  p.setValue("add_b_ions", "true", "Add peaks of a-ions to the spectrum");
+  tsg.setParameters(p);
+  tsg.getSpectrum(spec2, peptide, 1, 2);
 
   cout << "Spectrum 1 has " << spec1.size() << " peaks. " << endl;
   cout << "Spectrum 2 has " << spec2.size() << " peaks. " << endl;
