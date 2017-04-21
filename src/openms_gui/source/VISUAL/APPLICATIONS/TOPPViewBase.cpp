@@ -3198,7 +3198,7 @@ namespace OpenMS
               }
               if (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked) // "abundant Immonium-ions"
               {
-                  generator.addAbundantImmoniumIons(rich_spec);
+                  generator.addAbundantImmoniumIons(rich_spec, poly_sequence);
               }
           }
           catch (Exception::BaseException& e)
@@ -3326,7 +3326,8 @@ namespace OpenMS
               //}
               if (spec_gen_dialog.list_widget->item(12)->checkState() == Qt::Checked) // "abundant Immonium-ions"
               {
-                  generator.addAbundantImmoniumIons(rich_spec);
+                  QMessageBox::warning(this, "Error", QString("Abundant Immonium Ions of Nucleic acid sequences are not supported!"));
+                  //generator.addAbundantImmoniumIons(rich_spec, poly_sequence);
               }
               i=i-(charge/abs(charge));
               }

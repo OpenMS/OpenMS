@@ -156,6 +156,9 @@ namespace OpenMS
     /// Default constructor
     MetaboliteSpectralMatching();
 
+    /// Default destructor
+    virtual ~MetaboliteSpectralMatching();
+
 
     /// hyperscore computation
     double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const double&, const double&);

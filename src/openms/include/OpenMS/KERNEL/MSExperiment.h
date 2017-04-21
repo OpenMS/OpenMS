@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -54,7 +55,7 @@
 namespace OpenMS
 {
   class Peak1D;
-
+  class RichPeak1D;
   /**
     @brief In-Memory representation of a mass spectrometry experiment.
 

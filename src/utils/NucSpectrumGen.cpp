@@ -112,7 +112,7 @@ protected:
 
 
         // create MSExperiment
-        MSExperiment<Peak1D> generated_exp;
+        MSExperiment generated_exp;
 
         TheoreticalSpectrumGenerator test_generator;
         Param gen_params= test_generator.getParameters();
@@ -139,11 +139,11 @@ protected:
 
         test_generator.setParameters(gen_params);
 
-        RichPeakSpectrum spec;
+        MSSpectrum<RichPeak1D> spec;
         test_generator.getSpectrum(spec, NucSequence, maxCharge);
         //candidate_spectra[identifier]=spec;
-        PeakSpectrum theoretical_spectrum;
-        for (RichPeakSpectrum::ConstIterator p_it = spec.begin(); p_it != spec.end(); ++p_it)
+        MSSpectrum<Peak1D> theoretical_spectrum;
+        for (MSSpectrum<RichPeak1D>::ConstIterator p_it = spec.begin(); p_it != spec.end(); ++p_it)
         {
             theoretical_spectrum.push_back(*p_it);
         }

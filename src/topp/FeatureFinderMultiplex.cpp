@@ -156,6 +156,7 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  bool also_do_ms2_;
   String spectrum_type_;
   String averagine_type_;
 
@@ -225,6 +226,9 @@ public:
       defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
       defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
+      defaults.setValue("also_do_ms2","false", "Also look for features in MS2 spectra", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("also_do_ms2", ListUtils::create<String>("true,false"));
+
     }
 
     if (section == "labels")
@@ -296,6 +300,7 @@ public:
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
     spectrum_type_ = getParam_().getValue("algorithm:spectrum_type");
     averagine_type_ = getParam_().getValue("algorithm:averagine_type");
+    also_do_ms2_ = (getParam_().getValue("algorithm:also_do_ms2") == "true");
   }
 
   /**
@@ -923,6 +928,8 @@ private:
     // only read MS1 spectra
     std::vector<int> levels;
     levels.push_back(1);
+    if (also_do_ms2_)
+        levels.push_back(2);
     file.getOptions().setMSLevels(levels);
 
     LOG_DEBUG << "Loading input..." << endl;
@@ -973,7 +980,10 @@ private:
       PeakPickerHiRes picker;
       Param param = picker.getParameters();
       picker.setLogType(log_type_);
-      param.setValue("ms_levels", ListUtils::create<Int>("1"));
+      if (also_do_ms2_)
+        param.setValue("ms_levels",ListUtils::create<Int>("1,2"));
+      else
+        param.setValue("ms_levels", ListUtils::create<Int>("1"));
       param.setValue("signal_to_noise", 0.0); // signal-to-noise estimation switched off
       picker.setParameters(param);
 

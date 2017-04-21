@@ -469,7 +469,7 @@ protected:
         progresslogger.endProgress();
 
         // copy meta information
-        MSExperiment<Peak1D> debug_exp = spectra;
+        MSExperiment debug_exp = spectra;
         debug_exp.clear(false);
 
         TheoreticalSpectrumGenerator test_generator;
@@ -536,7 +536,7 @@ protected:
 
                   // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); //get the identifier
                   // String identifier = identifier_list[0];
-                   RichPeakSpectrum spec;
+                   MSSpectrum<RichPeak1D> spec;
                    test_generator.getSpectrum(spec, sequence, h_it->getCharge()); //there should only be one
                    if (nearest.empty() != true)
                    {

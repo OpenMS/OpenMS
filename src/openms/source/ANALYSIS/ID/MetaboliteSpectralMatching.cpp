@@ -286,10 +286,10 @@ MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
   this->setLogType(CMD);
 }
 
-//MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
-//{
+MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
+{
 
-//}
+}
 
 
 /// public methods
@@ -315,6 +315,79 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spec
 
     MSSpectrum<Peak1D>::iterator db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
     MSSpectrum<Peak1D>::iterator db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
+
+    std::pair<double, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
+
+    // linear search for peak nearest to observed fragment peak
+    for (; db_mass_it != db_mass_end; ++db_mass_it)
+    {
+      double db_mz(db_mass_it->getMZ());
+      double abs_mass_diff(std::abs(frag_mz - db_mz));
+
+      if (abs_mass_diff < nearest_peak.first) {
+        nearest_peak.first = abs_mass_diff;
+        nearest_peak.second = *db_mass_it;
+      }
+    }
+
+    // update dot product
+    if (nearest_peak.second.getIntensity() > 0.0)
+    {
+      ++matched_ions_count;
+      dot_product += frag_it->getIntensity() * nearest_peak.second.getIntensity();
+    }
+  }
+
+  double matched_ions_term(0.0);
+
+  // return score 0 if too few matched ions
+  if (matched_ions_count < 3)
+  {
+    return matched_ions_term;
+  }
+
+
+  if (matched_ions_count <= boost::math::max_factorial<double>::value)
+  {
+    matched_ions_term = std::log(boost::math::factorial<double>((double)matched_ions_count));
+  }
+  else
+  {
+    matched_ions_term = std::log(boost::math::factorial<double>(boost::math::max_factorial<double>::value));
+  }
+
+  double hyperscore(std::log(dot_product) + matched_ions_term);
+
+
+  if (hyperscore < 0)
+  {
+    hyperscore = 0;
+  }
+
+  return hyperscore;
+}
+//FIXME this is duplicate code
+double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<RichPeak1D> db_spectrum,
+                             const double& fragment_mass_error, const double& mz_lower_bound)
+{
+
+  double dot_product(0.0);
+  Size matched_ions_count(0);
+
+  // scan for matching peaks between observed and DB stored spectra
+  for (MSSpectrum<Peak1D>::iterator frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
+  {
+    double frag_mz = frag_it->getMZ();
+
+    double mz_offset = fragment_mass_error;
+
+    if (mz_error_unit_ == "ppm")
+    {
+      mz_offset = frag_mz * 1e-6 * fragment_mass_error;
+    }
+
+    MSSpectrum<RichPeak1D>::iterator db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
+    MSSpectrum<RichPeak1D>::iterator db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
 
     std::pair<double, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
 
