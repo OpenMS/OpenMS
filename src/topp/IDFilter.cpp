@@ -196,6 +196,8 @@ protected:
                        "filter peptide evidences that have more than the specified missed_cleavages\n"
                        "By default missed cleavages are ignored", false);
     setMinInt_("digest:missed_cleavages", -1);
+    registerFlag_("digest:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
+
 
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
@@ -438,7 +440,6 @@ protected:
       FASTAFile().load(protein_fasta, fasta);
 
       // Configure Enzymatic digestion
-      // TODO(Nikos) What about missed_cleavages?
       EnzymaticDigestion digestion;
       String enzyme = getStringOption_("digest:enzyme").trim();
       if (!enzyme.empty())
@@ -463,9 +464,18 @@ protected:
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
+      
+      bool methionine_cleavage = false;
+      if (getFlag_("digest:methionine_cleavage"))
+      {
+        methionine_cleavage = true;
+      }
 
       // Build the digest filter function
-      IDFilter::DigestionFilter filter(fasta, digestion, ignore_missed_cleavages);
+      IDFilter::DigestionFilter filter(fasta, 
+                                       digestion, 
+                                       ignore_missed_cleavages, 
+                                       methionine_cleavage);
       // Filter peptides
       filter.filterPeptideEvidences(peptides);
     }

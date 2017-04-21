@@ -176,7 +176,7 @@ namespace OpenMS
       // if allow methionine cleavage at the protein start position
       if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
       {
-        //Deal with possible methionine_cleavage
+        // methionine_cleavage:consider the first product for begin_pos
         begin_pos = pep_positions.begin();
         spec_n = true;
       }

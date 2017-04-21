@@ -349,18 +349,20 @@ public:
       GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>accession_resolver_;
       EnzymaticDigestion& digestion_;
       bool ignore_missed_cleavages_;
+      bool methionine_cleavage_;
 
       DigestionFilter(std::vector<FASTAFile::FASTAEntry>& entries,
-                      EnzymaticDigestion& digestion, 
-                      bool ignore_missed_cleavages) : 
+                      EnzymaticDigestion& digestion,
+                      bool ignore_missed_cleavages,
+                      bool methionine_cleavage) : 
         accession_resolver_(entries), 
         digestion_(digestion),
-        ignore_missed_cleavages_(ignore_missed_cleavages)
+        ignore_missed_cleavages_(ignore_missed_cleavages),
+        methionine_cleavage_(methionine_cleavage)
       {}
  
       bool operator()(const PeptideEvidence& evidence) const
       {
-        // TODO(Nikos) take into consideration methionine_cleavage parameter (default false)
         if(!evidence.hasValidLimits())
         {
           LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
@@ -371,7 +373,7 @@ public:
         {
           return digestion_.isValidProduct(
             AASequence::fromString(accession_resolver_.getValue(evidence).sequence),
-            evidence.getStart(), evidence.getEnd() - evidence.getStart(), false, ignore_missed_cleavages_);
+            evidence.getStart(), evidence.getEnd() - evidence.getStart(), methionine_cleavage_, ignore_missed_cleavages_);
         }
         else
         {
