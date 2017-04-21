@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 namespace OpenMS
 {
@@ -84,22 +85,22 @@ namespace OpenMS
 
     protected:
       /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-      virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
+      virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
 
       /// adds the precursor peaks to the spectrum
-      virtual void addPrecursorPeaks_(PeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
+      virtual void addPrecursorPeaks_(PeakSpectrum & spec, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
 
       /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
-      void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide) const;
+      void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
 
       /// helper to add an isotope cluster to a spectrum
-      void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
+      void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
 
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
       /// helper to add full neutral loss ladders
-      void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const;
+      void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
 
       bool add_b_ions_;
       bool add_y_ions_;

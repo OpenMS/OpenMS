@@ -136,22 +136,43 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const AASequence & peptide, Int min_charge, Int max_charge) const
   {
-//    spectrum.clear(true);
+
+    if (peptide.empty())
+    {
+      return;
+    }
+
+    PeakSpectrum::StringDataArray ion_names;
+    PeakSpectrum::IntegerDataArray charges;
+
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().size() > 0)
+      {
+        charges = spectrum.getIntegerDataArrays()[0];
+      }
+      if (spectrum.getStringDataArrays().size() > 0)
+      {
+        ion_names = spectrum.getStringDataArrays()[0];
+      }
+      ion_names.setName("IonNames");
+      charges.setName("Charges");
+    }
 
     for (Int z = min_charge; z <= max_charge; ++z)
     {
       if (add_b_ions_)
-        addPeaks_(spectrum, peptide, Residue::BIon, z);
+        addPeaks_(spectrum, peptide, ion_names, charges, Residue::BIon, z);
       if (add_y_ions_)
-        addPeaks_(spectrum, peptide, Residue::YIon, z);
+        addPeaks_(spectrum, peptide, ion_names, charges, Residue::YIon, z);
       if (add_a_ions_)
-        addPeaks_(spectrum, peptide, Residue::AIon, z);
+        addPeaks_(spectrum, peptide, ion_names, charges, Residue::AIon, z);
       if (add_c_ions_)
-        addPeaks_(spectrum, peptide, Residue::CIon, z);
+        addPeaks_(spectrum, peptide, ion_names, charges, Residue::CIon, z);
       if (add_x_ions_)
-        addPeaks_(spectrum, peptide, Residue::XIon, z);
+        addPeaks_(spectrum, peptide, ion_names, charges, Residue::XIon, z);
       if (add_z_ions_)
-        addPeaks_(spectrum, peptide, Residue::ZIon, z);
+        addPeaks_(spectrum, peptide, ion_names, charges, Residue::ZIon, z);
     }
 
     if (add_precursor_peaks_)
@@ -160,40 +181,46 @@ namespace OpenMS
       {
         for (Int z = min_charge; z <= max_charge; ++z)
         {
-          addPrecursorPeaks_(spectrum, peptide, z);
+          addPrecursorPeaks_(spectrum, peptide, ion_names, charges, z);
         }
       } else // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
-        addPrecursorPeaks_(spectrum, peptide, max_charge);
+        addPrecursorPeaks_(spectrum, peptide, ion_names, charges, max_charge);
       }
     }
 
     if (add_abundant_immonium_ions_)
     {
-      addAbundantImmoniumIons_(spectrum, peptide);
+      addAbundantImmoniumIons_(spectrum, peptide, ion_names, charges);
+    }
+
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().size() > 0)
+      {
+        spectrum.getIntegerDataArrays()[0] = charges;
+      }
+      else
+      {
+        spectrum.getIntegerDataArrays().push_back(charges);
+      }
+      if (spectrum.getStringDataArrays().size() > 0)
+      {
+        spectrum.getStringDataArrays()[0] = ion_names;
+      }
+      else
+      {
+        spectrum.getStringDataArrays().push_back(ion_names);
+      }
     }
 
     spectrum.sortByPosition();
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum & spectrum, const AASequence& peptide) const
+  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum & spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const
   {
     Peak1D p;
-
-    if (add_metainfo_)
-    {
-      if (spectrum.getIntegerDataArrays().size() == 0)
-      {
-        spectrum.getIntegerDataArrays().resize(1);
-        spectrum.getIntegerDataArrays()[0].setName("Charges");
-      }
-      if (spectrum.getStringDataArrays().size() == 0)
-      {
-        spectrum.getStringDataArrays().resize(1);
-        spectrum.getStringDataArrays()[0].setName("IonNames");
-      }
-    }
 
     // Histidin immonium ion (C5H8N3)
     if (peptide.has(*ResidueDB::getInstance()->getResidue('H')))
@@ -203,8 +230,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iH");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
@@ -217,8 +244,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iF");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
@@ -231,8 +258,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iY");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
@@ -245,8 +272,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iL/I");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
@@ -259,8 +286,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iW");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
@@ -273,8 +300,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iC");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
@@ -287,13 +314,11 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("iP");
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(1);
+        ion_names.push_back(ion_name);
+        charges.push_back(1);
       }
       spectrum.push_back(p);
     }
-
-    spectrum.sortByPosition();
   }
 
   char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(Residue::ResidueType res_type) const
@@ -312,7 +337,7 @@ namespace OpenMS
     return ' ';
   }
 
-  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const
   {
     double pos = ion.getMonoWeight(res_type, charge);
     Peak1D p;
@@ -328,14 +353,14 @@ namespace OpenMS
       p.setIntensity(intensity * it->second);
       if (add_metainfo_) // one entry per peak
       {
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(charge);
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
       }
       spectrum.push_back(p);
     }
   }
 
-  void TheoreticalSpectrumGenerator::addLosses_(PeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const
+  void TheoreticalSpectrumGenerator::addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const
   {
     Peak1D p;
 
@@ -392,8 +417,8 @@ namespace OpenMS
           p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
           if (add_metainfo_)
           {
-            spectrum.getStringDataArrays()[0].push_back(ion_name);
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            ion_names.push_back(ion_name);
+            charges.push_back(charge);
           }
           spectrum.push_back(p);
         }
@@ -405,8 +430,8 @@ namespace OpenMS
         {
           // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
           String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
-          spectrum.getStringDataArrays()[0].push_back(ion_name);
-          spectrum.getIntegerDataArrays()[0].push_back(charge);
+          ion_names.push_back(ion_name);
+          charges.push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -414,28 +439,9 @@ namespace OpenMS
 
   }
 
-  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge) const
   {
-    if (peptide.empty())
-    {
-      return;
-    }
-
     spectrum.reserve(peptide.size());
-
-    if (add_metainfo_)
-    {
-      if (spectrum.getIntegerDataArrays().size() == 0)
-      {
-        spectrum.getIntegerDataArrays().resize(1);
-        spectrum.getIntegerDataArrays()[0].setName("Charges");
-      }
-      if (spectrum.getStringDataArrays().size() == 0)
-      {
-        spectrum.getStringDataArrays().resize(1);
-        spectrum.getStringDataArrays()[0].setName("IonNames");
-      }
-    }
 
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").
@@ -486,8 +492,8 @@ namespace OpenMS
           if (add_metainfo_)
           {
             String ion_name = String(residueTypeToIonLetter_(res_type)) + String(i + 1) + String(charge, '+');
-            spectrum.getStringDataArrays()[0].push_back(ion_name);
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            ion_names.push_back(ion_name);
+            charges.push_back(charge);
           }
         }
       }
@@ -497,7 +503,7 @@ namespace OpenMS
         for (; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
-          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity);
+          addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity);
         }
       }
 
@@ -507,7 +513,7 @@ namespace OpenMS
         for (; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getPrefix(i);
-          addLosses_(spectrum, ion, intensity, res_type, charge);
+          addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
         }
       }
     }
@@ -540,8 +546,8 @@ namespace OpenMS
           if (add_metainfo_)
           {
             String ion_name = String(residueTypeToIonLetter_(res_type)) + String(peptide.size() - i) + String(charge, '+');
-            spectrum.getStringDataArrays()[0].push_back(ion_name);
-            spectrum.getIntegerDataArrays()[0].push_back(charge);
+            ion_names.push_back(ion_name);
+            charges.push_back(charge);
           }
         }
       }
@@ -550,7 +556,7 @@ namespace OpenMS
         for (Size i = 1; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getSuffix(i);
-          addIsotopeCluster_(spectrum, ion, res_type, charge, intensity);
+          addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity);
         }
       }
 
@@ -559,33 +565,17 @@ namespace OpenMS
         for (Size i = 1; i < peptide.size(); ++i)
         {
           const AASequence ion = peptide.getSuffix(i);
-          addLosses_(spectrum, ion, intensity, res_type, charge);
+          addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
         }
       }
     }
 
-    spectrum.sortByPosition();
-
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, Int charge) const
+  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge) const
   {
     Peak1D p;
-
-    if (add_metainfo_)
-    {
-      if (spectrum.getIntegerDataArrays().size() == 0)
-      {
-        spectrum.getIntegerDataArrays().resize(1);
-        spectrum.getIntegerDataArrays()[0].setName("Charges");
-      }
-      if (spectrum.getStringDataArrays().size() == 0)
-      {
-        spectrum.getStringDataArrays().resize(1);
-        spectrum.getStringDataArrays()[0].setName("IonNames");
-      }
-    }
 
     String ion_name("[M+H]" + String((Size)charge, '+'));
 
@@ -602,8 +592,8 @@ namespace OpenMS
         p.setIntensity(pre_int_ *  it->second);
         if (add_metainfo_)
         {
-          spectrum.getStringDataArrays()[0].push_back(ion_name);
-          spectrum.getIntegerDataArrays()[0].push_back(charge);
+            ion_names.push_back(ion_name);
+            charges.push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -614,8 +604,8 @@ namespace OpenMS
       p.setIntensity(pre_int_);
       if (add_metainfo_)
       {
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(charge);
+          ion_names.push_back(ion_name);
+          charges.push_back(charge);
       }
       spectrum.push_back(p);
     }
@@ -635,8 +625,8 @@ namespace OpenMS
         if (add_metainfo_)
         {
           String ion_name("[M+H]-H2O" + String((Size)charge, '+'));
-          spectrum.getStringDataArrays()[0].push_back(ion_name);
-          spectrum.getIntegerDataArrays()[0].push_back(charge);
+          ion_names.push_back(ion_name);
+          charges.push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -648,8 +638,8 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("[M+H]-H2O" + String((Size)charge, '+'));
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(charge);
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
       }
       spectrum.push_back(p);
     }
@@ -668,8 +658,8 @@ namespace OpenMS
         if (add_metainfo_)
         {
           String ion_name("[M+H]-NH3" + String((Size)charge, '+'));
-          spectrum.getStringDataArrays()[0].push_back(ion_name);
-          spectrum.getIntegerDataArrays()[0].push_back(charge);
+          ion_names.push_back(ion_name);
+          charges.push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -681,13 +671,11 @@ namespace OpenMS
       if (add_metainfo_)
       {
         String ion_name("[M+H]-NH3" + String((Size)charge, '+'));
-        spectrum.getStringDataArrays()[0].push_back(ion_name);
-        spectrum.getIntegerDataArrays()[0].push_back(charge);
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
       }
       spectrum.push_back(p);
     }
-
-    spectrum.sortByPosition();
   }
 
   void TheoreticalSpectrumGenerator::updateMembers_()
@@ -717,5 +705,4 @@ namespace OpenMS
     pre_int_H2O_ = (double)param_.getValue("precursor_H2O_intensity");
     pre_int_NH3_ = (double)param_.getValue("precursor_NH3_intensity");
   }
-
 }
