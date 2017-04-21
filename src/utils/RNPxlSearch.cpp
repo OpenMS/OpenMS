@@ -915,6 +915,9 @@ protected:
     Param ps = spectrum_generator.getParameters();
     ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     ps.setValue("add_first_prefix_ion", "true");
+    ps.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
+    ps.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+    ps.setValue("add_all_precursor_charges", "true", "Adds precursor peaks with all charges in the given range");
     spectrum_generator.setParameters(ps);
 
     SpectrumAlignment spectrum_aligner;
@@ -987,13 +990,6 @@ protected:
 
           // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
 
-          Param params;
-          params.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-          params.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-          params.setValue("add_all_precursor_charges", "true", "Adds precursor peaks with all charges in the given range");
-          params.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-          params.setValue("add_first_prefix_ion", "true");
-          spectrum_generator.setParameters(params);
           spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
           // TODO: generate unshifted immonium ions to gain confidence in identified peptide sequence
@@ -1110,13 +1106,6 @@ protected:
 
             PeakSpectrum::StringDataArray& shifted_series_annotations = shifted_series_peaks.getStringDataArrays()[0];
             PeakSpectrum::IntegerDataArray& shifted_series_charges = shifted_series_peaks.getIntegerDataArrays()[0];
-
-            Param params;
-            params.setValue("add_a_ions", "true");
-            params.setValue("add_precursor_peaks", "true");
-            params.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-            params.setValue("add_first_prefix_ion", "true");
-            spectrum_generator.setParameters(params);
 
             // For every charge state
             for (Size z = 1; z <= precursor_charge; ++z)
