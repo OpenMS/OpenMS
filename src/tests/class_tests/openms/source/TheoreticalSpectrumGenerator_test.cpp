@@ -306,13 +306,53 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   TEST_EQUAL(charge_counts[1], 0)
   TEST_EQUAL(charge_counts[2], 30)
 
-// // for quick benchmarking of implementation chances
-//  for (Size i = 0; i != 1e5; ++i)
+  // AbundantImmoniumIons test
+  param = ptr->getParameters();
+  param.setValue("add_b_ions", "false");
+  param.setValue("add_x_ions", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_metainfo", "false");
+  param.setValue("add_losses", "false");
+  param.setValue("add_abundant_immonium_ions", "true");
+  ptr->setParameters(param);
+  spec.clear(true);
+  ptr->getSpectrum(spec, AASequence::fromString("HFYLWCP"));
+  TEST_EQUAL(spec.size(), 7)
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221)
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 86.09698)
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 110.0718)
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 120.0813)
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 136.0762)
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 159.0922)
+
+  spec.clear(true);
+  ptr->getSpectrum(spec, AASequence::fromString("H"));
+  TEST_EQUAL(spec.size(), 1)
+
+  spec.clear(true);
+  ptr->getSpectrum(spec, AASequence::fromString("A"));
+  TEST_EQUAL(spec.size(), 0)
+
+
+//  // for quick benchmarking of implementation chances
+//  param = ptr->getParameters();
+//  param.setValue("add_first_prefix_ion", "true");
+//  param.setValue("add_a_ions", "true");
+//  param.setValue("add_b_ions", "true");
+//  param.setValue("add_c_ions", "true");
+//  param.setValue("add_x_ions", "true");
+//  param.setValue("add_y_ions", "true");
+//  param.setValue("add_z_ions", "true");
+//  param.setValue("add_precursor_peaks", "true");
+//  param.setValue("add_metainfo", "true");
+//  param.setValue("add_losses", "true");
+//  ptr->setParameters(param);
+//  peptide = AASequence::fromString("PEPTIDEPEPTIDEPEPTIDE");
+//  for (Size i = 0; i != 1e4; ++i)
 //  {
-//    PeakSpectrum y_spec, b_spec, a_spec;
-//    ptr->addPeaks(y_spec, peptide, Residue::YIon, 2);
-//    ptr->addPeaks(b_spec, peptide, Residue::BIon, 2);
-//    ptr->addPeaks(a_spec, peptide, Residue::AIon, 2);
+//    PeakSpectrum spec;
+//    ptr->getSpectrum(spec, peptide, 1, 3);
 //  }
 
 END_SECTION
