@@ -71,7 +71,7 @@ namespace OpenMS
     defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("add_all_precursor_charges", "false", "Adds precursor peaks with all charges in the given range");
-    defaults_.setValidStrings("add_precursor_peaks", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_all_precursor_charges", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
     defaults_.setValidStrings("add_abundant_immonium_ions", ListUtils::create<String>("true,false"));
