@@ -51,7 +51,8 @@ namespace OpenMS
     c_term_gain_(""),
     psi_id_(""),
     xtandem_id_(""),
-    omssa_id_()
+    omssa_id_(0),
+    msgf_id_(-1)
   {
   }
 
@@ -64,7 +65,8 @@ namespace OpenMS
     c_term_gain_(enzyme.c_term_gain_),
     psi_id_(enzyme.psi_id_),
     xtandem_id_(enzyme.xtandem_id_),
-    omssa_id_(enzyme.omssa_id_)
+    omssa_id_(enzyme.omssa_id_),
+    msgf_id_(enzyme.msgf_id_)
   {
   }
 
@@ -76,7 +78,8 @@ namespace OpenMS
                    EmpiricalFormula c_term_gain,
                    String psi_id,
                    String xtandem_id,
-                   UInt omssa_id) :
+                   UInt omssa_id,
+                   Int msgf_id) :
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
@@ -85,7 +88,8 @@ namespace OpenMS
     c_term_gain_(c_term_gain),
     psi_id_(psi_id),
     xtandem_id_(xtandem_id),
-    omssa_id_(omssa_id)
+    omssa_id_(omssa_id),
+    msgf_id_(msgf_id)
   {
   }
   
@@ -106,6 +110,7 @@ namespace OpenMS
       psi_id_ = enzyme.psi_id_;
       xtandem_id_ = enzyme.xtandem_id_;
       omssa_id_ = enzyme.omssa_id_;
+      msgf_id_ = enzyme.msgf_id_;
     }
     return *this;
   }
@@ -203,6 +208,16 @@ namespace OpenMS
   UInt Enzyme::getOMSSAid() const
   {
     return omssa_id_;
+  }
+
+  void Enzyme::setMSGFid(Int value)
+  {
+    msgf_id_ = value;
+  }
+
+  Int Enzyme::getMSGFid() const
+  {
+      return msgf_id_;
   }
   
   bool Enzyme::operator==(const Enzyme & enzyme) const

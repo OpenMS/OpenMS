@@ -72,7 +72,8 @@ public:
                     EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
                     String psi_id = "",
                     String xtandem_id = "",
-                    UInt omssa_id = 0);
+                    UInt omssa_id = 0,
+                    Int msgf_id = -1);
 
     /// destructor
     virtual ~Enzyme();
@@ -144,6 +145,12 @@ public:
 
     /// returns the OMSSA enzyme id
     UInt getOMSSAid() const;
+
+    /// sets the MSGFPlus enzyme id
+    void setMSGFid(Int value);
+
+    /// returns the MSGFPlus enzyme id
+    Int getMSGFid() const;
     //@}
 
     /** @name Predicates
@@ -190,6 +197,8 @@ protected:
     String xtandem_id_;
 
     UInt omssa_id_;
+
+    Int msgf_id_;
   };
 
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Enzyme & enzyme);
