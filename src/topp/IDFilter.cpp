@@ -45,7 +45,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <limits>
-#include <boost/function.hpp>
 
 using namespace OpenMS;
 using namespace std;
