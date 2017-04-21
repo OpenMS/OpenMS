@@ -109,9 +109,12 @@ public:
 
     /// returns all the enzyme names available for XTandem
     void getAllXTandemNames(std::vector<String>& all_names) const;
-    
+
     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
+
+    /// returns all the enzyme names available for MSGFPlus
+    void getAllMSGFNames(std::vector<String>& all_names) const;
 
 
     //@}
@@ -125,7 +128,7 @@ public:
 
     /// returns true if the db contains a enzyme with the given regex
     bool hasRegEx(const String& cleavage_regex) const;
-    
+
     /// returns true if the db contains the enzyme of the given pointer
     bool hasEnzyme(const Enzyme* enzyme) const;
     //@}
@@ -139,7 +142,7 @@ public:
     //@}
 protected:
     EnzymesDB();
-    
+
     ///copy constructor
     EnzymesDB(const EnzymesDB& enzyme_db);
     //@}
