@@ -79,6 +79,7 @@ SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 SwathFile.h
+SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
@@ -91,6 +92,7 @@ MzIdentMLFile.h
 MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
+ZlibCompression.h
 )
 
 ### add path to the filenames

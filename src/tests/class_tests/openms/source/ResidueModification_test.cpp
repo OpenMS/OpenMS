@@ -204,12 +204,12 @@ START_SECTION(String getTermSpecificityName(TermSpecificity=NUMBER_OF_TERM_SPECI
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::ANYWHERE), "none")
 END_SECTION
 
-START_SECTION(void setOrigin(const String& origin))
-	ptr->setOrigin("blubb_new_origin");
-	TEST_STRING_EQUAL(ptr->getOrigin(), "blubb_new_origin")
+START_SECTION(void setOrigin(char origin))
+	ptr->setOrigin('A');
+	TEST_EQUAL(ptr->getOrigin(), 'A')
 END_SECTION
 
-START_SECTION(const String& getOrigin() const)
+START_SECTION(char getOrigin() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -341,9 +341,9 @@ START_SECTION(bool operator==(const ResidueModification& modification) const)
 	mod2.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(mod1 == mod2, true)
 
-	mod1.setOrigin("C");
+	mod1.setOrigin('C');
 	TEST_EQUAL(mod1 == mod2, false)
-	mod2.setOrigin("C");
+	mod2.setOrigin('C');
 	TEST_EQUAL(mod1 == mod2, true)
 
 	mod1.setSourceClassification(ResidueModification::NATURAL);
@@ -409,9 +409,9 @@ START_SECTION(bool operator!=(const ResidueModification& modification) const)
   mod2.setTermSpecificity(ResidueModification::N_TERM);
   TEST_EQUAL(mod1 != mod2, false)
 
-  mod1.setOrigin("C");
+  mod1.setOrigin('C');
   TEST_EQUAL(mod1 != mod2, true)
-  mod2.setOrigin("C");
+  mod2.setOrigin('C');
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setSourceClassification(ResidueModification::NATURAL);
@@ -423,7 +423,6 @@ START_SECTION(bool operator!=(const ResidueModification& modification) const)
   TEST_EQUAL(mod1 != mod2, true)
   mod2.setAverageMass(0.123);
   TEST_EQUAL(mod1 != mod2, false)
-
 
   mod1.setMonoMass(1.23);
   TEST_EQUAL(mod1 != mod2, true)

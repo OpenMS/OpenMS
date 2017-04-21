@@ -72,10 +72,10 @@ using namespace OpenMS;
   This module generates assays for targeted proteomics using a set of rules
   that was found to improve the sensitivity and selectivity for detection
   of typical peptides (Schubert et al., 2015). The tool operates on TraML
-  files, which can come from ConvertTSVToTraML or any other tool. If the
+  files, which can come from TargetedFileConverter or any other tool. If the
   TraML is annotated with the CV terms for fragment ion annotation, it can
   directly filter the transitions according to the set rules. If this is not
-  the case (e.g. if an older version of ConvertTSVToTraML was used), the
+  the case (e.g. if an older version of TargetedFileConverter was used), the
   option -enable_reannotation can do the reannotation.
 
   <B>The command line parameters of this tool are:</B>
