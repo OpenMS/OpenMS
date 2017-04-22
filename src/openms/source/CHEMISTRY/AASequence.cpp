@@ -248,6 +248,7 @@ namespace OpenMS
 
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
+    OPENMS_PRECONDITION( !this->has( *ResidueDB::getInstance()->getResidue("X") ), "Cannot get formula of sequence with unknown AA with unknown mass.");
 
     if (peptide_.size() >= 1)
     {
@@ -326,6 +327,8 @@ namespace OpenMS
 
   double AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
   {
+    OPENMS_PRECONDITION( !this->has( *ResidueDB::getInstance()->getResidue("X") ), "Cannot get weight of sequence with unknown AA with unknown mass.");
+
     // check whether tags are present
     double tag_offset(0);
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
@@ -341,6 +344,7 @@ namespace OpenMS
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
+    OPENMS_PRECONDITION( !this->has( *ResidueDB::getInstance()->getResidue("X") ), "Cannot get weight of sequence with unknown AA with unknown mass.");
 
     if (peptide_.size() >= 1)
     {
@@ -407,12 +411,12 @@ namespace OpenMS
       }
 
       return mono_weight;
-  }
-  else
-  {
-    LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
-    return 0.0;
-  }
+    }
+    else
+    {
+      LOG_ERROR << "AASequence::getMonoWeight: Mass for ResidueType " << type << " not defined for sequences of length 0." << std::endl;
+      return 0.0;
+    }
 }
 
 
@@ -1171,7 +1175,7 @@ namespace OpenMS
 
     if (peptide.empty()) return;
 
-    // remove optional n and c at start end end of string
+    // remove optional n and c at start and end of string
     if (peptide[0] == 'n') 
     {
       peptide.erase(0,1);
@@ -1265,10 +1269,24 @@ namespace OpenMS
       
       dot_terminal = false; // previous char was no dot
     }
+
+    // deal with a single, unmodified X residue which is an indication for a
+    // problem:
+    // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
+    // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
+    // single, unknown residue should represent.
+    const Residue* x = rdb->getResidue("X");
+    if (aas.has(*x) )
+    {
+      std::cerr << "Error while parsing sequence " << pep << ": found an unknown AA without an estimated mass. Please use PEPTIX[123] syntax to indicate an unknown amino acid with a known mass." << std::endl;
+      // throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error while parsing", String(pep));
+    }
   }
 
   void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
   {
+    OPENMS_PRECONDITION( !this->has( *ResidueDB::getInstance()->getResidue("X") ), "Cannot get AA frequencies of sequence with unknown AA with unknown mass.");
+
     frequency_table.clear();
 
     for (std::vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
