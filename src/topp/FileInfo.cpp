@@ -54,6 +54,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <QtCore/QString>
 
@@ -142,7 +143,7 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
@@ -270,7 +271,7 @@ protected:
       case FileTypes::TRANSFORMATIONXML:
         os << " against XML schema version " << TransformationXMLFile().getVersion() << "\n";
         valid = TransformationXMLFile().isValid(in, os);
-        break;        
+        break;   
 
       default:
         os << "\n" << "Aborted: Validation of this file type is not supported!" << "\n";
@@ -376,7 +377,71 @@ protected:
     // Content statistics
     //-------------------------------------------------------------
     Map<String, int> meta_names;
-    if (in_type == FileTypes::FEATUREXML) //features
+
+	if (in_type == FileTypes::FASTA)
+	{
+		vector <FASTAFile::FASTAEntry> entries;
+		FASTAFile file;
+		vector <FASTAFile::FASTAEntry>::iterator loopiter;
+		vector <FASTAFile::FASTAEntry>::iterator iter;
+		size_t mem1, mem2;
+		SysInfo::getProcessMemoryConsumption(mem1);
+
+		file.load(in, entries);
+
+		SysInfo::getProcessMemoryConsumption(mem2);
+		std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+
+		os << "Number of sequences: " << entries.size() << "\n"
+			<< "\n";
+		int i = 0;
+		for (loopiter = entries.begin(); loopiter != entries.end(); loopiter++)
+		{
+			iter = find_if(entries.begin(), loopiter, [=](FASTAFile::FASTAEntry const& entry) {
+				return (entry.sequence == loopiter->sequence); });
+			if (iter != loopiter && iter != entries.end())
+			{
+				os << "WARNING: DUPLICATE SEQUENCE, NUMBER " << std::distance(entries.begin(), loopiter) << " SAME AS NUMBER" << std::distance(entries.begin(), iter) << "\n";
+			}
+
+			iter = find_if(entries.begin(), loopiter, [=](FASTAFile::FASTAEntry const& entry) {
+				return (entry.description == loopiter->description && entry.identifier == loopiter->identifier); });
+			if (iter != loopiter && iter != entries.end())
+			{
+				os << "WARNING: DUPLICATE HEADER, NUMBER "<< std::distance(entries.begin(), loopiter) <<" SAME AS NUMBER" << std::distance(entries.begin(), iter) << "\n";
+			}
+			i++;
+		}
+
+		map<char, int> aacids;
+		std::map<char, int>::iterator it;
+		int number_of_aacids = 0;
+
+		for (loopiter = entries.begin(); loopiter != entries.end(); loopiter++)
+		{
+			for (int i = 0; i < loopiter->sequence.size(); i++)
+			{
+				const char tmp = loopiter->sequence[i];
+				it = aacids.find(tmp);
+				if (it == aacids.end())
+				{
+					aacids[tmp] = 0;
+				}
+				aacids[tmp]++;
+			}
+			number_of_aacids += loopiter->sequence.size();
+		}
+		
+		os << "Total amino acids: " << number_of_aacids << "\n\n";
+		os << "Amino acid counts: " << "\n";
+
+		for (it = aacids.begin(); it != aacids.end(); it++)
+		{
+			os << it->first << '\t' << it->second << std::endl;
+		}
+	}
+
+    else if (in_type == FileTypes::FEATUREXML) //features
     {
       FeatureXMLFile ff;
       ff.getOptions().setLoadConvexHull(false); // CH's currently not needed here
@@ -935,6 +1000,10 @@ protected:
       {
         // TODO
       }
+	  else if (in_type == FileTypes::FASTA)
+	  {
+
+	  }
       else //peaks
       {
 
@@ -1031,6 +1100,10 @@ protected:
       {
         // TODO
       }
+	  else if (in_type == FileTypes::FASTA)
+	  {
+
+	  }
       else //peaks
       {
         if (!exp.empty())
@@ -1214,10 +1287,14 @@ protected:
       {
         //TODO
       }
-      else if (in_type == FileTypes::PEPXML)
-      {
-        // TODO
-      }
+	  else if (in_type == FileTypes::FASTA)
+	  {
+
+	  }
+	  else if (in_type == FileTypes::PEPXML)
+	  {
+		  // TODO
+	  }
       else //peaks
       {
         //copy intensities of  MS-level 1 peaks
