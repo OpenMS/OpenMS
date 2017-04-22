@@ -301,27 +301,22 @@ protected:
     /***FASTA****/
     else if (force_type == FileTypes::FASTA)
     {
-      cout<<"Flag 0";
       FASTAFile fastafile, fastamerged;
       std::vector<FASTAFile::FASTAEntry> entry, merged;
 
       for (Size i = 0; i < file_list.size(); ++i)
       {
         fastafile.load(file_list[i], entry);
-        //cout<<entries[0].sequence<<endl;
-        merged.push_back(entry[0]);
+        for(std::vector<FASTAFile::FASTAEntry>::iterator it = entry.begin(); it != entry.end(); ++it)
+        {
+        	merged.push_back(*it);
+        }
       }
-
-      /*for (std::vector<FASTAFile::FASTAEntry>::iterator it = merged.begin()+1; it!= merged.end(); ++it)
-      {
-        cout<<it->sequence;
-        (merged.begin())->sequence += it->sequence;
-      }*/
 
       fastafile.store(out_file, merged);
 
     }
-    /****End****/
+    /****End FASTA****/
 
 
     else // raw data input (e.g. mzML)
