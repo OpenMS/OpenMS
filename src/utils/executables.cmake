@@ -5,8 +5,8 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 CVInspector
-DecoyDatabase
 DatabaseFilter
+DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
@@ -50,10 +50,10 @@ SpecLibCreator
 SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
-TransformationEvaluation
 TopPerc
-XMLValidator
+TransformationEvaluation
 XFDR
+XMLValidator
 )
 
 if(NOT DISABLE_OPENSWATH)
