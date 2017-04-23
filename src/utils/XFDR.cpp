@@ -481,7 +481,7 @@ class TOPPXFDR :
       * @brief xprophet  method for target hits counting as implemented in xProphet
       * @param cum_histograms Cumulative score distributions
       */
-    void fdr_xprophet(std::map< String, Math::Histogram<>  * > & cum_histograms,
+    void fdr_xprophet(std::map< String, Math::Histogram<> > & cum_histograms,
                       const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
                       vector< double > & fdr, bool mono)
     {
@@ -489,12 +489,12 @@ class TOPPXFDR :
            current_score <= this->max_score - (TOPPXFDR::fpnum_score_step/2);
            current_score += TOPPXFDR::fpnum_score_step)
       {
-        double estimated_n_decoys = cum_histograms[decoyclass]->binValue(current_score);
+        double estimated_n_decoys = cum_histograms[decoyclass].binValue(current_score);
         if ( ! mono)
         {
-          estimated_n_decoys -= 2 * cum_histograms[fulldecoyclass]->binValue(current_score);
+          estimated_n_decoys -= 2 * cum_histograms[fulldecoyclass].binValue(current_score);
         }
-        double n_targets = cum_histograms[targetclass]->binValue(current_score);
+        double n_targets = cum_histograms[targetclass].binValue(current_score);
         fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets) : 0);
       }
     }
@@ -888,14 +888,14 @@ class TOPPXFDR :
 
       // Generate Histograms of the scores for each class
       // Use cumulative histograms to count the number of scores above consecutive thresholds
-      std::map< String, Math::Histogram<>  * >  cum_histograms;
+      std::map< String, Math::Histogram<> >  cum_histograms;
       for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
            scores_it != scores.end(); ++scores_it)
       {
         vector< double > current_scores = scores_it->second;
         String classname = scores_it->first;
-        Math::Histogram<> * histogram = new Math::Histogram<>(this->min_score, this->max_score, TOPPXFDR::fpnum_score_step);
-        Math::Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, *histogram);
+        Math::Histogram<> histogram(this->min_score, this->max_score, TOPPXFDR::fpnum_score_step);
+        Math::Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, histogram);
         cum_histograms[classname] = histogram;
       }
 
@@ -991,13 +991,6 @@ class TOPPXFDR :
       for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
       {
         delete *it;
-      }
-
-      // Delete cumulative_histograms
-      for (std::map< String, Math::Histogram<> * >::iterator cum_histograms_it = cum_histograms.begin();
-           cum_histograms_it != cum_histograms.end(); ++cum_histograms_it)
-      {
-        delete cum_histograms_it->second;
       }
 
       // Write idXML
