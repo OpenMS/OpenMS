@@ -48,11 +48,11 @@ public:
     XQuestResultXMLFile();
     ~XQuestResultXMLFile();
 
-    void load(const String &,  // filename
-              std::vector< std::vector< PeptideIdentification > > &, // Vector of encompassed spectra, each containing associated PeptideIdentifications
-              std::vector< ProteinIdentification > &,  // The protein identification of the xQuest result file
-              Size = 0,  // Minimum number of PeptideIdentification a spectrum must contain to be loaded
-              bool = false); // Whether the OpenXQuest data will be loaded as Meta Values also into the peptide hits, instead just into the PeptideIdentification
+    void load(const String & filename,  // filename
+              std::vector< std::vector< PeptideIdentification > > & csms, // Vector of encompassed spectra, each containing associated PeptideIdentifications
+              std::vector< ProteinIdentification > & prot_ids,  // The protein identification of the xQuest result file
+              Size min_n_ions_per_spectrum = 0,  // Minimum number of PeptideIdentification a spectrum must contain to be loaded
+              bool load_to_peptideHit = false); // Whether the OpenXQuest data will be loaded as Meta Values also into the peptide hits, instead just into the PeptideIdentification
     
     // Currently not implemented
     //void store(const String &, std::vector< std::vector< PeptideIdentification > > & );

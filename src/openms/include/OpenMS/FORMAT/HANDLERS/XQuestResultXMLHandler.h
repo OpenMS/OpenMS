@@ -68,18 +68,18 @@ namespace OpenMS
        */
       static void removeSubstring(String & large, const String & small);
 
-      XQuestResultXMLHandler(const String & /* filename */,
-                             std::vector< std::vector< PeptideIdentification > > & /* csms */,
-                             std::vector< ProteinIdentification > &,
+      XQuestResultXMLHandler(const String & filename,
+                             std::vector< std::vector< PeptideIdentification > > & csms,
+                             std::vector< ProteinIdentification > & prot_ids,
                              Size min_n_ions_per_spectrum,
                              bool load_to_peptideHit_);
       virtual ~XQuestResultXMLHandler();
 
       // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname);
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes);
 
       // Getter for certain attributes of the xQuest file
       double getMinScore() const;
@@ -141,18 +141,18 @@ namespace OpenMS
       /**
        * @brief Gets the link location of a xQuest xlinkPositionString
        */
-      void getLinkPosition_(const xercesc::Attributes &, std::pair<SignedSize, SignedSize> &);
+      void getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair);
       
       /**
        * @brief Sets the peptide Evidence for Alpha and Beta
        */
-      void setPeptideEvidence_(const String &, PeptideHit &);
+      void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
 
       /*
        * Sets the meta data for one or both peptide hits
        */
-      void setMetaValue_(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */);
-      void setMetaValue_(const String & /* key */, const DataValue & /* datavalue */, PeptideIdentification & /* pep_id */, PeptideHit & /* alpha */, PeptideHit & /* beta */);
+      void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha);
+      void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta);
     };
   } // namespace Internal
 } // namespace OpenMS
