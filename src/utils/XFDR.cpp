@@ -864,6 +864,9 @@ class TOPPXFDR :
       writeLog_(this->toolName_() + " has used " + num_flagged + " hits to calculate the FDR");
 
       // Push empty vector for all remaining empty classes
+      // the FDR calculation from xProphet below assumes that all classes are present,
+      // a class might however have 0 members. TODO Might be better to modify fdr_xprophet
+      // such that missing classes in the input data can be handled
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_intradecoys);
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_fulldecoysintralinks);
       TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_interdecoys);
