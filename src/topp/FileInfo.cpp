@@ -127,7 +127,32 @@ namespace OpenMS
               << "  variance:       " << rhs.variance << "\n";
   }
 
+  struct MemUsage
+  {
+	  size_t mem_before, mem_after;
+	  MemUsage()
+		  : mem_before(0), mem_after(0)
+	  {}
+
+	  void before()
+	  {
+		  SysInfo::getProcessMemoryConsumption(mem_before);
+	  }
+	  void after()
+	  {
+		  SysInfo::getProcessMemoryConsumption(mem_after);
+	  }
+  };
+  ostream& operator<<(ostream& os, const MemUsage& m)
+  {
+	  if (m.mem_after < m.mem_before) os << "-" << (m.mem_before - m.mem_after) / 1024;
+	  else os << (m.mem_after - m.mem_before) / 1024;
+	  os << " MB";
+	  return os;
+  }
+
 }
+
 
 class TOPPFileInfo :
   public TOPPBase
@@ -192,6 +217,8 @@ protected:
     // File type
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+
+	MemUsage mu;
 
     if (in_type == FileTypes::UNKNOWN)
     {
@@ -384,60 +411,51 @@ protected:
 		FASTAFile file;
 		vector <FASTAFile::FASTAEntry>::iterator loopiter;
 		vector <FASTAFile::FASTAEntry>::iterator iter;
-		size_t mem1, mem2;
-		SysInfo::getProcessMemoryConsumption(mem1);
-
-		file.load(in, entries);
-
-		SysInfo::getProcessMemoryConsumption(mem2);
-		std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
-
-		os << "Number of sequences: " << entries.size() << "\n"
-			<< "\n";
-		int i = 0;
-		for (loopiter = entries.begin(); loopiter != entries.end(); loopiter++)
-		{
-			iter = find_if(entries.begin(), loopiter, [=](FASTAFile::FASTAEntry const& entry) {
-				return (entry.sequence == loopiter->sequence); });
-			if (iter != loopiter && iter != entries.end())
-			{
-				os << "WARNING: DUPLICATE SEQUENCE, NUMBER " << std::distance(entries.begin(), loopiter) << " SAME AS NUMBER" << std::distance(entries.begin(), iter) << "\n";
-			}
-
-			iter = find_if(entries.begin(), loopiter, [=](FASTAFile::FASTAEntry const& entry) {
-				return (entry.description == loopiter->description && entry.identifier == loopiter->identifier); });
-			if (iter != loopiter && iter != entries.end())
-			{
-				os << "WARNING: DUPLICATE HEADER, NUMBER "<< std::distance(entries.begin(), loopiter) <<" SAME AS NUMBER" << std::distance(entries.begin(), iter) << "\n";
-			}
-			i++;
-		}
 
 		map<char, int> aacids;
 		std::map<char, int>::iterator it;
 		int number_of_aacids = 0;
+		
+		mu.before();
+		//loading input
+		file.load(in, entries);
 
-		for (loopiter = entries.begin(); loopiter != entries.end(); loopiter++)
+		mu.after();
+		std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
+
+		os << "Number of sequences: " << entries.size() << "\n"
+			<< "\n";
+	
+		for (loopiter = entries.begin(); loopiter != entries.end(); loopiter=std::next(loopiter))
 		{
+			iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::HeaderMatches), &(*loopiter)));
+
+			if (iter != loopiter)
+			{
+				os << "WARNING: DUPLICATE SEQUENCE, NUMBER: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " SAME AS NUMBER: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+			}
+
+			iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::SequenceMatches), &(*loopiter)));
+		    
+			if (iter != loopiter && iter != entries.end())
+			{
+				os << "WARNING: DUPLICATE HEADER, NUMBER: "<< std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier <<" SAME AS NUMBER: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+			}
+
 			for (int i = 0; i < loopiter->sequence.size(); i++)
 			{
-				const char tmp = loopiter->sequence[i];
-				it = aacids.find(tmp);
-				if (it == aacids.end())
-				{
-					aacids[tmp] = 0;
-				}
-				aacids[tmp]++;
+				++aacids[loopiter->sequence[i]];
 			}
 			number_of_aacids += loopiter->sequence.size();
 		}
+
 		
 		os << "Total amino acids: " << number_of_aacids << "\n\n";
 		os << "Amino acid counts: " << "\n";
 
-		for (it = aacids.begin(); it != aacids.end(); it++)
+		for (it = aacids.begin(); it != aacids.end(); it=std::next(it))
 		{
-			os << it->first << '\t' << it->second << std::endl;
+			os << it->first << '\t' << it->second << "\n\n";
 		}
 	}
 
@@ -446,14 +464,13 @@ protected:
       FeatureXMLFile ff;
       ff.getOptions().setLoadConvexHull(false); // CH's currently not needed here
       ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
 
+	  mu.before();
       // reading input
       ff.load(in, feat);
+	  mu.after();
 
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+	  std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
       feat.updateRanges();
 
       os << "Number of features: " << feat.size() << "\n"
@@ -490,14 +507,12 @@ protected:
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
-
+	  mu.before();
       // reading input
       ConsensusXMLFile().load(in, cons);
 
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+	  mu.after();
+	  std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
 
       cons.updateRanges();
 
@@ -551,8 +566,7 @@ protected:
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
 
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
+	  mu.before();
 
       // reading input
 
@@ -565,8 +579,8 @@ protected:
         IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
       }
 
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+	  mu.after();
+	  std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
 
       // export metadata to second output stream
       os_tsv << "database" << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
@@ -645,9 +659,7 @@ protected:
     else //peaks
     {
 
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
-
+	  mu.before();
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
@@ -656,8 +668,8 @@ protected:
       }
 
       // report memory consumption
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+	  mu.after();
+	  std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;
