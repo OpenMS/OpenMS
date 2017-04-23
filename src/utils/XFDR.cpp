@@ -741,21 +741,21 @@ class TOPPXFDR :
       // Currently only for xQuest input files
       //-------------------------------------------------------------
       // The score is calculated for each hit h on the set of all hits of the spectrum that encompasses
-      std::vector< std::vector< double >* > delta_scores;
+      std::vector< std::vector< double > > delta_scores;
       std::vector< Size > n_min_ions_matched;
 
       // For xQuest input,calculate delta scores and min_ions_matched
       if (is_xquest_input)
       {
         writeLog_("Input is a xQuest result file. Compute the delta scores and the number of matched ions");
-        delta_scores.resize(n_spectra);
+        delta_scores.reserve(n_spectra);
         n_min_ions_matched.resize(n_spectra);
 
-        for(Size i = 0; i < delta_scores.size(); ++i)
+        for(Size i = 0; i < n_spectra; ++i)
         {
           Size n_hits = spectra[i].size();
-          delta_scores[i] = new std::vector<double>(n_hits);
-          vector<double> * current = delta_scores[i];
+          //delta_scores[i] = new std::vector<double>(n_hits);
+          vector<double> current(n_hits);
 
           assert(n_hits > 0); // because we initially do not load 'empty' spectra
           // calculate n_min_ions_matched
@@ -783,13 +783,14 @@ class TOPPXFDR :
                 PeptideIdentification * pep_id2 = &spectra[i][j+k];
                 if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
                 {
-                  (*current)[j] =   static_cast<double>(pep_id2->getMetaValue("OpenXQuest:score"))
+                  current[j] =   static_cast<double>(pep_id2->getMetaValue("OpenXQuest:score"))
                       / static_cast<double>(pep_id1->getMetaValue("OpenXQuest:score"));
                   break;
                 }
               }
             }
           }
+          delta_scores.push_back(current);
         }
       }
       else
@@ -835,7 +836,7 @@ class TOPPXFDR :
         {
           id = pep_id.getMetaValue("OpenXQuest:id").toString();
           error_rel = static_cast<double>(pep_id.getMetaValue("OpenXQuest:error_rel"));
-          delta_score = (*(delta_scores[order_score[i]]))[pep_id_index];
+          delta_score = (delta_scores[order_score[i]])[pep_id_index];
           ions_matched = n_min_ions_matched[order_score[i]];
         }
         num_flagged++;
@@ -987,11 +988,6 @@ class TOPPXFDR :
         }
       }
 
-      // Delete Delta Scores
-      for (std::vector< std::vector< double >* >::const_iterator it = delta_scores.begin(); it != delta_scores.end(); ++it)
-      {
-        delete *it;
-      }
 
       // Write idXML
       if ( ! arg_out_idXML.empty())
