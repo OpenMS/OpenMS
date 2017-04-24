@@ -936,11 +936,11 @@ namespace OpenMS
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     for (int i = 0; i < windows.size(); ++i)
     {
-      TOPPASWidget* window = dynamic_cast<TOPPASWidget*>(windows.at(i));
-      //cout << "  Tab " << i << ": " << window->window_id << endl;
-      if (window != 0 && window->getWindowId() == id)
+      TOPPASWidget* w = dynamic_cast<TOPPASWidget*>(windows.at(i)->widget());
+      //cout << "  Tab " << i << ": " << w->window_id << endl;
+      if (w != 0 && w->getWindowId() == id)
       {
-        return window;
+        return w;
       }
     }
     return 0;
