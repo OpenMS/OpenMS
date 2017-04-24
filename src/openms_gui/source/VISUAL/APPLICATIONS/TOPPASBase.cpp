@@ -146,8 +146,8 @@ namespace OpenMS
 
     box_layout->addWidget(tab_bar_);
     ws_ = new QMdiArea(dummy);
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateTabBar(QWidget*)));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
 
     box_layout->addWidget(ws_);
 
@@ -938,7 +938,7 @@ namespace OpenMS
     {
       TOPPASWidget* window = dynamic_cast<TOPPASWidget*>(windows.at(i));
       //cout << "  Tab " << i << ": " << window->window_id << endl;
-      if (window->getWindowId() == id)
+      if (window != 0 && window->getWindowId() == id)
       {
         return window;
       }
@@ -1018,12 +1018,16 @@ namespace OpenMS
 
   }
 
-  void TOPPASBase::updateTabBar(QWidget* w)
+  void TOPPASBase::updateTabBar(QMdiSubWindow* w)
   {
     if (w)
     {
-      Int window_id = dynamic_cast<TOPPASWidget*>(w)->getWindowId();
-      tab_bar_->setCurrentId(window_id);
+      TOPPASWidget* tw = dynamic_cast<TOPPASWidget*>(w->widget());
+      if (tw)
+      {
+        Int window_id = tw->getWindowId();
+        tab_bar_->setCurrentId(window_id);
+      }
     }
   }
 

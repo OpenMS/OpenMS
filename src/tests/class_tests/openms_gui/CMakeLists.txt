@@ -99,10 +99,6 @@ if(HAS_XSERVER)
   #------------------------------------------------------------------------------
   # Add GUI tests
   foreach(_gui_test ${GUI_executables_list})
-    # moc the test file
-    #QT5_WRAP_CPP(_mocced_test_file source/GUI/${_gui_test}.cpp OPTIONS ${BOOST_MOC_ARGS})
-    # define source file dependency
-    #set_source_files_properties(source/GUI/${_gui_test}.cpp PROPERTIES OBJECT_DEPENDS ${_mocced_test_file})
     # add the executable
     add_executable(${_gui_test} source/GUI/${_gui_test}.cpp)
     # link against openms_gui and qt

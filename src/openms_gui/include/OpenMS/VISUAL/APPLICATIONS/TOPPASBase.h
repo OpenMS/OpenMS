@@ -127,7 +127,7 @@ public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget* w);
+    void updateTabBar(QMdiSubWindow* w);
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// shows the URL stored in the data of the sender QAction
