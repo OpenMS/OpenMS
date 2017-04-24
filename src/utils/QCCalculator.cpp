@@ -156,7 +156,7 @@ protected:
 
   float calculateSNmedian (MSSpectrum<Peak1D>& spec, bool norm = true)
   {
-	if (spec.size() == 0) return 0;
+    if (spec.size() == 0) return 0;
     float median = 0;
     float maxi = 0;
     spec.sortByIntensity();
