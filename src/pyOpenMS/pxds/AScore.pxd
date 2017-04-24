@@ -12,6 +12,7 @@ from PeptideHit cimport *
 
 from MSExperiment cimport *
 from MSSpectrum cimport *
+from Peak1D cimport *
 from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":

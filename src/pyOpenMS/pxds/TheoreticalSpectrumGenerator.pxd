@@ -4,6 +4,7 @@ from Residue cimport *
 from DefaultParamHandler cimport *
 from AASequence cimport *
 from MSSpectrum cimport *
+from Peak1D cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>" namespace "OpenMS":
     
