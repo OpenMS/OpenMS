@@ -904,7 +904,8 @@ namespace OpenMS
     QList<QMdiSubWindow *> all_windows = ws_->subWindowList();
     foreach(QMdiSubWindow * w, all_windows)
     {
-      bool close_this = dynamic_cast<TOPPASWidget*>(w)->getScene()->saveIfChanged();
+      TOPPASWidget * widget = dynamic_cast<TOPPASWidget*>(w->widget());
+      bool close_this = widget->getScene()->saveIfChanged();
       if (!close_this)
       {
         close = false;
