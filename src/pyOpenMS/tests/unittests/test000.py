@@ -768,7 +768,62 @@ def testXTandemXMLFile():
     """
     f = pyopenms.XTandemXMLFile()
     assert f.load is not None
-    assert f.setModificationDefinitionsSet is not None
+
+@report
+def testXTandemInfile():
+    """
+    """
+    f = pyopenms.XTandemInfile()
+
+    f.setFragmentMassTolerance is not None
+    f.getFragmentMassTolerance is not None
+
+    f.setPrecursorMassTolerancePlus is not None
+    f.getPrecursorMassTolerancePlus is not None
+    f.setPrecursorMassToleranceMinus is not None
+    f.getPrecursorMassToleranceMinus is not None
+
+    f.setPrecursorErrorType is not None
+    f.getPrecursorErrorType is not None
+
+    f.setFragmentMassErrorUnit is not None
+    f.getFragmentMassErrorUnit is not None
+    f.setPrecursorMassErrorUnit is not None
+    f.getPrecursorMassErrorUnit is not None
+
+    f.setNumberOfThreads is not None
+    f.getNumberOfThreads is not None
+
+    f.setModifications is not None
+    f.getModifications is not None
+
+    f.setOutputFilename is not None
+    f.getOutputFilename is not None
+    f.setInputFilename is not None
+    f.getInputFilename is not None
+    f.setTaxonomyFilename is not None
+    f.getTaxonomyFilename is not None
+    f.setDefaultParametersFilename is not None
+    f.getDefaultParametersFilename is not None
+
+
+    f.setTaxon("testTaxon")
+    assert f.getTaxon() == "testTaxon"
+
+    assert f.setMaxPrecursorCharge is not None
+    assert f.getMaxPrecursorCharge is not None
+
+    assert f.setNumberOfMissedCleavages is not None
+    assert f.getNumberOfMissedCleavages is not None
+
+    assert f.setMaxValidEValue is not None
+    assert f.getMaxValidEValue is not None
+
+    assert f.setSemiCleavage is not None
+    assert f.setAllowIsotopeError is not None
+    assert f.write is not None
+    assert f.setCleavageSite is not None
+    assert f.getCleavageSite is not None
 
 @report
 def testSignalToNoiseEstimatorMedian():
@@ -2845,6 +2900,114 @@ def testMSSpectrum():
     assert ii0 == ii
 
     assert int(spec.isSorted()) in  (0,1)
+
+    # get data arrays
+    assert len(spec.getStringDataArrays()) == 0
+    string_da = [ pyopenms.StringDataArray() ]
+    string_da[0].push_back("hello")
+    string_da[0].push_back("world")
+    string_da.append( pyopenms.StringDataArray() )
+    string_da[1].push_back("other")
+    spec.setStringDataArrays( string_da )
+    assert len(spec.getStringDataArrays()) == 2
+    assert spec.getStringDataArrays()[0][0] == "hello"
+    assert spec.getStringDataArrays()[1][0] == "other"
+
+    assert len(spec.getIntegerDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].push_back(5)
+    int_da[0].push_back(6)
+    int_da.append( pyopenms.IntegerDataArray() )
+    int_da[1].push_back(8)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 2
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+    assert len(spec.getFloatDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.FloatDataArray() ]
+    int_da[0].push_back(5.0)
+    int_da[0].push_back(6.0)
+    int_da.append( pyopenms.FloatDataArray() )
+    int_da[1].push_back(8.0)
+    spec.setFloatDataArrays( int_da )
+    assert len(spec.getFloatDataArrays()) == 2.0
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+@report
+def testStringDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.StringDataArray()
+    assert da.size() == 0
+    da.push_back("hello")
+    da.push_back("world")
+    assert da.size() == 2
+    assert da[0] == "hello"
+    assert da[1] == "world"
+    da[1] = "hello world"
+    assert da[1] == "hello world", da[1]
+    da.clear()
+    assert da.size() == 0
+    da.push_back("hello")
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = "hello"
+    da[1] = ""
+    da[2] = "world"
+    assert da.size() == 3
+
+@report
+def testIntegerDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.IntegerDataArray()
+    assert da.size() == 0
+    da.push_back(1)
+    da.push_back(4)
+    assert da.size() == 2
+    assert da[0] == 1
+    assert da[1] == 4
+    da[1] = 7
+    assert da[1] == 7
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1)
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = 1
+    da[1] = 2
+    da[2] = 3
+    assert da.size() == 3
+
+@report
+def testFloatDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.FloatDataArray()
+    assert da.size() == 0
+    da.push_back(1.0)
+    da.push_back(4.0)
+    assert da.size() == 2
+    assert da[0] == 1.0
+    assert da[1] == 4.0
+    da[1] = 7.0
+    assert da[1] == 7.0
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1.0)
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = 1.0
+    da[1] = 2.0
+    da[2] = 3.0
+    assert da.size() == 3
 
 @report
 def testMSChromatogram():

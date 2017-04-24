@@ -104,7 +104,7 @@
 
 		@subsection TOPP_parameter_documentation Parameter documentation
 	
-	FUCK YOU! General documentation of a TOPP tool and documentation for the command line parameters,
+	General documentation of a TOPP tool and documentation for the command line parameters,
 	can be displayed using the command line argument @a --help.
 
 	Some TOPP tools also have subsections of parameters that are internally handed to

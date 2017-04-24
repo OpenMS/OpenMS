@@ -25,6 +25,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
 
         # Convert a ChromatogramPtr to an OpenMS Chromatogram
         void convertToOpenMSChromatogram(MSChromatogram[ChromatogramPeak] & chromatogram, shared_ptr[OSChromatogram] cptr) nogil except +
+        void convertToOpenMSChromatogramFilter(MSChromatogram[ChromatogramPeak] & chromatogram, shared_ptr[OSChromatogram] cptr,
+                                               double rt_min, double rt_max) nogil except +
 
         # convert from the OpenMS Targeted experiment to the light Targeted Experiment
         void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) nogil except +

@@ -87,7 +87,7 @@ private:
 
       std::vector<ResidueModification*>& modifications_;
 
-      std::vector<String> sites_;
+      std::vector<char> sites_;
 
       std::vector<ResidueModification::TermSpecificity> term_specs_;
     };

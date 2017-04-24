@@ -10,6 +10,7 @@
 	<note type="input" label="output, spectra">yes</note>
 	<note type="input" label="output, sort results by">spectrum</note>
 	<note type="input" label="output, xsl path">tandem-style.xsl</note>
+    <note type="input" label="output, parameters">yes</note>
 	<note type="input" label="spectrum, fragment monoisotopic mass error">13</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error plus">14</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error minus">15</note>
@@ -19,11 +20,11 @@
 	<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
 	<note type="input" label="spectrum, maximum parent charge">17</note>
 	<note type="input" label="spectrum, threads">16</note>
-	<note type="input" label="residue, modification mass">+58.005479@C,+28.0313@[,+15.994915@M</note>
-	<note type="input" label="residue, potential modification mass">+17.026549@],+80.062601@C</note>
 	<note type="input" label="protein, taxon">blubb_taxon</note>
 	<note type="input" label="protein, cleavage site">[KR]|{P}</note>
 	<note type="input" label="protein, cleavage semi">yes</note>
+	<note type="input" label="residue, modification mass">+58.005479@C,+28.0313@[,+15.994915@M</note>
+	<note type="input" label="residue, potential modification mass">+17.026549@],+80.062601@C</note>
 	<note type="input" label="scoring, maximum missed cleavage sites">18</note>
 	<note type="input" label="output, results">all</note>
 	<note type="input" label="output, maximum valid expectation value">19</note>

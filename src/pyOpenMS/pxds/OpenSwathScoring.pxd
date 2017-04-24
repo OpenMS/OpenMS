@@ -61,6 +61,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         bool use_dia_scores_
         bool use_ms1_correlation
         bool use_ms1_fullscan
+        bool use_sonar_scores
+        bool use_uis_scores
 
     cdef cppclass OpenSwath_Scores:
 

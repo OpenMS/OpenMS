@@ -31,11 +31,12 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
 #include <cstdlib>
 #include <iostream>
 
@@ -225,21 +226,25 @@ namespace OpenMS
 
   void Residue::setThreeLetterCode(const String& three_letter_code)
   {
+    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a String of size 3")
     three_letter_code_ = three_letter_code;
   }
 
   const String& Residue::getThreeLetterCode() const
   {
+    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a String of size 3")
     return three_letter_code_;
   }
 
   void Residue::setOneLetterCode(const String& one_letter_code)
   {
+    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a String of size 1")
     one_letter_code_ = one_letter_code;
   }
 
   const String& Residue::getOneLetterCode() const
   {
+    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a String of size 1")
     return one_letter_code_;
   }
 

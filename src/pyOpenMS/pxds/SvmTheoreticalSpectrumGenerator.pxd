@@ -16,7 +16,9 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespac
 cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>" namespace "OpenMS::SvmTheoreticalSpectrumGenerator":
     
     cdef cppclass SvmModelParameterSet "OpenMS::SvmTheoreticalSpectrumGenerator::SvmModelParameterSet":
+
         SvmModelParameterSet(SvmModelParameterSet) nogil except + #wrap-ignore
+
         # libcpp_vector[ shared_ptr[ SVMWrapper ] ] class_models
         # libcpp_vector[ shared_ptr[ SVMWrapper ] ] reg_models
         # TODO STL map with wrapped key
