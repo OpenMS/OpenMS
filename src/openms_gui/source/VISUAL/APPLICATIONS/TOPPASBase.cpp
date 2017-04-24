@@ -948,10 +948,10 @@ namespace OpenMS
 
   TOPPASWidget* TOPPASBase::activeSubWindow_() const
   {
-    if (!ws_->activeSubWindow())
+    if (ws_ == 0 || ws_->currentSubWindow() == 0 || ws_->currentSubWindow()->widget() == 0)
       return 0;
 
-    return dynamic_cast<TOPPASWidget*>(ws_->activeSubWindow());
+    return dynamic_cast<TOPPASWidget*>(ws_->currentSubWindow()->widget());
   }
 
   void TOPPASBase::closeByTab(int id)
@@ -990,7 +990,10 @@ namespace OpenMS
 
   void TOPPASBase::closeFile()
   {
-    ws_->activeSubWindow()->close();
+    if (ws_ != 0 && ws_->currentSubWindow() != 0)
+    {
+      ws_->currentSubWindow()->close();
+    }
     updateMenu();
   }
 
