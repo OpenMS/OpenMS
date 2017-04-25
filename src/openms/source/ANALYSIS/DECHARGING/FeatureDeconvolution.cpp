@@ -147,12 +147,15 @@ namespace OpenMS
     defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("verbose_level", 0);
     defaults_.setMaxInt("verbose_level", 3);
+    defaults_.setValue("is_neg", "false", "Were spectra acquired in negative mode?");
+    defaults_.setValidStrings("is_neg", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
   }
 
   void FeatureDeconvolution::updateMembers_()
   {
+    bool is_neg = param_.getValue("is_neg") == "true";
     map_label_.clear();
     map_label_inverse_.clear();
     map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
@@ -187,8 +190,15 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine charge of adduct (by # of '+')
-      Size l_charge = adduct[0].size();
-      l_charge -= adduct[0].remove('+').size();
+      int l_charge = adduct[0].size();
+      int n_charge, p_charge;
+      p_charge= l_charge - adduct[0].remove('+').size();
+      n_charge = adduct[0].size() - adduct[0].remove('-').size();
+      //std::cout << p_charge << " " << n_charge << endl;
+      l_charge = p_charge - n_charge;
+
+      //std::cout << "adduct[0]: " << adduct[0] << " charge: "<< l_charge << "\n";
+
       // determine probability
       float prob = adduct[1].toFloat();
       if (prob > 1.0 || prob <= 0.0)
@@ -196,9 +206,14 @@ namespace OpenMS
         String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
-      EmpiricalFormula ef(adduct[0].remove('+'));
-      ef -= EmpiricalFormula("H" + String(l_charge));
+      EmpiricalFormula ef(adduct[0].remove('+').remove('-'));
+      //std::cout << ef.toString() << endl;
+      if (!is_neg)
+        ef -= EmpiricalFormula("H" + String(l_charge));
+      else
+        ef += EmpiricalFormula("H" + String(l_charge));
       ef.setCharge(l_charge); // effectively subtract electron masses FIXME this only works with + charge
+      //std::cout << ef.toString() << endl;
 
       // RT Shift:
       double rt_shift(0);
@@ -219,7 +234,7 @@ namespace OpenMS
       }
 
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), adduct[0].remove('+'), log(prob), rt_shift, label);
-      //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.toString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
+      std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.toString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
       potential_adducts_.push_back(a);
 
       verbose_level_ = param_.getValue("verbose_level");
@@ -286,6 +301,7 @@ namespace OpenMS
   void FeatureDeconvolution::compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
   {
 
+    bool is_neg = param_.getValue("is_neg") == "true";
     ConsensusMap cons_map_p_neg; // tmp
     cons_map = ConsensusMap();
     cons_map_p = ConsensusMap();
@@ -352,6 +368,8 @@ namespace OpenMS
 
     // Backbone adduct: implicit adducts don't cost anything
     Adduct proton(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
+    if (is_neg)
+        proton.setAmount(-1);
 
     for (Size i_RT = 0; i_RT < fm_out.size(); ++i_RT) // ** RT-sweep line
     {
@@ -512,7 +530,7 @@ namespace OpenMS
                     cmp.add(proton * hc_right, Compomer::RIGHT);
 
                   ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
-                  //std::cout << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << " score: " << cp.getCompomer().getLogP() << "\n";
+                  LOG_DEBUG << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << " "<< cmp.getAdductsAsString() << " score: " << cp.getCompomer().getLogP() << "\n";
                   feature_relation.push_back(cp);
 #endif
                 }
@@ -1014,6 +1032,7 @@ namespace OpenMS
 
   void FeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
   {
+    bool is_neg = param_.getValue("is_neg") == "true";
     Size ladders_total(0);
     Size ladders_even(0);
     // count number of charge ladders which have gapped shapes, hinting at wrong lower-bound bound (should be lower)
@@ -1054,6 +1073,7 @@ namespace OpenMS
   ///      (Na+) -> (H+Na+)
   void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
+    bool is_neg = param_.getValue("is_neg") == "true";
     Adduct default_adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
 
     Size edges_size = edges.size();
