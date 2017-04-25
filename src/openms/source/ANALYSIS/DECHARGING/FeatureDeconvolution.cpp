@@ -772,6 +772,8 @@ namespace OpenMS
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::LEFT) ? 1 : 0));
         if (new_q0 != old_q0)
           fm_out[f0_idx].setMetaValue("old_charge", old_q0);
+        if (is_neg)
+            new_q0=new_q0*-1;//we correct to negative charges here
         fm_out[f0_idx].setCharge(new_q0);
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
@@ -796,6 +798,8 @@ namespace OpenMS
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::RIGHT) ? 1 : 0));
         if (new_q1 != old_q1)
           fm_out[f1_idx].setMetaValue("old_charge", old_q1);
+        if (is_neg)
+            new_q1=new_q1*-1;//we correct to negative charges here
         fm_out[f1_idx].setCharge(new_q1);
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)

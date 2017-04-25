@@ -301,7 +301,7 @@ namespace OpenMS
       if (intensity_weighted_averaging)
         weighting_factor = it->getIntensity() / intensity;
       rt += it->getRT() * weighting_factor;
-      m += (it->getMZ() * q - adduct_mass) * weighting_factor;
+      m += (it->getMZ() * abs(q) - adduct_mass) * weighting_factor;
     }
 
     // compute the average position and intensity
