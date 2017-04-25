@@ -725,6 +725,10 @@ set_tests_properties("TOPP_IDConflictResolver_1_out1" PROPERTIES DEPENDS "TOPP_I
 add_test("TOPP_IDConflictResolver_2" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_2_input.consensusXML -out IDConflictResolver_2_output.tmp)
 add_test("TOPP_IDConflictResolver_2_out1" ${DIFF} -in1 IDConflictResolver_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_2_output.consensusXML )
 set_tests_properties("TOPP_IDConflictResolver_2_out1" PROPERTIES DEPENDS "TOPP_IDConflictResolver_2")
+# Tests including empty features and features with IDs but without hits.
+add_test("TOPP_IDConflictResolver_3" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_3_input.consensusXML -out IDConflictResolver_3_output.tmp)
+add_test("TOPP_IDConflictResolver_3_out1" ${DIFF} -in1 IDConflictResolver_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_3_output.consensusXML )
+set_tests_properties("TOPP_IDConflictResolver_3_out1" PROPERTIES DEPENDS "TOPP_IDConflictResolver_3")
 
 #------------------------------------------------------------------------------
 # IDFileConverter tests
@@ -1008,13 +1012,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_ConvertTSVToTraML_test_4_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_4")
 
   # Proteomics PQP - TraML Conversion
-  add_test("TOPP_TargetedFileConverter_test_1_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_input.TraML -out ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.pqp.tmp -out_type pqp)
-  add_test("TOPP_TargetedFileConverter_test_1" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.pqp.tmp -in_type pqp -out ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.TraML.tmp -out_type TraML)
-  add_test("TOPP_TargetedFileConverter_test_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.TraML)
+  add_test("TOPP_TargetedFileConverter_test_1_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_input.TraML -out TargetedFileConverter_1_output.pqp.tmp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_test_1" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_1_output.pqp.tmp -in_type pqp -out TargetedFileConverter_1_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_1_out1" ${DIFF} -in1 TargetedFileConverter_1_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.TraML)
   set_tests_properties("TOPP_TargetedFileConverter_test_1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_1_prepare")
   set_tests_properties("TOPP_TargetedFileConverter_test_1_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_1")
-  add_test("TOPP_TargetedFileConverter_test_2" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_output.pqp.tmp -in_type pqp -out ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML.tmp -out_type TraML -legacy_traml_id)
-  add_test("TOPP_TargetedFileConverter_test_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML)
+  add_test("TOPP_TargetedFileConverter_test_2" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in TargetedFileConverter_1_output.pqp.tmp -in_type pqp -out TargetedFileConverter_2_output.TraML.tmp -out_type TraML -legacy_traml_id)
+  add_test("TOPP_TargetedFileConverter_test_2_out1" ${DIFF} -in1 TargetedFileConverter_2_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_2_output.TraML)
   set_tests_properties("TOPP_TargetedFileConverter_test_2" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_1_prepare")
   set_tests_properties("TOPP_TargetedFileConverter_test_2_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_2")
 
