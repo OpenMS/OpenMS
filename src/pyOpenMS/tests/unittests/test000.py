@@ -4609,6 +4609,7 @@ def testModificationsDB():
     m = mdb.getModification( s("Phosphorylation"), s("S"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m.getId() == b"Phospho"
 
+    # get out all mods (there should be many, some known ones as well!)
     mods = []
     m = mdb.getAllSearchModifications(mods)
     assert len(mods) > 100
@@ -4617,6 +4618,7 @@ def testModificationsDB():
     assert b"Sulfo (S)" in mods
     assert not (b"Phospho" in mods)
 
+    # search for specific modifications by mass
     m = mdb.getBestModificationByDiffMonoMass( 80.0, 1.0, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"Phospho"
@@ -4629,14 +4631,31 @@ def testModificationsDB():
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
+    m = mdb.getBestModificationByDiffMonoMass(16, 1.0, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None 
+    assert m.getId() == b"Oxidation", m.getId()
+    assert m.getFullName() == b"Oxidation or Hydroxylation", m.getFullName()
+    assert m.getUniModAccession() == b"UniMod:35"
+
+    ### 
+
     m = mdb.getBestModificationByMonoMass(80, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"MOD:00439"
+    assert m.getFullName() == b"O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
+    assert m.getUniModAccession() == b"" # no unimod for crazyness ...
+
+    m = mdb.getBestModificationByMonoMass(147, 20, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None 
+    assert m.getUniModAccession() == b"", m.getUniModAccession()
+    assert m.getId() == b"MOD:00719", m.getId()
+    assert m.getFullName() == b"oxidation to L-methionine sulfoxide", m.getFullName()
 
     m = mdb.getBestModificationByMonoMass( 96, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
-    assert m.getId() == b"Thr->Pro"
-    assert m.getUniModAccession() == b"UniMod:662"
+    assert m.getId() == b"MOD:00252", m.getId()
+    assert m.getFullName() == b"keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
+    assert m.getUniModAccession() == b"", m.getUniModAccession() # no unimod for crazyness ...
 
     # Test NULL ptr
     m = mdb.getBestModificationByMonoMass( 999999999, 0.20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
