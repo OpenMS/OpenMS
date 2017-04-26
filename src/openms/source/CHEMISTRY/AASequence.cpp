@@ -998,18 +998,10 @@ namespace OpenMS
       else // float mass -> use best-matching modification
       {
         const ResidueModification* res_mod = 0;
-        if (delta_mass)
-        {
-          res_mod = mod_db->getBestModificationByDiffMonoMass(
-            mass, tolerance, residue->getOneLetterCode(),
-            ResidueModification::ANYWHERE);
-        }
-        else // absolute mass
-        {
-          res_mod = mod_db->getBestModificationByMonoMass(
-            mass, tolerance, residue->getOneLetterCode(),
-            ResidueModification::ANYWHERE);
-        }
+        res_mod = mod_db->getBestModificationByDiffMonoMass(
+          mass, tolerance, residue->getOneLetterCode(),
+          ResidueModification::ANYWHERE);
+
         if (res_mod)
         {
           String id = res_mod->getId();
@@ -1020,18 +1012,10 @@ namespace OpenMS
         }
         else if (std::distance(mod_end, str.end()) == 1) // C-terminal mod.?
         {
-          if (delta_mass)
-          {
-            res_mod = mod_db->getBestModificationByDiffMonoMass(
-              mass, tolerance, residue->getOneLetterCode(),
-              ResidueModification::C_TERM);
-          }
-          else // absolute mass
-          {
-            res_mod = mod_db->getBestModificationByMonoMass(
-              mass, tolerance, residue->getOneLetterCode(),
-              ResidueModification::C_TERM);
-          }
+          res_mod = mod_db->getBestModificationByDiffMonoMass(
+            mass, tolerance, residue->getOneLetterCode(),
+            ResidueModification::C_TERM);
+
           if (res_mod)
           {
             aas.c_term_mod_ = res_mod;
