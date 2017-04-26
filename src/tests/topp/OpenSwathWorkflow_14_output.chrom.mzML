@@ -50,7 +50,7 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<chromatogramList count="24" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="PEPTIDEA" index="0" defaultArrayLength="19">
+			<chromatogram id="0_Precursor_i0" index="0" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -81,7 +81,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEB" index="1" defaultArrayLength="19">
+			<chromatogram id="2_Precursor_i0" index="1" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -112,7 +112,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEC" index="2" defaultArrayLength="19">
+			<chromatogram id="3_Precursor_i0" index="2" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -143,7 +143,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDED" index="3" defaultArrayLength="19">
+			<chromatogram id="4_Precursor_i0" index="3" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -174,7 +174,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEF" index="4" defaultArrayLength="19">
+			<chromatogram id="6_Precursor_i0" index="4" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -205,7 +205,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="PEPTIDEE" index="5" defaultArrayLength="19">
+			<chromatogram id="5_Precursor_i0" index="5" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -236,7 +236,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="1" index="6" defaultArrayLength="19">
+			<chromatogram id="0" index="6" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -267,7 +267,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="2" index="7" defaultArrayLength="19">
+			<chromatogram id="1" index="7" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -298,7 +298,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="3" index="8" defaultArrayLength="19">
+			<chromatogram id="2" index="8" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -329,7 +329,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="4" index="9" defaultArrayLength="19">
+			<chromatogram id="3" index="9" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -360,7 +360,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="5" index="10" defaultArrayLength="19">
+			<chromatogram id="4" index="10" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -391,7 +391,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="6" index="11" defaultArrayLength="19">
+			<chromatogram id="5" index="11" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -422,7 +422,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="7" index="12" defaultArrayLength="19">
+			<chromatogram id="6" index="12" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -453,7 +453,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="8" index="13" defaultArrayLength="19">
+			<chromatogram id="7" index="13" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -484,7 +484,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="9" index="14" defaultArrayLength="19">
+			<chromatogram id="8" index="14" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -515,7 +515,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="10" index="15" defaultArrayLength="19">
+			<chromatogram id="9" index="15" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -546,7 +546,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="11" index="16" defaultArrayLength="19">
+			<chromatogram id="10" index="16" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -577,7 +577,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="12" index="17" defaultArrayLength="19">
+			<chromatogram id="11" index="17" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -608,7 +608,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="16" index="18" defaultArrayLength="19">
+			<chromatogram id="15" index="18" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -639,7 +639,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="13" index="19" defaultArrayLength="19">
+			<chromatogram id="12" index="19" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -670,7 +670,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="17" index="20" defaultArrayLength="19">
+			<chromatogram id="16" index="20" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -701,7 +701,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="14" index="21" defaultArrayLength="19">
+			<chromatogram id="13" index="21" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -732,7 +732,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="18" index="22" defaultArrayLength="19">
+			<chromatogram id="17" index="22" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -763,7 +763,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="15" index="23" defaultArrayLength="19">
+			<chromatogram id="14" index="23" defaultArrayLength="19">
 				<cvParam cvRef="MS" accession="MS:1000810" name="mass chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -799,32 +799,32 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="PEPTIDEA">3364</offset>
-		<offset idRef="PEPTIDEB">5328</offset>
-		<offset idRef="PEPTIDEC">7292</offset>
-		<offset idRef="PEPTIDED">9256</offset>
-		<offset idRef="PEPTIDEF">11220</offset>
-		<offset idRef="PEPTIDEE">13185</offset>
-		<offset idRef="1">15150</offset>
-		<offset idRef="2">17112</offset>
-		<offset idRef="3">19074</offset>
-		<offset idRef="4">21036</offset>
-		<offset idRef="5">22998</offset>
-		<offset idRef="6">24961</offset>
-		<offset idRef="7">26924</offset>
-		<offset idRef="8">28887</offset>
-		<offset idRef="9">30850</offset>
-		<offset idRef="10">32813</offset>
-		<offset idRef="11">34777</offset>
-		<offset idRef="12">36741</offset>
-		<offset idRef="16">38705</offset>
-		<offset idRef="13">40670</offset>
-		<offset idRef="17">42635</offset>
-		<offset idRef="14">44600</offset>
-		<offset idRef="18">46565</offset>
-		<offset idRef="15">48530</offset>
+		<offset idRef="0_Precursor_i0">3364</offset>
+		<offset idRef="2_Precursor_i0">5334</offset>
+		<offset idRef="3_Precursor_i0">7304</offset>
+		<offset idRef="4_Precursor_i0">9274</offset>
+		<offset idRef="6_Precursor_i0">11244</offset>
+		<offset idRef="5_Precursor_i0">13215</offset>
+		<offset idRef="0">15186</offset>
+		<offset idRef="1">17148</offset>
+		<offset idRef="2">19110</offset>
+		<offset idRef="3">21072</offset>
+		<offset idRef="4">23034</offset>
+		<offset idRef="5">24997</offset>
+		<offset idRef="6">26960</offset>
+		<offset idRef="7">28923</offset>
+		<offset idRef="8">30886</offset>
+		<offset idRef="9">32849</offset>
+		<offset idRef="10">34812</offset>
+		<offset idRef="11">36776</offset>
+		<offset idRef="15">38740</offset>
+		<offset idRef="12">40705</offset>
+		<offset idRef="16">42670</offset>
+		<offset idRef="13">44635</offset>
+		<offset idRef="17">46600</offset>
+		<offset idRef="14">48565</offset>
 	</index>
 </indexList>
-<indexListOffset>50529</indexListOffset>
+<indexListOffset>50564</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
