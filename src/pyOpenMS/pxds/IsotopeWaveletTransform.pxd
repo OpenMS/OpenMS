@@ -16,6 +16,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
         # IsotopeWaveletTransform() nogil except +
         IsotopeWaveletTransform(IsotopeWaveletTransform) nogil except + #wrap-ignore
         IsotopeWaveletTransform(double min_mz, double max_mz, UInt max_charge, Size max_scan_size, bool hr_data, String intenstype) nogil except +
+
         void getTransform(MSSpectrum[ PeakT ] &c_trans, MSSpectrum[ PeakT ] &c_ref, UInt c) nogil except +
         void getTransformHighRes(MSSpectrum[ PeakT ] &c_trans, MSSpectrum[ PeakT ] &c_ref, UInt c) nogil except +
         void identifyCharge(MSSpectrum[ PeakT ] &candidates, MSSpectrum[ PeakT ] &ref, UInt scan_index, UInt c, double ampl_cutoff, bool check_PPMs) nogil except +
@@ -36,10 +37,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.
 # pyopenms/pyopenms.cpp: error: template argument 1 is invalid
 # on boost::shared_ptr<OpenMS::IsotopeWaveletTransform::TransSpectrum> inst;
 # cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>" namespace "OpenMS::IsotopeWaveletTransform":
-#
+
 #     cdef cppclass TransSpectrum "OpenMS::IsotopeWaveletTransform::TransSpectrum":
 #         TransSpectrum() nogil except +
 #         TransSpectrum(TransSpectrum) nogil except + #wrap-ignore
+
 #         # POINTER #  TransSpectrum(MSSpectrum[ PeakType ] * reference) nogil except +
 #         void destroy() nogil except +
 #         double getRT() nogil except +

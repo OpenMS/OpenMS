@@ -111,8 +111,6 @@ UTILS
 
 so far, 3 are wrapped
 
-ok   ConvertTraMLToTSV.cpp
-ok   ConvertTSVToTraML.cpp
 x    CVInspector.cpp   # 400 lines
 x    DecoyDatabase.cpp # 200 lines
 x    DeMeanderize.cpp  # 100 lines

@@ -37,6 +37,7 @@
 
 #include <vector>
 #include <map>
+#include <functional> 
 
 using namespace std;
 
@@ -94,7 +95,7 @@ namespace OpenMS
     }
 
     // determine index of closest node left of (or exactly at) x
-    unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
+    unsigned i = static_cast<unsigned>(std::lower_bound(x_.begin(), x_.end(), x) - x_.begin());
     if (x_[i] > x || x_.back() == x)
     {
         --i;
@@ -117,7 +118,7 @@ namespace OpenMS
     }
 
     // determine index of closest node left of (or exactly at) x
-    unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
+    unsigned i = static_cast<unsigned>(std::lower_bound(x_.begin(), x_.end(), x) - x_.begin());
     if (x_[i] > x || x_.back() == x) // also, i must not point to last index in 'x_', since all other vectors are one element shorter
     {
       --i;
@@ -170,7 +171,7 @@ namespace OpenMS
     d_.resize(n);
     c_.resize(n+1);
     c_.back() = 0;
-    for (int j = n - 1; j >= 0; --j)
+    for (int j = static_cast<int>(n) - 1; j >= 0; --j)
     {
       c_[j] = z[j] - mu[j] * c_[j + 1];
       b_[j] = (y[j + 1] - y[j]) / h[j] - h[j] * (c_[j + 1] + 2 * c_[j]) / 3;

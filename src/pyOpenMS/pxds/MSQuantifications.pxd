@@ -32,8 +32,10 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
         libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
         libcpp_vector[Assay] getAssays() nogil except +
+
         # TODO - not implemented in OpenMS, remove from API
         # libcpp_map[String, Ratio] getRatios() nogil except + # wrap-ignore
+
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
         libcpp_vector[FeatureMap ] getFeatureMaps() nogil except +

@@ -213,8 +213,8 @@ namespace OpenMS
         }
 
         // Time is first, intensity is second
-        output[k]->binaryDataArrayPtrs[0]->data.push_back(current_rt);
-        output[k]->binaryDataArrayPtrs[1]->data.push_back(integrated_intensity);
+        output[k]->getTimeArray()->data.push_back(current_rt);
+        output[k]->getIntensityArray()->data.push_back(integrated_intensity);
       }
     }
     endProgress();

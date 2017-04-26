@@ -103,26 +103,26 @@ END_SECTION
 
   set<const ResidueModification*, ResidueModificationOriginCmp>::const_iterator mod_it = mods_sorted.begin();
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'S')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'T')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
   ++mod_it;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "T")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'Y')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
 
-    ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::C_TERM);
+  ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::C_TERM);
 
   TEST_EQUAL(mods.size(), 1)
   ABORT_IF(mods.size() != 1)
@@ -135,12 +135,12 @@ END_SECTION
   }
 
   mod_it = mods_sorted.begin();
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
   // no match, thus mods should be empty
-    ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::N_TERM);
+  ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::N_TERM);
 
   TEST_EQUAL(mods.size(), 0)
 }

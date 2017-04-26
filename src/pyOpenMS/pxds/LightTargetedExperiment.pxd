@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         LightModification(LightModification) nogil except +
 
         int location
-        libcpp_string unimod_id
+        int unimod_id
 
     cdef cppclass LightCompound:
         LightCompound() nogil except +

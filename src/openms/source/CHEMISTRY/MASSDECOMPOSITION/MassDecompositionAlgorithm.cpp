@@ -119,14 +119,14 @@ namespace OpenMS
     {
       const ResidueModification& mod = it->getModification();
       char aa = ' ';
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
         cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        aa = mod.getOrigin()[0];
+        aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
@@ -158,14 +158,14 @@ namespace OpenMS
       char origin_aa = ' ';
       ++actual_mod_name;
 
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
         cerr << "MassDecompositionAlgorithm: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        origin_aa = mod.getOrigin()[0];
+        origin_aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
