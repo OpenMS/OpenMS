@@ -13,7 +13,6 @@ EnzymaticDigestion.h
 Enzyme.h
 EnzymesDB.h
 IsotopeDistribution.h
-IsotopeDistributionMIDAS.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModificationsDB.h
