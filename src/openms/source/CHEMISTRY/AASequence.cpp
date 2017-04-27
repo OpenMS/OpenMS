@@ -1144,11 +1144,13 @@ namespace OpenMS
         {
           new_mod->setMonoMass(mass + residue->getMonoWeight());
           new_mod->setAverageMass(mass + residue->getAverageWeight());
+          new_mod->setDiffMonoMass(mass);
         }
         else
         {
           new_mod->setMonoMass(mass);
           new_mod->setAverageMass(mass);
+          new_mod->setDiffMonoMass(mass - residue->getMonoWeight());
         }
 
         mod_db->addModification(new_mod);
