@@ -2399,6 +2399,8 @@ namespace OpenMS
                 CVTerm cv = parseCvParam_(cvp);
                 if (cv.getAccession() == "MS:1001460") // unknown modification
                 {
+                  // TODO: actually parse this and add a new modification of
+                  // mass "monoisotopicMassDelta" to the AASequence
                   // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
                   throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
                 }
