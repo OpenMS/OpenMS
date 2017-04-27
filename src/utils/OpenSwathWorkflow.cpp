@@ -34,6 +34,7 @@
 
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -45,7 +46,9 @@
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -398,10 +401,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,csv"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
+    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,csv"));
+    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
@@ -420,10 +423,14 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    registerStringOption_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+    setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
+    setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
-    setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
@@ -656,6 +663,7 @@ protected:
 
     String out = getStringOption_("out_features");
     String out_tsv = getStringOption_("out_tsv");
+    String out_osw = getStringOption_("out_osw");
 
     String irt_tr_file = getStringOption_("tr_irt");
     String trafo_in = getStringOption_("rt_norm");
@@ -708,10 +716,15 @@ protected:
       std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     }
-    if ( (out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
+    if ( (out.empty() && out_tsv.empty() && out_osw.empty()) || (!out.empty() && !out_tsv.empty())  || (!out.empty() && !out_osw.empty())  || (!out_tsv.empty() && !out_osw.empty()) )
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Either out_features or out_tsv needs to be set (but not both)");
+          "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
+    }
+    if (!out_osw.empty() && tr_type != FileTypes::PQP)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "OSW output files can only be generated in combination with PQP input files (-tr).");
     }
 
     // Check swath window input
@@ -768,20 +781,35 @@ protected:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, 1, "Load TraML file");
-    FileTypes::Type tr_file_type = FileTypes::nameToType(tr_file);
-    if (tr_file_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
     {
       TargetedExperiment targeted_exp;
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
     }
-    else
+    else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
-      std::cout << " ok here!!" << std::endl;
+      TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+
+      remove(out_osw.c_str());
+      if (!out_osw.empty())
+      {
+        std::ifstream  src(tr_file.c_str(), std::ios::binary);
+        std::ofstream  dst(out_osw.c_str(), std::ios::binary);
+
+        dst << src.rdbuf();
+      }
+    }
+    else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
+    {
       TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
     }
+    else
+    {
+      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      return PARSE_ERROR;
+    }
     progresslogger.endProgress();
-
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -858,36 +886,46 @@ protected:
         sonar);
 
     ///////////////////////////////////
-    // Set up chrom.mzML output
+    // Set up chromatogram output
+    // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
-    MSDataWritingConsumer * chromConsumer;
+    Interfaces::IMSDataConsumer * chromatogramConsumer;
     if (!out_chrom.empty())
     {
-      chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-      int expected_chromatograms = transition_exp.transitions.size();
-      chromConsumer->setExpectedSize(0, expected_chromatograms);
-      chromConsumer->setExperimentalSettings(*exp_meta);
-      chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
-      chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+      if (out_chrom.hasSuffix(".sqMass"))
+      {
+        chromatogramConsumer = new MSDataSqlConsumer(out_chrom);
+      }
+      else
+      {
+        PlainMSDataWritingConsumer * chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
+        int expected_chromatograms = transition_exp.transitions.size();
+        chromConsumer->setExpectedSize(0, expected_chromatograms);
+        chromConsumer->setExperimentalSettings(*exp_meta);
+        chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
+        chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
 
-      // prepare data structures for lossy compression
-      MSNumpressCoder::NumpressConfig npconfig_mz;
-      MSNumpressCoder::NumpressConfig npconfig_int;
-      npconfig_mz.estimate_fixed_point = true; // critical
-      npconfig_int.estimate_fixed_point = true; // critical
-      npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
-      npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
-      npconfig_mz.setCompression("linear");
-      npconfig_int.setCompression("slof");
-      npconfig_mz.linear_fp_mass_acc = 0.05; // set the desired RT accuracy in seconds
+        // prepare data structures for lossy compression
+        MSNumpressCoder::NumpressConfig npconfig_mz;
+        MSNumpressCoder::NumpressConfig npconfig_int;
+        npconfig_mz.estimate_fixed_point = true; // critical
+        npconfig_int.estimate_fixed_point = true; // critical
+        npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
+        npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
+        npconfig_mz.setCompression("linear");
+        npconfig_int.setCompression("slof");
+        npconfig_mz.linear_fp_mass_acc = 0.05; // set the desired RT accuracy in seconds
 
-      chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
-      chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
-      // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
+        chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
+
+        chromatogramConsumer = chromConsumer;
+      }
     }
     else
     {
-      chromConsumer = new NoopMSDataWritingConsumer("");
+      chromatogramConsumer = new NoopMSDataWritingConsumer("");
     }
 
     ///////////////////////////////////
@@ -896,20 +934,21 @@ protected:
     FeatureMap out_featureFile;
 
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
+    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
 
     if (sonar)
     {
       OpenSwathWorkflowSonar wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
     else
     {
       OpenSwathWorkflow wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
 
     if (!out.empty())
@@ -919,7 +958,7 @@ protected:
       FeatureXMLFile().store(out, out_featureFile);
     }
 
-    delete chromConsumer;
+    delete chromatogramConsumer;
 
     return EXECUTION_OK;
   }
