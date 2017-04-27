@@ -428,18 +428,18 @@ protected:
 	
 		for (loopiter = entries.begin(); loopiter != entries.end(); loopiter=std::next(loopiter))
 		{
-			iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::HeaderMatches), &(*loopiter)));
+			iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::headerMatches), &(*loopiter)));
 
 			if (iter != loopiter)
 			{
-				os << "WARNING: DUPLICATE SEQUENCE, NUMBER: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " SAME AS NUMBER: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+				os << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
 			}
 
-			iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::SequenceMatches), &(*loopiter)));
+			iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::sequenceMatches), &(*loopiter)));
 		    
 			if (iter != loopiter && iter != entries.end())
 			{
-				os << "WARNING: DUPLICATE HEADER, NUMBER: "<< std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier <<" SAME AS NUMBER: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+				os << "Warning: Duplicate header, Number: "<< std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier <<" is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
 			}
 
 			for (int i = 0; i < loopiter->sequence.size(); i++)

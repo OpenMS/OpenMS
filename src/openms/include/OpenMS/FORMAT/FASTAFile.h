@@ -85,13 +85,13 @@ public:
                && sequence == rhs.sequence;
       }
 
-	  bool HeaderMatches(const FASTAEntry rhs)
+	  bool headerMatches(const FASTAEntry rhs)
 	  {
 		  return identifier == rhs.identifier
 			  && description == rhs.description;
 	  }
 
-	  bool SequenceMatches(const FASTAEntry rhs)
+	  bool sequenceMatches(const FASTAEntry rhs)
 	  {
 		  return sequence == rhs.sequence;
 	  }
