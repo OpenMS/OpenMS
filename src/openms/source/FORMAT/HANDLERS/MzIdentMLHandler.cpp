@@ -905,7 +905,7 @@ namespace OpenMS
                     {
                       // We have an unknown modification, so lets write unknown
                       // and at least try to write down the delta mass.
-                      if (mod->getDiffMonoMass() > 0.0)
+                      if (mod->getDiffMonoMass() != 0.0)
                       {
                         double diffmass = mod->getDiffMonoMass();
                         p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
