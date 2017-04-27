@@ -477,13 +477,16 @@ START_SECTION(String toBracketString(const std::vector<String> & fixed_modificat
   TEST_STRING_EQUAL(s.toBracketString(), "PEPC[160]PEPM[147]PEPR");
   vector<String> fixed_mods;
   fixed_mods.push_back("Carbamidomethyl (C)");
-  TEST_STRING_EQUAL(s.toBracketString(fixed_mods), "PEPCPEPM[147]PEPR");
+  TEST_STRING_EQUAL(s.toBracketString(true, fixed_mods), "PEPCPEPM[147]PEPR");
+  TEST_STRING_EQUAL(s.toBracketString(false, fixed_mods), "PEPCPEPM[147.0354000171]PEPR");
   s.setNTerminalModification("Acetyl (N-term)");
   s.setCTerminalModification("Amidated (C-term)");
-  TEST_STRING_EQUAL(s.toBracketString(fixed_mods), "n[43]PEPCPEPM[147]PEPRc[16]");
+  TEST_STRING_EQUAL(s.toBracketString(true, fixed_mods), "n[43]PEPCPEPM[147]PEPRc[16]");
+  TEST_STRING_EQUAL(s.toBracketString(false, fixed_mods), "n[43.0183900319]PEPCPEPM[147.0354000171]PEPRc[16.0187240319]");
   fixed_mods.push_back("Acetyl (N-term)");
   fixed_mods.push_back("Amidated (C-term)");
-  TEST_STRING_EQUAL(s.toBracketString(fixed_mods), "PEPCPEPM[147]PEPR");
+  TEST_STRING_EQUAL(s.toBracketString(true, fixed_mods), "PEPCPEPM[147]PEPR");
+  TEST_STRING_EQUAL(s.toBracketString(false, fixed_mods), "PEPCPEPM[147.0354000171]PEPR");
 END_SECTION
 
 START_SECTION(void setModification(Size index, const String &modification))
@@ -716,7 +719,7 @@ START_SECTION([EXTRA] Tag in peptides)
   TEST_EQUAL(aa3.isModified(), true)
   TEST_EQUAL(aa4.isModified(), true)
   TEST_EQUAL(aa5.isModified(), true)
-  TEST_EQUAL(aa6.isModified(), false) // TODO unclear what the correct answer should be
+  TEST_EQUAL(aa6.isModified(), true)
 
   // Test negative mods / losses
   // test without loss
@@ -731,24 +734,202 @@ START_SECTION([EXTRA] Tag in peptides)
 }
 END_SECTION
 
-START_SECTION([EXTRA] Arbitrary tag in peptides)
+START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 {
   // test arbitrary modification
-  AASequence aa = AASequence::fromString("PEPTXIDE");
-  aa = AASequence::fromString("PEPTX[999]IDE");
+  AASequence aa_original = AASequence::fromString("PEPTIDE");
+  TEST_REAL_SIMILAR(aa_original.getMonoWeight(), 799.36001)
+
+  AASequence aa_half = AASequence::fromString("IDE");
+  TEST_REAL_SIMILAR(aa_half.getMonoWeight(), 375.1641677975)
+
+  AASequence aa = AASequence::fromString("PEPTX[999]IDE");
   TEST_REAL_SIMILAR(aa.getMonoWeight(), 799.36001 + 999.0)
+  TEST_REAL_SIMILAR(aa.getMonoWeight(), aa_original.getMonoWeight() + 999.0)
+
+  {
+    AASequence aa = AASequence::fromString("PEPTX[999.0]IDE");
+    TEST_REAL_SIMILAR(aa.getMonoWeight(), 799.36001 + 999.0)
+    TEST_REAL_SIMILAR(aa.getMonoWeight(), aa_original.getMonoWeight() + 999.0)
+  }
 
   // test arbitrary differences (e.g. it should be possible to encode arbitrary masses and still get the correct weight)
-  AASequence test1 = AASequence::fromString("PEPTX[160.030654]IDE");
-  TEST_REAL_SIMILAR(test1.getMonoWeight(), 959.39066)
-  AASequence test2 = AASequence::fromString("PEPTX[160.040654]IDE");
-  TEST_REAL_SIMILAR(test2.getMonoWeight(), 959.40066)
-  AASequence test3 = AASequence::fromString("PEPTX[160.050654]IDE");
-  TEST_REAL_SIMILAR(test3.getMonoWeight(), 959.41066)
-  AASequence test4 = AASequence::fromString("PEPTX[160.130654]IDE");
-  TEST_REAL_SIMILAR(test4.getMonoWeight(), 959.49066)
-  AASequence test5 = AASequence::fromString("PEPTX[160.230654]IDE");
-  TEST_REAL_SIMILAR(test5.getMonoWeight(), 959.59066)
+  {
+    AASequence test1 = AASequence::fromString("PEPTX[160.030654]IDE");
+    TEST_REAL_SIMILAR(test1.getMonoWeight(), aa_original.getMonoWeight() + 160.030654)
+    AASequence test2 = AASequence::fromString("PEPTX[160.040654]IDE");
+    TEST_REAL_SIMILAR(test2.getMonoWeight(), aa_original.getMonoWeight() + 160.040654)
+    AASequence test3 = AASequence::fromString("PEPTX[160.050654]IDE");
+    TEST_REAL_SIMILAR(test3.getMonoWeight(), aa_original.getMonoWeight() + 160.050654)
+    AASequence test4 = AASequence::fromString("PEPTX[160.130654]IDE");
+    TEST_REAL_SIMILAR(test4.getMonoWeight(), aa_original.getMonoWeight() + 160.130654)
+    AASequence test5 = AASequence::fromString("PEPTX[160.230654]IDE");
+    TEST_REAL_SIMILAR(test5.getMonoWeight(), aa_original.getMonoWeight() + 160.230654)
+  }
+
+  // test arbitrary differences (e.g. it should be possible to encode arbitrary masses and still get the correct weight)
+  {
+    AASequence test1 = AASequence::fromString("PEPTN[160.030654]IDE");
+    TEST_REAL_SIMILAR(test1.getMonoWeight(), aa_original.getMonoWeight() + 160.030654)
+    AASequence test2 = AASequence::fromString("PEPTN[160.040654]IDE");
+    TEST_REAL_SIMILAR(test2.getMonoWeight(), aa_original.getMonoWeight() + 160.040654)
+    AASequence test3 = AASequence::fromString("PEPTN[160.050654]IDE");
+    TEST_REAL_SIMILAR(test3.getMonoWeight(), aa_original.getMonoWeight() + 160.050654)
+    AASequence test4 = AASequence::fromString("PEPTN[160.130654]IDE");
+    TEST_REAL_SIMILAR(test4.getMonoWeight(), aa_original.getMonoWeight() + 160.130654)
+    AASequence test5 = AASequence::fromString("PEPTN[160.230654]IDE");
+    TEST_REAL_SIMILAR(test5.getMonoWeight(), aa_original.getMonoWeight() + 160.230654)
+  }
+
+  // test arbitrary differences (e.g. it should be possible to encode arbitrary masses and still get the correct weight)
+  {
+    AASequence test1 = AASequence::fromString("PEPT[+160.030654]IDE");
+    TEST_REAL_SIMILAR(test1.getMonoWeight(), aa_original.getMonoWeight() + 160.030654)
+
+    TEST_REAL_SIMILAR(test1[0].getMonoWeight(), 115.0633292871)
+    TEST_EQUAL(test1[3].isModified(), true)
+    TEST_REAL_SIMILAR(test1[3].getMonoWeight(), 160.030654 + 119.0582442871) // the weight at this position is the mod + residue itself
+
+    AASequence test2 = AASequence::fromString("PEPT[+160.040654]IDE");
+    TEST_REAL_SIMILAR(test2.getMonoWeight(), aa_original.getMonoWeight() + 160.040654)
+    AASequence test3 = AASequence::fromString("PEPT[+160.050654]IDE");
+    TEST_REAL_SIMILAR(test3.getMonoWeight(), aa_original.getMonoWeight() + 160.050654)
+    AASequence test4 = AASequence::fromString("PEPT[+160.130654]IDE");
+    TEST_REAL_SIMILAR(test4.getMonoWeight(), aa_original.getMonoWeight() + 160.130654)
+    AASequence test5 = AASequence::fromString("PEPT[+160.230654]IDE");
+    TEST_REAL_SIMILAR(test5.getMonoWeight(), aa_original.getMonoWeight() + 160.230654)
+  }
+
+  // test arbitrary differences when writing them out
+  AASequence test6 = AASequence::fromString("PEPTX[1600.230654]IDE");
+  TEST_EQUAL(test6.size(), 8)
+  TEST_EQUAL(test6.toString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test6.toBracketString(), "PEPTX[1600]IDE")
+  TEST_EQUAL(test6.toBracketString(false), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test6.toUnmodifiedString(), "PEPTXIDE")
+
+  TEST_EQUAL(test6[4].isModified(), true)
+  TEST_REAL_SIMILAR(test6[4].getModification()->getMonoMass(), 1600.230654 + 18.0105650638) // because of the H2O loss
+  TEST_REAL_SIMILAR(test6[4].getMonoWeight(), 1600.230654 + 18.0105650638) // computed as full (not internal) -> H2O loss
+  TEST_REAL_SIMILAR(test6[4].getMonoWeight(Residue::Internal), 1600.230654)
+  TEST_REAL_SIMILAR(test6.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
+
+  AASequence test7 = AASequence::fromString(test6.toString());
+  TEST_EQUAL(test7.size(), 8)
+  TEST_EQUAL(test7.toString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test7.toBracketString(), "PEPTX[1600]IDE")
+  TEST_EQUAL(test7.toBracketString(false), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test7.toUnmodifiedString(), "PEPTXIDE")
+  TEST_EQUAL(test6, test7) // the peptides should be equal
+
+  // test arbitrary modification on N
+  {
+    AASequence test_seq = AASequence::fromString("PEPTN[1600.230654]IDE");
+    TEST_EQUAL(test_seq.size(), 8)
+    TEST_EQUAL(test_seq.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toBracketString(false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "PEPTNIDE")
+    TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 8)
+    TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
+
+    TEST_EQUAL(test_other, test_seq) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString(false));
+    TEST_EQUAL(test_other.size(), 8)
+    TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
+
+    TEST_EQUAL(test_other, test_seq) // the peptides should be equal
+  }
+
+  // test N-terminal modification
+  {
+    AASequence test_seq = AASequence::fromString("[1600.230654]IDE");
+    TEST_EQUAL(test_seq.size(), 3)
+    TEST_EQUAL(test_seq.toString(), ".[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toBracketString(false), "n[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
+    TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString(false));
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+  }
+
+  // test C-terminal modification
+  {
+    AASequence test_seq = AASequence::fromString("IDE.[1600.230654]");
+    TEST_EQUAL(test_seq.size(), 3)
+    TEST_EQUAL(test_seq.toString(), "IDE.[1600.230654]")
+    TEST_EQUAL(test_seq.toBracketString(false), "IDEc[1600.230654]")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
+    TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString(false));
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+  }
+
+  // test from #2320
+  {
+    AASequence aa_original = AASequence::fromString("DFPANGER");
+    TEST_REAL_SIMILAR(aa_original.getMonoWeight(), 904.4038997864)
+
+    AASequence aa_withX_original = AASequence::fromString("DFPANGERX");
+    // TEST_REAL_SIMILAR(aa_withX_original.getMonoWeight(), 904.4038997864) // cannot call weight on AASequence with X
+
+    AASequence test_seq = AASequence::fromString("DFPANGERX[113.0840643509]");
+    TEST_EQUAL(test_seq.size(), 9)
+    TEST_EQUAL(test_seq.toString(), "DFPANGERX[113.0840643509]")
+    TEST_EQUAL(test_seq.toBracketString(true), "DFPANGERX[113]")
+    TEST_EQUAL(test_seq.toBracketString(false), "DFPANGERX[113.0840643509]")
+    TEST_EQUAL(test_seq.toUnmodifiedString(), "DFPANGERX")
+    TEST_EQUAL(test_seq.hasNTerminalModification(), false)
+    TEST_EQUAL(test_seq.hasCTerminalModification(), false)
+    TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_original.getMonoWeight() + 113.0840643509)
+
+    AASequence test_internal_seq = AASequence::fromString("DFPANGEX[113.0840643509]R");
+    TEST_REAL_SIMILAR(test_internal_seq.getMonoWeight(), aa_original.getMonoWeight() + 113.0840643509)
+
+    TEST_EQUAL(test_seq[8].isModified(), true)
+    TEST_REAL_SIMILAR(test_seq[8].getMonoWeight(), 113.0840643509 + 18.0105650638) // computed as full (not internal) -> H2O loss
+    TEST_REAL_SIMILAR(test_seq[8].getMonoWeight(Residue::Internal), 113.0840643509)
+
+    // test that we can re-read the string
+    AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_seq.size(), 9)
+    TEST_EQUAL(test_seq.toString(), "DFPANGERX[113.0840643509]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+  }
 
   // Faulty / nonsense calculations ...
   AASequence test;
@@ -793,25 +974,25 @@ START_SECTION([EXTRA] Test integer vs float tags)
 
   // Test a few modifications with the accurate mass slightly off to match some other modification
   {
-  AASequence seq11 = AASequence::fromString("PEPM[147.035399]TIDEK"); // PSI-MOD oxMet is 147.035399
+  AASequence seq11 = AASequence::fromString("PEPM[147.01]TIDEK");
   TEST_EQUAL(seq11.isModified(), true);
-  TEST_STRING_EQUAL(seq11[3].getModificationName(), "MOD:00719")
-  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
+  TEST_STRING_EQUAL(seq11[3].getModificationName(), "Oxidation")
+  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), 35)
 
   AASequence seq12 = AASequence::fromString("PEPT[181.004]TIDEK");
   TEST_EQUAL(seq12.isModified(), true);
   TEST_STRING_EQUAL(seq12[3].getModificationName(), "Sulfo");
-  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
+  TEST_EQUAL(seq12[3].getModification()->getUniModRecordId(), 40)
 
   AASequence seq13 = AASequence::fromString("PEPY[243.02]TIDEK");
   TEST_EQUAL(seq13.isModified(), true);
   TEST_STRING_EQUAL(seq13[3].getModificationName(), "Sulfo");
-  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
+  TEST_EQUAL(seq13[3].getModification()->getUniModRecordId(), 40)
 
   AASequence seq14 = AASequence::fromString("PEPTC[159.035405]IDE");
   TEST_EQUAL(seq14.isModified(), true);
   TEST_STRING_EQUAL(seq14[4].getModificationName(), "Delta:H(4)C(3)O(1)");
-  TEST_EQUAL(seq11[3].getModification()->getUniModRecordId(), -1) // no UniMod id gets assigned
+  TEST_EQUAL(seq14[4].getModification()->getUniModRecordId(), 206)
   }
 
 
@@ -921,7 +1102,7 @@ START_SECTION([EXTRA] Tag in peptides)
   AASequence aa3 = AASequence::fromString("X[" + I_weight + "]DFPANGER");
   AASequence aa4 = AASequence::fromString("DFPANGERX[" + I_weight + "]");
   TEST_REAL_SIMILAR(aa1.getMonoWeight(), 1017.487958568)
-  TEST_EQUAL(aa2.isModified(), false)
+  TEST_EQUAL(aa2.isModified(), true)
   TEST_EQUAL(aa3.hasNTerminalModification(), false)
   TEST_EQUAL(aa4.hasCTerminalModification(), false)
   TEST_REAL_SIMILAR(aa2.getMonoWeight(), 1017.487958568)

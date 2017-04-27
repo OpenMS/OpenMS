@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         String toUnmodifiedString() nogil except +
 
         # returns the peptide as a pepXML style bracket string . fixed modifications are omitted
-        String toBracketString(libcpp_vector[String] fixed_modifications) nogil except +
+        String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except +
 
         # set the modification of the residue at position index
         void setModification(Size index, String modification) nogil except +

@@ -538,6 +538,7 @@ namespace OpenMS
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
           trn.setName(String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
           trn.setNativeID(String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
+          trn.setMetaValue("Peptidoforms", ListUtils::concatenate(isoforms, "|"));
 
           LOG_DEBUG << "[uis] Transition " << trn.getNativeID() << std::endl;
 
@@ -601,6 +602,7 @@ namespace OpenMS
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
           trn.setName(String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
           trn.setNativeID(String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
           LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
 
