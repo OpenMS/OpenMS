@@ -25,6 +25,7 @@ addons:
          - libxerces-c-dev
          - libicu-dev
          - qt5-default
+         - qtbase5-dev-tools 
          - libsvm-dev
          - libsvm3
          - glpk
