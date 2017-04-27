@@ -238,7 +238,7 @@ namespace OpenMS
       return FileTypes::MZML;
 
     //"analysisXML" aka. mzid (all lines)
-    if (all_simple.hasSubstring("<mzIdentML"))
+    if (all_simple.hasSubstring("<MzIdentML"))
       return FileTypes::MZIDENTML;
 
     //mzq (all lines)
