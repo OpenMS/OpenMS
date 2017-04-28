@@ -431,7 +431,7 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
       scoreAllChromatograms(dummy, ms1_chromatograms, swath_maps, transition_exp_used, 
                             feature_finder_param, trafo,
-                            cp.rt_extraction_window, featureFile, tsv_writer, true);
+                            cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, true);
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram<> > chromatograms;
