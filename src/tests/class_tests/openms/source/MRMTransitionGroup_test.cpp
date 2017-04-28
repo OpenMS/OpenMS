@@ -326,7 +326,7 @@ START_SECTION (inline bool chromatogramIdsMatch() const)
   
   {
     MRMTransitionGroupType mrmtrgroup;
-    RichPeakChromatogram c;
+    Chromatogram c;
     c.setNativeID("test");
     mrmtrgroup.addChromatogram(c, "test");
 
@@ -338,7 +338,7 @@ START_SECTION (inline bool chromatogramIdsMatch() const)
 
   {
     MRMTransitionGroupType mrmtrgroup;
-    RichPeakChromatogram c;
+    Chromatogram c;
     c.setNativeID("test");
     mrmtrgroup.addPrecursorChromatogram(c, "test");
 
