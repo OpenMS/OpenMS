@@ -780,16 +780,19 @@ protected:
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, 1, "Load TraML file");
     if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
     {
+      progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+      progresslogger.endProgress();
     }
     else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
+      progresslogger.startProgress(0, 1, "Load PQP file");
       TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      progresslogger.endProgress();
 
       remove(out_osw.c_str());
       if (!out_osw.empty())
@@ -802,14 +805,15 @@ protected:
     }
     else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
+      progresslogger.startProgress(0, 1, "Load TSV file");
       TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+      progresslogger.endProgress();
     }
     else
     {
       LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       return PARSE_ERROR;
     }
-    progresslogger.endProgress();
 
     ///////////////////////////////////
     // Load the SWATH files
