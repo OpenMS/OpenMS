@@ -413,6 +413,12 @@ namespace OpenMS
     MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
                    transition_exp, trafo_inverse, load_into_memory, ms1_only);
 
+    if (ms1_only && !use_ms1_traces_)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Error, you need to enable use_ms1_traces when run in MS1 mode." );
+    }
+
     // (ii) Precursor extraction only
     if (ms1_only)
     {
