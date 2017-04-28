@@ -419,7 +419,7 @@ public:
           total_intensity += intensity_sum;
         }
 
-        mrmFeature.addPrecursorFeature(f, "Precursor_i0");
+        mrmFeature.addPrecursorFeature(f, chromatogram.getNativeID());
       }
 
       mrmFeature.setRT(peak_apex);
