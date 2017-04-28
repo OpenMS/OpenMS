@@ -455,7 +455,7 @@ protected:
 
 		for (it = aacids.begin(); it != aacids.end(); it=std::next(it))
 		{
-			os << it->first << '\t' << it->second << "\n\n";
+			os << it->first << '\t' << it->second << "\n";
 		}
 	}
 
