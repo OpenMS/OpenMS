@@ -310,10 +310,9 @@ protected:
 
     feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-
-    //here for chromatogram
-    //iter of vector in vector and give same featureID
-    //iter over chrom in vector of vector and give native id (featureID_index) - isotope pattern
+    //Chromatograms
+    //iterate over vector in vector and give same featureID
+    //iterate over chromatogram in vector of vector and give native id (featureID_index) - isotope pattern
     if (ffm_param.getValue("report_chromatograms").toBool())
     {
         cout << "Size vector Chrom: " << feat_chromatograms.size() << endl;
