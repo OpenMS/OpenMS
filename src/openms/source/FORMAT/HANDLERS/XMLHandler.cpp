@@ -118,12 +118,25 @@ namespace OpenMS
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
+      {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
+      }
       else if (mode == STORE)
+      {
         error_message_ =  String("While storing '") + file_ + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
+      }
+
+// warn only in Debug mode but suppress warnings in release mode (more happy users)
+#ifdef OPENMS_ASSERTIONS
       LOG_WARN << error_message_ << std::endl;
+#else
+      LOG_DEBUG << error_message_ << std::endl;
+#endif
+
     }
 
     void XMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
