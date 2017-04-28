@@ -70,7 +70,20 @@ except ImportError:
 def handle_member_definition(mdef, pxd_class, cnt):
     """ Matches a doxygen member definition (mdef) to a Cython pxd file.
 
+    This tries to ensure that all C++ functions are wrapped and have an
+    equivalent in the Python wrapper. 
+
+    Parameters
+    ----------
+    mdef : breathe.parser.compound.memberdefTypeSub
+        A doxygen entry
+    pxd_class : autowrap.PXDParser.CppClassDecl
+        A PXD class file as parsed by autowrap
+    cnt : 
+        A count object to keep track of how many functions we wrapped
     """
+    pxd_class_methods_str = str([ str(m) for m in pxd_class.methods.keys()])
+
     tres = TestResult()
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
     kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot

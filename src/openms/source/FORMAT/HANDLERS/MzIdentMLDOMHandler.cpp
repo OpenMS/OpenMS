@@ -708,13 +708,24 @@ namespace OpenMS
           ++count;
           String id = XMLString::transcode(element_pep->getAttribute(XMLString::transcode("id")));
 
-
           //DOMNodeList* pep_sib = element_pep->getChildNodes();
           AASequence aas;
           try
           {
             //aas = parsePeptideSiblings_(pep_sib);
-            aas = parsePeptideSiblings_(element_pep);
+            try
+            {
+              aas = parsePeptideSiblings_(element_pep);
+            }
+            catch (Exception::MissingInformation)
+            {
+              // We found an unknown modification, we could try to rescue this
+              // situation. The "name" attribute, if present, may be parsable:
+              //   The potentially ambiguous common identifier, such as a
+              //   human-readable name for the instance.
+              String name = XMLString::transcode(element_pep->getAttribute(XMLString::transcode("name")));
+              if (!name.empty()) aas = AASequence::fromString(name);
+            }
           }
           catch (...)
           {
@@ -2386,6 +2397,13 @@ namespace OpenMS
               while (cvp)
               {
                 CVTerm cv = parseCvParam_(cvp);
+                if (cv.getAccession() == "MS:1001460") // unknown modification
+                {
+                  // TODO: actually parse this and add a new modification of
+                  // mass "monoisotopicMassDelta" to the AASequence
+                  // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+                  throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                }
                 if (cv.getCVIdentifierRef() != "UNIMOD")
                 {
                   //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>

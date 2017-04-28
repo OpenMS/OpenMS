@@ -330,25 +330,35 @@ namespace OpenMS
                                               idscores);
 
       std::stringstream ind_transition_names;
+      std::stringstream ind_area_intensity;
+      std::stringstream ind_apex_intensity;
       std::stringstream ind_log_intensity;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
         {
           ind_transition_names << ";";
+          ind_area_intensity << ";";
+          ind_apex_intensity << ";";
           ind_log_intensity << ";";
         }
         ind_transition_names << native_ids_identification[i];
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
+          ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
+          ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
         }
         else
         {
+          ind_area_intensity << 0;
+          ind_apex_intensity << 0;
           ind_log_intensity << 0;
         }
       }
       idscores.ind_transition_names = ind_transition_names.str();
+      idscores.ind_area_intensity = ind_area_intensity.str();
+      idscores.ind_apex_intensity = ind_apex_intensity.str();
       idscores.ind_log_intensity = ind_log_intensity.str();
       idscores.ind_num_transitions = native_ids_identification.size();
     }
@@ -567,6 +577,9 @@ namespace OpenMS
 
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
           mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
+          mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
+          mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
+          mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
           mrmfeature->setMetaValue("id_target_ind_log_intensity", idscores.ind_log_intensity);
           mrmfeature->setMetaValue("id_target_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
           mrmfeature->setMetaValue("id_target_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
@@ -588,6 +601,8 @@ namespace OpenMS
 
           mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
           mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
+          mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
+          mrmfeature->setMetaValue("id_decoy_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);
           mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
           mrmfeature->setMetaValue("id_decoy_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
