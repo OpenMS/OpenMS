@@ -1,0 +1,52 @@
+
+-- General information --
+
+File name: E:/OpenMS/amna_openms/OpenMS/src/tests/topp/FileInfo_17_input.fasta
+File type: fasta
+Number of sequences: 1
+
+Total amino acids: 698
+
+Amino acid counts: 
+A	61
+
+C	40
+
+D	45
+
+E	42
+
+F	28
+
+G	52
+
+H	19
+
+I	15
+
+K	58
+
+L	65
+
+M	10
+
+N	34
+
+P	32
+
+Q	17
+
+R	27
+
+S	41
+
+T	30
+
+V	48
+
+W	8
+
+Y	26
+
+
+
