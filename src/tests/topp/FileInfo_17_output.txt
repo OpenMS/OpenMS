@@ -1,52 +1,59 @@
 
 -- General information --
 
-File name: E:/OpenMS/amna_openms/OpenMS/src/tests/topp/FileInfo_17_input.fasta
+File name: fasta-example.fa
 File type: fasta
-Number of sequences: 1
+Number of sequences: 11
 
-Total amino acids: 698
+Warning: Duplicate header, Number: 7, ID: crab_chick is same as Number: 2, ID: crab_chick
+Warning: Duplicate header, Number: 10, ID: crab_squac is same as Number: 9, ID: crab_squac
+Warning: Duplicate sequence, Number: 10, ID: crab_squac is same as Number: 9, ID: crab_squac
+Total amino acids: 1933
 
 Amino acid counts: 
-A	61
+*	2
 
-C	40
+-	5
 
-D	45
+A	87
 
-E	42
+C	2
 
-F	28
+D	122
 
-G	52
+E	154
 
-H	19
+F	132
 
-I	15
+G	87
 
-K	58
+H	86
 
-L	65
+I	115
 
-M	10
+K	108
 
-N	34
+L	168
 
-P	32
+M	39
 
-Q	17
+N	21
 
-R	27
+P	179
 
-S	41
+Q	49
 
-T	30
+R	152
 
-V	48
+S	184
 
-W	8
+T	82
 
-Y	26
+V	114
+
+W	24
+
+Y	21
 
 
 
