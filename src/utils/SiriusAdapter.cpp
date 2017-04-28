@@ -189,7 +189,6 @@ protected:
     String out = getStringOption_("out");
     int number = getIntOption_("number");
     number = number + 1; // needed for counting later on
-
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
 
@@ -226,7 +225,6 @@ protected:
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
     }
 
-
     // loop over all spectra
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
@@ -244,7 +242,7 @@ protected:
 
       // needed later for writing in ms file
       int int_charge(1);
-      cout << IonSource::Polarity::POSITIVE << endl;
+      //cout << IonSource::Polarity::POSITIVE << endl;
       if (p == IonSource::Polarity::POSITIVE)
       {
         int_charge = +1;
@@ -260,7 +258,6 @@ protected:
       {
         //read charge annotated to MS2
         int precursor_charge = precursor[0].getCharge();
-
 
         //sirius only supports +1 charge so far
         if (precursor_charge > 1 || precursor_charge <= -1)
@@ -424,13 +421,13 @@ protected:
         //no terminal output of SiriusAdapter/Sirius
         QProcess qp;
         qp.start(executable, process_params); // does automatic escaping etc... start
-        bool success = qp.waitForFinished(10000); // exits job after 10 seconds
+        bool success = qp.waitForFinished(30000); // exits job after 30 seconds
         //String output(QString(qp.readAllStandardOutput()));
 
         if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
         {
           qp.close();
-          writeLog_("Fatal error: Running SiriusAdapter returned an error code or could no compute the input within 10 seconds for following scan index: " + String(scan_index));
+          writeLog_("Fatal error: Running SiriusAdapter returned an error code or could no compute the input within 30 seconds for following scan index: " + String(scan_index));
         }
 
         //close the process

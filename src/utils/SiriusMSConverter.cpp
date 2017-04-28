@@ -44,7 +44,6 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <fstream>
 

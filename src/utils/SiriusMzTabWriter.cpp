@@ -32,8 +32,6 @@
 // $Authors: Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-//not sure if more #include directives are needed
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -46,11 +44,9 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
-
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -58,7 +54,7 @@ using namespace std;
 /**
 @page UTILS_SiriusMzTabWriter
 
-@brief Tool for the conversion of mzML files to (Sirius).ms files
+@brief Tool for the conversion sirius output to mztab files
 
        Needed for the interal data structure of the Sirius command line tool
 
@@ -86,17 +82,17 @@ protected:
     {
         String formula;
         String adduct;
-        unsigned int rank;
+        int rank;
         double score;
         double treescore;
         double isoscore;
-        String explainedpeaks;
-        String explainedintensity;
+        int explainedpeaks;
+        double explainedintensity;
     };
 
     struct SiriusAdapterIdentification
     {
-        String id; //?
+        String id;
         String scan_index;
         vector<SiriusAdapterHit> hits;
     };
@@ -110,9 +106,8 @@ protected:
     {
         registerInputFile_("in", "<file>", "", "MzML Input file");
         setValidFormats_("in", ListUtils::create<String>("csv"));
-
         registerOutputFile_("out", "<file>", "", "Output of MzTab files");
-        setValidFormats_("out", ListUtils::create<String>("csv"));
+        setValidFormats_("out", ListUtils::create<String>("tsv"));
 
         registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
 
@@ -130,29 +125,6 @@ protected:
         int number = getIntOption_("number");
         number = number + 1; // needed for counting later on
 
-        //Extract scan_index from path
-        OpenMS::String path = File::path(in);
-        vector<String> substrings;
-
-        OpenMS::String SringString;
-        vector<String> newsubstrings;
-
-        cout << path << endl;
-        path.split('_', substrings);
-        cout << substrings << endl;
-
-        SringString = substrings[substrings.size() - 1];
-        SringString.split('_', newsubstrings);
-        cout << newsubstrings << endl;
-
-        vector<String> bla;
-        OpenMS::String SringStringString = newsubstrings[newsubstrings.size() - 1];
-        SringStringString.split('n',bla);
-        cout << bla << endl;
-
-        String scan_index = bla[bla.size() - 1];
-        cout << scan_index << endl;
-
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
@@ -161,6 +133,7 @@ protected:
 
         ifstream file(in);
 
+        //check if file is available and read input & write output
         if (file)
         {
             // read results from sirius output files
@@ -168,6 +141,29 @@ protected:
 
             // fill indentification structure containing all candidate hits for a single spectrum
             SiriusAdapterIdentification sirius_id;
+
+            //Extract scan_index from path
+            OpenMS::String path = File::path(in);
+            vector<String> substrings;
+
+            OpenMS::String SringString;
+            vector<String> newsubstrings;
+
+            cout << path << endl;
+            path.split('_', substrings);
+            cout << substrings << endl;
+
+            SringString = substrings[substrings.size() - 1];
+            SringString.split('_', newsubstrings);
+            cout << newsubstrings << endl;
+
+            vector<String> bla;
+            OpenMS::String SringStringString = newsubstrings[newsubstrings.size() - 1];
+            SringStringString.split('n',bla);
+            cout << bla << endl;
+
+            String scan_index = bla[bla.size() - 1];
+            cout << scan_index << endl;
 
             for (Size j = 1; j < number; ++j)
             {
@@ -182,66 +178,71 @@ protected:
                 sirius_hit.score = sl[3].toDouble();
                 sirius_hit.treescore = sl[4].toDouble();
                 sirius_hit.isoscore = sl[5].toDouble();
-                sirius_hit.explainedpeaks = sl[6];
-                sirius_hit.explainedintensity =sl[7];
+                sirius_hit.explainedpeaks = sl[6].toInt();
+                sirius_hit.explainedintensity =sl[7].toDouble();
 
                 sirius_id.hits.push_back(sirius_hit);
             }
 
-            sirius_id.scan_index = scan_index; //from folder unkown?
-            sirius_id.id = "name";
+            sirius_id.scan_index = scan_index;
+            sirius_id.id = "unknown_" + scan_index;
             sirius_result.identifications.push_back(sirius_id);
+
+            // write out results to mzTab file
+            MzTab mztab;
+            MzTabFile mztab_out;
+            MzTabMetaData md;
+            MzTabMSRunMetaData md_run;
+            md_run.location = MzTabString(in);
+            md.ms_run[1] = md_run;
+
+            MzTabSmallMoleculeSectionRows smsd;
+            for (Size i = 0; i != sirius_result.identifications.size(); ++i)
+            {
+                const SiriusAdapterIdentification& id = sirius_result.identifications[i];
+                for (Size j = 0; j != id.hits.size(); ++j)
+                {
+                    const SiriusAdapterHit& hit = id.hits[j];
+                    MzTabSmallMoleculeSectionRow smsr;
+
+                    smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
+                    smsr.best_search_engine_score[2] = MzTabDouble(hit.treescore);
+                    smsr.best_search_engine_score[3] = MzTabDouble(hit.isoscore);
+                    smsr.chemical_formula = MzTabString(hit.formula);
+
+                    MzTabOptionalColumnEntry adduct;
+                    adduct.first = "adduct";
+                    adduct.second = MzTabString(hit.adduct);
+
+                    MzTabOptionalColumnEntry rank;
+                    rank.first = "rank";
+                    rank.second = MzTabString(hit.rank);
+
+                    MzTabOptionalColumnEntry explainedPeaks;
+                    explainedPeaks.first = "explainedPeaks";
+                    explainedPeaks.second = MzTabString(hit.explainedpeaks);
+
+                    MzTabOptionalColumnEntry explainedIntensity;
+                    explainedIntensity.first = "explainedIntensity";
+                    explainedIntensity.second = MzTabString(hit.explainedintensity);
+
+                    smsr.opt_.push_back(adduct);
+                    smsr.opt_.push_back(rank);
+                    smsr.opt_.push_back(explainedPeaks);
+                    smsr.opt_.push_back(explainedIntensity);
+                    smsd.push_back(smsr);
+                }
+            }
+
+            mztab.setSmallMoleculeSectionRows(smsd);
+            mztab_out.store(out, mztab);
+
+            return EXECUTION_OK;
         }
         else
         {
             LOG_WARN << "No Output file was generated by SiriusAdapter." << endl;
         }
-
-        // write out results to mzTab file
-        MzTab mztab;
-        MzTabFile mztab_out;
-        MzTabMetaData md;
-        MzTabMSRunMetaData md_run;
-        md_run.location = MzTabString(in);
-        md.ms_run[1] = md_run;
-
-        MzTabSmallMoleculeSectionRows smsd;
-        for (Size i = 0; i != sirius_result.identifications.size(); ++i)
-        {
-            const SiriusAdapterIdentification& id = sirius_result.identifications[i];
-            for (Size j = 0; j != id.hits.size(); ++j)
-            {
-                const SiriusAdapterHit& hit = id.hits[j];
-                MzTabSmallMoleculeSectionRow smsr;
-
-                smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
-                smsr.best_search_engine_score[2] = MzTabDouble(hit.treescore);
-                smsr.best_search_engine_score[3] = MzTabDouble(hit.isoscore);
-                smsr.chemical_formula = MzTabString(hit.formula);
-
-                MzTabOptionalColumnEntry rank;
-                rank.first = "rank";
-                rank.second = MzTabString(hit.rank);
-
-                MzTabOptionalColumnEntry explainedPeaks;
-                explainedPeaks.first = "explainedPeaks";
-                explainedPeaks.second = MzTabString(hit.explainedpeaks);
-
-                MzTabOptionalColumnEntry explainedIntensity;
-                explainedIntensity.first = "explainedIntensity";
-                explainedIntensity.second = MzTabString(hit.explainedpeaks);
-
-                smsr.opt_.push_back(rank);
-                smsr.opt_.push_back(explainedPeaks);
-                smsr.opt_.push_back(explainedIntensity);
-                smsd.push_back(smsr);
-            }
-        }
-
-        mztab.setSmallMoleculeSectionRows(smsd);
-        mztab_out.store(out, mztab);
-
-        return EXECUTION_OK;
     }
 };
 
