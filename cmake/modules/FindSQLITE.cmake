@@ -37,7 +37,7 @@
 #=============================================================================
 
 # set SQLITE_INCLUDE_DIR
-find_path(SQLITE_INCLUDE_DIR sqlite3.h)
+find_path(SQLITE_INCLUDE_DIR sqlite3.h PATH_SUFFIXES ./include/sqlite)
 
 # extract version
 if (SQLITE_INCLUDE_DIR)
