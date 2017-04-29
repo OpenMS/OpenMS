@@ -491,6 +491,7 @@ var_yseries_score   -0.0327896378737766
     void calculateChromatographicScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
+          const std::string& precursor_chrom_id,
           const std::vector<double>& normalized_library_intensity,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);

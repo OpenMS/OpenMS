@@ -120,7 +120,7 @@ public:
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
 
-      // Pick chromatograms
+      // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         MSChromatogram<>& chromatogram = transition_group.getChromatograms()[k];

@@ -544,13 +544,20 @@ namespace OpenMS
         transition_group_detection.getLibraryIntensity(normalized_library_intensity);
         OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
         std::vector<std::string> native_ids_detection;
+        std::string precursor_id;
         for (Size i = 0; i < transition_group_detection.size(); i++)
         {
           native_ids_detection.push_back(transition_group_detection.getTransitions()[i].getNativeID());
         }
+        for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
+        {
+          // try to identify the correct precursor native id
+          String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
+          if (precursor_chrom_id.hasSuffix("_Precursor_i0")) {precursor_id = precursor_chrom_id;}
+        }
 
         OpenSwath_Scores scores;
-        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, normalized_library_intensity,
+        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_id, normalized_library_intensity,
                                               signal_noise_estimators, scores);
 
         double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());

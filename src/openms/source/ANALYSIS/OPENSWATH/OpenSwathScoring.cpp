@@ -235,6 +235,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
+        const std::string& precursor_feature_id,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & scores)
@@ -262,7 +263,7 @@ namespace OpenMS
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
     {
-      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, "Precursor_i0"); // perform cross-correlation on monoisotopic precursor
+      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
       scores.xcorr_ms1_coelution_score = mrmscore_.calcMS1XcorrCoelutionScore();
       scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
     }
