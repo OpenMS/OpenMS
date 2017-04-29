@@ -104,9 +104,11 @@ public:
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
+    // a transition group holds the chromatographic data and peaks across
+    // multiple chromatograms from the same compound
     typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
+
     //@}
 
     /// Constructor
@@ -161,7 +163,7 @@ public:
      * @param transition_exp The transition list describing the experiment
      *
     */
-    void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp);
+    void prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp);
     //@}
 
     /** @brief Score all peak groups of a transition group
@@ -178,12 +180,14 @@ public:
      *                  data is available.
      * @param output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
+     * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group,
                          TransformationDescription & trafo,
                          std::vector<OpenSwath::SwathMap> swath_maps,
-                         FeatureMap& output);
+                         FeatureMap& output,
+                         bool ms1only=false);
 
     /** @brief Set the flag for strict mapping
     */

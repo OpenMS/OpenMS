@@ -59,23 +59,24 @@ namespace OpenMS
 {
 
   /**
-  @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-    @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+    @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-  It is called through pickTransitionGroup which will accept an
-  MRMTransitionGroup filled with n chromatograms and perform the following steps:
-   - Step 1: find features (peaks) in individual chromatograms
-   - Step 2: merge these features to consensus features that span multiple chromatograms
+      @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+
+    It is called through pickTransitionGroup which will accept an
+    MRMTransitionGroup filled with n chromatograms and perform the following steps:
+     - Step 1: find features (peaks) in individual chromatograms
+     - Step 2: merge these features to consensus features that span multiple chromatograms
 
 
-  Step 1 is performed by smoothing the individual chromatogram and applying the
-  PeakPickerHiRes.
+    Step 1 is performed by smoothing the individual chromatogram and applying the
+    PeakPickerHiRes.
 
-  Step 2 is performed by finding the largest peak overall and use this to
-  create a feature, propagating this through all chromatograms.
+    Step 2 is performed by finding the largest peak overall and use this to
+    create a feature, propagating this through all chromatograms.
+
   */
-
   class OPENMS_DLLAPI MRMTransitionGroupPicker :
     public DefaultParamHandler
   {
@@ -112,16 +113,20 @@ public:
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
-      std::vector<MSChromatogram<> > picked_chroms_;
+      OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
+      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
+      std::vector<MSChromatogram<> > picked_chroms_;
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
 
-      // Pick chromatograms
+      // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         MSChromatogram<>& chromatogram = transition_group.getChromatograms()[k];
         String native_id = chromatogram.getNativeID();
+
+        // only pick detecting transitions (skip all others)
         if (transition_group.getTransitions().size() > 0 && 
             transition_group.hasTransition(native_id)  && 
             !transition_group.getTransition(native_id).isDetectingTransition() )
@@ -133,10 +138,26 @@ public:
         {
           chromatogram.sortByPosition();
         }
+
         MSChromatogram<> picked_chrom;
         picker.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
+      }
+
+      // Pick precursor chromatograms
+      if (use_precursors_)
+      {
+        for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
+        {
+          SpectrumT picked_chrom;
+          SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+          String native_id = chromatogram.getNativeID();
+
+          picker.pickChromatogram(chromatogram, picked_chrom);
+          picked_chrom.sortByIntensity(); // we could do without that
+          picked_chroms_.push_back(picked_chrom);
+        }
       }
 
       // Find features (peak groups) in this group of transitions.
@@ -188,8 +209,11 @@ public:
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
-                                std::vector<SpectrumT>& picked_chroms, int& chr_idx, int& peak_idx)
+                                std::vector<SpectrumT>& picked_chroms, const int chr_idx, const int peak_idx)
     {
+      OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
+      OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
+
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
@@ -217,13 +241,19 @@ public:
       remove_overlapping_features(picked_chroms, best_left, best_right);
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
-      if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) {return mrmFeature;}
+      if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) 
+      {
+        return mrmFeature;
+      }
 
       if (compute_peak_quality_)
       {
         String outlier = "none";
         double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
-        if (qual < min_qual_) {return mrmFeature; }
+        if (qual < min_qual_) 
+        {
+          return mrmFeature;
+        }
         mrmFeature.setMetaValue("potentialOutlier", outlier);
         mrmFeature.setMetaValue("initialPeakQuality", qual);
         mrmFeature.setOverallQuality(qual);
@@ -233,13 +263,16 @@ public:
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = transition_group.getChromatogram(picked_chroms[chr_idx].getNativeID());
+      const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
 
+      // Iterate over initial transitions / chromatograms (note that we may
+      // have a different number of picked chromatograms than total transitions
+      // as not all are detecting transitions).
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getChromatogram(transition_group.getTransitions()[k].getNativeID());
+        const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
           for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
@@ -331,11 +364,11 @@ public:
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
-      // Also pick the precursor chromatogram (note total_xic is not extracted here, only for fragment traces)
-      if (transition_group.hasPrecursorChromatogram("Precursor_i0"))
+      // Also pick the precursor chromatogram(s); note total_xic is not
+      // extracted here, only for fragment traces
+      for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getPrecursorChromatogram("Precursor_i0");
-
+        const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
         // resample the current chromatogram
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
 
@@ -370,7 +403,9 @@ public:
         if (chromatogram.metaValueExists("precursor_mz")) 
         {
           f.setMZ(chromatogram.getMetaValue("precursor_mz"));
+          mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));
         }
+
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
         f.setIntensity(intensity_sum);
         ConvexHull2D hull;
@@ -379,7 +414,12 @@ public:
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
 
-        mrmFeature.addPrecursorFeature(f, "Precursor_i0");
+        if (use_precursors_ && transition_group.getTransitions().empty())
+        {
+          total_intensity += intensity_sum;
+        }
+
+        mrmFeature.addPrecursorFeature(f, chromatogram.getNativeID());
       }
 
       mrmFeature.setRT(peak_apex);
@@ -457,6 +497,26 @@ protected:
     MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
 
     /**
+      @brief Select matching precursor or fragment ion chromatogram
+    */
+    template <typename SpectrumT, typename TransitionT>
+    const SpectrumT& selectChromHelper_(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, String native_id)
+    {
+      if (transition_group.hasChromatogram(native_id))
+      {
+        return transition_group.getChromatogram(native_id);
+      }
+      else if (transition_group.hasPrecursorChromatogram(native_id))
+      {
+        return transition_group.getPrecursorChromatogram(native_id);
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find chromatogram for id '" + native_id + "'.");
+      }
+    }
+
+    /**
       @brief Compute transition group quality (higher score is better)
 
       This is only based on the co-elution of the chromatograms and internal
@@ -483,12 +543,12 @@ protected:
       // side to correctly identify shoulders etc.
       double resample_boundary = 15.0; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
-      const SpectrumT& ref_chromatogram = transition_group.getChromatogram(picked_chroms[chr_idx].getNativeID());
+      const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
       std::vector<std::vector<double> > all_ints;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
-        const SpectrumT& chromatogram = transition_group.getChromatogram(picked_chroms[k].getNativeID());
+        const SpectrumT chromatogram = selectChromHelper_(transition_group, picked_chroms[k].getNativeID());
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, 
             master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
 
@@ -589,7 +649,7 @@ protected:
       if (min_index_shape == max_index_coel)
       {
         LOG_DEBUG << " element " << min_index_shape << " is a candidate for removal ... " << std::endl;
-        outlier = String(transition_group.getTransitions()[min_index_shape].getNativeID());
+        outlier = String(picked_chroms[min_index_shape].getNativeID());
       }
       else
       {
@@ -799,6 +859,7 @@ protected:
     // Members
     String background_subtraction_;
     bool recalculate_peaks_;
+    bool use_precursors_;
     bool compute_peak_quality_;
     double min_qual_;
 

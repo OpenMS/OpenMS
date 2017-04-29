@@ -639,6 +639,7 @@ namespace OpenMS
     resolveMixedSequenceGroups_(transition_list);
 
     OpenMS::TargetedExperiment::Peptide tramlpeptide;
+    OpenMS::TargetedExperiment::Compound tramlcompound;
 
     Size progress = 0;
     startProgress(0, transition_list.size(), "converting to Transition List Format");
@@ -675,8 +676,16 @@ namespace OpenMS
       if (compound_map.find(tr_it->group_id) == compound_map.end())
       {
         OpenSwath::LightCompound compound;
-        createPeptide_(tr_it, tramlpeptide);
-        OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
+        if (tr_it->isPeptide())
+        {
+          createPeptide_(tr_it, tramlpeptide);
+          OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
+        }
+        else
+        {
+          createCompound_(tr_it, tramlcompound);
+          OpenSwathDataAccessHelper::convertTargetedCompound(tramlcompound, compound);
+        }
         exp.compounds.push_back(compound);
         compound_map[compound.id] = 0;
       }
