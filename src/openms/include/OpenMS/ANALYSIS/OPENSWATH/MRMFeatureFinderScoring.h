@@ -180,7 +180,7 @@ public:
      *                  data is available.
      * @param output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
-     * @param ms1only Whether to only do MS1 scoring
+     * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group,

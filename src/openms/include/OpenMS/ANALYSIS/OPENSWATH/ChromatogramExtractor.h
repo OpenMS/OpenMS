@@ -222,8 +222,10 @@ public:
     template <typename TransitionExpT>
     static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
       std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
-      TransitionExpT& transition_exp_used, SpectrumSettings settings,
-      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1)
+      TransitionExpT& transition_exp_used,
+      SpectrumSettings settings,
+      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms,
+      bool ms1)
     {
       typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
       TransitionMapType trans_map;
@@ -252,6 +254,8 @@ public:
           prec.setMZ(coord.mz);
           chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
 
+          // extract compound / peptide id from transition and store in
+          // more-or-less default field
           String r = extract_id_(transition_exp_used, coord.id);
           prec.setMetaValue("peptide_sequence", r);
         }
@@ -272,6 +276,8 @@ public:
           chrom.setProduct(prod);
           chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 
+          // extract compound / peptide id from transition and store in
+          // more-or-less default field
           if (!transition.getPeptideRef().empty())
           {
             String r = extract_id_(transition_exp_used, transition.getPeptideRef());
@@ -465,7 +471,7 @@ private:
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param transition_exp The transition experiment used as input (is constant)
+     * @param transition_exp The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
      * @param id The identifier of the compound or peptide
      *
     */
@@ -505,7 +511,7 @@ private:
           prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
         }
 
-        // 3) set precursor peptide sequence / compound id
+        // 3) set precursor peptide sequence / compound id in more-or-less default field
         String pepref = transition->getPeptideRef();
         for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
         {
