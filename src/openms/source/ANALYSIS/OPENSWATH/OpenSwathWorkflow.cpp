@@ -591,8 +591,18 @@ namespace OpenMS
             continue; // skip empty chromatograms
           }
 
+          // Fix chromatogram reference id: even though we use the peptide id
+          // here, it is possible that these ids overlap with the transition
+          // ids, leading to bad downstream consequences (e.g. ambiguity which
+          // chromatograms are precursor and which ones are fragment
+          // chromatograms). This is especially problematic with pqp files
+          // where peptide precursors and transitions are simply numbered and
+          // are guaranteed to overlap.
+          chromatograms[j].setNativeID( chromatograms[j].getNativeID() +  "_Precursor_i0");
           // write MS1 chromatograms to disk
           ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
+
+          // store in return variable
           chromConsumer->consumeChromatogram( chromatograms[j] );
         }
       }
@@ -701,7 +711,7 @@ namespace OpenMS
       // currently .tsv, .osw and .featureXML are mutually exclusive
       if (tsv_writer.isActive() || osw_writer.isActive()) { output.clear(); }
 
-      // Set the MS1 chromatogram if available
+      // Set the MS1 chromatogram if available (this assumes a single precursor chromatogram per transition group)
       if (!ms1_chromatograms.empty() && ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
       {
         MSChromatogram<> chromatogram;
@@ -710,7 +720,7 @@ namespace OpenMS
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram, cptr->second);
 
         chromatogram.setMetaValue("precursor_mz", precursor_mz);
-        chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_" + "Precursor_i0");
+        chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_Precursor_i0");
         transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
       }
 

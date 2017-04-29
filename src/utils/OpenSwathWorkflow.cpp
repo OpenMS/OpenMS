@@ -423,13 +423,13 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible TSV file)", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
+    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible SQLite file)", false);
     setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
-    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
+    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
@@ -933,8 +933,8 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
-    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
 
     if (sonar)
     {
