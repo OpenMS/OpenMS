@@ -512,7 +512,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find chromatogram for id '" + native_id + "'.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find chromatogram for id '" + native_id + "'.");
       }
     }
 
