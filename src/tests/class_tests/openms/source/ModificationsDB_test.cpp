@@ -202,7 +202,7 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
   mods.clear();
   ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "Y");
   TEST_EQUAL(mods.empty(), false)
-  TEST_EQUAL(mods[0], "Phospho (T)")
+  TEST_EQUAL(mods[0], "Phospho (Y)")
   mods.clear();
   ptr->searchModificationsByDiffMonoMass(mods, 16.0, 1.0, "M");
   TEST_EQUAL(mods.empty(), false)
