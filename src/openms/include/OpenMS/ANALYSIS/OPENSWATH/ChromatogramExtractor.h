@@ -478,7 +478,7 @@ private:
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, String id);
 
-	// Specialization for template (LightTargetedExperiment)
+    // Specialization for template (LightTargetedExperiment)
     template<>
     static String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
     {
