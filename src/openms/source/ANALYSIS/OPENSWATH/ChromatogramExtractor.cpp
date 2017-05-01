@@ -182,7 +182,7 @@ namespace OpenMS
 
   // Specialization for template (LightTargetedExperiment)
   template <>
-  String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
+  static String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
   {
     OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id); 
     if (!comp.sequence.empty())
@@ -198,7 +198,7 @@ namespace OpenMS
 
   // Specialization for template (TargetedExperiment)
   template <>
-  String ChromatogramExtractor::extract_id_<TargetedExperiment>(TargetedExperiment& transition_exp_used, String id)
+  static String ChromatogramExtractor::extract_id_<TargetedExperiment>(TargetedExperiment& transition_exp_used, String id)
   {
     if (transition_exp_used.hasPeptide(id))
     {
