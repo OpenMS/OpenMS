@@ -478,6 +478,42 @@ private:
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, String id);
 
+	// Specialization for template (LightTargetedExperiment)
+    template<>
+    static String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
+    {
+      OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id);
+      if (!comp.sequence.empty())
+      {
+        return comp.sequence;
+      }
+      else
+      {
+        return comp.compound_name;
+      }
+    }
+
+
+    // Specialization for template (TargetedExperiment)
+    template<>
+    static String ChromatogramExtractor::extract_id_<OpenMS::TargetedExperiment>(OpenMS::TargetedExperiment& transition_exp_used, String id)
+    {
+      if (transition_exp_used.hasPeptide(id))
+      {
+        TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
+        return p.sequence;
+      }
+      else if (transition_exp_used.hasCompound(id))
+      {
+        TargetedExperiment::Compound c = transition_exp_used.getCompoundByRef(id);
+        return c.id;
+      }
+      else
+      {
+        return "";
+      }
+    }
+    
     /**
      * @brief This populates the chromatograms vector with empty chromatograms
      * (but sets their meta-information)
@@ -495,7 +531,6 @@ private:
     template <class SpectrumSettingsT, class ChromatogramT>
     void prepareSpectra_(SpectrumSettingsT& settings, std::vector<ChromatogramT>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
     {
-
       // first prepare all the spectra (but leave them empty)
       for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
       {
