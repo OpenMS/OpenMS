@@ -194,11 +194,30 @@ namespace OpenMS
 
   bool MultiplexFiltering::zerothPeakFilter_(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual) const
   {
+    double zero_scaling;
+      if (averagine_type_ == "peptide")
+	{
+	  zero_scaling=0.7;
+	}
+      else if (averagine_type_ == "RNA")
+	{
+	  zero_scaling=0.3;
+	}
+      else if (averagine_type_ == "DNA")
+	{
+	  zero_scaling=0.3;
+	}
+      else
+	{
+	  throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+					    "Averagine type unrecognized.");;
+	}    
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       // scaling factor for the zeroth peak intensity
       // (The zeroth peak is problematic if its intensity exceeds zero_scaling * intensity of mono-isotopic peak.)
-      double zero_scaling = 0.7;
+
+      //double zero_scaling = 0.3; //TODO, this should be a parameter of the featurefinder
       if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1)]))
       {
         // zeroth peak not found

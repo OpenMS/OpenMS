@@ -989,15 +989,18 @@ namespace OpenMS
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
       f_single.setMetaValue("is_single_feature", 1);
       f_single.setMetaValue("charge", f_single.getCharge());
+      if (is_neg)
+          f_single.setCharge(f_single.getCharge()*-1);
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
       ConsensusFeature cf(f_single);
+
       cf.setQuality(0.0);
       cf.setUniqueId();
       cf.insert(0, f_single);
 
       cons_map.push_back(cf);
-      cons_map.back().computeDechargeConsensus(fm_out_untouched);
+      cons_map.back().computeDechargeConsensus(fm_out);
       ++singletons_count;
     }
 
@@ -1036,7 +1039,7 @@ namespace OpenMS
 
   void FeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
   {
-    bool is_neg = param_.getValue("is_neg") == "true";
+    //bool is_neg = param_.getValue("is_neg") == "true";
     Size ladders_total(0);
     Size ladders_even(0);
     // count number of charge ladders which have gapped shapes, hinting at wrong lower-bound bound (should be lower)
@@ -1079,6 +1082,8 @@ namespace OpenMS
   {
     bool is_neg = param_.getValue("is_neg") == "true";
     Adduct default_adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
+    if (is_neg)
+        default_adduct.setAmount(-1);
 
     Size edges_size = edges.size();
 

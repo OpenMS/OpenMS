@@ -124,14 +124,14 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
             case Residue::Full:
                 return mono_formula + internal_to_full - fivePrime_to_full+(H_weight*charge);
 
-//            case Residue::Internal:
-//                return EmpiricalFormula("");//mono_formula-(H_weight*charge) /* THIS IS NOT CORRECT AND SHOULDNT BE USED FIXME*/;
+                //            case Residue::Internal:
+                //                return EmpiricalFormula("");//mono_formula-(H_weight*charge) /* THIS IS NOT CORRECT AND SHOULDNT BE USED FIXME*/;
 
             case Residue::NTerminal:
                 return mono_formula + internal_to_full - fivePrime_to_full+(H_weight*charge);
 
-//            case Residue::CTerminal:
-//                return EmpiricalFormula("");//mono_formula + internal_to_full - threePrime_to_full-(H_weight*charge); //NEED TO CHECK WHAT IS CORRECT FIXME
+                //            case Residue::CTerminal:
+                //                return EmpiricalFormula("");//mono_formula + internal_to_full - threePrime_to_full-(H_weight*charge); //NEED TO CHECK WHAT IS CORRECT FIXME
 
             case Residue::BIon:
                 return mono_formula + internal_to_full - b_ion_to_full - H_weight+(H_weight*charge);
