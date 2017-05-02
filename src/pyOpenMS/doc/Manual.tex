@@ -73,7 +73,9 @@ file.load(filename_in, exp)
 file.store(filename_in, exp)
 \end{verbatim}
 
-where FileObject can be any of \texttt{DTA2DFile, DTAFile, mzXML, mzML}.
+where \texttt{FileObject} can be any of \texttt{DTA2DFile, DTAFile, mzXMLFile,
+mzMLFile \ldots } (note that the above code will not work directly since
+you will need to use a specific file implementation, see below).  
 
 For \texttt{EDTAFile}, you must load and store a \texttt{ConsensusMap} instead
 of an \texttt{MSExperiment}.
@@ -318,7 +320,12 @@ for spectrum in ms_experiment:
 
 \section{Appendix}
 In this appendix, a complete list of all wrapped functions is given, ordered
-by class.
+by class. Note that not all C++ functions are wrapped in Python and the
+following documentation indicates which do have wrappers and can be used
+directly from Python. The following appendix also does not contain actual
+documentation of the functionality, please use the link to the OpenMS
+documentation to find up-to-date documentation on each class and member
+function.
 
 \include{appendix}
 

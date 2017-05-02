@@ -69,7 +69,7 @@ namespace OpenMS
       @param mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
 
     **/
-    AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, uint mol_multiplier = 1);
+    AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier = 1);
 
     /// returns the neutral mass of the small molecule without adduct (creates monomer from nmer, decharges and removes the adduct (given m/z of [nM+Adduct]/|charge| returns mass of [M])
     double getNeutralMass(double observed_mz) const;
@@ -101,7 +101,7 @@ namespace OpenMS
     EmpiricalFormula ef_; //< EF for the actual adduct e.g. 'H' in 2M+H;+1
     double mass_; //< computed from ef_.getMonoWeight(), but stored explicitly for efficiency
     int charge_;  //< negative or positive charge; must not be 0
-    uint mol_multiplier_; //< Mol multiplier, e.g. 2 in 2M+H;+1
+    UInt mol_multiplier_; //< Mol multiplier, e.g. 2 in 2M+H;+1
   };
 
   class OPENMS_DLLAPI AccurateMassSearchResult

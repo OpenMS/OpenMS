@@ -163,7 +163,7 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
         MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
         MSChromatogram<> chromatogram;
 
         // copy old to new chromatogram

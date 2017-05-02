@@ -16,6 +16,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
         #  DefaultParamHandler
         TwoDOptimization() nogil except +
         TwoDOptimization(TwoDOptimization) nogil except +
+
         double getMZTolerance() nogil except +
         void setMZTolerance(double tolerance_mz) nogil except +
         double getMaxPeakDistance() nogil except +

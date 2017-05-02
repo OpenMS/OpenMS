@@ -107,11 +107,13 @@ namespace OpenMS
 
   boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getFeature(std::string nativeID)
   {
+    OPENMS_PRECONDITION(features_.find(nativeID) != features_.end(), "Feature needs to exist");
     return boost::static_pointer_cast<OpenSwath::IFeature>(features_[nativeID]);
   }
 
   boost::shared_ptr<OpenSwath::IFeature> MRMFeatureOpenMS::getPrecursorFeature(std::string nativeID)
   {
+    OPENMS_PRECONDITION(precursor_features_.find(nativeID) != precursor_features_.end(), "Precursor feature needs to exist");
     return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
   }
 

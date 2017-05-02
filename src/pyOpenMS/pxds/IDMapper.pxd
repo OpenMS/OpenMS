@@ -45,8 +45,23 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                       bool annotate_ids_with_subelements, 
                       MSExperiment & spectra) nogil except +
 
+        IDMapper_SpectraIdentificationState mapPrecursorsToIdentifications(MSExperiment spectra,
+                                                                           libcpp_vector[ PeptideIdentification ] & ids, 
+                                                                           double mz_tol, double rt_tol) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
+
     cdef enum Measure:
       MEASURE_PPM = 0,
       MEASURE_DA
+
+cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS::IDMapper":
+
+    cdef cppclass IDMapper_SpectraIdentificationState "OpenMS::IDMapper::SpectraIdentificationState":
+        IDMapper_SpectraIdentificationState()  nogil except +
+        IDMapper_SpectraIdentificationState(IDMapper_SpectraIdentificationState) nogil except + #wrap-ignore
+
+        libcpp_vector[size_t] no_precursors
+        libcpp_vector[size_t] identified
+        libcpp_vector[size_t] unidentified
+

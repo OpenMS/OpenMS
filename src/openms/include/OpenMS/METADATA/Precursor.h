@@ -83,6 +83,7 @@ public:
 
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
+    static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
 
     /// Constructor
     Precursor();

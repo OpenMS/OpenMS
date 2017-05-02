@@ -104,12 +104,12 @@
 
 		@subsection TOPP_parameter_documentation Parameter documentation
 	
-	FUCK YOU! General documentation of a TOPP tool and documentation for the command line parameters,
-	can be displayed using the command line argument @a --help.
+	General documentation of a TOPP tool and documentation for the command line parameters,
+	can be displayed using the command line flag @a --help.
 
 	Some TOPP tools also have subsections of parameters that are internally handed to
 	an algorithm. The documentation of these subsections is not displayed with @a --help.
-	It is however displayed in @b INIFileEditor (see next section).
+	It is however displayed in @b INIFileEditor (see next section), or when using @a --helphelp (which also shows advanced parameters).
 
 		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
 	
