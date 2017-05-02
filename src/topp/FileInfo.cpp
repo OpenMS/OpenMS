@@ -1364,6 +1364,7 @@ protected:
              << Math::SummaryStatistics< vector<double> >(m_values) << "\n";
         }
       }
+      
     }
 
     os << "\n" << "\n";
