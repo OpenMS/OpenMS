@@ -531,11 +531,14 @@ namespace OpenMS
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
-        sip += "\t\t<ModificationParams>\n";
-        writeModParam_(sip, it->getSearchParameters().fixed_modifications, true, 2);
-        writeModParam_(sip, it->getSearchParameters().variable_modifications, false, 2);
-        sip += "\t\t</ModificationParams>\n";
-
+        if (!it->getSearchParameters().fixed_modifications.empty() ||
+            !it->getSearchParameters().variable_modifications.empty())
+        {
+          sip += "\t\t<ModificationParams>\n";
+          writeModParam_(sip, it->getSearchParameters().fixed_modifications, true, 2);
+          writeModParam_(sip, it->getSearchParameters().variable_modifications, false, 2);
+          sip += "\t\t</ModificationParams>\n";
+        }
         writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
@@ -560,7 +563,10 @@ namespace OpenMS
         sip += String("\t\t</Threshold>\n");
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
-        sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
+        // empty date would lead to XML schema validation error:
+        DateTime date_time = it->getDateTime();
+        if (!date_time.isValid()) date_time = DateTime::now();
+        sil_2_date.insert(make_pair(sil_id, String(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification
         String sdat_id;
@@ -696,12 +702,12 @@ namespace OpenMS
               if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
-              LOG_WARN << "Found no spectrum reference and no mz position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             if (it->getRT() != it->getRT())
             {
               ert = "nan";
-              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
@@ -816,7 +822,9 @@ namespace OpenMS
           {
             String p;
             //~ TODO simplify mod cv param write
-            p += String("\t<Peptide id=\"") + pepid + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
+            // write peptide id with conversion to universal, "human-readable" bracket string notation
+            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") + 
+                  jt->getSequence().toBracketString(false) + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
               const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
@@ -892,10 +900,30 @@ namespace OpenMS
                   else
                   {
                     acc = mod->getPSIMODAccession();
-                    p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
-                    p += "\" name=\"" +  mod->getId();
-                    p += "\" cvRef=\"XLMOD\"/>";
-                    p += "\n\t\t</Modification>\n";
+                    if (!acc.empty())
+                    {
+                      p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                      p += "\" name=\"" +  mod->getId();
+                      p += "\" cvRef=\"XLMOD\"/>";
+                      p += "\n\t\t</Modification>\n";
+                    }
+                    else
+                    {
+                      // We have an unknown modification, so lets write unknown
+                      // and at least try to write down the delta mass.
+                      if (mod->getDiffMonoMass() != 0.0)
+                      {
+                        double diffmass = mod->getDiffMonoMass();
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                      }
+                      else if (mod->getMonoMass() > 0.0)
+                      {
+                        double diffmass = mod->getMonoMass() - jt->getSequence()[i].getMonoWeight();
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                      }
+                      p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\" value=\"N-Glycan\"/>";
+                      p += "\n\t\t</Modification>\n";
+                    }
                   }
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */

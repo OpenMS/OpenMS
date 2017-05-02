@@ -13,6 +13,7 @@ MzIdentMLHandler.h
 MzMLHandler.h
 MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h
+MzMLSqliteHandler.h
 MzQuantMLHandler.h
 MzXMLHandler.h
 PTMXMLHandler.h

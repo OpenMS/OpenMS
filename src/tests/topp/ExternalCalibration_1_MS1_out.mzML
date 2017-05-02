@@ -271,7 +271,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="50" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
@@ -332,7 +332,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="50" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
@@ -393,7 +393,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="50" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
@@ -454,7 +454,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="50" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
@@ -515,7 +515,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="50" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
@@ -611,16 +611,16 @@
 	<index name="spectrum">
 		<offset idRef="controllerType=0 controllerNumber=1 scan=1">14744</offset>
 		<offset idRef="controllerType=0 controllerNumber=1 scan=2">49855</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=4">55395</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=6">61148</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=8">67106</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=10">74267</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=12">80042</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=4">55393</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=6">61144</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=8">67100</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=10">74259</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=12">80032</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">113068</offset>
+		<offset idRef="TIC">113055</offset>
 	</index>
 </indexList>
-<indexListOffset>114471</indexListOffset>
+<indexListOffset>114461</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

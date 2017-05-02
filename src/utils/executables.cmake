@@ -59,8 +59,7 @@ XMLValidator
 if(NOT DISABLE_OPENSWATH)
   set(UTILS_executables
     ${UTILS_executables}
-    ConvertTSVToTraML
-    ConvertTraMLToTSV
+    TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow
