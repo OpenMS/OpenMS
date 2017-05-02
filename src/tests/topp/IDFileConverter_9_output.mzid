@@ -74,8 +74,6 @@
 		<AdditionalSearchParams>
 			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
 		</AdditionalSearchParams>
-		<ModificationParams>
-		</ModificationParams>
 		<Enzymes independent="false">
 			<Enzyme missedCleavages="0" id="ENZ_7804704400743266335">
 				<EnzymeName>

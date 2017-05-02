@@ -531,11 +531,14 @@ namespace OpenMS
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
-        sip += "\t\t<ModificationParams>\n";
-        writeModParam_(sip, it->getSearchParameters().fixed_modifications, true, 2);
-        writeModParam_(sip, it->getSearchParameters().variable_modifications, false, 2);
-        sip += "\t\t</ModificationParams>\n";
-
+        if (!it->getSearchParameters().fixed_modifications.empty() ||
+            !it->getSearchParameters().variable_modifications.empty())
+        {
+          sip += "\t\t<ModificationParams>\n";
+          writeModParam_(sip, it->getSearchParameters().fixed_modifications, true, 2);
+          writeModParam_(sip, it->getSearchParameters().variable_modifications, false, 2);
+          sip += "\t\t</ModificationParams>\n";
+        }
         writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
         // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
@@ -560,7 +563,10 @@ namespace OpenMS
         sip += String("\t\t</Threshold>\n");
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
-        sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
+        // empty date would lead to XML schema validation error:
+        DateTime date_time = it->getDateTime();
+        if (!date_time.isValid()) date_time = DateTime::now();
+        sil_2_date.insert(make_pair(sil_id, String(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification
         String sdat_id;
