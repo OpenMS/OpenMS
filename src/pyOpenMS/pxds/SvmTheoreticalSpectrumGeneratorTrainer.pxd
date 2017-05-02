@@ -1,11 +1,10 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp cimport bool
+from Types cimport *
 
 from MSExperiment cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-
+from AASequence cimport *
 from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>" namespace "OpenMS":

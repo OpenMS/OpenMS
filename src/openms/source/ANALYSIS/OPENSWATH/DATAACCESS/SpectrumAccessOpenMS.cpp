@@ -100,14 +100,9 @@ namespace OpenMS
       intensity_array->data.push_back(it->getIntensity());
     }
 
-    // push back rt first, then intensity.
-    // FEATURE (hroest) annotate which is which
-    std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-    binaryDataArrayPtrs.push_back(rt_array);
-    binaryDataArrayPtrs.push_back(intensity_array);
-
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
-    cptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+    cptr->setTimeArray(rt_array);
+    cptr->setIntensityArray(intensity_array);
     return cptr;
   }
 

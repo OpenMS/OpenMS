@@ -3,8 +3,8 @@
     def transform(self, bytes path, transformer):
 
         #
-        # the refernced functions _wrap_MSSpectrum, _wrap_MSChromatogram and
-        # _wrap_ExperimentalSettings are declared in MzMLFile.pyx next to this file !!!
+        # the referenced functions _wrap_MSSpectrum, _wrap_MSChromatogram and
+        # _wrap_ExperimentalSettings are declared in the MzMLFile.pyx file!
         #
 
         cdef _String path_string = _String(<char *>path)

@@ -104,9 +104,11 @@ public:
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
+    // a transition group holds the chromatographic data and peaks across
+    // multiple chromatograms from the same compound
     typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
+
     //@}
 
     /// Constructor
@@ -161,8 +163,71 @@ public:
      * @param transition_exp The transition list describing the experiment
      *
     */
-    void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp);
+    void prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp);
     //@}
+
+    /** @brief Score all peak groups of a transition group
+     *
+     * Iterate through all features found along the chromatograms of the
+     * transition group and score each one individually.
+     *
+     * @param transition_group The MRMTransitionGroup to be scored (input)
+     * @param trafo Optional transformation of the experimental retention time
+     *              to the normalized retention time space used in the
+     *              transition list.
+     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
+     *                  the chromatograms were extracted. Use empty map if no
+     *                  data is available.
+     * @param output The output features with corresponding scores (the found
+     *               features will be added to this FeatureMap).
+     * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
+     *
+    */
+    void scorePeakgroups(MRMTransitionGroupType& transition_group,
+                         TransformationDescription & trafo,
+                         std::vector<OpenSwath::SwathMap> swath_maps,
+                         FeatureMap& output,
+                         bool ms1only=false);
+
+    /** @brief Set the flag for strict mapping
+    */
+    void setStrictFlag(bool f)
+    {
+      strict_ = f;
+    }
+
+    /** @brief Add an MS1 map containing spectra
+     *
+     * For DIA (SWATH-MS), an optional MS1 map can be supplied which can be
+     * used to extract precursor ion signal and provides additional scores. If
+     * no MS1 map is provided, the respective scores are not calculated.
+     *
+     * @param ms1_map The raw mass spectrometric MS1 data
+     *
+    */
+    void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
+    {
+      ms1_map_ = ms1_map;
+    }
+
+    /** @brief Map the chromatograms to the transitions.
+     *
+     * Map an input chromatogram experiment (mzML) and transition list (TraML)
+     * onto each other when they share identifiers, e.g. if the transition id
+     * is the same as the chromatogram native id.
+     *
+     * @param input The input chromatograms
+     * @param transition_exp The transition list describing the experiment
+     * @param transition_group_map Mapping of transition groups
+     * @param trafo Optional transformation of the experimental retention time
+     *              to the normalized retention time space used in the
+     *              transition list.
+     * @param rt_extraction_window The used retention time extraction window
+     *
+    */
+    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
+                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
+private:
 
     /** @brief Splits combined transition groups into detection transition groups
      *
@@ -207,67 +272,6 @@ public:
                                           const unsigned int sn_bin_count_,
                                           bool write_log_messages,
                                           std::vector<OpenSwath::SwathMap> swath_maps);
-
-    /** @brief Score all peak groups of a transition group
-     *
-     * Iterate through all features found along the chromatograms of the
-     * transition group and score each one individually.
-     *
-     * @param transition_group The MRMTransitionGroup to be scored (input)
-     * @param trafo Optional transformation of the experimental retention time
-     *              to the normalized retention time space used in the
-     *              transition list.
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
-     *                  the chromatograms were extracted. Use empty map if no
-     *                  data is available.
-     * @param output The output features with corresponding scores (the found
-     *               features will be added to this FeatureMap).
-     *
-    */
-    void scorePeakgroups(MRMTransitionGroupType& transition_group,
-                         TransformationDescription & trafo,
-                         std::vector<OpenSwath::SwathMap> swath_maps,
-                         FeatureMap& output);
-
-    /** @brief Set the flag for strict mapping
-    */
-    void setStrictFlag(bool f)
-    {
-      strict_ = f;
-    }
-
-    /** @brief Add an MS1 map containing spectra
-     *
-     * For DIA (SWATH-MS), an optional MS1 map can be supplied which can be
-     * used to extract precursor ion signal and provides additional scores. If
-     * no MS1 map is provided, the respective scores are not calculated.
-     *
-     * @param ms1_map The raw mass spectrometric MS1 data
-     *
-    */
-    void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
-    {
-      ms1_map_ = ms1_map;
-    }
-
-    /** @brief Map the chromatograms to the transitions.
-     *
-     * Map an input chromatogram experiment (mzML) and transition list (TraML)
-     * onto each other when they share identifiers, e.g. if the transition id
-     * is the same as the chromatogram native id.
-     *
-     * @param input The input chromatograms
-     * @param transition_exp The transition list describing the experiment
-     * @param transition_group_map Mapping of transition groups
-     * @param trafo Optional transformation of the experimental retention time
-     *              to the normalized retention time space used in the
-     *              transition list.
-     * @param rt_extraction_window The used retention time extraction window
-     *
-    */
-    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
-                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
-private:
 
     /// Synchronize members with param class
     void updateMembers_();

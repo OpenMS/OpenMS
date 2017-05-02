@@ -10,6 +10,7 @@ cdef extern from "<OpenMS/SIMULATION/LABELING/SILACLabeler.h>" namespace "OpenMS
         #  BaseLabeler
         SILACLabeler() nogil except +
         SILACLabeler(SILACLabeler) nogil except + #wrap-ignore
+
         void preCheck(Param & param) nogil except +
         ## void setUpHook(SimTypes::FeatureMapSimVector & ) nogil except +
         ## void postDigestHook(SimTypes::FeatureMapSimVector & ) nogil except +

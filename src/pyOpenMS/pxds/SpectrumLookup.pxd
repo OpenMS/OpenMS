@@ -35,5 +35,5 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
         void addReferenceFormat(String regexp) nogil except +
 
-        # Int extractScanNumber(String native_id, const boost::regex& scan_regexp, bool no_error = false) nogil except +
+        # # NAMESPACE # Int extractScanNumber(String & native_id, boost::regex & scan_regexp, bool no_error) nogil except +
 
