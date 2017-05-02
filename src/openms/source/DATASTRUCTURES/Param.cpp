@@ -1330,7 +1330,7 @@ namespace OpenMS
   void Param::setSectionDescription(const String& key, const String& description)
   {
     ParamNode* node = root_.findParentOf(key);
-    if (node == 0)
+    if (node == NULL)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -1341,6 +1341,11 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
     it->description = description;
+  }
+
+  void Param::addSection(const String& key, const String& description)
+  {
+    root_.insert(ParamNode("",description),key);
   }
 
   Param::ParamIterator Param::begin() const

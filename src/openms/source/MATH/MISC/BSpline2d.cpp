@@ -37,6 +37,7 @@
 #include <BSpline/BSplineBase.cpp>
 #include <BSpline/BSpline.cpp>
 
+
 namespace OpenMS
 {
 
@@ -45,7 +46,7 @@ namespace OpenMS
                        Size num_nodes)
   {
     OPENMS_PRECONDITION(x.size() == y.size(), "x and y vectors passed to BSpline2d constructor must have the same size.")
-    spline_ = new eol_bspline::BSpline<double>(&x[0], x.size(), &y[0], wavelength, boundary_condition, num_nodes);
+    spline_ = new eol_bspline::BSpline<double>(&x[0], static_cast<int>(x.size()), &y[0], wavelength, boundary_condition, num_nodes);
   }
 
   BSpline2d::~BSpline2d()

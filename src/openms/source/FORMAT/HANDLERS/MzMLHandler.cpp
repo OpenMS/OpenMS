@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/FORMAT/CVMappingFile.h>
+
 namespace OpenMS
 {
   namespace Internal
@@ -3543,7 +3546,7 @@ namespace OpenMS
       }
       if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
       {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"high-energy collision-induced dissociation\" />\n";
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
       }
       if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
       {

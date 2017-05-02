@@ -31,14 +31,20 @@
 // $Maintainer: Lars Nilse $
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
+#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
+#define OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <map>
 #include <vector>
-
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
+#include <list>
 
 namespace OpenMS
 {

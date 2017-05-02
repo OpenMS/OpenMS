@@ -69,23 +69,24 @@ END_SECTION
 
 XTandemXMLFile xml_file;
 
-START_SECTION(void setModificationDefinitionsSet(const ModificationDefinitionsSet &rhs))
+START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, ModificationDefinitionsSet& mod_def_set))
 {
 	ModificationDefinitionsSet mod_set(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)"));
-	xml_file.setModificationDefinitionsSet(mod_set);
-  NOT_TESTABLE // tested below
-}
-END_SECTION
 
-START_SECTION(void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data))
-{
-	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications);
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test.xml"), protein_identification, peptide_identifications, mod_set);
 	TEST_EQUAL(peptide_identifications.size(), 303);
 	TEST_EQUAL(protein_identification.getHits().size(), 497);
+  // should have picked up the default N-terminal modifications:
+  TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 6);
+  TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 0);
 
-	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications);
+  mod_set.setModifications("", "Carbamidomethyl (C),Oxidation (M),Carboxymethyl (C)");
+	xml_file.load(OPENMS_GET_TEST_DATA_PATH("XTandemXMLFile_test_2.xml"), protein_identification, peptide_identifications, mod_set);
 	TEST_EQUAL(peptide_identifications.size(), 2);
 	TEST_EQUAL(protein_identification.getHits().size(), 21);
+  // no additional modifications in this case:
+  TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 3);
+  TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 0);
 }
 END_SECTION
 

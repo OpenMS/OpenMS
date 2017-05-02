@@ -215,6 +215,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
+  SqMassFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -229,6 +230,7 @@ set(format_executables_list
   XMLValidator_test
   XTandemInfile_test
   XTandemXMLFile_test
+  ZlibCompression_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
@@ -418,7 +420,6 @@ set(analysis_executables_list
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
-  FeatureGroupingAlgorithmIdentification_test
   FeatureGroupingAlgorithmKD_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
@@ -588,6 +589,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
+    TransitionPQPReader_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
@@ -623,6 +625,7 @@ set(Boost_dependent_tests
   StatisticFunctions_test
   String_test
   TransitionTSVReader_test
+  TransitionPQPReader_test
 )
 
 ### collect test executables

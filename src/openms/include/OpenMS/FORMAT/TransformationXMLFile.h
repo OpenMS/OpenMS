@@ -35,7 +35,6 @@
 #ifndef OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
 #define OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
 
-
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>

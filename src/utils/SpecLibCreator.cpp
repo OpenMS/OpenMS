@@ -33,10 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>

@@ -37,11 +37,12 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
   class Identification;
+  class TargetedExperiment;
 
   /**
       @brief File adapter for HUPO PSI TraML files
@@ -90,5 +91,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_TRAMLFILE_H
+#endif // OPENMS_FORMAT_TRAMLFILE_H
 

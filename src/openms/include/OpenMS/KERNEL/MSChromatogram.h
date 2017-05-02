@@ -35,6 +35,7 @@
 #ifndef OPENMS_KERNEL_MSCHROMATOGRAM_H
 #define OPENMS_KERNEL_MSCHROMATOGRAM_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -44,11 +45,13 @@
 
 namespace OpenMS
 {
+  class ChromatogramPeak;
+
   /**
     @brief The representation of a chromatogram.
     @ingroup Kernel
   */
-  template <typename PeakT = ChromatogramPeak>
+  template <typename PeakT>
   class MSChromatogram :
     private std::vector<PeakT>,
     public RangeManager<1>,

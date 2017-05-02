@@ -41,6 +41,7 @@
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <vector>
@@ -176,7 +177,9 @@ public:
 
     const std::vector<Protein> & getProteins() const;
 
-    const Protein & getProteinByRef(const String & ref);
+    const Protein & getProteinByRef(const String & ref) const;
+
+    bool hasProtein(const String & ref) const;
 
     void addProtein(const Protein & protein);
 
@@ -191,9 +194,13 @@ public:
 
     const std::vector<Peptide> & getPeptides() const;
 
-    const Peptide & getPeptideByRef(const String & ref);
+    bool hasPeptide(const String & ref) const;
 
-    const Compound & getCompoundByRef(const String & ref);
+    const Peptide & getPeptideByRef(const String & ref) const;
+
+    bool hasCompound(const String & ref) const;
+
+    const Compound & getCompoundByRef(const String & ref) const;
 
     void addPeptide(const Peptide & rhs);
 
@@ -249,11 +256,11 @@ public:
 
 protected:
 
-    void createProteinReferenceMap_();
+    void createProteinReferenceMap_() const;
 
-    void createPeptideReferenceMap_();
+    void createPeptideReferenceMap_() const;
 
-    void createCompoundReferenceMap_();
+    void createCompoundReferenceMap_() const;
 
     std::vector<CV> cvs_;
 
@@ -281,17 +288,17 @@ protected:
 
     std::vector<SourceFile> source_files_;
 
-    ProteinReferenceMapType protein_reference_map_;
+    mutable ProteinReferenceMapType protein_reference_map_;
 
-    bool protein_reference_map_dirty_;
+    mutable bool protein_reference_map_dirty_;
 
-    PeptideReferenceMapType peptide_reference_map_;
+    mutable PeptideReferenceMapType peptide_reference_map_;
 
-    bool peptide_reference_map_dirty_;
+    mutable bool peptide_reference_map_dirty_;
 
-    CompoundReferenceMapType compound_reference_map_;
+    mutable CompoundReferenceMapType compound_reference_map_;
 
-    bool compound_reference_map_dirty_;
+    mutable bool compound_reference_map_dirty_;
 
   };
 

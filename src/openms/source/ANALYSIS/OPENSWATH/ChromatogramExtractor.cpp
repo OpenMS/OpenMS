@@ -34,12 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+
 namespace OpenMS
 {
 
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
     std::vector< ExtractionCoordinates > & coordinates,
-    OpenMS::TargetedExperiment & transition_exp_used,
+    const OpenMS::TargetedExperiment & transition_exp_used,
     const double rt_extraction_window, const bool ms1) const
   {
     // hash of the peptide reference containing all transitions
@@ -79,19 +83,28 @@ namespace OpenMS
         coord.id = transition.getNativeID();
       }
 
-      if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+      if (rt_extraction_window < 0)
       {
-        // we don't have retention times -> this is only a problem if we actually
-        // wanted to use the RT limit feature.
-        if (rt_extraction_window < 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
-        }
         coord.rt_end = -1;
         coord.rt_start = 0;
       }
-      else
+      else if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+      {
+        // we don't have retention times -> this is only a problem if we actually
+        // wanted to use the RT limit feature.
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
+      }
+      else if (boost::math::isnan(rt_extraction_window))
+      {
+        if (pep.rts.size() != 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Expected exactly two retention time entries for peptide '" + pep.id + "', found " + String(pep.rts.size()));
+        }
+        coord.rt_start = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+        coord.rt_end = pep.rts[1].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      }
+      else // if 'rt_extraction_window' is zero, just write the (first) RT value for later processing
       {
         double rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
         coord.rt_start = rt - rt_extraction_window / 2.0;
@@ -164,6 +177,43 @@ namespace OpenMS
         }
         PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
       }
+  }
+
+
+  // Specialization for template (LightTargetedExperiment)
+  template <>
+  String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
+  {
+    OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id); 
+    if (!comp.sequence.empty())
+    {
+      return comp.sequence;
+    }
+    else
+    {
+      return comp.compound_name;
+    }
+  }
+
+
+  // Specialization for template (TargetedExperiment)
+  template <>
+  String ChromatogramExtractor::extract_id_<TargetedExperiment>(TargetedExperiment& transition_exp_used, String id)
+  {
+    if (transition_exp_used.hasPeptide(id))
+    {
+      TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
+      return p.sequence;
+    }
+    else if (transition_exp_used.hasCompound(id))
+    {
+      TargetedExperiment::Compound c = transition_exp_used.getCompoundByRef(id);
+      return c.id;
+    }
+    else
+    {
+      return "";
+    }
   }
 
 }

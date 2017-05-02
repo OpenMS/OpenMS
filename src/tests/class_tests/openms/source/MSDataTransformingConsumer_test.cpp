@@ -36,11 +36,11 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 void FunctionChangeSpectrum (OpenMS::MSSpectrum<OpenMS::Peak1D> & s)

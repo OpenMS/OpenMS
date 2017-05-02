@@ -33,6 +33,23 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
+
+#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MS2File.h>
+#include <OpenMS/FORMAT/XMassFile.h>
+
+#include <OpenMS/FORMAT/MsInspectFile.h>
+#include <OpenMS/FORMAT/SpecArrayFile.h>
+#include <OpenMS/FORMAT/KroenikFile.h>
+
+#include <OpenMS/KERNEL/ChromatogramTools.h>
+
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
@@ -221,7 +238,7 @@ namespace OpenMS
       return FileTypes::MZML;
 
     //"analysisXML" aka. mzid (all lines)
-    if (all_simple.hasSubstring("<mzIdentML"))
+    if (all_simple.hasSubstring("<MzIdentML"))
       return FileTypes::MZIDENTML;
 
     //mzq (all lines)
@@ -498,6 +515,195 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
 
     return true;
+  }
+
+  bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
+  {
+    // setting the flag for hash recomputation only works if source file entries are rewritten 
+    OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
+
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch (Exception::FileNotFound)
+      {
+        return false;
+      }
+    }
+
+    //load right file
+    switch (type)
+    {
+    case FileTypes::DTA:
+      exp.reset();
+      exp.resize(1);
+      DTAFile().load(filename, exp[0]);
+      break;
+
+    case FileTypes::DTA2D:
+    {
+      DTA2DFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      f.load(filename, exp);
+    }
+
+    break;
+
+    case FileTypes::MZXML:
+    {
+      MzXMLFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      f.load(filename, exp);
+    }
+
+    break;
+
+    case FileTypes::MZDATA:
+    {
+      MzDataFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      f.load(filename, exp);
+    }
+    break;
+
+    case FileTypes::MZML:
+    {
+      MzMLFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      f.load(filename, exp);
+      ChromatogramTools().convertSpectraToChromatograms<PeakMap >(exp, true);
+    }
+    break;
+
+    case FileTypes::MGF:
+    {
+      MascotGenericFile f;
+      f.setLogType(log);
+      f.load(filename, exp);
+    }
+
+    break;
+
+    case FileTypes::MS2:
+    {
+      MS2File f;
+      f.setLogType(log);
+      f.load(filename, exp);
+    }
+
+    break;
+
+    case FileTypes::XMASS:
+      exp.reset();
+      exp.resize(1);
+      XMassFile().load(filename, exp[0]);
+      XMassFile().importExperimentalSettings(filename, exp);
+
+      break;
+
+    default:
+      return false;
+
+      break;
+    }
+
+    if (rewrite_source_file)
+    {
+      SourceFile src_file;
+      src_file.setNameOfFile(File::basename(filename));
+      String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
+      
+      // make sure we end up with at most 3 forward slashes       
+      String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
+      src_file.setPathToFile(uri);
+      // this is more complicated since the data formats allowed by mzML are very verbose.
+      // this is prone to changing CV's... our writer will fall back to a default if the name given here is invalid.
+      src_file.setFileType(FileTypes::typeToMZML(type));
+
+      if (compute_hash)
+      {
+        src_file.setChecksum(computeFileHash(filename), SourceFile::SHA1);
+      }
+
+      exp.getSourceFiles().clear();
+      exp.getSourceFiles().push_back(src_file);
+    }
+
+    return true;
+  }
+
+  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log)
+  {
+    //load right file
+    switch (getTypeByFileName(filename))
+    {
+    case FileTypes::DTA2D:
+    {
+      DTA2DFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      f.store(filename, exp);
+    }
+    break;
+
+    case FileTypes::MZXML:
+    {
+      MzXMLFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      if (!exp.getChromatograms().empty())
+      {
+        PeakMap exp2 = exp;
+        ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
+        f.store(filename, exp2);
+      }
+      else
+      {
+        f.store(filename, exp);
+      }
+    }
+    break;
+
+    case FileTypes::MZDATA:
+    {
+      MzDataFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      if (!exp.getChromatograms().empty())
+      {
+        PeakMap exp2 = exp;
+        ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
+        f.store(filename, exp2);
+      }
+      else
+      {
+        f.store(filename, exp);
+      }
+    }
+    break;
+
+    default:
+    {
+      MzMLFile f;
+      f.getOptions() = options_;
+      f.setLogType(log);
+      f.store(filename, exp);
+    }
+    break;
+    }
   }
 
 } // namespace OpenMS

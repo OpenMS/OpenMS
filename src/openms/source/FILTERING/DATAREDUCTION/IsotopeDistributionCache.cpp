@@ -35,6 +35,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {

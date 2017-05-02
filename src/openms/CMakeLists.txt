@@ -85,6 +85,7 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
+                          ${SQLITE_LIBRARY}
                           ${GLPK_LIBRARIES})
 
 # xerces requires linking against CoreFoundation&CoreServices
@@ -118,6 +119,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${GSL_INCLUDE_DIRS}
                                      ${Boost_INCLUDE_DIRS}
                                      ${SEQAN_INCLUDE_DIRS}
+                                     ${SQLITE_INCLUDE_DIR}
                                      ${LIBSVM_INCLUDE_DIRS}
                                      ${GLPK_INCLUDE_DIRS}
                                      ${ZLIB_INCLUDE_DIRS}

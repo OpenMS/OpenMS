@@ -32,8 +32,10 @@
 // $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
+
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -694,12 +696,12 @@ namespace OpenMS
               if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
-              LOG_WARN << "Found no spectrum reference and no mz position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             if (it->getRT() != it->getRT())
             {
               ert = "nan";
-              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
@@ -814,7 +816,9 @@ namespace OpenMS
           {
             String p;
             //~ TODO simplify mod cv param write
-            p += String("\t<Peptide id=\"") + pepid + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
+            // write peptide id with conversion to universal, "human-readable" bracket string notation
+            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") + 
+                  jt->getSequence().toBracketString(false) + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
               const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
@@ -890,10 +894,30 @@ namespace OpenMS
                   else
                   {
                     acc = mod->getPSIMODAccession();
-                    p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
-                    p += "\" name=\"" +  mod->getId();
-                    p += "\" cvRef=\"XLMOD\"/>";
-                    p += "\n\t\t</Modification>\n";
+                    if (!acc.empty())
+                    {
+                      p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                      p += "\" name=\"" +  mod->getId();
+                      p += "\" cvRef=\"XLMOD\"/>";
+                      p += "\n\t\t</Modification>\n";
+                    }
+                    else
+                    {
+                      // We have an unknown modification, so lets write unknown
+                      // and at least try to write down the delta mass.
+                      if (mod->getDiffMonoMass() != 0.0)
+                      {
+                        double diffmass = mod->getDiffMonoMass();
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                      }
+                      else if (mod->getMonoMass() > 0.0)
+                      {
+                        double diffmass = mod->getMonoMass() - jt->getSequence()[i].getMonoWeight();
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                      }
+                      p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\" value=\"N-Glycan\"/>";
+                      p += "\n\t\t</Modification>\n";
+                    }
                   }
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
@@ -1219,11 +1243,11 @@ namespace OpenMS
           }
           else
           {
-            String score_name_placeholder = st.empty()?"search engine specific score for PSMs":st;
-            sii_tmp += String(5, '\t') + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns);
+            String score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
+            sii_tmp += String(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
             sii_tmp += "\n" + String(5, '\t') + "<userParam name=\"" + score_name_placeholder
                          + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
-            LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
+            LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary." << std::endl;
           }
           sii_tmp += "\n";
 

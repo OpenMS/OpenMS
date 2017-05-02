@@ -32,17 +32,19 @@
 // $Authors: George Rosenberger, Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
-#include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
+#include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 ///////////////////////////
+
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+#include <boost/assign/std/vector.hpp>
+#include <boost/assign/list_of.hpp>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
@@ -186,6 +188,47 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
     shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
     TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'R')
     TEST_EQUAL(shuffled.sequence, expected_sequence)
+  }
+
+  {
+    OpenMS::TargetedExperiment::Peptide original_input;
+    OpenMS::TargetedExperiment::Peptide::Modification mod;
+    // std::vector<TargetedExperiment::Peptide::Modification> mods;
+    std::vector<TargetedExperiment::Peptide::Modification> mods;
+    // original_input.sequence = "EPAHLMSLFGGKPM(UniMod:35)";
+    original_input.sequence = "EPAHLMSLFGGKPM";
+    mod.location = 13; // non-C terminal
+    mod.unimod_id = 35;
+    mods.push_back(mod);
+    original_input.mods = mods;
+    expected_sequence = "MPGHLMGASLEKPF";
+    OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
+    shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
+    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'F')
+    TEST_EQUAL(shuffled.sequence, expected_sequence)
+    TEST_EQUAL(shuffled.mods.size(), 1)
+    TEST_EQUAL(shuffled.mods[0].location, 5) // the second M moved to position 5
+  }
+
+  {
+    OpenMS::TargetedExperiment::Peptide original_input;
+    OpenMS::TargetedExperiment::Peptide::Modification mod;
+    // std::vector<TargetedExperiment::Peptide::Modification> mods;
+    std::vector<TargetedExperiment::Peptide::Modification> mods;
+    // original_input.sequence = "EPAHLMSLFGGKPM(UniMod:35)";
+    original_input.sequence = "EPAHLMSLFGGKPM";
+    mod.location = 14; // C terminal
+    mod.unimod_id = 35;
+    mods.push_back(mod);
+    original_input.mods = mods;
+    expected_sequence = "MPGHLMGASLEKPF";
+    OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
+    shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
+    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'F')
+    TEST_EQUAL(shuffled.sequence, expected_sequence)
+    TEST_EQUAL(shuffled.mods.size(), 1)
+    TEST_EQUAL(shuffled.mods[0].location, 14) // Problem: this modification cannot be C terminal any more for F!
+    // TODO: report and fix this
   }
 
 }

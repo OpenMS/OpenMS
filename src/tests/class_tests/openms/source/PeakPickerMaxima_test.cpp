@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <cmath>
 #define PI 3.141592653589793
