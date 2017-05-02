@@ -60,7 +60,7 @@
 #else
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
-//#undef NOMINMAX
+#undef NOMINMAX
 
 
 
