@@ -1068,7 +1068,7 @@ namespace OpenMS
     try
     {
       aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
-    } catch (Exception::InvalidValue e)
+    } catch (Exception::InvalidValue & e)
     {
       if (force_invalid_mods_)
       {
