@@ -1078,7 +1078,7 @@ namespace OpenMS
       else 
       {
         std::cerr << "Error while reading file (use force_invalid_mods to override): " << e.what() << std::endl;
-        throw e;
+        throw;
       }
     }
 
