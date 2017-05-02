@@ -226,6 +226,6 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
       BIonMinusNH3,   # MS:1001232 b ion without ammonia
       YIonMinusNH3,   # MS:1001233 y ion without ammonia
       NonIdentified,  # MS:1001240 Non-identified ion
-      Unannotated,    # no stored annotation
+      Unannotated,    # no stored annotation 
       SizeOfResidueType
 

@@ -44,7 +44,7 @@
 
 namespace OpenSwath
 {
-  struct OPENSWATHALGO_DLLAPI LightTransition
+  struct LightTransition
   {
 public:
 
@@ -80,6 +80,11 @@ public:
     }
 
     std::string getPeptideRef() const
+    {
+      return peptide_ref;
+    }
+
+    std::string getCompoundRef() const
     {
       return peptide_ref;
     }
@@ -135,14 +140,14 @@ public:
     }
   };
 
-  struct OPENSWATHALGO_DLLAPI LightModification
+  struct LightModification
   {
     int location;
     int unimod_id;
   };
 
   // A compound is either a peptide or a metabolite
-  struct OPENSWATHALGO_DLLAPI LightCompound
+  struct LightCompound
   {
 
     LightCompound() :
@@ -181,18 +186,19 @@ public:
     std::vector<LightModification> modifications;
   };
 
-  struct OPENSWATHALGO_DLLAPI LightProtein
+  struct LightProtein
   {
     std::string id;
     std::string sequence;
   };
 
-  struct OPENSWATHALGO_DLLAPI LightTargetedExperiment
+  struct LightTargetedExperiment
   {
     LightTargetedExperiment() : compound_reference_map_dirty_(true) {}
 
     typedef LightTransition Transition;
     typedef LightCompound Peptide;
+    typedef LightCompound Compound;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
@@ -203,12 +209,27 @@ public:
       return transitions;
     }
 
+    const std::vector<LightTransition> & getTransitions() const
+    {
+      return transitions;
+    }
+
     std::vector<LightCompound> & getCompounds()
     {
       return compounds;
     }
 
+    const std::vector<LightCompound> & getCompounds() const
+    {
+      return compounds;
+    }
+
     std::vector<LightProtein> & getProteins()
+    {
+      return proteins;
+    }
+
+    const std::vector<LightProtein> & getProteins() const
     {
       return proteins;
     }

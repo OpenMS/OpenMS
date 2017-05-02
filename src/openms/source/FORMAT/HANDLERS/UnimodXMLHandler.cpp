@@ -92,7 +92,7 @@ namespace OpenMS
         modification_->setSourceClassification(classification);
 
         // allowed site
-        String site(attributeAsString_(attributes, "site"));
+        String site = attributeAsString_(attributes, "site");
         //sites_.push_back(site);
 
         // allowed positions
@@ -102,44 +102,33 @@ namespace OpenMS
         {
           position = ResidueModification::ANYWHERE;
         }
+        else if (pos == "Protein N-term")
+        {
+          position = ResidueModification::N_TERM;
+        }
+        else if (pos == "Protein C-term")
+        {
+          position = ResidueModification::C_TERM;
+        }
+        else if (pos == "Any C-term")
+        {
+          position = ResidueModification::C_TERM;
+        }
+        else if (pos == "Any N-term")
+        {
+          position = ResidueModification::N_TERM;
+        }
         else
         {
-          if (pos == "Protein N-term")
-          {
-            position = ResidueModification::N_TERM;
-          }
-          else
-          {
-            if (pos == "Protein C-term")
-            {
-              position = ResidueModification::C_TERM;
-            }
-            else
-            {
-              if (pos == "Any C-term")
-              {
-                position = ResidueModification::C_TERM;
-              }
-              else
-              {
-                if (pos == "Any N-term")
-                {
-                  position = ResidueModification::N_TERM;
-                }
-                else
-                {
-                  warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
-                }
-              }
-            }
-          }
+          warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
         }
 
         if (!pos.hasSubstring("Protein"))
         {
           was_valid_peptide_modification_ = true;
           term_specs_.push_back(position);
-          sites_.push_back(site);
+          if (site.size() > 1) site = "X"; // C-term/N-term
+          sites_.push_back(site[0]);
         }
         else
         {
@@ -193,9 +182,7 @@ namespace OpenMS
           formula = tmp_symbol + num;
         }
         diff_formula_ += EmpiricalFormula(formula);
-
       }
-
     }
 
     void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -210,7 +197,7 @@ namespace OpenMS
         modification_->setDiffFormula(diff_formula_);
         for (Size i = 0; i != sites_.size(); ++i)
         {
-          ResidueModification * new_mod = new ResidueModification(*modification_);
+          ResidueModification* new_mod = new ResidueModification(*modification_);
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
           new_mod->setNeutralLossDiffFormula(neutral_loss_diff_formulas_[i]);

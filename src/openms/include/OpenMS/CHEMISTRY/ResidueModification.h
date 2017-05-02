@@ -48,19 +48,31 @@ namespace OpenMS
 
   /** @brief Representation of a modification
 
-          This class represents a modification of a residue. A residue modification
-          has several attributes like the diff formula, a terminal specificity
-          a mass and maybe an origin which means a specific residue which it can
-          be applied to. A residue modification can be represented by its UniMod name
-          identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
-          only occurs once in an OpenMS instance stored in the ModificationsDB.
+      This class represents a modification of a residue. A residue modification
+      has several attributes like the diff formula, a terminal specificity
+      a mass and maybe an origin which means a specific residue which it can
+      be applied to. A residue modification can be represented by its Unimod name
+      identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
+      only occurs once in an OpenMS instance stored in the ModificationsDB.
 
-          Example: methionine sulfoxide formation by oxidation of methionine
+      Example: methionine sulfoxide formation by oxidation of methionine
 
-          getFullId()           = "Oxidation (M)"
-          getId()               = "Oxidation"
-          getFullName()         = "Oxidation or Hydroxylation"
-          getUniModAccession()  = "UniMod:312"
+      Function              | Result
+      ----------------------------------------------------
+      getFullId()           | "Oxidation (M)"
+      getId()               | "Oxidation"
+      getFullName()         | "Oxidation or Hydroxylation"
+      getUniModAccession()  | "UniMod:312"
+
+      Note that some modifications are not explicitely defined from an input
+      file but get added on the fly when reading amino acid sequences with
+      bracket notation, e.g. "PEPTX[999]IDE". If there is no known modification
+      corresponding to the indicated mass, then a new ResidueModification will
+      be created which will return the initial string through "getFullId()" --
+      which will either be "[999]" for internal modifications or ".[999]" for
+      N/C-terminal modifications. Please use "isUserDefined" to check for
+      user-defined modifications.
+
   */
   class OPENMS_DLLAPI ResidueModification
   {
@@ -144,10 +156,25 @@ public:
     /// returns the identifier of the modification
     const String& getId() const;
 
-    /// set full identifier (UniMod Accession + origin, if available)
-    void setFullId(const String& full_id);
+    /**
+       @brief Sets the full identifier (Unimod Accession + origin, if available)
 
-    /// returns the full id of the mod (UniMod accession + origin, if available)
+       With empty argument, create a full ID based on (short) ID, terminal specificity and residue of origin.
+
+       @throw Exception::MissingInformation if both argument @p full_id and member @p id_ are empty.
+    */
+    void setFullId(const String& full_id = "");
+
+    /// returns the full identifier of the mod (Unimod accession + origin, if available)
+    /**
+       @brief Returns the full identifier (Unimod Accession + origin, if available)
+
+       @note This field is used for user-defined modifications as well and will
+       be set to a string such as "[999]" for internal modifications or
+       ".[999]" for N/C-terminal modifications. Please use "isUserDefined" to
+       check for user-defined modifications.
+
+    */
     const String& getFullId() const;
 
     /// sets the unimod record id
@@ -177,33 +204,45 @@ public:
     /// returns the PSI-MS-label if available; e.g. Mascot uses this name
     const String& getName() const;
 
-    /// sets the term specificity
+    /**
+       @brief Sets the term specificity
+
+       @throw Exception::InvalidValue if no valid specificity was given
+    */
     void setTermSpecificity(TermSpecificity term_spec);
 
-    /// sets the terminal specificity using a name (valid: "C-term","N-term","none")
+    /**
+       @brief Sets the terminal specificity using a name
+
+       Valid names: "C-term", "N-term", "none"
+      
+       @throw Exception::InvalidValue if no valid specificity was given
+    */
     void setTermSpecificity(const String& name);
 
     /// returns terminal specificity
     TermSpecificity getTermSpecificity() const;
 
-    /// returns the terminal specificity name which is set or given as parameter
-    String getTermSpecificityName(TermSpecificity = NUMBER_OF_TERM_SPECIFICITY) const;
+    /**
+       @brief Returns the name of the terminal specificity
+
+       By default, returns the name of the specificity set in member @p term_spec_.
+       Alternatively, returns the name corresponding to argument @p term_spec.
+    */
+    String getTermSpecificityName(TermSpecificity term_spec = NUMBER_OF_TERM_SPECIFICITY) const;
 
     /**
-       @brief Sets the origin (i.e. amino acid or terminus)
+       @brief Sets the origin (i.e. modified amino acid)
 
-       @see getOrigin()
+       @p origin must be a valid amino acid one-letter code or X, i.e. a letter from A to Y, excluding B and J.
+       X represents any amino acid (for modifications with terminal specificity).
+
+       @throw Exception::InvalidValue if @p origin is not in the valid range
     */
-    void setOrigin(const String& origin);
+    void setOrigin(char origin);
 
-    /**
-       @brief Returns the origin (i.e. amino acid or terminus) if set
-
-       For modifications without terminal specificity, the origin is the residue that gets modified, e.g. "M" for "Oxidation (M)".
-       For modifications with purely terminal specificity, the origin is "N-term" or "C-term", e.g. "N-term" for "Acetyl (N-term)".
-       For modifications with terminal and residue specificity, the origin is the residue, e.g. "E" for "Glu->pyro-Glu (N-term E)".
-    */
-    const String& getOrigin() const;
+    /// Returns the origin (i.e. modified amino acid)
+    char getOrigin() const;
 
     /// classification as defined by the PSI-MOD
     void setSourceClassification(const String& classification);
@@ -287,6 +326,9 @@ public:
     /// returns true if a neutral loss formula is set
     bool hasNeutralLoss() const;
 
+    /// returns true if it is a user-defined modification (empty id)
+    bool isUserDefined() const;
+
     /// equality operator
     bool operator==(const ResidueModification& modification) const;
 
@@ -311,7 +353,7 @@ protected:
 
     TermSpecificity term_spec_;
 
-    String origin_;
+    char origin_;
 
     SourceClassification classification_;
 

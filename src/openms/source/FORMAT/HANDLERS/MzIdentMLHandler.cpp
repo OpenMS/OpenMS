@@ -702,12 +702,12 @@ namespace OpenMS
               if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
-              LOG_WARN << "Found no spectrum reference and no mz position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              LOG_WARN << "Found no spectrum reference and no m/z position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             if (it->getRT() != it->getRT())
             {
               ert = "nan";
-              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probably converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
@@ -822,7 +822,9 @@ namespace OpenMS
           {
             String p;
             //~ TODO simplify mod cv param write
-            p += String("\t<Peptide id=\"") + pepid + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
+            // write peptide id with conversion to universal, "human-readable" bracket string notation
+            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") + 
+                  jt->getSequence().toBracketString(false) + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
               const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
@@ -898,10 +900,30 @@ namespace OpenMS
                   else
                   {
                     acc = mod->getPSIMODAccession();
-                    p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
-                    p += "\" name=\"" +  mod->getId();
-                    p += "\" cvRef=\"XLMOD\"/>";
-                    p += "\n\t\t</Modification>\n";
+                    if (!acc.empty())
+                    {
+                      p += "\">\n\t\t\t<cvParam accession=\"XLMOD:" + acc.suffix(':');
+                      p += "\" name=\"" +  mod->getId();
+                      p += "\" cvRef=\"XLMOD\"/>";
+                      p += "\n\t\t</Modification>\n";
+                    }
+                    else
+                    {
+                      // We have an unknown modification, so lets write unknown
+                      // and at least try to write down the delta mass.
+                      if (mod->getDiffMonoMass() != 0.0)
+                      {
+                        double diffmass = mod->getDiffMonoMass();
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                      }
+                      else if (mod->getMonoMass() > 0.0)
+                      {
+                        double diffmass = mod->getMonoMass() - jt->getSequence()[i].getMonoWeight();
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                      }
+                      p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\" value=\"N-Glycan\"/>";
+                      p += "\n\t\t</Modification>\n";
+                    }
                   }
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
