@@ -3,6 +3,7 @@ from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 from FeatureMap cimport *
+from SwathMap cimport *
 from TargetedExperiment cimport *
 from LightTargetedExperiment cimport *
 from TransformationDescription cimport *
@@ -19,7 +20,8 @@ from SpectrumAccessOpenMSCached cimport *
 ### # from SpectrumAccessQuadMZTransforming cimport *
 
 # typedef OpenSwath::LightTransition TransitionType;
-# typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; 
+# typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
+# typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":
 
@@ -36,15 +38,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
                             TransformationDescription trafo,
                             MSExperiment & swath_map) nogil except +
 
-        # void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
-        #                     TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map);
-
-        # void pickExperiment(shared_ptr[ ISpectrumAccess ] ms1_map inp,
-        #                     FeatureMap& output,
-        #                     LightTargetedExperiment& transition_exp,
-        #                     TransformationDescription trafo, 
-        #                     OpenSwath::SpectrumAccessPtr swath_map, 
-        #                     TransitionGroupMapType& transition_group_map)
+        ## void pickExperiment(shared_ptr[ SpectrumAccessOpenMS ] input_chrom,
+        ##                     FeatureMap& output,
+        ##                     LightTargetedExperiment& transition_exp,
+        ##                     TransformationDescription trafo,
+        ##                     SwathMap swath_map,
+        ##                     libcpp_map[String, MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition] ] & transition_group_map)
 
         void setStrictFlag(bool flag) nogil except +
 
@@ -54,24 +53,15 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         ### # void setMS1Map( shared_ptr[ SpectrumAccessOpenMSInMemory ] ms1_map) nogil except +
         ### # void setMS1Map( shared_ptr[ SpectrumAccessQuadMZTransforming ] ms1_map) nogil except +
 
-        # void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
-        #                      shared_ptr[ ISpectrumAccess ] swath_map, FeatureMap& output, bool ms1only) nogil except +
-        void scorePeakgroups(MRMTransitionGroup[MSSpectrum[ChromatogramPeak], LightTransition] transition_group,
+        void scorePeakgroups(MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition] transition_group,
                              TransformationDescription trafo,
-                             shared_ptr[ SpectrumAccessOpenMS ] swath_map,
-                             FeatureMap& output, bool ms1only) nogil except +
-        void scorePeakgroups(MRMTransitionGroup[MSSpectrum[ChromatogramPeak], LightTransition] transition_group,
-                             TransformationDescription trafo,
-                             shared_ptr[ SpectrumAccessOpenMSCached ] swath_map,
-                             FeatureMap& output, bool ms1only) nogil except +
-        ### # void scorePeakgroups(MRMTransitionGroup[MSSpectrum[ChromatogramPeak], LightTransition] transition_group,
-        ### #                      TransformationDescription trafo,
-        ### #                      shared_ptr[ SpectrumAccessOpenMSInMemory ] swath_map,
-        ### #                      FeatureMap& output, bool ms1only) nogil except +
-        ### # void scorePeakgroups(MRMTransitionGroup[MSSpectrum[ChromatogramPeak], LightTransition] transition_group,
-        ### #                      TransformationDescription trafo,
-        ### #                      shared_ptr[ SpectrumAccessQuadMZTransforming ] swath_map,
-        ### #                      FeatureMap& output, bool ms1only) nogil except +
-          
+                             libcpp_vector[ SwathMap ] swath_maps,
+                             FeatureMap& output,
+                             bool ms1only) nogil except +
+
         void prepareProteinPeptideMaps_(LightTargetedExperiment& transition_exp) nogil except +
+
+        # # void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, LightTargetedExperiment transition_exp,
+        # #                                    TransitionGroupMapType& transition_group_map,
+        # #                                    TransformationDescription trafo, double rt_extraction_window);
 
