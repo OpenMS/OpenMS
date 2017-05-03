@@ -2286,6 +2286,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAANQMR(Deamidated)}_381.6818_88.5551_-39.95_y1^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2307,6 +2308,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAANQMR(Deamidated)"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR}_381.6818_153.5834_-39.95_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2328,6 +2330,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAANQMR(Deamidated)}_381.6818_154.0754_-39.95_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2349,6 +2352,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAANQMR(Deamidated)"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQMR}_381.6818_217.6126_-39.95_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2370,6 +2374,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAANQ(Deamidated)MR|AAANQMR(Deamidated)}_381.6818_218.1047_-39.95_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2391,6 +2396,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAANQ(Deamidated)MR|AAANQMR(Deamidated)"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR(Deamidated)}_381.6818_275.1261_-39.95_y4^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2412,6 +2418,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR(Deamidated)"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR(Deamidated)}_381.6818_310.6447_-39.95_y5^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2433,6 +2440,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR(Deamidated)"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR(Deamidated)}_381.6818_346.1632_-39.95_y6^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -2454,6 +2462,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR(Deamidated)"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR}_381.1898_88.0631_-41.85_y1^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -2475,6 +2484,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR}_381.1898_153.5834_-41.85_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -2496,6 +2506,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQ(Deamidated)MR|AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAAN(Deamidated)QMR|AAANQMR}_381.1898_217.6126_-41.85_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -2517,6 +2528,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAN(Deamidated)QMR|AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAANQMR}_381.1898_274.6341_-41.85_y4^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -2538,6 +2550,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAANQMR}_381.1898_310.1527_-41.85_y5^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -2559,6 +2572,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAANQMR}_381.1898_345.6712_-41.85_y6^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -2580,6 +2594,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAANQMR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_537.7931_100.36_y10^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2601,6 +2616,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_594.3352_100.36_y11^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2622,6 +2638,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_629.8537_100.36_y12^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2643,6 +2660,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_665.3723_100.36_y13^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2664,6 +2682,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_88.0631_100.36_y1^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2685,6 +2704,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_116.5738_100.36_y2^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2706,6 +2726,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_173.1159_100.36_y3^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2727,6 +2748,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_208.6344_100.36_y4^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2748,6 +2770,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_273.1557_100.36_y5^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2769,6 +2792,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_329.6978_100.36_y6^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2790,6 +2814,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_386.2398_100.36_y7^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2811,6 +2836,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_443.7533_100.36_y8^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2832,6 +2858,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITSDILEALGR}_700.8908_487.2693_100.36_y9^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -2853,6 +2880,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITSDILEALGR"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_547.8264_66.29_y10^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -2874,6 +2902,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_583.345_66.29_y11^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -2895,6 +2924,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_618.8635_66.29_y12^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -2916,6 +2946,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_74.06_66.29_y1^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -2937,6 +2968,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_124.5839_66.29_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -2958,6 +2990,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_181.1259_66.29_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -2979,6 +3012,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_231.6498_66.29_y4^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -3000,6 +3034,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_288.1918_66.29_y5^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -3021,6 +3056,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_323.7103_66.29_y6^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -3042,6 +3078,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_405.242_66.29_y7^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -3063,6 +3100,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_440.7606_66.29_y8^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -3084,6 +3122,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAITAYALTLTK}_654.3821_491.2844_66.29_y9^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -3105,6 +3144,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAITAYALTLTK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_74.06_-35.92_y1^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3126,6 +3166,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_122.5864_-35.92_y2^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3147,6 +3188,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_173.1103_-35.92_y3^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3168,6 +3210,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_230.1317_-35.92_y4^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3189,6 +3232,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_278.6581_-35.92_y5^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3210,6 +3254,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_314.1767_-35.92_y6^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3231,6 +3276,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{AAAPNTPK}_385.2138_349.6952_-35.92_y7^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -3252,6 +3298,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAPNTPK"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_552.7426_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3273,6 +3320,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_581.2533_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3294,6 +3342,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_74.06_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3315,6 +3364,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK"/>
     </Transition>
     <Transition id="UIS_{AAADPHECYAK(Carbamidomethyl)}_411.517_102.5708_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3336,6 +3386,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_411.517_109.5786_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3357,6 +3408,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK"/>
     </Transition>
     <Transition id="UIS_{AAADPHECYAK(Carbamidomethyl)}_411.517_138.0893_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3378,6 +3430,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_411.517_191.1103_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3399,6 +3452,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK"/>
     </Transition>
     <Transition id="UIS_{AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_219.621_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3420,6 +3474,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_411.517_242.6149_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3441,6 +3496,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_271.1256_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3462,6 +3518,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_411.517_307.1362_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3483,6 +3540,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_335.6469_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3504,6 +3562,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_375.6656_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3525,6 +3584,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_404.1763_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3546,6 +3606,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_411.517_424.192_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3567,6 +3628,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_452.7027_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3588,6 +3650,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_481.7055_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3609,6 +3672,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_510.2162_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3630,6 +3694,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_411.517_517.224_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3651,6 +3716,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_411.517_545.7348_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -3672,6 +3738,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_552.7426_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3693,6 +3760,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_581.2533_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3714,6 +3782,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_74.06_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3735,6 +3804,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK"/>
     </Transition>
     <Transition id="UIS_{AAADPHECYAK(Carbamidomethyl)}_616.7719_102.5708_-24.57_y1^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3756,6 +3826,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK}_616.7719_109.5786_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3777,6 +3848,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK"/>
     </Transition>
     <Transition id="UIS_{AAADPHECYAK(Carbamidomethyl)}_616.7719_138.0893_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3798,6 +3870,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK}_616.7719_191.1103_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3819,6 +3892,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK"/>
     </Transition>
     <Transition id="UIS_{AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_219.621_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3840,6 +3914,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK}_616.7719_242.6149_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3861,6 +3936,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_271.1256_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3882,6 +3958,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK}_616.7719_307.1362_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3903,6 +3980,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_335.6469_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3924,6 +4002,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_375.6656_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3945,6 +4024,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_404.1763_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3966,6 +4046,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK}_616.7719_424.192_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -3987,6 +4068,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK|AAAD(Carbamidomethyl)PHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_452.7027_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -4008,6 +4090,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_481.7055_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -4029,6 +4112,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_510.2162_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -4050,6 +4134,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{.(Carbamidomethyl)AAADPHECYAK}_616.7719_517.224_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -4071,6 +4156,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)AAADPHECYAK"/>
     </Transition>
     <Transition id="UIS_{AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)}_616.7719_545.7348_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -4092,6 +4178,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAD(Carbamidomethyl)PHECYAK|AAADPH(Carbamidomethyl)ECYAK|AAADPHE(Carbamidomethyl)CYAK|AAADPHEC(Carbamidomethyl)YAK|AAADPHECY(Carbamidomethyl)AK|AAADPHECYAK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_542.7929_54.74_y10^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4113,6 +4200,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_578.3115_54.74_y11^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4134,6 +4222,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_88.0631_54.74_y1^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4155,6 +4244,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_161.5973_54.74_y2^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4176,6 +4266,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_212.1212_54.74_y3^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4197,6 +4288,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_285.6554_54.74_y4^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4218,6 +4310,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_342.1974_54.74_y5^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4239,6 +4332,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_392.7212_54.74_y6^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4260,6 +4354,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_421.232_54.74_y7^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4281,6 +4376,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_471.7558_54.74_y8^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4302,6 +4398,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAATGTIFTFR}_613.83_507.2744_54.74_y9^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -4323,6 +4420,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAATGTIFTFR"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_445.7325_50.01_y10^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4344,6 +4442,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_481.2511_50.01_y11^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4365,6 +4464,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_516.7696_50.01_y12^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4386,6 +4486,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_552.2882_50.01_y13^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4407,6 +4508,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_587.8068_50.01_y14^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4428,6 +4530,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y14^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_623.3253_50.01_y15^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4449,6 +4552,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y15^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_74.06_50.01_y1^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4470,6 +4574,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_109.5786_50.01_y2^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4491,6 +4596,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_174.0999_50.01_y3^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4512,6 +4618,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_209.6185_50.01_y4^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4533,6 +4640,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_245.137_50.01_y5^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4554,6 +4662,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_280.6556_50.01_y6^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4575,6 +4684,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_324.1716_50.01_y7^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4596,6 +4706,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_352.6823_50.01_y8^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4617,6 +4728,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UIS_{AAAAAAVSGSAAAEAK}_658.8439_396.1983_50.01_y9^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -4638,6 +4750,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER}_381.6818_152.5844_-39.95_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4660,6 +4773,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{NENNQER(Deamidated)}_381.6818_153.0764_-39.95_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4682,6 +4796,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENNQER(Deamidated)"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQER}_381.6818_216.6137_-39.95_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4704,6 +4819,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{NENNQ(Deamidated)ER|NENNQER(Deamidated)}_381.6818_217.1057_-39.95_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4726,6 +4842,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENNQ(Deamidated)ER|NENNQER(Deamidated)"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER(Deamidated)}_381.6818_274.1272_-39.95_y4^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4748,6 +4865,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER(Deamidated)"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER(Deamidated)}_381.6818_331.1486_-39.95_y5^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4770,6 +4888,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER(Deamidated)"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER(Deamidated)}_381.6818_395.6699_-39.95_y6^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95">
       <Precursor>
@@ -4792,6 +4911,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER(Deamidated)"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER}_381.1898_152.5844_-41.85_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -4814,6 +4934,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQ(Deamidated)ER|NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{NENN(Deamidated)QER|NENNQER}_381.1898_216.6137_-41.85_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -4836,6 +4957,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENN(Deamidated)QER|NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{NENNQER}_381.1898_273.6352_-41.85_y4^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -4858,6 +4980,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{NENNQER}_381.1898_330.6566_-41.85_y5^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -4880,6 +5003,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{NENNQER}_381.1898_395.1779_-41.85_y6^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85">
       <Precursor>
@@ -4902,6 +5026,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NENNQER"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_497.7695_100.36_y10^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -4924,6 +5049,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_566.2989_100.36_y11^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -4946,6 +5072,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_623.3204_100.36_y12^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -4968,6 +5095,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_651.8311_100.36_y13^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -4990,6 +5118,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_67.034_100.36_y1^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5012,6 +5141,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_102.5526_100.36_y2^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5034,6 +5164,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_160.0661_100.36_y3^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5056,6 +5187,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_216.6081_100.36_y4^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5078,6 +5210,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_341.6796_100.36_y6^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5100,6 +5233,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_398.2216_100.36_y7^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5122,6 +5256,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_433.7402_100.36_y8^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5144,6 +5279,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{CGNHGAALHILDAN}_700.8908_469.2587_100.36_y9^2" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
@@ -5166,6 +5302,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CGNHGAALHILDAN"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_501.2485_66.29_y10^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5188,6 +5325,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_565.2778_66.29_y11^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5210,6 +5348,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_616.7824_66.29_y12^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5232,6 +5371,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_45.5311_66.29_y1^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5254,6 +5394,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_110.0524_66.29_y2^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5276,6 +5417,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_167.0739_66.29_y3^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5298,6 +5440,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_195.5846_66.29_y4^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5320,6 +5463,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_224.0953_66.29_y5^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5342,6 +5486,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_280.6374_66.29_y6^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5364,6 +5509,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_316.1559_66.29_y7^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5386,6 +5532,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_380.6772_66.29_y8^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5408,6 +5555,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{NCQLQEAIGGNEA}_654.3821_444.7065_66.29_y9^2" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
@@ -5430,6 +5578,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="NCQLQEAIGGNEA"/>
     </Transition>
     <Transition id="UISDECOY_{CHLNHHQQ}_385.2138_138.0711_-35.92_y2^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -5452,6 +5601,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CHLNHHQQ"/>
     </Transition>
     <Transition id="UISDECOY_{CHLNHHQQ}_385.2138_206.6006_-35.92_y3^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -5474,6 +5624,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CHLNHHQQ"/>
     </Transition>
     <Transition id="UISDECOY_{CHLNHHQQ}_385.2138_275.13_-35.92_y4^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -5496,6 +5647,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CHLNHHQQ"/>
     </Transition>
     <Transition id="UISDECOY_{CHLNHHQQ}_385.2138_332.1515_-35.92_y5^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -5518,6 +5670,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CHLNHHQQ"/>
     </Transition>
     <Transition id="UISDECOY_{CHLNHHQQ}_385.2138_388.6935_-35.92_y6^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -5540,6 +5693,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CHLNHHQQ"/>
     </Transition>
     <Transition id="UISDECOY_{CHLNHHQQ}_385.2138_457.223_-35.92_y7^2" peptideRef="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92">
       <Precursor>
@@ -5562,6 +5716,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="CHLNHHQQ"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_569.2169_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5584,6 +5739,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_597.7277_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5606,6 +5762,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_411.517_131.5735_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5628,6 +5785,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_411.517_160.0842_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5650,6 +5808,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_411.517_213.1052_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5672,6 +5831,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_241.6159_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5694,6 +5854,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_411.517_264.6098_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5716,6 +5877,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_293.1205_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5738,6 +5900,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_411.517_329.1311_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5760,6 +5923,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_357.6418_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5782,6 +5946,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_411.517_397.6605_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5804,6 +5969,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_426.1713_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5826,6 +5992,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_426.1713_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5848,6 +6015,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_454.682_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5870,6 +6038,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_411.517_483.6847_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5892,6 +6061,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_512.1955_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5914,6 +6084,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_512.1955_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5936,6 +6107,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_411.517_540.7062_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
@@ -5958,6 +6130,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_569.2169_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -5980,6 +6153,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_597.7277_-24.57_y10^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6002,6 +6176,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK}_616.7719_131.5735_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6024,6 +6199,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHECYDK(Carbamidomethyl)}_616.7719_160.0842_-24.57_y2^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6046,6 +6222,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK}_616.7719_213.1052_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6068,6 +6245,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_241.6159_-24.57_y3^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6090,6 +6268,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK}_616.7719_264.6098_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6112,6 +6291,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_293.1205_-24.57_y4^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6134,6 +6314,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK}_616.7719_329.1311_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6156,6 +6337,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_357.6418_-24.57_y5^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6178,6 +6360,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK}_616.7719_397.6605_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6200,6 +6383,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_426.1713_-24.57_y6^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6222,6 +6406,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_426.1713_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6244,6 +6429,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_454.682_-24.57_y7^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6266,6 +6452,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK}_616.7719_483.6847_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6288,6 +6475,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_512.1955_-24.57_y8^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6310,6 +6498,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{.(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_512.1955_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6332,6 +6521,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value=".(Carbamidomethyl)ANGDGHECYDK|ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)}_616.7719_540.7062_-24.57_y9^2" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
@@ -6354,6 +6544,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ANGD(Carbamidomethyl)GHECYDK|ANGDGH(Carbamidomethyl)ECYDK|ANGDGHE(Carbamidomethyl)CYDK|ANGDGHEC(Carbamidomethyl)YDK|ANGDGHECY(Carbamidomethyl)DK|ANGDGHECYDK(Carbamidomethyl)"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_522.7062_54.74_y10^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6376,6 +6567,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_574.2108_54.74_y11^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6398,6 +6590,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_38.5233_54.74_y1^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6420,6 +6613,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_107.0527_54.74_y2^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6442,6 +6636,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_142.5713_54.74_y3^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6464,6 +6659,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_207.0926_54.74_y4^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6486,6 +6682,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_264.6061_54.74_y5^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6508,6 +6705,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_316.1107_54.74_y6^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6530,6 +6728,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_372.6527_54.74_y7^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6552,6 +6751,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_430.1662_54.74_y8^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6574,6 +6774,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{GCNADLCDEAHG}_613.83_465.6847_54.74_y9^2" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
@@ -6596,6 +6797,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="GCNADLCDEAHG"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_477.65_50.01_y10^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6618,6 +6820,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y10^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_534.1921_50.01_y11^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6640,6 +6843,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y11^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_598.2213_50.01_y12^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6662,6 +6866,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y12^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_654.7634_50.01_y13^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6684,6 +6889,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y13^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_711.3054_50.01_y14^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6706,6 +6912,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y14^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_767.8474_50.01_y15^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6728,6 +6935,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y15^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_67.034_50.01_y1^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6750,6 +6958,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y1^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_95.5448_50.01_y2^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6772,6 +6981,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y2^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_160.0661_50.01_y3^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6794,6 +7004,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y3^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_217.5795_50.01_y4^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6816,6 +7027,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y4^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_246.0903_50.01_y5^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6838,6 +7050,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y5^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_303.6037_50.01_y6^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6860,6 +7073,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y6^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_339.1223_50.01_y7^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6882,6 +7096,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y7^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_374.6408_50.01_y8^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6904,6 +7119,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y8^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
     <Transition id="UISDECOY_{ALLLQICCAADGDEGN}_658.8439_426.1454_50.01_y9^2" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
@@ -6926,6 +7142,7 @@
       <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
       <userParam name="annotation" type="xsd:string" value="y9^2"/>
       <userParam name="insilico_transition" type="xsd:string" value="true"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="ALLLQICCAADGDEGN"/>
     </Transition>
   </TransitionList>
 </TraML>

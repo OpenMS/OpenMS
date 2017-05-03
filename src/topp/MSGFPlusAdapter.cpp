@@ -333,8 +333,8 @@ protected:
   String makeModString_(const String& mod_name, bool fixed=true)
   {
     ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    if (residue.size() != 1) residue = "*"; // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
+    char residue = mod.getOrigin();
+    if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
     String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
     if (position == "none") position = "any";
     return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;

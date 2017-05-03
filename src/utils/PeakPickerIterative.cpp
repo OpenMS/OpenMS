@@ -44,7 +44,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_PeakPickerIterative PeakPickerIterative
+        @page UTILS_PeakPickerIterative PeakPickerIterative
 
         @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerIterative "high_res" algorithm.
 <CENTER>
@@ -74,13 +74,10 @@ using namespace std;
   As the name implies, the @ref OpenMS::PeakPickerIterative "high_res"
   algorithm is fit for high resolution data.
 
-	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
-
-	<B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeakPickerIterative.cli
-
-	For the parameters of the algorithm section see the algorithm documentation: @n
-    @ref OpenMS::PeakPickerIterative "PeakPickerIterative" @n
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_PeakPickerIterative.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_PeakPickerIterative.html
 
 */
 
