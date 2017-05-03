@@ -65,7 +65,7 @@ END_SECTION
 
 ptr = new ModificationDefinition();
 
-START_SECTION((ModificationDefinition(const ModificationDefinition &rhs)))
+START_SECTION((ModificationDefinition(const ModificationDefinition& rhs)))
 {
   ModificationDefinition mod_def;
 	mod_def.setFixedModification(true);
@@ -78,14 +78,32 @@ START_SECTION((ModificationDefinition(const ModificationDefinition &rhs)))
 }
 END_SECTION
 
-START_SECTION((ModificationDefinition(const String &mod)))
+START_SECTION((ModificationDefinition(const String& mod, bool fixed = true, UInt max_occur = 0)))
 {
 	ModificationDefinition mod1("Acetyl (N-term)");
 	TEST_EQUAL(mod1.getModificationName(), "Acetyl (N-term)");
 	ModificationDefinition mod2("Oxidation (M)");
 	TEST_EQUAL(mod2.getModificationName(), "Oxidation (M)");
-	ModificationDefinition mod3("Carboxymethyl (C)");
-	TEST_EQUAL(mod3.getModificationName(), "Carboxymethyl (C)");	
+  TEST_EQUAL(mod2.isFixedModification(), true);
+  TEST_EQUAL(mod2.getMaxOccurrences(), 0);
+	ModificationDefinition mod3("Carboxymethyl (C)", false, 2);
+	TEST_EQUAL(mod3.getModificationName(), "Carboxymethyl (C)");
+  TEST_EQUAL(mod3.isFixedModification(), false);
+  TEST_EQUAL(mod3.getMaxOccurrences(), 2);
+}
+END_SECTION
+
+START_SECTION((ModificationDefinition(const ResidueModification& mod, bool fixed = true, UInt max_occur = 0)))
+{
+  const ResidueModification res_mod1 = ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
+	ModificationDefinition mod1(res_mod1);
+	TEST_EQUAL(mod1.getModificationName(), "Acetyl (N-term)");
+  TEST_EQUAL(mod1.isFixedModification(), true);
+  TEST_EQUAL(mod1.getMaxOccurrences(), 0);
+  const ResidueModification res_mod2 = ModificationsDB::getInstance()->getModification("Oxidation (M)");
+	ModificationDefinition mod2(res_mod2, false, 2);
+  TEST_EQUAL(mod2.isFixedModification(), false);
+  TEST_EQUAL(mod2.getMaxOccurrences(), 2);
 }
 END_SECTION
 
@@ -98,30 +116,30 @@ START_SECTION((void setFixedModification(bool fixed)))
 }
 END_SECTION
 
-START_SECTION((bool isFixedModification() const ))
+START_SECTION((bool isFixedModification() const))
 {
 	// tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void setMaxOccurences(UInt num)))
+START_SECTION((void setMaxOccurrences(UInt num)))
 {
-  ptr->setMaxOccurences(1);
-	TEST_EQUAL(ptr->getMaxOccurences(), 1)
-	ptr->setMaxOccurences(1000);
-	TEST_EQUAL(ptr->getMaxOccurences(), 1000)
+  ptr->setMaxOccurrences(1);
+	TEST_EQUAL(ptr->getMaxOccurrences(), 1)
+	ptr->setMaxOccurrences(1000);
+	TEST_EQUAL(ptr->getMaxOccurrences(), 1000)
 }
 END_SECTION
 
-START_SECTION((UInt getMaxOccurences() const ))
+START_SECTION((UInt getMaxOccurrences() const))
 {
 	// tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((String getModificationName() const ))
+START_SECTION((String getModificationName() const))
 {
 	ModificationDefinition mod1;
 	mod1.setModification("Acetyl (N-term)");
@@ -131,7 +149,7 @@ START_SECTION((String getModificationName() const ))
 }
 END_SECTION
 
-START_SECTION((String getModification() const ))
+START_SECTION((String getModification() const))
 {
   const ResidueModification& rm = ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
 	ModificationDefinition mod1;
@@ -140,14 +158,14 @@ START_SECTION((String getModification() const ))
 }
 END_SECTION
 
-START_SECTION((void setModification(const String &modification)))
+START_SECTION((void setModification(const String& modification)))
 {
 	// tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((ModificationDefinition& operator=(const ModificationDefinition &element)))
+START_SECTION((ModificationDefinition& operator=(const ModificationDefinition& element)))
 {
   ModificationDefinition mod_def;
   mod_def.setFixedModification(true);
@@ -161,16 +179,16 @@ START_SECTION((ModificationDefinition& operator=(const ModificationDefinition &e
 }
 END_SECTION
 
-START_SECTION((bool operator==(const ModificationDefinition &rhs) const ))
+START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
 {
   ModificationDefinition m1, m2;
 	TEST_EQUAL(m1 == m2, true)
 	m1.setFixedModification(false);
 	TEST_EQUAL(m1 == m2, false)
 	m1.setFixedModification(true);
-	m1.setMaxOccurences(15);
+	m1.setMaxOccurrences(15);
 	TEST_EQUAL(m1 == m2, false)
-	m1.setMaxOccurences(0);
+	m1.setMaxOccurrences(0);
 	m1.setModification("Oxidation (M)");
 	TEST_EQUAL(m1 == m2, false)
 	m2.setModification("Oxidation (M)");
@@ -178,16 +196,16 @@ START_SECTION((bool operator==(const ModificationDefinition &rhs) const ))
 }
 END_SECTION
 
-START_SECTION((bool operator!=(const ModificationDefinition &rhs) const ))
+START_SECTION((bool operator!=(const ModificationDefinition& rhs) const))
 {
   ModificationDefinition m1, m2;
   TEST_EQUAL(m1 != m2, false)
   m1.setFixedModification(false);
   TEST_EQUAL(m1 != m2, true)
   m1.setFixedModification(true);
-  m1.setMaxOccurences(15);
+  m1.setMaxOccurrences(15);
   TEST_EQUAL(m1 != m2, true)
-  m1.setMaxOccurences(0);
+  m1.setMaxOccurrences(0);
   m1.setModification("Oxidation (M)");
   TEST_EQUAL(m1 != m2, true)
   m2.setModification("Oxidation (M)");
@@ -195,7 +213,7 @@ START_SECTION((bool operator!=(const ModificationDefinition &rhs) const ))
 }
 END_SECTION
 
-START_SECTION((bool operator<(const OpenMS::ModificationDefinition &) const ))
+START_SECTION((bool operator<(const OpenMS::ModificationDefinition& rhs) const))
 {
   ModificationDefinition m1, m2;
 	m1.setModification("Oxidation (M)");
