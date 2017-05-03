@@ -63,8 +63,11 @@ public:
     /// copy constructor
     ModificationDefinition(const ModificationDefinition& rhs);
 
-    /// detailed constructor specifying the modifications name
-    explicit ModificationDefinition(const String& mod);
+    /// detailed constructor specifying the modification by name
+    explicit ModificationDefinition(const String& mod, bool fixed = true, UInt max_occur = 0);
+
+    /// detailed constructor specifying the modification by name
+    ModificationDefinition(const ResidueModification& mod, bool fixed = true, UInt max_occur = 0);
 
     /// destructor
     virtual ~ModificationDefinition();
@@ -79,11 +82,11 @@ public:
     /// returns if the modification if fixed true, else false
     bool isFixedModification() const;
 
-    /// set the maximal number of occurences per peptide, unbound if 0
-    void setMaxOccurences(UInt num);
+    /// set the maximal number of occurrences per peptide (unbounded if 0)
+    void setMaxOccurrences(UInt num);
 
-    /// returns the maximal number of occurences per peptide
-    UInt getMaxOccurences() const;
+    /// returns the maximal number of occurrences per peptide
+    UInt getMaxOccurrences() const;
 
     /// returns the name of the modification
     String getModificationName() const;
@@ -127,8 +130,8 @@ protected:
     /// fixed (true) or variable (false)
     bool fixed_modification_;
 
-    /// maximal number of occurences per peptide
-    UInt max_occurences_;
+    /// maximal number of occurrences per peptide
+    UInt max_occurrences_;
   };
 
 } // namespace OpenMS
