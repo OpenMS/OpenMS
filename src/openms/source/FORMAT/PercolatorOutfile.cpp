@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -193,103 +194,6 @@ namespace OpenMS
   }
 
 
-  String PercolatorOutfile::getFullModName_(const String& residue,
-                                            const String& mod) const
-  {
-    if (residue == "N-term")
-    {
-      try
-      {
-        const ResidueModification& n_term_mod =
-          ModificationsDB::getInstance()->
-          getModification(mod, "", ResidueModification::N_TERM);
-        return n_term_mod.getFullId();
-      }
-      catch (Exception::ElementNotFound) {};
-    }
-    else if (residue == "C-term")
-    {
-      try
-      {
-        const ResidueModification& c_term_mod =
-          ModificationsDB::getInstance()->
-          getModification(mod, "", ResidueModification::C_TERM);
-        return c_term_mod.getFullId();
-      }
-      catch (Exception::ElementNotFound) {};
-    }
-
-    return mod + " (" + residue + ")";
-  }
-
-
-  void PercolatorOutfile::addModsToSearchParams_(
-    const map<String, set<String> >::const_iterator& map_it,
-    ProteinIdentification::SearchParameters& params) const
-  {
-    set<String>::const_iterator set_it = map_it->second.begin();
-
-    // if there's only one mod, it's probably a fixed one:
-    if ((map_it->second.size() == 1) && (!set_it->empty()))
-    {
-      params.fixed_modifications.push_back(getFullModName_(map_it->first,
-                                                           *set_it));
-    }
-    else // variable mod(s)
-    {
-      for (; set_it != map_it->second.end(); ++set_it)
-      {
-        if (!set_it->empty())
-        {
-          params.variable_modifications.push_back(getFullModName_(map_it->first,
-                                                                  *set_it));
-        }
-      }
-    }
-  }
-
-
-  void PercolatorOutfile::getSearchModifications_(
-    const vector<PeptideIdentification>& peptides,
-    ProteinIdentification::SearchParameters& params) const
-  {
-    // amino acid (or terminus) -> set of modifications (incl. no mod.):
-    map<String, set<String> > mod_map;
-
-    for (vector<PeptideIdentification>::const_iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
-    {
-      for (vector<PeptideHit>::const_iterator hit_it =
-             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
-           ++hit_it)
-      {
-        const String& n_term_mod =
-          hit_it->getSequence().getNTerminalModificationName();
-        mod_map["N-term"].insert(n_term_mod);
-        const String& c_term_mod =
-          hit_it->getSequence().getCTerminalModificationName();
-        mod_map["C-term"].insert(c_term_mod);
-
-        for (AASequence::ConstIterator seq_it = hit_it->getSequence().begin();
-             seq_it != hit_it->getSequence().end(); ++seq_it)
-        {
-          const String& mod = seq_it->getModificationName();
-          mod_map[seq_it->getOneLetterCode()].insert(mod);
-        }
-      }
-    }
-
-    for (map<String, set<String> >::const_iterator map_it =
-           mod_map.begin(); map_it != mod_map.end(); ++map_it)
-    {
-      addModsToSearchParams_(map_it, params);
-    }
-    sort(params.fixed_modifications.begin(), params.fixed_modifications.end());
-    sort(params.variable_modifications.begin(),
-         params.variable_modifications.end());
-  }
-
-
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins,
                                vector<PeptideIdentification>& peptides,
@@ -429,8 +333,11 @@ namespace OpenMS
     }
 
     // add info about allowed modifications:
+    ModificationDefinitionsSet mod_defs;
+    mod_defs.inferFromPeptides(peptides);
     ProteinIdentification::SearchParameters params;
-    getSearchModifications_(peptides, params);
+    mod_defs.getModificationNames(params.fixed_modifications,
+                                  params.variable_modifications);
     proteins.setSearchParameters(params);
 
     LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
