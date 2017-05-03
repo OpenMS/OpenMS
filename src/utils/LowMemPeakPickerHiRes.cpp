@@ -47,7 +47,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_LowMemPeakPickerHiRes LowMemPeakPickerHiRes
+  @page UTILS_LowMemPeakPickerHiRes LowMemPeakPickerHiRes
 
   @brief A tool for peak detection on streamed profile data (low-memory requirements). Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
 
