@@ -56,7 +56,17 @@ namespace OpenMS
   namespace Internal
   {
 
-    /// Helper class for XML parsing that handles the memory management for conversions of Xerces strings
+    /*
+     * @brief Helper class for XML parsing that handles the memory management for conversions of Xerces strings
+     *
+     * It provides the convert() function which internally calls
+     * XMLString::transcode and ensures that the memory is released properly
+     * through XMLString::release in a transparent and object oriented manner. 
+     *
+     * Releasing the memory can be done manually through clear() or will be done
+     * automatically in the destructor. 
+     *
+    */
     class OPENMS_DLLAPI StringManager
     {
 public:
@@ -101,11 +111,12 @@ private:
       public xercesc::DefaultHandler
     {
 public:
+
       /// Exception that is thrown if the parsing is ended by some event (e.g. if only a prefix of the XML file is needed).
       class OPENMS_DLLAPI EndParsingSoftly :
         public Exception::BaseException
       {
-public:
+      public:
         EndParsingSoftly(const char * file, int line, const char * function) :
           Exception::BaseException(file, line, function)
         {
@@ -200,7 +211,7 @@ protected:
       */
       std::vector<String> open_tags_;
 
-      /// Returns if two xerces strings are equal
+      /// Returns if two Xerces strings are equal
       inline bool equal_(const XMLCh * a, const XMLCh * b) const
       {
         return xercesc::XMLString::compareString(a, b) == 0;
@@ -209,7 +220,7 @@ protected:
       ///@name General MetaInfo handling (for idXML, featureXML, consensusXML)
       //@{
 
-      ///Writes the content of MetaInfoInterface to the file
+      /// Writes the content of MetaInfoInterface to the file
       void writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
 
       //@}
@@ -318,6 +329,7 @@ protected:
           @brief Conversion of a string to a boolean value
 
           'true', 'false', '1' and '0' are accepted.
+
           @n For all other values a parse error is produced.
       */
       inline bool asBool_(const String & in)
@@ -337,7 +349,7 @@ protected:
         return false;
       }
 
-      /// Conversion of a xs:datetime string to a DataTime value
+      /// Conversion of a xs:datetime string to a DateTime value
       inline DateTime asDateTime_(String date_string)
       {
         DateTime date_time;
@@ -687,3 +699,4 @@ private:
 } // namespace OpenMS
 
 #endif // OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
+

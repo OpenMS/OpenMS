@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
 	version="1.1.0"
 	id="OpenMS_14509930621887606273"
-	creationDate="2017-03-28T21:46:58">
+	creationDate="2017-04-26T17:30:00">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv> 
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv> 
@@ -34,19 +34,22 @@
 	<DBSequence accession="PROT3" searchDatabase_ref="SDB_3332699010107892018" id="PROT_12999979801269632061">
 		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="PROT3"/>
 	</DBSequence>
-	<Peptide id="PEP_14811341817612382122">
+	<Peptide id="PEP_14811341817612382122" name="PEPTIDERR">
 		<PeptideSequence>PEPTIDERR</PeptideSequence>
 	</Peptide> 
- 	<Peptide id="PEP_15050004366391181853">
-		<PeptideSequence>PEPTIDERRRR</PeptideSequence>
+ 	<Peptide id="PEP_15050004366391181853" name="N[3899.3500281914]PEPTIDEK">
+		<PeptideSequence>NPEPTIDEK</PeptideSequence>
+		<Modification location="1" residues="N" monoisotopicMassDelta="3785.3071">
+			<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+		</Modification>
 	</Peptide> 
- 	<Peptide id="PEP_16907355690727166316">
+ 	<Peptide id="PEP_16907355690727166316" name="PEPTIDER">
 		<PeptideSequence>PEPTIDER</PeptideSequence>
 	</Peptide> 
- 	<Peptide id="PEP_3023658190814908261">
+ 	<Peptide id="PEP_3023658190814908261" name="PEPTIDERRR">
 		<PeptideSequence>PEPTIDERRR</PeptideSequence>
 	</Peptide> 
- 	<Peptide id="PEP_7276556891837796968">
+ 	<Peptide id="PEP_7276556891837796968" name="PEPTIDERRRRR">
 		<PeptideSequence>PEPTIDERRRRR</PeptideSequence>
 	</Peptide> 
  	<PeptideEvidence id="PEV_10306100746905639127" peptide_ref="PEP_16907355690727166316" dBSequence_ref="PROT_13440783915218733453" post="B" pre="A"/>
@@ -71,8 +74,6 @@
 		<AdditionalSearchParams>
 			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
 		</AdditionalSearchParams>
-		<ModificationParams>
-		</ModificationParams>
 		<Enzymes independent="false">
 			<Enzyme missedCleavages="0" id="ENZ_7804704400743266335">
 				<EnzymeName>
@@ -204,7 +205,7 @@
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
 					<userParam name="MOWSE" unitName="xsd:double" value="44.4"/>
 				</SpectrumIdentificationItem>
-				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_15050004366391181853" calculatedMassToCharge="712.889484077721" experimentalMassToCharge="nan" chargeState="2" id="SII_17716858074023296841">
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_15050004366391181853" calculatedMassToCharge="2414.40975709922" experimentalMassToCharge="nan" chargeState="2" id="SII_17716858074023296841">
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
 					<userParam name="MOWSE" unitName="xsd:double" value="33.3"/>
 				</SpectrumIdentificationItem>

@@ -34,12 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+
 namespace OpenMS
 {
 
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
     std::vector< ExtractionCoordinates > & coordinates,
-    OpenMS::TargetedExperiment & transition_exp_used,
+    const OpenMS::TargetedExperiment & transition_exp_used,
     const double rt_extraction_window, const bool ms1) const
   {
     // hash of the peptide reference containing all transitions
@@ -174,5 +178,8 @@ namespace OpenMS
         PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
       }
   }
+
+
+
 
 }

@@ -29,10 +29,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -49,10 +50,14 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ConvertTSVToTraML ConvertTSVToTraML
+  @page UTILS_TargetedFileConverter TargetedFileConverter
 
-  @brief Converts OpenSWATH transition TSV files to TraML files
-
+  @brief Converts different transition files for targeted proteomics and metabolomics analysis.
+  
+  Can convert multiple formats to and from TraML (standardized transition
+  format). It supports the OpenSWATH TSV format as well as the PQP format for
+  transitions.
+  
   The OpenSWATH transition TSV files need to have the following headers, all fields need to be separated by tabs:
 
         <ul>
@@ -100,17 +105,22 @@ Remarks:
 </ul>
 </p>
 
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_TargetedFileConverter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_TargetedFileConverter.html
+
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPConvertTSVToTraML :
+class TOPPTargetedFileConverter :
   public TOPPBase
 {
 public:
 
-  TOPPConvertTSVToTraML() :
-    TOPPBase("ConvertTSVToTraML", "Converts an OpenSWATH transition TSV file to a TraML file")
+  TOPPTargetedFileConverter() :
+    TOPPBase("TargetedFileConverter", "Converts different transition files for targeted proteomics / metabolomics analysis.", false)
   {
   }
 
@@ -118,37 +128,21 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input OpenSWATH transition TSV file or SpectraST MRM file.\n "
-                                           "See http://www.openms.de/current_doxygen/html/UTILS_ConvertTSVToTraML.html for format.");
-    /*
-     PrecursorMz (float) \n \
-     ProductMz (float)\n  \
-     Tr_calibrated (float)\n  \
-     transition_name (free text, needs to be unique) \n \
-     Collision Energy (float)\n \
-     LibraryIntensity (float) \n \
-     transition_group_id (free text, unique for each peptide) \n \
-     decoy (1 or 0 [no decoy]) \n \
-     PeptideSequence (free text, raw sequence) \n \
-     ProteinName (free text) \n \
-     Annotation (free text, e.g. y7) \n \
-     FullUniModPeptideName  (free text, should contain modifications*)  \n \
-     PrecursorCharge (integer, contains the charge of the precursor) \n \
-     GroupLabel (free text, e.g. heavy or light) \n \
-     UniprotID (free text) \n \
-     FragmentType (free text, contains the type of the fragment, e.g. 'b' or 'y') \n \
-     FragmentCharge (integer, contains the fragment charge) \n \
-     FragmentSeriesNumber (integer, e.g. for y7 use '7' here) \n \
-    */
+    registerInputFile_("in", "<file>", "", "Input file to convert.\n "
+                                           "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    String formats("tsv,csv,mrm");
+    String formats("tsv,mrm,pqp,TraML");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
 
-    registerOutputFile_("out", "<file>", "", "Output TraML file");
-    setValidFormats_("out", ListUtils::create<String>("TraML"));
+    formats = "tsv,pqp,TraML";
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>(formats));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
+    registerFlag_("legacy_traml_id", "PQP to TraML: Should legacy TraML IDs be used?", true);
 
   }
 
@@ -159,10 +153,10 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
-    String in = getStringOption_("in");
+    FileHandler fh;
 
     //input file type
-    FileHandler fh;
+    String in = getStringOption_("in");
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
     if (in_type == FileTypes::UNKNOWN)
@@ -177,22 +171,72 @@ protected:
       return PARSE_ERROR;
     }
 
+    //output file names and types
     String out = getStringOption_("out");
-    const char* tr_file = in.c_str();
-    Param reader_parameters = getParam_().copy("algorithm:", true);
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
-    TraMLFile traml;
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
+    bool legacy_traml_id = getFlag_("legacy_traml_id");
+
+    //--------------------------------------------------------------------------- 
+    // Start Conversion
+    //--------------------------------------------------------------------------- 
     TargetedExperiment targeted_exp;
+    if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
+    {
+      const char* tr_file = in.c_str();
+      Param reader_parameters = getParam_().copy("algorithm:", true);
+      TransitionTSVReader tsv_reader = TransitionTSVReader();
+      tsv_reader.setLogType(log_type_);
+      tsv_reader.setParameters(reader_parameters);
+      tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
+      tsv_reader.validateTargetedExperiment(targeted_exp);
+    }
+    else if (in_type == FileTypes::PQP)
+    {
+      const char* tr_file = in.c_str();
+      TransitionPQPReader pqp_reader = TransitionPQPReader();
+      Param reader_parameters = getParam_().copy("algorithm:", true);
+      pqp_reader.setLogType(log_type_);
+      pqp_reader.setParameters(reader_parameters);
+      pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp, legacy_traml_id);
+      pqp_reader.validateTargetedExperiment(targeted_exp);
+    }
+    else if (in_type == FileTypes::TRAML)
+    {
+      TraMLFile traml;
+      traml.load(in, targeted_exp);
+    }
 
-    TransitionTSVReader tsv_reader = TransitionTSVReader();
-    std::cout << "Reading " << in << std::endl;
-    tsv_reader.setLogType(log_type_);
-    tsv_reader.setParameters(reader_parameters);
-    tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
-    tsv_reader.validateTargetedExperiment(targeted_exp);
-
-    std::cout << "Writing " << out << std::endl;
-    traml.store(out, targeted_exp);
+    if (out_type == FileTypes::TSV)
+    {
+      const char* tr_file = out.c_str();
+      TransitionTSVReader tsv_reader = TransitionTSVReader();
+      tsv_reader.setLogType(log_type_);
+      tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
+    }
+    if (out_type == FileTypes::PQP)
+    {
+      const char * tr_file = out.c_str();
+      TransitionPQPReader pqp_reader = TransitionPQPReader();
+      pqp_reader.setLogType(log_type_);
+      pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);
+    }
+    else if (out_type == FileTypes::TRAML)
+    {
+      TraMLFile traml;
+      traml.store(out, targeted_exp);
+    }
 
     return EXECUTION_OK;
   }
@@ -202,7 +246,7 @@ protected:
 int main(int argc, const char** argv)
 {
 
-  TOPPConvertTSVToTraML tool;
+  TOPPTargetedFileConverter tool;
   return tool.main(argc, argv);
 }
 

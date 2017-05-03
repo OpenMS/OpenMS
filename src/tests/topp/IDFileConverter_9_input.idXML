@@ -31,7 +31,7 @@
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
 			<PeptideHit score="44.4" sequence="PEPTIDERRR" charge="2" >
 			</PeptideHit>
-			<PeptideHit score="33.3" sequence="PEPTIDERRRR" charge="2" >
+			<PeptideHit score="33.3" sequence="N[+3785.30710]PEPTIDEK" charge="2" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
