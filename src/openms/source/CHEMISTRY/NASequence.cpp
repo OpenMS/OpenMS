@@ -15,19 +15,27 @@ namespace OpenMS
 
 NASequence::NASequence(){
     s_="";
+    type_=Residue::Undefined;
 }
 
 NASequence::NASequence(const String & rhs){
     s_=rhs;
+    type_=Residue::Undefined;
+}
+
+NASequence::NASequence(const String & rhs, const Residue::NucleicAcidType & type){
+    s_=rhs;
+    type_=type;
 }
 
 NASequence& NASequence::operator=(const NASequence& rhs){
     s_=rhs.s_;
+    type_=rhs.type_;
     return *this;
 }
 
 bool NASequence::operator==(const NASequence& rhs) const{
-    if (s_==rhs.getSequence())
+    if (s_==rhs.getSequence() && type_==rhs.getType())
         return true;
     else
         return false;
@@ -41,6 +49,15 @@ void NASequence::setSequence(const String & s){
     s_=s;
     return;
 }
+
+void NASequence::setType(const Residue::NucleicAcidType & type){
+    type_=type;
+}
+\
+Residue::NucleicAcidType NASequence::getType() const{
+    return type_;
+}
+
 String NASequence::getSequence() const
 {
     return s_;
@@ -60,13 +77,13 @@ size_t NASequence::size() const{
 NASequence NASequence::getPrefix(Size index) const{
     if (index>=s_.size())
         throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
-    return NASequence(s_.substr(0,index));
+    return NASequence(s_.substr(0,index),type_);
 }
 
 NASequence NASequence::getSuffix(Size index) const{
     if (index>=s_.size())
         throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
-    return NASequence(s_.substr(s_.size()-index));
+    return NASequence(s_.substr(s_.size()-index),type_);
 }
 
 EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) const{
@@ -85,14 +102,22 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
     static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("HPO3");
     static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("HPO4");
     static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
-    static const EmpiricalFormula abasicform = EmpiricalFormula("C5H7O6P");
+    EmpiricalFormula abasicform;
+    if (type_== Residue::DNA){
+        abasicform = EmpiricalFormula("C5H7O5P");
+    }
+    else {
+        abasicform = EmpiricalFormula("C5H7O6P");
+    }
     //generate monophosphate mass list TODO make this static
     std::map<char, EmpiricalFormula> base_to_formula;
     //remove H2O since it gets added in internal_to_full
     base_to_formula['A']=EmpiricalFormula("C5H5N5"); //("C10H12N5O6P");
     base_to_formula['C']=EmpiricalFormula("C4H5N3O"); //("C9H12N3O7P");
+    base_to_formula['B']=EmpiricalFormula("C5H7N3O"); //
     base_to_formula['G']=EmpiricalFormula("C5H5N5O"); //("C10H12N5O7P");
     base_to_formula['#']=EmpiricalFormula("C6H7N5O"); // 2'-O-methyl G
+    base_to_formula['T']=EmpiricalFormula("C5H6N2O2"); //
     base_to_formula['U']=EmpiricalFormula("C4H4N2O2"); //("C9H11N2O8P");
     base_to_formula['J']=EmpiricalFormula("C5H6N2O2"); //2'-O-methyl U
     //C5H7O6P= PO4

@@ -165,6 +165,13 @@ public:
       DIon,           // D-ion for nucleic acid support
       SizeOfResidueType
     };
+    enum NucleicAcidType
+    {
+        DNA = 0,
+        RNA,
+        Undefined
+    };
+
     //@}
 
     /// returns the ion name given as a residue type

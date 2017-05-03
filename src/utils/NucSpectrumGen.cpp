@@ -98,6 +98,8 @@ protected:
         registerFlag_("x", "Generate 'x' type fragments");
         registerFlag_("y", "Generate 'y' type fragments");
         registerFlag_("z", "Generate 'z' type fragments");
+        registerStringOption_("nucType","<nType>","RNA","Which type of nucleotide to generate spectra for.",false,false);
+        setValidStrings_("nucType",ListUtils::create<String>("RNA,DNA"));
     }
 
 
@@ -105,8 +107,12 @@ protected:
     {
         ProgressLogger progresslogger;
         progresslogger.setLogType(log_type_);
-
         NASequence NucSequence(getStringOption_("in"));
+        if (getStringOption_("nucType")=="DNA")
+            NucSequence.setType(Residue::DNA);
+        else
+            NucSequence.setType(Residue::RNA);
+
         String out_path(getStringOption_("out_file"));
         int8_t maxCharge(getIntOption_("charge"));
 
@@ -158,7 +164,6 @@ protected:
         // TEST writing of MZML file FIXME
         MzMLFile mtest;
         mtest.store(out_path, generated_exp);
-
 
         return EXECUTION_OK;
     }
