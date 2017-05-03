@@ -205,9 +205,6 @@ namespace OpenMS
   } // NS Internal
 } // NS OpenMS
 
-
-
-
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 

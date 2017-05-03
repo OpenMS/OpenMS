@@ -65,9 +65,14 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
+  @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in MRM chromatograms.
+  @brief Picks peaks in SRM/MRM chromatograms.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_MRMTransitionGroupPicker.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_MRMTransitionGroupPicker.html
 
 */
 
@@ -79,7 +84,7 @@ class TOPPMRMTransitionGroupPicker
 public:
 
   TOPPMRMTransitionGroupPicker() 
-    : TOPPBase("MRMTransitionGroupPicker", "", false)
+    : TOPPBase("MRMTransitionGroupPicker", "Picks peaks in SRM/MRM chromatograms.", false)
   {
   }
 
