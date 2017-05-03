@@ -66,7 +66,7 @@ public:
     /// detailed constructor specifying the modification by name
     explicit ModificationDefinition(const String& mod, bool fixed = true, UInt max_occur = 0);
 
-    /// detailed constructor specifying the modification by name
+    /// direct constructor from a residue modification
     explicit ModificationDefinition(const ResidueModification& mod, bool fixed = true, UInt max_occur = 0);
 
     /// destructor
