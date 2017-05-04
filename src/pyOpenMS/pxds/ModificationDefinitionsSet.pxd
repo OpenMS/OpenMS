@@ -2,6 +2,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
 from StringList cimport *
 from ModificationDefinition cimport *
+from PeptideIdentification cimport *
 from AASequence cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "OpenMS":
