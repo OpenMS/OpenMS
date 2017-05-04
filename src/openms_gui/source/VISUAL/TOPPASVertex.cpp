@@ -91,8 +91,8 @@ namespace OpenMS
 
   void TOPPASVertex::TOPPASFilenames::check_(const QString& filename)
   {
-    const int max_filename_length = 255;
-#ifdef _WIN32
+    const Size max_filename_length = 255;
+#ifdef OPENMS_WINDOWSPLATFORM
     // on Windows, constraint applies to the whole path:
     if (filename.count() > max_filename_length)
     {
