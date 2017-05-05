@@ -86,9 +86,9 @@ using namespace OpenMS;
   @page UTILS_OpenProXLLF OpenProXLLF
 
   @brief Search for cross-linked peptide pairs in tandem MS spectra
-    
+
   This tool performs a search for cross-links in the given mass spectra.
-    
+
   It executes the following steps in order:
   <ul>
     <li>Reading of MS2 spectra from the given mzML file, MS1 spectra are ignored for now</li>
@@ -110,15 +110,15 @@ using namespace OpenMS;
   <h3>Parameters</h3>
   The parameters for fixed and variable modifications refer to additional modifications beside the cross-linker.
   The linker used in the experiment has to be described using the cross-linker specific parameters.
-  Only one mass is allowed for a cross-linker, that links two peptides, while multiple masses are possible for mono-links of the same cross-linking reagent.
-  Mono-links are cross-linkers, that are linked to one peptide by one of their two reactive groups. 
+  Only one mass is allowed for a cross-linker that links two peptides, while multiple masses are possible for mono-links of the same cross-linking reagent.
+  Mono-links are cross-linkers, that are linked to one peptide by one of their two reactive groups.
   To search for isotopically labeled pairs of cross-linkers see the tool OpenProXL.
   The parameters -cross_linker:residue1 and -cross_linker:residue2 are used to enumerate the amino acids,
   that each end of the linker can react with. This way any heterobifunctional cross-linker can be defined.
   To define a homobifunctional cross-linker, these two parameters should have the same value.
-  The parameter -cross_linker:name is used to solve ambiguities arising because of different cross-linkers with the same mass
+  The parameter -cross_linker:name is used to solve ambiguities caused by different cross-linkers with the same mass
   after the linking reaction (see section on output for clarification).
-  
+
   <h3>Output: XL-MS Identifications with scores and linked positions in the proteins</h3>
   There are three file formats for output of data possible. idXML is the internal format of OpenMS, but is not recommended for now,
   since OpenMS does not yet contain any tools for post-processing of XL-MS ID data. The second format is the output format of xQuest,
@@ -126,13 +126,17 @@ using namespace OpenMS;
   like xProphet for FDR estimation (Leitner, A. et al., 2014, Nature protocols)
   or XlinkAnalyzer for visualization and analysis using protein structures (Kosinski, J. et al., 2015, Journal of structural biology).
   The third format is mzIdentML according to the specifications for XL-MS ID data in version 1.2.
-  This is a standardized format and compatible with complete submissions to the PRIDE database, that is part of the ProteomeXchange consortium.
-  
+  This is a standardized format and will be compatible with complete submissions to the PRIDE database, which is part of the ProteomeXchange consortium.
+  The specification includes the XLMOD database of cross-linking reagents, and if the provided cross-link mass matches one from the
+  database, its accession and name are used. If the name is provided with the -cross_linker:name parameter, it is used
+  to solve ambiguities arising from different cross-linkers having the same mass after the linking reaction (e.g. DSS and BS3).
+  It is also used as the name of the linker, if no matching masses are found in the database.
+
   <CENTER>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenProXLLF \f$ \longrightarrow \f$</td> 
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenProXLLF \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
