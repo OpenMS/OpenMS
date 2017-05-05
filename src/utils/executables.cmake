@@ -4,7 +4,7 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
-COMETAdapter
+CometAdapter
 CVInspector
 DecoyDatabase
 DatabaseFilter

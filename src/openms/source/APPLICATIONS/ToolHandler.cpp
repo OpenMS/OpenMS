@@ -54,7 +54,7 @@ namespace OpenMS
     tools_map["CompNovoCID"] = Internal::ToolDescription("CompNovoCID", "Identification");
     tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "ID Processing");
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
-    tools_map["COMETAdapter"] = Internal::ToolDescription("COMETAdapter", "Identification");
+    tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");

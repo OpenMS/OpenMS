@@ -74,7 +74,7 @@ START_SECTION(Enzyme(const Enzyme &enzyme))
 	TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(Enzyme(const String &name, 
+START_SECTION(Enzyme(const String &name,
                        const String &cleavage_regex,
                        const std::set<String> & synonyms,
                        String regex_description,
@@ -83,15 +83,15 @@ START_SECTION(Enzyme(const String &name,
                        String psi_id,
                        String xtandem_id,
                        UInt omssa_id))
-	Enzyme copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIid(), e_ptr->getXTANDEMid(), e_ptr->getOMSSAid());
+	Enzyme copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getOMSSAID());
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getRegEx(), e_ptr->getRegEx())
         TEST_EQUAL(copy.getRegExDescription(), e_ptr->getRegExDescription())
         TEST_EQUAL(copy.getNTermGain(), e_ptr->getNTermGain())
         TEST_EQUAL(copy.getCTermGain(), e_ptr->getCTermGain())
-        TEST_EQUAL(copy.getPSIid(), e_ptr->getPSIid())
-        TEST_EQUAL(copy.getXTANDEMid(), e_ptr->getXTANDEMid())
-        TEST_EQUAL(copy.getOMSSAid(), e_ptr->getOMSSAid())
+        TEST_EQUAL(copy.getPSIID(), e_ptr->getPSIID())
+        TEST_EQUAL(copy.getXTandemID(), e_ptr->getXTandemID())
+        TEST_EQUAL(copy.getOMSSAID(), e_ptr->getOMSSAID())
 END_SECTION
 
 START_SECTION(Enzyme& operator=(const Enzyme &enzyme))
@@ -117,7 +117,7 @@ START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 	syn.insert("BLA");
 	e_ptr->setSynonyms(syn);
 	TEST_NOT_EQUAL(*e_ptr, copy)
-END_SECTION 
+END_SECTION
 
 START_SECTION(void addSynonym(const String &synonym))
 	Enzyme copy(*e_ptr);
@@ -169,34 +169,34 @@ START_SECTION(EmpiricalFormula getCTermGain() const)
 	TEST_EQUAL(e_ptr->getCTermGain(), EmpiricalFormula("OH2"))
 END_SECTION
 
-START_SECTION(void setPSIid(String value))
+START_SECTION(void setPSIID(String value))
 	Enzyme copy(*e_ptr);
-	e_ptr->setPSIid("MS:000");
+	e_ptr->setPSIID("MS:000");
 	TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(String getPSIid() const)
-	TEST_EQUAL(e_ptr->getPSIid(), "MS:000")
+START_SECTION(String getPSIID() const)
+	TEST_EQUAL(e_ptr->getPSIID(), "MS:000")
 END_SECTION
 
-START_SECTION(void setXTANDEMid(String value))
+START_SECTION(void setXTandemID(String value))
         Enzyme copy(*e_ptr);
-        e_ptr->setXTANDEMid("[]|[]");
+        e_ptr->setXTandemID("[]|[]");
         TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(String getXTANDEMid() const)
-        TEST_EQUAL(e_ptr->getXTANDEMid(), "[]|[]")
+START_SECTION(String getXTandemID() const)
+        TEST_EQUAL(e_ptr->getXTandemID(), "[]|[]")
 END_SECTION
 
-START_SECTION(void setOMSSAid(UInt value))
+START_SECTION(void setOMSSAID(UInt value))
 	Enzyme copy(*e_ptr);
-	e_ptr->setOMSSAid(2);
+	e_ptr->setOMSSAID(2);
 	TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
-START_SECTION(UInt getOMSSAid() const)
-	TEST_EQUAL(e_ptr->getOMSSAid(), 2)
+START_SECTION(UInt getOMSSAID() const)
+	TEST_EQUAL(e_ptr->getOMSSAID(), 2)
 END_SECTION
 
 START_SECTION(bool operator==(const Enzyme &enzyme) const)
@@ -205,12 +205,12 @@ START_SECTION(bool operator==(const Enzyme &enzyme) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setName("other_name");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setRegEx("?<=[P]");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	set<String> syns;
@@ -222,40 +222,40 @@ START_SECTION(bool operator==(const Enzyme &enzyme) const)
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setRegExDescription("new description");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setNTermGain(EmpiricalFormula("H2O"));
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setCTermGain(EmpiricalFormula("H6O"));
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setPSIid("new id");
+	r.setPSIID("new id");
 	TEST_EQUAL(r == *e_ptr, false)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setOMSSAid(-2);
+	r.setOMSSAID(-2);
 	TEST_EQUAL(r == *e_ptr, false)
 END_SECTION
-    
+
 START_SECTION(bool operator!=(const Enzyme &enzyme) const)
     Enzyme r("","");
     r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
 	r.setName("other_name");
 	TEST_EQUAL(r != *e_ptr, true)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
 	r.setRegEx("?<=[P]");
 	TEST_EQUAL(r != *e_ptr, true)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
 	set<String> syns;
@@ -267,32 +267,32 @@ START_SECTION(bool operator!=(const Enzyme &enzyme) const)
 	TEST_EQUAL(r != *e_ptr, false)
 	r.setRegExDescription("new description");
 	TEST_EQUAL(r != *e_ptr, true)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
 	r.setNTermGain(EmpiricalFormula("H2O"));
 	TEST_EQUAL(r != *e_ptr, true)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
 	r.setCTermGain(EmpiricalFormula("O"));
 	TEST_EQUAL(r != *e_ptr, true)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
-	r.setPSIid("new id");
+	r.setPSIID("new id");
 	TEST_EQUAL(r != *e_ptr, true)
-	
+
 	r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
-	r.setOMSSAid(4);
+	r.setOMSSAID(4);
 	TEST_EQUAL(r != *e_ptr, true)
 END_SECTION
 
 START_SECTION(bool operator==(String cleavage_regex) const)
 	TEST_EQUAL(*e_ptr == RKP, true)
 END_SECTION
-    
+
 START_SECTION(bool operator!=(String cleavage_regex) const)
 	TEST_EQUAL(*e_ptr != "?<=[P]", true)
 END_SECTION
