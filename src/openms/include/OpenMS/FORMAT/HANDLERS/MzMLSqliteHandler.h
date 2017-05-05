@@ -41,7 +41,7 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 // forward declarations
-class sqlite3;
+struct sqlite3;
 
 namespace OpenMS
 {

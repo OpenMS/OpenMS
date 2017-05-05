@@ -379,7 +379,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -593,7 +593,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -603,7 +603,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -613,7 +613,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -623,7 +623,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -633,7 +633,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -643,7 +643,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -653,7 +653,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -663,7 +663,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -673,7 +673,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -683,7 +683,7 @@ namespace OpenMS
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           zErrMsg);
     }
 
@@ -698,7 +698,7 @@ namespace OpenMS
   {
     if (targeted_exp.containsInvalidReferences())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Your input file contains invalid references, cannot process file.");
     }
     writePQPOutput_(filename, targeted_exp);

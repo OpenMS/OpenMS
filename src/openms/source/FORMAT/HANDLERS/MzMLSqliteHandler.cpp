@@ -966,7 +966,7 @@ namespace OpenMS
       if (rc != SQLITE_OK)
       {
         std::cerr << "Error message after sqlite3_exec" << std::endl;
-        std::cerr << "Prepared statement " << statement << std::endl;
+        std::cerr << "Prepared statement " << statement.str() << std::endl;
         sqlite3_free(zErrMsg);
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, zErrMsg);
       }

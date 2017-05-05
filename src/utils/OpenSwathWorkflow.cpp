@@ -423,13 +423,13 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
+    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible TSV file)", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible)", false);
+    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible SQLite file)", false);
     setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
-    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
+    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
@@ -465,6 +465,7 @@ protected:
     setMinInt_("batchSize", 0);
 
     registerSubsection_("Scoring", "Scoring parameters section");
+    registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("outlierDetection", "Parameters for the outlierDetection for iRT petides. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
   }
@@ -540,6 +541,10 @@ protected:
       p.setValue("MinPeptidesPerBin", 1, "Minimal number of peptides that are required for a bin to counted as 'covered'");
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
+    }
+    else if (name == "Library")
+    {
+      return TransitionTSVReader().getDefaults();
     }
     else
     {
@@ -756,6 +761,7 @@ protected:
     cp_irt.ppm                  = irt_ppm;
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
+    Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
     {
       feature_finder_param.setValue("Scores:use_elution_model_score", "true");
@@ -802,7 +808,10 @@ protected:
     }
     else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
-      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+      TransitionTSVReader tsv_reader;
+      tsv_reader.setParameters(tsv_reader_param);
+      tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+
     }
     else
     {
@@ -933,8 +942,8 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
-    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring);
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
 
     if (sonar)
     {

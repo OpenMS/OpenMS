@@ -36,12 +36,13 @@
 #ifndef OPENMS_CHEMISTRY_MODIFICATIONDEFINITIONSSET_H
 #define OPENMS_CHEMISTRY_MODIFICATIONDEFINITIONSSET_H
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinition.h>
+#include <OpenMS/CONCEPT/Types.h> // for "UInt"
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // for "StringList"
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <set>
 
@@ -119,13 +120,16 @@ public:
     /// returns the stored variable modification definitions
     const std::set<ModificationDefinition>& getVariableModifications() const;
 
-    /// return only the names of the modifications stored in the set
+    /// returns only the names of the modifications stored in the set
     std::set<String> getModificationNames() const;
 
-    /// return only the names of the fixed modifications
+    /// populates the output lists with the modification names (use e.g. for ProteinIdentification::SearchParameters)
+    void getModificationNames(StringList& fixed_modifications, StringList& variable_modifications) const;
+
+    /// returns only the names of the fixed modifications
     std::set<String> getFixedModificationNames() const;
 
-    /// return only the names of the variable modifications
+    /// returns only the names of the variable modifications
     std::set<String> getVariableModificationNames() const;
     //@}
 
@@ -164,6 +168,9 @@ public:
        @throw Exception::IllegalArgument if both @p consider_variable and @p consider_fixed are false
     */
     void findMatches(std::multimap<double, ModificationDefinition>& matches, double mass, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY, bool consider_fixed = true, bool consider_variable = true, bool is_delta = true, double tolerance = 0.01) const;
+
+    /// Infers the sets of defined modifications from the modifications present on peptide identifications
+    void inferFromPeptides(const std::vector<PeptideIdentification>& peptides);
 
 protected:
 

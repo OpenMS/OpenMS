@@ -250,7 +250,8 @@ namespace OpenMS
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp, 
                         const TransformationDescription& trafo_inverse,
-                        bool load_into_memory);
+                        bool load_into_memory, 
+                        bool ms1only = false);
 
     /** @brief Perform scoring on a set of chromatograms
      *
@@ -277,8 +278,10 @@ namespace OpenMS
         const Param& feature_finder_param,
         TransformationDescription trafo, 
         const double rt_extraction_window,
-        FeatureMap& output, OpenSwathTSVWriter & tsv_writer, OpenSwathOSWWriter & osw_writer);
-
+        FeatureMap& output,
+        OpenSwathTSVWriter & tsv_writer,
+        OpenSwathOSWWriter & osw_writer,
+        bool ms1only = false);
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
@@ -313,21 +316,24 @@ namespace OpenMS
 
     /** @brief Function to prepare extraction coordinates that also correctly handles RT transformations
      *
-     * This will take the targeted experiment and prepare extraction
-     * coordinates (either MS1 or MS2) for extraction by the
-     * ChromatogramExtractor.
+     * Creates a set of (empty) chromatograms and extraction coordinates with
+     * the correct ids, m/z and retention time start/end points to be extracted
+     * by the ChromatogramExtractor.
+     *
+     * Handles rt extraction windows by calculating the correct transformation
+     * for each coordinate.
      *
      * @param chrom_list Output of chromatograms (will be filled with empty chromatogram ptrs)
      * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
      * @param transition_exp_used The transition experiment used to create the coordinates
-     * @param ms1 Whether extraction coordinates should be created for MS1 (if false, it will be for MS2)
+     * @param ms1 Whether to perform MS1 (precursor ion) or MS2 (fragment ion) extraction 
      * @param trafo_inverse Inverse transformation function
-     * @param cp_irt Parameter set for the chromatogram extraction
+     * @param cp Parameter set for the chromatogram extraction
      *
     */
     void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      OpenSwath::LightTargetedExperiment & transition_exp_used,
+      const OpenSwath::LightTargetedExperiment & transition_exp_used,
       const bool ms1, const TransformationDescription trafo_inverse,
       const ChromExtractParams & cp) const;
 
@@ -346,7 +352,7 @@ namespace OpenMS
     */
     void prepare_coordinates_sub(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      OpenSwath::LightTargetedExperiment & transition_exp_used,
+      const OpenSwath::LightTargetedExperiment & transition_exp_used,
       const double rt_extraction_window, const bool ms1) const;
 
     /**
