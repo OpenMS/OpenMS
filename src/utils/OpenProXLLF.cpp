@@ -678,9 +678,10 @@ protected:
         sumMatchCount += cross_link_candidates.size();
       }
 
+      prescore_csms_spectrum.clear();
+
       for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
-        prescore_csms_spectrum.clear();
         ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
 
         CrossLinkSpectrumMatch csm;
@@ -765,10 +766,13 @@ protected:
       vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.3);
       vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.2);
 
-      //for (Size i = 0; i < prescore_csms_spectrum.size(); ++i)
-      //{
-      //  cout << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << " \t| matched peaks = " << prescore_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << all_csms_spectrum[i].matched_common_beta  << endl;
-      //}
+//      for (Size i = 0; i < prescore_csms_spectrum.size(); ++i)
+//      {
+//#ifdef _OPENMP
+//#pragma omp critical (cout)
+//#endif
+//        cout << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << " \t| matched peaks = " << prescore_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << prescore_csms_spectrum[i].matched_common_beta << endl;
+//      }
 
       Size last_candidate_index = min(prescore_csms_spectrum.size(), Size(100));
 
