@@ -251,7 +251,7 @@ public:
 private:
 
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
-    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */) {}
+    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
     void loadMetaData_(const String& filename)
     {
