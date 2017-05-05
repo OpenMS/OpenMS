@@ -87,7 +87,7 @@ namespace OpenMS
       std::ifstream filestream_;
       /// Whether parsing the indexedmzML file was successful
       bool parsing_success_;
-
+      /// Whether to skip XML checks
       bool skip_xml_checks_;
 
     /**
@@ -103,9 +103,9 @@ namespace OpenMS
     public:
 
     /**
-      @brief Constructor
+      @brief Default constructor
     */
-    IndexedMzMLFile() : parsing_success_(false), skip_xml_checks_(false) {}
+    IndexedMzMLFile();
 
     /**
       @brief Constructor
@@ -164,7 +164,7 @@ namespace OpenMS
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
 
-    ///sets whether to skip some XML checks and be fast instead
+    /// Whether to skip some XML checks (removing whitespace from base64 arrays) and be fast instead
     void setSkipXMLChecks(bool skip)
     {
       skip_xml_checks_ = skip;
