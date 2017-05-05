@@ -44,7 +44,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 
 #include <OpenMS/SYSTEM/SysInfo.h>
