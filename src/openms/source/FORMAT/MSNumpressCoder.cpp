@@ -45,7 +45,7 @@ namespace OpenMS
 
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig & config)
   {
     if (in.empty()) return;
 
@@ -149,7 +149,7 @@ namespace OpenMS
       }
 
 #ifdef NUMPRESS_DEBUG
-      std::cout << "encodeNP_: numpressed array with with length " << numpressed.size() << std::endl;
+      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << std::endl;
       for (int i = 0; i < byteCount; i++)
       {
         std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
@@ -242,7 +242,7 @@ namespace OpenMS
     }
   }
 
-  void MSNumpressCoder::decodeNP_(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNPRaw(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
   {
     decodeNPInternal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
@@ -255,7 +255,7 @@ namespace OpenMS
     size_t byteCount = in_size;
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNP_: array input with length " << in_size << std::endl;
+    std::cout << "decodeNPRaw: array input with length " << in_size << std::endl;
     for (int i = 0; i < in_size; i++)
     {
       std::cout << "array[" << i << "] : " << (int)in[i] << std::endl;

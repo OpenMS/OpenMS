@@ -440,7 +440,7 @@ Gutenbrunner
 
 # {{{Classnames
 MapAlignmentAlgorithm
-ConvertTSVToTraML
+TargetedFileConverter
 MultiplexPeakPattern
 SILACAnalyzer
 LowLevelComparator

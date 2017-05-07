@@ -239,11 +239,12 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="10.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="19.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="500" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+							<cvParam cvRef="MS" accession="MS:1000242" name="blackbody infrared radiative dissociation" />
 						</activation>
 					</precursor>
 				</precursorList>
@@ -252,7 +253,7 @@
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000582" name="SIM spectrum" />
-				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+				<cvParam cvRef="MS" accession="MS:1000129" name="negative scan" />
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
@@ -263,11 +264,12 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="912.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="14.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="4.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="4.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="30" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+							<cvParam cvRef="MS" accession="MS:1000282" name="sustained off-resonance irradiation" />
 						</activation>
 					</precursor>
 				</precursorList>
@@ -1646,66 +1648,66 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="scan=876">16397</offset>
-		<offset idRef="scan=877">17823</offset>
-		<offset idRef="scan=878">19221</offset>
-		<offset idRef="scan=879">20619</offset>
-		<offset idRef="scan=880">22017</offset>
-		<offset idRef="scan=881">23415</offset>
-		<offset idRef="scan=882">24813</offset>
-		<offset idRef="scan=883">26210</offset>
-		<offset idRef="scan=884">27608</offset>
-		<offset idRef="scan=885">29006</offset>
-		<offset idRef="scan=886">30404</offset>
-		<offset idRef="scan=887">31802</offset>
-		<offset idRef="scan=888">33201</offset>
-		<offset idRef="scan=889">34600</offset>
-		<offset idRef="scan=890">35999</offset>
-		<offset idRef="scan=891">37398</offset>
-		<offset idRef="scan=892">38797</offset>
-		<offset idRef="scan=893">40196</offset>
-		<offset idRef="scan=894">41595</offset>
-		<offset idRef="scan=895">42994</offset>
-		<offset idRef="scan=896">44393</offset>
-		<offset idRef="scan=897">45792</offset>
-		<offset idRef="scan=898">47191</offset>
-		<offset idRef="scan=899">48590</offset>
-		<offset idRef="scan=900">49989</offset>
-		<offset idRef="scan=901">51388</offset>
-		<offset idRef="scan=902">52784</offset>
-		<offset idRef="scan=903">54183</offset>
-		<offset idRef="scan=904">55582</offset>
-		<offset idRef="scan=905">56981</offset>
-		<offset idRef="scan=906">58379</offset>
-		<offset idRef="scan=907">59778</offset>
-		<offset idRef="scan=908">61177</offset>
-		<offset idRef="scan=909">62576</offset>
-		<offset idRef="scan=910">63975</offset>
-		<offset idRef="scan=911">65374</offset>
-		<offset idRef="scan=912">66773</offset>
-		<offset idRef="scan=913">68172</offset>
-		<offset idRef="scan=914">69571</offset>
-		<offset idRef="scan=915">70970</offset>
-		<offset idRef="scan=916">72369</offset>
-		<offset idRef="scan=917">73767</offset>
-		<offset idRef="scan=918">75166</offset>
-		<offset idRef="scan=919">76565</offset>
-		<offset idRef="scan=920">77964</offset>
-		<offset idRef="scan=921">79362</offset>
-		<offset idRef="scan=922">80761</offset>
-		<offset idRef="scan=923">82160</offset>
-		<offset idRef="scan=924">83559</offset>
-		<offset idRef="scan=925">84958</offset>
-		<offset idRef="scan=926">86357</offset>
-		<offset idRef="scan=927">87756</offset>
-		<offset idRef="scan=928">89155</offset>
-		<offset idRef="scan=929">90554</offset>
-		<offset idRef="scan=930">91953</offset>
-		<offset idRef="scan=931">93352</offset>
-		<offset idRef="scan=932">94751</offset>
-		<offset idRef="scan=933">96150</offset>
-		<offset idRef="scan=934">97549</offset>
+		<offset idRef="scan=877">18001</offset>
+		<offset idRef="scan=878">19568</offset>
+		<offset idRef="scan=879">20966</offset>
+		<offset idRef="scan=880">22364</offset>
+		<offset idRef="scan=881">23762</offset>
+		<offset idRef="scan=882">25160</offset>
+		<offset idRef="scan=883">26557</offset>
+		<offset idRef="scan=884">27955</offset>
+		<offset idRef="scan=885">29353</offset>
+		<offset idRef="scan=886">30751</offset>
+		<offset idRef="scan=887">32149</offset>
+		<offset idRef="scan=888">33548</offset>
+		<offset idRef="scan=889">34947</offset>
+		<offset idRef="scan=890">36346</offset>
+		<offset idRef="scan=891">37745</offset>
+		<offset idRef="scan=892">39144</offset>
+		<offset idRef="scan=893">40543</offset>
+		<offset idRef="scan=894">41942</offset>
+		<offset idRef="scan=895">43341</offset>
+		<offset idRef="scan=896">44740</offset>
+		<offset idRef="scan=897">46139</offset>
+		<offset idRef="scan=898">47538</offset>
+		<offset idRef="scan=899">48937</offset>
+		<offset idRef="scan=900">50336</offset>
+		<offset idRef="scan=901">51735</offset>
+		<offset idRef="scan=902">53131</offset>
+		<offset idRef="scan=903">54530</offset>
+		<offset idRef="scan=904">55929</offset>
+		<offset idRef="scan=905">57328</offset>
+		<offset idRef="scan=906">58726</offset>
+		<offset idRef="scan=907">60125</offset>
+		<offset idRef="scan=908">61524</offset>
+		<offset idRef="scan=909">62923</offset>
+		<offset idRef="scan=910">64322</offset>
+		<offset idRef="scan=911">65721</offset>
+		<offset idRef="scan=912">67120</offset>
+		<offset idRef="scan=913">68519</offset>
+		<offset idRef="scan=914">69918</offset>
+		<offset idRef="scan=915">71317</offset>
+		<offset idRef="scan=916">72716</offset>
+		<offset idRef="scan=917">74114</offset>
+		<offset idRef="scan=918">75513</offset>
+		<offset idRef="scan=919">76912</offset>
+		<offset idRef="scan=920">78311</offset>
+		<offset idRef="scan=921">79709</offset>
+		<offset idRef="scan=922">81108</offset>
+		<offset idRef="scan=923">82507</offset>
+		<offset idRef="scan=924">83906</offset>
+		<offset idRef="scan=925">85305</offset>
+		<offset idRef="scan=926">86704</offset>
+		<offset idRef="scan=927">88103</offset>
+		<offset idRef="scan=928">89502</offset>
+		<offset idRef="scan=929">90901</offset>
+		<offset idRef="scan=930">92300</offset>
+		<offset idRef="scan=931">93699</offset>
+		<offset idRef="scan=932">95098</offset>
+		<offset idRef="scan=933">96497</offset>
+		<offset idRef="scan=934">97896</offset>
 	</index>
 </indexList>
-<indexListOffset>98978</indexListOffset>
+<indexListOffset>99325</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

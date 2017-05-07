@@ -28,72 +28,32 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Katharina Albers $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
+#include <OpenMS/FORMAT/SqMassFile.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
 namespace OpenMS
 {
-  /**
-     @deprecated Deprecated in OpenMS 1.7.
 
-   @brief A map feature grouping algorithm for identified features.
+  SqMassFile::SqMassFile() {}
 
-   It takes many maps and searches for corresponding features.
-   The corresponding features must be aligned, but may have small position deviations.
+  SqMassFile::~SqMassFile() {}
 
-   @htmlinclude OpenMS_FeatureGroupingAlgorithmIdentification.parameters
-
-   @ingroup FeatureGrouping
-   */
-  class OPENMS_DLLAPI FeatureGroupingAlgorithmIdentification :
-    public FeatureGroupingAlgorithm
+  void SqMassFile::load(const String& filename, MapType& map)
   {
-public:
-    /// Default constructor
-    FeatureGroupingAlgorithmIdentification();
+    OpenMS::Internal::MzMLSqliteHandler sql_mass_reader(filename);
+    sql_mass_reader.readExperiment(map);
+  }
 
-    /// Destructor
-    virtual
-    ~FeatureGroupingAlgorithmIdentification();
+  void SqMassFile::store(const String& filename, MapType& map)
+  {
+    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename);
+    sql_mass.createTables();
+    sql_mass.writeExperiment(map);
+  }
 
-    /**
-     @brief Applies the algorithm
-
-     @exception IllegalArgument is thrown if less than two input maps are given.
-     */
-    virtual void
-    group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
-
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm *
-    create()
-    {
-      return new FeatureGroupingAlgorithmIdentification();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String
-    getProductName()
-    {
-      return "identification";
-    }
-
-private:
-
-    /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmIdentification(const FeatureGroupingAlgorithmIdentification &);
-    /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmIdentification &
-    operator=(const FeatureGroupingAlgorithmIdentification &);
-
-  };
-
-} // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
+}

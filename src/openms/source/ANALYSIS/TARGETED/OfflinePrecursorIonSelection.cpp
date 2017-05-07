@@ -446,8 +446,8 @@ namespace OpenMS
       }
 
       // cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervals)
-      std::map<Size, typename OpenMS::DBoundingBox<2> > bounding_boxes_f;
-      std::map<std::pair<Size, Size>, typename OpenMS::DBoundingBox<2> > bounding_boxes;
+      std::map<Size, OpenMS::DBoundingBox<2> > bounding_boxes_f;
+      std::map<std::pair<Size, Size>, OpenMS::DBoundingBox<2> > bounding_boxes;
       for (Size feature_num = 0; feature_num < features.size(); ++feature_num)
       {
         if (charges_set.count(features[feature_num].getCharge()))

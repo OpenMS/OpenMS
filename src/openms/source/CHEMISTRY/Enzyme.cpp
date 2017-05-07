@@ -56,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  Enzyme::Enzyme(const Enzyme & enzyme) :
+  Enzyme::Enzyme(const Enzyme& enzyme) :
     name_(enzyme.name_),
     cleavage_regex_(enzyme.cleavage_regex_),
     synonyms_(enzyme.synonyms_),
@@ -70,9 +70,9 @@ namespace OpenMS
   {
   }
 
-  Enzyme::Enzyme(const String & name,
-                   const String & cleavage_regex,
-                   const std::set<String> & synonyms,
+  Enzyme::Enzyme(const String& name,
+                   const String& cleavage_regex,
+                   const std::set<String>& synonyms,
                    String regex_description,
                    EmpiricalFormula n_term_gain,
                    EmpiricalFormula c_term_gain,
@@ -92,12 +92,12 @@ namespace OpenMS
     omssa_id_(omssa_id)
   {
   }
-  
+
   Enzyme::~Enzyme()
   {
   }
 
-  Enzyme & Enzyme::operator=(const Enzyme & enzyme)
+  Enzyme& Enzyme::operator=(const Enzyme& enzyme)
   {
     if (this != &enzyme)
     {
@@ -115,46 +115,46 @@ namespace OpenMS
     return *this;
   }
 
-  void Enzyme::setName(const String & name)
+  void Enzyme::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Enzyme::getName() const
+  const String& Enzyme::getName() const
   {
     return name_;
   }
 
-  void Enzyme::setSynonyms(const set<String> & synonyms)
+  void Enzyme::setSynonyms(const set<String>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  void Enzyme::addSynonym(const String & synonym)
+  void Enzyme::addSynonym(const String& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  const set<String> & Enzyme::getSynonyms() const
+  const set<String>& Enzyme::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void Enzyme::setRegEx(const String & cleavage_regex)
+  void Enzyme::setRegEx(const String& cleavage_regex)
   {
     cleavage_regex_ = cleavage_regex;
   }
 
-  const String & Enzyme::getRegEx() const
+  const String& Enzyme::getRegEx() const
   {
     return cleavage_regex_;
   }
-  
+
   void Enzyme::setRegExDescription(String value)
   {
     regex_description_ = value;
   }
-  
+
   String Enzyme::getRegExDescription() const
   {
     return regex_description_;
@@ -169,7 +169,7 @@ namespace OpenMS
   {
     c_term_gain_ = value;
   }
-  
+
   EmpiricalFormula Enzyme::getNTermGain() const
   {
     return n_term_gain_;
@@ -180,47 +180,47 @@ namespace OpenMS
     return c_term_gain_;
   }
 
-  void Enzyme::setPSIid(String value)
+  void Enzyme::setPSIID(String value)
   {
     psi_id_ = value;
   }
-  
-  String Enzyme::getPSIid() const
+
+  String Enzyme::getPSIID() const
   {
     return psi_id_;
   }
 
-  void Enzyme::setXTANDEMid(String value)
+  void Enzyme::setXTandemID(String value)
   {
     xtandem_id_ = value;
   }
 
-  String Enzyme::getXTANDEMid() const
+  String Enzyme::getXTandemID() const
   {
     return xtandem_id_;
   }
 
-  void Enzyme::setCOMETid(UInt value)
+  void Enzyme::setCometID(UInt value)
   {
     comet_id_ = value;
   }
 
-  UInt Enzyme::getCOMETid() const
+  UInt Enzyme::getCometID() const
   {
     return comet_id_;
   }
 
-  void Enzyme::setOMSSAid(UInt value)
+  void Enzyme::setOMSSAID(UInt value)
   {
     omssa_id_ = value;
   }
-  
-  UInt Enzyme::getOMSSAid() const
+
+  UInt Enzyme::getOMSSAID() const
   {
     return omssa_id_;
   }
-  
-  bool Enzyme::operator==(const Enzyme & enzyme) const
+
+  bool Enzyme::operator==(const Enzyme& enzyme) const
   {
     return name_ == enzyme.name_ &&
            synonyms_ == enzyme.synonyms_ &&
@@ -244,17 +244,17 @@ namespace OpenMS
     return cleavage_regex_ != cleavage_regex;
   }
 
-  bool Enzyme::operator!=(const Enzyme & enzyme) const
+  bool Enzyme::operator!=(const Enzyme& enzyme) const
   {
     return !(*this == enzyme);
   }
 
-  bool Enzyme::operator<(const Enzyme & enzyme) const
+  bool Enzyme::operator<(const Enzyme& enzyme) const
   {
     return this->getName() < enzyme.getName();
   }
 
-  ostream & operator<<(ostream & os, const Enzyme & enzyme)
+  ostream& operator<<(ostream& os, const Enzyme& enzyme)
   {
     os << enzyme.name_ << " "
     << enzyme.cleavage_regex_ << " "

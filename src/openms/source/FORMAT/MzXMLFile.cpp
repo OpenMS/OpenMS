@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
   MzXMLFile::MzXMLFile() :
-    XMLFile("/SCHEMAS/mzXML_2_1.xsd", "2.1")
+    XMLFile("/SCHEMAS/mzXML_idx_3.1.xsd", "3.1")
   {
   }
 
@@ -84,6 +84,7 @@ namespace OpenMS
   void MzXMLFile::store(const String & filename, const MapType & map) const
   {
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    handler.setOptions(options_);
     save_(filename, &handler);
   }
 
