@@ -1,4 +1,4 @@
-from libcpp.vector cimport vector as libcpp_vector
+§from libcpp.vector cimport vector as libcpp_vector
 from libcpp.set cimport set as libcpp_set
 from libcpp cimport bool
 from Types cimport *
@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
                EmpiricalFormula c_term_gain,
                String psi_id,
                String xtandem_id,
+               Uint comet_id,
                UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
@@ -68,6 +69,12 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
 
         void setXTandemID(String value) nogil except +
         String getXTandemID() nogil except +
+
+        # sets the Comet ID
+        void setCometID(int value) nogil except +
+
+        # returns the Comet ID
+        int getCometID() nogil except +
 
         # sets the OMSSA ID
         void setOMSSAID(int value) nogil except +

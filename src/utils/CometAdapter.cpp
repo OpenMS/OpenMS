@@ -81,12 +81,9 @@ using namespace std;
 </CENTER>
 
     @em Comet must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with several versions of Comet.
+    has been successfully tested with version 2016.01.2 of Comet.
 
-    This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
-    the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
-
-    Comet settings not exposed by this adapter can be directly adjusted using an txt param file, which can be generated using comet -p.
+    Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
     By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
     Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
@@ -161,16 +158,16 @@ protected:
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (Comet)", false, true);
     registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.25, "fragment_bin_offset (Comet)", false, true);
     registerIntOption_("theoretical_fragment_ions", "<num>", 0, "theoretical fragment ion peak representation, 0==sum of intensites plus flanking bins, 1==sum of intensities of central bin only", false, true);
-    registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, true);
-    registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, true);
-    registerIntOption_("use_C_ions","<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, true);
-    registerIntOption_("use_X_ions","<num>", 0, "use X ions for PSM, 0 == no, 1 == yes", false, true);
-    registerIntOption_("use_Y_ions","<num>", 1, "use Y ions for PSM, 0 == no, 1 == yes", false, true);
-    registerIntOption_("use_Z_ions","<num>", 0, "use Z ions for PSM, 0 == no, 1 == yes", false, true);
-    registerIntOption_("use_NL_ions","<num>", 0, "use Neutral Loss ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_A_ions", "<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_B_ions", "<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_C_ions", "<num>", 0, "use C ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_X_ions", "<num>", 0, "use X ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_Y_ions", "<num>", 1, "use Y ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_Z_ions", "<num>", 0, "use Z ions for PSM, 0 == no, 1 == yes", false, true);
+    registerIntOption_("use_NL_ions", "<num>", 0, "use Neutral Loss ions for PSM, 0 == no, 1 == yes", false, true);
 
     //Output
-    registerIntOption_("num_hits","<num>",5,"Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min] [max]", "0 0", "charge range to search: 0 0 == search all charges, 2 6 == from +2 to +6, 3 3 == +3", false, false);
@@ -185,7 +182,7 @@ protected:
     registerStringOption_("max_precursor_charge", "<num>", "0+", "set maximum precursor charge state to analyze (allowed max 9)", false, true);
     registerIntOption_("clip_nterm_methionine", "<num>", 0, "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
     registerIntOption_("spectrum_batch_size", "<num>", 0, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, true);
-    registerStringOption_("mass_offsets", "<offset>", "", "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, true);
+    registerDoubleOption_("mass_offsets", "<offset>", 0, "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, true);
 
     // spectral processing
     registerIntOption_("minimum_peaks", "<num>", 10, "required minimum number of peaks in spectrum to search (default 10)", false, true);
@@ -206,7 +203,7 @@ protected:
 
   vector<ResidueModification> getModifications_(StringList modNames)
   {
-   vector<ResidueModification> modifications;
+    vector<ResidueModification> modifications;
 
     // iterate over modification names and add to vector
     for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
@@ -369,7 +366,7 @@ protected:
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "decoy_prefix = " << "rev_" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
-    os << "mass_offsets = " << getStringOption_("mass_offsets") << "\n";                       // one or more mass offsets to search (values substracted from deconvoluted precursor mass)
+    os << "mass_offsets = " << getDoubleOption_("mass_offsets") << "\n";                       // one or more mass offsets to search (values substracted from deconvoluted precursor mass)
 
     // spectral processing
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
@@ -468,6 +465,7 @@ protected:
     //QDir d;
     //d.mkpath(tmp_dir.toQString());
     String tmp_pepxml = tmp_dir + "result.pep.xml";
+    String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
@@ -525,7 +523,7 @@ protected:
     }
 
     //-------------------------------------------------------------
-    // writing output
+    // writing IdXML output
     //-------------------------------------------------------------
 
     // read the pep.xml put of Comet and write it to idXML
@@ -538,6 +536,30 @@ protected:
     writeDebug_("write idXMLFile", 1);
     writeDebug_(out, 1);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
+
+
+    //-------------------------------------------------------------
+    // create (move) optional pin output
+    //-------------------------------------------------------------
+
+
+    String pin_out = getStringOption_("pin_out");
+    if (!pin_out.empty())
+    {
+      // existing file? Qt won't overwrite, so try to remove it:
+      if (QFile::exists(pin_out.toQString()) && !QFile::remove(pin_out.toQString()))
+      {
+        writeLog_("Fatal error: Could not overwrite existing file '" + pin_out + "'");
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
+      // move the temporary file to the actual destination:
+      if (!QFile::rename(tmp_pin.toQString(), pin_out.toQString()))
+      {
+        writeLog_("Fatal error: Could not move temporary mzid file to '" + pin_out + "'");
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
+    }
+
 
 
     // remove tempdir
