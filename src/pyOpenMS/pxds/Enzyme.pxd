@@ -1,4 +1,4 @@
-§from libcpp.vector cimport vector as libcpp_vector
+from libcpp.vector cimport vector as libcpp_vector
 from libcpp.set cimport set as libcpp_set
 from libcpp cimport bool
 from Types cimport *
