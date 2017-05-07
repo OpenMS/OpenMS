@@ -54,23 +54,23 @@
 #include <iostream>
 #include <fstream>
 
-using namespace OpenMS;         
-using namespace std;             
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_COMETAdapter COMETAdapter
+    @page TOPP_CometAdapter CometAdapter
 
-    @brief Identifies peptides in MS/MS spectra via COMET.
+    @brief Identifies peptides in MS/MS spectra via Comet.
 
 <CENTER>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ COMETAdapter \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ CometAdapter \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -80,34 +80,34 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em COMET must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with several versions of COMET.
+    @em Comet must be installed before this wrapper can be used. This wrapper
+    has been successfully tested with several versions of Comet.
 
     This adapter supports relative database filenames, which (when not found in the current working directory) is looked up in
     the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    COMET settings not exposed by this adapter can be directly adjusted using an txt param file, which can be generated using comet -p.
+    Comet settings not exposed by this adapter can be directly adjusted using an txt param file, which can be generated using comet -p.
     By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
-    Parameter names have been changed to match names found in XTandem or MSGFPlus Search Engines, however some are Comet specific.
+    Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_COMETAdapter.cli
+    @verbinclude TOPP_CometAdapter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_COMETAdapter.html
+    @htmlinclude TOPP_CometAdapter.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 
-class TOPPCOMETAdapter :
+class TOPPCometAdapter :
   public TOPPBase
 {
 public:
-  TOPPCOMETAdapter() :
-    TOPPBase("COMETAdapter", "Annotates MS/MS spectra using COMET.")
+  TOPPCometAdapter() :
+    TOPPBase("CometAdapter", "Annotates MS/MS spectra using Comet.")
   {
   }
 
@@ -123,7 +123,7 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "comet.exe",                     
+      "comet.exe",
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
 
     //
@@ -131,18 +131,18 @@ protected:
     //
 
     //Files
-    registerOutputFile_("pin_out", "<file>", "", "Output file - for percolator input", false);
+    registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
     setValidFormats_("pin_out", ListUtils::create<String>("pin"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
     //registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
 
     //Masses
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "precursor_mass_tolerance (MSGF+), peptide_mass_tolerance(COMET)", false, false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance, peptide_mass_tolerance(Comet)", false, false);
     // TO DO: change selection menue from numbers to valid strings
     //registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", true);
     //vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
-    registerIntOption_("precursor_error_units", "<search_enzyme_number>", 2, "peptide_mass_units (COMET) 0=amu, 1=mmu, 2=ppm", false, false);
+    registerIntOption_("precursor_error_units", "<choice>", 2, "peptide_mass_units (Comet) 0=amu, 1=mmu, 2=ppm", false, false);
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
@@ -150,7 +150,7 @@ protected:
 
     //Search Enzyme
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllCOMETNames(all_enzymes);
+    EnzymesDB::getInstance()->getAllCometNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
     // TO DO: change selection menue from numbers to valid strings
@@ -158,8 +158,8 @@ protected:
     registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
 
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (COMET)", false, true);
-    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.25, "fragment_bin_offset (COMET)", false, true);
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (Comet)", false, true);
+    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.25, "fragment_bin_offset (Comet)", false, true);
     registerIntOption_("theoretical_fragment_ions", "<num>", 0, "theoretical fragment ion peak representation, 0==sum of intensites plus flanking bins, 1==sum of intensities of central bin only", false, true);
     registerIntOption_("use_A_ions","<num>", 0, "use A ions for PSM, 0 == no, 1 == yes", false, true);
     registerIntOption_("use_B_ions","<num>", 1, "use B ions for PSM, 0 == no, 1 == yes", false, true);
@@ -202,7 +202,6 @@ protected:
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     setValidStrings_("variable_modifications", all_mods);
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "", false, true);
-    
   }
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -254,7 +253,7 @@ protected:
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
-    String enzyme_number = String(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCOMETid());
+    String enzyme_number = String(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
     os << "num_enzyme_termini = " << getIntOption_("num_enzyme_termini") << "\n";                  // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
@@ -291,16 +290,16 @@ protected:
       {
           residues="c";
       }
-      if (mod.getTermSpecificity() == ResidueModification::C_TERM) 
+      if (mod.getTermSpecificity() == ResidueModification::C_TERM)
       {
         term_distance = 0;
         nc_term = "3";
-      } 
+      }
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
         term_distance = 0;
         nc_term = "2";
-      } 
+      }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
       {
         term_distance = 0;
@@ -310,7 +309,7 @@ protected:
       {
         term_distance = 0;
         nc_term = "1";
-      } 
+      }
       String required = "0";
 
       os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << variable << " " << max_mods_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n";
@@ -529,7 +528,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    // read the pep.xml put of COMET and write it to idXML
+    // read the pep.xml put of Comet and write it to idXML
 
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
@@ -560,7 +559,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPCOMETAdapter tool;
+  TOPPCometAdapter tool;
 
   return tool.main(argc, argv);
 }
