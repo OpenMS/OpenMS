@@ -201,6 +201,27 @@ private:
     */
     double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
 
+    /**
+      @brief Get the first (of potentially many) activation methods (HCD,CID,...) of this spectrum.
+
+      @param s The spectrum
+      @return Entry from Precursor::NamesOfActivationMethod or empty string.
+    */
+    String getActivationMethod_(const PeakMap::SpectrumType& s) const
+    {
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        for (std::set<Precursor::ActivationMethod>::const_iterator it_a = it->getActivationMethods().begin();
+          it_a != it->getActivationMethods().end();
+          ++it_a)
+        {
+          return Precursor::NamesOfActivationMethod[*it_a];
+        }
+      }
+      return "";
+    }
+
+
 protected:
     /// implemented for DefaultParamHandler
     void setDefaultParams_();

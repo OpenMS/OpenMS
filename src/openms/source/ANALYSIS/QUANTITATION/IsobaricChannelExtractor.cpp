@@ -35,11 +35,13 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
+
 
 #include <cmath>
 
@@ -437,8 +439,39 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << "\n";
+    LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << std::endl;
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
+
+    // walk through spectra and count the number of scans with valid activation method per MS-level
+    // only the highest level will be used for quantification (e.g. MS3, if present)
+    std::map<UInt, UInt> ms_level;
+    std::map<String, int> activation_modes;
+    for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
+    {
+      ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
+      if (selected_activation_ == "" || isValidActivation(*it))
+      {
+        ++ms_level[it->getMSLevel()];
+      }
+    }
+    if (ms_level.empty())
+    {
+      LOG_WARN << "Filtering by MS/MS(/MS) and activation mode: no spectra pass activation mode filter!\n"
+               << "Activation modes found:\n";
+      for (std::map<String, int>::const_iterator it = activation_modes.begin(); it != activation_modes.end(); ++it)
+      {
+        LOG_WARN << "  mode " << (it->first.empty() ? "<none>" : it->first) << ": " << it->second << " scans\n";
+      }
+      LOG_WARN << "Result will be empty!" << std::endl;
+      return;
+    }
+    LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
+    for (std::map<UInt, UInt>::const_iterator it = ms_level.begin(); it != ms_level.end(); ++it)
+    {
+      LOG_INFO << "  lvl " << it->first << ": " << it->second << " scans\n";
+    }
+    int quant_ms_level = ms_level.rbegin()->first;
+    LOG_INFO << "Using ms-level " << quant_ms_level << " for quantification." << std::endl;
 
     // now we have picked data
     // --> assign peaks to channels
@@ -446,6 +479,11 @@ namespace OpenMS
 
     // remember the current precursor spectrum
     PuritySate_ pState(ms_exp_data);
+
+    typedef std::map<String, std::vector<double> > MzDiff;
+    MzDiff channel_mz_delta;
+    double qc_dist_mz = 0.6;
+
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
@@ -456,118 +494,147 @@ namespace OpenMS
         pState.precursorScan = it;
         continue;
       }
+      if (it->getMSLevel() != quant_ms_level) continue;
+      if (!(selected_activation_ == "" || isValidActivation(*it))) continue;
 
-      if (selected_activation_ == "" || isValidActivation(*it))
+      // find following ms1 scan (needed for purity computation)
+      if (!pState.followUpValid(it->getRT()))
       {
-        // find following ms1 scan (needed for purity computation)
-        if (!pState.followUpValid(it->getRT()))
-        {
-          // advance iterator
-          pState.advanceFollowUp(it->getRT());
-        }
-
-        // check if precursor is available
-        if (it->getPrecursors().empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
-        }
-
-        // check precursor constraints
-        if (!isValidPrecursor_(it->getPrecursors()[0]))
-        {
-          LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints." << std::endl;
-          continue;
-        }
-
-        // check precursor purity if we have a valid precursor ..
-        double precursor_purity = -1.0;
-        if (pState.precursorScan != ms_exp_data.end())
-        {
-          precursor_purity = computePrecursorPurity_(it, pState);
-          // check if purity is high enough
-          if (precursor_purity < min_precursor_purity_)
-          {
-            LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << std::endl;
-            continue;
-          }
-        }
-        else
-        {
-          LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
-        }
-
-        // store RT&MZ of parent ion as centroid of ConsensusFeature
-        ConsensusFeature cf;
-        cf.setUniqueId();
-        cf.setRT(it->getRT());
-        cf.setMZ(it->getPrecursors()[0].getMZ());
-
-        Peak2D channel_value;
-        channel_value.setRT(it->getRT());
-        // for each each channel
-        UInt64 map_index = 0;
-        Peak2D::IntensityType overall_intensity = 0;
-        for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-             cl_it != quant_method_->getChannelInformation().end();
-             ++cl_it)
-        {
-          // set mz-position of channel
-          channel_value.setMZ(cl_it->center);
-          // reset intensity
-          channel_value.setIntensity(0);
-
-          // as every evaluation requires time, we cache the MZEnd iterator
-          const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + reporter_mass_shift_);
-
-          // add up all signals
-          for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - reporter_mass_shift_);
-               mz_it != mz_end;
-               ++mz_it)
-          {
-            channel_value.setIntensity(channel_value.getIntensity() + mz_it->getIntensity());
-          }
-
-          // discard contribution of this channel as it is below the required intensity threshold
-          if (channel_value.getIntensity() < min_reporter_intensity_)
-          {
-            channel_value.setIntensity(0);
-          }
-
-          overall_intensity += channel_value.getIntensity();
-          // add channel to ConsensusFeature
-          cf.insert(map_index++, channel_value, element_index);
-        } // ! channel_iterator
-
-        // check if we keep this feature or if it contains low-intensity quantifications
-        if (remove_low_intensity_quantifications_ && hasLowIntensityReporter_(cf))
-        {
-          continue;
-        }
-
-        // check featureHandles are not empty
-        if (overall_intensity <= 0)
-        {
-          cf.setMetaValue("all_empty", String("true"));
-        }
-        // add purity information if we could compute it
-        if (precursor_purity > 0.0)
-        {
-          cf.setMetaValue("precursor_purity", precursor_purity);
-        }
-
-        // embed the id of the scan from which the quantitative information was extracted
-        cf.setMetaValue("scan_id", it->getNativeID());
-        // ...as well as additional meta information
-        cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
-
-        cf.setCharge(it->getPrecursors()[0].getCharge());
-        cf.setIntensity(overall_intensity);
-        consensus_map.push_back(cf);
-
-        // the tandem-scan in the order they appear in the experiment
-        ++element_index;
+        // advance iterator
+        pState.advanceFollowUp(it->getRT());
       }
+
+      // check if precursor is available
+      if (it->getPrecursors().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+      }
+
+      // check precursor constraints
+      if (!isValidPrecursor_(it->getPrecursors()[0]))
+      {
+        LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints." << std::endl;
+        continue;
+      }
+
+      // check precursor purity if we have a valid precursor ..
+      double precursor_purity = -1.0;
+      if (pState.precursorScan != ms_exp_data.end())
+      {
+        precursor_purity = computePrecursorPurity_(it, pState);
+        // check if purity is high enough
+        if (precursor_purity < min_precursor_purity_)
+        {
+          LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << std::endl;
+          continue;
+        }
+      }
+      else
+      {
+        LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
+      }
+
+      // store RT&MZ of parent ion as centroid of ConsensusFeature
+      ConsensusFeature cf;
+      cf.setUniqueId();
+      cf.setRT(it->getRT());
+      cf.setMZ(it->getPrecursors()[0].getMZ());
+
+      Peak2D channel_value;
+      channel_value.setRT(it->getRT());
+      // for each each channel
+      UInt64 map_index = 0;
+      Peak2D::IntensityType overall_intensity = 0;
+
+      for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
+            cl_it != quant_method_->getChannelInformation().end();
+            ++cl_it)
+      {
+        // set mz-position of channel
+        channel_value.setMZ(cl_it->center);
+        // reset intensity
+        channel_value.setIntensity(0);
+
+        // as every evaluation requires time, we cache the MZEnd iterator
+        const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + reporter_mass_shift_);
+
+        // add up all signals
+        for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - reporter_mass_shift_);
+              mz_it != mz_end;
+              ++mz_it)
+        {
+          channel_value.setIntensity(channel_value.getIntensity() + mz_it->getIntensity());
+        }
+
+        // check for closest signal within reasonable distance (0.6 Da) -- might find neighbouring TMT channel, but that should not confuse anyone
+        Int idx_nearest = it->findNearest(cl_it->center, qc_dist_mz);
+        if (idx_nearest >=0)
+        {
+          channel_mz_delta[cl_it->name].push_back(cl_it->center - (*it)[idx_nearest].getMZ());
+        }
+
+        // discard contribution of this channel as it is below the required intensity threshold
+        if (channel_value.getIntensity() < min_reporter_intensity_)
+        {
+          channel_value.setIntensity(0);
+        }
+
+        overall_intensity += channel_value.getIntensity();
+        // add channel to ConsensusFeature
+        cf.insert(map_index, channel_value, element_index);
+        ++map_index;
+      } // ! channel_iterator
+
+      // check if we keep this feature or if it contains low-intensity quantifications
+      if (remove_low_intensity_quantifications_ && hasLowIntensityReporter_(cf))
+      {
+        continue;
+      }
+
+      // check featureHandles are not empty
+      if (overall_intensity <= 0)
+      {
+        cf.setMetaValue("all_empty", String("true"));
+      }
+      // add purity information if we could compute it
+      if (precursor_purity > 0.0)
+      {
+        cf.setMetaValue("precursor_purity", precursor_purity);
+      }
+
+      // embed the id of the scan from which the quantitative information was extracted
+      cf.setMetaValue("scan_id", it->getNativeID());
+      // ...as well as additional meta information
+      cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
+
+      cf.setCharge(it->getPrecursors()[0].getCharge());
+      cf.setIntensity(overall_intensity);
+      consensus_map.push_back(cf);
+
+      // the tandem-scan in the order they appear in the experiment
+      ++element_index;
     } // ! Experiment iterator
+
+    // print stats about m/z calibration / presence of signal
+    LOG_INFO << "Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
+    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
+      cl_it != quant_method_->getChannelInformation().end();
+      ++cl_it)
+    {
+      LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
+      if (channel_mz_delta.find(cl_it->name) != channel_mz_delta.end())
+      {
+        // sort
+        double median = Math::median(channel_mz_delta[cl_it->name].begin(), channel_mz_delta[cl_it->name].end(), false);
+        LOG_INFO << median << " Th\n";
+      }
+      else
+      {
+        LOG_INFO << "<no data>\n";
+      }
+    }
+    LOG_INFO << "(if channels are deliberately empty, the data for these channels might be wrong, especially for nearby TMT channels)\n" << std::endl;
+
 
     /// add meta information to the map
     registerChannelsInOutputMap_(consensus_map);
