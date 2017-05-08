@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_9958231880091732897" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2017-05-08T14:56:46">
+<consensusXML version="1.7" id="cm_8301945776579928892" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2017-05-08T16:17:08">
 		<software name="FeatureLinkerUnlabeledQT" version="2.1.0" />
 		<processingAction name="Feature grouping" />
 		<UserParam type="stringList" name="parameter: in" value="[share/OpenMS/examples/FRACTIONS/BSA1_F1_aligned.featureXML,share/OpenMS/examples/FRACTIONS/BSA1_F2_aligned.featureXML,share/OpenMS/examples/FRACTIONS/BSA2_F1_aligned.featureXML,share/OpenMS/examples/FRACTIONS/BSA2_F2_aligned.featureXML,share/OpenMS/examples/FRACTIONS/BSA3_F1_aligned.featureXML,share/OpenMS/examples/FRACTIONS/BSA3_F2_aligned.featureXML]"/>

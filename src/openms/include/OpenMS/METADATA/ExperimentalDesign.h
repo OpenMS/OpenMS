@@ -35,6 +35,8 @@
 #ifndef OPENMS_KERNEL_EXPERIMENTALDESIGN_H
 #define OPENMS_KERNEL_EXPERIMENTALDESIGN_H
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <vector>
 #include <string>
 #include <map>
@@ -94,7 +96,7 @@ namespace OpenMS
     ///  3  	humanA.mzML	    iTRAQ reagent 116	               984.52
 
     /// Loads an experimental design from a tabular separated file
-    void load(const std::string& tsv_file, ExperimentalDesign & design) const;
+    void load(const String & tsv_file, ExperimentalDesign & design) const;
 
   };
 }

@@ -35,21 +35,27 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <QtCore/QString>
+#include <QtCore/QFileInfo>
+
+#include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  void ExperimentalDesign::load(const string & tsv_file, ExperimentalDesign & design) const
+  void ExperimentalDesign::load(const String & tsv_file, ExperimentalDesign & design) const
   {
+    design.runs.clear();
+
     TextFile tf(tsv_file, true);
 
     bool header_parsed(false);
 
-    ExperimentalDesign ed;
-
-    Size line_number = 0;
+    int line_number = 0;
 
     for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
     {
@@ -93,11 +99,52 @@ namespace OpenMS
 
       MSRun r;
       int run_number = cells[0].toInt();
-      r.file = cells[1];
+
+      // read spectra file name
+      String spec_file = cells[1];
+      QFileInfo spectra_file_info(spec_file.toQString());
+
+      if (spectra_file_info.isRelative())
+      {
+        // file name is relative so we need to figure out the correct folder
+
+        // first check folder relative to folder of design file 
+        // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
+        // where ./ is the same folder
+        QFileInfo design_file_info(tsv_file.toQString());
+        QString design_file_relative(design_file_info.absolutePath());
+        design_file_relative = design_file_relative + "/" + spec_file.toQString();
+
+        if (File::exists(design_file_relative))
+        {
+          r.file = design_file_relative.toStdString();
+        }
+        else
+        {
+          // check current folder
+          String f = File::absolutePath(spec_file);
+          if (File::exists(f))
+          {
+            r.file = f;
+          }
+        }
+      }     
+      else
+      {
+        // set to absolute path
+        r.file = spec_file;
+      }
+
+      if (!File::exists(r.file))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
+          "Error: Spectra file does not exist: '" + String(r.file) + "'");
+      }
+
       r.fraction = static_cast<unsigned>(cells[2].toInt());
       r.technical_replicate = static_cast<unsigned>(cells[3].toInt());
       
-      ed.runs.push_back(r);
+      design.runs.push_back(r);
 
       // validation: check if run number matches the line number in the design file
       if (line_number != run_number)
@@ -107,9 +154,6 @@ namespace OpenMS
       }
 
       ++line_number;
-
-
-      // TODO? check if file exists?
     }
   }
 
@@ -150,3 +194,4 @@ namespace OpenMS
     return true;
   }
 }
+
