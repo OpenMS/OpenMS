@@ -41,8 +41,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-
-
 #include <cmath>
 
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
@@ -50,6 +48,19 @@
 
 namespace OpenMS
 {
+
+  struct ChannelQC
+  {
+    ChannelQC() :
+      mz_deltas(),
+      signal_not_unique(0)
+    {}
+
+    std::vector<double> mz_deltas;
+    int signal_not_unique;
+
+  };
+
 
   IsobaricChannelExtractor::PuritySate_::PuritySate_(const PeakMap& targetExp) :
     baseExperiment(targetExp)
@@ -68,6 +79,7 @@ namespace OpenMS
     // check if we found one
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
+
 
   void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
   {
@@ -151,7 +163,7 @@ namespace OpenMS
 
     defaults_.setValidStrings("select_activation", activation_list);
 
-    defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position.");
+    defaults_.setValue("reporter_mass_shift", 0.001, "Allowed shift (left to right) in Da from the expected position.");
     defaults_.setMinFloat("reporter_mass_shift", 0.00000001);
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
@@ -448,6 +460,7 @@ namespace OpenMS
     std::map<String, int> activation_modes;
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
+      if (it->getMSLevel() == 1) continue; // never report MS1
       ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
       if (selected_activation_ == "" || isValidActivation(*it))
       {
@@ -480,9 +493,9 @@ namespace OpenMS
     // remember the current precursor spectrum
     PuritySate_ pState(ms_exp_data);
 
-    typedef std::map<String, std::vector<double> > MzDiff;
-    MzDiff channel_mz_delta;
-    double qc_dist_mz = 0.6;
+    typedef std::map<String, ChannelQC > ChannelQCSet;
+    ChannelQCSet channel_mz_delta;
+    const double qc_dist_mz = 0.5; // fixed! Do not change!
 
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
@@ -495,6 +508,7 @@ namespace OpenMS
         continue;
       }
       if (it->getMSLevel() != quant_ms_level) continue;
+      if ((*it).empty()) continue; // skip empty spectra
       if (!(selected_activation_ == "" || isValidActivation(*it))) continue;
 
       // find following ms1 scan (needed for purity computation)
@@ -556,21 +570,36 @@ namespace OpenMS
         channel_value.setIntensity(0);
 
         // as every evaluation requires time, we cache the MZEnd iterator
-        const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + reporter_mass_shift_);
+        const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + qc_dist_mz);
 
-        // add up all signals
-        for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - reporter_mass_shift_);
+        // search for the non-zero signal closest to theoretical position
+        // & check for closest signal within reasonable distance (0.5 Da) -- might find neighbouring TMT channel, but that should not confuse anyone
+        int peak_count(0); // count peaks in user window -- should be only one, otherwise Window is too large
+        PeakMap::SpectrumType::ConstIterator idx_nearest(mz_end);
+        for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - qc_dist_mz);
               mz_it != mz_end;
               ++mz_it)
         {
-          channel_value.setIntensity(channel_value.getIntensity() + mz_it->getIntensity());
+          if (mz_it->getIntensity() == 0) continue; // ignore 0-intensity shoulder peaks -- could be detrimental when de-calibrated
+          double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
+          if (dist_mz < reporter_mass_shift_) ++peak_count;
+          if (idx_nearest == mz_end // first peak
+              || ((idx_nearest != mz_end) && (dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
+          {
+            idx_nearest = mz_it;
+          }
         }
-
-        // check for closest signal within reasonable distance (0.6 Da) -- might find neighbouring TMT channel, but that should not confuse anyone
-        Int idx_nearest = it->findNearest(cl_it->center, qc_dist_mz);
-        if (idx_nearest >=0)
+        if (idx_nearest != mz_end)
         {
-          channel_mz_delta[cl_it->name].push_back(cl_it->center - (*it)[idx_nearest].getMZ());
+          double mz_delta = cl_it->center - idx_nearest->getMZ();
+          // stats: we don't care what shift the user specified
+          channel_mz_delta[cl_it->name].mz_deltas.push_back(mz_delta);
+          if (peak_count > 1) ++channel_mz_delta[cl_it->name].signal_not_unique;
+          // pass user threshold
+          if (std::fabs(mz_delta) < reporter_mass_shift_)
+          {
+            channel_value.setIntensity(idx_nearest->getIntensity());
+          }
         }
 
         // discard contribution of this channel as it is below the required intensity threshold
@@ -625,15 +654,17 @@ namespace OpenMS
       if (channel_mz_delta.find(cl_it->name) != channel_mz_delta.end())
       {
         // sort
-        double median = Math::median(channel_mz_delta[cl_it->name].begin(), channel_mz_delta[cl_it->name].end(), false);
-        LOG_INFO << median << " Th\n";
+        double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
+        LOG_INFO << median << " Th";
+        if (channel_mz_delta[cl_it->name].signal_not_unique > 0) LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << "x]\n";
+        LOG_INFO << "\n";
       }
       else
       {
         LOG_INFO << "<no data>\n";
       }
     }
-    LOG_INFO << "(if channels are deliberately empty, the data for these channels might be wrong, especially for nearby TMT channels)\n" << std::endl;
+    LOG_INFO << "(If channels are experimentally empty, the data for these channels might be wrong, especially for nearby TMT channels)\n" << std::endl;
 
 
     /// add meta information to the map

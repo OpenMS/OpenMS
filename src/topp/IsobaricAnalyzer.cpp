@@ -91,13 +91,15 @@ using namespace std;
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
   The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
-  The position (RT, m/z) of the consensus centroid is the precursor position; the sub-elements correspond to the channels (with m/z values of 113-121 for iTRAQ and 126-131 for TMT, respectively).
+  The closest non-zero m/z signal to the theoretical position is taken as reporter ion.
+  The position (RT, m/z) of the consensus centroid is the precursor position in MS1;
+  the sub-elements correspond to the channels (with m/z values of 113-121 for iTRAQ and 126-131 for TMT, respectively).
   
   For TMT-10plex the search radius should be set to about 0.001 Th, since distances between channels are as small as 0.003 Th.
   For each channel, the median distance of all theoretical vs. observed reporter ion peaks will be reported.
   If the distance is too large, you might have a m/z calibration problem (see @ref TOPP_InternalCalibration).
   
-  @note If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated, 
+  @note Unless the spectrum is completely empty: If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated, 
   but the intensities of the overall feature and of all its sub-elements will be zero.
   (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
 
