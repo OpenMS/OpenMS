@@ -398,11 +398,13 @@ START_SECTION((Int solve(SolverParam &solver_param, const Size verbose_level=0))
   TEST_EQUAL(lp2.getColumnValue(1),1)
 
   // Test an integer problem
-  lp2.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
-  lp2.setObjectiveSense(LPWrapper::MAX);
-  lp2.solve(param);
-  TEST_EQUAL(lp2.getColumnValue(0),2)
-  TEST_EQUAL(lp2.getColumnValue(1),2)
+  LPWrapper  lp3;
+  lp3.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
+  lp3.setObjectiveSense(LPWrapper::MAX);
+  LPWrapper::SolverParam param2;
+  lp3.solve(param2);
+  TEST_EQUAL(lp3.getColumnValue(0),2)
+  TEST_EQUAL(lp3.getColumnValue(1),2)
 }
 END_SECTION
 
