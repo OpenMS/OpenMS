@@ -308,7 +308,23 @@ START_SECTION((void readProblem(String filename, String format)))
 #if COINOR_SOLVER==1
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
     {
-      TEST_EXCEPTION(Exception::NotImplemented, lp.readProblem("/bla/bluff/blblb/sdfhsdjf/test.txt","LP"))
+      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+      TEST_EQUAL(lp.getNumberOfColumns(),2)
+      TEST_EQUAL(lp.getNumberOfRows(),3)
+      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getObjective(0),1)
+      TEST_EQUAL(lp.getObjective(1),0)
+      TEST_EQUAL(lp.getRowUpperBound(0),0)
+      TEST_EQUAL(lp.getRowUpperBound(1),12)
+      TEST_EQUAL(lp.getRowUpperBound(2),12)
+      TEST_EQUAL(lp.getElement(0,0),1)
+      TEST_EQUAL(lp.getElement(0,1),-1)
+      TEST_EQUAL(lp.getElement(1,0),2)
+      TEST_EQUAL(lp.getElement(1,1),3)
+      TEST_EQUAL(lp.getElement(2,0),3)
+      TEST_EQUAL(lp.getElement(2,1),2) 
+      //TEST_EXCEPTION(Exception::NotImplemented, lp.readProblem("/bla/test.txt","LP"))
     }
 #endif
 }
@@ -343,7 +359,29 @@ START_SECTION((void writeProblem(const String &filename, const WriteFormat forma
 #if COINOR_SOLVER==1
   else  if (lp.getSolver()==LPWrapper::SOLVER_COINOR)
   {
-    TEST_EXCEPTION(Exception::NotImplemented, lp.writeProblem("/bla/bluff/blblb/sdfhsdjf/test.txt",LPWrapper::FORMAT_LP))
+      lp.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test.mps"),"MPS");
+      String tmp_filename;
+      NEW_TMP_FILE(tmp_filename);
+      lp.writeProblem(tmp_filename,LPWrapper::FORMAT_MPS);
+      LPWrapper lp2;
+      lp2.setSolver(LPWrapper::SOLVER_COINOR);
+      lp2.readProblem(tmp_filename,"MPS");
+      TEST_EQUAL(lp.getNumberOfColumns(),2)
+      TEST_EQUAL(lp.getNumberOfRows(),3)
+      TEST_EQUAL(lp.getColumnType(0),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getColumnType(1),LPWrapper::INTEGER)
+      TEST_EQUAL(lp.getObjective(0),1)
+      TEST_EQUAL(lp.getObjective(1),0)
+      TEST_EQUAL(lp.getRowUpperBound(0),0)
+      TEST_EQUAL(lp.getRowUpperBound(1),12)
+      TEST_EQUAL(lp.getRowUpperBound(2),12)
+      TEST_EQUAL(lp.getElement(0,0),1)
+      TEST_EQUAL(lp.getElement(0,1),-1)
+      TEST_EQUAL(lp.getElement(1,0),2)
+      TEST_EQUAL(lp.getElement(1,1),3)
+      TEST_EQUAL(lp.getElement(2,0),3)
+      TEST_EQUAL(lp.getElement(2,1),2)
+    //TEST_EXCEPTION(Exception::IllegalArgument, lp.writeProblem("/bla/test.txt",LPWrapper::FORMAT_LP))
   }
 #endif
 }
