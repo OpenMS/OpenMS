@@ -70,10 +70,10 @@ namespace OpenMS
         {
           StringList cells;
           s.split("\t", cells);
-          if (s.size() != 4)
+          if (cells.size() != 4)
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-              "Error: Wrong number of columns in the experimental design header provided: " + String(s) + ".");
+              "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
           }
           header_parsed = true;
           ++line_number;
@@ -99,14 +99,15 @@ namespace OpenMS
       
       ed.runs.push_back(r);
 
-      ++line_number;
-
       // validation: check if run number matches the line number in the design file
       if (line_number != run_number)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
           "Error: Run index (" + String(run_number) + ") does not match row index (" + String(line_number) + ") in line: " + String(s) + ".");
       }
+
+      ++line_number;
+
 
       // TODO? check if file exists?
     }
