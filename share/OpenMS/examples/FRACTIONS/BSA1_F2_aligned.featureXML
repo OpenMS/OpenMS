@@ -66,7 +66,7 @@
 		<UserParam type="string" name="parameter: consensus:annotate_ids_with_subelements" value="false"/>
 		<UserParam type="string" name="parameter: spectra:in" value=""/>
 	</dataProcessing>
-	<dataProcessing completion_time="2017-05-08T17:33:33">
+	<dataProcessing completion_time="2017-05-08T18:35:11">
 		<software name="MapAlignerIdentification" version="2.1.0" />
 		<processingAction name="Retention time alignment" />
 		<UserParam type="stringList" name="parameter: in" value="[share/OpenMS/examples/FRACTIONS/BSA1_F1_idmapped.featureXML,share/OpenMS/examples/FRACTIONS/BSA1_F2_idmapped.featureXML,share/OpenMS/examples/FRACTIONS/BSA2_F1_idmapped.featureXML,share/OpenMS/examples/FRACTIONS/BSA2_F2_idmapped.featureXML,share/OpenMS/examples/FRACTIONS/BSA3_F1_idmapped.featureXML,share/OpenMS/examples/FRACTIONS/BSA3_F2_idmapped.featureXML]"/>

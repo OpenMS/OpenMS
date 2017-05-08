@@ -229,12 +229,14 @@ protected:
       }
       else // group multiple fractions
       {
+        writeDebug_(String("Grouping ") + String(frac2run.size()) + " fractions.", 3);
+        writeDebug_(String("Stored in ") + String(maps.size()) + " maps.", 3);
         for (Size i = 1; i <= frac2run.size(); ++i)
         {
           vector<ConsensusMap> fraction_maps;
           for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit)
           {
-            fraction_maps.push_back(maps[*sit]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+            fraction_maps.push_back(maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
           }
           algorithm->group(fraction_maps, out_map);
         }
