@@ -567,8 +567,11 @@ namespace OpenMS
             f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
             f << "\t\t\t</analysis_result>" << "\n";
           }
-
-          if ( it->getScoreType() == "Posterior Error Probability")
+          else
+          {
+            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+          }
+          if (it->getScoreType() == "Posterior Error Probability")
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();
