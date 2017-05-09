@@ -739,7 +739,7 @@ protected:
         }
         // Simplified pre-Score
         double pre_score = 0;
-        pre_score = OpenProXLUtils::preScore(matched_common_count, theor_common_count);
+        pre_score = XQuestScores::preScore(matched_common_count, theor_common_count);
 
 
         // store pre_score, take top 100 for further computations
@@ -763,8 +763,8 @@ protected:
       sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
 
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
-      vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.3);
-      vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.2);
+      vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.3);
+      vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.2);
 
 //      for (Size i = 0; i < prescore_csms_spectrum.size(); ++i)
 //      {
@@ -847,11 +847,11 @@ protected:
 //        double pre_score = 0;
 //        if (type_is_cross_link)
 //        {
-//          pre_score = OpenProXLUtils::preScore(matched_alpha_count, theor_alpha_count, matched_beta_count, theor_beta_count);
+//          pre_score = XQuestScores::preScore(matched_alpha_count, theor_alpha_count, matched_beta_count, theor_beta_count);
 //        }
 //        else
 //        {
-//          pre_score = OpenProXLUtils::preScore(matched_alpha_count, theor_alpha_count);
+//          pre_score = XQuestScores::preScore(matched_alpha_count, theor_alpha_count);
 //        }
 
 
