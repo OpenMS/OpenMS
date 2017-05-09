@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -73,7 +74,8 @@ using namespace std;
     "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
-    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. A subsequent FDR filtering step needs to be conducted downstream via @ref IDFilter or after exporting the data to a text-based format.
+    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the FDR (in percent) can be controlled on the PSM and protein level.
+    Alternativly, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value (as fraction).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -109,8 +111,14 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identifications with annotated FDR");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerFlag_("proteins_only", "If set only the FDR on protein level is calculated");
-    registerFlag_("peptides_only", "If set only the FDR on peptide (PSM) level is calculated");
+    registerStringOption_("PSM", "<FDR level>", "true", "Perform FDR calculation on PSM level", false);
+    setValidStrings_("PSM", ListUtils::create<String>("true,false"));
+    registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
+    setValidStrings_("protein", ListUtils::create<String>("true,false"));
+
+    registerTOPPSubsection_("FDR", "FDR control");
+    registerDoubleOption_("FDR:PSM", "<percent>", -1, "Filter PSMs to obtain this FDR (%) at PSM level. (disabled for negative values)", false);
+    registerDoubleOption_("FDR:protein", "<percent>", -1, "Filter proteins to obtain this FDR (%) at protein level. (disabled for negative values)", false);
 
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
@@ -133,8 +141,6 @@ protected:
     // input/output files
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    bool proteins_only = getFlag_("proteins_only");
-    bool peptides_only = getFlag_("peptides_only");
 
     //-------------------------------------------------------------
     // loading input
@@ -147,13 +153,13 @@ protected:
 
     try
     {
-      if (!proteins_only)
-      {
-        fdr.apply(pep_ids);
-      }
-      if (!peptides_only)
+      if (getStringOption_("protein") == "true")
       {
         fdr.apply(prot_ids);
+      }
+      if (getStringOption_("PSM") == "true")
+      {
+        fdr.apply(pep_ids);
       }
     }
     catch (Exception::MissingInformation)
@@ -169,6 +175,20 @@ protected:
     for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
     {
       it->assignRanks();
+    }
+
+    double psm_fdr = getDoubleOption_("FDR:PSM");
+    if (psm_fdr >= 0)
+    {
+      LOG_INFO << "FDR control: Filtering PSMs..." << endl;
+      IDFilter::filterHitsByScore(pep_ids, psm_fdr / 100.0);
+    }
+
+    double protein_fdr = getDoubleOption_("FDR:protein");
+    if (protein_fdr >= 0)
+    {
+      LOG_INFO << "FDR control: Filtering proteins..." << endl;
+      IDFilter::filterHitsByScore(prot_ids, protein_fdr / 100.0);
     }
 
     IdXMLFile().store(out, prot_ids, pep_ids);
