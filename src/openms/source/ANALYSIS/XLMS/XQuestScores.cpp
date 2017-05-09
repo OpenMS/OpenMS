@@ -51,26 +51,39 @@ namespace OpenMS
 
   float XQuestScores::preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
   {
-    if ( (ionsAlpha > 0) && (ionsBeta > 0) )
-    {
-      float result = sqrt((static_cast<float>(matchedAlpha) / static_cast<float>(ionsAlpha)) * (static_cast<float>(matchedBeta) / static_cast<float>(ionsBeta)));
-      return result;
-    } else
+
+    if ( (matchedAlpha <= 0 && matchedBeta <= 0) || ionsAlpha <= 0 || ionsBeta <= 0)
     {
       return 0.0;
     }
+
+    // avoid 0 values in multiplication, adds a "dynamic range" among candidates with no matching common peaks to one of the peptides
+    float matchedAlpha_float = matchedAlpha;
+    if (matchedAlpha <= 0)
+    {
+//      matchedAlpha_float = std::numeric_limits<float>::min();
+      matchedAlpha_float = 0.1;
+    }
+    float matchedBeta_float = matchedBeta;
+    if (matchedBeta <= 0)
+    {
+//      matchedBeta_float = std::numeric_limits<float>::min();
+      matchedBeta_float = 0.1;
+    }
+
+      float result = sqrt((static_cast<float>(matchedAlpha_float) / static_cast<float>(ionsAlpha)) * (static_cast<float>(matchedBeta_float) / static_cast<float>(ionsBeta)));
+      return result;
   }
 
   float XQuestScores::preScore(Size matchedAlpha, Size ionsAlpha)
   {
-    if (ionsAlpha > 0)
-    {
-      float result = static_cast<float>(matchedAlpha) / static_cast<float>(ionsAlpha);
-      return result;
-    } else
+    if (ionsAlpha <= 0)
     {
       return 0.0;
     }
+
+    float result = static_cast<float>(matchedAlpha) / static_cast<float>(ionsAlpha);
+    return result;
   }
 
   double XQuestScores::cumulativeBinomial(Size n, Size k, double p)
