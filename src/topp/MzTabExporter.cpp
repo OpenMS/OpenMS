@@ -397,7 +397,7 @@ protected:
         // create and fill opt_ columns for feature (peptide) user values
         addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
 
-        vector<PeptideIdentification> pep_ids = f.getPeptideIdentifications();
+        const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
         if (pep_ids.empty())
         {
           rows.push_back(row);
