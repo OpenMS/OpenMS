@@ -729,6 +729,26 @@ namespace OpenMS
 		throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
     }
 
+    vector<double> max_dists1;
+    vector<double> max_dists2;
+
+    if (relative_tolerance)
+    {
+      for (Size i = 0; i < s1.size(); ++i)
+      {
+        max_dists1.push_back( s1[i].getMZ() * tolerance * 1e-6 );
+      }
+      for (Size i = 0; i < s2.size(); ++i)
+      {
+        max_dists2.push_back( s2[i].getMZ() * tolerance * 1e-6 );
+      }
+    }
+    else
+    {
+      max_dists1.assign(s1.size(), tolerance);
+      max_dists2.assign(s2.size(), tolerance);
+    }
+
     // clear result
     alignment.clear();
 
@@ -742,27 +762,27 @@ namespace OpenMS
       std::map<Size, std::map<Size, double> > matrix;
 
       // initialize to tolerance, will not change if tolerance is absolute (Da), updated for each position if tol is relative (ppm)
-      double max_dist = tolerance;
+//      double max_dist = tolerance;
 
       // init the matrix with "gap costs" tolerance + 1 for worst intensity ratio
       matrix[0][0] = 0;
       for (Size i = 1; i <= s1.size(); ++i)
       {
         // update relative max_dist at new position
-        if (relative_tolerance)
-        {
-          max_dist = s1[i-1].getMZ() * tolerance * 1e-6;
-        }
-        matrix[i][0] = i * max_dist + i;
+//        if (relative_tolerance)
+//        {
+//          max_dist = s1[i-1].getMZ() * tolerance * 1e-6;
+//        }
+        matrix[i][0] = i * max_dists1[i-1] + i;
         traceback[i][0]  = std::make_pair(i - 1, 0);
       }
       for (Size j = 1; j <= s2.size(); ++j)
       {
-        if (relative_tolerance)
-        {
-          max_dist = s2[j-1].getMZ() * tolerance * 1e-6;
-        }
-        matrix[0][j] = j * max_dist + j;
+//        if (relative_tolerance)
+//        {
+//          max_dist = s2[j-1].getMZ() * tolerance * 1e-6;
+//        }
+        matrix[0][j] = j * max_dists2[j-1] + j;
         traceback[0][j] = std::make_pair(0, j - 1);
       }
 
@@ -776,10 +796,10 @@ namespace OpenMS
         double pos1(s1[i - 1].getMZ());
 
         // update relative max_dist at new position
-        if (relative_tolerance)
-        {
-          max_dist = pos1 * tolerance * 1e-6;
-        }
+//        if (relative_tolerance)
+//        {
+//          max_dist = pos1 * tolerance * 1e-6;
+//        }
 
         for (Size j = left_ptr; j <= s2.size(); ++j)
         {
@@ -789,7 +809,7 @@ namespace OpenMS
           double diff_align = fabs(pos1 - pos2);
 
           // running off the right border of the band?
-          if (pos2 > pos1 && diff_align >= max_dist)
+          if (pos2 > pos1 && diff_align >= max_dists1[i-1])
           {
             if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2)
             {
@@ -798,7 +818,7 @@ namespace OpenMS
           }
 
           // can we tighten the left border of the band?
-          if (pos1 > pos2 && diff_align >= max_dist && j > left_ptr + 1)
+          if (pos1 > pos2 && diff_align >= max_dists1[i-1] && j > left_ptr + 1)
           {
             ++left_ptr;
           }
@@ -811,27 +831,27 @@ namespace OpenMS
           }
           else
           {
-            score_align += (i - 1 + j - 1) * max_dist + (i - 1 + j - 1) * intensity_weight;
+            score_align += (i - 1 + j - 1) * max_dists1[i-1] + (i - 1 + j - 1) * intensity_weight;
           }
 
-          double score_up = max_dist + intensity_weight;
+          double score_up = max_dists1[i-1] + intensity_weight;
           if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
           {
             score_up += matrix[i][j - 1];
           }
           else
           {
-            score_up += (i + j - 1) * max_dist + (i + j - 1) / 10;
+            score_up += (i + j - 1) * max_dists1[i-1] + (i + j - 1) / 10;
           }
 
-          double score_left = max_dist + intensity_weight;
+          double score_left = max_dists1[i-1] + intensity_weight;
           if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
           {
             score_left += matrix[i - 1][j];
           }
           else
           {
-            score_left += (i - 1 + j) * max_dist + (i - 1 + j) * intensity_weight;
+            score_left += (i - 1 + j) * max_dists1[i-1] + (i - 1 + j) * intensity_weight;
           }
 
           // check for similar intensity values
@@ -853,7 +873,7 @@ namespace OpenMS
           // int_ratio is between 0 and 1, multiply with intensity_weight for penalty
           score_align += (1 - int_ratio) * intensity_weight;
 
-          if (score_align <= score_up && score_align <= score_left && diff_align < max_dist && diff_int_clear && charge_fits)
+          if (score_align <= score_up && score_align <= score_left && diff_align < max_dists1[i-1] && diff_int_clear && charge_fits)
           {
 //            cout << "Aligning peaks | score_align = " << score_align << "\t| int_ratio = " << int_ratio << "\t| score_up = " << score_up << "\t| score_left = " << score_left << endl;
             matrix[i][j] = score_align;
