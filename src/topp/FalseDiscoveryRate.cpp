@@ -141,6 +141,8 @@ protected:
     // input/output files
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    const double protein_fdr = getDoubleOption_("FDR:protein");
+    const double psm_fdr = getDoubleOption_("FDR:PSM");
 
     //-------------------------------------------------------------
     // loading input
@@ -156,10 +158,23 @@ protected:
       if (getStringOption_("protein") == "true")
       {
         fdr.apply(prot_ids);
+
+        if (protein_fdr >= 0)
+        {
+          LOG_INFO << "FDR control: Filtering proteins..." << endl;
+          IDFilter::filterHitsByScore(prot_ids, protein_fdr / 100.0);
+        }
       }
+
       if (getStringOption_("PSM") == "true")
       {
         fdr.apply(pep_ids);
+
+        if (psm_fdr >= 0)
+        {      
+          LOG_INFO << "FDR control: Filtering PSMs..." << endl;
+          IDFilter::filterHitsByScore(pep_ids, psm_fdr / 100.0);
+        }
       }
     }
     catch (Exception::MissingInformation)
@@ -175,20 +190,6 @@ protected:
     for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
     {
       it->assignRanks();
-    }
-
-    double psm_fdr = getDoubleOption_("FDR:PSM");
-    if (psm_fdr >= 0)
-    {
-      LOG_INFO << "FDR control: Filtering PSMs..." << endl;
-      IDFilter::filterHitsByScore(pep_ids, psm_fdr / 100.0);
-    }
-
-    double protein_fdr = getDoubleOption_("FDR:protein");
-    if (protein_fdr >= 0)
-    {
-      LOG_INFO << "FDR control: Filtering proteins..." << endl;
-      IDFilter::filterHitsByScore(prot_ids, protein_fdr / 100.0);
     }
 
     IdXMLFile().store(out, prot_ids, pep_ids);
