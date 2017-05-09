@@ -624,10 +624,6 @@ protected:
       const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
       const double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U);
 
-      // needed farther down in the scoring, but only needs to be computed once for a spectrum
-      vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.3);
-      vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.2);
-
       vector< CrossLinkSpectrumMatch > top_csms_spectrum;
 
       // determine candidates
@@ -684,6 +680,97 @@ protected:
       for (Size i = 0; i != cross_link_candidates.size(); ++i)
       {
         ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
+
+        CrossLinkSpectrumMatch csm;
+        csm.cross_link = cross_link_candidate;
+
+        PeakSpectrum theoretical_spec_common_alpha;
+        PeakSpectrum theoretical_spec_common_beta;
+//        PeakSpectrum theoretical_spec_xlinks_alpha;
+//        PeakSpectrum theoretical_spec_xlinks_beta;
+
+        bool type_is_cross_link = cross_link_candidate.getType() == ProteinProteinCrossLink::CROSS;
+        bool type_is_loop = cross_link_candidate.getType() == ProteinProteinCrossLink::LOOP;
+        Size link_pos_B = 0;
+        if (type_is_loop)
+        {
+          link_pos_B = cross_link_candidate.cross_link_position.second;
+        }
+        specGen.getCommonIonSpectrum(theoretical_spec_common_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
+        if (type_is_cross_link)
+        {
+          specGen.getCommonIonSpectrum(theoretical_spec_common_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
+//          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
+//          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
+        } else
+        {
+          // Function for mono-links or loop-links
+//          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 2, precursor_charge, link_pos_B);
+        }
+
+        // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
+        if ( (theoretical_spec_common_alpha.size() < 1) )
+        {
+          continue;
+        }
+
+        PeakSpectrum theoretical_spec_common = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_common_alpha, theoretical_spec_common_beta);;
+
+        vector< pair< Size, Size > > matched_spec_common;
+//        vector< pair< Size, Size > > matched_spec_common_beta;
+//        vector< pair< Size, Size > > matched_spec_xlinks_alpha;
+//        vector< pair< Size, Size > > matched_spec_xlinks_beta;
+
+        OpenProXLUtils::getSpectrumAlignment(matched_spec_common, theoretical_spec_common, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+//        OpenProXLUtils::getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+//        OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+//        OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+
+        // Pre-Score calculations
+        Size matched_common_count = matched_spec_common.size();
+        Size theor_common_count = theoretical_spec_common.size();
+
+        if (matched_common_count < 1)
+        {
+          continue;
+        }
+        // Simplified pre-Score
+        double pre_score = 0;
+        pre_score = OpenProXLUtils::preScore(matched_common_count, theor_common_count);
+
+
+        // store pre_score, take top 100 for further computations
+        csm.score = pre_score;
+        csm.pre_score = pre_score;
+
+
+        // THIS IS A HACK FOR TESTING, will be overwritten afterwards anyway
+        csm.matched_common_alpha = matched_common_count;
+        csm.matched_common_beta = theor_common_count;
+
+
+        all_csms_spectrum.push_back(csm);
+
+#ifdef _OPENMP
+#pragma omp critical (max_subscore_variable_access)
+#endif
+        if (pre_score > pScoreMax) pScoreMax = pre_score;
+      }
+
+      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend());
+
+      // needed farther down in the scoring, but only needs to be computed once for a spectrum
+      vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.3);
+      vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.2);
+
+      for (Size i = 0; i < all_csms_spectrum.size(); ++i)
+      {
+        cout << "Pre score rank " << i << " = \t " << all_csms_spectrum[i].pre_score << " \t| matched peaks = " << all_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << all_csms_spectrum[i].matched_common_beta  << endl;
+      }
+
+      for (Size i = 0; (i < 100) && (i < all_csms_spectrum.size()) ; ++i)
+      {
+        ProteinProteinCrossLink cross_link_candidate = all_csms_spectrum[i].cross_link;
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
@@ -738,30 +825,32 @@ protected:
                               <<  " | " << matched_spec_xlinks_alpha.size() <<  " | " << matched_spec_xlinks_beta.size() << endl;
 
         // Pre-Score calculations
-        Size matched_alpha_count = matched_spec_common_alpha.size() + matched_spec_xlinks_alpha.size();
-        Size theor_alpha_count = theoretical_spec_common_alpha.size() + theoretical_spec_xlinks_alpha.size();
-        Size matched_beta_count = matched_spec_common_beta.size() + matched_spec_xlinks_beta.size();
-        Size theor_beta_count = theoretical_spec_common_beta.size() + theoretical_spec_xlinks_beta.size();
+//        Size matched_alpha_count = matched_spec_common_alpha.size() + matched_spec_xlinks_alpha.size();
+//        Size theor_alpha_count = theoretical_spec_common_alpha.size() + theoretical_spec_xlinks_alpha.size();
+//        Size matched_beta_count = matched_spec_common_beta.size() + matched_spec_xlinks_beta.size();
+//        Size theor_beta_count = theoretical_spec_common_beta.size() + theoretical_spec_xlinks_beta.size();
 
-        if (matched_alpha_count + matched_beta_count < 1)
-        {
-          continue;
-        }
-        // Simplified pre-Score
-        double pre_score = 0;
-        if (type_is_cross_link)
-        {
-          pre_score = XQuestScores::preScore(matched_alpha_count, theor_alpha_count, matched_beta_count, theor_beta_count);
-        }
-        else
-        {
-          pre_score = XQuestScores::preScore(matched_alpha_count, theor_alpha_count);
-        }
+//        if (matched_alpha_count + matched_beta_count < 1)
+//        {
+//          continue;
+//        }
 
-#ifdef _OPENMP
-#pragma omp critical (max_subscore_variable_access)
-#endif
-        if (pre_score > pScoreMax) pScoreMax = pre_score;
+        // Simplified pre-Score (old version)
+//        double pre_score = 0;
+//        if (type_is_cross_link)
+//        {
+//          pre_score = OpenProXLUtils::preScore(matched_alpha_count, theor_alpha_count, matched_beta_count, theor_beta_count);
+//        }
+//        else
+//        {
+//          pre_score = OpenProXLUtils::preScore(matched_alpha_count, theor_alpha_count);
+//        }
+
+
+//#ifdef _OPENMP
+//#pragma omp critical (max_subscore_variable_access)
+//#endif
+//        if (pre_score > pScoreMax) pScoreMax = pre_score;
 
         // compute intsum score
         double intsum = XQuestScores::totalMatchedCurrent(matched_spec_common_alpha, matched_spec_common_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, spectrum, spectrum);
@@ -898,7 +987,7 @@ protected:
         double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * intsum;
 
         csm.score = score;
-        csm.pre_score = pre_score;
+//        csm.pre_score = pre_score;
         csm.percTIC = TIC;
         csm.wTIC = wTIC;
         csm.int_sum = intsum;
