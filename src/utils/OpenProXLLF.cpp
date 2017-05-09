@@ -667,6 +667,7 @@ protected:
       vector <ProteinProteinCrossLink> cross_link_candidates = OpenProXLUtils::buildCandidates(candidates, peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
 
       // lists for one spectrum, to determine best match to the spectrum
+      vector< CrossLinkSpectrumMatch > prescore_csms_spectrum;
       vector< CrossLinkSpectrumMatch > all_csms_spectrum;
 
 #ifdef _OPENMP
@@ -677,8 +678,9 @@ protected:
         sumMatchCount += cross_link_candidates.size();
       }
 
-      for (Size i = 0; i != cross_link_candidates.size(); ++i)
+      for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
+        prescore_csms_spectrum.clear();
         ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
 
         CrossLinkSpectrumMatch csm;
@@ -749,7 +751,7 @@ protected:
         csm.matched_common_beta = theor_common_count;
 
 
-        all_csms_spectrum.push_back(csm);
+        prescore_csms_spectrum.push_back(csm);
 
 #ifdef _OPENMP
 #pragma omp critical (max_subscore_variable_access)
@@ -757,20 +759,22 @@ protected:
         if (pre_score > pScoreMax) pScoreMax = pre_score;
       }
 
-      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend());
+      sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
 
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
       vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.3);
       vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.2);
 
-      //for (Size i = 0; i < all_csms_spectrum.size(); ++i)
+      //for (Size i = 0; i < prescore_csms_spectrum.size(); ++i)
       //{
-      //  cout << "Pre score rank " << i << " = \t " << all_csms_spectrum[i].pre_score << " \t| matched peaks = " << all_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << all_csms_spectrum[i].matched_common_beta  << endl;
+      //  cout << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << " \t| matched peaks = " << prescore_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << all_csms_spectrum[i].matched_common_beta  << endl;
       //}
 
-      for (Size i = 0; (i < 100) && (i < all_csms_spectrum.size()) ; ++i)
+      Size last_candidate_index = min(prescore_csms_spectrum.size(), Size(100));
+
+      for (Size i = 0; i < last_candidate_index ; ++i)
       {
-        ProteinProteinCrossLink cross_link_candidate = all_csms_spectrum[i].cross_link;
+        ProteinProteinCrossLink cross_link_candidate = prescore_csms_spectrum[i].cross_link;
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index
