@@ -491,6 +491,7 @@ set(analysis_executables_list
   TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
+  XQuestScores_test
 )
 
 set(applications_executables_list
