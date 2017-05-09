@@ -763,10 +763,10 @@ protected:
       vector< double > aucorrx = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.3);
       vector< double > aucorrc = OpenProXLUtils::xCorrelation(spectrum, spectrum, 5, 0.2);
 
-      for (Size i = 0; i < all_csms_spectrum.size(); ++i)
-      {
-        cout << "Pre score rank " << i << " = \t " << all_csms_spectrum[i].pre_score << " \t| matched peaks = " << all_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << all_csms_spectrum[i].matched_common_beta  << endl;
-      }
+      //for (Size i = 0; i < all_csms_spectrum.size(); ++i)
+      //{
+      //  cout << "Pre score rank " << i << " = \t " << all_csms_spectrum[i].pre_score << " \t| matched peaks = " << all_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << all_csms_spectrum[i].matched_common_beta  << endl;
+      //}
 
       for (Size i = 0; (i < 100) && (i < all_csms_spectrum.size()) ; ++i)
       {
