@@ -121,7 +121,7 @@ namespace OpenMS
       countA += 1;
       if (countA % 500 == 0)
       {
-        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << endl;
+        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OpenProXLUtils::XLPrecursor) / 1024 / 1024 << endl;
       }
 
       // generate mono-links: one cross-linker with one peptide attached to one side
@@ -225,6 +225,7 @@ namespace OpenMS
         filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
       }
     }
+    cout << "Enumerated pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OpenProXLUtils::XLPrecursor) / 1024 / 1024 << endl;
     return mass_to_candidates;
   }
 
