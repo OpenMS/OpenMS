@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
+#include <OpenMS/ANALYSIS/XLMS/XQuestXML.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -1230,10 +1231,10 @@ protected:
       //String spec_xml_filename = spec_xml_name + ".spec.xml";
       String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
       String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
-      OpenProXLUtils::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
+      XQuestXML::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
                                                             precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
                                                             cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
-      OpenProXLUtils::writeXQuestXMLSpec(matched_spec_xml_name, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
+      XQuestXML::writeXQuestXMLSpec(matched_spec_xml_name, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
     }
     progresslogger.endProgress();
 

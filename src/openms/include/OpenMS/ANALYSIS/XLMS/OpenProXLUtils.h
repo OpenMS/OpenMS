@@ -76,9 +76,19 @@ namespace OpenMS
         return LOOP;
       }
 
+      bool operator==(const ProteinProteinCrossLink & other) const
+      {
+        return alpha == other.alpha &&
+                    beta == other.beta &&
+                    cross_link_position == other.cross_link_position &&
+                    cross_linker_mass == other.cross_linker_mass &&
+                    cross_linker_name == other.cross_linker_name &&
+                    term_spec_alpha == other.term_spec_alpha &&
+                    term_spec_beta == other.term_spec_beta;
+      }
     };
 
-struct CrossLinkSpectrumMatch
+  struct CrossLinkSpectrumMatch
   {
     /// structure of the cross-link
     ProteinProteinCrossLink cross_link;
@@ -121,7 +131,6 @@ struct CrossLinkSpectrumMatch
     std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
 
     Size peptide_id_index;
-//    PeptideIdentification *peptide_id = NULL;
 
     bool operator<(const CrossLinkSpectrumMatch& other) const
     {
@@ -130,24 +139,34 @@ struct CrossLinkSpectrumMatch
 
     bool operator==(const CrossLinkSpectrumMatch& other) const
     {
-      return cross_link.alpha == other.cross_link.alpha &&
-           cross_link.beta == other.cross_link.beta &&
-           cross_link.cross_link_position == other.cross_link.cross_link_position &&
-           score == other.score &&
-           pre_score == other.pre_score &&
-           percTIC == other.percTIC &&
-           wTIC == other.wTIC &&
-           int_sum == other.int_sum &&
-           match_odds == other.match_odds &&
-           xcorrx == other.xcorrx &&
-           xcorrx_max == other.xcorrx_max &&
-           xcorrc == other.xcorrc &&
-           xcorrc_max == other.xcorrc_max &&
-           matched_common_alpha == other.matched_common_alpha &&
-           matched_common_beta == other.matched_common_beta &&
-           matched_xlink_alpha == other.matched_xlink_alpha &&
-           matched_xlink_beta == other.matched_xlink_beta &&
-           rank == other.rank;
+      return cross_link == other.cross_link &&
+                 scan_index_light == other.scan_index_light &&
+                 scan_index_heavy == other.scan_index_heavy &&
+                 score == other.score &&
+                 rank == other.rank &&
+                 pre_score == other.pre_score &&
+                 percTIC == other.percTIC &&
+                 wTIC == other.wTIC &&
+                 int_sum == other.int_sum &&
+                 match_odds == other.match_odds &&
+                 xcorrx == other.xcorrx &&
+                 xcorrx_max == other.xcorrx_max &&
+                 xcorrc == other.xcorrc &&
+                 xcorrc_max == other.xcorrc_max &&
+                 matched_common_alpha == other.matched_common_alpha &&
+                 matched_common_beta == other.matched_common_beta &&
+                 matched_xlink_alpha == other.matched_xlink_alpha &&
+                 matched_xlink_beta == other.matched_xlink_beta &&
+                 HyperCommon == other.HyperCommon &&
+                 HyperXlink == other.HyperXlink &&
+                 HyperAlpha == other.HyperAlpha &&
+                 HyperBeta == other.HyperBeta &&
+                 HyperBoth == other.HyperBoth &&
+                 PScoreCommon == other.PScoreCommon &&
+                 PScoreXlink == other.PScoreXlink &&
+                 PScoreAlpha == other.PScoreAlpha &&
+                 PScoreBeta == other.PScoreBeta &&
+                 PScoreBoth == other.PScoreBoth;
     }
 
   };
@@ -156,23 +175,57 @@ struct CrossLinkSpectrumMatch
   class OPENMS_DLLAPI OpenProXLUtils
   {
 
-  public:
-    struct XLPrecursor
-    {
-      float precursor_mass;
-      unsigned int alpha_index;
-      unsigned int beta_index;
-
-      bool operator<(const XLPrecursor& other) const
+    public:
+      struct XLPrecursor
       {
-        return precursor_mass < other.precursor_mass;
-      }
+        float precursor_mass;
+        unsigned int alpha_index;
+        unsigned int beta_index;
 
-      bool operator<(const double other) const
-      {
-        return precursor_mass < other;
-      }
-  };
+        bool operator<(const XLPrecursor& other) const
+        {
+          return precursor_mass < other.precursor_mass;
+        }
+
+        bool operator<(const double other) const
+        {
+          return precursor_mass < other;
+        }
+      };
+
+//      struct XLPrecursorComparator
+//      {
+//        bool operator() (XLPrecursor& a, XLPrecursor& b) const
+//        {
+//          return a.precursor_mass < b.precursor_mass;
+//        }
+//        bool operator() (XLPrecursor& a, double& b) const
+//        {
+//          return a.precursor_mass < b;
+//        }
+//        bool operator() (double& a, XLPrecursor& b) const
+//        {
+//          return a < b.precursor_mass;
+//        }
+//      };
+
+//      struct XLPrecursorLessThanDouble
+//      {
+//        bool operator() (XLPrecursor& a, double& b) const
+//        {
+//          return a.precursor_mass < b;
+//        }
+//      };
+
+//      struct DoubleLessThanXLPrecursor
+//      {
+//        bool operator() (double& a, XLPrecursor& b) const
+//        {
+//          return a < b.precursor_mass;
+//        }
+//      };
+
+
 
   enum PeptidePosition
   {
@@ -221,21 +274,22 @@ struct CrossLinkSpectrumMatch
 
     static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenProXLUtils::PeptideMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
-    static void writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
-                                                  String precursor_mass_tolerance_unit, String fragment_mass_tolerance_unit, double precursor_mass_tolerance, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, String cross_link_name,
-                                                  double cross_link_mass_light, DoubleList cross_link_mass_mono_link, String in_fasta, String in_decoy_fasta, StringList cross_link_residue1, StringList cross_link_residue2, double cross_link_mass_iso_shift, String enzyme_name, Size missed_cleavages);
+//    static void writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
+//                                                  String precursor_mass_tolerance_unit, String fragment_mass_tolerance_unit, double precursor_mass_tolerance, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, String cross_link_name,
+//                                                  double cross_link_mass_light, DoubleList cross_link_mass_mono_link, String in_fasta, String in_decoy_fasta, StringList cross_link_residue1, StringList cross_link_residue2, double cross_link_mass_iso_shift, String enzyme_name, Size missed_cleavages);
 
-    static void writeXQuestXMLSpec(String out_file, String base_name, const PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+//    static void writeXQuestXMLSpec(String out_file, String base_name, const PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
 
-    static void writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+//    static void writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+
 
     static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum);
 
     static void nLargestSpectrumFilter(PeakSpectrum spectrum, int peak_count);
 
-    static void wrap_(const String& input, Size width, String & output);
+//    static void wrap_(const String& input, Size width, String & output);
 
-    static String getxQuestBase64EncodedSpectrum(const PeakSpectrum& spec, String header);
+//    static String getxQuestBase64EncodedSpectrum(const PeakSpectrum& spec, String header);
 
     static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
 
@@ -255,6 +309,7 @@ struct CrossLinkSpectrumMatch
 
   };
 
+    // TODO make sure these can be adequately replaced using predicates
   static bool operator< (const double other, const OpenProXLUtils::XLPrecursor& pre) {return other < pre.precursor_mass;}
   static bool operator< (const double other, const OpenProXLUtils::PeptideMass& pre) {return other < pre.peptide_mass;}
 
