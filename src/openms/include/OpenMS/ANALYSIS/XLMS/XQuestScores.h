@@ -55,13 +55,13 @@ namespace OpenMS
     * @param number of experimental peaks matched to theoretical common ions from the beta peptide
     * @param number of theoretical ions from the beta peptide
     */
-    static float preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta);
+    static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta);
 
    /* @brief compute a simple and fast to compute pre-score for a mono-link spectrum match
     * @param number of experimental peaks matched to theoretical common ions from the alpha peptide
     * @param number of theoretical ions from the alpha peptide
     */
-    static float preScore(Size matchedAlpha, Size ionsAlpha);
+    static float preScore(Size matched_alpha, Size ions_alpha);
 
    /* @brief compute the match-odds score, a score based on the probability of getting the given number of matched peaks by chance
     * @param theoretical spectrum, sorted by position

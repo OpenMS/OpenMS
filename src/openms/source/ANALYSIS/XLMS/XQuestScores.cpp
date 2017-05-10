@@ -49,40 +49,40 @@ using namespace std;
 namespace OpenMS
 {
 
-  float XQuestScores::preScore(Size matchedAlpha, Size ionsAlpha, Size matchedBeta, Size ionsBeta)
+  float XQuestScores::preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta)
   {
 
-    if ( (matchedAlpha <= 0 && matchedBeta <= 0) || ionsAlpha <= 0 || ionsBeta <= 0)
+    if ( (matched_alpha <= 0 && matched_beta <= 0) || ions_alpha <= 0 || ions_beta <= 0)
     {
       return 0.0;
     }
 
     // avoid 0 values in multiplication, adds a "dynamic range" among candidates with no matching common peaks to one of the peptides
-    float matchedAlpha_float = matchedAlpha;
-    if (matchedAlpha <= 0)
+    float matched_alpha_float = matched_alpha;
+    if (matched_alpha <= 0)
     {
-//      matchedAlpha_float = std::numeric_limits<float>::min();
-      matchedAlpha_float = 0.1;
+//      matched_alpha_float = std::numeric_limits<float>::min();
+      matched_alpha_float = 0.1;
     }
-    float matchedBeta_float = matchedBeta;
-    if (matchedBeta <= 0)
+    float matched_beta_float = matched_beta;
+    if (matched_beta <= 0)
     {
-//      matchedBeta_float = std::numeric_limits<float>::min();
-      matchedBeta_float = 0.1;
+//      matched_beta_float = std::numeric_limits<float>::min();
+      matched_beta_float = 0.1;
     }
 
-      float result = sqrt((static_cast<float>(matchedAlpha_float) / static_cast<float>(ionsAlpha)) * (static_cast<float>(matchedBeta_float) / static_cast<float>(ionsBeta)));
+      float result = sqrt((static_cast<float>(matched_alpha_float) / static_cast<float>(ions_alpha)) * (static_cast<float>(matched_beta_float) / static_cast<float>(ions_beta)));
       return result;
   }
 
-  float XQuestScores::preScore(Size matchedAlpha, Size ionsAlpha)
+  float XQuestScores::preScore(Size matched_alpha, Size ions_alpha)
   {
-    if (ionsAlpha <= 0)
+    if (ions_alpha <= 0)
     {
       return 0.0;
     }
 
-    float result = static_cast<float>(matchedAlpha) / static_cast<float>(ionsAlpha);
+    float result = static_cast<float>(matched_alpha) / static_cast<float>(ions_alpha);
     return result;
   }
 
