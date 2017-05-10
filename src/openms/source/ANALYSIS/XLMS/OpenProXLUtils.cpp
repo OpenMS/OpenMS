@@ -97,7 +97,7 @@ namespace OpenMS
 
 
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
-  vector<OpenProXLUtils::XLPrecursor> OpenProXLUtils::enumerateCrossLinksAndMasses_(const vector<OpenProXLUtils::PeptideMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  vector<OpenProXLUtils::XLPrecursor> OpenProXLUtils::enumerateCrossLinksAndMasses_(const vector<OpenProXLUtils::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
     vector<OpenProXLUtils::XLPrecursor> mass_to_candidates;
@@ -1100,10 +1100,10 @@ namespace OpenMS
       return out;
     }
 
-  std::vector<OpenProXLUtils::PeptideMass> OpenProXLUtils::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
+  std::vector<OpenProXLUtils::AASeqWithMass> OpenProXLUtils::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
   {
     multimap<StringView, AASequence> processed_peptides;
-    vector<OpenProXLUtils::PeptideMass> peptide_masses;
+    vector<OpenProXLUtils::AASeqWithMass> peptide_masses;
 //#ifdef _OPENMP
 //#pragma omp parallel for
 //#endif
@@ -1209,7 +1209,7 @@ namespace OpenMS
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
-          OpenProXLUtils::PeptideMass pep_mass;
+          OpenProXLUtils::AASeqWithMass pep_mass;
           pep_mass.peptide_mass = candidate.getMonoWeight();
           pep_mass.peptide_seq = candidate;
           pep_mass.position = position;
@@ -1224,11 +1224,11 @@ namespace OpenMS
         }
       }
     }
-    sort(peptide_masses.begin(), peptide_masses.end());
+    sort(peptide_masses.begin(), peptide_masses.end(), OpenProXLUtils::AASeqWithMassComparator());
     return peptide_masses;
   }
 
-  vector <ProteinProteinCrossLink> OpenProXLUtils::buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::PeptideMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker)
+  vector <ProteinProteinCrossLink> OpenProXLUtils::buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker)
   {
     vector <ProteinProteinCrossLink> cross_link_candidates;
     for (Size i = 0; i < candidates.size(); ++i)

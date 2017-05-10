@@ -181,50 +181,24 @@ namespace OpenMS
         float precursor_mass;
         unsigned int alpha_index;
         unsigned int beta_index;
-
-        bool operator<(const XLPrecursor& other) const
-        {
-          return precursor_mass < other.precursor_mass;
-        }
-
-        bool operator<(const double other) const
-        {
-          return precursor_mass < other;
-        }
       };
 
-//      struct XLPrecursorComparator
-//      {
-//        bool operator() (XLPrecursor& a, XLPrecursor& b) const
-//        {
-//          return a.precursor_mass < b.precursor_mass;
-//        }
-//        bool operator() (XLPrecursor& a, double& b) const
-//        {
-//          return a.precursor_mass < b;
-//        }
-//        bool operator() (double& a, XLPrecursor& b) const
-//        {
-//          return a < b.precursor_mass;
-//        }
-//      };
-
-//      struct XLPrecursorLessThanDouble
-//      {
-//        bool operator() (XLPrecursor& a, double& b) const
-//        {
-//          return a.precursor_mass < b;
-//        }
-//      };
-
-//      struct DoubleLessThanXLPrecursor
-//      {
-//        bool operator() (double& a, XLPrecursor& b) const
-//        {
-//          return a < b.precursor_mass;
-//        }
-//      };
-
+      // comparator for sorting XLPrecursor vectors and using upper_bound and lower_bound using only a precursor mass
+      struct XLPrecursorComparator
+      {
+        bool operator() (XLPrecursor& a, XLPrecursor& b) const
+        {
+          return a.precursor_mass < b.precursor_mass;
+        }
+        bool operator() (XLPrecursor& a, const double& b) const
+        {
+          return a.precursor_mass < b;
+        }
+        bool operator() (const double& a, XLPrecursor& b) const
+        {
+          return a < b.precursor_mass;
+        }
+      };
 
 
   enum PeptidePosition
@@ -234,20 +208,26 @@ namespace OpenMS
     N_TERM = 2
   };
 
-  struct PeptideMass
+  struct AASeqWithMass
   {
     double peptide_mass;
     AASequence peptide_seq;
     PeptidePosition position;
+  };
 
-    bool operator<(const PeptideMass& other) const
+  struct AASeqWithMassComparator
+  {
+    bool operator() (AASeqWithMass a, AASeqWithMass b) const
     {
-      return peptide_mass < other.peptide_mass;
+      return a.peptide_mass < b.peptide_mass;
     }
-
-    bool operator<(const double other) const
+    bool operator() (AASeqWithMass a, const double b) const
     {
-      return peptide_mass < other;
+      return a.peptide_mass < b;
+    }
+    bool operator() (const double a, AASeqWithMass b) const
+    {
+      return a < b.peptide_mass;
     }
   };
 
@@ -269,27 +249,11 @@ namespace OpenMS
     }
   };
 
-    //bool operator< (const double other, const XLPrecursor& pre) {return other < pre.precursor_mass;}
-
-
-    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenProXLUtils::PeptideMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
-
-//    static void writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
-//                                                  String precursor_mass_tolerance_unit, String fragment_mass_tolerance_unit, double precursor_mass_tolerance, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, String cross_link_name,
-//                                                  double cross_link_mass_light, DoubleList cross_link_mass_mono_link, String in_fasta, String in_decoy_fasta, StringList cross_link_residue1, StringList cross_link_residue2, double cross_link_mass_iso_shift, String enzyme_name, Size missed_cleavages);
-
-//    static void writeXQuestXMLSpec(String out_file, String base_name, const PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
-
-//    static void writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
-
+    static std::vector<XLPrecursor> enumerateCrossLinksAndMasses_(const std::vector<OpenProXLUtils::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
     static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum);
 
     static void nLargestSpectrumFilter(PeakSpectrum spectrum, int peak_count);
-
-//    static void wrap_(const String& input, Size width, String & output);
-
-//    static String getxQuestBase64EncodedSpectrum(const PeakSpectrum& spec, String header);
 
     static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
 
@@ -299,19 +263,15 @@ namespace OpenMS
 
     static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false);
 
-    static std::vector<OpenProXLUtils::PeptideMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false);
+    static std::vector<OpenProXLUtils::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false);
 
-    static std::vector <ProteinProteinCrossLink> buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::PeptideMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker);
+    static std::vector <ProteinProteinCrossLink> buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker);
 
     static void buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
 
     static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy = NULL);
 
   };
-
-    // TODO make sure these can be adequately replaced using predicates
-  static bool operator< (const double other, const OpenProXLUtils::XLPrecursor& pre) {return other < pre.precursor_mass;}
-  static bool operator< (const double other, const OpenProXLUtils::PeptideMass& pre) {return other < pre.peptide_mass;}
 
 }
 
