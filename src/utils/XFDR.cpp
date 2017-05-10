@@ -358,19 +358,6 @@ class TOPPXFDR :
       return true;
     }
 
-    /**
-     * @brief Add class to the scores Map if not already present
-     * @param scores Map where the empty xl class should be added to
-     * @param name name of the xl class to be added
-     */
-    inline static void addEmptyClass(std::map< String, vector< double> > & scores, const String & name)
-    {
-      if (scores.find(name) == scores.end())
-      {
-        scores.insert( std::pair<String, vector< double> >(name, vector< double>()));
-      }
-    }
-
 
     /**
      * @brief Inspects PeptideIdentification pep_id and assigns all cross-link types that this identification belongs to
@@ -485,16 +472,21 @@ class TOPPXFDR :
                       const String  & targetclass, const String & decoyclass, const String & fulldecoyclass,
                       vector< double > & fdr, bool mono)
     {
+      // Determine whether targetclass, decoyclass, and fulldecoyclass are present in the histogram map
+      bool targetclass_present = cum_histograms.find(targetclass) != cum_histograms.end();
+      bool decoyclass_present = cum_histograms.find(decoyclass) != cum_histograms.end();
+      bool fulldecoyclass_present = cum_histograms.find(fulldecoyclass) != cum_histograms.end();
+
       for (double current_score = this->min_score +  (TOPPXFDR::fpnum_score_step/2) ;
            current_score <= this->max_score - (TOPPXFDR::fpnum_score_step/2);
            current_score += TOPPXFDR::fpnum_score_step)
       {
-        double estimated_n_decoys = cum_histograms[decoyclass].binValue(current_score);
+        double estimated_n_decoys = decoyclass_present ? cum_histograms[decoyclass].binValue(current_score) : 0;
         if ( ! mono)
         {
-          estimated_n_decoys -= 2 * cum_histograms[fulldecoyclass].binValue(current_score);
+          estimated_n_decoys -= 2 * ( fulldecoyclass_present ? cum_histograms[fulldecoyclass].binValue(current_score) : 0);
         }
-        double n_targets = cum_histograms[targetclass].binValue(current_score);
+        double n_targets = targetclass_present ? cum_histograms[targetclass].binValue(current_score) : 0;
         fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets) : 0);
       }
     }
@@ -878,24 +870,7 @@ class TOPPXFDR :
       }
       writeLog_(this->toolName_() + " has used " + num_flagged + " hits to calculate the FDR");
 
-      // Push empty vector for all remaining empty classes
-      // the FDR calculation from xProphet below assumes that all classes are present,
-      // a class might however have 0 members. TODO Might be better to modify fdr_xprophet
-      // such that missing classes in the input data can be handled
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_intradecoys);
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_fulldecoysintralinks);
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_interdecoys);
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_fulldecoysinterlinks );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_monodecoys );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_intralinks );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_interlinks );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_monolinks );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_decoys );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysintralinks );
-      TOPPXFDR::addEmptyClass(scores, TOPPXFDR::xlclass_hybriddecoysinterlinks );
-
-      // Print number of scores within each class
-
+      // Log number of scores within each class
       writeLog_("Number of Scores for each class:");
 
       for (std::map< String, vector< double > >::const_iterator scores_it = scores.begin();
