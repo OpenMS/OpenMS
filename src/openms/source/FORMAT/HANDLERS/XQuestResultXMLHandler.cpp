@@ -379,7 +379,9 @@ namespace OpenMS
         }
 
         peptide_hit_alpha.setScore(score);
-        peptide_hit_alpha.setSequence(AASequence::fromString(this->attributeAsString_(attributes, "seq1")));
+
+        String seq1 = String(this->attributeAsString_(attributes, "seq1"));
+        peptide_hit_alpha.setSequence(AASequence::fromString(seq1.substitute("X", "M(Oxidation)")));
         peptide_hit_alpha.setCharge(charge);
 
         // Get Attributes of Peptide Identification
@@ -432,7 +434,9 @@ namespace OpenMS
 
           PeptideHit peptide_hit_beta;
           peptide_hit_beta.setScore(score);
-          peptide_hit_beta.setSequence(AASequence::fromString(this->attributeAsString_(attributes, "seq2")));
+
+          String seq2 = String(this->attributeAsString_(attributes, "seq2"));
+          peptide_hit_beta.setSequence(AASequence::fromString(seq2.substitute("X", "M(Oxidation)")));
           peptide_hit_beta.setCharge(charge);
 
           // If requested, also write to the peptide_hit_beta
