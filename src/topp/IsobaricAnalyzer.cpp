@@ -93,16 +93,23 @@ using namespace std;
   The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
   The closest non-zero m/z signal to the theoretical position is taken as reporter ion.
   The position (RT, m/z) of the consensus centroid is the precursor position in MS1;
-  the sub-elements correspond to the channels (with m/z values of 113-121 for iTRAQ and 126-131 for TMT, respectively).
+  the sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
   
-  For TMT-10plex the search radius should be set to about 0.001 Th, since distances between channels are as small as 0.003 Th.
-  For each channel, the median distance of all theoretical vs. observed reporter ion peaks will be reported.
+  For TMT-10plex the search radius should be set to ~0.002 Th, since distances between channels are as small as ~0.006 Th.
+  The tool will throw an Exception if you set it below 0.001 Th. Usually, Orbitraps deliver precision of about 0.0001 Th (i.e. 10x better) at this low mass range.
+  The tool will also throw an Exception if you set @p reporter_mass_shift > 0.003 Th for TMT-10plex, since this could
+  lead to ambiguities with neighbouring channels.
+  For quality control purposes, the tool reports the median distance between the theoretical vs. observed reporter ion peaks in each channel.
+  The search radius is fixed to 0.5 Th (regardless of the user defined search window). This allows to track calibration issues.
+  For TMT-10plex, these results are automatically omitted if they could be confused with a neighbouring channel, i.e.
+  exceed the tolerance to a neighbouring channel with the same nominal mass (C/N channels).
   If the distance is too large, you might have a m/z calibration problem (see @ref TOPP_InternalCalibration).
   
-  @note Unless the spectrum is completely empty: If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated, 
+  @note If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated, 
   but the intensities of the overall feature and of all its sub-elements will be zero.
   (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
-
+  However, if the spectrum is completely empty (no ions whatsoever), no consensus feature will be generated.
+  
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
   
   Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
@@ -129,7 +136,7 @@ using namespace std;
   or you can apply @ref TOPP_ProteinQuantifier.
 
   For the TMT6plex and TMT10plex method please add the precentages of the correction matrix as shown in the product data sheet of your charge:
-
+<pre>
   Data sheet:
   Mass Tag  Repoter Ion -2      -1      Monoisotopic    +1    +2
   126       126.12776   0.0%    0.0%        100%        5.0%   0.0%
@@ -137,13 +144,15 @@ using namespace std;
   .
   .
   .
-
-  Correction matrix:
+</pre>
+  Corresponding correction matrix:
+<pre>
   [0.0/0.0/5.0/0.0,
    0.0/0.2/4.6/0.0,
    .
    .
    .
+</pre>
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IsobaricAnalyzer.cli

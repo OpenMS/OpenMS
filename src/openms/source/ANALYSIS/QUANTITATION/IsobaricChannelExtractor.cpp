@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
@@ -49,16 +50,21 @@
 namespace OpenMS
 {
 
+  // Maximum allowed search window for TMT-10 reporter ions. The channels are only 0.006 Th apart.
+  // Allowing anything larger will result in wrong quantifications for empty channels.
+  double TMT_10PLEX_CHANNEL_TOLERANCE = 0.003; 
+
+  /// small quality control class, holding temporary data for reporting
   struct ChannelQC
   {
+    // C'tor
     ChannelQC() :
       mz_deltas(),
       signal_not_unique(0)
     {}
 
-    std::vector<double> mz_deltas;
-    int signal_not_unique;
-
+    std::vector<double> mz_deltas; //< m/z distance between expected and observed reporter ion closest to expected position
+    int signal_not_unique;  //< counts if more than one peak was found within the search window of each reporter position
   };
 
 
@@ -164,7 +170,7 @@ namespace OpenMS
     defaults_.setValidStrings("select_activation", activation_list);
 
     defaults_.setValue("reporter_mass_shift", 0.001, "Allowed shift (left to right) in Da from the expected position.");
-    defaults_.setMinFloat("reporter_mass_shift", 0.00000001);
+    defaults_.setMinFloat("reporter_mass_shift", 0.001); // this is more than enough for TMT-10plex (0.006 distance between channels) -- no need to allow any lower value
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
     defaults_.setValue("min_precursor_intensity", 1.0, "Minimum intensity of the precursor to be extracted. MS/MS scans having a precursor with a lower intensity will not be considered for quantitation.");
@@ -205,6 +211,12 @@ namespace OpenMS
     min_precursor_purity_ = getParameters().getValue("min_precursor_purity");
     max_precursor_isotope_deviation_ = getParameters().getValue("precursor_isotope_deviation");
     interpolate_precursor_purity_ = getParameters().getValue("purity_interpolation") == "true";
+
+    /* check for sensible parameters */
+    if (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL && reporter_mass_shift_ > TMT_10PLEX_CHANNEL_TOLERANCE)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: TMT-10plex requires reporter mass shifts <= 0.003 to avoid channel ambiguity!");
+    }
   }
 
   bool IsobaricChannelExtractor::isValidPrecursor_(const Precursor& precursor) const
@@ -497,6 +509,7 @@ namespace OpenMS
     ChannelQCSet channel_mz_delta;
     const double qc_dist_mz = 0.5; // fixed! Do not change!
 
+    bool is_TMT10plex = (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL);
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
@@ -655,16 +668,25 @@ namespace OpenMS
       {
         // sort
         double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
-        LOG_INFO << median << " Th";
-        if (channel_mz_delta[cl_it->name].signal_not_unique > 0) LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << "x]\n";
-        LOG_INFO << "\n";
+        if (is_TMT10plex && 
+            (fabs(median) > TMT_10PLEX_CHANNEL_TOLERANCE) && 
+            (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
+        { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
+          LOG_INFO << "<invalid data (>" << TMT_10PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
+        }
+        else
+        {
+          LOG_INFO << median << " Th";
+          if (channel_mz_delta[cl_it->name].signal_not_unique > 0) LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
+          LOG_INFO << "\n";
+        }
       }
       else
       {
         LOG_INFO << "<no data>\n";
       }
     }
-    LOG_INFO << "(If channels are experimentally empty, the data for these channels might be wrong, especially for nearby TMT channels)\n" << std::endl;
+    LOG_INFO << std::endl;
 
 
     /// add meta information to the map
@@ -691,7 +713,8 @@ namespace OpenMS
       channel_as_map.setMetaValue("channel_id", cl_it->id);
       channel_as_map.setMetaValue("channel_description", cl_it->description);
       channel_as_map.setMetaValue("channel_center", cl_it->center);
-      consensus_map.getFileDescriptions()[index++] = channel_as_map;
+      consensus_map.getFileDescriptions()[index] = channel_as_map;
+      ++index;
     }
   }
 
