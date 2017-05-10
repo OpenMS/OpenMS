@@ -117,9 +117,12 @@ protected:
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
 
     registerTOPPSubsection_("FDR", "FDR control");
-    registerDoubleOption_("FDR:PSM", "<fraction>", -1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, filtering disabled for negative values)", false);
-    registerDoubleOption_("FDR:protein", "<fraction>", -1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, filtering disabled for negative values)", false);
-
+    registerDoubleOption_("FDR:PSM", "<fraction>", 1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
+    setMinFloat_("FDR:PSM", 0);
+    setMaxFloat_("FDR:PSM", 1);
+    registerDoubleOption_("FDR:protein", "<fraction>", -1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
+    setMinFloat_("FDR:protein", 0);
+    setMaxFloat_("FDR:protein", 1);
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
 
@@ -159,7 +162,7 @@ protected:
       {
         fdr.apply(prot_ids);
 
-        if (protein_fdr >= 0)
+        if (protein_fdr < 1)
         {
           LOG_INFO << "FDR control: Filtering proteins..." << endl;
           IDFilter::filterHitsByScore(prot_ids, protein_fdr);
@@ -170,7 +173,7 @@ protected:
       {
         fdr.apply(pep_ids);
 
-        if (psm_fdr >= 0)
+        if (psm_fdr < 1)
         {      
           LOG_INFO << "FDR control: Filtering PSMs..." << endl;
           IDFilter::filterHitsByScore(pep_ids, psm_fdr);
