@@ -74,8 +74,8 @@ using namespace std;
     "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
-    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the FDR (in percent) can be controlled on the PSM and protein level.
-    Alternativly, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value (as fraction).
+    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
+    Alternativly, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -117,8 +117,8 @@ protected:
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
 
     registerTOPPSubsection_("FDR", "FDR control");
-    registerDoubleOption_("FDR:PSM", "<percent>", -1, "Filter PSMs to obtain this FDR (%) at PSM level. (disabled for negative values)", false);
-    registerDoubleOption_("FDR:protein", "<percent>", -1, "Filter proteins to obtain this FDR (%) at protein level. (disabled for negative values)", false);
+    registerDoubleOption_("FDR:PSM", "<fraction>", -1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, filtering disabled for negative values)", false);
+    registerDoubleOption_("FDR:protein", "<fraction>", -1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, filtering disabled for negative values)", false);
 
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
@@ -162,7 +162,7 @@ protected:
         if (protein_fdr >= 0)
         {
           LOG_INFO << "FDR control: Filtering proteins..." << endl;
-          IDFilter::filterHitsByScore(prot_ids, protein_fdr / 100.0);
+          IDFilter::filterHitsByScore(prot_ids, protein_fdr);
         }
       }
 
@@ -173,7 +173,7 @@ protected:
         if (psm_fdr >= 0)
         {      
           LOG_INFO << "FDR control: Filtering PSMs..." << endl;
-          IDFilter::filterHitsByScore(pep_ids, psm_fdr / 100.0);
+          IDFilter::filterHitsByScore(pep_ids, psm_fdr);
         }
       }
     }
