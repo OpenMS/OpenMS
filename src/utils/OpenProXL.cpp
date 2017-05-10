@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestXML.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -273,7 +274,7 @@ protected:
 
       const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
       vector< pair< Size, Size > > matched_fragments_without_shift;
-      OpenProXLUtils::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 0.3);
+      OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 0.3);
       LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 
       // different fragments may carry light or heavy cross-linker.
@@ -355,7 +356,7 @@ protected:
         spectrum_heavy_to_light.sortByPosition();
         if (spectrum_heavy_to_light.size() > 0)
         {
-          OpenProXLUtils::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, 0.3);
 
           LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 
@@ -399,14 +400,14 @@ protected:
       // TODO make this a tool parameter ? Leave it out completely? Comparing Light/Heavy spectra should already be good enough filtering
       // maximal peak number for the common and xlink peak spectra, the merged spectrum has twice as many
       Size max_peak_number = 250;
-      OpenProXLUtils::nLargestSpectrumFilter(common_peaks, max_peak_number);
-      OpenProXLUtils::nLargestSpectrumFilter(xlink_peaks, max_peak_number);
+      OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(common_peaks, max_peak_number);
+      OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(xlink_peaks, max_peak_number);
 
 //      PeakSpectrum::IntegerDataArray charges;
 //      charges.assign(common_peaks.size(), 0);
 //      common_peaks.getIntegerDataArrays().push_back(charges);
 
-      PeakSpectrum all_peaks = OpenProXLUtils::mergeAnnotatedSpectra(common_peaks, xlink_peaks);
+      PeakSpectrum all_peaks = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(common_peaks, xlink_peaks);
 
       common_peaks.setPrecursors(spectrum_light.getPrecursors());
       xlink_peaks.setPrecursors(spectrum_light.getPrecursors());
@@ -512,7 +513,7 @@ protected:
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    OpenProXLUtils::preprocessSpectraLabeled(spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+    OPXLSpectrumProcessingAlgorithms::preprocessSpectraLabeled(spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
 
     // load linked features
@@ -905,13 +906,13 @@ protected:
 
         if (common_peaks.size() > 0)
         {
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_common_alpha, theoretical_spec_common_alpha, common_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, common_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_common_alpha, theoretical_spec_common_alpha, common_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_common_beta, theoretical_spec_common_beta, common_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
         }
         if (xlink_peaks.size() > 0)
         {
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
-          OpenProXLUtils::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
         }
 
 
@@ -1021,8 +1022,8 @@ protected:
 
           if (type_is_cross_link)
           {
-            theoretical_spec_common = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_common_alpha, theoretical_spec_common_beta);
-            theoretical_spec_xlinks = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta);
+            theoretical_spec_common = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_alpha, theoretical_spec_common_beta);
+            theoretical_spec_xlinks = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta);
           }
           else
           {
@@ -1030,13 +1031,13 @@ protected:
             theoretical_spec_xlinks = theoretical_spec_xlinks_alpha;
           }
 
-          PeakSpectrum theoretical_spec = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_common, theoretical_spec_xlinks);
-          PeakSpectrum theoretical_spec_alpha = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_common_alpha, theoretical_spec_xlinks_alpha);
+          PeakSpectrum theoretical_spec = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common, theoretical_spec_xlinks);
+          PeakSpectrum theoretical_spec_alpha = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_alpha, theoretical_spec_xlinks_alpha);
 
           PeakSpectrum theoretical_spec_beta;
           if (type_is_cross_link)
           {
-            theoretical_spec_beta = OpenProXLUtils::mergeAnnotatedSpectra(theoretical_spec_common_beta, theoretical_spec_xlinks_beta);
+            theoretical_spec_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_beta, theoretical_spec_xlinks_beta);
           }
 
           vector< double > xcorrc = XQuestScores::xCorrelation(common_peaks, theoretical_spec_common, 5, 0.2);
