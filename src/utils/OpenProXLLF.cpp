@@ -501,7 +501,7 @@ protected:
     }
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    vector<OpenProXLUtils::PeptideMass> peptide_masses;
+    vector<OpenProXLUtils::AASeqWithMass> peptide_masses;
 
     Size count_proteins = 0;
     Size count_peptides = 0;
@@ -550,7 +550,7 @@ protected:
     sort(spectrum_precursors.begin(), spectrum_precursors.end());
     cout << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 
-    sort(peptide_masses.begin(), peptide_masses.end());
+    sort(peptide_masses.begin(), peptide_masses.end(), OpenProXLUtils::AASeqWithMassComparator());
     // The largest peptides given a fixed maximal precursor mass are possible with loop links
     // Filter peptides using maximal loop link mass first
     double max_precursor_mass = spectrum_precursors[spectrum_precursors.size()-1];
@@ -571,8 +571,8 @@ protected:
     cout << "Filtering peptides with precursors" << endl;
 
     // search for the first mass greater than the maximim, cut off everything larger
-    vector<OpenProXLUtils::PeptideMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass);
-	vector<OpenProXLUtils::PeptideMass> filtered_peptide_masses;
+    vector<OpenProXLUtils::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OpenProXLUtils::AASeqWithMassComparator());
+	vector<OpenProXLUtils::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
 
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
@@ -580,7 +580,7 @@ protected:
                                                                                                                                                   spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
     cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
-    sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end());
+    sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OpenProXLUtils::XLPrecursorComparator());
     cout << "Sorting of enumerated precursors finished" << endl;
 
     // TODO use this again, when PScore is used
@@ -647,8 +647,8 @@ protected:
 #pragma omp critical (enumerated_cross_link_masses_access)
 #endif
       {
-        low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass - allowed_error);
-        up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass + allowed_error);
+        low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass - allowed_error, OpenProXLUtils::XLPrecursorComparator());
+        up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass + allowed_error, OpenProXLUtils::XLPrecursorComparator());
       }
 
       if (low_it != up_it) // no matching precursor in data
