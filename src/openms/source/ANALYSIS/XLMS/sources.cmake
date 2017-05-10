@@ -5,6 +5,7 @@ set(directory source/ANALYSIS/XLMS)
 set(sources_list
 OpenProXLUtils.cpp
 XQuestScores.cpp
+XQuestXML.cpp
 )
 
 ### add path to the filenames

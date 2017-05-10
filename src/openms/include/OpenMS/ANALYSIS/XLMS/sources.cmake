@@ -5,6 +5,7 @@ set(directory include/OpenMS/ANALYSIS/XLMS)
 set(sources_list_h
 OpenProXLUtils.h
 XQuestScores.h
+XQuestXML.h
 )
 
 ### add path to the filenames
