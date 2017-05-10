@@ -120,7 +120,7 @@ protected:
     registerDoubleOption_("FDR:PSM", "<fraction>", 1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
     setMinFloat_("FDR:PSM", 0);
     setMaxFloat_("FDR:PSM", 1);
-    registerDoubleOption_("FDR:protein", "<fraction>", -1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
+    registerDoubleOption_("FDR:protein", "<fraction>", 1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
     setMinFloat_("FDR:protein", 0);
     setMaxFloat_("FDR:protein", 1);
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
