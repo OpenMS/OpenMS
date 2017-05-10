@@ -4,6 +4,7 @@ set(directory include/OpenMS/ANALYSIS/XLMS)
 ### list all header files of the directory here
 set(sources_list_h
 OpenProXLUtils.h
+OPXLHelper.h
 OPXLSpectrumProcessingAlgorithms.h
 XQuestScores.h
 XQuestXML.h
