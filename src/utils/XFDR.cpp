@@ -698,7 +698,11 @@ class TOPPXFDR :
 
         MzIdentMLFile().load(arg_in, prot_ids, all_ids);
 
-        this->prepareInput(all_ids);
+        if ( ! this->prepareInput(all_ids))
+        {
+          LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
+          return INPUT_FILE_CORRUPT;
+        }
 
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
@@ -723,7 +727,11 @@ class TOPPXFDR :
         }
 
         IdXMLFile().load(arg_in, prot_ids, all_ids);
-        this->prepareInput(all_ids);
+        if ( ! this->prepareInput(all_ids))
+        {
+          LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
+          return INPUT_FILE_CORRUPT;
+        }
 
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
