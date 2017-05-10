@@ -39,7 +39,7 @@
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 
 using namespace OpenMS;
 
@@ -64,8 +64,8 @@ std::cout << "WTF4" << std::endl;
 std::vector <std::pair <Size, Size> > alignment1;
 std::vector <std::pair <Size, Size> > alignment2;
 
-OpenProXLUtils::getSpectrumAlignment(alignment1, theo_spec_1, theo_spec_2, 50, true);
-OpenProXLUtils::getSpectrumAlignment(alignment2, theo_spec_3, theo_spec_4, 50, true);
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, theo_spec_2, 50, true);
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_3, theo_spec_4, 50, true);
 
 START_SECTION(preScore())
    /* @brief compute a simple and fast to compute pre-score for a cross-link spectrum match
