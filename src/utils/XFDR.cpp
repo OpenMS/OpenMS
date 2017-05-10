@@ -152,7 +152,7 @@ class TOPPXFDR :
     // it gets automatically called on tool execution
     void registerOptionsAndFlags_()
     {
-      StringList formats = ListUtils::create<String>("xml,idXML");
+      StringList formats = ListUtils::create<String>("xml,idXML,mzid");
 
       // File input
       registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
@@ -687,10 +687,17 @@ class TOPPXFDR :
           }
        }
       }
-      // TODO Currently not supported
       else if (in_type == FileTypes::MZIDENTML)
       {
+        // Prevent filter options for this input (currently not supported)
+        if (arg_uniquex || arg_minborder != -1 || arg_maxborder != -1 || arg_minionsmatched != 0 || arg_mindeltas != 0)
+        {
+          LOG_ERROR << "ERROR: The filters uniquexl min/maxborder, minionsmatched, and mindeltas are not supported for idXML. Terminating." << endl;
+          return ILLEGAL_PARAMETERS;
+        }
+
         MzIdentMLFile().load(arg_in, prot_ids, all_ids);
+
         this->prepareInput(all_ids);
 
         Size rank_counter = 0;
