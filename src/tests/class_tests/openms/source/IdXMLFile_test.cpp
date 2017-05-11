@@ -54,7 +54,7 @@ IdXMLFile* ptr = 0;
 IdXMLFile* nullPointer = 0;
 START_SECTION((IdXMLFile()))
   ptr = new IdXMLFile();
-  TEST_NOT_EQUAL(ptr,nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
@@ -261,7 +261,7 @@ START_SECTION(([EXTRA] No protein identification bug))
 
   String filename;
   NEW_TMP_FILE(filename)
-  id_xmlfile.store(filename , protein_ids, peptide_ids);
+  id_xmlfile.store(filename, protein_ids, peptide_ids);
 
   vector<ProteinIdentification> protein_ids2;
   vector<PeptideIdentification> peptide_ids2;

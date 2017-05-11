@@ -60,8 +60,7 @@ namespace OpenMS
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
-  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids,
-                       std::vector<PeptideIdentification>& peptide_ids, String& document_id)
+  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, String& document_id)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -298,17 +297,19 @@ namespace OpenMS
           os << createFlankingAAXMLString_(pes);
           os << createPositionXMLString_(pes);
 
-          std::set<String> protein_accessions = p_hit.extractProteinAccessions();
-          std::set<UInt> ids;
-          for (std::set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+          // protein accessions correspond to neighboring AAs and start/end
+          // positions, so we have to keep the same order and allow duplicates
+          // (for peptides matching multiple times in the same protein):
+          std::vector<UInt> ids;
+          for (std::vector<PeptideEvidence>::const_iterator pe_it = pes.begin(); pe_it != pes.end(); ++pe_it)
           {
-            ids.insert(accession_to_id[*s_it]);
+            const String& accession = pe_it->getProteinAccession();
+            if (!accession.empty()) ids.push_back(accession_to_id[accession]);
           }
-
           if (!ids.empty())
           {
             String accs;
-            for (std::set<UInt>::const_iterator s_it = ids.begin(); s_it != ids.end(); ++s_it)
+            for (std::vector<UInt>::const_iterator s_it = ids.begin(); s_it != ids.end(); ++s_it)
             {
               if (s_it != ids.begin())
               {
@@ -338,8 +339,6 @@ namespace OpenMS
       if (count_wrong_id && protein_ids.size() == 1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
       if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
     }
-
-
 
     //empty protein ids  parameters
     if (protein_ids.empty())
@@ -615,15 +614,15 @@ namespace OpenMS
 
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setAABefore(splitted[i][0]);
+          peptide_evidences_.resize(parts.size());
+        }
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setAABefore(parts[i][0]);
         }
       }
 
@@ -632,15 +631,15 @@ namespace OpenMS
       optionalAttributeAsString_(tmp, attributes, "aa_after");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setAAAfter(splitted[i][0]);
+          peptide_evidences_.resize(parts.size());
+        }
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setAAAfter(parts[i][0]);
         }
       }
 
@@ -650,15 +649,15 @@ namespace OpenMS
 
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setStart(splitted[i].toInt());
+          peptide_evidences_.resize(parts.size());
+        }
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setStart(parts[i].toInt());
         }
       }
 
@@ -667,15 +666,15 @@ namespace OpenMS
       optionalAttributeAsString_(tmp, attributes, "end");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setEnd(splitted[i].toInt());
+          peptide_evidences_.resize(parts.size());
+        }
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setEnd(parts[i].toInt());
         }
       }
 
@@ -791,8 +790,7 @@ namespace OpenMS
   }
 
   void IdXMLFile::addProteinGroups_(
-    MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>&
-    groups, const String& group_name, const std::map<String, UInt>& accession_to_id)
+    MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name, const std::map<String, UInt>& accession_to_id)
   {
     for (Size g = 0; g < groups.size(); ++g)
     {
@@ -822,8 +820,7 @@ namespace OpenMS
     }
   }
 
-  void IdXMLFile::getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>&
-                                    groups, const String& group_name)
+  void IdXMLFile::getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name)
   {
     groups.clear();
     Size g_id = 0;
@@ -849,7 +846,7 @@ namespace OpenMS
     }
   }
 
-  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes)
+  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence>& pes)
   {
     // Check if information on previous/following aa available. If not, we will not write it out
     bool has_aa_before_information(false);
@@ -902,7 +899,7 @@ namespace OpenMS
     return aa_string;
   }
 
-  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence> & pes)
+  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes)
   {
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
