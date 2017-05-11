@@ -32,8 +32,8 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_OPENPROXLUTILS
-#define OPENMS_ANALYSIS_XLMS_OPENPROXLUTILS
+#ifndef OPENMS_ANALYSIS_XLMS_OPXLDATASTRUCTS
+#define OPENMS_ANALYSIS_XLMS_OPXLDATASTRUCTS
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -43,6 +43,10 @@
 
 namespace OpenMS
 {
+  class OPENMS_DLLAPI OPXLDataStructs
+  {
+
+    public:
 
   struct ProteinProteinCrossLink
     {
@@ -172,10 +176,7 @@ namespace OpenMS
   };
 
 
-  class OPENMS_DLLAPI OpenProXLUtils
-  {
 
-    public:
       struct XLPrecursor
       {
         float precursor_mass;

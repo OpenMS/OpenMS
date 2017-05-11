@@ -32,7 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 
 namespace OpenMS
 {
