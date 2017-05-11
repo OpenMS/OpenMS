@@ -501,7 +501,7 @@ namespace OpenMS
     {
       LOG_INFO << "  lvl " << it->first << ": " << it->second << " scans\n";
     }
-    int quant_ms_level = ms_level.rbegin()->first;
+    UInt quant_ms_level = ms_level.rbegin()->first;
     LOG_INFO << "Using ms-level " << quant_ms_level << " for quantification." << std::endl;
 
     // now we have picked data
