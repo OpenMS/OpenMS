@@ -914,7 +914,7 @@ namespace OpenMS
       double* values = new double[n_cols];
       Int nonzeroentries = 0;
       model_->getRow(idx, ind, values);
-      for(Int i = 0; i < n_cols; i++)
+      for (Int i = 0; i < n_cols; i++)
       {
         nonzeroentries += values[i] != 0 ? 1 : 0; 
       }
@@ -952,7 +952,7 @@ namespace OpenMS
       double* values = new double[n_cols];
         
       model_->getRow(idx, ind, values);
-      for(Int i = 0; i < n_cols; i++)//or ++i ???
+      for (Int i = 0; i < n_cols; i++)//or ++i ???
       {
         if (values[i] != 0)
           indexes.push_back(ind[i]); 
