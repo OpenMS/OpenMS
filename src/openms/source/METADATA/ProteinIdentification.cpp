@@ -386,7 +386,7 @@ namespace OpenMS
               " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
           }
 
-          if (start < 0 || stop < start || stop > protein_length)
+          if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
           {
             const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
                                    " ) are invalid or point outside of protein '" + accession + 
