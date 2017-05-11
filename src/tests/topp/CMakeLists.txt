@@ -697,15 +697,6 @@ add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -test -in ${D
 add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_2")
 
-#------------------------------------------------------------------------------
-# ITRAQAnalyzer tests
-add_test("TOPP_ITRAQAnalyzer_1" ${TOPP_BIN_PATH}/ITRAQAnalyzer -test -in ${DATA_DIR_TOPP}/ITRAQAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/ITRAQAnalyzer.ini -out ITRAQAnalyzer_output_1.tmp)
-add_test("TOPP_ITRAQAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ITRAQAnalyzer_output_1.tmp -in2 ${DATA_DIR_TOPP}/ITRAQAnalyzer_output_1.consensusXML )
-set_tests_properties("TOPP_ITRAQAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_ITRAQAnalyzer_1")
-# test empty IDs
-add_test("TOPP_ITRAQAnalyzer_2" ${TOPP_BIN_PATH}/ITRAQAnalyzer -test -in ${DATA_DIR_TOPP}/ITRAQAnalyzer_input_2.mzML -ini ${DATA_DIR_TOPP}/ITRAQAnalyzer.ini -out ITRAQAnalyzer_output_2.tmp)
-add_test("TOPP_ITRAQAnalyzer_2_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ITRAQAnalyzer_output_2.tmp -in2 ${DATA_DIR_TOPP}/ITRAQAnalyzer_output_2.consensusXML )
-set_tests_properties("TOPP_ITRAQAnalyzer_2_out1" PROPERTIES DEPENDS "TOPP_ITRAQAnalyzer_2")
 
 #------------------------------------------------------------------------------
 # IsobaricAnalyzer tests
@@ -1501,11 +1492,6 @@ add_test("TOPP_ExternalCalibration_2_MS2" ${TOPP_BIN_PATH}/ExternalCalibration -
 add_test("TOPP_ExternalCalibration_2_out1" ${DIFF} -in1 ExternalCalibration_2_MS2_out.mzML.tmp -in2 ${DATA_DIR_TOPP}/ExternalCalibration_2_MS2_out.mzML)
 set_tests_properties("TOPP_ExternalCalibration_2_out1" PROPERTIES DEPENDS "TOPP_ExternalCalibration_2_MS2")
 
-#------------------------------------------------------------------------------
-# TMTAnalyzer
-add_test("TOPP_TMTAnalyzer_1" ${TOPP_BIN_PATH}/TMTAnalyzer -test -ini ${DATA_DIR_TOPP}/TMTAnalyzer.ini -in ${DATA_DIR_TOPP}/TMTAnalyzer_input_1.mzML -out TMTAnalyzer_1.tmp)
-add_test("TOPP_TMTAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTAnalyzer_1.tmp -in2 ${DATA_DIR_TOPP}/TMTAnalyzer_output_1.consensusXML )
-set_tests_properties("TOPP_TMTAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_TMTAnalyzer_1")
 
 #------------------------------------------------------------------------------
 # TOFCalibration tests

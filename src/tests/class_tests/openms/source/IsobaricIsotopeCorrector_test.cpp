@@ -72,7 +72,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
   { // check the run including output
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
-    cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
+    cm_file.load(OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector.consensusXML"),cm_in);
 
     // copy in/output
     cm_out = cm_in;
@@ -107,7 +107,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
   {
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
-    cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
+    cm_file.load(OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector.consensusXML"),cm_in);
     cm_in.clear(false);
 
     // copy in/output
@@ -186,7 +186,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
   {
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
-    cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
+    cm_file.load(OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector.consensusXML"),cm_in);
 
     TEST_PRECONDITION_VIOLATED(IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in,cm_out, &quant_meth))
   }

@@ -35,9 +35,10 @@
 #ifndef OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
 #define OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
 
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 
 namespace OpenMS
 {
