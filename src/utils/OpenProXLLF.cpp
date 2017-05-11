@@ -242,6 +242,9 @@ protected:
     registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false);
     setValidFormats_("out_xquestxml", ListUtils::create<String>("xml"));
 
+    registerOutputFile_("out_xquest_specxml", "<file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
+    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml"));
+
     registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results).", false);
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
 
@@ -338,6 +341,7 @@ protected:
     const string in_decoy_fasta(getStringOption_("decoy_database"));
     const string out_idXML(getStringOption_("out_idXML"));
     const string out_xquest = getStringOption_("out_xquestxml");
+    const string out_xquest_specxml = getStringOption_("out_xquest_specxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
 
     const bool decoy_prefix(getFlag_("decoy_prefix"));
@@ -1106,7 +1110,8 @@ protected:
     {
       MzIdentMLFile().store(out_mzIdentML, protein_ids, peptide_ids);
     }
-    if (out_xquest.size() > 0)
+
+    if (out_xquest.size() > 0 || out_xquest_specxml.size() > 0)
     {
       vector<String> input_split_dir;
       vector<String> input_split;
@@ -1114,29 +1119,53 @@ protected:
       input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
       String base_name = input_split[0];
 
-      Size found;
-      found = out_xquest.find_last_of("/\\");
-      // TODO "/" is Unix specific
-      String matched_spec_xml_name;
-      if (found == out_xquest.size())
+      if (out_xquest.size() > 0)
       {
-        matched_spec_xml_name = out_xquest.substr(0, found) + "/" + base_name + "_matched.spec.xml";
-      }
-      else
-      {
-        matched_spec_xml_name = base_name + "_matched.spec.xml";
-      }
-
-      String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
-      String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
-      double cross_link_mass_iso_shift = 0;
-      double cross_link_mass_light = cross_link_mass;
-      XQuestXML::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
+        String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
+        String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
+        double cross_link_mass_iso_shift = 0;
+        double cross_link_mass_light = cross_link_mass;
+        XQuestXML::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
                                                             precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
                                                             cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
-
-      XQuestXML::writeXQuestXMLSpec(matched_spec_xml_name, base_name, all_top_csms, spectra);
+      }
+      if (out_xquest_specxml.size() > 0)
+      {
+        XQuestXML::writeXQuestXMLSpec(out_xquest_specxml, base_name, all_top_csms, spectra);
+      }
     }
+
+//    if (out_xquest.size() > 0)
+//    {
+//      vector<String> input_split_dir;
+//      vector<String> input_split;
+//      getStringOption_("in").split(String("/"), input_split_dir);
+//      input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
+//      String base_name = input_split[0];
+
+//      Size found;
+//      found = out_xquest.find_last_of("/\\");
+//      // TODO "/" is Unix specific
+//      String matched_spec_xml_name;
+//      if (found == out_xquest.size())
+//      {
+//        matched_spec_xml_name = out_xquest.substr(0, found) + "/" + base_name + "_matched.spec.xml";
+//      }
+//      else
+//      {
+//        matched_spec_xml_name = base_name + "_matched.spec.xml";
+//      }
+
+//      String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
+//      String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
+//      double cross_link_mass_iso_shift = 0;
+//      double cross_link_mass_light = cross_link_mass;
+//      XQuestXML::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
+//                                                            precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
+//                                                            cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
+
+//      XQuestXML::writeXQuestXMLSpec(matched_spec_xml_name, base_name, all_top_csms, spectra);
+//    }
     progresslogger.endProgress();
 
     return EXECUTION_OK;
