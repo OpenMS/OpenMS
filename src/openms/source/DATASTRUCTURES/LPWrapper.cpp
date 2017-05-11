@@ -902,13 +902,27 @@ namespace OpenMS
 
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      /* Non-zero coefficient count in the row. */
-      // glpk uses arrays beginning at pos 1, so we need to shift
+    /* Non-zero coefficient count in the row. */
+    // glpk uses arrays beginning at pos 1, so we need to shift
       return glp_get_mat_row(lp_problem_, idx + 1, NULL, NULL);
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    {
+      Int n_cols =  getNumberOfColumns();
+      Int* ind = new Int[n_cols];
+      double* values = new double[n_cols];
+      Int nonzeroentries = 0;
+      model_->getRow(idx, ind, values);
+      for(Int i = 0; i < n_cols; i++)
+      {
+        nonzeroentries += values[i] != 0 ? 1 : 0; 
+      }
+      delete[] ind;   
+      delete[] values;   
+
+      return nonzeroentries;
+    }
 #endif
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
@@ -930,7 +944,22 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    {
+      indexes.clear();
+
+      Int n_cols =  getNumberOfColumns();
+      Int* ind = new Int[n_cols];
+      double* values = new double[n_cols];
+        
+      model_->getRow(idx, ind, values);
+      for(Int i = 0; i < n_cols; i++)//or ++i ???
+      {
+        if (values[i] != 0)
+          indexes.push_back(ind[i]); 
+      }
+      delete[] ind;   
+      delete[] values;   
+    }
 #endif
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
