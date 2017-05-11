@@ -42,7 +42,7 @@ namespace OpenMS
 {
 
 // Write xQuest.xml output
-  void  XQuestXML::writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
+  void  XQuestXML::writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
                                                 String precursor_mass_tolerance_unit, String fragment_mass_tolerance_unit, double precursor_mass_tolerance, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, String cross_link_name,
                                                 double cross_link_mass_light, DoubleList cross_link_mass_mono_link, String in_fasta, String in_decoy_fasta, StringList cross_link_residue1, StringList cross_link_residue2, double cross_link_mass_iso_shift, String enzyme_name, Size missed_cleavages)
   {
@@ -123,9 +123,9 @@ namespace OpenMS
 
 
 
-    for (vector< vector< CrossLinkSpectrumMatch > >::const_iterator top_csms_spectrum = all_top_csms.begin(); top_csms_spectrum != all_top_csms.end(); ++top_csms_spectrum)
+    for (vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > >::const_iterator top_csms_spectrum = all_top_csms.begin(); top_csms_spectrum != all_top_csms.end(); ++top_csms_spectrum)
     {
-      vector< CrossLinkSpectrumMatch > top_vector = (*top_csms_spectrum);
+      vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_vector = (*top_csms_spectrum);
 
       if (top_vector.empty())
       {
@@ -175,7 +175,7 @@ namespace OpenMS
           << "\" scantype=\"" << "light_heavy" << "\" charge_precursor=\"" << precursor_charge << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans << "\" >" << endl;
 
 
-      for (vector< CrossLinkSpectrumMatch>::const_iterator top_csm = top_csms_spectrum->begin(); top_csm != top_csms_spectrum->end(); ++top_csm)
+      for (vector< OPXLDataStructs::CrossLinkSpectrumMatch>::const_iterator top_csm = top_csms_spectrum->begin(); top_csm != top_csms_spectrum->end(); ++top_csm)
       {
         String xltype = "monolink";
         String structure = top_csm->cross_link.alpha.toUnmodifiedString();
@@ -191,7 +191,7 @@ namespace OpenMS
         String topology = String("a") + alpha_pos;
         String id = structure + String("-") + letter_first + alpha_pos + String("-") + static_cast<int>(top_csm->cross_link.cross_linker_mass);
 
-        if (top_csm->cross_link.getType() == ProteinProteinCrossLink::CROSS)
+        if (top_csm->cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS)
         {
           xltype = "xlink";
           structure += "-" + top_csm->cross_link.beta.toUnmodifiedString();
@@ -199,7 +199,7 @@ namespace OpenMS
           weight += top_csm->cross_link.beta.getMonoWeight();
           id = structure + "-" + topology;
         }
-        else if (top_csm->cross_link.getType() == ProteinProteinCrossLink::LOOP)
+        else if (top_csm->cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP)
         {
           xltype = "intralink";
           topology += String("-b") + beta_pos;
@@ -263,7 +263,7 @@ namespace OpenMS
     return;
   }
 
-  void XQuestXML::writeXQuestXMLSpec(String out_file, String base_name, const OpenProXLUtils::PreprocessedPairSpectra& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestXML::writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const vector< pair<Size, Size> >& spectrum_pairs, const vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     //String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header
@@ -313,7 +313,7 @@ namespace OpenMS
     return;
   }
 
-  void XQuestXML::writeXQuestXMLSpec(String out_file, String base_name, const vector< vector< CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestXML::writeXQuestXMLSpec(String out_file, String base_name, const vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     // String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header

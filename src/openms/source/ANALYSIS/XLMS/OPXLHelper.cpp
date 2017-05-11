@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+//#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
   // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data
-  void filter_and_add_candidate (vector<OpenProXLUtils::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OpenProXLUtils::XLPrecursor precursor)
+  void filter_and_add_candidate (vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor)
   {
     bool found_matching_precursors = false;
     // loop over all considered ion charges;
@@ -93,10 +93,10 @@ namespace OpenMS
 
 
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
-  vector<OpenProXLUtils::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses_(const vector<OpenProXLUtils::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses_(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
-    vector<OpenProXLUtils::XLPrecursor> mass_to_candidates;
+    vector<OPXLDataStructs::XLPrecursor> mass_to_candidates;
     // initialize progress counter
     Size countA = 0;
 
@@ -117,7 +117,7 @@ namespace OpenMS
       countA += 1;
       if (countA % 500 == 0)
       {
-        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OpenProXLUtils::XLPrecursor) / 1024 / 1024 << endl;
+        cout << "Enumerating pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OPXLDataStructs::XLPrecursor) / 1024 / 1024 << endl;
       }
 
       // generate mono-links: one cross-linker with one peptide attached to one side
@@ -128,7 +128,7 @@ namespace OpenMS
 
         // Make sure it is clear only one peptide is considered here. Use NULL value for the second peptide.
         // to check: if(precursor.beta_index) returns "false" for NULL, "true" for any other value
-        OpenProXLUtils::XLPrecursor precursor;
+        OPXLDataStructs::XLPrecursor precursor;
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
         precursor.beta_index = NULL;
@@ -168,7 +168,7 @@ namespace OpenMS
         double cross_linked_pair_mass = peptides[p1].peptide_mass + cross_link_mass;
 
         // also only one peptide
-        OpenProXLUtils::XLPrecursor precursor;
+        OPXLDataStructs::XLPrecursor precursor;
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
         precursor.beta_index = NULL;
@@ -212,7 +212,7 @@ namespace OpenMS
         double cross_linked_pair_mass = peptides[p1].peptide_mass + peptides[p2].peptide_mass + cross_link_mass;
 
         // this time both peptides have valid indices
-        OpenProXLUtils::XLPrecursor precursor;
+        OPXLDataStructs::XLPrecursor precursor;
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
         precursor.beta_index = p2;
@@ -221,7 +221,7 @@ namespace OpenMS
         filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
       }
     }
-    cout << "Enumerated pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OpenProXLUtils::XLPrecursor) / 1024 / 1024 << endl;
+    cout << "Enumerated pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OPXLDataStructs::XLPrecursor) / 1024 / 1024 << endl;
     return mass_to_candidates;
   }
 
@@ -239,10 +239,10 @@ namespace OpenMS
     return modifications;
   }
 
-  std::vector<OpenProXLUtils::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
+  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
   {
     multimap<StringView, AASequence> processed_peptides;
-    vector<OpenProXLUtils::AASeqWithMass> peptide_masses;
+    vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
 //#ifdef _OPENMP
 //#pragma omp parallel for
 //#endif
@@ -263,13 +263,13 @@ namespace OpenMS
         // skip peptides with invalid AAs // TODO is this necessary?
         if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
 
-        OpenProXLUtils::PeptidePosition position = OpenProXLUtils::INTERNAL;
+        OPXLDataStructs::PeptidePosition position = OPXLDataStructs::INTERNAL;
         if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
         {
-          position = OpenProXLUtils::N_TERM;
+          position = OPXLDataStructs::N_TERM;
         } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
         {
-          position = OpenProXLUtils::C_TERM;
+          position = OPXLDataStructs::C_TERM;
         }
 
         // skip if no cross-linked residue
@@ -280,11 +280,11 @@ namespace OpenMS
           {
             skip = false;
           }
-          if (n_term_linker && position == OpenProXLUtils::N_TERM)
+          if (n_term_linker && position == OPXLDataStructs::N_TERM)
           {
             skip = false;
           }
-          if (c_term_linker && position == OpenProXLUtils::C_TERM)
+          if (c_term_linker && position == OPXLDataStructs::C_TERM)
           {
             skip = false;
           }
@@ -295,11 +295,11 @@ namespace OpenMS
           {
             skip = false;
           }
-          if (n_term_linker && position == OpenProXLUtils::N_TERM)
+          if (n_term_linker && position == OPXLDataStructs::N_TERM)
           {
             skip = false;
           }
-          if (c_term_linker && position == OpenProXLUtils::C_TERM)
+          if (c_term_linker && position == OPXLDataStructs::C_TERM)
           {
             skip = false;
           }
@@ -348,7 +348,7 @@ namespace OpenMS
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < static_cast<SignedSize>(all_modified_peptides.size()); ++mod_pep_idx)
         {
           const AASequence& candidate = all_modified_peptides[mod_pep_idx];
-          OpenProXLUtils::AASeqWithMass pep_mass;
+          OPXLDataStructs::AASeqWithMass pep_mass;
           pep_mass.peptide_mass = candidate.getMonoWeight();
           pep_mass.peptide_seq = candidate;
           pep_mass.position = position;
@@ -363,22 +363,22 @@ namespace OpenMS
         }
       }
     }
-    sort(peptide_masses.begin(), peptide_masses.end(), OpenProXLUtils::AASeqWithMassComparator());
+    sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
     return peptide_masses;
   }
 
-  vector <ProteinProteinCrossLink> OPXLHelper::buildCandidates(const std::vector< OpenProXLUtils::XLPrecursor > & candidates, const std::vector<OpenProXLUtils::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker)
+  vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker)
   {
-    vector <ProteinProteinCrossLink> cross_link_candidates;
+    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates;
     for (Size i = 0; i < candidates.size(); ++i)
     {
-      OpenProXLUtils::XLPrecursor candidate = candidates[i];
+      OPXLDataStructs::XLPrecursor candidate = candidates[i];
       vector <SignedSize> link_pos_first;
       vector <SignedSize> link_pos_second;
       AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
-      OpenProXLUtils::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
+      OPXLDataStructs::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
       AASequence peptide_second;
-      OpenProXLUtils::PeptidePosition peptide_pos_second = OpenProXLUtils::INTERNAL;
+      OPXLDataStructs::PeptidePosition peptide_pos_second = OPXLDataStructs::INTERNAL;
       if (candidate.beta_index)
       {
         peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
@@ -443,7 +443,7 @@ namespace OpenMS
       {
         for (Size y = 0; y < link_pos_second.size(); ++y)
         {
-          ProteinProteinCrossLink cross_link_candidate;
+          OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate;
           cross_link_candidate.cross_linker_name = cross_link_name;
           // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
           if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
@@ -489,18 +489,18 @@ namespace OpenMS
         }
       }
 
-      if (peptide_pos_second != OpenProXLUtils::INTERNAL)
+      if (peptide_pos_second != OPXLDataStructs::INTERNAL)
       {
         ResidueModification::TermSpecificity second_spec;
         Size mod_pos;
         bool compatible = false;
-        if (n_term_linker && (peptide_pos_second == OpenProXLUtils::N_TERM))
+        if (n_term_linker && (peptide_pos_second == OPXLDataStructs::N_TERM))
         {
           second_spec = ResidueModification::N_TERM;
           mod_pos = 0;
           compatible = true;
         }
-        if (c_term_linker && (peptide_pos_second == OpenProXLUtils::C_TERM))
+        if (c_term_linker && (peptide_pos_second == OPXLDataStructs::C_TERM))
         {
           second_spec = ResidueModification::C_TERM;
           mod_pos = peptide_second.size()-1;
@@ -510,7 +510,7 @@ namespace OpenMS
         {
           for (Size x = 0; x < link_pos_first.size(); ++x)
           {
-            ProteinProteinCrossLink cross_link_candidate;
+            OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate;
             if (alpha_first)
             {
               cross_link_candidate.alpha = peptide_first;
@@ -538,18 +538,18 @@ namespace OpenMS
         }
       }
 
-      if (peptide_pos_first != OpenProXLUtils::INTERNAL)
+      if (peptide_pos_first != OPXLDataStructs::INTERNAL)
       {
         ResidueModification::TermSpecificity first_spec;
         Size mod_pos;
         bool compatible = false;
-        if (n_term_linker && (peptide_pos_first == OpenProXLUtils::N_TERM))
+        if (n_term_linker && (peptide_pos_first == OPXLDataStructs::N_TERM))
         {
           first_spec = ResidueModification::N_TERM;
           mod_pos = 0;
           compatible = true;
         }
-        if (c_term_linker && (peptide_pos_first == OpenProXLUtils::C_TERM))
+        if (c_term_linker && (peptide_pos_first == OPXLDataStructs::C_TERM))
         {
           first_spec = ResidueModification::C_TERM;
           mod_pos = peptide_first.size()-1;
@@ -559,7 +559,7 @@ namespace OpenMS
         {
           for (Size x = 0; x < link_pos_second.size(); ++x)
           {
-            ProteinProteinCrossLink cross_link_candidate;
+            OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate;
             cross_link_candidate.cross_linker_name = cross_link_name;
             if (alpha_first)
             {
@@ -624,7 +624,7 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
+  void OPXLHelper::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
   {
     for (Size i = 0; i < top_csms_spectrum.size(); ++i)
     {
@@ -638,11 +638,11 @@ namespace OpenMS
       SignedSize alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first;
       SignedSize beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second;
 
-      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::MONO)
       {
         xltype = "mono-link";
       }
-      else if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::LOOP)
+      else if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP)
       {
         xltype = "loop-link";
       }
@@ -651,7 +651,7 @@ namespace OpenMS
       // Set monolink as a modification or add MetaValue for cross-link identity and mass
       AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
       ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
-      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::MONO)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::MONO)
       {
         //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
         vector< String > mods;
@@ -723,7 +723,7 @@ namespace OpenMS
       }
 
 
-      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::LOOP)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP)
       {
         ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
       }
@@ -795,7 +795,7 @@ namespace OpenMS
       LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
       phs.push_back(ph_alpha);
 
-      if (top_csms_spectrum[i].cross_link.getType() == ProteinProteinCrossLink::CROSS)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS)
       {
         ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
         ph_beta.setCharge(precursor_charge);

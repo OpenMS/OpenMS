@@ -34,14 +34,7 @@
 
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-//#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-//#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-//#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-//#include <OpenMS/FORMAT/FASTAFile.h>
-//#include <OpenMS/FORMAT/Base64.h>
 #include <boost/math/special_functions/binomial.hpp>
-//#include <limits>
-//#include <fstream>
 #include <numeric>
 
 using namespace std;
