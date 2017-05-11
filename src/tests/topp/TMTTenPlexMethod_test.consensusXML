@@ -4,14 +4,14 @@
 	<UserParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<UserParam type="int" name="isoquant:scans_total" value="6"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch126" value="4"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch127C" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch127C" value="3"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch127N" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch128C" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch128N" value="4"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch129C" value="5"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch129N" value="5"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch130C" value="5"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch130N" value="5"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch129C" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch129N" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch130C" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch130N" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch131" value="3"/>
 	<UserParam type="stringList" name="spectra_data" value="[file:///QExactiveHF02_03913.raw]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
@@ -83,14 +83,14 @@
 	</mapList>
 	<consensusElementList>
 		<consensusElement id="e_5233264595117471314" quality="0" charge="2">
-			<centroid rt="4880.15802" mz="567.827" it="3451.85"/>
+			<centroid rt="4880.15802" mz="567.827" it="1724.45"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="4880.15802" mz="126.127726" it="0"/>
 				<element map="1" id="0" rt="4880.15802" mz="127.124761" it="0"/>
 				<element map="2" id="0" rt="4880.15802" mz="127.131081" it="0"/>
 				<element map="3" id="0" rt="4880.15802" mz="128.128116" it="0"/>
 				<element map="4" id="0" rt="4880.15802" mz="128.134436" it="0"/>
-				<element map="5" id="0" rt="4880.15802" mz="129.131471" it="1727.4"/>
+				<element map="5" id="0" rt="4880.15802" mz="129.131471" it="0"/>
 				<element map="6" id="0" rt="4880.15802" mz="129.13779" it="1724.45"/>
 				<element map="7" id="0" rt="4880.15802" mz="130.134825" it="0"/>
 				<element map="8" id="0" rt="4880.15802" mz="130.141145" it="0"/>
@@ -118,17 +118,17 @@
 			<UserParam type="float" name="precursor_purity" value="1"/>
 		</consensusElement>
 		<consensusElement id="e_17749660155506638460" quality="0" charge="2">
-			<centroid rt="4880.80014" mz="544.813" it="14524"/>
+			<centroid rt="4880.80014" mz="544.813" it="9488.36"/>
 			<groupedElementList>
 				<element map="0" id="2" rt="4880.80014" mz="126.127726" it="0"/>
-				<element map="1" id="2" rt="4880.80014" mz="127.124761" it="3081.22"/>
-				<element map="2" id="2" rt="4880.80014" mz="127.131081" it="3060.2"/>
-				<element map="3" id="2" rt="4880.80014" mz="128.128116" it="2090.87"/>
-				<element map="4" id="2" rt="4880.80014" mz="128.134436" it="1980.48"/>
+				<element map="1" id="2" rt="4880.80014" mz="127.124761" it="3081.24"/>
+				<element map="2" id="2" rt="4880.80014" mz="127.131081" it="0"/>
+				<element map="3" id="2" rt="4880.80014" mz="128.128116" it="2090.57"/>
+				<element map="4" id="2" rt="4880.80014" mz="128.134436" it="2127.75"/>
 				<element map="5" id="2" rt="4880.80014" mz="129.131471" it="0"/>
 				<element map="6" id="2" rt="4880.80014" mz="129.13779" it="0"/>
 				<element map="7" id="2" rt="4880.80014" mz="130.134825" it="2188.79"/>
-				<element map="8" id="2" rt="4880.80014" mz="130.141145" it="2122.43"/>
+				<element map="8" id="2" rt="4880.80014" mz="130.141145" it="0"/>
 				<element map="9" id="2" rt="4880.80014" mz="131.13818" it="0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24218"/>
@@ -154,17 +154,17 @@
 			<UserParam type="float" name="precursor_purity" value="1"/>
 		</consensusElement>
 		<consensusElement id="e_15004869347769368353" quality="0" charge="2">
-			<centroid rt="4881.26316" mz="479.744303406726" it="7012.93"/>
+			<centroid rt="4881.26316" mz="479.744303406726" it="3550.62"/>
 			<groupedElementList>
-				<element map="0" id="4" rt="4881.26316" mz="126.127726" it="8.70145e-13"/>
+				<element map="0" id="4" rt="4881.26316" mz="126.127726" it="6.43868e-13"/>
 				<element map="1" id="4" rt="4881.26316" mz="127.124761" it="0"/>
 				<element map="2" id="4" rt="4881.26316" mz="127.131081" it="0"/>
 				<element map="3" id="4" rt="4881.26316" mz="128.128116" it="0"/>
 				<element map="4" id="4" rt="4881.26316" mz="128.134436" it="0"/>
-				<element map="5" id="4" rt="4881.26316" mz="129.131471" it="1638.48"/>
-				<element map="6" id="4" rt="4881.26316" mz="129.13779" it="1629.63"/>
-				<element map="7" id="4" rt="4881.26316" mz="130.134825" it="1896.12"/>
-				<element map="8" id="4" rt="4881.26316" mz="130.141145" it="1848.71"/>
+				<element map="5" id="4" rt="4881.26316" mz="129.131471" it="1660.16"/>
+				<element map="6" id="4" rt="4881.26316" mz="129.13779" it="0"/>
+				<element map="7" id="4" rt="4881.26316" mz="130.134825" it="0"/>
+				<element map="8" id="4" rt="4881.26316" mz="130.141145" it="1890.46"/>
 				<element map="9" id="4" rt="4881.26316" mz="131.13818" it="0"/>
 			</groupedElementList>
 			<UserParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=24220"/>

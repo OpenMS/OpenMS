@@ -169,8 +169,8 @@ namespace OpenMS
 
     defaults_.setValidStrings("select_activation", activation_list);
 
-    defaults_.setValue("reporter_mass_shift", 0.001, "Allowed shift (left to right) in Da from the expected position.");
-    defaults_.setMinFloat("reporter_mass_shift", 0.001); // this is more than enough for TMT-10plex (0.006 distance between channels) -- no need to allow any lower value
+    defaults_.setValue("reporter_mass_shift", 0.002, "Allowed shift (left to right) in Th from the expected position.");
+    defaults_.setMinFloat("reporter_mass_shift", 0.0001); // ~0.7ppm -- no need to allow any lower value; this is more than enough for TMT-10plex (0.006 distance between channels, i.e. 60 times wider)
     defaults_.setMaxFloat("reporter_mass_shift", 0.5);
 
     defaults_.setValue("min_precursor_intensity", 1.0, "Minimum intensity of the precursor to be extracted. MS/MS scans having a precursor with a lower intensity will not be considered for quantitation.");
@@ -458,6 +458,12 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Experiment has no scans!");
     }
 
+    // check if RT is sorted (we rely on it)
+    if (!ms_exp_data.isSorted(false))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectra are not sorted in RT! Please sort them first!");
+    }
+
     // clear the output map
     consensus_map.clear(false);
     consensus_map.setExperimentType("labeled_MS2");
@@ -510,6 +516,7 @@ namespace OpenMS
     const double qc_dist_mz = 0.5; // fixed! Do not change!
 
     bool is_TMT10plex = (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL);
+    PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
@@ -518,7 +525,17 @@ namespace OpenMS
       {
         // remember potential precursor and continue
         pState.precursorScan = it;
+        // reset last MS2 -- we expect to see a new one soon and the old one should not be used for the following MS3 (if any)
+        it_last_MS2 == ms_exp_data.end();
         continue;
+      }
+      else if (it->getMSLevel() == 2)
+      { // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
+        it_last_MS2 = it;
+        if (it_last_MS2->getPrecursors().empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+        }
       }
       if (it->getMSLevel() != quant_ms_level) continue;
       if ((*it).empty()) continue; // skip empty spectra
@@ -561,11 +578,15 @@ namespace OpenMS
         LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
       }
 
-      // store RT&MZ of parent ion as centroid of ConsensusFeature
+      // store RT&MZ of MS1 parent ion as centroid of ConsensusFeature
+      if (it_last_MS2 == ms_exp_data.end())
+      { // this only happens if an MS3 spec does not have a preceeding MS2
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+      }
       ConsensusFeature cf;
       cf.setUniqueId();
-      cf.setRT(it->getRT());
-      cf.setMZ(it->getPrecursors()[0].getMZ());
+      cf.setRT(it_last_MS2->getRT());
+      cf.setMZ(it_last_MS2->getPrecursors()[0].getMZ());
 
       Peak2D channel_value;
       channel_value.setRT(it->getRT());

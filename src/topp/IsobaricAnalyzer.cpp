@@ -36,10 +36,6 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-
 // the available quantitation methods
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
@@ -87,20 +83,25 @@ using namespace std;
     </table>
 </CENTER>
 
+  The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
+
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex and 10-plex as labeling methods.
-  It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), performs isotope correction and stores the resulting quantitation in a consensus map,
+  It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
   The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
-  The closest non-zero m/z signal to the theoretical position is taken as reporter ion.
-  The position (RT, m/z) of the consensus centroid is the precursor position in MS1;
-  the sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
+  For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
+  The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
+  the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
   
-  For TMT-10plex the search radius should be set to ~0.002 Th, since distances between channels are as small as ~0.006 Th.
-  The tool will throw an Exception if you set it below 0.001 Th. Usually, Orbitraps deliver precision of about 0.0001 Th (i.e. 10x better) at this low mass range.
+  For all labeling techniques, the search radius (@p reporter_mass_shift) should be set as small as possible, to avoid picking up false-positive ions as reporters.
+  Usually, Orbitraps deliver precision of about 0.0001 Th at this low mass range. Low intensity reporters might have a slightly higher deviation.
+  By default, the mass range is set to ~0.002 Th, which should be sufficient for all instruments (~15 ppm).
+  The tool will throw an Exception if you set it below 0.0001 Th (~0.7ppm).
   The tool will also throw an Exception if you set @p reporter_mass_shift > 0.003 Th for TMT-10plex, since this could
-  lead to ambiguities with neighbouring channels.
+  lead to ambiguities with neighbouring channels (which are ~0.006 Th apart in most cases).
+  
   For quality control purposes, the tool reports the median distance between the theoretical vs. observed reporter ion peaks in each channel.
-  The search radius is fixed to 0.5 Th (regardless of the user defined search window). This allows to track calibration issues.
+  The search radius is fixed to 0.5 Th (regardless of the user defined search radius). This allows to track calibration issues.
   For TMT-10plex, these results are automatically omitted if they could be confused with a neighbouring channel, i.e.
   exceed the tolerance to a neighbouring channel with the same nominal mass (C/N channels).
   If the distance is too large, you might have a m/z calibration problem (see @ref TOPP_InternalCalibration).
@@ -109,8 +110,6 @@ using namespace std;
   but the intensities of the overall feature and of all its sub-elements will be zero.
   (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
   However, if the spectrum is completely empty (no ions whatsoever), no consensus feature will be generated.
-  
-  The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
   
   Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
   Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species), 
@@ -124,35 +123,31 @@ using namespace std;
   The correction matrices can be found (and changed) in the INI file (parameter @p correction_matrix of the corresponding labeling method).
   However, these matrices for both 4-plex and 8-plex iTRAQ are now stable, and every kit delivered should have the same isotope correction values.
   Thus, there should be no need to change them, but feel free to compare the values in the INI file with your kit's certificate.
-  For TMT (6-plex and 10-plex) the values have to be adapted for each kit.
+  For TMT (6-plex and 10-plex) the values have to be adapted for each kit: Modify the correction matrix according to the data in the product data sheet of your charge:
+  <pre>
+  Data sheet:
+  Mass Tag  Repoter Ion -2      -1      Monoisotopic    +1     +2
+  126       126.12776   0.0%    0.0%        100%        5.0%   0.0%
+  127N      127.124761  0.0%    0.2%        100%        4.6%   0.0%
+  ...
+  </pre>
+  Corresponding correction matrix:
+  <pre>
+  [0.0/0.0/5.0/0.0,
+  0.0/0.2/4.6/0.0,
+  ...
+  </pre>
 
   After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications,
   obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set
-  suitably small RT and m/z tolerances for the mapping, since the identifications will come from the very same MSn
-  scans that are now represented by consensus features. In general it should be possible to achieve a perfect one-to-one
-  matching of every identification to a single consensus feature.@n
+  suitably small RT and m/z tolerances for the mapping. Since the positions of the consensus features reported here 
+  are taken from the precursor of the MS2 (also if quant was done in MS3), it should be possible to achieve a 
+  perfect one-to-one matching of every identification (from MS2) to a single consensus feature.
+
   Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities,
   you can use @ref TOPP_TextExporter to obtain a simple text format which you can feed to other software tools (e.g., R),
   or you can apply @ref TOPP_ProteinQuantifier.
 
-  For the TMT6plex and TMT10plex method please add the precentages of the correction matrix as shown in the product data sheet of your charge:
-<pre>
-  Data sheet:
-  Mass Tag  Repoter Ion -2      -1      Monoisotopic    +1    +2
-  126       126.12776   0.0%    0.0%        100%        5.0%   0.0%
-  127N      127.124761  0.0%    0.2%        100%        4.6%   0.0%
-  .
-  .
-  .
-</pre>
-  Corresponding correction matrix:
-<pre>
-  [0.0/0.0/5.0/0.0,
-   0.0/0.2/4.6/0.0,
-   .
-   .
-   .
-</pre>
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IsobaricAnalyzer.cli
