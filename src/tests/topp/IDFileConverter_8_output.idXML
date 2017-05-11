@@ -22,7 +22,7 @@
 				<UserParam type="int" name="pass_threshold" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="1.4" sequence="PEPTIDERR" charge="1" aa_before="A A" aa_after="B B" protein_refs="PH_0 PH_1" >
+			<PeptideHit score="1.4" sequence="PEPTIDERR" charge="1" aa_before="A A" aa_after="B B" protein_refs="PH_1 PH_0" >
 				<UserParam type="float" name="MS:1002354" value="1.4"/>
 				<UserParam type="float" name="calcMZ" value="1112.56946892307"/>
 				<UserParam type="int" name="pass_threshold" value="0"/>
