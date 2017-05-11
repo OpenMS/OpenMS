@@ -650,6 +650,8 @@ class TOPPXFDR :
             rank_counter++;
           }
         }
+        writeLog_("Number of IDs in input file: " + String(all_ids.size()));
+
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
              all_ids_it != all_ids.end(); ++ all_ids_it)
         {
@@ -677,7 +679,7 @@ class TOPPXFDR :
               assert(pep_id_target_decoy == "decoy");
             }
           }
-       }
+       } 
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
@@ -689,6 +691,7 @@ class TOPPXFDR :
         }
 
         MzIdentMLFile().load(arg_in, prot_ids, all_ids);
+        writeLog_("Number of IDs in input file: " + String(all_ids.size()));
 
         if ( ! this->prepareInput(all_ids))
         {
@@ -719,6 +722,8 @@ class TOPPXFDR :
         }
 
         IdXMLFile().load(arg_in, prot_ids, all_ids);
+        writeLog_("Number of IDs in input file: " + String(all_ids.size()));
+
         if ( ! this->prepareInput(all_ids))
         {
           LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
@@ -738,7 +743,7 @@ class TOPPXFDR :
           rank_counter++;
         }
       }
-      
+
       // Number of peptide identifications that need to be considered
       Size n_ids = rank_one_ids.size();
 
