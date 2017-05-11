@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg, Eugen Netz $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/XLMS/OpenProXLUtils.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
@@ -259,9 +259,9 @@ protected:
   // TODO compute and store some kind of score from the pair matching
   // TODO since the alignment algo is used, maybe just matched intensity sum / spectrum intensity sum (correlation)?
   // create common / shifted peak spectra for all pairs
-  OpenProXLUtils::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
+  OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
-    OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
+    OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
  
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -593,7 +593,7 @@ protected:
 
     // create common peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
-    OpenProXLUtils::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+    OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
 
 
@@ -676,7 +676,7 @@ protected:
     }
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    vector<OpenProXLUtils::AASeqWithMass> peptide_masses;
+    vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
 
     Size count_proteins = 0;
     Size count_peptides = 0;
@@ -713,7 +713,7 @@ protected:
 
     cout << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
 
-    sort(peptide_masses.begin(), peptide_masses.end(), OpenProXLUtils::AASeqWithMassComparator());
+    sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
 
     // The largest peptides given a fixed maximal precursor mass are possible with loop links
     // Filter peptides using maximal loop link mass first
@@ -736,18 +736,18 @@ protected:
     cout << "Filtering peptides with precursors" << endl;
 
     // search for the first mass greater than the maximim, use everything before that peptide
-    vector<OpenProXLUtils::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OpenProXLUtils::AASeqWithMassComparator());
-	vector<OpenProXLUtils::AASeqWithMass> filtered_peptide_masses;
+    vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
+	vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
 	filtered_peptide_masses.assign(peptide_masses.begin(), last);
 
-    vector<OpenProXLUtils::XLPrecursor> enumerated_cross_link_masses;
+    vector<OPXLDataStructs::XLPrecursor> enumerated_cross_link_masses;
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
     enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses_(filtered_peptide_masses, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
                                                                                                                                                     spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
 
     cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
-    sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OpenProXLUtils::XLPrecursorComparator());
+    sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OPXLDataStructs::XLPrecursorComparator());
     cout << "Sorting of enumerated precursors finished" << endl;
 
     // TODO test variables, can be removed, or set to be used in debug mode?
@@ -763,7 +763,7 @@ protected:
 
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
-    vector< vector< CrossLinkSpectrumMatch > > all_top_csms;
+    vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > > all_top_csms;
 
     Size spectrum_counter = 0;
 
@@ -798,7 +798,7 @@ protected:
       vector< double > aucorrx = XQuestScores::xCorrelation(all_peaks, all_peaks, 5, 0.3);
       vector< double > aucorrc = XQuestScores::xCorrelation(all_peaks, all_peaks, 5, 0.2);
 
-      vector< CrossLinkSpectrumMatch > top_csms_spectrum;
+      vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
 
       // ignore this spectrum pair, if they have less paired peaks than the minimal peptide size
       if (all_peaks.size() < peptide_min_size)
@@ -806,12 +806,12 @@ protected:
         continue;
       }
       // determine candidates
-      vector< OpenProXLUtils::XLPrecursor > candidates;
+      vector< OPXLDataStructs::XLPrecursor > candidates;
       double allowed_error = 0;
 
       // determine MS2 precursors that match to the current peptide mass
-      vector< OpenProXLUtils::XLPrecursor >::const_iterator low_it;
-      vector< OpenProXLUtils::XLPrecursor >::const_iterator up_it;
+      vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
+      vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
       if (precursor_mass_tolerance_unit_ppm) // ppm
       {
@@ -826,8 +826,8 @@ protected:
 #pragma omp critical (enumerated_cross_link_masses_access)
 #endif
       {
-        low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass - allowed_error, OpenProXLUtils::XLPrecursorComparator());
-        up_it = upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass + allowed_error, OpenProXLUtils::XLPrecursorComparator());
+        low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+        up_it = upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
       }
 
       if (low_it != up_it) // no matching precursor in data
@@ -844,10 +844,10 @@ protected:
       cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
+      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
 
       // lists for one spectrum, to determine best match to the spectrum
-      vector< CrossLinkSpectrumMatch > all_csms_spectrum;
+      vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
 
       // TODO variables for benchmarking and testing purposes
 #ifdef _OPENMP
@@ -860,13 +860,13 @@ protected:
 
       for (Size i = 0; i != cross_link_candidates.size(); ++i)
       {
-        ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
+        OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
 
-        CrossLinkSpectrumMatch csm;
+        OPXLDataStructs::CrossLinkSpectrumMatch csm;
         csm.cross_link = cross_link_candidate;
 
         PeakSpectrum theoretical_spec_common_alpha;
@@ -874,8 +874,8 @@ protected:
         PeakSpectrum theoretical_spec_xlinks_alpha;
         PeakSpectrum theoretical_spec_xlinks_beta;
 
-        bool type_is_cross_link = cross_link_candidate.getType() == ProteinProteinCrossLink::CROSS;
-        bool type_is_loop = cross_link_candidate.getType() == ProteinProteinCrossLink::LOOP;
+        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS;
+        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP;
         Size link_pos_B = 0;
         if (type_is_loop)
         {
@@ -1146,7 +1146,7 @@ protected:
         LOG_DEBUG << "Score: " << all_csms_spectrum[max_position].score << "\t wTIC: " << all_csms_spectrum[max_position].wTIC << "\t xcorrx: " << all_csms_spectrum[max_position].xcorrx_max
                 << "\t xcorrc: " << all_csms_spectrum[max_position].xcorrc_max << "\t match-odds: " << all_csms_spectrum[max_position].match_odds << "\t Intsum: " << all_csms_spectrum[max_position].int_sum << endl;
 
-        if (all_csms_spectrum[max_position].cross_link.getType() == ProteinProteinCrossLink::CROSS)
+        if (all_csms_spectrum[max_position].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS)
         {
           LOG_DEBUG << "Matched ions calpha , cbeta , xalpha , xbeta" << "\t" << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_common_beta
                   << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha <<  "\t" << all_csms_spectrum[max_position].matched_xlink_beta << endl;
