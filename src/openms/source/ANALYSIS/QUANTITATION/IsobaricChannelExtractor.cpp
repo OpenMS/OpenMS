@@ -499,10 +499,10 @@ namespace OpenMS
     LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
     for (std::map<UInt, UInt>::const_iterator it = ms_level.begin(); it != ms_level.end(); ++it)
     {
-      LOG_INFO << "  lvl " << it->first << ": " << it->second << " scans\n";
+      LOG_INFO << "  level " << it->first << ": " << it->second << " scans\n";
     }
     UInt quant_ms_level = ms_level.rbegin()->first;
-    LOG_INFO << "Using ms-level " << quant_ms_level << " for quantification." << std::endl;
+    LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification." << std::endl;
 
     // now we have picked data
     // --> assign peaks to channels

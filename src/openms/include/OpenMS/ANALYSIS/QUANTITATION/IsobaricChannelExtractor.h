@@ -211,12 +211,7 @@ private:
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        for (std::set<Precursor::ActivationMethod>::const_iterator it_a = it->getActivationMethods().begin();
-          it_a != it->getActivationMethods().end();
-          ++it_a)
-        {
-          return Precursor::NamesOfActivationMethod[*it_a];
-        }
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
       }
       return "";
     }
