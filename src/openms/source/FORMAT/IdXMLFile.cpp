@@ -300,11 +300,14 @@ namespace OpenMS
           os << createFlankingAAXMLString_(pes);
           os << createPositionXMLString_(pes);
 
+          // Extract all protein accessions.
+          // Note: protein accessions correspond to neighboring AAs and start/end
+          // positions, so we have to keep the same order and allow duplicates
+          // (for peptides matching multiple times in the same protein)
           std::vector<String> protein_accessions;
-
           for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
           {
-            const String protein_accession = pe->getProteinAccession();
+            const String& protein_accession = pe->getProteinAccession();
 
             // empty accessions are not written out (legacy code)
             if (!protein_accession.empty())
@@ -312,7 +315,8 @@ namespace OpenMS
               protein_accessions.push_back(protein_accession);
             }
           }
-          
+
+          // map accessions to indices          
           std::vector<UInt> ids;
           for (std::vector<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
           {
@@ -629,15 +633,16 @@ namespace OpenMS
 
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setAABefore(splitted[i][0]);
+          peptide_evidences_.resize(parts.size());
+        }
+
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setAABefore(parts[i][0]);
         }
       }
 
@@ -646,15 +651,16 @@ namespace OpenMS
       optionalAttributeAsString_(tmp, attributes, "aa_after");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setAAAfter(splitted[i][0]);
+          peptide_evidences_.resize(parts.size());
+        }
+
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setAAAfter(parts[i][0]);
         }
       }
 
@@ -664,15 +670,16 @@ namespace OpenMS
 
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setStart(splitted[i].toInt());
+          peptide_evidences_.resize(parts.size());
+        }
+
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setStart(parts[i].toInt());
         }
       }
 
@@ -681,15 +688,16 @@ namespace OpenMS
       optionalAttributeAsString_(tmp, attributes, "end");
       if (!tmp.empty())
       {
-        std::vector<String> splitted;
-        tmp.split(' ', splitted);
-        for (Size i = 0; i != splitted.size(); ++i)
+        std::vector<String> parts;
+        tmp.split(' ', parts);
+        if (peptide_evidences_.size() < parts.size())
         {
-          if (peptide_evidences_.size() < i + 1)
-          {
-            peptide_evidences_.push_back(PeptideEvidence());
-          }
-          peptide_evidences_[i].setEnd(splitted[i].toInt());
+          peptide_evidences_.resize(parts.size());
+        }
+
+        for (Size i = 0; i != parts.size(); ++i)
+        {
+          peptide_evidences_[i].setEnd(parts[i].toInt());
         }
       }
 
