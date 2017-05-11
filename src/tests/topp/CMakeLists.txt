@@ -2008,3 +2008,24 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+# OpenProXL test:
+add_test("UTILS_OpenProXL_1" ${TOPP_BIN_PATH}/OpenProXL -test -in ${DATA_DIR_TOPP}/OpenProXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenProXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenProXL_input.fasta -out_xquestxml OpenProXL_output.xquest.xml.tmp -out_xquest_specxml OpenProXL_output.spec.xml.tmp -out_mzIdentML OpenProXL_output.mzid.tmp -out_idXML OpenProXL_output.idXML.tmp)
+add_test("UTILS_OpenProXL_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenProXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenProXL_output.xquest.xml )
+add_test("UTILS_OpenProXL_1_out_2" ${DIFF} -in1 OpenProXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenProXL_output.spec.xml )
+add_test("UTILS_OpenProXL_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" -in1 OpenProXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenProXL_output.mzid )
+add_test("UTILS_OpenProXL_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" -in1 OpenProXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenProXL_output.idXML )
+set_tests_properties("UTILS_OpenProXL_1_out_1" PROPERTIES DEPENDS "UTILS_OpenProXL_1")
+set_tests_properties("UTILS_OpenProXL_1_out_2" PROPERTIES DEPENDS "UTILS_OpenProXL_1")
+set_tests_properties("UTILS_OpenProXL_1_out_3" PROPERTIES DEPENDS "UTILS_OpenProXL_1")
+set_tests_properties("UTILS_OpenProXL_1_out_4" PROPERTIES DEPENDS "UTILS_OpenProXL_1")
+
+# OpenProXLLF test:
+add_test("UTILS_OpenProXLLF_1" ${TOPP_BIN_PATH}/OpenProXLLF -test -in ${DATA_DIR_TOPP}/OpenProXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenProXLLF_input.fasta -out_xquestxml OpenProXLLF_output.xquest.xml.tmp -out_xquest_specxml OpenProXLLF_output.spec.xml.tmp -out_mzIdentML OpenProXLLF_output.mzid.tmp -out_idXML OpenProXLLF_output.idXML.tmp)
+add_test("UTILS_OpenProXLLF_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenProXLLF_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenProXLLF_output.xquest.xml )
+add_test("UTILS_OpenProXLLF_1_out_2" ${DIFF} -in1 OpenProXLLF_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenProXLLF_output.spec.xml )
+add_test("UTILS_OpenProXLLF_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" -in1 OpenProXLLF_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenProXLLF_output.mzid )
+add_test("UTILS_OpenProXLLF_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" -in1 OpenProXLLF_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenProXLLF_output.idXML )
+set_tests_properties("UTILS_OpenProXLLF_1_out_1" PROPERTIES DEPENDS "UTILS_OpenProXLLF_1")
+set_tests_properties("UTILS_OpenProXLLF_1_out_2" PROPERTIES DEPENDS "UTILS_OpenProXLLF_1")
+set_tests_properties("UTILS_OpenProXLLF_1_out_3" PROPERTIES DEPENDS "UTILS_OpenProXLLF_1")
+set_tests_properties("UTILS_OpenProXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenProXLLF_1")
