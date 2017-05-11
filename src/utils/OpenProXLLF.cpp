@@ -979,6 +979,20 @@ protected:
 //        csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_xlinks);
 //        csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec);
 
+
+        // DELETE THESE LINES LATER
+        csm.PScoreCommon = 0;
+        csm.PScoreXlink = 0;
+        csm.PScoreBoth = 0;
+        csm.PScoreAlpha = 0;
+        csm.PScoreBeta = 0;
+
+        csm.HyperCommon = 0;
+        csm.HyperAlpha = 0;
+        csm.HyperBeta = 0;
+        csm.HyperXlink = 0;
+        csm.HyperBoth = 0;
+
 //########################### END TESTING SCORES ###########################################
 
 

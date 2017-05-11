@@ -1073,6 +1073,19 @@ protected:
 //          csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
 //          csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
 
+        // DELETE THESE LINES LATER
+        csm.PScoreCommon = 0;
+        csm.PScoreXlink = 0;
+        csm.PScoreBoth = 0;
+        csm.PScoreAlpha = 0;
+        csm.PScoreBeta = 0;
+
+        csm.HyperCommon = 0;
+        csm.HyperAlpha = 0;
+        csm.HyperBeta = 0;
+        csm.HyperXlink = 0;
+        csm.HyperBoth = 0;
+
 //############################# END TESTING SCORES ###########################################
 
 #ifdef _OPENMP
