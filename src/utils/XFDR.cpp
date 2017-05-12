@@ -641,9 +641,6 @@ class TOPPXFDR :
         XQuestResultXMLFile xquest_result_file;
         xquest_result_file.load(arg_in, spectra, prot_ids, 1, true);
 
-        this->min_score = std::floor(xquest_result_file.getMinScore());
-        this->max_score = std::ceil(xquest_result_file.getMaxScore());
-
         // currently, cross-link identifications are stored within one ProteinIdentification
         assert(prot_ids.size() == 1);
         n_spectra = spectra.size();
@@ -724,12 +721,6 @@ class TOPPXFDR :
           return INPUT_FILE_EMPTY;
         }
 
-        if ( ! this->prepareInput(all_ids, prot_ids))
-        {
-          LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
-          return INPUT_FILE_CORRUPT;
-        }
-
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
              all_ids_it != all_ids.end(); ++all_ids_it)
@@ -762,12 +753,6 @@ class TOPPXFDR :
           return INPUT_FILE_EMPTY;
         }
 
-        if ( ! this->prepareInput(all_ids, prot_ids))
-        {
-          LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
-          return INPUT_FILE_CORRUPT;
-        }
-
         Size rank_counter = 0;
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
              all_ids_it != all_ids.end(); ++all_ids_it)
@@ -780,6 +765,13 @@ class TOPPXFDR :
           }
           rank_counter++;
         }
+      }
+
+      // Prepare input data
+      if ( ! this->prepareInput(all_ids, prot_ids))
+      {
+        LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
+        return INPUT_FILE_CORRUPT;
       }
 
       // Number of peptide identifications that need to be considered
