@@ -839,8 +839,10 @@ class TOPPXFDR :
       }
 
       /*
-       * Sort rank one hits in descending order according to the score
+       * Sort rank one hits in descending order according to the score.
        */
+
+      // Contains the indices of the rank_one_ids sorted by the score (Init from 0,1,2,...,rank_one_ids.size()
       vector< UInt > order_score ( boost::counting_iterator<Size>(0),
                                    boost::counting_iterator<Size>(rank_one_ids.size()));
 
