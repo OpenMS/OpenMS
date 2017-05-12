@@ -4,12 +4,12 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17037743280630708180"
-	creationDate="2017-05-11T15:35:43">
+	creationDate="2017-05-12T17:10:38">
 <cvList>
-	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv> 
- 	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv> 
+	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
+ 	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo"></cv>
-	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv> 
+	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
 	<AnalysisSoftware version="2.1.0" name="OpenXQuest" id="SOF_5233264595117471314">
@@ -39,284 +39,284 @@
 	<DBSequence accession="Protein5" searchDatabase_ref="SDB_3332699010107892018" id="PROT_474525871221756682">
 		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="Protein5"/>
 	</DBSequence>
-	<Peptide id="PEP_10052793688680741109">
+	<Peptide id="PEP_10052793688680741109" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="13424404046998308790"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_11164532998186420766">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="13424404046998308790"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_11164532998186420766" name="KLEFPLPNEEAR">
 		<PeptideSequence>KLEFPLPNEEAR</PeptideSequence>
-		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9774290362926279551"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_11221884879889731173">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_11221884879889731173" name="IKENQEK">
 		<PeptideSequence>IKENQEK</PeptideSequence>
-		<Modification location="2" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="4021463513649428920"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_11330022419841184299">
+		<Modification location="2" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="4021463513649428920"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_11330022419841184299" name="EVIELPLK[284.1736087656]NPELFLR">
 		<PeptideSequence>EVIELPLKNPELFLR</PeptideSequence>
 		<Modification location="8" residues="K">
 			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
 		</Modification>
-	</Peptide> 
- 	<Peptide id="PEP_11583213259935596392">
+	</Peptide>
+ 	<Peptide id="PEP_11583213259935596392" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="16616557306000669869"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_1196373166564353753">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="16616557306000669869"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_1196373166564353753" name="KLGVKPPK">
 		<PeptideSequence>KLGVKPPK</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="4584897071539917580"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_12665713047548007769">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="4584897071539917580"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_12665713047548007769" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13424404046998308790"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_13641829453453140763">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_13641829453453140763" name="EWDSKLK">
 		<PeptideSequence>EWDSKLK</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="8195437834883133454"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_13656841482678042157">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="8195437834883133454"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_13656841482678042157" name="GGVHVK[284.1736087656]LAHLSK">
 		<PeptideSequence>GGVHVKLAHLSK</PeptideSequence>
 		<Modification location="6" residues="K">
 			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
 		</Modification>
-	</Peptide> 
- 	<Peptide id="PEP_13663761038749696507">
+	</Peptide>
+ 	<Peptide id="PEP_13663761038749696507" name="GGNMKEVFR">
 		<PeptideSequence>GGNMKEVFR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="15490049804574065229"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_14745721201431314415">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="15490049804574065229"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_14745721201431314415" name="ETEKLAEER">
 		<PeptideSequence>ETEKLAEER</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="7273255783824449336"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_14891455924036538147">
+		<Modification location="4" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="7273255783824449336"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_14891455924036538147" name="MSERDTALEK">
 		<PeptideSequence>MSERDTALEK</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6182960951962378739"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_15012949867540041090">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_15012949867540041090" name="GGNMKEVFR">
 		<PeptideSequence>GGNMKEVFR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="18365384202816725379"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_15120290131060441429">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="18365384202816725379"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_15120290131060441429" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="3823858840059792698"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_15721057298497490036">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="3823858840059792698"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_15721057298497490036" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18390135059454481268"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_16164338904207598736">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_16164338904207598736" name="LAAPQLVQMFIGDGAK[284.1736087656]LVR">
 		<PeptideSequence>LAAPQLVQMFIGDGAKLVR</PeptideSequence>
 		<Modification location="16" residues="K">
 			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
 		</Modification>
-	</Peptide> 
- 	<Peptide id="PEP_16177748921272733768">
+	</Peptide>
+ 	<Peptide id="PEP_16177748921272733768" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="3023658190814908261"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_16715553145456715818">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="3023658190814908261"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_16715553145456715818" name="KLEFPLPNEEAR">
 		<PeptideSequence>KLEFPLPNEEAR</PeptideSequence>
-		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7273255783824449336"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_17052620940680608488">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_17052620940680608488" name="LTHEKSTMLEKIK">
 		<PeptideSequence>LTHEKSTMLEKIK</PeptideSequence>
-		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15490049804574065229"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_17475759268436611148">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_17475759268436611148" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="9949257177078866781"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_1755235105885170967">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="9949257177078866781"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_1755235105885170967" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="17413765565443951891"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_17623301629315165502">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="17413765565443951891"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_17623301629315165502" name="ETEKLAEER">
 		<PeptideSequence>ETEKLAEER</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="9774290362926279551"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_17757401347613427925">
+		<Modification location="4" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="9774290362926279551"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_17757401347613427925" name="LEKGQSIDDMIPAQK">
 		<PeptideSequence>LEKGQSIDDMIPAQK</PeptideSequence>
-		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17879691353184002386"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_2067209405782217684">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_2067209405782217684" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10231321952512194787"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_260132145239717571">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_260132145239717571" name="MSERDTALEK">
 		<PeptideSequence>MSERDTALEK</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4584897071539917580"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_2660422259164526995">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_2660422259164526995" name="KLGVKPPK">
 		<PeptideSequence>KLGVKPPK</PeptideSequence>
-		<Modification location="1" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="6182960951962378739"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_2927519776102075938">
+		<Modification location="1" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="6182960951962378739"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_2927519776102075938" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17413765565443951891"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_3103608995878612024">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_3103608995878612024" name="EKASFAR">
 		<PeptideSequence>EKASFAR</PeptideSequence>
-		<Modification location="2" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="17879691353184002386"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_3115030544351500350">
+		<Modification location="2" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="17879691353184002386"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_3115030544351500350" name="LTHEKSTMLEKIK">
 		<PeptideSequence>LTHEKSTMLEKIK</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18365384202816725379"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_3386388678910226661">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_3386388678910226661" name="MCSPSATLTHRTMTEK">
 		<PeptideSequence>MCSPSATLTHRTMTEK</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4021463513649428920"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_3395379003172100421">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_3395379003172100421" name="MSTLDLNHLADLYDR">
 		<PeptideSequence>MSTLDLNHLADLYDR</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8195437834883133454"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_4870109536405501088">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_4870109536405501088" name="LSVEALNSLTGEFKGK">
 		<PeptideSequence>LSVEALNSLTGEFKGK</PeptideSequence>
-		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12959367150092654332"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_5494749430262800962">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_5494749430262800962" name="VKAMEVDEKPTER">
 		<PeptideSequence>VKAMEVDEKPTER</PeptideSequence>
-		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4287466236848599457"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_5634796270667792442">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_5634796270667792442" name="VKAMEVDEKPTER">
 		<PeptideSequence>VKAMEVDEKPTER</PeptideSequence>
-		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2477368416748083016"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_6330378408783783417">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_6330378408783783417" name="STMLEKIK">
 		<PeptideSequence>STMLEKIK</PeptideSequence>
-		<Modification location="6" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="2477368416748083016"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_6485175442085010172">
+		<Modification location="6" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="2477368416748083016"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_6485175442085010172" name="STMLEKIK">
 		<PeptideSequence>STMLEKIK</PeptideSequence>
-		<Modification location="6" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="4287466236848599457"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_7207371083159283456">
+		<Modification location="6" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="4287466236848599457"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_7207371083159283456" name="NKADYYTNICDRER">
 		<PeptideSequence>NKADYYTNICDRER</PeptideSequence>
-		<Modification location="2" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="12959367150092654332"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_7283948392886265699">
+		<Modification location="2" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="12959367150092654332"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_7283948392886265699" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="18390135059454481268"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_7898004582401008768">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="18390135059454481268"/>
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_7898004582401008768" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3023658190814908261"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_8474756626526195362">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_8474756626526195362" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9949257177078866781"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_893904610286969204">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_893904610286969204" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3823858840059792698"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_8984402899352117479">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_8984402899352117479" name="FIVKASSGPR">
 		<PeptideSequence>FIVKASSGPR</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16616557306000669869"/>
-		</Modification> 
-	</Peptide> 
- 	<Peptide id="PEP_9657195323739211621">
+		</Modification>
+	</Peptide>
+ 	<Peptide id="PEP_9657195323739211621" name="SAVIKTSTR">
 		<PeptideSequence>SAVIKTSTR</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0"> 
-			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link receiver" value="10231321952512194787"/>
-		</Modification> 
-	</Peptide> 
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="10231321952512194787"/>
+		</Modification>
+	</Peptide>
  	<PeptideEvidence id="PEV_11275867043381640475" peptide_ref="PEP_15120290131060441429" dBSequence_ref="PROT_15916652588957785155" post="Q" pre="K" start="119" end="127" isDecoy="0"/>
 	<PeptideEvidence id="PEV_11504199178185045470" peptide_ref="PEP_4870109536405501088" dBSequence_ref="PROT_15157403601844400700" post="Y" pre="K" start="156" end="171" isDecoy="0"/>
 	<PeptideEvidence id="PEV_11630589982317102322" peptide_ref="PEP_3395379003172100421" dBSequence_ref="PROT_6408859317243173796" post="K" pre="-" start="0" end="14" isDecoy="0"/>
@@ -362,7 +362,7 @@
 	<PeptideEvidence id="PEV_9672067365742190701" peptide_ref="PEP_17475759268436611148" dBSequence_ref="PROT_15916652588957785155" post="Q" pre="K" start="119" end="127" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-11T15:35:42">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-12T17:10:37">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -392,8 +392,6 @@
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="2"/>
 			<userParam name="charges" unitName="xsd:string" value="2,3,4,5,6"/>
 		</AdditionalSearchParams>
-		<ModificationParams>
-		</ModificationParams>
 		<Enzymes independent="false">
 			<Enzyme missedCleavages="2" id="ENZ_7804704400743266335">
 				<EnzymeName>
@@ -423,7 +421,7 @@
 			<DatabaseName>
 				<userParam name="/home/eugen/Development/OpenMS/src/tests/topp/OpenProXL_input.fasta"/>
 			</DatabaseName>
-			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="329"/> 
+			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="329"/>
 		</SearchDatabase>
 		<SpectraData location="file:///home/eugen/MSData/01_ExampleFiles/OpenProXL_ToolTest/test_rt1.mzML" id="SDAT_15004869347769368353">
 			<FileFormat>
@@ -451,7 +449,7 @@
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=102,spectrum=89" id="SIR_6878260161865568505">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3386388678910226661" calculatedMassToCharge="940.462726406471" experimentalMassToCharge="940.460021972656" chargeState="3" id="SII_3689406389503231823">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_13574947772324278593"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_13574947772324278593"/>
 					<Fragmentation>
 						<IonType charge="1" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="1348.91369628906"/>
@@ -512,7 +510,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3386388678910226661" calculatedMassToCharge="944.487833406471" experimentalMassToCharge="944.484130859375" chargeState="3" id="SII_11106716189850669289">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_13574947772324278593"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_13574947772324278593"/>
 					<Fragmentation>
 						<IonType charge="1" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="1348.91369628906"/>
@@ -573,7 +571,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11221884879889731173" calculatedMassToCharge="940.462726406471" experimentalMassToCharge="940.460021972656" chargeState="3" id="SII_5805590394902791448">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_575144564576995072"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_575144564576995072"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="6.72129805945549"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4021463513649428920"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.154719396822145"/>
@@ -597,7 +595,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11221884879889731173" calculatedMassToCharge="944.487833406471" experimentalMassToCharge="944.484130859375" chargeState="3" id="SII_11586291247413769442">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_575144564576995072"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_575144564576995072"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="6.72129805945549"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4021463513649428920"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.154719396822145"/>
@@ -621,7 +619,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_3395379003172100421" calculatedMassToCharge="940.468863210604" experimentalMassToCharge="940.460021972656" chargeState="3" id="SII_1339341489815824759">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_11630589982317102322"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11630589982317102322"/>
 					<Fragmentation>
 						<IonType charge="2" index="5">
 							<FragmentArray measure_ref="Measure_mz" values="796.450317382812"/>
@@ -668,7 +666,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_3395379003172100421" calculatedMassToCharge="944.493970210604" experimentalMassToCharge="944.484130859375" chargeState="3" id="SII_17325731682080510033">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_11630589982317102322"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11630589982317102322"/>
 					<Fragmentation>
 						<IonType charge="2" index="5">
 							<FragmentArray measure_ref="Measure_mz" values="796.450317382812"/>
@@ -715,7 +713,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_13641829453453140763" calculatedMassToCharge="940.468863210604" experimentalMassToCharge="940.460021972656" chargeState="3" id="SII_4041634828915281168">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_12388384985798314387"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_12388384985798314387"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="3.55196676945171"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="8195437834883133454"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.243738768806752"/>
@@ -739,7 +737,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_13641829453453140763" calculatedMassToCharge="944.493970210604" experimentalMassToCharge="944.484130859375" chargeState="3" id="SII_17078574238716611972">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_12388384985798314387"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_12388384985798314387"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="3.55196676945171"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="8195437834883133454"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.243738768806752"/>
@@ -765,7 +763,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=123,spectrum=77" id="SIR_6330535588886112108">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_13656841482678042157" calculatedMassToCharge="513.967966481838" experimentalMassToCharge="467.945617675781" chargeState="3" id="SII_9239964739177281349">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7138020121190169918"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7138020121190169918"/>
 					<Fragmentation>
 						<IonType charge="1" index="3 4 4 5 5">
 							<FragmentArray measure_ref="Measure_mz" values="214.164779663086 351.171539306641 352.044006347656 450.284820556641 451.111572265625"/>
@@ -833,7 +831,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_13656841482678042157" calculatedMassToCharge="517.993073481838" experimentalMassToCharge="471.971282958984" chargeState="3" id="SII_1913989207508168661">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7138020121190169918"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7138020121190169918"/>
 					<Fragmentation>
 						<IonType charge="1" index="3 4 4 5 5">
 							<FragmentArray measure_ref="Measure_mz" values="214.164779663086 351.171539306641 352.044006347656 450.284820556641 451.111572265625"/>
@@ -903,7 +901,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=131,spectrum=113" id="SIR_17153647282322401195">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2067209405782217684" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084594726563" chargeState="3" id="SII_1253235807487386477">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7619024488371696138"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7619024488371696138"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859 262.144775390625 360.179565429688 372.263916015625"/>
@@ -971,7 +969,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2067209405782217684" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.109252929688" chargeState="3" id="SII_15568981923429820128">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7619024488371696138"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7619024488371696138"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859 262.144775390625 360.179565429688 372.263916015625"/>
@@ -1039,7 +1037,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_9657195323739211621" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084594726563" chargeState="3" id="SII_9693516254110939661">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_15595829921891090644"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_15595829921891090644"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="46.6701479800204"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="10231321952512194787"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.261599822067218"/>
@@ -1063,7 +1061,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_9657195323739211621" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.109252929688" chargeState="3" id="SII_16459288859473286876">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_15595829921891090644"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_15595829921891090644"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="46.6701479800204"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="10231321952512194787"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.261599822067218"/>
@@ -1089,7 +1087,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=131,spectrum=23" id="SIR_17876486934271562208">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_8474756626526195362" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084594726563" chargeState="3" id="SII_3607574553438867574">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_16603831684342283009"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_16603831684342283009"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859 262.144775390625 360.179565429688 361.202697753906 371.366638183594"/>
@@ -1157,7 +1155,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_8474756626526195362" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.108947753906" chargeState="3" id="SII_4906628401344677738">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_16603831684342283009"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_16603831684342283009"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.180999755859 262.144775390625 360.179565429688 361.202697753906 371.366638183594"/>
@@ -1225,7 +1223,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17475759268436611148" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084594726563" chargeState="3" id="SII_11902665203725986836">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_9672067365742190701"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_9672067365742190701"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="47.0790145891855"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="9949257177078866781"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.272588985141274"/>
@@ -1249,7 +1247,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17475759268436611148" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.108947753906" chargeState="3" id="SII_3279626156608649238">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_9672067365742190701"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_9672067365742190701"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="47.0790145891855"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="9949257177078866781"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.272588985141274"/>
@@ -1275,7 +1273,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=132,spectrum=120" id="SIR_15885522598119108466">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_893904610286969204" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_17447818880105247092">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14851350658635457156"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14851350658635457156"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="260.994598388672 262.106689453125 360.133117675781 361.191528320312 372.203247070312"/>
@@ -1350,7 +1348,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_893904610286969204" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.082763671875" chargeState="4" id="SII_1003624456647096845">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14851350658635457156"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14851350658635457156"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="260.994598388672 262.106689453125 360.133117675781 361.191528320312 372.203247070312"/>
@@ -1425,7 +1423,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15120290131060441429" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_3713543811689521337">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_11275867043381640475"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11275867043381640475"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="36.1069086893269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="3823858840059792698"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.315878638076373"/>
@@ -1449,7 +1447,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15120290131060441429" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.082763671875" chargeState="4" id="SII_8666254306116808202">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_11275867043381640475"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11275867043381640475"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="36.1069086893269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="3823858840059792698"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.315878638076373"/>
@@ -1475,7 +1473,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=132,spectrum=40" id="SIR_14509930621887606273">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_12665713047548007769" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_3491056946625602141">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_17092894204355333314"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_17092894204355333314"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 3 3 4 4">
 							<FragmentArray measure_ref="Measure_mz" values="260.994598388672 262.106689453125 360.133117675781 361.191528320312 258.161224365234 259.076019287109 371.037475585938 372.203247070312"/>
@@ -1550,7 +1548,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_12665713047548007769" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.084228515625" chargeState="4" id="SII_10627069796380146481">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_17092894204355333314"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_17092894204355333314"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 3 3 4 4">
 							<FragmentArray measure_ref="Measure_mz" values="260.994598388672 262.106689453125 360.133117675781 361.191528320312 258.161224365234 259.076019287109 371.037475585938 372.203247070312"/>
@@ -1625,7 +1623,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_10052793688680741109" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_14768204679546465715">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_15166508592180818156"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_15166508592180818156"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="46.7306032429277"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="13424404046998308790"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.2797566349336"/>
@@ -1649,7 +1647,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_10052793688680741109" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.084228515625" chargeState="4" id="SII_12156709473159629610">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_15166508592180818156"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_15166508592180818156"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="46.7306032429277"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="13424404046998308790"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.2797566349336"/>
@@ -1675,7 +1673,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=185,spectrum=173" id="SIR_3110306690676341028">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_16715553145456715818" calculatedMassToCharge="671.849899052271" experimentalMassToCharge="671.844909667969" chargeState="4" id="SII_15974525296577096328">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_17732694574582820772"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_17732694574582820772"/>
 					<Fragmentation>
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="246.235961914062"/>
@@ -1736,7 +1734,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_16715553145456715818" calculatedMassToCharge="674.868729302271" experimentalMassToCharge="674.863525390625" chargeState="4" id="SII_3850221777823943420">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_17732694574582820772"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_17732694574582820772"/>
 					<Fragmentation>
 						<IonType charge="1" index="2">
 							<FragmentArray measure_ref="Measure_mz" values="246.235961914062"/>
@@ -1797,7 +1795,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_14745721201431314415" calculatedMassToCharge="671.849899052271" experimentalMassToCharge="671.844909667969" chargeState="4" id="SII_17559911639132578699">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_4804931408721345291"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_4804931408721345291"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="3.72397452365694"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="7273255783824449336"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.271123986530516"/>
@@ -1821,7 +1819,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_14745721201431314415" calculatedMassToCharge="674.868729302271" experimentalMassToCharge="674.863525390625" chargeState="4" id="SII_16987762588190708774">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_4804931408721345291"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_4804931408721345291"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="3.72397452365694"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="7273255783824449336"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.271123986530516"/>
@@ -1847,7 +1845,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=187,spectrum=174" id="SIR_12855069628258305325">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11164532998186420766" calculatedMassToCharge="895.464106580771" experimentalMassToCharge="895.456604003906" chargeState="3" id="SII_6432949088199598535">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_435931305321438914"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_435931305321438914"/>
 					<Fragmentation>
 						<IonType charge="1" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="1613.57995605469"/>
@@ -1915,7 +1913,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11164532998186420766" calculatedMassToCharge="899.489213580771" experimentalMassToCharge="899.483581542969" chargeState="3" id="SII_14426272183616168414">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_435931305321438914"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_435931305321438914"/>
 					<Fragmentation>
 						<IonType charge="1" index="3">
 							<FragmentArray measure_ref="Measure_mz" values="1613.57995605469"/>
@@ -1983,7 +1981,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17623301629315165502" calculatedMassToCharge="895.464106580771" experimentalMassToCharge="895.456604003906" chargeState="3" id="SII_15355009979912333657">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_8226270557132872791"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_8226270557132872791"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="6.79133571577382"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="9774290362926279551"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.192935258434559"/>
@@ -2007,7 +2005,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17623301629315165502" calculatedMassToCharge="899.489213580771" experimentalMassToCharge="899.483581542969" chargeState="3" id="SII_12175240310315893095">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_8226270557132872791"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_8226270557132872791"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="6.79133571577382"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="9774290362926279551"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.192935258434559"/>
@@ -2033,7 +2031,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=225,spectrum=260" id="SIR_4052294204879239723">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17757401347613427925" calculatedMassToCharge="873.454665136171" experimentalMassToCharge="873.4609375" chargeState="3" id="SII_3725296011092108785">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_9283548542228005819"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_9283548542228005819"/>
 					<Fragmentation>
 						<IonType charge="1" index="12 6">
 							<FragmentArray measure_ref="Measure_mz" values="1302.55456542969 688.478698730469"/>
@@ -2087,7 +2085,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_17757401347613427925" calculatedMassToCharge="877.479772136171" experimentalMassToCharge="877.493286132813" chargeState="3" id="SII_4349546871070693707">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_9283548542228005819"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_9283548542228005819"/>
 					<Fragmentation>
 						<IonType charge="1" index="12 6">
 							<FragmentArray measure_ref="Measure_mz" values="1302.55456542969 688.478698730469"/>
@@ -2141,7 +2139,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3103608995878612024" calculatedMassToCharge="873.454665136171" experimentalMassToCharge="873.4609375" chargeState="3" id="SII_10409195546240342212">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_2523775179728812781"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_2523775179728812781"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="3.68142941118635"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17879691353184002386"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.216600026769365"/>
@@ -2165,7 +2163,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3103608995878612024" calculatedMassToCharge="877.479772136171" experimentalMassToCharge="877.493286132813" chargeState="3" id="SII_1479160453569602855">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_2523775179728812781"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_2523775179728812781"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="3.68142941118635"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17879691353184002386"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.216600026769365"/>
@@ -2189,7 +2187,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_5634796270667792442" calculatedMassToCharge="873.464172797904" experimentalMassToCharge="873.4609375" chargeState="3" id="SII_14976954448023685397">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_4877407491526870466"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_4877407491526870466"/>
 					<Fragmentation>
 						<IonType charge="1" index="5 8">
 							<FragmentArray measure_ref="Measure_mz" values="630.457946777344 974.5341796875"/>
@@ -2250,7 +2248,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_5634796270667792442" calculatedMassToCharge="877.489279797904" experimentalMassToCharge="877.493286132813" chargeState="3" id="SII_2935923263525422257">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_4877407491526870466"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_4877407491526870466"/>
 					<Fragmentation>
 						<IonType charge="1" index="5 8">
 							<FragmentArray measure_ref="Measure_mz" values="630.457946777344 974.5341796875"/>
@@ -2311,7 +2309,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_6330378408783783417" calculatedMassToCharge="873.464172797904" experimentalMassToCharge="873.4609375" chargeState="3" id="SII_8563167430029240731">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14278822580076064845"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14278822580076064845"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="2.61317203621582"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="2477368416748083016"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.202270880374422"/>
@@ -2335,7 +2333,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_6330378408783783417" calculatedMassToCharge="877.489279797904" experimentalMassToCharge="877.493286132813" chargeState="3" id="SII_17153118873428995855">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14278822580076064845"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14278822580076064845"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="2.61317203621582"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="2477368416748083016"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.202270880374422"/>
@@ -2359,7 +2357,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_5494749430262800962" calculatedMassToCharge="873.464172797904" experimentalMassToCharge="873.4609375" chargeState="3" id="SII_7518490237765357274">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14086301720075657476"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14086301720075657476"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 6">
 							<FragmentArray measure_ref="Measure_mz" values="431.270935058594 658.250427246094"/>
@@ -2420,7 +2418,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_5494749430262800962" calculatedMassToCharge="877.489279797904" experimentalMassToCharge="877.493286132813" chargeState="3" id="SII_8269033494178950104">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14086301720075657476"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14086301720075657476"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 6">
 							<FragmentArray measure_ref="Measure_mz" values="431.270935058594 658.250427246094"/>
@@ -2481,7 +2479,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_6485175442085010172" calculatedMassToCharge="873.464172797904" experimentalMassToCharge="873.4609375" chargeState="3" id="SII_5790065978798102656">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_5850860311130757289"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_5850860311130757289"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.560645118204514"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4287466236848599457"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.205679043362152"/>
@@ -2505,7 +2503,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_6485175442085010172" calculatedMassToCharge="877.489279797904" experimentalMassToCharge="877.493286132813" chargeState="3" id="SII_13980879381374140731">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_5850860311130757289"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_5850860311130757289"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="0.560645118204514"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4287466236848599457"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.205679043362152"/>
@@ -2531,7 +2529,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=238,spectrum=219" id="SIR_1736129847460668689">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11330022419841184299" calculatedMassToCharge="702.069527949704" experimentalMassToCharge="656.050903320313" chargeState="3" id="SII_3895238410403729308">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7681485519006928191"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7681485519006928191"/>
 					<Fragmentation>
 						<IonType charge="1" index="3 4 4 5 5 6 6 7 7">
 							<FragmentArray measure_ref="Measure_mz" values="342.184631347656 471.207763671875 472.2412109375 584.244018554688 585.268310546875 681.253356933594 682.360412597656 794.479431152344 795.38916015625"/>
@@ -2599,7 +2597,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11330022419841184299" calculatedMassToCharge="706.094634949704" experimentalMassToCharge="660.072448730469" chargeState="3" id="SII_1380230199713784757">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7681485519006928191"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7681485519006928191"/>
 					<Fragmentation>
 						<IonType charge="1" index="3 4 4 5 5 6 6 7 7">
 							<FragmentArray measure_ref="Measure_mz" values="342.184631347656 471.207763671875 472.2412109375 584.244018554688 585.268310546875 681.253356933594 682.360412597656 794.479431152344 795.38916015625"/>
@@ -2669,7 +2667,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=252,spectrum=240" id="SIR_10712702250035817065">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3115030544351500350" calculatedMassToCharge="911.487311528371" experimentalMassToCharge="911.486450195313" chargeState="3" id="SII_11513186574425272818">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7207737926139754191"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7207737926139754191"/>
 					<Fragmentation>
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="360.309265136719"/>
@@ -2737,7 +2735,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_3115030544351500350" calculatedMassToCharge="915.512418528371" experimentalMassToCharge="915.510314941406" chargeState="3" id="SII_13986717998338703682">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7207737926139754191"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7207737926139754191"/>
 					<Fragmentation>
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="360.309265136719"/>
@@ -2805,7 +2803,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15012949867540041090" calculatedMassToCharge="911.487311528371" experimentalMassToCharge="911.486450195313" chargeState="3" id="SII_2235225131863392357">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_276808963686810837"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_276808963686810837"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="1.87814420255302"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="18365384202816725379"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.150823985190485"/>
@@ -2829,7 +2827,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15012949867540041090" calculatedMassToCharge="915.512418528371" experimentalMassToCharge="915.510314941406" chargeState="3" id="SII_12316044051609314127">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_276808963686810837"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_276808963686810837"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="1.87814420255302"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="18365384202816725379"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.150823985190485"/>
@@ -2853,7 +2851,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_17052620940680608488" calculatedMassToCharge="911.487311528371" experimentalMassToCharge="911.486450195313" chargeState="3" id="SII_5156711929824391485">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_6748518772549940365"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_6748518772549940365"/>
 					<Fragmentation>
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="360.309265136719"/>
@@ -2914,7 +2912,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_17052620940680608488" calculatedMassToCharge="915.512418528371" experimentalMassToCharge="915.510314941406" chargeState="3" id="SII_11470839092866542957">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_6748518772549940365"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_6748518772549940365"/>
 					<Fragmentation>
 						<IonType charge="1" index="4">
 							<FragmentArray measure_ref="Measure_mz" values="360.309265136719"/>
@@ -2975,7 +2973,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_13663761038749696507" calculatedMassToCharge="911.487311528371" experimentalMassToCharge="911.486450195313" chargeState="3" id="SII_11356404697098357181">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_3109052061041085863"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_3109052061041085863"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="1.40557063817069"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="15490049804574065229"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.186430401112145"/>
@@ -2999,7 +2997,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_13663761038749696507" calculatedMassToCharge="915.512418528371" experimentalMassToCharge="915.510314941406" chargeState="3" id="SII_15137961832517596447">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_3109052061041085863"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_3109052061041085863"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="1.40557063817069"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="15490049804574065229"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.186430401112145"/>
@@ -3025,7 +3023,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=258,spectrum=243" id="SIR_16437269819074619437">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_4870109536405501088" calculatedMassToCharge="898.450346697321" experimentalMassToCharge="898.459045410156" chargeState="4" id="SII_6780584527845373550">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_11504199178185045470"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11504199178185045470"/>
 					<Fragmentation>
 						<IonType charge="1" index="10 11 6">
 							<FragmentArray measure_ref="Measure_mz" values="1028.56372070312 1085.77490234375 614.447631835938"/>
@@ -3107,7 +3105,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_4870109536405501088" calculatedMassToCharge="901.469176947321" experimentalMassToCharge="901.480346679688" chargeState="4" id="SII_2897592749236539531">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_11504199178185045470"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_11504199178185045470"/>
 					<Fragmentation>
 						<IonType charge="1" index="10 11 6">
 							<FragmentArray measure_ref="Measure_mz" values="1028.56372070312 1085.77490234375 614.447631835938"/>
@@ -3189,7 +3187,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7207371083159283456" calculatedMassToCharge="898.450346697321" experimentalMassToCharge="898.459045410156" chargeState="4" id="SII_9450327747750257644">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_298401133637741504"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_298401133637741504"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="8.10122549490906"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="12959367150092654332"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.306249835384688"/>
@@ -3213,7 +3211,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7207371083159283456" calculatedMassToCharge="901.469176947321" experimentalMassToCharge="901.480346679688" chargeState="4" id="SII_3500354167110536664">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_298401133637741504"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_298401133637741504"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="8.10122549490906"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="12959367150092654332"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.306249835384688"/>
@@ -3239,7 +3237,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=52,spectrum=113" id="SIR_9868242461570157420">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_8984402899352117479" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084655761719" chargeState="3" id="SII_25974125700937907">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_1621338151966755474"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_1621338151966755474"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.165649414062 262.292205810547 360.348693847656 258.130065917969 259.067321777344 372.327392578125"/>
@@ -3307,7 +3305,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_8984402899352117479" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.109252929688" chargeState="3" id="SII_7444998229116103684">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_1621338151966755474"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_1621338151966755474"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 2 3 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.165649414062 262.292205810547 360.348693847656 258.130065917969 259.067321777344 372.327392578125"/>
@@ -3375,7 +3373,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11583213259935596392" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084655761719" chargeState="3" id="SII_3619468215685938204">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_12520536430934325912"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_12520536430934325912"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="43.5345138748962"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="16616557306000669869"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.198539627569076"/>
@@ -3399,7 +3397,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_11583213259935596392" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.109252929688" chargeState="3" id="SII_15246437841577070383">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_12520536430934325912"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_12520536430934325912"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="43.5345138748962"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="16616557306000669869"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.198539627569076"/>
@@ -3425,7 +3423,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=52,spectrum=23" id="SIR_5106727040801878879">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15721057298497490036" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084655761719" chargeState="3" id="SII_11422463686885200558">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_2608380305220684729"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_2608380305220684729"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 3 3 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.165649414062 360.348693847656 361.358520507812 258.130065917969 259.067321777344 371.107238769531"/>
@@ -3493,7 +3491,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_15721057298497490036" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.108947753906" chargeState="3" id="SII_7344192187426184761">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_2608380305220684729"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_2608380305220684729"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 3 3 3 3 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.165649414062 360.348693847656 361.358520507812 258.130065917969 259.067321777344 371.107238769531"/>
@@ -3561,7 +3559,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7283948392886265699" calculatedMassToCharge="721.082830648271" experimentalMassToCharge="721.084655761719" chargeState="3" id="SII_9140546320740515641">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_2130311522918743509"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_2130311522918743509"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="36.6438701162896"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="18390135059454481268"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.128049629284516"/>
@@ -3585,7 +3583,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7283948392886265699" calculatedMassToCharge="725.107937648271" experimentalMassToCharge="725.108947753906" chargeState="3" id="SII_12049315334424432437">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_2130311522918743509"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_2130311522918743509"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="36.6438701162896"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="18390135059454481268"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.128049629284516"/>
@@ -3611,7 +3609,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=54,spectrum=120" id="SIR_17314619952666245179">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7898004582401008768" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_17716858074023296841">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_15050004366391181853"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_15050004366391181853"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 3 3 3 3 4 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453 360.150024414062 361.142395019531 258.172271728516 259.149688720703 371.220031738281 372.201293945312"/>
@@ -3686,7 +3684,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_7898004582401008768" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.082763671875" chargeState="4" id="SII_16250062551099875712">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_15050004366391181853"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_15050004366391181853"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 3 3 3 3 4 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453 360.150024414062 361.142395019531 258.172271728516 259.149688720703 371.220031738281 372.201293945312"/>
@@ -3761,7 +3759,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_16177748921272733768" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_1147219038608936718">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7276556891837796968"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7276556891837796968"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="43.0330141467588"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="3023658190814908261"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.348392974523004"/>
@@ -3785,7 +3783,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_16177748921272733768" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.082763671875" chargeState="4" id="SII_11115414975438642789">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7276556891837796968"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7276556891837796968"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="43.0330141467588"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="3023658190814908261"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.348392974523004"/>
@@ -3811,7 +3809,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=54,spectrum=40" id="SIR_12999979801269632061">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2927519776102075938" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_10306100746905639127">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_16907355690727166316"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_16907355690727166316"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 3 3 3 4 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453 360.150024414062 258.172271728516 259.149688720703 371.220031738281 372.201293945312"/>
@@ -3886,7 +3884,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2927519776102075938" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.084228515625" chargeState="4" id="SII_12524258085768770586">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_16907355690727166316"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_16907355690727166316"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 3 3 3 4 4">
 							<FragmentArray measure_ref="Measure_mz" values="261.086700439453 360.150024414062 258.172271728516 259.149688720703 371.220031738281 372.201293945312"/>
@@ -3961,7 +3959,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="541.063942102896" experimentalMassToCharge="541.064880371094" chargeState="4" id="SII_2684106197423007927">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14811341817612382122"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14811341817612382122"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="40.8923932230453"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17413765565443951891"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.271411292116217"/>
@@ -3985,7 +3983,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1755235105885170967" calculatedMassToCharge="544.082772352896" experimentalMassToCharge="544.084228515625" chargeState="4" id="SII_8119044117483804262">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_14811341817612382122"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_14811341817612382122"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="40.8923932230453"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17413765565443951891"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.271411292116217"/>
@@ -4011,7 +4009,7 @@
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="spectrum=99,spectrum=48" id="SIR_3246735940528705071">
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_260132145239717571" calculatedMassToCharge="728.408326579538" experimentalMassToCharge="728.411010742188" chargeState="3" id="SII_14317784148091680644">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_17569764383250687096"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_17569764383250687096"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="242.229843139648 399.275817871094"/>
@@ -4079,7 +4077,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_260132145239717571" calculatedMassToCharge="732.433433579538" experimentalMassToCharge="732.436096191406" chargeState="3" id="SII_17671779025680303814">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_17569764383250687096"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_17569764383250687096"/>
 					<Fragmentation>
 						<IonType charge="1" index="2 4">
 							<FragmentArray measure_ref="Measure_mz" values="242.229843139648 399.275817871094"/>
@@ -4147,7 +4145,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1196373166564353753" calculatedMassToCharge="728.408326579538" experimentalMassToCharge="728.411010742188" chargeState="3" id="SII_9126387050458671424">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7539502987715517688"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7539502987715517688"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="12.5248236322718"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4584897071539917580"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.182739051730874"/>
@@ -4171,7 +4169,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_1196373166564353753" calculatedMassToCharge="732.433433579538" experimentalMassToCharge="732.436096191406" chargeState="3" id="SII_13113514917555180171">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_7539502987715517688"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_7539502987715517688"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="12.5248236322718"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4584897071539917580"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.182739051730874"/>
@@ -4195,7 +4193,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_14891455924036538147" calculatedMassToCharge="728.408326579538" experimentalMassToCharge="728.411010742188" chargeState="3" id="SII_12758854762884412659">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_5860084234476467938"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_5860084234476467938"/>
 					<Fragmentation>
 						<IonType charge="1" index="8 3">
 							<FragmentArray measure_ref="Measure_mz" values="962.672668457031 342.198547363281"/>
@@ -4249,7 +4247,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_14891455924036538147" calculatedMassToCharge="732.433433579538" experimentalMassToCharge="732.436096191406" chargeState="3" id="SII_17287849381738438716">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_5860084234476467938"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_5860084234476467938"/>
 					<Fragmentation>
 						<IonType charge="1" index="8 3">
 							<FragmentArray measure_ref="Measure_mz" values="962.672668457031 342.198547363281"/>
@@ -4303,7 +4301,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_2660422259164526995" calculatedMassToCharge="728.408326579538" experimentalMassToCharge="728.411010742188" chargeState="3" id="SII_4143272592559840046">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="10.3250622121761"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="6182960951962378739"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.156458726991916"/>
@@ -4327,7 +4325,7 @@
 				</SpectrumIdentificationItem>
 
 				<SpectrumIdentificationItem passThreshold="1" rank="2" peptide_ref="PEP_2660422259164526995" calculatedMassToCharge="732.433433579538" experimentalMassToCharge="732.436096191406" chargeState="3" id="SII_7870901012988979006">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/>
 					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="10.3250622121761"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="6182960951962378739"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.156458726991916"/>
@@ -4350,8 +4348,8 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_16164338904207598736" calculatedMassToCharge="774.436105019204" experimentalMassToCharge="728.411010742188" chargeState="3" id="SII_12561328592123678330">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_4410447320637600518"/> 
+				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_16164338904207598736" calculatedMassToCharge="774.436105019205" experimentalMassToCharge="728.411010742188" chargeState="3" id="SII_12561328592123678330">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_4410447320637600518"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 7">
 							<FragmentArray measure_ref="Measure_mz" values="353.242248535156 694.300720214844"/>
@@ -4411,8 +4409,8 @@
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
 
-				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_16164338904207598736" calculatedMassToCharge="778.461212019204" experimentalMassToCharge="732.436096191406" chargeState="3" id="SII_8795943655088158336">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_4410447320637600518"/> 
+				<SpectrumIdentificationItem passThreshold="1" rank="3" peptide_ref="PEP_16164338904207598736" calculatedMassToCharge="778.461212019205" experimentalMassToCharge="732.436096191406" chargeState="3" id="SII_8795943655088158336">
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_4410447320637600518"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 7">
 							<FragmentArray measure_ref="Measure_mz" values="353.242248535156 694.300720214844"/>
