@@ -195,7 +195,7 @@ namespace OpenMS
       const vector<PeptideHit>& hits = p_it->getHits();
       for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
       {
-        const set<String>& accs = h_it->extractProteinAccessions();
+        const set<String>& accs = h_it->extractProteinAccessionsSet();
         for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?

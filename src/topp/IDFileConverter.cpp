@@ -557,7 +557,7 @@ protected:
         {
           const PeptideHit& hit = peptide_identifications[i].getHits()[l];
           String seq = hit.getSequence().toUnmodifiedString();
-          std::set<String> prot = hit.extractProteinAccessions();
+          std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
                 << " " << hit.getSequence().toString() 

@@ -184,7 +184,7 @@ namespace OpenMS
   {
     for (vector<PeptideHit>::const_iterator it = peptide_hits.begin(); it != peptide_hits.end(); ++it)
     {
-      std::set<String> protein_accessions = it->extractProteinAccessions();
+      std::set<String> protein_accessions = it->extractProteinAccessionsSet();
       result.insert(result.end(), protein_accessions.begin(), protein_accessions.end());
     }
   }

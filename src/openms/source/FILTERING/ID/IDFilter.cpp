@@ -259,7 +259,7 @@ namespace OpenMS
            ++hit_it)
       {
         const set<String>& current_accessions = 
-          hit_it->extractProteinAccessions();
+          hit_it->extractProteinAccessionsSet();
         run_to_accessions[run_id].insert(current_accessions.begin(),
                                          current_accessions.end());
       }

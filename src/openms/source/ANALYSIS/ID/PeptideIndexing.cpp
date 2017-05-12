@@ -854,7 +854,7 @@ DefaultParamHandler("PeptideIndexing")
         bool matches_target(false);
         bool matches_decoy(false);
 
-        set<String> protein_accessions = it2->extractProteinAccessions();
+        set<String> protein_accessions = it2->extractProteinAccessionsSet();
         for (set<String>::const_iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it)
         {
           if (protein_is_decoy[*it])
