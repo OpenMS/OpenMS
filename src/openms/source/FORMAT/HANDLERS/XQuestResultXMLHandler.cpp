@@ -365,6 +365,9 @@ namespace OpenMS
         peptide_identification.setMetaValue("target_decoy", target_decoy);
         peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
 
+        // Set xl_chain meta value for alpha
+        peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
+
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
 
@@ -377,7 +380,6 @@ namespace OpenMS
         {
           this->max_score_ = score;
         }
-
         peptide_hit_alpha.setScore(score);
 
         String seq1 = String(this->attributeAsString_(attributes, "seq1"));
@@ -467,6 +469,8 @@ namespace OpenMS
             peptide_hit_beta.setMetaValue("target_decoy", DataValue("target"));
           }
 
+          //  Set xl_chain meta value for beta
+          peptide_hit_beta.setMetaValue("xl_chain", "MS:1002510");
 
           // Set peptide_hit specific stuff
           peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
