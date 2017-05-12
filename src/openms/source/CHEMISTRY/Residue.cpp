@@ -35,6 +35,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <cstdlib>
@@ -568,9 +569,18 @@ namespace OpenMS
 
   void Residue::setModification(const String& name)
   {
-    ModificationsDB* mod_db = ModificationsDB::getInstance();
-    const ResidueModification& mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
-    setModification_(mod);
+    try
+    {
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      const ResidueModification& mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+      setModification_(mod);
+    }
+    catch (...)
+    {
+      CrossLinksDB* xl_db = CrossLinksDB::getInstance();
+      const ResidueModification& mod = xl_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+      setModification_(mod);
+    }
   }
 
   const String& Residue::getModificationName() const
