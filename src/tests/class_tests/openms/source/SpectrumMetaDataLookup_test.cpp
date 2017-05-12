@@ -196,7 +196,6 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
   String filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
-  TEST_EXCEPTION(Exception::FileNotFound, lookup.readMzFileMetaData(filename));
   TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false));
   // no lookup, no spectrum_references
   TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666");
@@ -212,16 +211,6 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
 }
 END_SECTION
 
-
-START_SECTION((void readMzFileMetaData(const String&)))
-{
-  SpectrumMetaDataLookup newlookup;
-  TEST_EQUAL(newlookup.empty(), true);
-  String filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
-  newlookup.readMzFileMetaData(filename);
-  TEST_EQUAL(newlookup.empty(), false);
-}
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

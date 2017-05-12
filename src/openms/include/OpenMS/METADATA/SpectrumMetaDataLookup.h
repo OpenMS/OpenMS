@@ -221,19 +221,6 @@ namespace OpenMS
       }
     }
 
-    /**
-     * @brief encapsulates readSpectra with file loading convenience if only a file path is given
-     *
-     * @param spectra_file file to the SpectrumContainer, must be valid path to mz file
-     */
-    void readMzFileMetaData(const String& spectra_file)
-    {
-      PeakMap exp;
-      FileHandler().loadExperiment(spectra_file, exp, FileTypes::UNKNOWN, ProgressLogger::NONE,
-                                   false, false);
-      readSpectra(exp.getSpectra());
-      setSpectraDataRef(File::absolutePath(spectra_file));
-    }
 
     /**
      * @brief set spectra_data from read SpectrumContainer origin (i.e. filename)

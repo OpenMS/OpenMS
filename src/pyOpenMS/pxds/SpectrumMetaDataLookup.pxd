@@ -16,8 +16,6 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
 
         void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) nogil except +
 
-        void readMzFileMetaData(String spectra_file) nogil except +
-
         void getSpectrumMetaData(Size index, SpectrumMetaData& meta) nogil except +
 
         void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta) nogil except +
