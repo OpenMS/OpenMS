@@ -1061,33 +1061,42 @@ namespace OpenMS
     // write peptide hits
     for (Size j = 0; j < id.getHits().size(); ++j)
     {
+      const PeptideHit& h = id.getHits()[j];
       os << indent << "\t<PeptideHit";
-      os << " score=\"" << id.getHits()[j].getScore() << "\"";
-      os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
-      os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
+      os << " score=\"" << h.getScore() << "\"";
+      os << " sequence=\"" << h.getSequence() << "\"";
+      os << " charge=\"" << h.getCharge() << "\"";
 
-      vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
+      const vector<PeptideEvidence>& pes = id.getHits()[j].getPeptideEvidences();
 
       os << IdXMLFile::createFlankingAAXMLString_(pes);
       os << IdXMLFile::createPositionXMLString_(pes);
 
-      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
-
-      if (!protein_accessions.empty())
+      String accs;
+      for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
       {
-        String accs;
-        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        if (!accs.empty())
         {
-          if (s_it != protein_accessions.begin())
-          {
-            accs += " ";
-          }
-          accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
+          accs += " ";
         }
+        String protein_accession = pe->getProteinAccession();
+
+        // empty accessions are not written out (legacy code)
+        if (!protein_accession.empty())
+        {
+          accs += "PH_";
+          accs += String(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
+        }
+      }
+
+      // don't write protein_refs if no peptide evidences present
+      if (!accs.empty())
+      {
         os << " protein_refs=\"" << accs << "\"";
       }
+
       os << ">\n";
+
       writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }

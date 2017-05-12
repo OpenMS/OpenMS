@@ -742,7 +742,7 @@ protected:
       const PeptideHit& hit = (pair.first.empty() ?
                                pair.second.begin()->second->getHits()[0] :
                                pair.first.begin()->second->getHits()[0]);
-      current_accessions = hit.extractProteinAccessions();
+      current_accessions = hit.extractProteinAccessionsSet();
       protein_accessions.insert(current_accessions.begin(),
                                 current_accessions.end());
       // missing protein accession would crash OpenSWATH algorithms:

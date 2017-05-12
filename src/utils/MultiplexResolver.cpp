@@ -55,7 +55,7 @@ using namespace boost::math;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MultiplexResolver MultiplexResolver
+  @page UTILS_MultiplexResolver MultiplexResolver
 
   @brief Completes peptide multiplets and resolves conflicts within them.
 
@@ -89,9 +89,9 @@ using namespace boost::math;
   each multiplet has only one peptide sequence annotation, the best one. Multiplets without sequence annotation are passed to the optional out_conflicts output.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MultiplexResolver.cli
+  @verbinclude UTILS_MultiplexResolver.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MultiplexResolver.html
+  @htmlinclude UTILS_MultiplexResolver.html
 
 */
 

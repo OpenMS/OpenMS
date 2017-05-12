@@ -51,6 +51,8 @@ namespace OpenMS
     defaults_.setValidStrings("retentionTimeInterpretation", ListUtils::create<String>("iRT,seconds,minutes"));
     defaults_.setValue("override_group_label_check", "false", "Override an internal check that assures that all members of the same PeptideGroupLabel have the same PeptideSequence (this ensures that only different isotopic forms of the same peptide can be grouped together in the same label group). Only turn this off if you know what you are doing.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("override_group_label_check", ListUtils::create<String>("true,false"));
+    defaults_.setValue("force_invalid_mods", "false", "Force reading even if invalid modifications are encountered (OpenMS may not recognize the modification)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("force_invalid_mods", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -65,6 +67,7 @@ namespace OpenMS
   {
     retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation");
     override_group_label_check_ = param_.getValue("override_group_label_check").toBool();
+    force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }
 
   const char* TransitionTSVReader::strarray_[] =
@@ -1058,12 +1061,26 @@ namespace OpenMS
     interpretRetentionTime_(retention_times, rt_value);
     peptide.rts = retention_times;
 
-    // try to parse it and get modifications out
-    // TODO: at this point we could check whether the modification is actually valid
-    // aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
+    // Try to parse full UniMod string including modifications. If we fail, we
+    // can force reading and only parse the "naked" sequence.
     std::vector<TargetedExperiment::Peptide::Modification> mods;
-
-    AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+    AASequence aa_sequence;
+    try
+    {
+      aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+    } catch (Exception::InvalidValue & e)
+    {
+      if (force_invalid_mods_)
+      {
+        std::cout << "Warning while reading file: " << e.what() << std::endl;
+        aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
+      }
+      else 
+      {
+        std::cerr << "Error while reading file (use force_invalid_mods to override): " << e.what() << std::endl;
+        throw;
+      }
+    }
 
     // Unfortunately, we cannot store an AASequence here but have to work with
     // the TraML modification object.
@@ -1266,7 +1283,7 @@ namespace OpenMS
     }
     else
     {
-      // Error? 
+      // Error?
     }
 
     if (it->isProductChargeStateSet())

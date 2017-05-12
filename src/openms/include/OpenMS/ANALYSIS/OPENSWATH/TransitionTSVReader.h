@@ -181,6 +181,7 @@ private:
     /// Members
     String retentionTimeInterpretation_;
     bool override_group_label_check_;
+    bool force_invalid_mods_;
 
     /// Typedefs
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;

@@ -105,6 +105,11 @@ Remarks:
 </ul>
 </p>
 
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_TargetedFileConverter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_TargetedFileConverter.html
+
 */
 
 // We do not want this class to show up in the docu:
@@ -115,7 +120,7 @@ class TOPPTargetedFileConverter :
 public:
 
   TOPPTargetedFileConverter() :
-    TOPPBase("TargetedFileConverter", "Converts different transition files for targeted proteomics and metabolomics analysis")
+    TOPPBase("TargetedFileConverter", "Converts different transition files for targeted proteomics / metabolomics analysis.", false)
   {
   }
 

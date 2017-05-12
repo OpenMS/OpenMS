@@ -240,7 +240,7 @@ namespace OpenMS
       {
         // protein name:
         const PeptideHit& peptide_hit = cFeature.getPeptideIdentifications()[0].getHits()[0];
-        std::set<String> protein_accessions = peptide_hit.extractProteinAccessions();
+        std::set<String> protein_accessions = peptide_hit.extractProteinAccessionsSet();
         if (protein_accessions.size() != 1)
         {
           if (!allow_non_unique) continue; // we only want unique peptides
