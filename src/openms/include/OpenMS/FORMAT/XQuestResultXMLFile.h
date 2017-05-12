@@ -48,11 +48,19 @@ public:
     XQuestResultXMLFile();
     ~XQuestResultXMLFile();
 
-    void load(const String & filename,  // filename
-              std::vector< std::vector< PeptideIdentification > > & csms, // Vector of encompassed spectra, each containing associated PeptideIdentifications
-              std::vector< ProteinIdentification > & prot_ids,  // The protein identification of the xQuest result file
-              Size min_n_ions_per_spectrum = 0,  // Minimum number of PeptideIdentification a spectrum must contain to be loaded
-              bool load_to_peptideHit = false); // Whether the OpenXQuest data will be loaded as Meta Values also into the peptide hits, instead just into the PeptideIdentification
+    /**
+     * @brief Load the content of the xquest.xml file into the provided data structures.
+     * @param filename Filename of the file which is to be loaded.
+     * @param csms Where the spectra with identifications of the input file will be loaded to.
+     * @param prot_ids Where the protein identification of the input file will be loaded to.
+     * @param min_n_hits_per_spectrum How many minimum hits a spectrum must contain to be loaded to @p csms.
+     * @param load_to_peptideHit Whether the data will be loaded as meta values also into the peptide hits, instead just into the PeptideIdentification
+     */
+    void load(const String & filename,
+              std::vector< std::vector< PeptideIdentification > > & csms,
+              std::vector< ProteinIdentification > & prot_ids,
+              Size min_n_hits_per_spectrum = 0,
+              bool load_to_peptideHit = false);
     
     // Currently not implemented
     //void store(const String &, std::vector< std::vector< PeptideIdentification > > & );
@@ -64,14 +72,14 @@ public:
     int getNumberOfHits() const;
 
     /**
-     * @brief Returns minimum score in file
-     * @return Minimum score in file
+     * @brief Returns minimum score among the hits in the file.
+     * @return Minimum score among the hits in the file.
      */
     double getMinScore() const;
 
     /**
-     * @brief Returns maximum score in file
-     * @return Maximum score in file
+     * @brief Returns maximum score among the hits in the file.
+     * @return Maximum score among the hits in the file.
      */
     double getMaxScore() const;
 

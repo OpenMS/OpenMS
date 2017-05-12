@@ -49,33 +49,17 @@ namespace OpenMS
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector< std::vector < PeptideIdentification > > & csms,
                                  std::vector< ProteinIdentification > & prot_ids,
-                                 Size min_n_ions_per_spectrum,
+                                 Size min_n_hits_per_spectrum,
                                  bool load_to_peptideHit)
   {
    Internal::XQuestResultXMLHandler handler(filename, csms, prot_ids,
-                                            min_n_ions_per_spectrum, load_to_peptideHit);
+                                            min_n_hits_per_spectrum, load_to_peptideHit);
    this->parse_(filename, &handler);
 
-   // TODO Whishful thinking: Get the attributes above from the handler once parsing has been finished
    this->n_hits_ = handler.getNumberOfHits();
    this->min_score_ = handler.getMinScore();
    this->max_score_ = handler.getMaxScore();
   }
-
-
-  /* TODO Currently not implemented
-  void XQuestResultXMLFile::store(const String & filename, std::vector<std::vector<PeptideIdentification> > & spectra)
-  {
-    // TODO Currently dummy, needed for the handler
-    std::vector< XQuestResultMeta > metas;
-    std::vector< ProteinIdentification > prot_ids;
-    
-    this->n_hits_= 0;
-    Internal::XQuestResultXMLHandler handler(filename, metas,spectra, prot_ids, this->n_hits_, NULL, 0, false);
-  }
-  */
-
-
 
   int XQuestResultXMLFile::getNumberOfHits() const
   {

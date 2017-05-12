@@ -68,8 +68,8 @@ using namespace std;
 
     This tool calculates and FDR estimate for cross-link identifications, which are produced by OpenProXL.
     The method employed currently is identical to the target-decoy approach used by xProphet (Walzthoeni et al., 2012).
-    Consequently, this tool can also consume xquest.xml files (produced either by OpenProXL or xQuest). For writing,
-    currently only idXML is supported.
+    Consequently, this tool can also consume xquest.xml files (produced either by OpenProXL or xQuest). The tool supports
+    output in the idXML and mzIdentML formats.
 
     @experimental This tool is work in progress and usage and input requirements might change.
 
@@ -141,9 +141,8 @@ class TOPPXFDR :
     static const String xl_rank;
     static const String target_decoy;
 
-
     TOPPXFDR() :
-      TOPPBase("XFDR", "Calculates false discovery rate estimates on cross-link identifications", false)
+      TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", false)
     {
     }
 
@@ -195,11 +194,11 @@ class TOPPXFDR :
 
     /**
      * @brief Used to define how PeptideIdentification are to be sorted based on some meta value (usually some score)
-     * "greater_than" ensures that the sorting will be in descending Order
+     * "greater_than" ensures that the sorting will be in descending order
      */
     struct greater_than_by_key
     {
-      //Indizes of the rank one elements within the all_ids vector
+      //Indices of the rank one elements within the all_ids vector
       const vector < PeptideIdentification > & all_ids;
       const vector< UInt >  & rank_one_ids;
       const String & meta_value;  // Meta value to sort the peptideIdentifications
@@ -207,7 +206,7 @@ class TOPPXFDR :
       inline bool operator()(const UInt & index1, const UInt & index2)
       {
         return (  TOPPXFDR::getXLScore(all_ids[rank_one_ids[index1]])
-                 > TOPPXFDR::getXLScore(all_ids[rank_one_ids[index2]]));
+                > TOPPXFDR::getXLScore(all_ids[rank_one_ids[index2]]));
       }
     };
 
@@ -237,8 +236,8 @@ class TOPPXFDR :
     }
 
     /**
-     * @brief Returns the score of a XL peptide Identification.
-     * @param pep_id Which pep_id the score should be taken from
+     * @brief Returns the score of a XL peptide identification.
+     * @param pep_id Which peptide identification the score should be taken from
      * @return XL score of that peptide identification
      */
     static double getXLScore(const PeptideIdentification & pep_id)
@@ -279,7 +278,6 @@ class TOPPXFDR :
       }
       return true;
     }
-
 
     /**
      * @brief Prepares vector of PeptideIdentification such that it can be processed downstream.
@@ -616,7 +614,6 @@ class TOPPXFDR :
       FileTypes::Type in_type = arg_in_type.empty() ? FileHandler::getType(arg_in)
                                                     : FileTypes::nameToType(arg_in_type);
 
-
       //-------------------------------------------------------------
       // Declare important variables
       //-------------------------------------------------------------
@@ -628,7 +625,6 @@ class TOPPXFDR :
       vector < ProteinIdentification > prot_ids;
       vector < UInt > rank_one_ids; // Stores the indizes of the rank one hits within all_ids
       vector < vector < PeptideIdentification > > spectra;
-
 
       //-------------------------------------------------------------
       // Parse the input file

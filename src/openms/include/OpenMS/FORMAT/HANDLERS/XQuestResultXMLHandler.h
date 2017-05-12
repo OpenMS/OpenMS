@@ -81,9 +81,22 @@ namespace OpenMS
       // Docu in base class
       void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes);
 
-      // Getter for certain attributes of the xQuest file
+      /**
+       * @brief Returns the minimum score encountered in the file.
+       * @return Minimum score encountered in the file.
+       */
       double getMinScore() const;
+
+      /**
+       * @brief Returns the maximum score encountered in the file.
+       * @return Maximum score encountered in the file.
+       */
       double getMaxScore() const;
+
+      /**
+       * @brief Returns the total number of hits in the file.
+       * @return Total number of hits in the file.
+       */
       UInt getNumberOfHits() const;
 
     private:
@@ -139,19 +152,36 @@ namespace OpenMS
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
 
       /**
-       * @brief Gets the link location of a xQuest xlinkPositionString
+       * @brief Gets the link location of a xQuest xlinkPositionString.
+       * @param attributes XML attributes of Xerces.
+       * @param pair Pair to be populated with the xlinkposition in xQuest.
        */
       void getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair);
       
       /**
-       * @brief Sets the peptide Evidence for Alpha and Beta
+       * @brief Sets the peptide evidence for Alpha and Beta.
+       * @param prot_string Protein string of the xquest file the peptide evidence should be populated from.
+       * @param pep_hit For which peptide hit the peptide evidence should be set.
        */
       void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
 
-      /*
-       * Sets the meta data for one or both peptide hits
+      /**
+       * @brief Sets the meta value of the peptide identification for alpha hit.
+       * @param key Which meta value to set
+       * @param datavalue Value to be set
+       * @param pep_id For which peptide identification the meta value should be set.
+       * @param alpha Alpha peptide hit for which the meta value should be set.
        */
       void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha);
+
+      /**
+       * @brief Sets the meta value of the peptide identification for alpha hit.
+       * @param key Which meta value to set
+       * @param datavalue Value to be set
+       * @param pep_id For which peptide identification the meta value should be set.
+       * @param alpha Alpha peptide hit for which the meta value should be set.
+       * @param beta Beta peptide hit for which the meta value should be set.
+       */
       void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta);
     };
   } // namespace Internal
