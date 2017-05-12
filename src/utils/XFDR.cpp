@@ -661,6 +661,13 @@ class TOPPXFDR :
         }
         writeLog_("Number of IDs in input file: " + String(all_ids.size()));
 
+        // Terminate if no hits could be foud
+        if (all_ids.size() == 0)
+        {
+          LOG_ERROR << "ERROR: Input file does not contain any identifications. Terminating." << endl;
+          return INPUT_FILE_EMPTY;
+        }
+
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
              all_ids_it != all_ids.end(); ++ all_ids_it)
         {
@@ -702,6 +709,13 @@ class TOPPXFDR :
         MzIdentMLFile().load(arg_in, prot_ids, all_ids);
         writeLog_("Number of IDs in input file: " + String(all_ids.size()));
 
+        // Terminate if no hits could be foud
+        if (all_ids.size() == 0)
+        {
+          LOG_ERROR << "ERROR: Input file does not contain any identifications. Terminating." << endl;
+          return INPUT_FILE_EMPTY;
+        }
+
         if ( ! this->prepareInput(all_ids))
         {
           LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
@@ -732,6 +746,13 @@ class TOPPXFDR :
 
         IdXMLFile().load(arg_in, prot_ids, all_ids);
         writeLog_("Number of IDs in input file: " + String(all_ids.size()));
+
+        // Terminate if no hits could be foud
+        if (all_ids.size() == 0)
+        {
+          LOG_ERROR << "ERROR: Input file does not contain any identifications. Terminating." << endl;
+          return INPUT_FILE_EMPTY;
+        }
 
         if ( ! this->prepareInput(all_ids))
         {
