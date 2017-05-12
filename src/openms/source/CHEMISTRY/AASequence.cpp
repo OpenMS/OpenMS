@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -843,11 +844,21 @@ namespace OpenMS
           "Cannot convert string to peptide modification: missing ')'");
     }
     ModificationsDB* mod_db = ModificationsDB::getInstance();
+    CrossLinksDB* xl_db = CrossLinksDB::getInstance();
     if (aas.peptide_.empty()) // start of peptide -> N-terminal modification?
     {
-      aas.n_term_mod_ = &(mod_db->getModification(mod, "",
-                                                  ResidueModification::N_TERM));
-      return mod_end;
+      try
+      {
+        aas.n_term_mod_ = &(mod_db->getModification(mod, "",
+                                                    ResidueModification::N_TERM));
+        return mod_end;
+      }
+      catch (...)
+      {
+        aas.n_term_mod_ = &(xl_db->getModification(mod, "",
+                                                    ResidueModification::N_TERM));
+        return mod_end;
+      }
     }
 
     const String& res = aas.peptide_.back()->getOneLetterCode();
@@ -864,9 +875,18 @@ namespace OpenMS
         {
           if (dot_terminal)
           {
-            const ResidueModification* term_mod = 
-              &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
-            aas.c_term_mod_ = term_mod;
+            try
+            {
+              const ResidueModification* term_mod =
+                &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+              aas.c_term_mod_ = term_mod;
+            }
+            catch (...)
+            {
+              const ResidueModification* term_mod =
+                &(xl_db->getModification(mod, res, ResidueModification::C_TERM));
+              aas.c_term_mod_ = term_mod;
+            }
           }
         }
         else // old ambiguous notation: Modification might be at last amino acid or at C-terminus
@@ -874,9 +894,18 @@ namespace OpenMS
           try
           {
             // this might throw ElementNotFound, but so be it:
-            const ResidueModification* term_mod = 
-              &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
-            aas.c_term_mod_ = term_mod;
+            try
+            {
+              const ResidueModification* term_mod =
+                &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+              aas.c_term_mod_ = term_mod;
+            }
+            catch (...)
+            {
+              const ResidueModification* term_mod =
+                &(xl_db->getModification(mod, res, ResidueModification::C_TERM));
+              aas.c_term_mod_ = term_mod;
+            }
           }
           catch (Exception::ElementNotFound& /* e */)
           { // just do nothing, the mod is presumably a non-terminal one
@@ -1305,7 +1334,14 @@ namespace OpenMS
       n_term_mod_ = 0;
       return;
     }
-    n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    try
+    {
+      n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    }
+    catch (...)
+    {
+      n_term_mod_ = &CrossLinksDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    }
   }
 
   void AASequence::setCTerminalModification(const String& modification)
@@ -1315,7 +1351,14 @@ namespace OpenMS
       c_term_mod_ = 0;
       return;
     }
-    c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+    try
+    {
+      c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+    }
+    catch (...)
+    {
+      c_term_mod_ = &CrossLinksDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+    }
   }
 
   const String& AASequence::getNTerminalModificationName() const
