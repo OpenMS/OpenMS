@@ -728,8 +728,7 @@ namespace OpenMS
     std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
     {
-      // std::cout << "map idx: " << f_it->getMapIndex() << std::endl;
-      if (map_idx == f_it->getMapIndex())
+      if (f_it != ind_feats.end() && map_idx == f_it->getMapIndex())
       {
         tmp_f_ints.push_back(f_it->getIntensity());
         ++f_it;
