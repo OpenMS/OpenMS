@@ -669,6 +669,7 @@ class TOPPXFDR :
           return INPUT_FILE_EMPTY;
         }
 
+#ifndef NDEBUG
         for (vector< PeptideIdentification >::const_iterator all_ids_it = all_ids.begin();
              all_ids_it != all_ids.end(); ++ all_ids_it)
         {
@@ -696,7 +697,8 @@ class TOPPXFDR :
               assert(pep_id_target_decoy == "decoy");
             }
           }
-       } 
+        }
+#endif
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
