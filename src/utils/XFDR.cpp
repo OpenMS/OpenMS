@@ -289,16 +289,24 @@ class TOPPXFDR :
      *  * Define peptide_identification as decoy if at least one of the peptide_hits is decoy
      *    (this semantic is also used by the XQuestResultXMLHandler)
      *  * Define the cross-link as either inter/or intraprotein
+     *  * Set the identifier of the Peptide Identification if there is only one protein identification
      *
      * @param pep_ids vector of PeptideIdentification to be prepared
      */
-    bool prepareInput(vector< PeptideIdentification > & pep_ids)
+    bool prepareInput(vector< PeptideIdentification > & pep_ids, const vector< ProteinIdentification > & prot_ids)
     {
+      bool set_prot_id = prot_ids.size() == 1;
+
       // Preprocess all peptide identifications
       for (vector< PeptideIdentification >::iterator pep_ids_it = pep_ids.begin();
            pep_ids_it != pep_ids.end(); ++pep_ids_it)
       {
         PeptideIdentification & pep_id = *pep_ids_it;
+
+        if (set_prot_id)
+        {
+          pep_id.setIdentifier(prot_ids[0].getIdentifier());
+        }
 
         // Set the minScore and MaxScore attribute depending on the input data
         double score = getXLScore(pep_id);
@@ -716,7 +724,7 @@ class TOPPXFDR :
           return INPUT_FILE_EMPTY;
         }
 
-        if ( ! this->prepareInput(all_ids))
+        if ( ! this->prepareInput(all_ids, prot_ids))
         {
           LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
           return INPUT_FILE_CORRUPT;
@@ -754,7 +762,7 @@ class TOPPXFDR :
           return INPUT_FILE_EMPTY;
         }
 
-        if ( ! this->prepareInput(all_ids))
+        if ( ! this->prepareInput(all_ids, prot_ids))
         {
           LOG_ERROR << "ERROR: Input data could not be prepared. Terminating." << endl;
           return INPUT_FILE_CORRUPT;
