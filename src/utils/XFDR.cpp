@@ -156,10 +156,10 @@ class TOPPXFDR :
       StringList formats = ListUtils::create<String>("xml,idXML,mzid");
 
       // File input
-      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Results in the original xquest.xml format", false);
+      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Crosslink Identifications in either xquest.xml, idXML, or mzIdentML format (as produced by OpenProXL)", false);
       setValidFormats_(TOPPXFDR::param_in, formats);
 
-      // File input type (if ommitted, guessed from the file extension)
+      // File input type (if omitted, guessed from the file extension)
       registerStringOption_(TOPPXFDR::param_in_type, "<in_type>", "", "Type of input file provided with -in", false, false);
       setValidStrings_(TOPPXFDR::param_in_type, formats);
 
@@ -168,29 +168,29 @@ class TOPPXFDR :
       setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
 
       // mzIdentML output
-      registerOutputFile_(TOPPXFDR::param_out_mzid, "<mzIdentML_file>", "", "Output as mzid file", false, false);
+      registerOutputFile_(TOPPXFDR::param_out_mzid, "<mzIdentML_file>", "", "Output as mzIdentML file", false, false);
       setValidFormats_(TOPPXFDR::param_out_mzid, ListUtils::create<String>("mzid"));
 
       // Minborder
-      registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm)", false);
+      registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm). Can only be applied for xquest.xml input.", false);
 
       // Maxborder
-      registerIntOption_(TOPPXFDR::param_maxborder, "<maxborder>", -1, "Filter for maximum precursor mass error (ppm)", false);
+      registerIntOption_(TOPPXFDR::param_maxborder, "<maxborder>", -1, "Filter for maximum precursor mass error (ppm). Can only be applied for xquest.xml input.", false);
 
       // Mindeltas
-      registerDoubleOption_(TOPPXFDR::param_mindeltas, "<mindeltas>", 0, "Filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal", false);
+      registerDoubleOption_(TOPPXFDR::param_mindeltas, "<mindeltas>", 0, "Filter for delta score, 0 is no filter. Minimum delta score required, hits are rejected if larger or equal. Can only be applied for xquest.xml input.", false);
 
       // Minionsmatched
-      registerIntOption_(TOPPXFDR::param_minionsmatched, "<minionsmatched>", 0, "Filter for minimum matched ions per peptide", false);
+      registerIntOption_(TOPPXFDR::param_minionsmatched, "<minionsmatched>", 0, "Filter for minimum matched ions per peptide. Can only be applied for xquest.xml input.", false);
 
       // Uniquexl
-      registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based on unique IDs");
+      registerFlag_(TOPPXFDR::param_uniquexl, "Calculate statistics based on unique IDs. Can only be applied for xquest.xml input.");
 
       // Qtransform
-      registerFlag_(TOPPXFDR::param_no_qvalues, "Do not transform simple FDR to q-FDR values");
+      registerFlag_(TOPPXFDR::param_no_qvalues, "Do not transform simple FDR to q-values");
 
       // Minscore
-      registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum ld-score to be considered", false);
+      registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum score to be considered for FDR calculation", false);
     }
 
     /**
@@ -887,8 +887,8 @@ class TOPPXFDR :
         // Only consider peptide identifications which  fullfill all filter criteria specified by the user
         if (        (is_xquest_input ? (    (arg_minborder <= error_rel || arg_minborder == -1)
                                             && (arg_maxborder >= error_rel || arg_maxborder == -1)) : true)
-                    && (is_xquest_input ? (mindelta_filter_disabled || delta_score < arg_mindeltas) : true)  // Only apply for xQuest Input
-                    && (is_xquest_input ? ions_matched  >= arg_minionsmatched : true)                       // Only apply for xQuest Input
+                    && (is_xquest_input ? (mindelta_filter_disabled || delta_score < arg_mindeltas) : true)
+                    && (is_xquest_input ? ions_matched  >= arg_minionsmatched : true)
                     &&  score >= arg_minscore
                     && (is_xquest_input ? ( ! arg_uniquex || unique_ids.find(id) == unique_ids.end()) : true))
         {
