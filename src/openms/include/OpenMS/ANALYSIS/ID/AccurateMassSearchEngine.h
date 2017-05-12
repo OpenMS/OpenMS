@@ -350,7 +350,7 @@ private:
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
-    void exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const;
+    void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
