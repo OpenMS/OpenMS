@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FORMAT/MascotInfile.h>" namespace "OpenMS":
         MascotInfile() nogil except +
         MascotInfile(MascotInfile) nogil except + #wrap-ignore
         void store(String & filename, MSSpectrum[Peak1D] & spec, double mz, double retention_time, String search_title) nogil except +
-        void store(String & filename, MSExperiment[Peak1D, ChromatogramPeak] & experiment, String search_title) nogil except +
-        void load(String & filename, MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+        void store(String & filename, MSExperiment & experiment, String search_title) nogil except +
+        void load(String & filename, MSExperiment & exp) nogil except +
         String  getBoundary() nogil except +
         void setBoundary(String & boundary) nogil except +
         String  getDB() nogil except +

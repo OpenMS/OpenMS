@@ -39,6 +39,12 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
 namespace OpenMS
 {
 

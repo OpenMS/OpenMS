@@ -250,7 +250,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
 
-  boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+  boost::shared_ptr<PeakMap > exp(new PeakMap);
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
   OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 

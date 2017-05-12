@@ -60,12 +60,12 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
   {
 
     // fill peak registry and initialise blacklist
-    MSExperiment<Peak1D>::Iterator it_rt;
+    PeakMap::Iterator it_rt;
     blacklist_.reserve(exp_picked_.getNrSpectra());
     registry_.reserve(exp_picked_.getNrSpectra());
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
@@ -130,7 +130,7 @@ namespace OpenMS
       MultiplexFilterResult result;
 
       // iterate over spectra
-      for (MSExperiment<Peak1D>::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
+      for (PeakMap::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
       {
         // skip empty spectra
         if (it_rt_picked->empty())
@@ -250,7 +250,7 @@ namespace OpenMS
 
   int MultiplexFilteringCentroided::nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
   {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
+    PeakMap::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
 
     // read out peak intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)

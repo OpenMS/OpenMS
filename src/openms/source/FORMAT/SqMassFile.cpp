@@ -28,66 +28,32 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_XTANDEMINFILEXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XTANDEMINFILEXMLHANDLER_H
+#include <OpenMS/FORMAT/SqMassFile.h>
 
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
 namespace OpenMS
 {
-  class XTandemInfile;
-  namespace Internal
+
+  SqMassFile::SqMassFile() {}
+
+  SqMassFile::~SqMassFile() {}
+
+  void SqMassFile::load(const String& filename, MapType& map)
   {
+    OpenMS::Internal::MzMLSqliteHandler sql_mass_reader(filename);
+    sql_mass_reader.readExperiment(map);
+  }
 
-    /** @brief Note representation of bioml structure used by XTandem
+  void SqMassFile::store(const String& filename, MapType& map)
+  {
+    OpenMS::Internal::MzMLSqliteHandler sql_mass(filename);
+    sql_mass.createTables();
+    sql_mass.writeExperiment(map);
+  }
 
-
-    */
-    struct XTandemInfileNote
-    {
-      String note_type;
-      String note_label;
-      String note_value;
-    };
-
-    /**
-      @brief Handler that is used for parsing XTandemXML data
-
-    */
-    class OPENMS_DLLAPI XTandemInfileXMLHandler :
-      public XMLHandler
-    {
-public:
-
-      /// Default constructor
-      XTandemInfileXMLHandler(const String & filename, std::vector<XTandemInfileNote> & notes);
-
-      /// Destructor
-      virtual ~XTandemInfileXMLHandler();
-
-      // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
-
-      // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
-
-      // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
-
-protected:
-
-      std::vector<XTandemInfileNote> & notes_;
-
-      XTandemInfileNote actual_note_;
-
-      StringList tag_;
-    };
-
-  }   // namespace Internal
-} // namespace OpenMS
-
-#endif // OPENMS_FORMAT_HANDLERS_XTANDEMXMLHANDLER_H
+}

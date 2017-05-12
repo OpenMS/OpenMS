@@ -94,7 +94,7 @@ namespace OpenMS
     // precheck incoming map
     if (consensus_map_in.empty())
     {
-      LOG_WARN << "Warning: Empty iTRAQ container. No quantitative information available!" << std::endl;
+      LOG_WARN << "Warning: Empty iTRAQ/TMT container. No quantitative information available!" << std::endl;
       return;
     }
 

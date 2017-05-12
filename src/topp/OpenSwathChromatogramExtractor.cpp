@@ -86,7 +86,7 @@ using namespace OpenMS;
   This module extracts ion traces (extracted ion chromatograms or XICs) from a
   file containing spectra.  The masses at which the chromatograms should be
   extracted are stored in a TraML file and the result is stored in a mzML file
-  holding chromatograms. This tool is designed to extract chromatogams from
+  holding chromatograms. This tool is designed to extract chromatograms from
   SWATH (data independent acquisition) data (see ref[1]), thus it will extract
   the masses found in the product ion section of the TraML transitions,
   returning as many chromatograms as input transitions were provided.
@@ -129,7 +129,7 @@ public:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerOptionsAndFlags_()
   {
@@ -226,7 +226,7 @@ protected:
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap > exp(new PeakMap);
       MzMLFile f;
       // Logging and output to the console
       // IF_MASTERTHREAD f.setLogType(log_type_); 

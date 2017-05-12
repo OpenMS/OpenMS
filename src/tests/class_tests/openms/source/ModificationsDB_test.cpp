@@ -103,26 +103,26 @@ END_SECTION
 
   set<const ResidueModification*, ResidueModificationOriginCmp>::const_iterator mod_it = mods_sorted.begin();
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'S')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'T')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
   ++mod_it;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "T")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'Y')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
 
-    ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::C_TERM);
+  ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::C_TERM);
 
   TEST_EQUAL(mods.size(), 1)
   ABORT_IF(mods.size() != 1)
@@ -135,12 +135,12 @@ END_SECTION
   }
 
   mod_it = mods_sorted.begin();
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
   // no match, thus mods should be empty
-    ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::N_TERM);
+  ptr->searchModifications(mods, "Label:18O(1)", "", ResidueModification::N_TERM);
 
   TEST_EQUAL(mods.size(), 0)
 }
@@ -188,6 +188,31 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
   // something exotic.. mods should return empty (without clearing it before)
   ptr->searchModificationsByDiffMonoMass(mods, 800000000.0, 0.1);
   TEST_EQUAL(mods.size(), 0);
+
+  // make sure the common ones are also found for integer masses (this is how
+  // integer mass search is done)
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "S");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Phospho (S)")
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "T");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Phospho (T)")
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "Y");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Phospho (Y)")
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 16.0, 1.0, "M");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Oxidation (M)")
+  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "N");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Deamidated (N)")
+  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "Q");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Deamidated (Q)")
 }
 END_SECTION
 

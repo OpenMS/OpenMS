@@ -65,9 +65,14 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
+  @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in MRM chromatograms.
+  @brief Picks peaks in SRM/MRM chromatograms.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_MRMTransitionGroupPicker.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_MRMTransitionGroupPicker.html
 
 */
 
@@ -79,16 +84,15 @@ class TOPPMRMTransitionGroupPicker
 public:
 
   TOPPMRMTransitionGroupPicker() 
-    : TOPPBase("MRMTransitionGroupPicker", "", false)
+    : TOPPBase("MRMTransitionGroupPicker", "Picks peaks in SRM/MRM chromatograms.", false)
   {
   }
 
 protected:
 
-  typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; // this is the type in which we store the chromatograms for this analysis
   typedef ReactionMonitoringTransition TransitionType;
   typedef TargetedExperiment TargetedExpType;
-  typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; // a transition group holds the MSSpectra with the Chromatogram peaks from above
+  typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
   void registerOptionsAndFlags_()
   {
@@ -164,8 +168,8 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
         MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
+        MSChromatogram<> chromatogram;
 
         // copy old to new chromatogram
         for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
@@ -230,7 +234,7 @@ protected:
     String out = getStringOption_("out");
     String tr_file = getStringOption_("tr");
 
-    boost::shared_ptr<MSExperiment<> > exp ( new MSExperiment<> );
+    boost::shared_ptr<PeakMap > exp ( new PeakMap );
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
     mzmlfile.load(in, *exp);

@@ -48,7 +48,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef std::map<String, MRMTransitionGroup< MSSpectrum <ChromatogramPeak>, OpenSwath::LightTransition > > TransitionGroupMapType;
+typedef std::map<String, MRMTransitionGroup< MSChromatogram<>, OpenSwath::LightTransition > > TransitionGroupMapType;
 
 START_TEST(MRMFeatureFinderScoring, "$Id$")
 
@@ -182,7 +182,6 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TransformationDescription trafo;
   boost::shared_ptr<PeakMap> swath_map (new PeakMap);
   TransitionGroupMapType transition_group_map;
-  MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
   boost::shared_ptr<PeakMap> exp (new PeakMap);
@@ -210,6 +209,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
   ///////////////////////////////////////////////////////////////////////////
   //// Scores for the second group
+  MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
   transition_group = transition_group_map["tr_gr2"];
   TEST_EQUAL(transition_group.size(), 3)
   TEST_EQUAL(transition_group.getFeatures().size(), 2)

@@ -48,7 +48,7 @@ using namespace std;
 
 START_TEST(IsotopeWaveletTransform, "$Id$")
 
-MSExperiment<> map;
+PeakMap map;
 MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test.mzData"), map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* iw = 0;

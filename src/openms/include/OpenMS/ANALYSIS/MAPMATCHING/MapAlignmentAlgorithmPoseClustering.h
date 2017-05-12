@@ -80,7 +80,7 @@ public:
     virtual ~MapAlignmentAlgorithmPoseClustering();
 
     void align(const FeatureMap& map, TransformationDescription& trafo);
-    void align(const MSExperiment<>& map, TransformationDescription& trafo);
+    void align(const PeakMap& map, TransformationDescription& trafo);
     void align(const ConsensusMap& map, TransformationDescription& trafo);
 
     /// Sets the reference for the alignment

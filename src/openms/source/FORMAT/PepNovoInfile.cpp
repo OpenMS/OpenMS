@@ -132,11 +132,11 @@ namespace OpenMS
     }
 
     //cout<<"origin: "<<origin<<"    loc: "<<locations<<endl;
-    if (origin == "C-term")
+    if ((ts == ResidueModification::C_TERM) && (origin == "X"))
     {
       origin = "C_TERM";
     }
-    else if (origin == "N-term")
+    else if ((ts == ResidueModification::N_TERM) && (origin == "X"))
     {
       origin = "N_TERM";
     }

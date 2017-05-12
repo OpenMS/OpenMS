@@ -130,4 +130,5 @@ protected:
   };
 }
 
-#endif
+#endif // OPENMS_KERNEL_MRMFEATURE_H
+

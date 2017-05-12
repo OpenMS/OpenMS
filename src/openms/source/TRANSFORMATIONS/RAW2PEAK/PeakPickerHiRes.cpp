@@ -46,7 +46,7 @@ namespace OpenMS
     ProgressLogger()
   {
     // set default parameter values
-    defaults_.setValue("signal_to_noise", 1.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
+    defaults_.setValue("signal_to_noise", 0.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
     defaults_.setValue("spacing_difference_gap", 4.0, "The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
@@ -58,7 +58,7 @@ namespace OpenMS
     defaults_.setValue("missing", 1, "Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("missing", 0);
 
-    defaults_.setValue("ms_levels", ListUtils::create<Int>("1,2"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
+    defaults_.setValue("ms_levels", ListUtils::create<Int>("1"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
     defaults_.setMinInt("ms_levels", 1);
 
     defaults_.setValue("report_FWHM", "false", "Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.");

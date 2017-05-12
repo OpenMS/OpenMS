@@ -12,6 +12,6 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoIdentification.h>" namespace "Op
         # wrap-ignore
         DeNovoIdentification() nogil except +
         DeNovoIdentification(DeNovoIdentification) nogil except +
-        void getIdentifications(libcpp_vector[ PeptideIdentification ] & ids, MSExperiment[RichPeak1D, ChromatogramPeak] & exp) nogil except +
+        void getIdentifications(libcpp_vector[ PeptideIdentification ] & ids, MSExperiment & exp) nogil except +
         void getIdentification(PeptideIdentification & id_, MSSpectrum[RichPeak1D] & spectrum) nogil except +
 

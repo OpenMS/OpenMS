@@ -75,9 +75,9 @@ START_SECTION((MascotXMLFile()))
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, MSExperiment<>& experiment, const String& scan_regex = "")))
+START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, PeakMap& experiment, const String& scan_regex = "")))
 {
-  MSExperiment<> exp;
+  PeakMap exp;
   exp.getSpectra().resize(1);
   SpectrumMetaDataLookup lookup;
   xml_file.initializeLookup(lookup, exp);

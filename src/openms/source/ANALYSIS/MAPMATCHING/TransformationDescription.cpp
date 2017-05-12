@@ -41,6 +41,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
+#include <iomanip>
+
 using namespace std;
 
 namespace OpenMS

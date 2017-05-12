@@ -45,9 +45,9 @@ using namespace OpenMS;
 using namespace std;
 
 
-boost::shared_ptr<MSExperiment<Peak1D> > getData()
+boost::shared_ptr<PeakMap > getData()
 {
-  boost::shared_ptr<MSExperiment<Peak1D> > exp2(new MSExperiment<Peak1D>);
+  boost::shared_ptr<PeakMap > exp2(new PeakMap);
   MSSpectrum<Peak1D> spec;
   Peak1D p;
   p.setMZ(100);
@@ -68,7 +68,7 @@ START_TEST(SpectrumAccessQuadMZTransforming, "$Id$")
 SpectrumAccessQuadMZTransforming* ptr = 0;
 SpectrumAccessQuadMZTransforming* nullPointer = 0;
 
-boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+boost::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
 
@@ -91,7 +91,7 @@ START_SECTION(size_t getNrSpectra() const)
   boost::shared_ptr<SpectrumAccessQuadMZTransforming> ptr(new SpectrumAccessQuadMZTransforming(expptr, 0, 0, 0, false));
   TEST_EQUAL(ptr->getNrSpectra(), 0)
 
-  boost::shared_ptr<MSExperiment<Peak1D> > exp2 = getData();
+  boost::shared_ptr<PeakMap > exp2 = getData();
   OpenSwath::SpectrumAccessPtr expptr2 = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp2);
   boost::shared_ptr<SpectrumAccessQuadMZTransforming> ptr2(new SpectrumAccessQuadMZTransforming(expptr2, 0, 0, 0, false));
   TEST_EQUAL(ptr2->getNrSpectra(), 1)
@@ -101,7 +101,7 @@ END_SECTION
 START_SECTION(OpenSwath::SpectrumPtr getSpectrumById(int id))
 {
   {
-    boost::shared_ptr<MSExperiment<Peak1D> > exp2 = getData();
+    boost::shared_ptr<PeakMap > exp2 = getData();
     OpenSwath::SpectrumAccessPtr expptr2 = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp2);
     boost::shared_ptr<SpectrumAccessQuadMZTransforming> ptr2(new SpectrumAccessQuadMZTransforming(expptr2, 0, 0, 0, false));
     OpenSwath::SpectrumPtr spec1 = ptr2->getSpectrumById(0);
@@ -117,7 +117,7 @@ START_SECTION(OpenSwath::SpectrumPtr getSpectrumById(int id))
   }
 
   {
-    boost::shared_ptr<MSExperiment<Peak1D> > exp2 = getData();
+    boost::shared_ptr<PeakMap > exp2 = getData();
     OpenSwath::SpectrumAccessPtr expptr2 = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp2);
     boost::shared_ptr<SpectrumAccessQuadMZTransforming> ptr2(new SpectrumAccessQuadMZTransforming(expptr2, 10, 5, 2, false));
     OpenSwath::SpectrumPtr spec1 = ptr2->getSpectrumById(0);
@@ -143,7 +143,7 @@ START_SECTION(boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
   TEST_EQUAL(ptr->getNrSpectra(), clone_ptr_empty->getNrSpectra())
 
   {
-    boost::shared_ptr<MSExperiment<Peak1D> > exp2 = getData();
+    boost::shared_ptr<PeakMap > exp2 = getData();
     OpenSwath::SpectrumAccessPtr expptr2 = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp2);
     boost::shared_ptr<SpectrumAccessQuadMZTransforming> ptr2(new SpectrumAccessQuadMZTransforming(expptr2, 10, 5, 2, false));
     OpenSwath::SpectrumPtr spec1 = ptr2->getSpectrumById(0);

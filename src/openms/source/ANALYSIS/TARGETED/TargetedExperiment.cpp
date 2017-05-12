@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
 
@@ -291,7 +292,7 @@ namespace OpenMS
     return proteins_;
   }
 
-  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const String & ref)
+  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const String & ref) const
   {
     if (protein_reference_map_dirty_)
     {
@@ -299,6 +300,15 @@ namespace OpenMS
     }
     OPENMS_PRECONDITION(protein_reference_map_.find(ref) != protein_reference_map_.end(), "Could not find protein in map")
     return *(protein_reference_map_[ref]);
+  }
+
+  bool TargetedExperiment::hasProtein(const String & ref) const
+  {
+    if (protein_reference_map_dirty_)
+    {
+      createProteinReferenceMap_();
+    }
+    return protein_reference_map_.find(ref) != protein_reference_map_.end();
   }
 
   void TargetedExperiment::addProtein(const Protein & protein)
@@ -333,24 +343,42 @@ namespace OpenMS
     return peptides_;
   }
 
-  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const String & ref)
+  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const String & ref) const
   {
     if (peptide_reference_map_dirty_)
     {
       createPeptideReferenceMap_();
     }
-    OPENMS_PRECONDITION(peptide_reference_map_.find(ref) != peptide_reference_map_.end(), "Could not find peptide in map")
+    OPENMS_PRECONDITION(hasPeptide(ref), "Cannot return peptide that does not exist, check with hasPeptide() first")
     return *(peptide_reference_map_[ref]);
   }
 
-  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const String & ref)
+  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const String & ref) const
   {
     if (compound_reference_map_dirty_)
     {
       createCompoundReferenceMap_();
     }
-    OPENMS_PRECONDITION(compound_reference_map_.find(ref) != compound_reference_map_.end(), "Could not find compound in map")
+    OPENMS_PRECONDITION(hasCompound(ref), "Cannot return compound that does not exist, check with hasCompound() first")
     return *(compound_reference_map_[ref]);
+  }
+
+  bool TargetedExperiment::hasPeptide(const String & ref) const
+  {
+    if (peptide_reference_map_dirty_)
+    {
+      createPeptideReferenceMap_();
+    }
+    return peptide_reference_map_.find(ref) != peptide_reference_map_.end();
+  }
+
+  bool TargetedExperiment::hasCompound(const String & ref) const
+  {
+    if (compound_reference_map_dirty_)
+    {
+      createCompoundReferenceMap_();
+    }
+    return compound_reference_map_.find(ref) != compound_reference_map_.end();
   }
 
   void TargetedExperiment::addPeptide(const Peptide & rhs)
@@ -526,7 +554,7 @@ namespace OpenMS
     return false;
   }
 
-  void TargetedExperiment::createProteinReferenceMap_()
+  void TargetedExperiment::createProteinReferenceMap_() const
   {
     for (Size i = 0; i < getProteins().size(); i++)
     {
@@ -535,7 +563,7 @@ namespace OpenMS
     protein_reference_map_dirty_ = false;
   }
 
-  void TargetedExperiment::createPeptideReferenceMap_()
+  void TargetedExperiment::createPeptideReferenceMap_() const
   {
     for (Size i = 0; i < getPeptides().size(); i++)
     {
@@ -544,7 +572,7 @@ namespace OpenMS
     peptide_reference_map_dirty_ = false;
   }
 
-  void TargetedExperiment::createCompoundReferenceMap_()
+  void TargetedExperiment::createCompoundReferenceMap_() const
   {
     for (Size i = 0; i < getCompounds().size(); i++)
     {

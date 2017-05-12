@@ -97,7 +97,7 @@ namespace OpenMS
   }
 
   void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, 
-                          bool measure_from_subelements, bool annotate_ids_with_subelements, const MSExperiment<Peak1D>& spectra)
+                          bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
@@ -369,7 +369,7 @@ namespace OpenMS
   }
 
   void IDMapper::annotate(FeatureMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, 
-                          bool use_centroid_rt, bool use_centroid_mz, const MSExperiment<Peak1D>& spectra)
+                          bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra)
   {
     // std::cout << "Starting annotation..." << std::endl;
     checkHits_(ids); // check RT and m/z are present

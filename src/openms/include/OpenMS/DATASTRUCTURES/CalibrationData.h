@@ -168,7 +168,7 @@ namespace OpenMS
       int getGroup(Size i) const;
 
       /**
-        @brief List of meta-values which are used internally (for conversion to MSExperiment<>).
+        @brief List of meta-values which are used internally (for conversion to PeakMap).
       */
       static StringList getMetaValues();
 

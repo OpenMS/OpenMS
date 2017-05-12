@@ -45,6 +45,9 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <fstream>
 #include <iostream>
 #include <boost/regex.hpp>
@@ -119,7 +122,7 @@ namespace OpenMS
       base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
 
-      MSExperiment<> experiment;
+      PeakMap experiment;
       FileHandler fh;
       fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
@@ -567,15 +570,15 @@ namespace OpenMS
           else
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
-
-            if ( it->getScoreType() == "Posterior Error Probability")
-            {
-              double probability = 1.0 - h.getScore();
-              f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
-              f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
-              f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
-              f << "\t\t\t</analysis_result>" << "\n";
-            }
+          }
+          if (it->getScoreType() == "Posterior Error Probability")
+          {
+            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            double probability = 1.0 - h.getScore();
+            f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
+            f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+            f << "\t\t\t</analysis_result>" << "\n";
           }
         }
         f << "\t\t</search_hit>" << "\n";

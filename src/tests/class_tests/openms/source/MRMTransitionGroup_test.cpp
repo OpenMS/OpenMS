@@ -40,12 +40,14 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 using namespace OpenMS;
 using namespace std;
 
-typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 typedef OpenMS::ReactionMonitoringTransition TransitionType;
-typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
+typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
 ///////////////////////////
 
@@ -70,8 +72,8 @@ START_SECTION(~MRMTransitionGroup())
 END_SECTION
 
 
-RichPeakChromatogram chrom1;
-RichPeakChromatogram chrom2;
+MSChromatogram<> chrom1;
+MSChromatogram<> chrom2;
 TransitionType trans1;
 TransitionType trans2;
 MRMFeature feature1;
@@ -309,6 +311,42 @@ START_SECTION ( MRMTransitionGroup subset(std::vector<std::string> tr_ids))
   mrmtrgroupsub.getLibraryIntensity(result);
   TEST_EQUAL(result.size(), 1)
   TEST_REAL_SIMILAR(result[0], 3)
+}
+END_SECTION
+
+START_SECTION ( inline bool isInternallyConsistent() const)
+{
+  MRMTransitionGroupType mrmtrgroup;
+  TEST_EQUAL(mrmtrgroup.isInternallyConsistent(), true)
+}
+END_SECTION
+
+START_SECTION (inline bool chromatogramIdsMatch() const)
+{
+  
+  {
+    MRMTransitionGroupType mrmtrgroup;
+    Chromatogram c;
+    c.setNativeID("test");
+    mrmtrgroup.addChromatogram(c, "test");
+
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), true)
+    mrmtrgroup.addChromatogram(c, "test2");
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), false)
+  }
+  
+
+  {
+    MRMTransitionGroupType mrmtrgroup;
+    Chromatogram c;
+    c.setNativeID("test");
+    mrmtrgroup.addPrecursorChromatogram(c, "test");
+
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), true)
+    mrmtrgroup.addPrecursorChromatogram(c, "test2");
+    TEST_EQUAL(mrmtrgroup.chromatogramIdsMatch(), false)
+  }
+
 }
 END_SECTION
 

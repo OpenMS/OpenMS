@@ -23,7 +23,6 @@
 
   <b>Notation of this tutorial</b>
      <ul>
-        <li>whenever there is a $ this implies entering everything that follows the $ into a command prompt (usually the Visual Studio Command Prompt)
         <li>A string in &lt;&gt; is something the user needs to choose e.g. &lt;path_to_contrib&gt; means that this string should be replaced by the path where the user put the %OpenMS contrib package. Usually all commands where this is necessary come with examples, so don't worry.
         <li>Whenever you added a path to your Windows PATH Environment variable, every Command Prompt which is already open will not be refreshed. You will need a to open a new one.
      </ul>
@@ -66,24 +65,24 @@
 
     @b Download:
 
-    The contrib package is contained in the %OpenMS release package.
-
-    If you are using the developer version of %OpenMS, you must check out the contrib from GitHub repository
+    If you plan to use the development version of %OpenMS, you must check out the contrib from GitHub repository
     \code
-    &gt; git clone https://github.com/OpenMS/contrib
+    git clone https://github.com/OpenMS/contrib
     \endcode
     to obtain the latest developer version (potentially unstable).
-
+    If you want to use a release version of %OpenMS, use the corresponding Release-tagged version on GitHub (https://github.com/OpenMS/contrib/releases) 
+    or download the contrib source from a .tar.gz
+    for older releases.
+    
     @b Installation:
 
     After you got the source code for the contrib package follow these steps:
 
     <ol>
-      <li>Open a <b>VisualStudio Developer Command prompt<b> (use the x64 version if you want 64 bit apps!)<br>
-					VS2015 does not provide a commandline shortcut for a 64bit Command Prompt.<br>
-					Call <b>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64'</b> to get one!
+      <li>Open a <b>VisualStudio Developer Command prompt</b> (use the x64 version if you want 64 bit apps!)<br>
+					@note VS2015 does not provide a commandline shortcut for a 64bit Command Prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
       <li>Create a build directory for the %OpenMS contrib <br>
-        -e.g. <tt>$ mkdir contrib_win64_build</tt>
+          e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
         Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
         able to run 64bit apps in this case.
@@ -95,7 +94,7 @@
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
         Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
-        Type <tt>$ cmake</tt> to see a list of available generators.<br>
+        Type <tt>cmake</tt> to see a list of available generators.<br>
 
         Example:
         \code
@@ -114,38 +113,38 @@
     compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
     they are incompatible with Visual Studio binaries.
 
-    To build Qt from sources, download Qt 4.8.7, which supports all VS versions up to VS 2015!
-    <b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
+    To build Qt from sources, download Qt 4.8.7 (see below), which supports all VS versions up to VS 2015!
+    @note Qt 5.X IS NOT SUPPORTED YET!
 
     Follow this procedure if you want to compile Qt yourself:
     <ol>
       <li>non-commercial:
         <ol>
           <li>download <b>Qt 4.8.7 source</b> from https://download.qt.io/official_releases/qt/4.8/ as .zip or .tar.gz
-          <li>extract zip file to a temp location (called <path-to-tmp-qt> henceforth)
+          <li>extract zip file to a temp location (called <tt>&lt;path-to-tmp-qt&gt;</tt> henceforth)
 					<li>[VS2015 only] Qt 4.8.7 will not compile with VS2015 out of the box (previous VS version should be fine).
 							We have included a patch file in our contrib (see above) which should be applied to the extracted Qt sources, i.e.
 							\code
-								$ cd <path-to-tmp-qt>
-  							$ <path_to_contrib>\tools\patch.exe -p0 -b -N -l -i <path_to_contrib>\patches\qt\qt4.8.7_build_with_msvc2015.diff
+								cd <path-to-tmp-qt>
+  							<path_to_contrib>\tools\patch.exe -p0 -b -N -l -i <path_to_contrib>\patches\qt\qt4.8.7_build_with_msvc2015.diff
 							\endcode
           <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <li>
             \code
-            $ cd <path-to-tmp-qt>
+            cd <path-to-tmp-qt>
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <path-to-qt>, e.g. "c:/dev/Qt4.8.7/").
+          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt4.8.7/</tt>).
             \code
-            $ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>
+            configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>
             \endcode
           <li>
             \code
-            $ nmake
+            nmake
             \endcode
           <li>
 						\code
-						$ nmake install
+						nmake install
 						\endcode
           <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories. You can delete <tt><path-to-tmp-qt></tt> (since it will consume quite a lot of disk space)
           <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
@@ -192,10 +191,9 @@
         </ul>
   </ol>
 
-  You should install the above apps prior to installing %OpenMS, because otherwise during the configuration step the documentation targets will be
+  You should install the above apps prior to installing %OpenMS (see below), because otherwise during the configuration step the documentation targets will be
   disabled.
-  If you already have a working installation of %OpenMS (without documentation), you can simply install the above programs and then delete the CMakeCache.txt file
-  in your %OpenMS build directory and reconfigure %OpenMS by calling cmake (see below). No need to recompile the library!
+  If you already have a working installation of %OpenMS (without documentation), you can simply install the above programs and reconfigure %OpenMS by calling <tt>cmake .</tt> in your build tree. No need to recompile the library!
 
   @section install_win_openms Installing OpenMS
 
@@ -203,26 +201,27 @@
     please refer to the section @ref install_win_contrib above.
     <br>
     Assuming you have successfully installed the dependent libraries, you need to
-    get the %OpenMS source code. The latest stable version of %OpenMS
-    can be found in the <a href="http://www.OpenMS.de/download/" target="_blank">download</a> page.
-    For further (e.g. latest developer version from GitHub) info see the <a href="http://www.OpenMs.de/download/" target="_blank">download instructions</a>.
-    <br>
-    <br>
-    After you got the source code open a VisualStudio Command line (see Start-Menu).
-    To create Visual Studio Project Files using CMake:
+    get the %OpenMS source code.
+    We recommend using the Git version from GitHub
+    \code
+    git clone https://github.com/OpenMS/OpenMS
+    \endcode
+    
+    Certain releases can found on the GitHub release page https://github.com/OpenMS/OpenMS/releases.
+    
+    Now, we create the build system:
     <ol>
       <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-      <li>Create a build directory for %OpenMS<br>
-          -e.g. $ mkdir OpenMS_Win64
+      <li>Create a build directory for %OpenMS, e.g. <tt>mkdir OpenMS_Win64</tt>
       @note Due to Windows restrictions concerning the maximum length of a file path (of 260 characters) and the rather deep folder hierarchies created by CMake and Visual Studio, we advise to restrict the length of the base path to your build directory. We suggest less than 40 characters if possible.
-      <li>Call CMake to create the BuildSystem there
+      <li>Call CMake to create the build system
         \code
         cd <path_to_OpenMS_build>
         cmake -D CMAKE_PREFIX_PATH="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
         \endcode
 
-        The choice of &lt;generator&gt; is dependent on your system. Type <tt>$ cmake</tt> to see a list of available generators.
-        If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
+        The choice of <tt>&lt;generator&gt;</tt> is dependent on your system. Type <tt>cmake</tt> to see a list of available generators.
+        @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not tested! If you need compiling on the command line, you can use <tt>msbuild</tt> also on VS solution files!
         Example:
         \code
         cd c:\dev\OpenMS_Win64
@@ -231,17 +230,15 @@
     </ol>
 
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
-    If you choose another generator (e.g. Eclipse) you will find something equivalent. If you want to work on only a
-    subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the src/ folder of your
+    If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the src/ folder of your
     build folder and below (e.g., src/openms_gui/OpenMS_GUI.sln).
 
     In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
 
-    Try to build the %OpenMS library - the target is called 'OpenMS'. This will create the %OpenMS dll. If you used the debug configuration it will be called
+    Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS library dll. If you used the debug configuration it will be called
     OpenMSd.dll, in release mode its called OpenMS.dll.<br>
-    As a last step you should add the location of the %OpenMS dll to your PATH environment. This is required for TOPP tools like TOPPAS, which might otherwise not
-    work. Also external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
-    configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug or just [OpenMS_build]/bin. In the same folder the
+    As a last step you should add the location of the %OpenMS.dll to your PATH environment. This makes calling TOPPView and TOPP tools more convenient if you are working the command line. Also, external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
+    configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug (for VS) or just [OpenMS_build]/bin (nmake). In the same folder the
     TOPP tools will reside once build (see next section).
     Be aware that the order of directories in the PATH variable determines which dll or executable is used, if no absolute path was given when the executable was called.
     So the PATH might need to be updated (add/delete/reorder entries) if you are working with multiple installations or configurations of %OpenMS.
@@ -260,9 +257,24 @@
   Each class in %OpenMS and each TOPP tool has a unit test. The tests will be build with the complete solution. To specifically build and execute the tests,
   go to your %OpenMS build_tree and further into ./src/tests/class_tests. There you'll find an OpenMS_class_tests.sln file, which you can open.
   For other generators an equivalent file with another suffix will be present. Now, build the 'ALL_BUILD' target and the 'RUN_TESTS' target.
-  You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>
-  Single tests can be run with $ ctest -R &lt;testnameregex&gt;, e.g. $ ctest -R Base64_test
+  You can also run the tests in a command prompt in &lt;OpenMS_build_tree&gt; using <tt>ctest</tt>.
+  Single tests can be run with <tt>ctest -R <testnameregex></tt>, e.g. <tt>ctest -R Base64_test</tt>.
   For more syntax on CTest look at the online documentation at http://cmake.org/.
 
+  @section install_win_cmdline_openms Building OpenMS on the commandline
+  
+  The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
+  The %OpenMS class tests are by far the largest.
+  
+  If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
+  as arguments to <tt>MSBuild.exe</tt>, e.g.
+  \code
+  MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
+  \endcode
+  
+  @note Since the call can be a bit lengthy, there is a batch file in <tt>OpenMS/tools/build.bat</tt>, which allows to build the most important targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short notation. Call it without arguments to see its usage help text.  
+  
+  
+  
 */
 

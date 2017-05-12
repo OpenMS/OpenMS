@@ -56,17 +56,12 @@ except IOError:
     print("The file include_dir.bin does not yet exist, please run setup.py first to create it.")
 
 from Cython.Compiler.Main import compile, CompilationOptions
-from Cython.Compiler.Options import directive_defaults
 import Cython
 print("Will try to compile with Cython version", Cython.__version__)
 
 # Prepare options
-directive_defaults["boundscheck"] = False
-directive_defaults["wraparound"] = False
 print "include:", autowrap_include_dirs
-print "defaults:", directive_defaults
 options = dict(include_path=autowrap_include_dirs,
-               compiler_directives=directive_defaults,
                #output_dir=".",
                #gdb_debug=True,
                cplus=True)

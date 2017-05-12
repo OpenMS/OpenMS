@@ -768,7 +768,62 @@ def testXTandemXMLFile():
     """
     f = pyopenms.XTandemXMLFile()
     assert f.load is not None
-    assert f.setModificationDefinitionsSet is not None
+
+@report
+def testXTandemInfile():
+    """
+    """
+    f = pyopenms.XTandemInfile()
+
+    f.setFragmentMassTolerance is not None
+    f.getFragmentMassTolerance is not None
+
+    f.setPrecursorMassTolerancePlus is not None
+    f.getPrecursorMassTolerancePlus is not None
+    f.setPrecursorMassToleranceMinus is not None
+    f.getPrecursorMassToleranceMinus is not None
+
+    f.setPrecursorErrorType is not None
+    f.getPrecursorErrorType is not None
+
+    f.setFragmentMassErrorUnit is not None
+    f.getFragmentMassErrorUnit is not None
+    f.setPrecursorMassErrorUnit is not None
+    f.getPrecursorMassErrorUnit is not None
+
+    f.setNumberOfThreads is not None
+    f.getNumberOfThreads is not None
+
+    f.setModifications is not None
+    f.getModifications is not None
+
+    f.setOutputFilename is not None
+    f.getOutputFilename is not None
+    f.setInputFilename is not None
+    f.getInputFilename is not None
+    f.setTaxonomyFilename is not None
+    f.getTaxonomyFilename is not None
+    f.setDefaultParametersFilename is not None
+    f.getDefaultParametersFilename is not None
+
+
+    f.setTaxon("testTaxon")
+    assert f.getTaxon() == "testTaxon"
+
+    assert f.setMaxPrecursorCharge is not None
+    assert f.getMaxPrecursorCharge is not None
+
+    assert f.setNumberOfMissedCleavages is not None
+    assert f.getNumberOfMissedCleavages is not None
+
+    assert f.setMaxValidEValue is not None
+    assert f.getMaxValidEValue is not None
+
+    assert f.setSemiCleavage is not None
+    assert f.setAllowIsotopeError is not None
+    assert f.write is not None
+    assert f.setCleavageSite is not None
+    assert f.getCleavageSite is not None
 
 @report
 def testSignalToNoiseEstimatorMedian():
@@ -2846,6 +2901,114 @@ def testMSSpectrum():
 
     assert int(spec.isSorted()) in  (0,1)
 
+    # get data arrays
+    assert len(spec.getStringDataArrays()) == 0
+    string_da = [ pyopenms.StringDataArray() ]
+    string_da[0].push_back("hello")
+    string_da[0].push_back("world")
+    string_da.append( pyopenms.StringDataArray() )
+    string_da[1].push_back("other")
+    spec.setStringDataArrays( string_da )
+    assert len(spec.getStringDataArrays()) == 2
+    assert spec.getStringDataArrays()[0][0] == "hello"
+    assert spec.getStringDataArrays()[1][0] == "other"
+
+    assert len(spec.getIntegerDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].push_back(5)
+    int_da[0].push_back(6)
+    int_da.append( pyopenms.IntegerDataArray() )
+    int_da[1].push_back(8)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 2
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+    assert len(spec.getFloatDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.FloatDataArray() ]
+    int_da[0].push_back(5.0)
+    int_da[0].push_back(6.0)
+    int_da.append( pyopenms.FloatDataArray() )
+    int_da[1].push_back(8.0)
+    spec.setFloatDataArrays( int_da )
+    assert len(spec.getFloatDataArrays()) == 2.0
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+@report
+def testStringDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.StringDataArray()
+    assert da.size() == 0
+    da.push_back("hello")
+    da.push_back("world")
+    assert da.size() == 2
+    assert da[0] == "hello"
+    assert da[1] == "world"
+    da[1] = "hello world"
+    assert da[1] == "hello world", da[1]
+    da.clear()
+    assert da.size() == 0
+    da.push_back("hello")
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = "hello"
+    da[1] = ""
+    da[2] = "world"
+    assert da.size() == 3
+
+@report
+def testIntegerDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.IntegerDataArray()
+    assert da.size() == 0
+    da.push_back(1)
+    da.push_back(4)
+    assert da.size() == 2
+    assert da[0] == 1
+    assert da[1] == 4
+    da[1] = 7
+    assert da[1] == 7
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1)
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = 1
+    da[1] = 2
+    da[2] = 3
+    assert da.size() == 3
+
+@report
+def testFloatDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.FloatDataArray()
+    assert da.size() == 0
+    da.push_back(1.0)
+    da.push_back(4.0)
+    assert da.size() == 2
+    assert da[0] == 1.0
+    assert da[1] == 4.0
+    da[1] = 7.0
+    assert da[1] == 7.0
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1.0)
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = 1.0
+    da[1] = 2.0
+    da[2] = 3.0
+    assert da.size() == 3
+
 @report
 def testMSChromatogram():
     """
@@ -4446,6 +4609,7 @@ def testModificationsDB():
     m = mdb.getModification( s("Phosphorylation"), s("S"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m.getId() == b"Phospho"
 
+    # get out all mods (there should be many, some known ones as well!)
     mods = []
     m = mdb.getAllSearchModifications(mods)
     assert len(mods) > 100
@@ -4454,6 +4618,7 @@ def testModificationsDB():
     assert b"Sulfo (S)" in mods
     assert not (b"Phospho" in mods)
 
+    # search for specific modifications by mass
     m = mdb.getBestModificationByDiffMonoMass( 80.0, 1.0, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"Phospho"
@@ -4466,14 +4631,31 @@ def testModificationsDB():
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
+    m = mdb.getBestModificationByDiffMonoMass(16, 1.0, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None 
+    assert m.getId() == b"Oxidation", m.getId()
+    assert m.getFullName() == b"Oxidation or Hydroxylation", m.getFullName()
+    assert m.getUniModAccession() == b"UniMod:35"
+
+    ### 
+
     m = mdb.getBestModificationByMonoMass(80, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
     assert m.getId() == b"MOD:00439"
+    assert m.getFullName() == b"O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
+    assert m.getUniModAccession() == b"" # no unimod for crazyness ...
+
+    m = mdb.getBestModificationByMonoMass(147, 20, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None 
+    assert m.getUniModAccession() == b"", m.getUniModAccession()
+    assert m.getId() == b"MOD:00719", m.getId()
+    assert m.getFullName() == b"oxidation to L-methionine sulfoxide", m.getFullName()
 
     m = mdb.getBestModificationByMonoMass( 96, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is not None 
-    assert m.getId() == b"Thr->Pro"
-    assert m.getUniModAccession() == b"UniMod:662"
+    assert m.getId() == b"MOD:00252", m.getId()
+    assert m.getFullName() == b"keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
+    assert m.getUniModAccession() == b"", m.getUniModAccession() # no unimod for crazyness ...
 
     # Test NULL ptr
     m = mdb.getBestModificationByMonoMass( 999999999, 0.20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)

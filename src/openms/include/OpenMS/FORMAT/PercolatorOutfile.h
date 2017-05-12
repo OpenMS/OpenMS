@@ -77,19 +77,8 @@ namespace OpenMS
     /// Converts the peptide string to an 'AASequence' instance
     void getPeptideSequence_(String peptide, AASequence& seq) const;
 
-    /// Extracts allowed modifications from the search results
-    void getSearchModifications_(
-      const std::vector<PeptideIdentification>& peptides,
-      ProteinIdentification::SearchParameters& params) const;
-
-    /// Adds modifications to the search parameters (helper function for getSearchModifications_())
-    void addModsToSearchParams_(
-      const std::map<String, std::set<String> >::const_iterator& map_it,
-      ProteinIdentification::SearchParameters& params) const;
-
-    /// Gets the full name of a modification (incl. residue specificity)
-    String getFullModName_(const String& residue, const String& mod) const;
-
+    /// Resolve cases where N-terminal modifications may be misassigned to the first residue (for X! Tandem results)
+    void resolveMisassignedNTermMods_(String& peptide) const;
   };
 
 } // namespace OpenMS

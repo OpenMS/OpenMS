@@ -1026,7 +1026,10 @@ namespace OpenMS
           {
             fn += "_to_" + QFileInfo(per_round_basenames[r].last()).fileName() + "_merged";
           }
-          fn += file_suffix.toQString();
+          if (!fn.endsWith(file_suffix.toQString()))
+          {
+            fn += file_suffix.toQString();
+          }
           fn = QDir::toNativeSeparators(fn);
           if (filename_output_set.count(fn) > 0)
           {

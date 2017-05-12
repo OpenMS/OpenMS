@@ -369,12 +369,12 @@ START_SECTION(bool operator==(const Residue &residue) const)
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setThreeLetterCode("new_3lc");
+	r.setThreeLetterCode("3lc");
 	TEST_EQUAL(r == *e_ptr, false)
 
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
-	r.setOneLetterCode("new_1lc");
+	r.setOneLetterCode("1");
 	TEST_EQUAL(r == *e_ptr, false)
 
 	r = *e_ptr;
@@ -468,12 +468,12 @@ START_SECTION(bool operator!=(const Residue &residue) const)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setThreeLetterCode("new_3lc");
+  r.setThreeLetterCode("3lc");
   TEST_EQUAL(r != *e_ptr, true)
 
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
-  r.setOneLetterCode("new_1lc");
+  r.setOneLetterCode("1");
   TEST_EQUAL(r != *e_ptr, true)
 
 	r = *e_ptr;

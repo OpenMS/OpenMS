@@ -35,6 +35,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -76,7 +77,7 @@ namespace OpenMS
   {
 public:
     /// Input map type
-    typedef MSExperiment<Peak1D> MapType;
+    typedef PeakMap MapType;
     /// Coordinate/Position type of peaks
     typedef MapType::CoordinateType CoordinateType;
     /// Intensity type of peaks

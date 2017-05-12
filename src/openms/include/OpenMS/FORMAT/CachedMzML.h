@@ -37,11 +37,13 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
 
@@ -67,7 +69,7 @@ namespace OpenMS
 
 public:
 
-    typedef MSExperiment<Peak1D> MapType;
+    typedef PeakMap MapType;
     typedef MSSpectrum<Peak1D> SpectrumType;
     typedef MSChromatogram<ChromatogramPeak> ChromatogramType;
 

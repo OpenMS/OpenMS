@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSCACHED_H
 #define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSCACHED_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -64,7 +65,7 @@ namespace OpenMS
   {
 
 public:
-    typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
+    typedef OpenMS::PeakMap MSExperimentType;
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
 
     /**

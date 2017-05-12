@@ -39,6 +39,7 @@
 // OpenMS includes
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 // stl includes
 #include <vector>

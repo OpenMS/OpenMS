@@ -328,15 +328,13 @@ namespace OpenMS
     }
 
     IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const string& error_message) throw() :
-      BaseException(file, line, function)
+      BaseException(file, line, function, "IllegalArgument", error_message)
     {
-      what_ = error_message;
     }
 
     MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) throw() :
-      BaseException(file, line, function)
+      BaseException(file, line, function, "MissingInformation", error_message)
     {
-      what_ = error_message;
     }
 
     ElementNotFound::ElementNotFound(const char* file, int line, const char* function, const string& element)   throw() :
