@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenProXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenProXLLF_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
@@ -17,7 +17,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-05-11T16:20:29" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-05-12T20:53:46" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q5S007-v1|LRRK2_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
