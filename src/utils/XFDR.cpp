@@ -653,7 +653,7 @@ class TOPPXFDR :
             PeptideIdentification pep_id = *spectrum_it;
             all_ids.push_back(pep_id);
 
-            if( static_cast<int>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
+            if ( static_cast<int>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
             {
               rank_one_ids.push_back(rank_counter);
             }
@@ -791,7 +791,7 @@ class TOPPXFDR :
         delta_scores.reserve(n_spectra);
         n_min_ions_matched.resize(n_spectra);
 
-        for(Size i = 0; i < n_spectra; ++i)
+        for (Size i = 0; i < n_spectra; ++i)
         {
           Size n_hits = spectra[i].size();
           //delta_scores[i] = new std::vector<double>(n_hits);
@@ -803,7 +803,7 @@ class TOPPXFDR :
           assert( static_cast<int>(pep_id1->getMetaValue(TOPPXFDR::xl_rank)) == 1); // because hits are sorted according to their rank within the spectrum
           const vector<PeptideHit> & pep_hits = pep_id1->getHits();
 
-          if( pep_id1->getMetaValue(TOPPXFDR::xl_type) == "cross-link")
+          if ( pep_id1->getMetaValue(TOPPXFDR::xl_type) == "cross-link")
           {
             n_min_ions_matched[i] = std::min( static_cast<int>(pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions")),
                 static_cast<int>(pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions")));
@@ -821,7 +821,7 @@ class TOPPXFDR :
               for (Size k = 1; j+k < n_hits; ++k )
               {
                 PeptideIdentification * pep_id2 = &spectra[i][j+k];
-                if(pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
+                if (pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
                 {
                   current[j] =   static_cast<double>(pep_id2->getMetaValue("OpenXQuest:score"))
                       / static_cast<double>(pep_id1->getMetaValue("OpenXQuest:score"));
@@ -988,7 +988,7 @@ class TOPPXFDR :
         // Assign FDR value as meta value and also set as score
         bool assigned = false;
         double fdr;
-        for(StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
+        for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
         {
           String xl_type = *xl_types_it;
           Size idx = std::floor((score - this->min_score) / TOPPXFDR::fpnum_score_step);
