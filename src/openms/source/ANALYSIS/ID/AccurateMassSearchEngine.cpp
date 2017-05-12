@@ -833,7 +833,7 @@ namespace OpenMS
       LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
   
-    exportMzTab_(overall_results, mztab_out);
+    exportMzTab_(overall_results, 1, mztab_out);
 
     return;
   }
@@ -905,11 +905,11 @@ namespace OpenMS
     cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
     cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
-    exportMzTab_(overall_results, mztab_out);
+    exportMzTab_(overall_results, num_of_maps, mztab_out);
     return;
   }
 
-  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const
+  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const
   {
     if (overall_results.empty())
     {
@@ -936,14 +936,9 @@ namespace OpenMS
     MzTabString null_location;
     run_md.location = null_location;
     md.ms_run[1] = run_md;
-
-    // try to deduce the number of study variables from first entry.
-    // As we don't have experimental design information in OpenMS (yet) we assume one study_variable for each intensity.
-    Size n_individual_intensities = overall_results.begin()->at(0).getIndividualIntensities().size();
-
-    // if we have 0 individual_intensities it is a feature otherwise it is a consensus feature.
-    // TODO: check if the design can be improved. Distinction of intensities done here doesn't seem very natural.
-    Size n_study_variables = n_individual_intensities == 0 ? 1 : n_individual_intensities;
+        
+    // do not use overall_results.begin()->at(0).getIndividualIntensities().size(); since the first entry might be empty (no hit)
+    Size n_study_variables = number_of_maps;
 
     for (Size i = 0; i != n_study_variables; ++i)
     {
