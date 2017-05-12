@@ -1061,13 +1061,13 @@ namespace OpenMS
     // write peptide hits
     for (Size j = 0; j < id.getHits().size(); ++j)
     {
-      const PeptideHit & h = id.getHits()[j];
+      const PeptideHit& h = id.getHits()[j];
       os << indent << "\t<PeptideHit";
       os << " score=\"" << h.getScore() << "\"";
       os << " sequence=\"" << h.getSequence() << "\"";
       os << " charge=\"" << h.getCharge() << "\"";
 
-      const vector<PeptideEvidence> & pes = id.getHits()[j].getPeptideEvidences();
+      const vector<PeptideEvidence>& pes = id.getHits()[j].getPeptideEvidences();
 
       os << IdXMLFile::createFlankingAAXMLString_(pes);
       os << IdXMLFile::createPositionXMLString_(pes);
