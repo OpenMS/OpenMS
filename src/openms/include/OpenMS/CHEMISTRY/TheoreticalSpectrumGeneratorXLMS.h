@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 
 namespace OpenMS
@@ -77,20 +78,16 @@ public:
      */
     //@{
     /// returns a spectrum with b and y peaks
+    /// TODO crashes, if called without generating metainfo
     virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addCommonPeaks(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge = 1, Size link_pos_2 = 0) const;
+    virtual void addCommonPeaks(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & integer_array, DataArrays::StringDataArray & string_array, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge = 1, Size link_pos_2 = 0) const;
 
-
-    // TODO generate theoretical spectrum by fragmenting one chain of a cross-link, using the experimental precursor (should be agnostic to cross- or mono-link)
-    // will not work for loop links? would need 2 link_pos for that
     virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
     // TODO
-    virtual void addXLinkIonPeaks(PeakSpectrum& spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2 = 0) const;
-
-    //virtual void addXLinkIonPeaks(PeakSpectrum spectrum, PeakSpectrum::IntegerDataArray integer_array, PeakSpectrum::StringDataArray string_array, AASequence peptide, Size link_pos1, Size link_pos2, double precursor_mass, Residue::ResidueType res_type, int charge) const;
+    virtual void addXLinkIonPeaks(PeakSpectrum& spectrum, DataArrays::IntegerDataArray & integer_array, DataArrays::StringDataArray & string_array, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2 = 0) const;
 
     /// overwrite
     void updateMembers_();
@@ -102,8 +99,9 @@ public:
 //      void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence ion, const AASequence other_peptide, double cross_linker_mass, Residue::ResidueType res_type, Int charge, double intensity, String ion_type) const;
 
       /// helper to add a single peak to a spectrum
-      void addPeak_(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
+      void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & integer_array, DataArrays::StringDataArray & string_array, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
 
+      // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 

@@ -33,15 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <limits.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
 
 using namespace std;
 
@@ -131,47 +128,78 @@ namespace OpenMS
 
   void TheoreticalSpectrumGeneratorXLMS::getCommonIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge, Size link_pos_2) const
   {
-    PeakSpectrum::IntegerDataArray integer_array;
-    PeakSpectrum::StringDataArray string_array;
+    PeakSpectrum::IntegerDataArray charges;
+    PeakSpectrum::StringDataArray ion_names;
 
-    integer_array.setName("charge");
-    string_array.setName("IonName");
+
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().size() > 0)
+      {
+        charges = spectrum.getIntegerDataArrays()[0];
+      }
+      if (spectrum.getStringDataArrays().size() > 0)
+      {
+        ion_names = spectrum.getStringDataArrays()[0];
+      }
+      ion_names.setName("IonNames");
+      charges.setName("Charges");
+    }
+
 
     for (Int z = 1; z <= charge; ++z)
     {
       if (add_b_ions_)
       {
-        addCommonPeaks(spectrum, integer_array, string_array, peptide, link_pos, frag_alpha, Residue::BIon, z, link_pos_2);
+        addCommonPeaks(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::BIon, z, link_pos_2);
       }
       if (add_y_ions_)
       {
-        addCommonPeaks(spectrum, integer_array, string_array, peptide, link_pos, frag_alpha, Residue::YIon, z, link_pos_2);
+        addCommonPeaks(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::YIon, z, link_pos_2);
       }
       if (add_a_ions_)
       {
-        addCommonPeaks(spectrum, integer_array, string_array, peptide, link_pos, frag_alpha, Residue::AIon, z, link_pos_2);
+        addCommonPeaks(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::AIon, z, link_pos_2);
       }
       if (add_x_ions_)
       {
-        addCommonPeaks(spectrum, integer_array, string_array, peptide, link_pos, frag_alpha, Residue::XIon, z, link_pos_2);
+        addCommonPeaks(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::XIon, z, link_pos_2);
       }
       if (add_c_ions_)
       {
-        addCommonPeaks(spectrum, integer_array, string_array, peptide, link_pos, frag_alpha, Residue::CIon, z, link_pos_2);
+        addCommonPeaks(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::CIon, z, link_pos_2);
       }
       if (add_z_ions_)
       {
-        addCommonPeaks(spectrum, integer_array, string_array, peptide, link_pos, frag_alpha, Residue::ZIon, z, link_pos_2);
+        addCommonPeaks(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::ZIon, z, link_pos_2);
       }
     }
 
-    spectrum.getIntegerDataArrays().push_back(integer_array);
-    spectrum.getStringDataArrays().push_back(string_array);
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().size() > 0)
+      {
+        spectrum.getIntegerDataArrays()[0] = charges;
+      }
+      else
+      {
+        spectrum.getIntegerDataArrays().push_back(charges);
+      }
+      if (spectrum.getStringDataArrays().size() > 0)
+      {
+        spectrum.getStringDataArrays()[0] = ion_names;
+      }
+      else
+      {
+        spectrum.getStringDataArrays().push_back(ion_names);
+      }
+    }
+
     spectrum.sortByPosition();
     return;
   }
 
-void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
+void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
   {
     if (peptide.empty())
     {
@@ -239,11 +267,11 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 //          double recalc_pos = (peptide.getPrefix(i+1).getMonoWeight(Residue::BIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
 
-          addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+          addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
       }
@@ -275,11 +303,11 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 //          double recalc_pos = (peptide.getSuffix(frag_index).getMonoWeight(Residue::YIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
 
-          addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+          addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
       }
@@ -290,50 +318,76 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 
   void TheoreticalSpectrumGeneratorXLMS::getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2) const
   {
-    PeakSpectrum::IntegerDataArray integer_array;
-    PeakSpectrum::StringDataArray string_array;
+    PeakSpectrum::IntegerDataArray charges;
+    PeakSpectrum::StringDataArray ion_names;
 
-    PeakSpectrum::IntegerDataArrays integer_arrays = spectrum.getIntegerDataArrays();
-    PeakSpectrum::StringDataArrays string_arrays = spectrum.getStringDataArrays();
-
-    integer_array.setName("charge");
-    string_array.setName("IonName");
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().size() > 0)
+      {
+        charges = spectrum.getIntegerDataArrays()[0];
+      }
+      if (spectrum.getStringDataArrays().size() > 0)
+      {
+        ion_names = spectrum.getStringDataArrays()[0];
+      }
+      ion_names.setName("IonNames");
+      charges.setName("Charges");
+    }
 
     for (Int z = mincharge; z <= maxcharge; ++z)
     {
       if (add_b_ions_)
       {
-        addXLinkIonPeaks(spectrum, integer_array, string_array, peptide, link_pos, precursor_mass, frag_alpha, Residue::BIon, z, link_pos_2);
+        addXLinkIonPeaks(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, Residue::BIon, z, link_pos_2);
       }
       if (add_y_ions_)
       {
-        addXLinkIonPeaks(spectrum, integer_array, string_array, peptide, link_pos, precursor_mass, frag_alpha, Residue::YIon, z, link_pos_2);
+        addXLinkIonPeaks(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, Residue::YIon, z, link_pos_2);
       }
       if (add_a_ions_)
       {
-        addXLinkIonPeaks(spectrum, integer_array, string_array, peptide, link_pos, precursor_mass, frag_alpha, Residue::AIon, z, link_pos_2);
+        addXLinkIonPeaks(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, Residue::AIon, z, link_pos_2);
       }
       if (add_x_ions_)
       {
-        addXLinkIonPeaks(spectrum, integer_array, string_array, peptide, link_pos, precursor_mass, frag_alpha, Residue::XIon, z, link_pos_2);
+        addXLinkIonPeaks(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, Residue::XIon, z, link_pos_2);
       }
       if (add_c_ions_)
       {
-        addXLinkIonPeaks(spectrum, integer_array, string_array, peptide, link_pos, precursor_mass, frag_alpha, Residue::CIon, z, link_pos_2);
+        addXLinkIonPeaks(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, Residue::CIon, z, link_pos_2);
       }
       if (add_z_ions_)
       {
-        addXLinkIonPeaks(spectrum, integer_array, string_array, peptide, link_pos, precursor_mass, frag_alpha, Residue::ZIon, z, link_pos_2);
+        addXLinkIonPeaks(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, Residue::ZIon, z, link_pos_2);
       }
     }
 
-    spectrum.getIntegerDataArrays().push_back(integer_array);
-    spectrum.getStringDataArrays().push_back(string_array);
+    if (add_metainfo_)
+    {
+      if (spectrum.getIntegerDataArrays().size() > 0)
+      {
+        spectrum.getIntegerDataArrays()[0] = charges;
+      }
+      else
+      {
+        spectrum.getIntegerDataArrays().push_back(charges);
+      }
+      if (spectrum.getStringDataArrays().size() > 0)
+      {
+        spectrum.getStringDataArrays()[0] = ion_names;
+      }
+      else
+      {
+        spectrum.getStringDataArrays().push_back(ion_names);
+      }
+    }
+
     spectrum.sortByPosition();
     return;
   }
 
-  void TheoreticalSpectrumGeneratorXLMS::addXLinkIonPeaks(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
+  void TheoreticalSpectrumGeneratorXLMS::addXLinkIonPeaks(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
   {
     if (peptide.empty())
     {
@@ -403,11 +457,11 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 //          double recalc_pos = (peptide.getPrefix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
 
-          addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+          addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
       }
@@ -443,11 +497,11 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 //          double recalc_pos = (peptide.getSuffix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
 
-          addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+          addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, integer_array, string_array, pos, intensity, res_type, frag_index, charge, ion_type);
+            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
       }
@@ -457,7 +511,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
 
 
   // helper to add a single peak to a spectrum (simple fragmentation)
-  void TheoreticalSpectrumGeneratorXLMS::addPeak_(PeakSpectrum & spectrum, PeakSpectrum::IntegerDataArray & integer_array, PeakSpectrum::StringDataArray & string_array, double pos, double intensity, Residue::ResidueType res_type, Size frag_index, int charge, String ion_type) const
+  void TheoreticalSpectrumGeneratorXLMS::addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size frag_index, int charge, String ion_type) const
   {
     Peak1D p;
     p.setMZ(pos);
@@ -466,8 +520,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks(PeakSpectrum & spectrum, P
     if (add_metainfo_)
     {
       String ion_name = "[" + ion_type + "$" + String(residueTypeToIonLetter_(res_type)) + String(frag_index) + "]"; //+ String(charge, '+');
-      string_array.push_back(ion_name);
-      integer_array.push_back(charge);
+      ion_names.push_back(ion_name);
+      charges.push_back(charge);
     }
   }
 
