@@ -36,10 +36,12 @@
 #define OPENMS_ANALYSIS_XLMS_OPXLDATASTRUCTS
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <numeric>
+//#include <numeric>
 
 namespace OpenMS
 {
@@ -286,9 +288,9 @@ namespace OpenMS
       struct PreprocessedPairSpectra
       {
 
-        PeakMap spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-        PeakMap spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
-        PeakMap spectra_all_peaks;
+        MSExperiment spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
+        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+        MSExperiment spectra_all_peaks;
 
         // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps).
         PreprocessedPairSpectra(Size size)

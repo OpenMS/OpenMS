@@ -444,7 +444,7 @@ namespace OpenMS
           // if already single charged or no decharging selected keep peak as it is
           if (!make_single_charged)
           {
-            RichPeak1D p;
+            Peak1D p;
             p.setMZ(old_spectrum[i].getMZ());
 //            p.setIntensity(old_spectrum[i].getIntensity());
             p.setIntensity(mono_iso_peak_intensity[i]);
@@ -454,7 +454,7 @@ namespace OpenMS
           }
           else
           {
-            RichPeak1D p;
+            Peak1D p;
 //            p.setIntensity(old_spectrum[i].getIntensity());
             p.setIntensity(mono_iso_peak_intensity[i]);
             p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
@@ -468,7 +468,7 @@ namespace OpenMS
           // keep all unassigned peaks
           if (features[i] < 0)
           {
-            RichPeak1D p;
+            Peak1D p;
             p.setMZ(old_spectrum[i].getMZ());
             p.setIntensity(old_spectrum[i].getIntensity());
 //            p.setMetaValue("z", 0);
@@ -482,7 +482,7 @@ namespace OpenMS
           {
             if (!make_single_charged)
             {
-              RichPeak1D p;
+              Peak1D p;
               p.setMZ(old_spectrum[i].getMZ());
               p.setIntensity(mono_iso_peak_intensity[i]);
 //              p.setIntensity(old_spectrum[i].getIntensity());
@@ -492,7 +492,7 @@ namespace OpenMS
             }
             else
             {
-              RichPeak1D p;
+              Peak1D p;
               p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
               p.setIntensity(mono_iso_peak_intensity[i]);
 //              p.setIntensity(old_spectrum[i].getIntensity());

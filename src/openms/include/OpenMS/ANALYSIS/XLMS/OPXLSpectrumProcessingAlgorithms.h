@@ -35,8 +35,11 @@
 #ifndef OPENMS_ANALYSIS_XLMS_OPXLSPECTRUMPROCESSINGALGORITHMS_H
 #define OPENMS_ANALYSIS_XLMS_OPXLSPECTRUMPROCESSINGALGORITHMS_H
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <numeric>
+#include <vector>
 
 namespace OpenMS
 {
@@ -49,7 +52,7 @@ namespace OpenMS
 
       static void preprocessSpectraLabeled(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm);
 
-      static void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
+      static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
 
       static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false);
 

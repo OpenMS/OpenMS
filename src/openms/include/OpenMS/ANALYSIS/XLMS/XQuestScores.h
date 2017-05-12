@@ -35,8 +35,10 @@
 #ifndef XQUESTSCORES_H
 #define XQUESTSCORES_H
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-//#include <numeric>
+#include <OpenMS/CONCEPT/Types.h>
+#include <vector>
 
 namespace OpenMS
 {
