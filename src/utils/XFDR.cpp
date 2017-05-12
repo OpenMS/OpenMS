@@ -108,6 +108,7 @@ class TOPPXFDR :
     static const String param_in;  // Parameter for the input file
     static const String param_in_type;
     static const String param_out_idXML;
+    static const String param_out_mzid;
     static const String param_minborder;  // minborder  # filter for minimum precursor mass error (ppm)
     static const String param_maxborder;  // maxborder  # filter for maximum precursor mass error (ppm)
     static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -163,8 +164,12 @@ class TOPPXFDR :
       setValidStrings_(TOPPXFDR::param_in_type, formats);
 
       // idXML output
-      registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", true, false);
+      registerOutputFile_(TOPPXFDR::param_out_idXML, "<idXML_file>", "", "Output as idXML file", false, false);
       setValidFormats_(TOPPXFDR::param_out_idXML, ListUtils::create<String>("idXML"));
+
+      // mzIdentML output
+      registerOutputFile_(TOPPXFDR::param_out_mzid, "<mzIdentML_file>", "", "Output as mzid file", false, false);
+      setValidFormats_(TOPPXFDR::param_out_mzid, ListUtils::create<String>("mzid"));
 
       // Minborder
       registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm)", false);
@@ -517,7 +522,7 @@ class TOPPXFDR :
 
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
-    {
+    {      
       //-------------------------------------------------------------
       // Initialize instance variables
       //-------------------------------------------------------------
@@ -529,10 +534,14 @@ class TOPPXFDR :
       // parsing parameters, terminate if invalid values are encountered
       //----------------------------------------------------------------
 
+      // Check whether at least one output file has been specified
       String arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
-      if (arg_out_idXML.empty())
+      String arg_out_mzid = getStringOption_(TOPPXFDR::param_out_mzid);
+
+      if (arg_out_idXML.empty() && arg_out_mzid.empty())
       {
-        LOG_ERROR << "ERROR: No output file specified. Terminating." << endl;
+        LOG_ERROR << "ERROR: No output file specified. You must at least specify one output with -"
+                  <<  TOPPXFDR::param_out_idXML << " or -" << TOPPXFDR::param_out_mzid << ". Terminating." << endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -948,8 +957,13 @@ class TOPPXFDR :
         assignTypes(pep_id, xl_types);
         pep_id.setMetaValue("OpenXQuest:fdr_type", arg_no_qvalues ? "fdr" : "qfdr");
 
-        // Assign FDR value
+        // Get PeptideHits
+        vector< PeptideHit > & pep_hits = pep_id.getHits();
+        Size n_hits = pep_hits.size();
+        assert(n_hits == 1 || n_hits == 2);
+        // Assign FDR value as meta value and also set as score
         bool assigned = false;
+        double fdr;
         for(StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
         {
           String xl_type = *xl_types_it;
@@ -959,7 +973,7 @@ class TOPPXFDR :
                  || xl_type == TOPPXFDR::xlclass_interdecoys
                  || xl_type == TOPPXFDR::xlclass_interlinks)
           {
-            pep_id.setMetaValue("OpenXQuest:fdr", fdr_interlinks[idx]);
+            fdr = fdr_interlinks[idx];
             assigned = true;
             break;
           }
@@ -968,29 +982,47 @@ class TOPPXFDR :
                       || xl_type == TOPPXFDR::xlclass_intradecoys
                       || xl_type == TOPPXFDR::xlclass_intralinks)
           {
-            pep_id.setMetaValue("OpenXQuest:fdr", fdr_intralinks[idx]);
+            fdr = fdr_intralinks[idx];
             assigned = true;
             break;
           }
           else if (   xl_type == TOPPXFDR::xlclass_monodecoys
                       || xl_type == TOPPXFDR::xlclass_monolinks)
           {
-            pep_id.setMetaValue("OpenXQuest:fdr", fdr_monolinks[idx]);
+            fdr = fdr_monolinks[idx];
             assigned = true;
             break;
           }
         }
-        if ( ! assigned)
+        if ( assigned)
         {
-          LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
+            pep_id.setMetaValue("OpenXQuest:fdr", fdr);
+
+            // Set FDR as score for the peptide hits
+            for (Size i = 0; i < n_hits; ++i)
+            {
+              pep_hits[i].setScore(fdr);
+            }
+
+            // For FDR score, higher score is no longer better
+            pep_id.setHigherScoreBetter(false);
+        }
+        else
+        {
+           LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
         }
       }
-
 
       // Write idXML
       if ( ! arg_out_idXML.empty())
       {
         IdXMLFile().store( arg_out_idXML, prot_ids, all_ids);
+      }
+
+      // Write mzid file
+      if (! arg_out_mzid.empty())
+      {
+        MzIdentMLFile().store( arg_out_mzid, prot_ids, all_ids);
       }
 
       return EXECUTION_OK;
@@ -1005,6 +1037,7 @@ class TOPPXFDR :
 const String TOPPXFDR::param_in = "in";
 const String TOPPXFDR::param_in_type = "in_type";
 const String TOPPXFDR::param_out_idXML = "out_idXML";
+const String TOPPXFDR::param_out_mzid = "out_mzIdentML";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
