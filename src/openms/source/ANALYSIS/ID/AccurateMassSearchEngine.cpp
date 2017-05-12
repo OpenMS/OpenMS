@@ -717,19 +717,13 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
+    results.clear();
+    // get hits
+    queryByMZ(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results);
 
-    std::vector<AccurateMassSearchResult> results_part;
-
-    queryByMZ(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results_part);
-
-    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures());
-
-
-    //    for ( ; f_it != ind_feats.end(); ++f_it)
-    //    {
-    //        std::cout << f_it->getRT() << "\t" << f_it->getMZ() << "\t" << f_it->getIntensity() << std::endl;
-    //    }
-
+    // collect meta data:
+    // intensities for all maps as given in handles; 0 if no handle is present for a map
+    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures()); // sorted by MapIndices
     ConsensusFeature::const_iterator f_it = ind_feats.begin();
     std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
@@ -746,16 +740,14 @@ namespace OpenMS
       }
     }
 
-
-    for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
+    // augment all hits with meta data
+    for (Size hit_idx = 0; hit_idx < results.size(); ++hit_idx)
     {
-      results_part[hit_idx].setObservedRT(cfeat.getRT());
-      results_part[hit_idx].setSourceFeatureIndex(cf_index);
+      results[hit_idx].setObservedRT(cfeat.getRT());
+      results[hit_idx].setSourceFeatureIndex(cf_index);
       // results_part[hit_idx].setObservedIntensity(cfeat.getIntensity());
-      results_part[hit_idx].setIndividualIntensities(tmp_f_ints);
+      results[hit_idx].setIndividualIntensities(tmp_f_ints);
     }
-
-    std::copy(results_part.begin(), results_part.end(), std::back_inserter(results));
   }
 
   void AccurateMassSearchEngine::init()
