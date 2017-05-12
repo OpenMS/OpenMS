@@ -191,7 +191,7 @@ namespace OpenMS
         String topology = String("a") + alpha_pos;
         String id = structure + String("-") + letter_first + alpha_pos + String("-") + static_cast<int>(top_csm->cross_link.cross_linker_mass);
 
-        if (top_csm->cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS)
+        if (top_csm->cross_link.getType() == OPXLDataStructs::CROSS)
         {
           xltype = "xlink";
           structure += "-" + top_csm->cross_link.beta.toUnmodifiedString();
@@ -199,7 +199,7 @@ namespace OpenMS
           weight += top_csm->cross_link.beta.getMonoWeight();
           id = structure + "-" + topology;
         }
-        else if (top_csm->cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP)
+        else if (top_csm->cross_link.getType() == OPXLDataStructs::LOOP)
         {
           xltype = "intralink";
           topology += String("-b") + beta_pos;

@@ -638,11 +638,11 @@ namespace OpenMS
       SignedSize alpha_pos = top_csms_spectrum[i].cross_link.cross_link_position.first;
       SignedSize beta_pos = top_csms_spectrum[i].cross_link.cross_link_position.second;
 
-      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::MONO)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::MONO)
       {
         xltype = "mono-link";
       }
-      else if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP)
+      else if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
       {
         xltype = "loop-link";
       }
@@ -651,7 +651,7 @@ namespace OpenMS
       // Set monolink as a modification or add MetaValue for cross-link identity and mass
       AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
       ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
-      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::MONO)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::MONO)
       {
         //AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
         vector< String > mods;
@@ -723,7 +723,7 @@ namespace OpenMS
       }
 
 
-      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
       {
         ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
       }
@@ -795,7 +795,7 @@ namespace OpenMS
       LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
       phs.push_back(ph_alpha);
 
-      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS)
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
         ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
         ph_beta.setCharge(precursor_charge);

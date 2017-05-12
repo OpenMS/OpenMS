@@ -699,8 +699,8 @@ protected:
 //        PeakSpectrum theoretical_spec_xlinks_alpha;
 //        PeakSpectrum theoretical_spec_xlinks_beta;
 
-        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS;
-        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP;
+        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
+        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
         Size link_pos_B = 0;
         if (type_is_loop)
         {
@@ -799,8 +799,8 @@ protected:
         PeakSpectrum theoretical_spec_xlinks_alpha;
         PeakSpectrum theoretical_spec_xlinks_beta;
 
-        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS;
-        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::ProteinProteinCrossLink::LOOP;
+        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
+        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
         Size link_pos_B = 0;
         if (type_is_loop)
         {
@@ -1068,7 +1068,7 @@ protected:
         LOG_DEBUG << "Score: " << all_csms_spectrum[max_position].score << "\t wTIC: " << all_csms_spectrum[max_position].wTIC << "\t xcorrx: " << all_csms_spectrum[max_position].xcorrx_max
                 << "\t xcorrc: " << all_csms_spectrum[max_position].xcorrc_max << "\t match-odds: " << all_csms_spectrum[max_position].match_odds << "\t Intsum: " << all_csms_spectrum[max_position].int_sum << endl;
 
-        if (all_csms_spectrum[max_position].cross_link.getType() == OPXLDataStructs::ProteinProteinCrossLink::CROSS)
+        if (all_csms_spectrum[max_position].cross_link.getType() == OPXLDataStructs::CROSS)
         {
           LOG_DEBUG << "Matched ions calpha , cbeta , xalpha , xbeta" << "\t" << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_common_beta
                   << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha <<  "\t" << all_csms_spectrum[max_position].matched_xlink_beta << endl;
