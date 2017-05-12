@@ -371,6 +371,7 @@ namespace OpenMS
 
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
+        DataValue xlinkermass = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
 
         // Set minscore and maxscore encountered
         if (score < this->min_score_)
@@ -387,9 +388,9 @@ namespace OpenMS
         peptide_hit_alpha.setSequence(AASequence::fromString(seq1.substitute("X", "M(Oxidation)")));
         peptide_hit_alpha.setCharge(charge);
 
-        // Get Attributes of Peptide Identification
+        // Get common attributes of Peptide Identification
         this->peptide_id_meta_values_["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
-        this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] = DataValue(this->attributeAsDouble_(attributes, "xlinkermass"));
+        this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] = xlinkermass;
         this->peptide_id_meta_values_["OpenXQuest:wTIC"] = DataValue(this->attributeAsDouble_(attributes, "wTIC"));
         this->peptide_id_meta_values_["OpenXQuest:percTIC"] = DataValue(this->attributeAsDouble_(attributes, "TIC"));
         this->peptide_id_meta_values_["xl_rank"] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
@@ -423,6 +424,7 @@ namespace OpenMS
         peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
                                        DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
         peptide_hit_alpha.setMetaValue("OpenXQuest:prot", DataValue(prot1_string));
+        peptide_hit_alpha.setMetaValue("xl_mass", xlinkermass);
 
         // Set peptide Evidences for Alpha (need one for each accession in the prot1_string)
         this->setPeptideEvidence_(prot1_string, peptide_hit_alpha);
@@ -477,6 +479,7 @@ namespace OpenMS
           peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
                                         DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_beta")));
           peptide_hit_beta.setMetaValue("OpenXQuest:prot", DataValue(prot2_string));
+          peptide_hit_beta.setMetaValue("xl_mass", xlinkermass);
 
           // Set Peptide Evidences for Beta
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
