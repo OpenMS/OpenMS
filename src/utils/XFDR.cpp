@@ -949,10 +949,11 @@ class TOPPXFDR :
       vector< double > fdr_monolinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_monolinks, TOPPXFDR::xlclass_monodecoys, "", fdr_monolinks, true);
 
-      // Determine whether qTransform should be performed
+      // Determine whether qTransform should be performed (and consequently the score type)
       bool arg_no_qvalues = getFlag_(TOPPXFDR::param_no_qvalues);
+      String score_type = arg_no_qvalues ? "FDR" : "q-value";
 
-      if(! arg_no_qvalues)
+      if ( ! arg_no_qvalues)
       {
         writeLog_("Performing qFDR transformation");
 
@@ -984,7 +985,9 @@ class TOPPXFDR :
         
         StringList xl_types;
         assignTypes(pep_id, xl_types);
-        pep_id.setMetaValue("OpenXQuest:fdr_type", arg_no_qvalues ? "fdr" : "qfdr");
+
+        pep_id.setMetaValue("OpenXQuest:fdr_type", score_type);
+        pep_id.setScoreType(score_type);
 
         // Get PeptideHits
         vector< PeptideHit > & pep_hits = pep_id.getHits();
@@ -1041,6 +1044,7 @@ class TOPPXFDR :
            LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
         }
       }
+
 
       // Write idXML
       if ( ! arg_out_idXML.empty())
