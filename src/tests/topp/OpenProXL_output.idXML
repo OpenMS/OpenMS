@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="OpenProXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
-				<UserParam type="string" name="input_consensusXML" value="OpenProXL_input.consensusXML"/>
-				<UserParam type="string" name="input_mzML" value="OpenProXL_input.mzML"/>
+	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenProXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="input_consensusXML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenProXL_input.consensusXML"/>
+				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenProXL_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="int" name="decoy_prefix" value="0"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
@@ -19,7 +19,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-05-11T14:28:42" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-05-12T20:45:25" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -57,15 +57,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="7.83998384948783"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="8.03317113220692"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.27128603747273"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -84,15 +84,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="7.83998384948783"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="8.03317113220692"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.27128603747273"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -117,15 +117,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.15377921071425"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="8.31667068181559"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.247931256060652"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -144,15 +144,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.15377921071425"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="8.31667068181559"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.247931256060652"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -177,15 +177,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="10.1173672297487"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="7.7862151437439"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.291723264165962"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -204,15 +204,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="10.1173672297487"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="7.7862151437439"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.291723264165962"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -237,15 +237,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="7.32079095577651"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="7.07505968725309"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.206487222229438"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -264,15 +264,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="7.32079095577651"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="7.07505968725309"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.206487222229438"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -297,15 +297,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.50371934409268"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.834681284613907"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0176507111749121"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -324,15 +324,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.50371934409268"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.834681284613907"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0176507111749121"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -357,15 +357,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.94594826077373"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.591332834679633"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.011922427434133"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -384,15 +384,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.94594826077373"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.591332834679633"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.011922427434133"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -415,15 +415,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.998209575321285"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.667428191751242"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0157108790295512"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -448,15 +448,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.15678780177542"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.465978513937443"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0132913710940659"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -475,15 +475,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.15678780177542"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.465978513937443"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0132913710940659"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -508,15 +508,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.974291611571885"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.243407566100359"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0077312182360343"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -535,15 +535,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.974291611571885"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.243407566100359"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0077312182360343"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -568,15 +568,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="8.73804338010276"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="5.41696396563202"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.289720948465309"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -595,15 +595,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="8.73804338010276"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="5.41696396563202"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.289720948465309"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -628,15 +628,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="10.1663942216861"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="7.42359297396615"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.351573840621921"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -655,15 +655,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="10.1663942216861"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="7.42359297396615"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.351573840621921"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -688,15 +688,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.93192202290946"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="9.17448525852524"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.346175126220189"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -715,15 +715,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.93192202290946"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="9.17448525852524"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.346175126220189"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -748,15 +748,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.71988748335971"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="9.79246739996597"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.363865634106489"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -775,15 +775,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.71988748335971"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="9.79246739996597"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.363865634106489"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -806,15 +806,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="11.5062992604946"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="5.57686627726071"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.163363767409208"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -839,15 +839,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.62137659246894"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0392214631174284"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0143322351910409"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -866,15 +866,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.62137659246894"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0392214631174284"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0143322351910409"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -899,15 +899,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.5122410659256"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.395379456807859"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0173470706110046"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -926,15 +926,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.5122410659256"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.395379456807859"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0173470706110046"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -959,15 +959,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.688663665892187"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0233993484871462"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00701306806285569"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -986,15 +986,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.688663665892187"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0233993484871462"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00701306806285569"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1019,15 +1019,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.621292999975744"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0213509037857875"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00650092653051516"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1046,15 +1046,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.621292999975744"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0213509037857875"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00650092653051516"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1079,15 +1079,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.54817915736828"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="1.49920984730124"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0350547753156857"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1106,15 +1106,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.54817915736828"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="1.49920984730124"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0350547753156857"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1137,15 +1137,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="9.71567106124899"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="4.30221709492616"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.274813911695074"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1170,15 +1170,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.23927396294634"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.171838629787089"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0384715594078767"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1197,15 +1197,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.23927396294634"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.171838629787089"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0384715594078767"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1230,15 +1230,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.16907308240541"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0271397930046078"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00724559414164724"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1257,15 +1257,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.16907308240541"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0271397930046078"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00724559414164724"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1290,15 +1290,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.804447761990487"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0247963949805126"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00670431045480139"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1317,15 +1317,15 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.804447761990487"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0247963949805126"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00670431045480139"/>
-				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenProXL:HyperAlpha" value="6.95310243599802e-310"/>
-				<UserParam type="float" name="OpenProXL:HyperBeta" value="6.95310243600123e-310"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreCommon" value="1.93101617039104e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenProXL:PScoreBeta" value="2.52517499179215e-312"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
 				<UserParam type="float" name="OpenProXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>

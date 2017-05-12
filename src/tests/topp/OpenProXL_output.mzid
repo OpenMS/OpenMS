@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17037743280630708180"
-	creationDate="2017-05-12T17:10:38">
+	creationDate="2017-05-12T20:42:18">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -109,8 +109,8 @@
 	</Peptide>
  	<Peptide id="PEP_14891455924036538147" name="MSERDTALEK">
 		<PeptideSequence>MSERDTALEK</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
+		<Modification location="0" residues="M" monoisotopicMassDelta="138.0680796">
+			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6182960951962378739"/>
 		</Modification>
 	</Peptide>
@@ -193,8 +193,8 @@
 	</Peptide>
  	<Peptide id="PEP_260132145239717571" name="MSERDTALEK">
 		<PeptideSequence>MSERDTALEK</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
+		<Modification location="0" residues="M" monoisotopicMassDelta="138.0680796">
+			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4584897071539917580"/>
 		</Modification>
 	</Peptide>
@@ -226,15 +226,15 @@
 	</Peptide>
  	<Peptide id="PEP_3386388678910226661" name="MCSPSATLTHRTMTEK">
 		<PeptideSequence>MCSPSATLTHRTMTEK</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
+		<Modification location="0" residues="M" monoisotopicMassDelta="138.0680796">
+			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4021463513649428920"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3395379003172100421" name="MSTLDLNHLADLYDR">
 		<PeptideSequence>MSTLDLNHLADLYDR</PeptideSequence>
-		<Modification location="1" residues="M" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:XXXXX" cvRef="XLMOD" name="DSS"/>
+		<Modification location="0" residues="M" monoisotopicMassDelta="138.0680796">
+			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8195437834883133454"/>
 		</Modification>
 	</Peptide>
@@ -362,7 +362,7 @@
 	<PeptideEvidence id="PEV_9672067365742190701" peptide_ref="PEP_17475759268436611148" dBSequence_ref="PROT_15916652588957785155" post="Q" pre="K" start="119" end="127" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-12T17:10:37">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-12T20:42:17">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
