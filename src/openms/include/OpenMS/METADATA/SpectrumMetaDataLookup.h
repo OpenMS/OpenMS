@@ -288,14 +288,14 @@ namespace OpenMS
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
      *
      * @param peptides Peptide IDs with or without spectrum_reference
-     * @param lookup SpectrumMetaDataLookup with loaded spectra, metadata and optional spectra_data value for Proteins
+     * @param filename the name of the mz_file from which to draw spectrum_references
      * @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
      * @param override_spectra_data if given ProteinIdentifications should be updated with new "spectra_data" values from SpectrumMetaDataLookup
-     * @param proteins
+     * @param proteins Protein IDs corresponding to the Peptide IDs
      *
      * @return True if all peptide IDs could be annotated successfully (including if all already had "spectrum_reference" values), false otherwise.
      *
-     * Look-up works by matching RT of a peptide ID to the native ID of a spectrum. All spectrum_references are updated/added.
+     * Look-up works by matching RT of a peptide identification with the given spectra. Matched spectra 'native ID' will be annotated to the identification. All spectrum_references are updated/added.
      */
     static bool addMissingSpectrumReferences(std::vector<PeptideIdentification>& peptides, const String& filename,
       bool stop_on_error = false, bool override_spectra_data = false, std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());

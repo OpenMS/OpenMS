@@ -204,7 +204,7 @@ namespace OpenMS
         }
         catch (Exception::ElementNotFound&)
         {
-          LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
           success = false;
           if (stop_on_error) break;
         }
@@ -249,7 +249,7 @@ namespace OpenMS
       }
       catch (Exception::ElementNotFound&)
       {
-        LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide ID with retention time '" + String(it->getRT()) + "'." << endl;
+        LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
         success = false;
         if (stop_on_error) break;
       }
