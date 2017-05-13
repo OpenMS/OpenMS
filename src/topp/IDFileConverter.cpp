@@ -148,7 +148,7 @@ public:
   }
 
 private:
-  bool add_ionmatches_(SpectrumLookup& lookup, vector<PeptideIdentification>& peptide_identifications, MSExperiment exp, double tolerance)
+  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename,  double tolerance)
   {
       TheoreticalSpectrumGenerator tg = TheoreticalSpectrumGenerator();
       Param tgp(tg.getDefaults());
@@ -170,10 +170,10 @@ private:
       sa.setParameters(sap);
       SpectrumAnnotator annot;
       bool ret = true;
-      if (lookup.empty())
-      {
-        return ret;
-      }
+      PeakMap expmap;
+      SpectrumLookup lookup;
+      FileHandler().loadExperiment(filename, expmap);
+      lookup.readSpectra(expmap.getSpectra());
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -184,7 +184,7 @@ private:
         {
           String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
           Size index = lookup.findByNativeID(ref);
-          annot.addIonMatchStatistics(peptide_identifications[i], exp[index], tg, sa);
+          annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
         }
         catch (Exception::ElementNotFound&)
         {
@@ -406,7 +406,7 @@ protected:
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions>0)
           {
-            add_ionmatches_(lookup, peptide_identifications, exp, add_ions);
+            add_ionmatches_(peptide_identifications, mz_file, add_ions);
           }
         }
       }
@@ -426,7 +426,7 @@ protected:
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions>0)
           {
-            add_ionmatches_(lookup, peptide_identifications, exp, add_ions);
+            add_ionmatches_(peptide_identifications, mz_file, add_ions);
           }
         }
       }
