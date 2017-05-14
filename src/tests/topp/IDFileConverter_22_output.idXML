@@ -58,8 +58,8 @@
 				<UserParam type="float" name="topN_meanfragmenterror" value="0.00127883276817491"/>
 				<UserParam type="float" name="topN_MSEfragmenterror" value="2.21576052025374e-06"/>
 				<UserParam type="float" name="topN_stddevfragmenterror" value="0.00148854308646197"/>
-				<UserParam type="string" name="max_series_type" value="a"/>
-				<UserParam type="int" name="max_series_size" value="10"/>
+				<UserParam type="string" name="max_series_type" value="b"/>
+				<UserParam type="int" name="max_series_size" value="17"/>
 				<UserParam type="float" name="sn_by_matched_intensity" value="1.70218765735626"/>
 				<UserParam type="float" name="sn_by_median_intensity" value="8.00933933258057"/>
 				<UserParam type="int" name="precursor_in_ms2" value="0"/>
@@ -92,7 +92,7 @@
 				<UserParam type="float" name="topN_MSEfragmenterror" value="3.1150663548749e-07"/>
 				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000558127794942601"/>
 				<UserParam type="string" name="max_series_type" value="y"/>
-				<UserParam type="int" name="max_series_size" value="10"/>
+				<UserParam type="int" name="max_series_size" value="12"/>
 				<UserParam type="float" name="sn_by_matched_intensity" value="2.06853818893433"/>
 				<UserParam type="float" name="sn_by_median_intensity" value="6.62783718109131"/>
 				<UserParam type="int" name="precursor_in_ms2" value="1"/>
@@ -124,8 +124,8 @@
 				<UserParam type="float" name="topN_meanfragmenterror" value="0.00220440387101105"/>
 				<UserParam type="float" name="topN_MSEfragmenterror" value="1.32939566644145e-05"/>
 				<UserParam type="float" name="topN_stddevfragmenterror" value="0.00364608785747333"/>
-				<UserParam type="string" name="max_series_type" value="x"/>
-				<UserParam type="int" name="max_series_size" value="10"/>
+				<UserParam type="string" name="max_series_type" value="y"/>
+				<UserParam type="int" name="max_series_size" value="12"/>
 				<UserParam type="float" name="sn_by_matched_intensity" value="3.66851305961609"/>
 				<UserParam type="float" name="sn_by_median_intensity" value="8.91692352294922"/>
 				<UserParam type="int" name="precursor_in_ms2" value="1"/>
