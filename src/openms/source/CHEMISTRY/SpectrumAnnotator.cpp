@@ -135,7 +135,7 @@ namespace OpenMS
     MSSpectrum<RichPeak1D> rich_input_spectrum = MSSpectrumHelper::clone(spec);
 
     vector<pair<Size, Size> > al;
-    tg.getSpectrum(rich_theoretical_spec, ph.getSequence(), ph.getCharge()-1); //will get y5++, b2+, ... for precursor+++
+    tg.getSpectrum(rich_theoretical_spec, ph.getSequence(), ph.getCharge()-1);  // will get y5++, b2+, ... for precursor+++
     if (!rich_theoretical_spec.isSorted())
     {
       rich_theoretical_spec.sortByPosition();
@@ -144,7 +144,7 @@ namespace OpenMS
     {
       rich_input_spectrum.sortByPosition();
     }
-    sa.getSpectrumAlignment(al, rich_theoretical_spec, rich_input_spectrum); //peaks from theor. may be matched to none or one in spec!
+    sa.getSpectrumAlignment(al, rich_theoretical_spec, rich_input_spectrum);  // peaks from theor. may be matched to none or one in spec!
     for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
     {
         rich_input_spectrum[it->second].setMetaValue("IonMatchError", std::fabs(rich_input_spectrum[it->second].getMZ() - rich_theoretical_spec[it->first].getMZ()));
@@ -218,12 +218,12 @@ namespace OpenMS
                   try
                   {
                     int i = std::atoi(what[1].first);
-                    ion_series[ion_type].at(i) = true;
+                    ion_series[ion_type].at(i-1) = true;
                   }
                   catch (std::out_of_range)
                   {
-                    LOG_WARN << ion_type << ion_name.substr(1).remove('+').toInt() -1
-                             << " ions not foreseen for" << ph->getSequence().toString() << endl;
+                    LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
+                             << " will be ignored for max series" << ph->getSequence().toString() << endl;
                     continue;
                   }
                 }
