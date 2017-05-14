@@ -180,7 +180,7 @@ namespace OpenMS
     void XQuestResultXMLHandler::addMetaValues_(MetaInfoInterface & meta_info_interface)
     {
       for (std::map<String, DataValue>::const_iterator it = this->peptide_id_meta_values_.begin();
-           it != this->peptide_id_meta_values_.end(); it++)
+           it != this->peptide_id_meta_values_.end(); ++it)
       {
         std::pair<String, DataValue> item = *it;
         meta_info_interface.setMetaValue(item.first, item.second);
@@ -494,9 +494,9 @@ namespace OpenMS
           StringList prot2_list;
           StringUtils::split(prot2_string, ",", prot2_list);
 
-          for (StringList::const_iterator it1 = prot1_list.begin(); it1 != prot1_list.end(); it1++)
+          for (StringList::const_iterator it1 = prot1_list.begin(); it1 != prot1_list.end(); ++it1)
           {
-            for (StringList::const_iterator it2 = prot2_list.begin(); it2 != prot2_list.end(); it2++)
+            for (StringList::const_iterator it2 = prot2_list.begin(); it2 != prot2_list.end(); ++it2)
             {
               this->setMetaValue_((*it1 == *it2) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
                                  DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);

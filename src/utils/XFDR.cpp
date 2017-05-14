@@ -870,10 +870,10 @@ class TOPPXFDR :
       {
         // Extract required attributes of the peptide_identification (filter criteria)
         PeptideIdentification & pep_id = all_ids[rank_one_ids[order_score[i]]];
-        double error_rel;
-        double delta_score;
-        Int ions_matched;
-        String id;
+        double error_rel = 0;
+        double delta_score = 0;
+        Int ions_matched = 0;
+        String id = "";
         if (is_xquest_input)
         {
           id = pep_id.getMetaValue("OpenXQuest:id").toString();
@@ -965,7 +965,7 @@ class TOPPXFDR :
       
       // Assign FDR values to all identifications
       for (vector< PeptideIdentification >::iterator all_ids_it = all_ids.begin();
-           all_ids_it != all_ids.end(); all_ids_it++)
+           all_ids_it != all_ids.end(); ++all_ids_it)
       {
         PeptideIdentification & pep_id = *all_ids_it;
 
@@ -988,7 +988,8 @@ class TOPPXFDR :
         // Assign FDR value as meta value and also set as score
         bool assigned = false;
         double fdr;
-        for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); xl_types_it++)
+        for (StringList::const_iterator xl_types_it = xl_types.begin();
+             xl_types_it != xl_types.end(); ++xl_types_it)
         {
           String xl_type = *xl_types_it;
           Size idx = std::floor((score - this->min_score) / TOPPXFDR::fpnum_score_step);
