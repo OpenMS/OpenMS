@@ -328,6 +328,10 @@ namespace OpenMS
         {
           float sn_by_matched_intensity = (match_intensity/ions.size())/
                   ((sum_intensity-match_intensity)/(spec.size()-ions.size()));
+          if (spec.size()-ions.size() == 0)
+          {
+            sn_by_matched_intensity = 0;
+          }
           ph->setMetaValue("sn_by_matched_intensity", sn_by_matched_intensity);
 
           float median = 0;
@@ -354,7 +358,10 @@ namespace OpenMS
             }
           }
           float sn_by_median_intensity = (sign_int/sign_count)/(nois_int/nois_count);
-
+          if (nois_count == 0 || sign_count == 0)
+          {
+            sn_by_median_intensity = 0;
+          }
           ph->setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
         }
         //TODO charge related features might be worth looking at in the future
