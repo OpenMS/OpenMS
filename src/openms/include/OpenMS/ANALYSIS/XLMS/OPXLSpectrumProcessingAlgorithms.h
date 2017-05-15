@@ -46,14 +46,58 @@ namespace OpenMS
   class OPENMS_DLLAPI OPXLSpectrumProcessingAlgorithms
   {
     public:
+
+    /**
+       * @brief Merges two spectra into one while correctly considering metainfo in DataArrays
+       * @param first_spectrum
+       * @param second_spectrum
+       * @return A PeakSpectrum containing all peaks from both input spectra
+       */
       static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum);
 
-      static void nLargestSpectrumFilter(PeakSpectrum spectrum, int peak_count);
+      /**
+       * @brief Filters a spectrum by keeping only the given number of largest peaks while correctly considering metainfo in DataArrays
+       * @param spectrum The filtered spectrum
+       * @param peak_count The number of largest peaks to keep
+       */
+      static void nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count);
 
+      /**
+       * @brief preprocessSpectraLabeled
+       * @param exp All MS2 spectra from an XL-MS experiment in a PeakMap
+       * @param fragment_mass_tolerance_xlinks
+       * @param fragment_mass_tolerance_unit_ppm
+       */
       static void preprocessSpectraLabeled(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm);
 
+      /**
+       * @brief Computes a spectrum alignment while considering fragment charges stored in a IntegerDataArray and an intensity difference ratio
+       * @param alignment The empty alignment, that will be filled by the algorithm
+       * @param s1 The first spectrum to be aligned
+       * @param s2 the second spectrum to be aligned
+       * @param tolerance The peak mass tolerance
+       * @param relative_tolerance True if the given tolerance is a ppm tolerance, false if tolerance is in Da
+       * @param intensity_cutoff Peaks will only be aligned if intensity1 / intensity2 > intensity_cutoff, with intensity1 being the lower of the two compared peaks and intensity2 the higher one. Set to 0 to ignore intensity differences.
+       */
       static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
 
+      /**
+       * @brief Deisotopes a spectrum and stores the determined charges in an IntegerDataArray
+
+          If keep_only_deisotoped is false, the peaks that could not be deisotoped are assigned the charge 0.
+          If an isotopic pattern contains more peaks than max_isopeaks, the rest are ignored for the current pattern.
+
+       * @param old_spectrum The spectrum to be deisotoped
+       * @param min_charge Minimal charge to consider for the isotope patterns
+       * @param max_charge Maximal charge to consider for the isotope patterns
+       * @param fragment_tolerance The mass tolerance for matching peaks of an isotope pattern
+       * @param fragment_tolerance_unit_ppm True, if the given tolerance is in ppm, false if it is in Da
+       * @param keep_only_deisotoped True if the peaks that could not be deisotoped should be discarded
+       * @param min_isopeaks The minimal number of consecutive peaks in an isotopic pattern, before it gets acknowledged as an isotopic pattern
+       * @param max_isopeaks The maximal number of consecutive peaks in an isotopic pattern.
+       * @param make_single_charged If true, all peaks with charges larger than 1 are replaced with peaks with their corresponding single charged MZ
+       * @return A PeakSpectrum annotated with charges
+       */
       static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false);
 
   };

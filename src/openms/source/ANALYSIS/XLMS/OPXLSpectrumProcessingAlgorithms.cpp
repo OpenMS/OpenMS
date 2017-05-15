@@ -90,7 +90,7 @@ namespace OpenMS
     return resulting_spectrum;
   }
 
-  void OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(PeakSpectrum spectrum, int peak_count)
+  void OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count)
   {
     if (spectrum.size() <= peak_count) return;
 
