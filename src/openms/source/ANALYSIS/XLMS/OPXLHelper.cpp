@@ -48,11 +48,6 @@ namespace OpenMS
   void filter_and_add_candidate (vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor)
   {
     bool found_matching_precursors = false;
-    // loop over all considered ion charges;
-    // TODO: maybe precompute uncharged masses from precursor m/z values instead? don't forget to filter by charge then
-
-    // use candidate mass and current charge to compute m/z
-    //double cross_link_mz = (precursor.precursor_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
 
     vector< double >::const_iterator low_it;
     vector< double >::const_iterator up_it;
@@ -126,12 +121,12 @@ namespace OpenMS
         // Monoisotopic weight of the peptide + cross-linker
         double cross_linked_pair_mass = peptides[p1].peptide_mass + cross_link_mass_mono_link[i];
 
-        // Make sure it is clear only one peptide is considered here. Use NULL value for the second peptide.
-        // to check: if(precursor.beta_index) returns "false" for NULL, "true" for any other value
+        // Make sure it is clear only one peptide is considered here. Use an out-of-range value for the second peptide.
+        // to check: if(precursor.beta_index < peptides.size()) returns "false" for a mono-link
         OPXLDataStructs::XLPrecursor precursor;
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
-        precursor.beta_index = NULL;
+        precursor.beta_index = peptides.size() + 1; // an out-of-range index to represent an empty index
 
         // call function to compare with spectrum precursor masses
         // will only add this candidate, if the mass is within the given tolerance to any precursor in the spectra data
@@ -171,7 +166,7 @@ namespace OpenMS
         OPXLDataStructs::XLPrecursor precursor;
         precursor.precursor_mass = cross_linked_pair_mass;
         precursor.alpha_index = p1;
-        precursor.beta_index = NULL;
+        precursor.beta_index = peptides.size() + 1; // an out-of-range index to represent an empty index
 
         // call function to compare with spectrum precursor masses
         filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
@@ -379,7 +374,7 @@ namespace OpenMS
       OPXLDataStructs::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
       AASequence peptide_second;
       OPXLDataStructs::PeptidePosition peptide_pos_second = OPXLDataStructs::INTERNAL;
-      if (candidate.beta_index)
+      if (candidate.beta_index < peptide_masses.size())
       {
         peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
         peptide_pos_second = peptide_masses[candidate.beta_index].position;
@@ -398,7 +393,7 @@ namespace OpenMS
           if (seq_first.substr(k, 1) == cross_link_residue1[x]) link_pos_first.push_back(k);
         }
       }
-      if (candidate.beta_index)
+      if (candidate.beta_index < peptide_masses.size())
       {
         for (Size k = 0; k < seq_second.size()-1; ++k)
         {
@@ -673,7 +668,7 @@ namespace OpenMS
             }
           }
         }
-        else if (mods.size() == 0 && (alpha_pos == 0 || alpha_pos == seq_alpha.size()-1))
+        else if (mods.size() == 0 && (alpha_pos == 0 || alpha_pos == static_cast<int>(seq_alpha.size())-1))
         {
           LOG_DEBUG << "No residue specific mono-link found, searching for terminal mods..." << endl;
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, top_csms_spectrum[i].cross_link.cross_linker_mass, 0.001, "", alpha_term_spec);

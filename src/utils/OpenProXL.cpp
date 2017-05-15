@@ -694,6 +694,7 @@ protected:
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
+    peptide_masses.clear();
 
     vector<OPXLDataStructs::XLPrecursor> enumerated_cross_link_masses;
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
@@ -788,7 +789,7 @@ protected:
       cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
+      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
