@@ -151,7 +151,7 @@ namespace OpenMS
   {
     if (!s1.isSorted() || !s2.isSorted())
     {
-		throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
     }
 
     vector<double> max_dists1;
