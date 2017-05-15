@@ -679,7 +679,8 @@ namespace OpenMS
     } // ! Experiment iterator
 
     // print stats about m/z calibration / presence of signal
-    LOG_INFO << "Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
+    LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
+    bool impurities_found(false);
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
       cl_it != quant_method_->getChannelInformation().end();
       ++cl_it)
@@ -698,7 +699,11 @@ namespace OpenMS
         else
         {
           LOG_INFO << median << " Th";
-          if (channel_mz_delta[cl_it->name].signal_not_unique > 0) LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
+          if (channel_mz_delta[cl_it->name].signal_not_unique > 0) 
+          {
+            LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
+            impurities_found = true;
+          }
           LOG_INFO << "\n";
         }
       }
@@ -707,6 +712,8 @@ namespace OpenMS
         LOG_INFO << "<no data>\n";
       }
     }
+    if (impurities_found) LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
+                                   << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
     LOG_INFO << std::endl;
 
 
