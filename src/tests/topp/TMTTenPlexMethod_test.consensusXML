@@ -4,14 +4,14 @@
 	<UserParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<UserParam type="int" name="isoquant:scans_total" value="6"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch126" value="4"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch127C" value="3"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch127N" value="4"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch128C" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch127C" value="3"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch128N" value="4"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch129C" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch128C" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch129N" value="4"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch130C" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch129C" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch130N" value="4"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch130C" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch131" value="3"/>
 	<UserParam type="stringList" name="spectra_data" value="[file:///QExactiveHF02_03913.raw]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
