@@ -79,7 +79,7 @@ namespace OpenMS
     return result;
   }
 
-  double XQuestScores::cumulativeBinomial(Size n, Size k, double p)
+  double XQuestScores::cumulativeBinomial_(Size n, Size k, double p)
   {
     double p_cumul = 0.0;
     if (p < 1e-99) return static_cast<double>(k == 0);
@@ -148,9 +148,9 @@ namespace OpenMS
     }
 
     double match_odds = 0;
-    match_odds = -log(1 - cumulativeBinomial(theo_size, matched_size, a_priori_p) + 1e-5);
+    match_odds = -log(1 - cumulativeBinomial_(theo_size, matched_size, a_priori_p) + 1e-5);
 
-//     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial(theo_size, matched_size, a_priori_p)
+//     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
 //              << " | match_odds: " << match_odds << endl;
 
     // score lower than 0 does not make sense, but can happen if cumBinom = 0, -log( 1 + 1e5 ) < 0

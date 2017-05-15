@@ -51,7 +51,8 @@ namespace OpenMS
   {
 
   public:
-   /* @brief compute a simple and fast to compute pre-score for a cross-link spectrum match
+   /**
+    * @brief compute a simple and fast to compute pre-score for a cross-link spectrum match
     * @param number of experimental peaks matched to theoretical common ions from the alpha peptide
     * @param number of theoretical ions from the alpha peptide
     * @param number of experimental peaks matched to theoretical common ions from the beta peptide
@@ -59,13 +60,15 @@ namespace OpenMS
     */
     static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta);
 
-   /* @brief compute a simple and fast to compute pre-score for a mono-link spectrum match
+   /**
+    * @brief compute a simple and fast to compute pre-score for a mono-link spectrum match
     * @param number of experimental peaks matched to theoretical common ions from the alpha peptide
     * @param number of theoretical ions from the alpha peptide
     */
     static float preScore(Size matched_alpha, Size ions_alpha);
 
-   /* @brief compute the match-odds score, a score based on the probability of getting the given number of matched peaks by chance
+   /**
+    * @brief compute the match-odds score, a score based on the probability of getting the given number of matched peaks by chance
     * @param theoretical spectrum, sorted by position
     * @param alignment between the theoretical and the experimental spectra
     * @param fragment mass tolerance of the alignment
@@ -76,7 +79,8 @@ namespace OpenMS
     static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1);
 
 
-   /* @brief compute the weighted total ion current score for a cross-link. Reimplementation from xQuest.
+   /**
+    * @brief compute the weighted total ion current score for a cross-link. Reimplementation from xQuest.
     * @param sequence length of alpha peptide
     * @param sequence length of beta peptide
     * @param intensity sum of matched peaks from alpha peptide
@@ -87,7 +91,8 @@ namespace OpenMS
     */
     static double weightedTICScoreXQuest(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link);
 
-   /* @brief compute the weighted total ion current score for a cross-link. Scaling changed from original xQuest.
+   /**
+    * @brief compute the weighted total ion current score for a cross-link. Scaling changed from original xQuest.
     * @param sequence length of alpha peptide
     * @param sequence length of beta peptide
     * @param intensity sum of matched peaks from alpha peptide
@@ -98,7 +103,8 @@ namespace OpenMS
     */
     static double weightedTICScore(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link);
 
-   /* @brief computes sum of peak intensities of matched peaks for either the alpha or the beta peptide
+   /**
+    * @brief computes sum of peak intensities of matched peaks for either the alpha or the beta peptide
     * @param alignment between common alpha or beta ions and common experimental peaks
     * @param alignment between xlink alpha or beta ions and xlink experimental peaks
     * @param experimental common ion spectrum
@@ -106,7 +112,8 @@ namespace OpenMS
     */
     static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
-   /* @brief computes sum of peak intensities of all matched peaks
+   /**
+    * @brief computes sum of peak intensities of all matched peaks
     * @param alignment between common alpha ions and common experimental peaks
     * @param alignment between common beta ions and common experimental peaks
     * @param alignment between xlink alpha ions and xlink experimental peaks
@@ -116,8 +123,8 @@ namespace OpenMS
     */
     static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks);
 
-    // Cross-correlation, with shifting the second spectrum from -maxshift to +maxshift of tolerance bins (Tolerance in Da, a constant binsize)
-   /* @brief computes a crude cross-correlation between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
+   /**
+    * @brief computes a crude cross-correlation between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
     * @param first spectrum
     * @param second spectrum
     * @param number of bins, that should be considered for shifting the second spectrum. the second spectrum is shifted from -maxshift to +maxshift of tolerance bins and a correlation is computed for each position.
@@ -126,13 +133,14 @@ namespace OpenMS
     static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
   protected:
-   /* @brief compute the cumulative binomial function, helper for match-odds score. sums up ( n choose i ) * p^i * (1-p)^(n-i) for i from 0 to k
+   /**
+    * @brief compute the cumulative binomial function, helper for match-odds score. sums up ( n choose i ) * p^i * (1-p)^(n-i) for i from 0 to k
     * @note if the binomial coefficient ( n choose k ) overflows, it is set to the numeric limit for the double type
     * @param n, size of theoretical spectrum
     * @param k, number of matched peaks
     * @param p, probability of a random match between a theoretical and an experimental peak
     */
-    static double cumulativeBinomial(Size n, Size k, double p);
+    static double cumulativeBinomial_(Size n, Size k, double p);
 
   };
 

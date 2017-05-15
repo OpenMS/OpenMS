@@ -55,20 +55,9 @@ namespace OpenMS
     xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
     xml_file << "<?xml-stylesheet type=\"text/xsl\" href=\"\"?>" << endl;
 
-    // TODO!!! write actual experiment data
-    // original date/time format: Fri Dec 18 12:28:23 2015
     DateTime time= DateTime::now();
     String timestring = time.getDate() + " " + time.getTime();
 
-//    String precursor_mass_tolerance_unit = getStringOption_("precursor:mass_tolerance_unit");
-//    String fragment_mass_tolerance_unit = getStringOption_("fragment:mass_tolerance_unit");
-//    double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
-//    double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
-//    double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
-
-//    String cross_link_name = getStringOption_("cross_linker:name");
-//    double cross_link_mass_light = getDoubleOption_("cross_linker:mass_light");
-//    DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
     String mono_masses;
     if (cross_link_mass_mono_link.size() > 1)
     {
@@ -79,10 +68,6 @@ namespace OpenMS
       mono_masses += cross_link_mass_mono_link[cross_link_mass_mono_link.size()-1];
     }
 
-//    const string in_fasta(getStringOption_("database"));
-//    const string in_decoy_fasta(getStringOption_("decoy_database"));
-//    StringList cross_link_residue1 = getStringList_("cross_linker:residue1");
-//    StringList cross_link_residue2 = getStringList_("cross_linker:residue2");
     String aarequired1, aarequired2;
     for (Size k= 0; k < cross_link_residue1.size()-1; ++k)
     {
@@ -95,19 +80,6 @@ namespace OpenMS
     }
     aarequired2 += cross_link_residue2[cross_link_residue2.size()-1];
 
-//    double cross_link_mass_iso_shift = 0;
-//    // This parameter is only available for the algorithm for labeled linkers
-//    try
-//    {
-//      cross_link_mass_iso_shift = getDoubleOption_("cross_linker:mass_iso_shift");
-//    }
-//    catch (...)
-//    {
-//    }
-
-
-//    String enzyme_name = getStringOption_("peptide:enzyme");
-//    Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
 
     xml_file << "<xquest_results xquest_version=\"OpenProXL 1.0\" date=\"" << timestring <<
              "\" author=\"Eugen Netz, Timo Sachsenberg\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
@@ -120,7 +92,6 @@ namespace OpenMS
              "\" Iontag_charges_for_index=\"1\" missed_cleavages=\"" << missed_cleavages <<
              "\" ntermxlinkable=\"0\" CID_match2ndisotope=\"1" <<
              "\" variable_mod=\"TODO\" nocutatxlink=\"1\" xcorrdelay=\"5\" >" << endl;
-
 
 
     for (vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > >::const_iterator top_csms_spectrum = all_top_csms.begin(); top_csms_spectrum != all_top_csms.end(); ++top_csms_spectrum)
@@ -181,10 +152,7 @@ namespace OpenMS
         String structure = top_csm->cross_link.alpha.toUnmodifiedString();
         String letter_first = structure.substr(top_csm->cross_link.cross_link_position.first, 1);
 
-
-         // TODO track or otherwise find out, which kind of mono-link it was (if there are several possibilities for the weigths)
         double weight = top_csm->cross_link.alpha.getMonoWeight() + top_csm->cross_link.cross_linker_mass;
-//          bool is_monolink = (top_csm->cross_link.cross_link_position.second == -1);
         int alpha_pos = top_csm->cross_link.cross_link_position.first + 1;
         int beta_pos = top_csm->cross_link.cross_link_position.second + 1;
 
@@ -282,27 +250,25 @@ namespace OpenMS
         // TODO more correct alternative
         String spectrum_light_name = base_name + ".light." + scan_index_light;
         String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-//        String spectrum_light_name = String("spectrumlight") + scan_index_light;
-//        String spectrum_heavy_name = String("spectrumheavy") + scan_index_heavy;
         String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
         // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
         spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[scan_index_light], String(""));
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""));
         spec_xml_file << "</spectrum>" << endl;
 
         spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[scan_index_heavy], String(""));
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""));
         spec_xml_file << "</spectrum>" << endl;
 
         String spectrum_common_name = spectrum_name + String("_common.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << endl;
 
         String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << endl;
       }
     }
@@ -334,21 +300,21 @@ namespace OpenMS
 
         // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
         spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], String(""));
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
         spec_xml_file << "</spectrum>" << endl;
 
         spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], String(""));
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
         spec_xml_file << "</spectrum>" << endl;
 
         String spectrum_common_name = spectrum_name + String("_common.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << endl;
 
         String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << endl;
       }
     }
@@ -359,7 +325,7 @@ namespace OpenMS
     return;
   }
 
-  String XQuestXML::getxQuestBase64EncodedSpectrum(const PeakSpectrum& spec, String header)
+  String XQuestXML::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header)
   {
     vector<String> in_strings;
     StringList sl;
@@ -386,6 +352,7 @@ namespace OpenMS
       s += String(spec[i].getMZ()) + "\t";
       s += String(spec[i].getIntensity()) + "\t";
 
+      // TODO adapt to DataArrays
       // add fragment charge if meta value exists (must be present for 'common' and 'xlinker'.
 //      if (spec[i].metaValueExists("z"))
 //      {
