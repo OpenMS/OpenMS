@@ -46,25 +46,25 @@
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="28"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="matched_ions" value="c5-C1H2N1O1++,z4-C1H4O1S1+,b14++,a8-H2O1+,b25-H3N1++,x4-C1H4O1S1+,a7+,b5-H2O1++,a17-H3N1++,x17++,b3++,a13-C1H2N2+,c16++,x15-H2O1++,b12-H3N1++,x20++,z11-H3N1+,b15-H2O1+,z8+,b17-H3N1+,b5-C1H2N1O1+,b4+,b10-C1H2N2++,c6+,y18-C1H4O1S1++,z13-C1H4O1S1++,y12-H2O1++,a18-C1H2N1O1+,a16-H3N1++,b8-H3N1+,z9-C1H4O1S1++,y9-H2O1+,b12-H2O1++,a17-C1H2N1O1++,x25-C1H2N2++,x3-C1H4O1S1++,a10-H3N1++,b10-C1H2N2+,b9-H2O1+,b12-H3N1+,y13-H3N1+,b16-H3N1++,y13-H2O1++,z5-H3N1+,c27++,a15-C1H2N2+,c17-C1H2N2++,b16++,b13++,b20++,x9-H3N1++,x13-H3N1++,c5-C1H2N1O1+,y10-C1H4O1S1++,z11-C1H4O1S1+,b9-H3N1++,y24-C1H2N2++,z9+,c8++,b10-C1H2N1O1++,c14-H2O1++,b10-H3N1+,y9++,c13+,y15-C1H4O1S1++,x6-H3N1++,z5+,x10-C1H4O1S1++,b11-H3N1++,b6+,y1-H3N1+,y14-C1H4O1S1+,x19-H2O1++,b10-H3N1++,b15-H2O1++,c8-C1H2N1O1+,z4-H3N1+,b11-H2O1++,z13-H2O1++,y15-C1H4O1S1+,x5-H3N1+,a9-C1H2N2+,c17-C1H2N1O1++,z10-C1H4O1S1+,a5-H3N1+,c6++,y5-C1H4O1S1++,y7-C1H4O1S1++,b3+,z13-C1H4O1S1+,c9-C1H2N1O1++,b15-H3N1++,y15+,y14+,z13++,a8++,c9-C1H2N1O1+,x23++,c11-C1H2N1O1++,a15++,a13-C1H2N1O1+,b10-H2O1++,c5-H3N1+,b6-H3N1++,b17-C1H2N1O1++,b7+,c10-C1H2N1O1++,c27-H2O1++,c14-C1H2N1O1+,b11-C1H2N2++,a14+,c14+,y12-C1H4O1S1+,c8-H3N1++,c21-H3N1++,y13-C1H4O1S1++,x25-C1H2N1O1++,a11++,c8+,z16++,a9++,b17-H3N1++,b25-H2O1++,a9+,iY,z4+,a15-C1H2N1O1+,b11-C1H2N2+,c10-C1H2N1O1+,a10++,y1+,a5+,c11-H2O1+,z11-C1H4O1S1++,a8+,b15-H3N1+,y12+,a17-H2O1++,x16++,c14++,y3-C1H4O1S1+,y8-C1H4O1S1+,c19-H3N1++,y13++,a10+,b5+,b18-H3N1++,c8-H3N1+,y6-C1H4O1S1+,c13-C1H2N1O1+,y7-C1H4O1S1+,c12-C1H2N1O1+,c12-H3N1++,z3-C1H4O1S1+,y9-C1H4O1S1+,y11-C1H4O1S1+,a13+,y8+,a12-C1H2N2++,y2+,c11-C1H2N1O1+,c15-H3N1++,c21-H2O1++,y5-C1H4O1S1+,a12+,a2+,y13-C1H4O1S1+,y13+,y11+,y7+,c14-H3N1+,b11++,y6+,b13+,y9+,b2+,a11+,y5+,y4+,y3+,a12-C1H2N2+,y10-C1H4O1S1+,c9-H3N1++,c10-H3N1++,b11+,b12+,b15+,y10+,b9+,b10+"/>
-				<UserParam type="float" name="matched_intensity" value="89762.7719612122"/>
-				<UserParam type="int" name="matched_ion_number" value="190"/>
+				<UserParam type="string" name="matched_ions" value="a17-H3N1++,a13-C1H2N2+,b12-H3N1++,b4+,b10-C1H2N2++,b12-H2O1++,a10-H3N1++,y13-H3N1+,b16-H3N1++,y13-H2O1++,b13++,b9-H3N1++,y9-H3N1+,b11-H3N1++,y1-H3N1+,b10-H3N1++,b15-H2O1++,b11-H2O1++,y15-C1H4O1S1+,b3+,b15-H3N1++,y14+,y13-H3N1++,a8++,b10-H2O1++,b17-C1H2N1O1++,b7+,y12-C1H4O1S1+,b8++,y13-C1H4O1S1++,x25-C1H2N1O1++,a11++,a9++,b17-H3N1++,a9+,iY,a10++,y1+,a8+,b15-H3N1+,y12+,a17-H2O1++,y3-C1H4O1S1+,y8-C1H4O1S1+,y13++,a10+,b5+,b18-H3N1++,b8+,y6-C1H4O1S1+,y7-C1H4O1S1+,b12++,y9-C1H4O1S1+,y11-C1H4O1S1+,a13+,y8+,a12-C1H2N2++,y2+,b15++,y5-C1H4O1S1+,a12+,a2+,y13-C1H4O1S1+,y13+,y11+,y7+,b14+,b11++,y6+,b13+,y9+,b2+,a11+,y5+,y4+,y3+,y10-C1H4O1S1+,b9++,b10++,b11+,b12+,b15+,y10+,b9+,b10+"/>
+				<UserParam type="float" name="matched_intensity" value="70303.5043754578"/>
+				<UserParam type="int" name="matched_ion_number" value="85"/>
 				<UserParam type="int" name="peak_number" value="440"/>
 				<UserParam type="float" name="sum_intensity" value="159149.309085846"/>
-				<UserParam type="float" name="NTermIonCurrentRatio" value="0.363284202966846"/>
-				<UserParam type="float" name="CTermIonCurrentRatio" value="0.212878563151362"/>
-				<UserParam type="float" name="median_fragment_error" value="0.00951460367275558"/>
-				<UserParam type="float" name="IQR_fragment_error" value="0.035747211607827"/>
+				<UserParam type="float" name="NTermIonCurrentRatio" value="0.562074811965916"/>
+				<UserParam type="float" name="CTermIonCurrentRatio" value="0.244423888669089"/>
+				<UserParam type="float" name="median_fragment_error" value="0.00186384639619064"/>
+				<UserParam type="float" name="IQR_fragment_error" value="0.00426560995003911"/>
 				<UserParam type="float" name="topN_meanfragmenterror" value="0.00127883276817491"/>
 				<UserParam type="float" name="topN_MSEfragmenterror" value="2.21576052025374e-06"/>
 				<UserParam type="float" name="topN_stddevfragmenterror" value="0.00148854308646197"/>
-				<UserParam type="string" name="max_series_type" value="b"/>
-				<UserParam type="int" name="max_series_size" value="17"/>
-				<UserParam type="float" name="sn_by_matched_intensity" value="1.70218765735626"/>
+				<UserParam type="string" name="max_series_type" value="y"/>
+				<UserParam type="int" name="max_series_size" value="15"/>
+				<UserParam type="float" name="sn_by_matched_intensity" value="3.30483269691467"/>
 				<UserParam type="float" name="sn_by_median_intensity" value="8.00933933258057"/>
 				<UserParam type="int" name="precursor_in_ms2" value="0"/>
 			</PeptideHit>
-			<UserParam type="float" name="fragment_match_tolerance" value="0.4"/>
+			<UserParam type="float" name="fragment_match_tolerance" value="0.01"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.7773" spectrum_reference="spectrum=2" >
 			<PeptideHit score="151" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="-" aa_after="A" start="1" end="23" protein_refs="PH_0" >
@@ -79,25 +79,25 @@
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="23"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="matched_ions" value="a5-H3N1+,b9-H2O1++,z3-C1H2N1O1++,c17++,y1-C1H2N1O1+,a13-H2O1+,b4+,a4+,a4-C1H2N2+,x12-C1H2N1O1+,a9-H2O1++,c2++,z14-H3N1++,c2-C1H2N2+,b10-H3N1++,a12++,c11-C1H2N1O1++,b16-H2O1++,b13-H2O1++,c6+,b2-C1H2N2+,c20-C1H2N2++,b7-H2O1+,b13-H3N1+,a12+,b13-H2O1+,a5++,x1-C1H2N2+,z19-H2O1+,x10-C1H2N1O1++,y9-C1H2N2+,a1+,b10-H3N1+,a5-H2O1+,x2-C1H2N2+,z17-H3N1++,z1+,b12-H3N1++,a7-H2O1++,y9-H3N1+,y6-H3N1+,x1+,a8++,b16+,a13+,z8+,z4+,c14-H3N1++,a3-C1H2N2++,z5+,y2+,y16++,a22-C1H2N1O1++,x8+,c13-C1H2N1O1+,a11++,b10-H2O1+,b5-C1H2N2++,a10+,c11-C1H2N1O1+,b9++,b6-H2O1+,b11-C1H2N2+,z2-C1H2N2+,c14-C1H2N1O1+,b10++,c11-H3N1++,x21-H2O1++,y10+,b5+,c13-H3N1++,a11+,a10-C1H2N2++,c12-H3N1+,a1-H3N1+,y1+,b9+,c14-H3N1+,c14-H2O1++,y11+,a14+,y3+,b12++,c11-H3N1+,c2-H3N1+,c8-H3N1+,y4+,y12+,x18++,y5+,c7-H3N1+,y7+,y6+,b10+,iF,y8+,c13-H3N1+,y9+"/>
-				<UserParam type="float" name="matched_intensity" value="27870.5290184021"/>
-				<UserParam type="int" name="matched_ion_number" value="98"/>
+				<UserParam type="string" name="matched_ions" value="b4+,x12-C1H2N1O1+,a9-H2O1++,b10-H3N1++,b16-H2O1++,b13-H2O1++,b7-H2O1+,b13-H3N1+,a12+,b13-H2O1+,x1-C1H2N2+,x10-C1H2N1O1++,a5-H2O1+,y1-H3N1+,y9-H3N1+,y6-H3N1+,a8++,a13+,y8-H3N1+,y4-H3N1+,b14++,a3-C1H2N2++,y5-H3N1+,y2+,a11++,b10-H2O1+,a10+,b9++,b6-H2O1+,b10++,b11++,y10+,b5+,b13++,a11+,b12+,y1+,b9+,b14+,y11+,a14+,y3+,b12++,b11+,b8+,y4+,y12+,y5+,b7+,y7+,y6+,b10+,iF,y8+,b13+,y9+"/>
+				<UserParam type="float" name="matched_intensity" value="22612.6557922363"/>
+				<UserParam type="int" name="matched_ion_number" value="56"/>
 				<UserParam type="int" name="peak_number" value="159"/>
 				<UserParam type="float" name="sum_intensity" value="36257.1194534302"/>
-				<UserParam type="float" name="NTermIonCurrentRatio" value="0.169017585862554"/>
-				<UserParam type="float" name="CTermIonCurrentRatio" value="0.407220889730934"/>
-				<UserParam type="float" name="median_fragment_error" value="0.00616292690000364"/>
-				<UserParam type="float" name="IQR_fragment_error" value="0.0349125038876537"/>
-				<UserParam type="float" name="topN_meanfragmenterror" value="0.000688030630604836"/>
-				<UserParam type="float" name="topN_MSEfragmenterror" value="3.1150663548749e-07"/>
-				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000558127794942601"/>
+				<UserParam type="float" name="NTermIonCurrentRatio" value="0.409870897464539"/>
+				<UserParam type="float" name="CTermIonCurrentRatio" value="0.441169616232408"/>
+				<UserParam type="float" name="median_fragment_error" value="0.00118083569157079"/>
+				<UserParam type="float" name="IQR_fragment_error" value="0.00399363754345927"/>
+				<UserParam type="float" name="topN_meanfragmenterror" value="0.000688030630637318"/>
+				<UserParam type="float" name="topN_MSEfragmenterror" value="3.11506635456216e-07"/>
+				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000558127794914584"/>
 				<UserParam type="string" name="max_series_type" value="y"/>
 				<UserParam type="int" name="max_series_size" value="12"/>
-				<UserParam type="float" name="sn_by_matched_intensity" value="2.06853818893433"/>
+				<UserParam type="float" name="sn_by_matched_intensity" value="3.04820585250854"/>
 				<UserParam type="float" name="sn_by_median_intensity" value="6.62783718109131"/>
 				<UserParam type="int" name="precursor_in_ms2" value="1"/>
 			</PeptideHit>
-			<UserParam type="float" name="fragment_match_tolerance" value="0.4"/>
+			<UserParam type="float" name="fragment_match_tolerance" value="0.01"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="520.262817382812" RT="2655.0957" spectrum_reference="spectrum=0" >
 			<PeptideHit score="123" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" start="1" end="14" >
@@ -112,25 +112,25 @@
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="14"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="matched_ions" value="x1++,y2-C1H2N2++,a2++,a4-H2O1++,z3-C1H2N1O1++,z8-C1H2N2++,c2-H2O1+,x7-C1H2N1O1++,a9++,x1-C1H2N1O1+,a4-H2O1+,a10-H2O1++,x4-C1H2N1O1+,z3-C1H2N2+,x3++,x1+,x6-C1H2N2+,c7-H2O1++,x9-C1H2N2+,z2-C1H2N1O1+,y3++,b4+,b7+,z12-H2O1++,x8-H3N1++,x4-C1H2N2+,x5-C1H2N2+,a5-H2O1+,a3-H2O1+,[M+H]-NH3++,b10-H2O1++,y10-H3N1+,z2-C1H2N2+,c3++,x13-C1H2N2++,z1+,x4-H3N1+,a7+,b12-H2O1++,a8-H2O1++,x2-C1H2N1O1+,x10-C1H2N2+,x3-C1H2N1O1+,b6++,z1-H3N1+,y11+,z3-C1H2N1O1+,z6-H3N1+,z12++,z4-C1H2N2++,z12-C1H2N1O1++,b4-H2O1+,c7++,y11-H2O1++,z3+,z11-H2O1++,z11++,z10++,y6-H3N1+,b3-H2O1+,y9-C1H2N2++,b4-H2O1++,z6-C1H2N2++,z4+,y3-C1H2N1O1++,x5-H3N1++,a6-H2O1+,y4-C1H2N2+,z2+,z5+,y12-H2O1++,y1-C1H2N1O1+,y6-C1H2N2+,z12-C1H2N2++,y10-H2O1++,z4-C1H2N1O1++,b2-H2O1+,z7-H3N1++,x3-H3N1+,y7++,iH,y5++,x1-C1H2N2+,b3+,z2-H3N1+,y8++,y6++,z4-C1H2N2+,y4++,a2-H2O1+,y10+,y12++,y8+,y7+,y9++,y9+,y11++,iY,y10++,y2+,y1+,y3+,y6+,iF,b2+,y1-C1H2N2+,y4+,y5+,a2+"/>
-				<UserParam type="float" name="matched_intensity" value="139606.219764709"/>
-				<UserParam type="int" name="matched_ion_number" value="109"/>
+				<UserParam type="string" name="matched_ions" value="b4+,a3-H2O1+,y10-H3N1+,x13-C1H2N2++,y1-H3N1+,b4-H2O1+,y11-H2O1++,y3-H3N1+,y11-H3N1++,y6-H3N1+,b3-H2O1+,b4-H2O1++,y4-H3N1+,y3-C1H2N1O1++,x5-H3N1++,y2-H3N1+,y5-H3N1+,y12-H2O1++,y10-H2O1++,b2-H2O1+,y7++,iH,y5++,x1-C1H2N2+,b3+,y8++,y6++,y4++,a2-H2O1+,y10+,y12++,y8+,y7+,y9++,y9+,y11++,iY,y10++,y2+,y1+,y3+,y6+,iF,b2+,y4+,y5+,a2+"/>
+				<UserParam type="float" name="matched_intensity" value="115658.965301514"/>
+				<UserParam type="int" name="matched_ion_number" value="47"/>
 				<UserParam type="int" name="peak_number" value="309"/>
 				<UserParam type="float" name="sum_intensity" value="209432.387580872"/>
-				<UserParam type="float" name="NTermIonCurrentRatio" value="0.273619707872135"/>
-				<UserParam type="float" name="CTermIonCurrentRatio" value="0.448259919116193"/>
-				<UserParam type="float" name="median_fragment_error" value="0.0103513757163682"/>
-				<UserParam type="float" name="IQR_fragment_error" value="0.0351571603671914"/>
-				<UserParam type="float" name="topN_meanfragmenterror" value="0.00220440387101105"/>
-				<UserParam type="float" name="topN_MSEfragmenterror" value="1.32939566644145e-05"/>
-				<UserParam type="float" name="topN_stddevfragmenterror" value="0.00364608785747333"/>
+				<UserParam type="float" name="NTermIonCurrentRatio" value="0.320391346980731"/>
+				<UserParam type="float" name="CTermIonCurrentRatio" value="0.510163289435426"/>
+				<UserParam type="float" name="median_fragment_error" value="0.000935632878963588"/>
+				<UserParam type="float" name="IQR_fragment_error" value="0.000915520260207359"/>
+				<UserParam type="float" name="topN_meanfragmenterror" value="0.000776723732412522"/>
+				<UserParam type="float" name="topN_MSEfragmenterror" value="1.36927722407586e-07"/>
+				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000370037460816585"/>
 				<UserParam type="string" name="max_series_type" value="y"/>
 				<UserParam type="int" name="max_series_size" value="12"/>
-				<UserParam type="float" name="sn_by_matched_intensity" value="3.66851305961609"/>
+				<UserParam type="float" name="sn_by_matched_intensity" value="6.87547922134399"/>
 				<UserParam type="float" name="sn_by_median_intensity" value="8.91692352294922"/>
-				<UserParam type="int" name="precursor_in_ms2" value="1"/>
+				<UserParam type="int" name="precursor_in_ms2" value="0"/>
 			</PeptideHit>
-			<UserParam type="float" name="fragment_match_tolerance" value="0.4"/>
+			<UserParam type="float" name="fragment_match_tolerance" value="0.01"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>
