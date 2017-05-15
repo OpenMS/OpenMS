@@ -41,6 +41,7 @@ namespace OpenMS
   typedef std::pair<Size, Size> Range;
 
   // TODO(Nikos) add openMP support
+  // TODO(Nikos) add documentation
   class CounterSet
   {
   public:

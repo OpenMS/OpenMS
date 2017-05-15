@@ -39,10 +39,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
-  class Element;
 
   /** @ingroup Chemistry
 

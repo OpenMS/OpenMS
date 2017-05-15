@@ -1350,7 +1350,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(12, 1.0 - a));
         container.push_back(make_pair(13, a));
         isotopes.set(container);
@@ -1374,7 +1374,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(12, 1.0 - a));
         container.push_back(make_pair(13, a));
         isotopes.set(container);
@@ -1392,7 +1392,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(12, 0.9893));
     container.push_back(make_pair(13, 0.0107));
     isotopes.set(container);
@@ -1466,7 +1466,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(14, 1.0 - a));
         container.push_back(make_pair(15, a));
         isotopes.set(container);
@@ -1490,7 +1490,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(14, 1.0 - a));
         container.push_back(make_pair(15, a));
         isotopes.set(container);
@@ -1507,7 +1507,7 @@ public:
     }
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(14, 0.99632));
     container.push_back(make_pair(15, 0.368));
     isotopes.set(container);
@@ -1538,7 +1538,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(1, 1.0 - a));
         container.push_back(make_pair(2, a));
         isotopes.set(container);
@@ -1562,7 +1562,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(1, 1.0 - a));
         container.push_back(make_pair(2, a));
         isotopes.set(container);
@@ -1580,7 +1580,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(1, 0.999885));
     container.push_back(make_pair(2, 0.000115));
     isotopes.set(container);
@@ -1610,7 +1610,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(1, 1.0 - a));
         container.push_back(make_pair(2, 0.0)); // 17O is neglectable (=0.038%)
         container.push_back(make_pair(3, a));
@@ -1635,7 +1635,7 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
+        IsotopeDistribution::ContainerType container;
         container.push_back(make_pair(1, 1.0 - a));
         container.push_back(make_pair(2, 0.0)); // 17O is neglectable (=0.038%)
         container.push_back(make_pair(3, a));
@@ -1654,7 +1654,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(1, 0.99757));
     container.push_back(make_pair(2, 0.00038));
     container.push_back(make_pair(3, 0.00205));
@@ -1678,7 +1678,7 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
+      IsotopeDistribution::ContainerType container;
       container.push_back(make_pair(14, 1.0 - a));
       container.push_back(make_pair(15, a));
       isotopes.set(container);
@@ -1696,7 +1696,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(14, 0.99632));
     container.push_back(make_pair(15, 0.368));
     isotopes.set(container);
@@ -1718,7 +1718,7 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
+      IsotopeDistribution::ContainerType container;
       container.push_back(make_pair(12, 1.0 - a));
       container.push_back(make_pair(13, a));
       isotopes.set(container);
@@ -1736,7 +1736,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(12, 0.9893));
     container.push_back(make_pair(13, 0.0107));
     isotopes.set(container);
@@ -1758,7 +1758,7 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
+      IsotopeDistribution::ContainerType container;
       container.push_back(make_pair(1, 1.0 - a));
       container.push_back(make_pair(2, a));
       isotopes.set(container);
@@ -1776,7 +1776,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(1, 0.999885));
     container.push_back(make_pair(2, 0.000115));
     isotopes.set(container);
@@ -1798,7 +1798,7 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
+      std::vector<IsotopeDistribution::MassAbundance> container;
       container.push_back(make_pair(1, 1.0 - a));
       container.push_back(make_pair(2, 0));
       container.push_back(make_pair(3, a));
@@ -1817,7 +1817,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
+    IsotopeDistribution::ContainerType container;
     container.push_back(make_pair(1, 0.99757));
     container.push_back(make_pair(2, 0.00038));
     container.push_back(make_pair(3, 0.00205));
@@ -2246,7 +2246,7 @@ protected:
       IsotopeDistribution averagine = IsotopeDistribution(10);
       averagine.estimateFromPeptideWeight(current_weight);
 
-      std::vector<std::pair<Size, double> > averagine_intensities_pairs = averagine.getContainer();
+      IsotopeDistribution::ContainerType averagine_intensities_pairs = averagine.getContainer();
 
       // zeros to the left for sliding window correlation
       std::vector<double> averagine_intensities(AVERAGINE_CORR_OFFSET, 0.0); // add 0 intensity bins left to actual averagine pattern
