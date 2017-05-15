@@ -805,7 +805,7 @@ add_test("TOPP_IDFileConverter_21" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${
 add_test("TOPP_IDFileConverter_21_out1" ${DIFF} -in1 IDFileConverter_21_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_21_output.idXML -whitelist "creationDate" "id" "spectraData_ref" "searchDatabase_ref")
 set_tests_properties("TOPP_IDFileConverter_21_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_21")
 # Testing add_ionmatch_annotation
-add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_22_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.4)
+add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_22_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.01)
 add_test("TOPP_IDFileConverter_22_out1" ${DIFF} -in1 IDFileConverter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_22_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_22")
 

@@ -160,9 +160,7 @@ private:
       tgp.setValue("add_y_ions", "true");
       tgp.setValue("add_b_ions", "true");
       tgp.setValue("add_a_ions", "true");
-      tgp.setValue("add_c_ions", "true");
       tgp.setValue("add_x_ions", "true");
-      tgp.setValue("add_z_ions", "true");
       tg.setParameters(tgp);
       SpectrumAlignment sa;
       Param sap = sa.getDefaults();
