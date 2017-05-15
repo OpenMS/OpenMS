@@ -86,7 +86,7 @@ END_SECTION
 
 START_SECTION((static StringList getTypes(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getTypes("ITRAQAnalyzer") == StringList(), true);
+  TEST_EQUAL(ToolHandler::getTypes("IsobaricAnalyzer") == StringList(), true);
   TEST_EQUAL(ToolHandler::getTypes("IDMapper") == StringList(), true);
 }
 END_SECTION

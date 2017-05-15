@@ -69,8 +69,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
@@ -382,8 +380,6 @@ int main(int argc, char** argv)
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
-  DOCME(ItraqChannelExtractor);
-  DOCME(ItraqQuantifier);
   DOCME(TMTSixPlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
@@ -476,9 +472,6 @@ int main(int argc, char** argv)
   DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
   DOCME2(GaussTraceFitter, (GaussTraceFitter()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter()))
-
-  DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
-  DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
 
   // handle GUI documentation separately
 #ifdef WITH_GUI

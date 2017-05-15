@@ -81,7 +81,7 @@ namespace OpenMS
            << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet" << "FeatureFinderMultiplex"
            << "MassTraceExtractor" << "FeatureFinderMetabo"
            << "FeatureFinderMRM"
-           << "ITRAQAnalyzer" << "SpectraFilterWindowMower"
+           << "IsobaricAnalyzer" << "SpectraFilterWindowMower"
            << "SpectraFilterThresholdMower" << "SpectraFilterSqrtMower"
            << "SpectraFilterParentPeakMower" << "SpectraFilterMarkerMower"
            << "SpectraFilterScaler" << "SpectraFilterBernNorm"

@@ -43,7 +43,6 @@ InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
-ITRAQAnalyzer
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
@@ -95,7 +94,6 @@ SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
 TextExporter
-TMTAnalyzer
 TOFCalibration
 XTandemAdapter
 )
