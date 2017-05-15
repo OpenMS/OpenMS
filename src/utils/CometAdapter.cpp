@@ -139,7 +139,9 @@ protected:
     // TO DO: change selection menue from numbers to valid strings
     //registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", true);
     //vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
-    registerIntOption_("precursor_error_units", "<choice>", 2, "peptide_mass_units (Comet) 0=amu, 1=mmu, 2=ppm", false, false);
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "peptide_mass_units (Comet) 0=amu, 1=mmu, 2=ppm", false, false);
+    vector<String> valid_strings = ListUtils::create<String>("amu,ppm,Da");
+    setValidStrings_("enzyme", valid_strings);
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
