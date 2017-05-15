@@ -148,7 +148,7 @@ namespace OpenMS
       vector< PeptideEvidence > evidences;
       evidences.reserve(prot_list.size());
       
-      for( StringList::const_iterator prot_list_it = prot_list.begin();
+      for (StringList::const_iterator prot_list_it = prot_list.begin();
            prot_list_it != prot_list.end(); ++prot_list_it)
       {
         PeptideEvidence pep_ev;
