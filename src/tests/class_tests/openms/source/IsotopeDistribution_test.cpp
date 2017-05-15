@@ -143,17 +143,17 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
 	EmpiricalFormula ef("C222N190O110");
 	IsotopeDistribution id = ef.getIsotopeDistribution(11);
 	IsotopeDistribution::ContainerType container;
-	container.push_back(make_pair<Size, double>(7084, 0.0349429));
-	container.push_back(make_pair<Size, double>(7085, 0.109888));
-	container.push_back(make_pair<Size, double>(7086, 0.180185));
-	container.push_back(make_pair<Size, double>(7087, 0.204395));
-	container.push_back(make_pair<Size, double>(7088, 0.179765));
-	container.push_back(make_pair<Size, double>(7089, 0.130358));
-	container.push_back(make_pair<Size, double>(7090, 0.0809864));
-	container.push_back(make_pair<Size, double>(7091, 0.0442441));
-	container.push_back(make_pair<Size, double>(7092, 0.0216593));
-	container.push_back(make_pair<Size, double>(7093, 0.00963707));
-	container.push_back(make_pair<Size, double>(7094, 0.0039406));
+	container.push_back(IsotopeDistribution::MassAbundance(7084, 0.0349429));
+	container.push_back(IsotopeDistribution::MassAbundance(7085, 0.109888));
+	container.push_back(IsotopeDistribution::MassAbundance(7086, 0.180185));
+	container.push_back(IsotopeDistribution::MassAbundance(7087, 0.204395));
+	container.push_back(IsotopeDistribution::MassAbundance(7088, 0.179765));
+	container.push_back(IsotopeDistribution::MassAbundance(7089, 0.130358));
+	container.push_back(IsotopeDistribution::MassAbundance(7090, 0.0809864));
+	container.push_back(IsotopeDistribution::MassAbundance(7091, 0.0442441));
+	container.push_back(IsotopeDistribution::MassAbundance(7092, 0.0216593));
+	container.push_back(IsotopeDistribution::MassAbundance(7093, 0.00963707));
+	container.push_back(IsotopeDistribution::MassAbundance(7094, 0.0039406));
 
 	for (Size i = 0; i != id.size(); ++i)
 	{
@@ -171,11 +171,11 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
     // derived via convolution of elemental probabilities; the sum of all probabilities is 1
     // For Br2, this is simply the product of Bromine x Bromine, which
     // has a light isotope (79 Da, ~50% probability) and a heavy isotope (81 Da, ~50% probability)
-    container.push_back(make_pair<Size, double>(158, 0.2569476));  // 79+79, ~ 0.5 * 0.5
-    container.push_back(make_pair<Size, double>(159, 0.0));        // this mass cannot be explained by two Br atoms
-    container.push_back(make_pair<Size, double>(160, 0.49990478)); // 79+81 (or 81+79), ~ 0.5 * 0.5 + 0.5 * 0.5
-    container.push_back(make_pair<Size, double>(161, 0.0));        // same as mass 159
-    container.push_back(make_pair<Size, double>(162, 0.24314761)); // 81+81, ~ 0.5 * 0.5
+    container.push_back(IsotopeDistribution::MassAbundance(158, 0.2569476));  // 79+79, ~ 0.5 * 0.5
+    container.push_back(IsotopeDistribution::MassAbundance(159, 0.0));        // this mass cannot be explained by two Br atoms
+    container.push_back(IsotopeDistribution::MassAbundance(160, 0.49990478)); // 79+81 (or 81+79), ~ 0.5 * 0.5 + 0.5 * 0.5
+    container.push_back(IsotopeDistribution::MassAbundance(161, 0.0));        // same as mass 159
+    container.push_back(IsotopeDistribution::MassAbundance(162, 0.24314761)); // 81+81, ~ 0.5 * 0.5
     for (Size i = 0; i != id.size(); ++i)
     {
       TEST_EQUAL(id.getContainer()[i].first, container[i].first)
@@ -188,12 +188,12 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
     EmpiricalFormula ef("CBr2");
     IsotopeDistribution id = ef.getIsotopeDistribution(7);
     container.clear();
-    container.push_back(make_pair<Size, double>(170, 0.254198270573));
-    container.push_back(make_pair<Size, double>(171, 0.002749339427));
-    container.push_back(make_pair<Size, double>(172, 0.494555798854));
-    container.push_back(make_pair<Size, double>(173, 0.005348981146));
-    container.push_back(make_pair<Size, double>(174, 0.240545930573));
-    container.push_back(make_pair<Size, double>(175, 0.002601679427));
+    container.push_back(IsotopeDistribution::MassAbundance(170, 0.254198270573));
+    container.push_back(IsotopeDistribution::MassAbundance(171, 0.002749339427));
+    container.push_back(IsotopeDistribution::MassAbundance(172, 0.494555798854));
+    container.push_back(IsotopeDistribution::MassAbundance(173, 0.005348981146));
+    container.push_back(IsotopeDistribution::MassAbundance(174, 0.240545930573));
+    container.push_back(IsotopeDistribution::MassAbundance(175, 0.002601679427));
     for (Size i = 0; i != id.size(); ++i)
     {
       TEST_EQUAL(id.getContainer()[i].first, container[i].first)

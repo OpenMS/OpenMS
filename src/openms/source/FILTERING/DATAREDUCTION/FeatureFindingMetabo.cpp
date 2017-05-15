@@ -300,7 +300,7 @@ namespace OpenMS
     isodist.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    std::vector<std::pair<Size, double> > averagine_dist = isodist.getContainer();
+    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {

@@ -54,7 +54,7 @@ namespace OpenMS
   IsotopeDistribution::IsotopeDistribution(Size max_isotope) :
     max_isotope_(max_isotope)
   {
-    distribution_.push_back(make_pair<Size, double>(0, 1));
+    distribution_.push_back(IsotopeDistribution::MassAbundance(0, 1));
   }
 
   IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
@@ -353,7 +353,7 @@ namespace OpenMS
     else
     {
       result.clear();
-      result.push_back(make_pair<Size, double>(0, 1.0));
+      result.push_back(IsotopeDistribution::MassAbundance(0, 1.0));
     }
 
     ContainerType intermediate;
