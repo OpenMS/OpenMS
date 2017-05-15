@@ -43,40 +43,21 @@ namespace OpenMS
   MSSpectrum<RichPeak1D> MSSpectrumHelper::clone(const MSSpectrum<Peak1D>& p)
   {
     MSSpectrum<RichPeak1D> rp;
-    rp.retention_time_ = p.retention_time_;
-    rp.ms_level_ = p.ms_level_;
-    rp.name_ = p.name_;
-    rp.float_data_arrays_.clear();
+    rp.setRT(p.getRT());
+    rp.setMSLevel(p.getMSLevel());
+    rp.setName(p.getName());
 
-    //ugly stuff from MSSpectrum
-    for (MSSpectrum<Peak1D>::FloatDataArrays::const_iterator fit = p.float_data_arrays_.begin(); fit!= p.float_data_arrays_.end(); ++fit)
-    {
-      MSSpectrum<RichPeak1D>::FloatDataArray f;
-      f.MetaInfoInterface::operator=(*fit);
-      std::copy(fit->begin(),fit->end(),f.begin());
-      rp.float_data_arrays_.push_back(f);
-    }
-    for (MSSpectrum<Peak1D>::StringDataArrays::const_iterator fit = p.string_data_arrays_.begin(); fit!= p.string_data_arrays_.end(); ++fit)
-    {
-      MSSpectrum<RichPeak1D>::StringDataArray f;
-      f.MetaInfoInterface::operator=(*fit);
-      std::copy(fit->begin(),fit->end(),f.begin());
-      rp.string_data_arrays_.push_back(f);
-    }
-    for (MSSpectrum<Peak1D>::IntegerDataArrays::const_iterator fit = p.integer_data_arrays_.begin(); fit!= p.integer_data_arrays_.end(); ++fit)
-    {
-      MSSpectrum<RichPeak1D>::IntegerDataArray f;
-      f.MetaInfoInterface::operator=(*fit);
-      std::copy(fit->begin(),fit->end(),f.begin());
-      rp.integer_data_arrays_.push_back(f);
-    }
+    // awkward stuff
+    rp.setFloatDataArrays(p.getFloatDataArrays());
+    rp.setStringDataArrays(p.getStringDataArrays());
+    rp.setIntegerDataArrays(p.getIntegerDataArrays());
 
-    //grab SpectrumSettings
+    // grab SpectrumSettings
     rp.SpectrumSettings::operator=(p);
-    //grab MetaInfoInterface
+    // grab MetaInfoInterface
     rp.MetaInfoInterface::operator=(p);
 
-    //copy cast peaks to riches
+    // copy cast peaks to riches
     std::copy(p.begin(), p.end(), std::back_inserter(rp));
     return rp;
   }

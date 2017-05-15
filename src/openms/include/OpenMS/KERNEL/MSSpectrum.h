@@ -68,7 +68,6 @@ namespace OpenMS
     public RangeManager<1>,
     public SpectrumSettings
   {
-     friend class MSSpectrumHelper;
 public:
 
     ///Comparator for the retention time.
