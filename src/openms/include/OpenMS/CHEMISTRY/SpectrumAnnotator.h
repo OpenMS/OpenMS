@@ -52,9 +52,11 @@
 namespace OpenMS
 {
   /**
-      @brief Generates theoretical spectra with various options
+      @brief Annotates spectra from identifications and theoretical spectra or
+             identifications from spectra and theoretical spectra matching
+             with various options
 
-  @htmlinclude OpenMS_SpectrumAnnotator.parameters
+      @htmlinclude OpenMS_SpectrumAnnotator.parameters
 
       @ingroup Chemistry
   */
