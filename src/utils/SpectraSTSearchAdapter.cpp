@@ -49,7 +49,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_SpectraSTSearchAdapter
+    @page UTILS_SpectraSTSearchAdapter SpectraSTSearchAdapter
 
     @brief This util provides an interface to the 'SEARCH' mode of the SpectraST program.
            All non-advanced parameters of the executable of SpectraST were translated into

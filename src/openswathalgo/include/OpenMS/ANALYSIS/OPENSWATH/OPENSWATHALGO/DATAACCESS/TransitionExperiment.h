@@ -84,6 +84,11 @@ public:
       return peptide_ref;
     }
 
+    std::string getCompoundRef() const
+    {
+      return peptide_ref;
+    }
+
     double getLibraryIntensity() const
     {
       return library_intensity;
@@ -193,6 +198,7 @@ public:
 
     typedef LightTransition Transition;
     typedef LightCompound Peptide;
+    typedef LightCompound Compound;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
@@ -203,12 +209,27 @@ public:
       return transitions;
     }
 
+    const std::vector<LightTransition> & getTransitions() const
+    {
+      return transitions;
+    }
+
     std::vector<LightCompound> & getCompounds()
     {
       return compounds;
     }
 
+    const std::vector<LightCompound> & getCompounds() const
+    {
+      return compounds;
+    }
+
     std::vector<LightProtein> & getProteins()
+    {
+      return proteins;
+    }
+
+    const std::vector<LightProtein> & getProteins() const
     {
       return proteins;
     }

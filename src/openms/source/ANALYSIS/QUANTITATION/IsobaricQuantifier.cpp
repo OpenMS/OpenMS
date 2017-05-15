@@ -94,7 +94,7 @@ namespace OpenMS
     // precheck incoming map
     if (consensus_map_in.empty())
     {
-      LOG_WARN << "Warning: Empty iTRAQ container. No quantitative information available!" << std::endl;
+      LOG_WARN << "Warning: Empty iTRAQ/TMT container. No quantitative information available!" << std::endl;
       return;
     }
 
@@ -154,14 +154,19 @@ namespace OpenMS
     consensus_map_out.setMetaValue("isoquant:scans_total", consensus_map_out.size());
 
     LOG_INFO << "IsobaricQuantifier: channels with signal\n";
-    for (std::map<String, Size>::const_iterator it_m = stats_.empty_channels.begin();
-         it_m != stats_.empty_channels.end();
-         ++it_m)
+    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
+      cl_it != quant_method_->getChannelInformation().end();
+      ++cl_it) // use the same iteration method for printing stats as in IsobaricChannelExtractor which have the same order, so user can make 1:1 comparison
     {
-      LOG_INFO << "      channel " << it_m->first << ": " << (consensus_map_out.size() - it_m->second) << " / " <<  consensus_map_out.size() << " (" << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
+      std::map<String, Size>::const_iterator it_m = stats_.empty_channels.find(cl_it->name);
+      if (it_m == stats_.empty_channels.end()) 
+      { // should not happen
+        LOG_WARN << "Warning: no stats for channel '" << cl_it->name << "'" << std::endl;
+        continue;
+      }
+      LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << ": " << (consensus_map_out.size() - it_m->second) << " / " << consensus_map_out.size() << " (" << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
       consensus_map_out.setMetaValue(String("isoquant:quantifyable_ch") + it_m->first, (consensus_map_out.size() - it_m->second));
     }
-
   }
 
 } // namespace

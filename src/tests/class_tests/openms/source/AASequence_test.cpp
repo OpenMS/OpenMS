@@ -904,9 +904,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     TEST_REAL_SIMILAR(aa_original.getMonoWeight(), 904.4038997864)
 
     AASequence aa_withX_original = AASequence::fromString("DFPANGERX");
-    TEST_REAL_SIMILAR(aa_withX_original.getMonoWeight(), 904.4038997864  - 18.0105650638)
-    AASequence aa_withX2_original = AASequence::fromString("DFPANXGER");
-    TEST_REAL_SIMILAR(aa_withX2_original.getMonoWeight(), 904.4038997864  - 18.0105650638)
+    // TEST_REAL_SIMILAR(aa_withX_original.getMonoWeight(), 904.4038997864) // cannot call weight on AASequence with X
 
     AASequence test_seq = AASequence::fromString("DFPANGERX[113.0840643509]");
     TEST_EQUAL(test_seq.size(), 9)
@@ -1044,11 +1042,6 @@ END_SECTION
 
 START_SECTION([EXTRA] Peptide equivalence)
 {
-  // Test Carbamidomethyl
-  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC(Carbamidomethyl)IDE"))
-  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC(Iodoacetamide derivative)IDE"))
-  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160.030654]IDE")) // 103.00919 + 57.02
-  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[+57.02]IDE"))
 
   // Test float mass tag leading to internal Acetylation
   TEST_EQUAL(AASequence::fromString("PEPTC(Acetyl)IDE"), AASequence::fromString("PEPTC[+42.011]IDE"))
@@ -1067,6 +1060,14 @@ START_SECTION([EXTRA] Peptide equivalence)
 
   // Test integer mass tag leading to N-terminal Acetylation
   TEST_EQUAL(AASequence::fromString("(Acetyl)PEPTCIDE"), AASequence::fromString("[+42]PEPTCIDE"))
+
+  // Test Carbamidomethyl
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC(Carbamidomethyl)IDE"))
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC(Iodoacetamide derivative)IDE"))
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160.030654]IDE")) // 103.00919 + 57.02
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[+57.02]IDE"))
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160]IDE")) // 103.00919 + 57.02
+  TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[+57]IDE"))
 
   // Test Oxidation
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[+16]GER"))

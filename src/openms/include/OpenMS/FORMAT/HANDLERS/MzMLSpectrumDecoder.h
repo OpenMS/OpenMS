@@ -154,9 +154,10 @@ namespace OpenMS
     */
     void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr);
 
-    ///whether to skip some XML checks and be fast instead
+    /// Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead
     void setSkipXMLChecks(bool only);
   };
 }
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
+

@@ -231,7 +231,7 @@ public:
 
       bool operator()(const PeptideHit& hit) const
       {
-        std::set<String> present_accessions = hit.extractProteinAccessions();
+        std::set<String> present_accessions = hit.extractProteinAccessionsSet();
         for (std::set<String>::iterator it = present_accessions.begin();
              it != present_accessions.end(); ++it)
         {

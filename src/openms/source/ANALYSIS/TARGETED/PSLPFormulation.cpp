@@ -1492,7 +1492,7 @@ namespace OpenMS
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
       Size index = new_feature.getMetaValue("variable_index");
 
-      std::set<String> accs = new_feature.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+      std::set<String> accs = new_feature.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessionsSet();
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {

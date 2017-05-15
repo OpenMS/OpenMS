@@ -708,13 +708,24 @@ namespace OpenMS
           ++count;
           String id = XMLString::transcode(element_pep->getAttribute(XMLString::transcode("id")));
 
-
           //DOMNodeList* pep_sib = element_pep->getChildNodes();
           AASequence aas;
           try
           {
             //aas = parsePeptideSiblings_(pep_sib);
-            aas = parsePeptideSiblings_(element_pep);
+            try
+            {
+              aas = parsePeptideSiblings_(element_pep);
+            }
+            catch (Exception::MissingInformation)
+            {
+              // We found an unknown modification, we could try to rescue this
+              // situation. The "name" attribute, if present, may be parsable:
+              //   The potentially ambiguous common identifier, such as a
+              //   human-readable name for the instance.
+              String name = XMLString::transcode(element_pep->getAttribute(XMLString::transcode("name")));
+              if (!name.empty()) aas = AASequence::fromString(name);
+            }
           }
           catch (...)
           {
@@ -1280,7 +1291,7 @@ namespace OpenMS
               {
                 pep_id_->push_back(PeptideIdentification());
                 pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
-                pep_id_->back().setMetaValue("spectrum_reference", spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
+                pep_id_->back().setMetaValue("spectrum_reference", spectrumID);  // SpectrumIdentificationResult attribute spectrumID is taken from the mz_file and should correspond to MSSpectrum.nativeID, thus spectrum_reference will serve as reference. As the format of the 'reference' widely varies from vendor to vendor, spectrum_reference as string will serve best, indices are not recommended.
 
                 //fill pep_id_->back() with content
                 DOMElement* parent = dynamic_cast<xercesc::DOMElement*>(element_res->getParentNode());
@@ -1300,18 +1311,23 @@ namespace OpenMS
 
               // TODO @mths: setSignificanceThreshold, but from where?
 
-  //              String identi = si_pro_map_[id]->getSearchEngine()+"_"
-  //                      +si_pro_map_[id]->getDateTime().getDate()
-  //                      +"T"+si_pro_map_[id]->getDateTime().getTime();
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
-              //pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
 
               pep_id_->back().sortByRank();
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
               {
-              // check for retention time or scan time entry
+                // check for retention time or scan time entry
+                /* N.B.: MzIdentML does not impose the requirement to store
+                   'redundant' data (e.g. RT) as the identified spectrum is
+                   unambiguously referencable by the spectrumID (OpenMS
+                   internally spectrum_reference) and hence such data can be
+                   looked up in the mz file. For convenience, and as OpenMS
+                   relies on the smallest common denominator to reference a
+                   spectrum (RT/precursor MZ), we provide functionality to amend
+                   RT data to identifications and support reading such from mzid
+                */
                 if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
                 {
                   double rt = cvit->second.front().getValue().toString().toDouble();
@@ -2386,6 +2402,13 @@ namespace OpenMS
               while (cvp)
               {
                 CVTerm cv = parseCvParam_(cvp);
+                if (cv.getAccession() == "MS:1001460") // unknown modification
+                {
+                  // TODO: actually parse this and add a new modification of
+                  // mass "monoisotopicMassDelta" to the AASequence
+                  // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+                  throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                }
                 if (cv.getCVIdentifierRef() != "UNIMOD")
                 {
                   //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>

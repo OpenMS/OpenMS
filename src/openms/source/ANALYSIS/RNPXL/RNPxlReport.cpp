@@ -185,7 +185,7 @@ namespace OpenMS
         double ppm_difference =  Math::getPPM(mz, theo_mz);
 
         String protein_accessions;
-        std::set<String> accs = ph.extractProteinAccessions();
+        std::set<String> accs = ph.extractProteinAccessionsSet();
 
         // concatenate set into String
         for (std::set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)

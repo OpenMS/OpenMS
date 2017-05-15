@@ -43,23 +43,30 @@ namespace OpenMS
   ModificationDefinition::ModificationDefinition() :
     mod_(0),
     fixed_modification_(true),
-    max_occurences_(0)
+    max_occurrences_(0)
   {
   }
 
   ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) :
     mod_(rhs.mod_),
     fixed_modification_(rhs.fixed_modification_),
-    max_occurences_(rhs.max_occurences_)
+    max_occurrences_(rhs.max_occurrences_)
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const String& mod) :
+  ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
     mod_(0),
-    fixed_modification_(true),
-    max_occurences_(0)
+    fixed_modification_(fixed),
+    max_occurrences_(max_occur)
   {
     setModification(mod);
+  }
+
+  ModificationDefinition::ModificationDefinition(const ResidueModification& mod, bool fixed, UInt max_occur) :
+    mod_(&mod),
+    fixed_modification_(fixed),
+    max_occurrences_(max_occur)
+  {
   }
 
   ModificationDefinition& ModificationDefinition::operator=(const ModificationDefinition& rhs)
@@ -68,7 +75,7 @@ namespace OpenMS
     {
       mod_ = rhs.mod_;
       fixed_modification_ = rhs.fixed_modification_;
-      max_occurences_ = rhs.max_occurences_;
+      max_occurrences_ = rhs.max_occurrences_;
     }
     return *this;
   }
@@ -77,7 +84,7 @@ namespace OpenMS
   {
     return mod_ == rhs.mod_ &&
            fixed_modification_ == rhs.fixed_modification_ &&
-           max_occurences_ == rhs.max_occurences_;
+           max_occurrences_ == rhs.max_occurrences_;
   }
 
   bool ModificationDefinition::operator!=(const ModificationDefinition& rhs) const
@@ -130,14 +137,14 @@ namespace OpenMS
     return "";
   }
 
-  void ModificationDefinition::setMaxOccurences(UInt max_occurences)
+  void ModificationDefinition::setMaxOccurrences(UInt max_occurrences)
   {
-    max_occurences_ = max_occurences;
+    max_occurrences_ = max_occurrences;
   }
 
-  UInt ModificationDefinition::getMaxOccurences() const
+  UInt ModificationDefinition::getMaxOccurrences() const
   {
-    return max_occurences_;
+    return max_occurrences_;
   }
 
 } // namespace OpenMS

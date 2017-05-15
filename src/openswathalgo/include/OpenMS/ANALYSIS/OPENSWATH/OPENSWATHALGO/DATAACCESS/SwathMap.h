@@ -50,6 +50,14 @@ namespace OpenSwath
     double upper;
     double center;
     bool ms1;
+
+    SwathMap() :
+      lower(0.0),
+      upper(0.0),
+      center(0.0),
+      ms1(false)
+    {}
+
   };
 
 } //end Namespace OpenSwath

@@ -384,6 +384,13 @@ protected:
       If the section does not exist an empty string is returned.
     */
     const String& getSectionDescription(const String& key) const;
+
+    /**
+    @brief Adds a parameter section under the path @p key with the given @p description.
+
+    If the section already exists, the description is only overwritten if not empty.
+    */
+    void addSection(const String& key, const String& description);
     //@}
 
     ///@name Manipulation of the whole parameter set

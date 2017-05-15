@@ -283,7 +283,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="40"/>
 						</activation>
 					</precursor>
@@ -343,7 +343,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="40"/>
 						</activation>
 					</precursor>
@@ -403,7 +403,7 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="40"/>
 						</activation>
 					</precursor>
