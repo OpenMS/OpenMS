@@ -847,13 +847,13 @@ namespace OpenMS
     CrossLinksDB* xl_db = CrossLinksDB::getInstance();
     if (aas.peptide_.empty()) // start of peptide -> N-terminal modification?
     {
-      try
+      if (mod_db->has(mod))
       {
         aas.n_term_mod_ = &(mod_db->getModification(mod, "",
                                                     ResidueModification::N_TERM));
         return mod_end;
       }
-      catch (...)
+      else if (xl_db->has(mod))
       {
         aas.n_term_mod_ = &(xl_db->getModification(mod, "",
                                                     ResidueModification::N_TERM));
@@ -875,13 +875,13 @@ namespace OpenMS
         {
           if (dot_terminal)
           {
-            try
+            if (mod_db->has(mod))
             {
               const ResidueModification* term_mod =
                 &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
               aas.c_term_mod_ = term_mod;
             }
-            catch (...)
+            else if (xl_db->has(mod))
             {
               const ResidueModification* term_mod =
                 &(xl_db->getModification(mod, res, ResidueModification::C_TERM));
@@ -894,13 +894,13 @@ namespace OpenMS
           try
           {
             // this might throw ElementNotFound, but so be it:
-            try
+            if (mod_db->has(mod))
             {
               const ResidueModification* term_mod =
                 &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
               aas.c_term_mod_ = term_mod;
             }
-            catch (...)
+            else // either it is in CrossLinkDB, or the exception is thrown
             {
               const ResidueModification* term_mod =
                 &(xl_db->getModification(mod, res, ResidueModification::C_TERM));
@@ -1334,11 +1334,11 @@ namespace OpenMS
       n_term_mod_ = 0;
       return;
     }
-    try
+    if (ModificationsDB::getInstance()->has(modification))
     {
       n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
     }
-    catch (...)
+    else if (CrossLinksDB::getInstance()->has(modification))
     {
       n_term_mod_ = &CrossLinksDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
     }
@@ -1351,11 +1351,11 @@ namespace OpenMS
       c_term_mod_ = 0;
       return;
     }
-    try
+    if (ModificationsDB::getInstance()->has(modification))
     {
       c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
     }
-    catch (...)
+    else if (CrossLinksDB::getInstance()->has(modification))
     {
       c_term_mod_ = &CrossLinksDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
     }
