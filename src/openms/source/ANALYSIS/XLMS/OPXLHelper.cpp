@@ -88,7 +88,7 @@ namespace OpenMS
 
 
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
-  vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses_(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
     vector<OPXLDataStructs::XLPrecursor> mass_to_candidates;
@@ -486,13 +486,13 @@ namespace OpenMS
 
       if (peptide_pos_second != OPXLDataStructs::INTERNAL)
       {
-        ResidueModification::TermSpecificity second_spec;
-        Size mod_pos;
+        ResidueModification::TermSpecificity second_spec = ResidueModification::N_TERM;
+        Size mod_pos = 0;
         bool compatible = false;
         if (n_term_linker && (peptide_pos_second == OPXLDataStructs::N_TERM))
         {
-          second_spec = ResidueModification::N_TERM;
-          mod_pos = 0;
+//          second_spec = ResidueModification::N_TERM;
+//          mod_pos = 0;
           compatible = true;
         }
         if (c_term_linker && (peptide_pos_second == OPXLDataStructs::C_TERM))
@@ -535,13 +535,13 @@ namespace OpenMS
 
       if (peptide_pos_first != OPXLDataStructs::INTERNAL)
       {
-        ResidueModification::TermSpecificity first_spec;
-        Size mod_pos;
+        ResidueModification::TermSpecificity first_spec = ResidueModification::N_TERM;
+        Size mod_pos = 0;
         bool compatible = false;
         if (n_term_linker && (peptide_pos_first == OPXLDataStructs::N_TERM))
         {
-          first_spec = ResidueModification::N_TERM;
-          mod_pos = 0;
+//          first_spec = ResidueModification::N_TERM;
+//          mod_pos = 0;
           compatible = true;
         }
         if (c_term_linker && (peptide_pos_first == OPXLDataStructs::C_TERM))

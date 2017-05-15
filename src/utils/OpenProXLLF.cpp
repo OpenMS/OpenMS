@@ -577,7 +577,7 @@ protected:
     peptide_masses.clear();
 
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-    enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses_(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+    enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
                                                                                                                                                   spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
     progresslogger.endProgress();
     cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
