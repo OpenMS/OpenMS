@@ -83,6 +83,9 @@ public:
     /// not equal
     bool operator!=(const PeptideEvidence& rhs) const;
 
+    /// start and end numbers in evidence represent actual numeric indices
+    bool hasValidLimits() const;
+
     /// get the protein accession the peptide matches to. If not available the empty string is returned.
     const String& getProteinAccession() const;
 
