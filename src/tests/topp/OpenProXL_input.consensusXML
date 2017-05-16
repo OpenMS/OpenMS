@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////home/eugen/Development/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" id="cm_12748556186497442574" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[file:///home/eugen/MSData/01_ExampleFiles/OpenProXL_ToolTest/test_rt1.mzML]"/>
+	<UserParam type="stringList" name="spectra_data" value="[file:///home/eugen/MSData/randomtestfile.mzML]"/>
 	<mapList count="2">
 		<map id="0" name="OpenProXL_input.consensusXML" label="no_label" size="155">
 		</map>

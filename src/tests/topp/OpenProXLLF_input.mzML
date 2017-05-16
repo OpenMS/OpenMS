@@ -76,8 +76,8 @@
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2016-09-06+11:30" />
-				<userParam name="parameter: in" type="xsd:string" value="/home/eugen/MSData/XL-Daten-LRRK2/DSG-2014-09-CID-Velos-H6-D6/mzML_unfiltered/GUA1354-S15-A-LRRK2_DSG_A4.mzML"/>
-				<userParam name="parameter: out" type="xsd:string" value="/tmp/knime_FeatureFinder32113/knime_fs-ZipLoopStart_0_6-32115/000/000/1_1_PeakPickerHiRes_0/GUA1354-S15-A-LRRK2_DSG_A4.mzML"/>
+				<userParam name="parameter: in" type="xsd:string" value="/home/eugen/MSData/randomtestfile.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="/tmp/knime_FeatureFinder32113/knime_fs-ZipLoopStart_0_6-32115/000/000/1_1_PeakPickerHiRes_0/randomtestfile.mzML"/>
 				<userParam name="parameter: processOption" type="xsd:string" value="inmemory"/>
 				<userParam name="parameter: log" type="xsd:string" value=""/>
 				<userParam name="parameter: debug" type="xsd:integer" value="0"/>

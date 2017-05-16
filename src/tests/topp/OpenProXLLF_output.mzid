@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_12796575050967004386"
-	creationDate="2017-05-15T15:50:42">
+	creationDate="2017-05-16T18:42:44">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -24,8 +24,8 @@
 	</AnalysisSoftware>
 </AnalysisSoftwareList>
 <SequenceCollection>
-	<DBSequence accession="sp|Q5S007-v1|LRRK2_HUMAN" searchDatabase_ref="SDB_3332699010107892018" id="PROT_13440783915218733453">
-		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="sp|Q5S007-v1|LRRK2_HUMAN"/>
+	<DBSequence accession="Protein1" searchDatabase_ref="SDB_3332699010107892018" id="PROT_13440783915218733453">
+		<cvParam accession="MS:1001088" cvRef="PSI-MS" name="protein description" value="Protein1"/>
 	</DBSequence>
 	<Peptide id="PEP_1003624456647096845" name="KTEKLCGLIDCVHFLR">
 		<PeptideSequence>KTEKLCGLIDCVHFLR</PeptideSequence>
@@ -592,7 +592,7 @@
 	<PeptideEvidence id="PEV_9693516254110939661" peptide_ref="PEP_15595829921891090644" dBSequence_ref="PROT_13440783915218733453" post="K" pre="R" start="1629" end="1636" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-15T15:50:39">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-16T18:42:44">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
