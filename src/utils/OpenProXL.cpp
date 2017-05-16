@@ -291,7 +291,7 @@ protected:
       // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
       {
-        spectrum_heavy_to_light.clear(false);
+        spectrum_heavy_to_light.clear(true);
         double mass_shift = cross_link_mass_iso_shift / charge;
 
         // transform heavy spectrum
