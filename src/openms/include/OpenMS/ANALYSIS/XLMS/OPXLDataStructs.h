@@ -215,15 +215,15 @@ namespace OpenMS
        */
       struct XLPrecursorComparator
       {
-        bool operator() (XLPrecursor& a, XLPrecursor& b) const
+        bool operator() (const XLPrecursor& a, const XLPrecursor& b) const
         {
           return a.precursor_mass < b.precursor_mass;
         }
-        bool operator() (XLPrecursor& a, const double& b) const
+        bool operator() (const XLPrecursor& a, const double& b) const
         {
           return a.precursor_mass < b;
         }
-        bool operator() (const double& a, XLPrecursor& b) const
+        bool operator() (const double& a, const XLPrecursor& b) const
         {
           return a < b.precursor_mass;
         }
@@ -265,15 +265,15 @@ namespace OpenMS
        */
       struct AASeqWithMassComparator
       {
-        bool operator() (AASeqWithMass a, AASeqWithMass b) const
+        bool operator() (const AASeqWithMass a, const AASeqWithMass b) const
         {
           return a.peptide_mass < b.peptide_mass;
         }
-        bool operator() (AASeqWithMass a, const double b) const
+        bool operator() (const AASeqWithMass a, const double b) const
         {
           return a.peptide_mass < b;
         }
-        bool operator() (const double a, AASeqWithMass b) const
+        bool operator() (const double a, const AASeqWithMass b) const
         {
           return a < b.peptide_mass;
         }
