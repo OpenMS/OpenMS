@@ -895,7 +895,7 @@ protected:
         double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * intsum;
 
         csm.score = score;
-//        csm.pre_score = pre_score;
+        csm.pre_score = prescore_csms_spectrum[i].pre_score;
         csm.percTIC = TIC;
         csm.wTIC = wTIC;
         csm.int_sum = intsum;
