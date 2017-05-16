@@ -132,16 +132,6 @@ namespace OpenMS
     */
     static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
-  protected:
-   /**
-    * @brief compute the cumulative binomial function, helper for match-odds score. sums up ( n choose i ) * p^i * (1-p)^(n-i) for i from 0 to k
-    * @note if the binomial coefficient ( n choose k ) overflows, it is set to the numeric limit for the double type
-    * @param n, size of theoretical spectrum
-    * @param k, number of matched peaks
-    * @param p, probability of a random match between a theoretical and an experimental peak
-    */
-    static double cumulativeBinomial_(Size n, Size k, double p);
-
   };
 
 }

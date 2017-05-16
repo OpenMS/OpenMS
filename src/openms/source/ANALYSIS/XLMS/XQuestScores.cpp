@@ -34,7 +34,7 @@
 
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-#include <boost/math/special_functions/binomial.hpp>
+#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 #include <numeric>
 
 using namespace std;
@@ -79,40 +79,6 @@ namespace OpenMS
     return result;
   }
 
-  double XQuestScores::cumulativeBinomial_(Size n, Size k, double p)
-  {
-    double p_cumul = 0.0;
-    if (p < 1e-99) return static_cast<double>(k == 0);
-    if (1 - p < 1e-99) return static_cast<double>(k != n);
-    if (k > n)  return 1.0;
-
-    for (Size j = 0; j < k; ++j)
-    {
-      double coeff = 0;
-
-      try
-      {
-        coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
-      }
-      catch (std::overflow_error const& e)
-      {
-        cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << endl;
-        cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
-        coeff = std::numeric_limits<double>::max();
-      }
-
-      p_cumul += coeff * pow(p,  j) * pow((1-p), (n-j));
-    }
-
-    // match-odds score becomes INFINITY for p_cumul >= 1.0, p_cumul might reach 1.0 because of insufficient precision, solved by using largest value smaller than 1
-    if (p_cumul >= 1.0)
-    {
-      p_cumul = nexttoward(1.0, 0.0);
-    }
-
-    return p_cumul;
-  }
-
   double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
     Size matched_size = matched_spec.size();
@@ -148,7 +114,7 @@ namespace OpenMS
     }
 
     double match_odds = 0;
-    match_odds = -log(1 - cumulativeBinomial_(theo_size, matched_size, a_priori_p) + 1e-5);
+    match_odds = -log(1 - Math::CumulativeBinomial::compute(theo_size, matched_size, a_priori_p) + 1e-5);
 
 //     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
 //              << " | match_odds: " << match_odds << endl;
