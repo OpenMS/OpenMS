@@ -87,7 +87,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenProXLLF OpenProXLLF
+  @page UTILS_OpenPepXLLF OpenPepXLLF
 
   @brief Search for cross-linked peptide pairs in tandem MS spectra
 
@@ -104,7 +104,7 @@ using namespace OpenMS;
     <li>Writing out the results in mzid according to mzIdentML 1.2 specifications and/or in the xQuest output format</li>
   </ul>
 
-  See below or have a look at the INI file (via "OpenProXLLF -write_ini myini.ini") for available parameters and more functionality.
+  See below or have a look at the INI file (via "OpenPepXLLF -write_ini myini.ini") for available parameters and more functionality.
 
   <h3>Input: MS2 spectra and fasta database of proteins expected to be cross-linked in the sample</h3>
   The spectra should be provided as one mzML file. If you have multiple files, e.g. for multiple fractions, you should run this tool on each
@@ -116,7 +116,7 @@ using namespace OpenMS;
   The linker used in the experiment has to be described using the cross-linker specific parameters.
   Only one mass is allowed for a cross-linker that links two peptides, while multiple masses are possible for mono-links of the same cross-linking reagent.
   Mono-links are cross-linkers, that are linked to one peptide by one of their two reactive groups.
-  To search for isotopically labeled pairs of cross-linkers see the tool OpenProXL.
+  To search for isotopically labeled pairs of cross-linkers see the tool OpenPepXL.
   The parameters -cross_linker:residue1 and -cross_linker:residue2 are used to enumerate the amino acids,
   that each end of the linker can react with. This way any heterobifunctional cross-linker can be defined.
   To define a homobifunctional cross-linker, these two parameters should have the same value.
@@ -140,7 +140,7 @@ using namespace OpenMS;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenProXLLF \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenPepXLLF \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -151,17 +151,17 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenProXLLF.cli
+  @verbinclude UTILS_OpenPepXLLF.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenProXLLF.html
+  @htmlinclude UTILS_OpenPepXLLF.html
 */
 
-class TOPPOpenProXLLF :
+class TOPPOpenPepXLLF :
   public TOPPBase
 {
 public:
-  TOPPOpenProXLLF() :
-    TOPPBase("OpenProXLLF", "Tool for protein-protein cross linking with label-free linkers.", false)
+  TOPPOpenPepXLLF() :
+    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", false)
   {
   }
 
@@ -1033,7 +1033,7 @@ protected:
 int main(int argc, const char** argv)
 {
 
-  TOPPOpenProXLLF tool;
+  TOPPOpenPepXLLF tool;
 
   return tool.main(argc, argv);
 }

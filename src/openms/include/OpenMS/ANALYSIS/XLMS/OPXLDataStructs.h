@@ -62,7 +62,7 @@ namespace OpenMS
       };
 
       /**
-       * @brief The ProteinProteinCrossLink struct represents a cross-link between two peptides in OpenProXL.
+       * @brief The ProteinProteinCrossLink struct represents a cross-link between two peptides in OpenPepXL.
 
           This struct completely defines a cross-link linking two peptides. It contains the two peptides alpha and beta as AASequences,
           the positions that are linked in each peptide, the mass and name of the linker and terminal specificities to distinguish linkers attached to side chains
@@ -102,7 +102,7 @@ namespace OpenMS
       };
 
       /**
-       * @brief The CrossLinkSpectrumMatch struct represents a PSM between a ProteinProteinCrossLink and a spectrum in OpenProXL.
+       * @brief The CrossLinkSpectrumMatch struct represents a PSM between a ProteinProteinCrossLink and a spectrum in OpenPepXL.
 
           This struct contains a ProteinProteinCrossLink and indices to one or two spectra.
           It also contains the results of a match between the ProteinProteinCrossLink and these spectra as scores and peak annotations.
@@ -191,12 +191,12 @@ namespace OpenMS
       };
 
       /**
-       * @brief The XLPrecursor struct represents a cross-link candidate in the process of filtering candidates by precursor masses in OpenProXL.
+       * @brief The XLPrecursor struct represents a cross-link candidate in the process of filtering candidates by precursor masses in OpenPepXL.
 
           Since the precursor mass does not change depending on the exact linked residues, one XLPrecursor can represent several ProteinProteinCrossLinks
           in the process of filtering by precursor mass. The precursor mass is the sum of the masses of the two peptides and the cross-linker.
           This struct also contains the indices of the two peptides in a vector, so that the two peptides can be identified again.
-          This precursor mass is enumerated for all peptide pairs in the protein database given as input to OpenProXL
+          This precursor mass is enumerated for all peptide pairs in the protein database given as input to OpenPepXL
           and is one of the major contributors to the memory usage of the tool because of the squared complexity of this enumeration.
           Therefore this should be kept as compact as possible.
        */
@@ -245,9 +245,9 @@ namespace OpenMS
        * @brief The AASeqWithMass struct represents a normal peptide with its precomputed mass.
 
           This struct stores information about a peptide as an AASequence and a PeptidePosition.
-          It is used to enumerate pairs of peptides in OpenProXL.
+          It is used to enumerate pairs of peptides in OpenPepXL.
           Since the mass of every peptide is used many times, it is precomputed once and also stored in this struct.
-          A vector of these structs is used to represent the digested protein database in OpenProXL.
+          A vector of these structs is used to represent the digested protein database in OpenPepXL.
           An instance of this struct is created only once for each peptide in the digested database, so it does not contribute to memory usage
           as much as XLPrecursor does.
        */
@@ -282,7 +282,7 @@ namespace OpenMS
       /**
        * @brief The PreprocessedPairSpectra struct represents the result of comparing a light and a heavy labeled spectra to each other.
 
-          OpenProXL can use labeled cross-linkers to denoise MS2 spectra. The PeakMaps contained in this struct represent the result of this
+          OpenPepXL can use labeled cross-linkers to denoise MS2 spectra. The PeakMaps contained in this struct represent the result of this
           denoising process for a whole mzML input file.
        */
       struct PreprocessedPairSpectra

@@ -81,7 +81,7 @@ namespace OpenMS
     aarequired2 += cross_link_residue2[cross_link_residue2.size()-1];
 
 
-    xml_file << "<xquest_results xquest_version=\"OpenProXL 1.0\" date=\"" << timestring <<
+    xml_file << "<xquest_results xquest_version=\"OpenPepXL 1.0\" date=\"" << timestring <<
              "\" author=\"Eugen Netz, Timo Sachsenberg\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
              "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
              "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<

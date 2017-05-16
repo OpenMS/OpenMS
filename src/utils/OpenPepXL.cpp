@@ -80,7 +80,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenProXL OpenProXL
+  @page UTILS_OpenPepXL OpenPepXL
 
   @brief Search for peptide pairs linked with a labeled cross-linker
 
@@ -98,7 +98,7 @@ using namespace OpenMS;
     <li>Writing out the results in mzid according to mzIdentML 1.2 specifications and/or in the xQuest output format</li>
   </ul>
 
-  See below or have a look at the INI file (via "OpenProXL -write_ini myini.ini") for available parameters and more functionality.
+  See below or have a look at the INI file (via "OpenPepXL -write_ini myini.ini") for available parameters and more functionality.
 
   <h3>Input: MS2 spectra, linked features from FeatureFinderMultiplex and fasta database of proteins expected to be cross-linked in the sample</h3>
   The spectra should be provided as one mzML file. If you have multiple files, e.g. for multiple fractions, you should run this tool on each
@@ -142,7 +142,7 @@ using namespace OpenMS;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenProXL \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenPepXL \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -153,17 +153,17 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenProXL.cli
+  @verbinclude UTILS_OpenPepXL.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenProXL.html
+  @htmlinclude UTILS_OpenPepXL.html
 */
 
-class TOPPOpenProXL :
+class TOPPOpenPepXL :
   public TOPPBase
 {
 public:
-  TOPPOpenProXL() :
-    TOPPBase("OpenProXL", "Tool for protein-protein cross-linking identification using labeled linkers.", false)
+  TOPPOpenPepXL() :
+    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", false)
   {
   }
 
@@ -355,7 +355,7 @@ protected:
       }
       LOG_DEBUG << "done creating common ion spectrum, total common peaks: " << common_peaks.size() << endl;
 
-#ifdef DEBUG_OPENPROXL
+#ifdef DEBUG_OPENPEPXL
         LOG_DEBUG << "Peaks to match: " << common_peaks.size() << endl;
 #endif
 
@@ -386,7 +386,7 @@ protected:
         swap(preprocessed_pair_spectra.spectra_all_peaks[pair_index], all_peaks);
       }
 
-#ifdef DEBUG_OPENPROXL
+#ifdef DEBUG_OPENPEPXL
         LOG_DEBUG << "spctrum_common_peaks: " << preprocessed_pair_spectra.spectra_common_peaks[pair_index].size() << endl;
         LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
 #endif
@@ -1121,7 +1121,7 @@ protected:
 int main(int argc, const char** argv)
 {
 
-  TOPPOpenProXL tool;
+  TOPPOpenPepXL tool;
   
   return tool.main(argc, argv);
 }

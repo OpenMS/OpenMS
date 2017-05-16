@@ -31,8 +31,8 @@ MSSimulator
 MultiplexResolver
 MzMLSplitter
 OpenMSInfo
-OpenProXL
-OpenProXLLF
+OpenPepXL
+OpenPepXLLF
 PeakPickerIterative
 QCCalculator
 QCEmbedder
