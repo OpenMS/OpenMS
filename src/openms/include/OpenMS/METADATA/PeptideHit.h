@@ -294,7 +294,7 @@ public:
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
-    std::set<String> extractProteinAccessions() const;
+    std::set<String> extractProteinAccessionsSet() const;
 
 protected:
     AASequence sequence_;

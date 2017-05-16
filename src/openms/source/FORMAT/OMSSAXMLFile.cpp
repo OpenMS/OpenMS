@@ -86,7 +86,7 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
-          set<String> hit_accessions = pit->extractProteinAccessions();
+          set<String> hit_accessions = pit->extractProteinAccessionsSet();
           accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }

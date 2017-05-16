@@ -210,7 +210,7 @@ private:
           }
 
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit_it->extractProteinAccessions();
+          set<String> protein_accessions = pep_hit_it->extractProteinAccessionsSet();
           for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList

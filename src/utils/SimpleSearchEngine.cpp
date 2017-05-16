@@ -57,7 +57,6 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -587,10 +586,10 @@ class SimpleSearchEngine :
             }
 
             //create theoretical spectrum
-            MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+            PeakSpectrum theo_spectrum;
 
             //add peaks for b and y ions with charge 1
-            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
+            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
 
             //sort by mz
             theo_spectrum.sortByPosition();
@@ -598,7 +597,7 @@ class SimpleSearchEngine :
             for (; low_it != up_it; ++low_it)
             {
               const Size& scan_index = low_it->second;
-              const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
+              const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 

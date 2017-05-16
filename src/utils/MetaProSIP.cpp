@@ -3243,7 +3243,7 @@ protected:
         LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
-      const set<String> protein_accessions = feature_hit.extractProteinAccessions();
+      const set<String> protein_accessions = feature_hit.extractProteinAccessionsSet();
       sip_peptide.accessions = vector<String>(protein_accessions.begin(), protein_accessions.end());
       sip_peptide.sequence = feature_hit_aaseq;
       sip_peptide.mz_theo = feature_hit_theoretical_mz;

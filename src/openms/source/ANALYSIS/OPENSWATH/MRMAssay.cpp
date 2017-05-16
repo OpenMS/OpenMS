@@ -348,7 +348,7 @@ namespace OpenMS
         {
           // Add precursor to theoretical transitions
           TargetIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
-          TargetPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
+          TargetPeptideMap[peptide.id].push_back(std::make_pair("MS2_Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
         }
 
         // Iterate over all theoretical transitions
@@ -475,7 +475,7 @@ namespace OpenMS
         {
           // Add precursor to theoretical transitions
           DecoyIonMap[precursor_swath][alt_aa->toUnmodifiedString()].push_back(std::make_pair(Math::roundDecimal(precursor_mz, round_decPow), alt_aa->toString()));
-          DecoyPeptideMap[peptide.id].push_back(std::make_pair("Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
+          DecoyPeptideMap[peptide.id].push_back(std::make_pair("MS2_Precursor_i0", Math::roundDecimal(precursor_mz, round_decPow)));
         }
 
         // Iterate over all theoretical transitions
@@ -499,6 +499,7 @@ namespace OpenMS
     startProgress(0, TargetPeptideMap.size(), "Generation of target UIS assays");
 
     // Iterate over all target peptides
+    int transition_index = 0;
     for (boost::unordered_map<String, std::vector<std::pair<std::string, double> > >::iterator pep_it = TargetPeptideMap.begin(); pep_it != TargetPeptideMap.end(); ++pep_it)
     { 
       setProgress(progress++);
@@ -536,8 +537,8 @@ namespace OpenMS
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
-          trn.setName(String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
-          trn.setNativeID(String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
+          trn.setName(String(transition_index) + "_" + String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
+          trn.setNativeID(String(transition_index) + "_" + String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(isoforms, "|"));
 
           LOG_DEBUG << "[uis] Transition " << trn.getNativeID() << std::endl;
@@ -545,6 +546,7 @@ namespace OpenMS
           // Append transition
           transitions.push_back(trn);
         }
+        transition_index++;
       }
       LOG_DEBUG << "[uis] Peptide " << peptide.id << std::endl;
     }
@@ -560,6 +562,7 @@ namespace OpenMS
     startProgress(0, DecoyPeptideMap.size(), "Generation of decoy UIS assays");
 
     // Iterate over all decoy peptides
+    int transition_index = 0;
     for (boost::unordered_map<String, std::vector<std::pair<std::string, double> > >::iterator decoy_pep_it = DecoyPeptideMap.begin(); decoy_pep_it != DecoyPeptideMap.end(); ++decoy_pep_it)
     {
       setProgress(progress++);
@@ -600,8 +603,8 @@ namespace OpenMS
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
-          trn.setName(String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
-          trn.setNativeID(String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setName(String(transition_index) + "_" + String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setNativeID(String(transition_index) + "_" + String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
           LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
@@ -621,6 +624,7 @@ namespace OpenMS
             transitions.push_back(trn);
           }
         }
+        transition_index++;
       }
     }
     endProgress();

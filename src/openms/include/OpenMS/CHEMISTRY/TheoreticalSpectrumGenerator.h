@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg, Eugen Netz $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 namespace OpenMS
 {
@@ -75,16 +76,7 @@ namespace OpenMS
      */
     //@{
     /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-
-    /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
-
-    /// adds the precursor peaks to the spectrum
-    virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
-
-    /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
-    void addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const;
+    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge = 1, Int max_charge = 1) const;
 
     /// overwrite
     void updateMembers_();
@@ -92,30 +84,37 @@ namespace OpenMS
     //@}
 
     protected:
-      /// helper to add an isotope cluster to a spectrum
-      void addIsotopeCluster_(RichPeakSpectrum & spectrum, const AASequence & ion, Residue::ResidueType res_type, Int charge, double intensity) const;
+      /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
+      virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
 
-      /// helper to add a single peak to a spectrum
-      void addPeak_(RichPeakSpectrum & spectrum, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge) const;
-   
+      /// adds the precursor peaks to the spectrum
+      virtual void addPrecursorPeaks_(PeakSpectrum & spec, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
+
+      /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
+      void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
+
+      /// helper to add an isotope cluster to a spectrum
+      void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
+
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
       /// helper to add full neutral loss ladders
-      void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge) const;
+      void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
 
       bool add_b_ions_;
-      bool add_y_ions_; 
-      bool add_a_ions_; 
+      bool add_y_ions_;
+      bool add_a_ions_;
       bool add_c_ions_;
-      bool add_x_ions_; 
-      bool add_z_ions_; 
+      bool add_x_ions_;
+      bool add_z_ions_;
       bool add_first_prefix_ion_;
       bool add_losses_;
       bool add_metainfo_;
       bool add_isotopes_;
-      bool add_precursor_peaks;
-      bool add_abundant_immonium_ions;
+      bool add_precursor_peaks_;
+      bool add_all_precursor_charges_ ;
+      bool add_abundant_immonium_ions_;
       double a_intensity_;
       double b_intensity_;
       double c_intensity_;
@@ -129,5 +128,4 @@ namespace OpenMS
       double pre_int_NH3_;
   };
 }
-#endif
-
+#endif // THEORETICALSPECTRUMGENERATORRPLESS_H

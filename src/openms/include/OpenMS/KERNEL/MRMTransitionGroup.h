@@ -335,6 +335,12 @@ public:
         }
       }
 
+      for (typename std::vector<SpectrumType>::iterator pr_it = precursor_chromatograms_.begin(); pr_it != precursor_chromatograms_.end(); ++pr_it)
+      {
+        // add precursor chromatograms if present
+        transition_group_subset.addPrecursorChromatogram(*pr_it,pr_it->getNativeID());
+      }
+
       for (std::vector< MRMFeature >::iterator tgf_it = mrm_features_.begin(); tgf_it != mrm_features_.end(); ++tgf_it)
       {
         MRMFeature mf;

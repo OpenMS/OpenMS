@@ -231,7 +231,7 @@ namespace OpenMS
     rank_ = newrank;
   }
 
-  std::set<String> PeptideHit::extractProteinAccessions() const
+  std::set<String> PeptideHit::extractProteinAccessionsSet() const
   {
     set<String> accessions;
     for (vector<PeptideEvidence>::const_iterator it = peptide_evidences_.begin(); it != peptide_evidences_.end(); ++it)

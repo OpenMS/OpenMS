@@ -175,7 +175,7 @@ protected:
       }
       pep_it->sort();
       const PeptideHit& hit = pep_it->getHits()[0];
-      if (hit.getSequence().empty() || hit.extractProteinAccessions().empty())
+      if (hit.getSequence().empty() || hit.extractProteinAccessionsSet().empty())
       {
         continue;
       }
@@ -230,7 +230,7 @@ protected:
 
       // Remove modifications before writing to input graph file
       graph_out << "e " << hit.getSequence().toUnmodifiedString() << endl;
-      const set<String>& accessions = hit.extractProteinAccessions();
+      const set<String>& accessions = hit.extractProteinAccessionsSet();
       for (set<String>::const_iterator acc_it = accessions.begin();
            acc_it != accessions.end(); ++acc_it)
       {
