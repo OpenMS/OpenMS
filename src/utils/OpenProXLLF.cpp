@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-#include <OpenMS/ANALYSIS/XLMS/XQuestXML.h>
+#include <OpenMS/FORMAT/XQuestXMLWriter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -1014,13 +1014,13 @@ protected:
         String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
         double cross_link_mass_iso_shift = 0;
         double cross_link_mass_light = cross_link_mass;
-        XQuestXML::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
+        XQuestXMLWriter::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
                                                             precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
                                                             cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
       }
       if (out_xquest_specxml.size() > 0)
       {
-        XQuestXML::writeXQuestXMLSpec(out_xquest_specxml, base_name, all_top_csms, spectra);
+        XQuestXMLWriter::writeXQuestXMLSpec(out_xquest_specxml, base_name, all_top_csms, spectra);
       }
     }
     progresslogger.endProgress();

@@ -92,6 +92,7 @@ MzIdentMLFile.h
 MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
+XQuestXMLWriter.h
 ZlibCompression.h
 )
 

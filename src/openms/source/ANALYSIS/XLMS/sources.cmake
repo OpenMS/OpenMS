@@ -7,7 +7,6 @@ OPXLDataStructs.cpp
 OPXLHelper.cpp
 OPXLSpectrumProcessingAlgorithms.cpp
 XQuestScores.cpp
-XQuestXML.cpp
 )
 
 ### add path to the filenames

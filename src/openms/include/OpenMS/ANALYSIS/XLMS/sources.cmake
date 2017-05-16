@@ -7,7 +7,6 @@ OPXLDataStructs.h
 OPXLHelper.h
 OPXLSpectrumProcessingAlgorithms.h
 XQuestScores.h
-XQuestXML.h
 )
 
 ### add path to the filenames

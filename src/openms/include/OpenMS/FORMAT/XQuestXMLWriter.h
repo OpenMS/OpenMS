@@ -32,8 +32,8 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_XQUESTXML_H
-#define OPENMS_ANALYSIS_XLMS_XQUESTXML_H
+#ifndef OPENMS_FORMAT_XQUESTXMLWRITER_H
+#define OPENMS_FORMAT_XQUESTXMLWRITER_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
@@ -49,7 +49,7 @@ namespace OpenMS
       The spec.xml format is mostly used to visualize spectra in the xQuest results manager.
    */
 
-  class OPENMS_DLLAPI XQuestXML
+  class OPENMS_DLLAPI XQuestXMLWriter
   {
     public:
 
@@ -118,4 +118,4 @@ namespace OpenMS
   };
 }
 
-#endif // XQUESTXML_H
+#endif // OPENMS_FORMAT_XQUESTXMLWRITER_H
