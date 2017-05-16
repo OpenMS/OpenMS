@@ -277,21 +277,19 @@ protected:
       LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
-      PeakSpectrum spectrum_heavy_to_light;
       PeakSpectrum xlink_peaks;
       PeakSpectrum::IntegerDataArray spectrum_heavy_charges;
       if (spectrum_heavy.getIntegerDataArrays().size() > 0)
       {
         spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
       }
-
-      PeakSpectrum::IntegerDataArray spectrum_heavy_to_light_charges;
       xlink_peaks.getIntegerDataArrays().resize(1);
 
       // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
       {
-        spectrum_heavy_to_light.clear(true);
+        PeakSpectrum spectrum_heavy_to_light;
+        PeakSpectrum::IntegerDataArray spectrum_heavy_to_light_charges;
         double mass_shift = cross_link_mass_iso_shift / charge;
 
         // transform heavy spectrum
@@ -336,6 +334,8 @@ protected:
         }
       }
 
+      LOG_DEBUG << "done shifting peaks, total xlink peaks: " << xlink_peaks.size() << endl;
+
       // generate common peaks spectrum, include charges determined through deisotoping in preprocessing
       PeakSpectrum common_peaks;
 
@@ -353,6 +353,7 @@ protected:
           common_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
         }
       }
+      LOG_DEBUG << "done creating common ion spectrum, total common peaks: " << common_peaks.size() << endl;
 
 #ifdef DEBUG_OPENPROXL
         LOG_DEBUG << "Peaks to match: " << common_peaks.size() << endl;
