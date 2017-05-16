@@ -312,6 +312,42 @@ namespace OpenMS
     return true;
   }
 
+  double MultiplexFiltering::getAveragineScore_(const MultiplexIsotopicPeakPattern& pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+  {
+    // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+    double similarity;
+    if (pattern.getMassShiftCount() == 1)
+    {
+      // We are detecting peptide singlets.
+      similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+    }
+    else
+    {
+      // We are detecting peptide doublets or triplets or ...
+      similarity = averagine_similarity_;
+    }
+      vector<double> isotope_pattern;
+    for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+
+      for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
+      {
+        if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]))
+        {
+          // no peak found, hence assume the intensity at this position to be zero
+          isotope_pattern.push_back(0);
+        }
+        else
+        {
+          isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+        }
+      }
+    }
+      //double norm_sim, mone_sim, mtwo_sim;
+      return getAveragineSimilarity_(isotope_pattern, mz * pattern.getCharge());
+  }
+
+
   void MultiplexFiltering::blacklistPeaks_(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
   {
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)

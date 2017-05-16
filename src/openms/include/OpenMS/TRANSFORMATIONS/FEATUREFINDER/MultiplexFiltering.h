@@ -201,6 +201,21 @@ protected:
 
 
     /**
+     * @brief return averagine similarity score
+     *
+     * Return similarity of the isotopic distribution with the expected averagine distribution.
+     * Does the isotope distribution look like a peptide?
+     *
+     * @param pattern    pattern of isotopic peaks to be searched for
+     * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
+     * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
+     * @param mz    m/z at which the averagine distribution is calculated
+     *
+     * @return similarity score
+     */
+    double getAveragineScore_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const;
+
+    /**
      * @brief blacklist peaks
      *
      * If a datapoint passes all filters, the corresponding peak in this and the two neighbouring spectra is blacklisted.

@@ -191,7 +191,7 @@ namespace OpenMS
         
       GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
-      //clustering.extendClustersY();
+      clustering.extendClustersY(); //TODO: why was this disabled?
       clustering.removeSmallClustersY(rt_minimum_);
       cluster_results.push_back(clustering.getResults());
     }
