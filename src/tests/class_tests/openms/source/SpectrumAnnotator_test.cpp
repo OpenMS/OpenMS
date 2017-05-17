@@ -80,8 +80,9 @@ PeakSpectrum spec;
 spec.setMSLevel(2);
 Peak1D p;
 double peaklist[] = {147.113, 204.135, 303.203, 431.262, 518.294, 665.362, 261.16, 348.192, 476.251, 575.319, 632.341};
-size_t sz = 11;
-for (Size i = 0; i != sz; ++i)
+size_t pls = 11; // peaklist size
+
+for (Size i = 0; i != pls; ++i)
 {
   p.setIntensity(1.1f);
   p.setMZ(peaklist[i]);
@@ -90,17 +91,19 @@ for (Size i = 0; i != sz; ++i)
 PeptideIdentification pi;
 pi.setHits(std::vector<PeptideHit>(1,hit));
 
-START_SECTION((MSSpectrum<RichPeak1D> SpectrumAnnotator::annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
+START_SECTION((void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
 
-  MSSpectrum<RichPeak1D> annot_spec = annot.annotateMatches(hit, spec, tg, sa);
+  annot.annotateMatches(spec, hit, tg, sa);
   string annotlist[] = {"y1+", "y2+", "b2+", "y3+", "b3+", "y4+", "b4+", "y5+", "b5+", "b6+", "y6+"};
 
-  ABORT_IF(annot_spec.size() != sz)
-  for (size_t i = 0; i < annot_spec.size(); ++i)
+  PeakSpectrum::StringDataArray types = spec.getStringDataArrays().front();
+
+  ABORT_IF(spec.size() != types.size() || types.size() != pls)
+  for (size_t i = 0; i < spec.size(); ++i)
   {
-    TEST_STRING_EQUAL(annot_spec[i].getMetaValue("IonName"),annotlist[i])
+    TEST_STRING_EQUAL(types[i],annotlist[i])
   }
-  TEST_REAL_SIMILAR(annot_spec.getMetaValue("fragment_mass_tolerance"),0.1)
+  TEST_REAL_SIMILAR(spec.getMetaValue("fragment_mass_tolerance"),0.1)
 END_SECTION
 
 START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))

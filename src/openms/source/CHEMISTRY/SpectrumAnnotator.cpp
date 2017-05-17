@@ -129,49 +129,58 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum<RichPeak1D> SpectrumAnnotator::annotateMatches(const PeptideHit& ph, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
-    MSSpectrum<RichPeak1D> rich_theoretical_spec;
-    MSSpectrum<RichPeak1D> rich_input_spectrum = MSSpectrumHelper::clone(spec);
-
+    PeakSpectrum theoretical_spec;
     vector<pair<Size, Size> > al;
-    tg.getSpectrum(rich_theoretical_spec, ph.getSequence(), ph.getCharge()-1);  // will get y5++, b2+, ... for precursor+++
-    if (!rich_theoretical_spec.isSorted())
+    Int zmin = 1;
+    Int zmax = 2;
+    tg.getSpectrum(theoretical_spec, ph.getSequence(), zmin, min(ph.getCharge(),zmax));
+    if (!theoretical_spec.isSorted())
     {
-      rich_theoretical_spec.sortByPosition();
+      theoretical_spec.sortByPosition();
     }
-    if (!rich_input_spectrum.isSorted())
+    if (!spec.isSorted())
     {
-      rich_input_spectrum.sortByPosition();
+      spec.sortByPosition();
     }
-    sa.getSpectrumAlignment(al, rich_theoretical_spec, rich_input_spectrum);  // peaks from theor. may be matched to none or one in spec!
+    sa.getSpectrumAlignment(al, theoretical_spec, spec);  // peaks from theor. may be matched to none or one in spec!
+
+    PeakSpectrum::StringDataArray theo_annot = theoretical_spec.getStringDataArrays().front();
+    PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
+    PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
+    type_annotations.setName("IonName");
+    error_annotations.setName("IonMatchError");
+    type_annotations.resize(spec.size());
+    error_annotations.resize(spec.size());
     for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
     {
-        rich_input_spectrum[it->second].setMetaValue("IonMatchError", std::fabs(rich_input_spectrum[it->second].getMZ() - rich_theoretical_spec[it->first].getMZ()));
-        rich_input_spectrum[it->second].setMetaValue("IonName", rich_theoretical_spec[it->first].getMetaValue("IonName"));
+        error_annotations[it->second] = std::fabs(spec[it->second].getMZ() - theoretical_spec[it->first].getMZ());
+        type_annotations[it->second] = theo_annot[it->first];
     }
     Param sap = sa.getParameters();
-    rich_input_spectrum.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
-    rich_input_spectrum.setMetaValue("fragment_mass_tolerance_ppm", false);
-    return rich_input_spectrum;
+    spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
+    spec.setMetaValue("fragment_mass_tolerance_ppm", false);
+    spec.setStringDataArrays(PeakSpectrum::StringDataArrays(1, type_annotations));
+    spec.setFloatDataArrays(PeakSpectrum::FloatDataArrays(1, error_annotations));
   }
 
-  void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
     if (!spec.empty())
     {
       for (vector<PeptideHit>::iterator ph = pi.getHits().begin(); ph != pi.getHits().end(); ++ph)
       {
-        RichPeakSpectrum rich_spec = annotateMatches(*ph, spec, tg, sa);
-        rich_spec.sortByIntensity();
+        annotateMatches(spec, *ph, tg, sa);
+        spec.sortByIntensity();
 
         StringList ions;
         double sum_intensity = 0;
         double match_intensity = 0;
-        vector<double> fragmenterrors, intensities, mzs; // sorted by ascending intensity via rich_spec.sortByIntensity for topN statistics
-        fragmenterrors.reserve(rich_spec.size());
-        intensities.reserve(rich_spec.size());
-        mzs.reserve(rich_spec.size());
+        vector<double> fragmenterrors, intensities, mzs;  // sorted by ascending intensity via spec.sortByIntensity for topN statistics
+        fragmenterrors.reserve(spec.size());
+        intensities.reserve(spec.size());
+        mzs.reserve(spec.size());
 
         double nint = 0;
         double cint = 0;
@@ -183,27 +192,40 @@ namespace OpenMS
           ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
         }
 
-        for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
+        PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
+        PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
+        for (PeakSpectrum::StringDataArrays::iterator it = spec.getStringDataArrays().begin(); it != spec.getStringDataArrays().end(); ++it)
         {
-          sum_intensity += it->getIntensity();
-          if (it->metaValueExists("IonMatchError"))
+          if (it->getName() == "IonName")
+            type_annotations = *it;
+        }
+        for (PeakSpectrum::FloatDataArrays::iterator it = spec.getFloatDataArrays().begin(); it != spec.getFloatDataArrays().end(); ++it)
+        {
+          if (it->getName() == "IonMatchError")
+            error_annotations = *it;
+        }
+
+        for (size_t i = 0; i < spec.size(); ++i)
+        {
+          sum_intensity += spec[i].getIntensity();
+          if (!type_annotations.at(i).empty())  // implies error_annotations is set, too.
           {
-            fragmenterrors.push_back(it->getMetaValue("IonMatchError"));
-            intensities.push_back(it->getIntensity());
-            match_intensity += it->getIntensity();
-            mzs.push_back(it->getMZ());
-            const String& ion_name = it->getMetaValue("IonName");
+            fragmenterrors.push_back(error_annotations.at(i));
+            intensities.push_back(spec[i].getIntensity());
+            match_intensity += spec[i].getIntensity();
+            mzs.push_back(spec[i].getMZ());
+            const String& ion_name = type_annotations.at(i);
             {
               ions.push_back(ion_name);
               if (terminal_series_match_ratio_)
               {
                 if (boost::regex_match(ion_name, nt_regex_))
                 {
-                  nint += it->getIntensity();
+                  nint += spec[i].getIntensity();
                 }
                 else if (boost::regex_match(ion_name, ct_regex_))
                 {
-                  cint += it->getIntensity();
+                  cint += spec[i].getIntensity();
                 }
               }
               if (max_series_)  // without loss max series is sometimes pretty crummy
@@ -335,11 +357,11 @@ namespace OpenMS
           ph->setMetaValue("sn_by_matched_intensity", sn_by_matched_intensity);
 
           float median = 0;
-          //rich_spec is already in sorted order of intensity
-          if (rich_spec.size() % 2 == 0)
-            median = (rich_spec[rich_spec.size()/2 - 1].getIntensity() + rich_spec[rich_spec.size()/2].getIntensity()) / 2;
+          // spec is already in sorted order of intensity
+          if (spec.size() % 2 == 0)
+            median = (spec[spec.size()/2 - 1].getIntensity() + spec[spec.size()/2].getIntensity()) / 2;
           else
-            median = rich_spec[rich_spec.size()/2].getIntensity();
+            median = spec[spec.size()/2].getIntensity();
           float sign_int= 0;
           float nois_int = 0;
           size_t sign_count= 0;
@@ -370,9 +392,9 @@ namespace OpenMS
           bool precursor = false;
           for (std::vector<Precursor>::const_iterator pit = spec.getPrecursors().begin(); pit != spec.getPrecursors().end(); ++pit)
           {
-            rich_spec.sortByPosition();
+            spec.sortByPosition();
             //TODO what about precursor_H2O_loss and precursor_NH3_loss
-            if (rich_spec.findNearest(pit->getMZ(),sa.getParameters().getValue("tolerance"),
+            if (spec.findNearest(pit->getMZ(),sa.getParameters().getValue("tolerance"),
                                  sa.getParameters().getValue("tolerance")) > -1)
             {
               precursor = true;

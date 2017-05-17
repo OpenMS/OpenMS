@@ -150,7 +150,7 @@ public:
 private:
   bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename,  double tolerance)
   {
-      TheoreticalSpectrumGenerator tg = TheoreticalSpectrumGenerator();
+      TheoreticalSpectrumGenerator tg;
       Param tgp(tg.getDefaults());
       tgp.setValue("add_metainfo", "true");
       tgp.setValue("add_losses", "true");
@@ -161,7 +161,8 @@ private:
       tgp.setValue("add_b_ions", "true");
       tgp.setValue("add_a_ions", "true");
       tgp.setValue("add_x_ions", "true");
-      tg.setParameters(tgp);
+      tg.setParameters(tgp);    
+
       SpectrumAlignment sa;
       Param sap = sa.getDefaults();
       sap.setValue("tolerance", tolerance, "...");
