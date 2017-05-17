@@ -80,7 +80,7 @@ namespace OpenMS
     return *this;
   }
 
-  void MRMFragmentSelection::selectFragments(vector<RichPeak1D> & selected_peaks, const RichPeakSpectrum & spec)
+  void MRMFragmentSelection::selectFragments(vector<Peak1D> & selected_peaks, const PeakSpectrum & spec)
   {
     Size num_top_peaks = param_.getValue("num_top_peaks");
     bool consider_names(param_.getValue("consider_names").toBool());
@@ -93,20 +93,20 @@ namespace OpenMS
       return;
     }
     double precursor_pos =  spec.getPrecursors().begin()->getMZ();
-    RichPeakSpectrum spec_copy = spec;
+    PeakSpectrum spec_copy = spec;
     spec_copy.sortByIntensity(true);
+
+    PeakSpectrum::StringDataArray& annotations = spec_copy.getStringDataArrays()[0];
+    PeakSpectrum::IntegerDataArray& charges = spec_copy.getIntegerDataArrays()[0];
 
     for (Size i = 0; i < spec_copy.size() && selected_peaks.size() < num_top_peaks; ++i)
     {
-      String name = spec_copy[i].getMetaValue("IonName");
-      //if (spec_copy[i].metaValueExists("MSPPeakInfo"))
-      //{
-      //  name = spec_copy[i].getMetaValue("MSPPeakInfo");
-      //}
+      const String& name = annotations[i];
+      const int charge = charges[i];
 
       if (spec_copy[i].getMZ() >= min_mz && spec_copy[i].getMZ() <= max_mz &&
           spec_copy[i].getMZ() > min_pos_precursor_percentage * precursor_pos &&
-          (!consider_names || peakselectionIsAllowed_(spec_copy[i])))
+          (!consider_names || peakselectionIsAllowed_(name, charge)))
       {
         selected_peaks.push_back(spec_copy[i]);
       }
@@ -115,17 +115,11 @@ namespace OpenMS
     return;
   }
 
-  bool MRMFragmentSelection::peakselectionIsAllowed_(const RichPeak1D & peak)
+  bool MRMFragmentSelection::peakselectionIsAllowed_(const String& name, const int charge)
   {
     StringList allowed_charges = param_.getValue("allowed_charges");
 
-    String name;
-    if (peak.metaValueExists("IonName"))
-    {
-      name = peak.getMetaValue("IonName");
-    }
-
-    if (name != "")
+    if (!name.empty())
     {
       StringList allowed_types = param_.getValue("allowed_ion_types");
       bool type_found(false);
@@ -139,8 +133,7 @@ namespace OpenMS
       if (type_found)
       {
         bool allow_loss_ions(param_.getValue("allow_loss_ions").toBool());
-        Size charges = count(name.begin(), name.end(), '+');
-        bool charges_ok = ListUtils::contains(allowed_charges, String(charges));
+        bool charges_ok = ListUtils::contains(allowed_charges, String(charge));
         if (allow_loss_ions && charges_ok)
         {
           // TODO implement charges

@@ -92,7 +92,7 @@ namespace OpenMS
     std::vector<String> best_annotation;
     annotation.split("/", best_annotation);
 
-    if (best_annotation[0] == "Precursor_i0")
+    if (best_annotation[0] == "Precursor_i0" || best_annotation[0] == "MS2_Precursor_i0")
     {
       return interpretation;
     }

@@ -96,6 +96,14 @@ namespace OpenMS
   {
     return !operator==(rhs);
   }
+  
+  bool PeptideEvidence::hasValidLimits() const
+  {
+    return !(
+      getStart() == UNKNOWN_POSITION ||
+      getEnd() == UNKNOWN_POSITION ||
+      getEnd() == N_TERMINAL_POSITION);
+  }
 
   void PeptideEvidence::setProteinAccession(const String& s)
   {

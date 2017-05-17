@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
@@ -75,17 +75,16 @@ public:
     template <typename SpectrumType>
     void filterSpectrum(SpectrumType & spectrum)
     {
-      // sort by intensity
-      spectrum.sortByIntensity();
-
-      // find right position to erase
-      typename SpectrumType::PeakType p;
       threshold_ = ((double)param_.getValue("threshold"));
-      p.setIntensity(threshold_);
-      spectrum.erase(
-        spectrum.begin(),
-        lower_bound(spectrum.begin(), spectrum.end(), p, typename SpectrumType::PeakType::IntensityLess())
-        );
+      std::vector<Size> indices;
+      for (Size i = 0; i != spectrum.size(); ++i)
+      {
+        if (spectrum[i].getIntensity() >= threshold_)
+        {
+          indices.push_back(i);
+        } 
+      }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);

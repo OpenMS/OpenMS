@@ -209,37 +209,6 @@ Scaler, SpectraMerger, SqrtMower, ThresholdMower, WindowMower}.
 
 More complex algorithmic tools require a short explanation and usage:
 
-\subsection{iTRAQ Analyzer}
-
-The iTRAQ Analyzer uses internally two classes, the
-\texttt{ItraqChannelExtractor} and the \texttt{ItraqQuantifier} which are
-described in the following code snippet:
-
-\begin{verbatim}
-
-file = MzMLFile()
-exp = MSExperiment()
-file.load(filename_in, exp)
-consensus_map_raw = ConsensusMap()
-consensus_map_quant = ConsensusMap()
-
-itraq_type = ITRAQ_TYPES.FOURPLEX # other options: EIGHTPLEX, TMT_SIXPLEX
-extract_param = ItraqChannelExtractor().getDefaults()
-itraq_ce = ItraqChannelExtractor(itraq_type, extract_param)
-
-# extract raw signals
-itraq_ce.run(exp, consensus_map_raw)
-
-# do normalization
-quant_param = ItraqQuantifier().getDefaults()
-itraq_quant = ItraqQuantifier(itraq_type, quant_param)
-
-itraq_quant.run(consensus_map_raw, consensus_map_quant)
-
-outfile = ConsensusXMLFile()
-oufile.store(filename_out, consensus_map_quant)
-\end{verbatim}
-
 \subsection{Centroided FeatureFinder}
 
 The FeatureFinder for centroided data is called

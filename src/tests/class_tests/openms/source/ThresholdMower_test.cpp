@@ -54,69 +54,69 @@ START_TEST(ThresholdMower, "$Id$")
 ThresholdMower* e_ptr = 0;
 ThresholdMower* e_nullPointer = 0;
 START_SECTION((ThresholdMower()))
-	e_ptr = new ThresholdMower;
-	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+  e_ptr = new ThresholdMower;
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((~ThresholdMower()))
-	delete e_ptr;
+  delete e_ptr;
 END_SECTION
 
 e_ptr = new ThresholdMower();
 
 START_SECTION((ThresholdMower(const ThresholdMower& source)))
-	ThresholdMower copy(*e_ptr);
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName())
+  ThresholdMower copy(*e_ptr);
+  TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
+  TEST_EQUAL(copy.getName(), e_ptr->getName())
 END_SECTION
 
 START_SECTION((ThresholdMower& operator=(const ThresholdMower& source)))
-	ThresholdMower copy;
-	copy = *e_ptr;
-	TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
-	TEST_EQUAL(copy.getName(), e_ptr->getName());
+  ThresholdMower copy;
+  copy = *e_ptr;
+  TEST_EQUAL(copy.getParameters(), e_ptr->getParameters())
+  TEST_EQUAL(copy.getName(), e_ptr->getName());
 END_SECTION
 
 START_SECTION((template<typename SpectrumType> void filterSpectrum(SpectrumType& spectrum)))
-	DTAFile dta_file;
-	PeakSpectrum spec;
-	dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
-	
-	TEST_EQUAL(spec.size(), 121)
+  DTAFile dta_file;
+  PeakSpectrum spec;
+  dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
+  
+  TEST_EQUAL(spec.size(), 121)
 
-	Param p(e_ptr->getParameters());
-	p.setValue("threshold", 1.0);
-	e_ptr->setParameters(p);
+  Param p(e_ptr->getParameters());
+  p.setValue("threshold", 1.0);
+  e_ptr->setParameters(p);
 
-	e_ptr->filterSpectrum(spec);
-	TEST_EQUAL(spec.size(), 121)
+  e_ptr->filterSpectrum(spec);
+  TEST_EQUAL(spec.size(), 121)
 
-	p.setValue("threshold", 10.0);
-	e_ptr->setParameters(p);
+  p.setValue("threshold", 10.0);
+  e_ptr->setParameters(p);
 
-	e_ptr->filterSpectrum(spec);
-	TEST_EQUAL(spec.size(), 14)
+  e_ptr->filterSpectrum(spec);
+  TEST_EQUAL(spec.size(), 14)
 END_SECTION
 
 START_SECTION((void filterPeakMap(PeakMap& exp)))
-	DTAFile dta_file;
+  DTAFile dta_file;
   PeakSpectrum spec;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("Transformers_tests.dta"), spec);
 
-	PeakMap pm;
-	pm.addSpectrum(spec);
+  PeakMap pm;
+  pm.addSpectrum(spec);
 
   TEST_EQUAL(pm.begin()->size(), 121)
 
-	Param p(e_ptr->getParameters());
-	p.setValue("threshold", 1.0);
-	e_ptr->setParameters(p);
+  Param p(e_ptr->getParameters());
+  p.setValue("threshold", 1.0);
+  e_ptr->setParameters(p);
 
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 121)
 
   p.setValue("threshold", 10.0);
-	e_ptr->setParameters(p);
+  e_ptr->setParameters(p);
   e_ptr->filterPeakMap(pm);
   TEST_EQUAL(pm.begin()->size(), 14)
 
@@ -129,15 +129,15 @@ START_SECTION((void filterPeakSpectrum(PeakSpectrum& spectrum)))
 
   TEST_EQUAL(spec.size(), 121)
 
-	Param p(e_ptr->getParameters());
- 	p.setValue("threshold", 1.0);
-	e_ptr->setParameters(p);
+  Param p(e_ptr->getParameters());
+  p.setValue("threshold", 1.0);
+  e_ptr->setParameters(p);
 
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 121)
 
   p.setValue("threshold", 10.0);
-	e_ptr->setParameters(p);
+  e_ptr->setParameters(p);
   e_ptr->filterPeakSpectrum(spec);
   TEST_EQUAL(spec.size(), 14)
 END_SECTION

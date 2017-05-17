@@ -79,12 +79,12 @@ public:
     MRMFragmentSelection & operator=(const MRMFragmentSelection & rhs);
 
     /// selects accordingly to the parameters the best peaks of spec and writes them into selected_peaks
-    void selectFragments(std::vector<RichPeak1D> & selected_peaks, const RichPeakSpectrum & spec);
+    void selectFragments(std::vector<Peak1D> & selected_peaks, const PeakSpectrum & spec);
 
 protected:
 
-    /// returns true if the selection of peak is allowed, according to the parameters set
-    bool peakselectionIsAllowed_(const RichPeak1D & peak);
+    /// returns true if the selection of peak is allowed, according to the parameters set and the ion name
+    bool peakselectionIsAllowed_(const String& name, const int charge);
   };
 }
 

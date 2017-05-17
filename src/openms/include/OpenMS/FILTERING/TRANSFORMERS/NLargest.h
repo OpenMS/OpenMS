@@ -84,7 +84,12 @@ public:
       spectrum.sortByIntensity(true);
 
       // keep the n largest peaks if more than n are present
-      spectrum.resize(peakcount_);
+      std::vector<Size> indices;
+      for (Size i = 0; i != peakcount_; ++i)
+      {
+        indices.push_back(i);
+      }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);

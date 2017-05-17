@@ -513,22 +513,6 @@ namespace OpenMS
       getETDSpectrum_(ETD_sim_spec, mod_string, charge);
       getCIDSpectrum_(CID_sim_spec, mod_string, charge);
 
-
-      /*RichPeakSpectrum CID_sim_pilis_spec;
-      cerr << "PILIS Model disabled: " << endl;
-      exit(1);
-      //pilis_model_.getSpectrum (CID_sim_pilis_spec, it->getSequence(), charge);
-      CID_sim_pilis_spec.sortByPosition();
-
-      for (RichPeakSpectrum::ConstIterator pit = CID_sim_pilis_spec.begin(); pit != CID_sim_pilis_spec.end(); ++pit)
-      {
-          Peak1D p;
-          p.setPosition(pit->getPosition()[0]);
-          p.setIntensity(pit->getIntensity());
-          CID_sim_spec.push_back(p);
-      }
-      */
-
       normalizer.filterSpectrum(ETD_sim_spec);
       normalizer.filterSpectrum(CID_sim_spec);
 
