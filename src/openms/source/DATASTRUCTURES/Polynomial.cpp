@@ -44,26 +44,36 @@ namespace OpenMS
   
   
   CounterSet::RangeCounter::RangeCounter(Size min, Size max): 
-    min(min), max(max), value(min){}
+    min_(min), max_(max), value(min){}
 
   CounterSet::RangeCounter& CounterSet::RangeCounter::operator++()
   {
-    value = min + (this->value + 1) % (max - min);
+    value = min_ + (this->value + 1) % (max_ - min_);
     return *this;
   }
-  const Size& CounterSet::RangeCounter::operator()() const
+  Size& CounterSet::RangeCounter::operator()()
   {
     return value;
   }
   void CounterSet::RangeCounter::reset()
   {
-    value = min;
+    value = min_;
   }
   bool CounterSet::RangeCounter::wasReset() const
   {
-    return value == min;
+    return value == min_;
+  }
+
+  const Size& CounterSet::RangeCounter::min() const
+  {
+    return min_;
   }
   
+  const Size& CounterSet::RangeCounter::max() const
+  {
+    return max_;
+  }
+
   CounterSet::RangeCounter CounterSet::initCounter::operator()(Range& r)
   {
     return CounterSet::RangeCounter(r.first, r.second);
@@ -71,7 +81,7 @@ namespace OpenMS
 
   void CounterSet::initCounter::operator()(RangeCounter& c)
   {
-    c.value = c.min;
+    c.reset();
   }
 
   CounterSet::CounterSet(vector<Range> ranges)
@@ -87,7 +97,7 @@ namespace OpenMS
   
   Size& CounterSet::operator[](const Size& index)
   {
-      return counters[index].value;
+      return counters[index]();
   }
 
   CounterSet& CounterSet::operator++()

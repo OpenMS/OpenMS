@@ -46,21 +46,25 @@ namespace OpenMS
   {
   public:
     struct RangeCounter;
-    typedef std::vector<struct RangeCounter> ContainerType;
+    typedef std::vector<RangeCounter> ContainerType;
     typedef ContainerType::reverse_iterator ReverseIterator;
     typedef ContainerType::iterator Iterator;
 
-    struct RangeCounter
+    class RangeCounter
     {
-      const Size min;
-      const Size max;
+   private:
+      Size min_;
+      Size max_;
       Size value;
 
+   public:
       RangeCounter(Size min, Size max);
       RangeCounter& operator++();
-      const Size& operator()() const;
+      Size& operator()();
       bool wasReset() const;
       void reset();
+      const Size& min() const;
+      const Size& max() const;
     };
 
     struct initCounter
