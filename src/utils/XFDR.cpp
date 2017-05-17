@@ -618,7 +618,9 @@ class TOPPXFDR :
       // Declare important variables
       //-------------------------------------------------------------
       Size pep_id_index = TOPPXFDR::n_rank - 1;
-      Size n_spectra;
+
+      // Variable is only used if the input is xQuest XML file
+      Size n_spectra = 0;
 
       // Main data structures
       vector < PeptideIdentification > all_ids;
