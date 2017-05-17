@@ -148,19 +148,24 @@ START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLin
 
   std::cout << std::endl;
   std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+  std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   TOLERANCE_ABSOLUTE(1e-3)
   TEST_EQUAL(precursors.size(), 15990)
-  // sample about 1/10 of the data, since a lot of precursors are generated
-  for (Size i = 0; i < precursors.size() / 30; ++i)
+  // sample about 1/15 of the data, since a lot of precursors are generated
+  int sampler = 14;
+  for (Size i = 0; i < precursors.size() / 15; ++i)
   {
-    double link_mass = cross_link_mass;
-    // mono-link mass
-    if (peptides[precursors[i*29].beta_index].peptide_seq.empty())
+    if (precursors[i*sampler].beta_index > peptides.size())
     {
-      link_mass = 50.0;
+      // mono-link
+      TEST_REAL_SIMILAR(peptides[precursors[i*sampler].alpha_index].peptide_mass + 50.0, precursors[i*sampler].precursor_mass)
     }
-    TEST_REAL_SIMILAR(peptides[precursors[i*29].alpha_index].peptide_mass + peptides[precursors[i*29].beta_index].peptide_mass + link_mass, precursors[i*29].precursor_mass)
+    else
+    {
+      // cross-link
+      TEST_REAL_SIMILAR(peptides[precursors[i*sampler].alpha_index].peptide_mass + peptides[precursors[i*sampler].beta_index].peptide_mass + cross_link_mass, precursors[i*sampler].precursor_mass)
+    }
   }
 
 END_SECTION
