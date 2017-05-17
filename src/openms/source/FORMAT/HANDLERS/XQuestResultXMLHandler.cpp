@@ -82,9 +82,9 @@ namespace OpenMS
       XMLHandler(filename, "1.0"),
       csms_(csms),
       prot_ids_(prot_ids),
-      n_hits_(0),
       min_score_(0),
       max_score_(0),
+      n_hits_(0),
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
     {
