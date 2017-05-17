@@ -200,15 +200,17 @@ namespace OpenMS
         // add all the individual isotopes as separate elements
         for (IsotopeDistribution::ConstIterator iit = isotopes.begin(); iit != isotopes.end(); ++iit)
         {
-          String iso_name = "(" + String(iit->first) + ")" + name;
-          String iso_symbol = "(" + String(iit->first) + ")" + symbol;
+          UInt mass_number = round(iit->first);
+          double atomic_mass = iit->first;
+          String iso_name = "(" + String(mass_number) + ")" + name;
+          String iso_symbol = "(" + String(mass_number) + ")" + symbol;
 
           // set avg and mono to same value for isotopes (old hack...)
-          double iso_avg_weight = Z_to_mass[(UInt) iit->first];
+          double iso_avg_weight = Z_to_mass[mass_number];
           double iso_mono_weight = iso_avg_weight;
           IsotopeDistribution iso_isotopes;
           IsotopeDistribution::ContainerType iso_container;
-          iso_container.push_back(make_pair(iit->first, 1.0));
+          iso_container.push_back(make_pair(atomic_mass, 1.0));
           iso_isotopes.set(iso_container);
 
           /*
