@@ -22,6 +22,7 @@ ToolDescriptionHandler.h
 TraMLHandler.h
 UnimodXMLHandler.h
 XMLHandler.h
+XQuestResultXMLHandler.h
 )
 
 ### add path to the filenames
