@@ -229,6 +229,7 @@ set(format_executables_list
   XMassFile_test
   XMLFile_test
   XMLValidator_test
+  XQuestResultXMLFile_test
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
