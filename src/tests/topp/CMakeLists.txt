@@ -2095,6 +2095,8 @@ add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 
 #------------------------------------------------------------------------------
 # XFDR tests
-add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -in ${DATA_DIR_TOPP}/XFDR_test_input.xml -out_idXML XFDR_test_output_temp.idXML)
-add_test("UTILS_XFDR_1_out1" ${DIFF} -in1 XFDR_test_output_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_output.idXML)
-set_tests_properties("UTILS_XFDR_1_out1" PROPERTIES DEPENDS "UTILS_XFDR_1")
+add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid)
+add_test("UTILS_XFDR_1_out11" ${DIFF} -in1 XFDR_test_out1_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
+add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
+set_tests_properties("UTILS_XFDR_1_out11" PROPERTIES DEPENDS "UTILS_XFDR_1")
+set_tests_properties("UTILS_XFDR_1_out12" PROPERTIES DEPENDS "UTILS_XFDR_1")
