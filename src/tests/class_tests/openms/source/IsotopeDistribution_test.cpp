@@ -157,7 +157,7 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
 
 	for (Size i = 0; i != id.size(); ++i)
 	{
-		TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+		TEST_EQUAL(round(id.getContainer()[i].first), container[i].first)
 		TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
 	}
 
@@ -178,7 +178,7 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
     container.push_back(IsotopeDistribution::MassAbundance(162, 0.24314761)); // 81+81, ~ 0.5 * 0.5
     for (Size i = 0; i != id.size(); ++i)
     {
-      TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+      TEST_EQUAL(round(id.getContainer()[i].first), container[i].first)
       TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
     }
   }
@@ -196,7 +196,7 @@ START_SECTION(IsotopeDistribution& operator *= (Size factor))
     container.push_back(IsotopeDistribution::MassAbundance(175, 0.002601679427));
     for (Size i = 0; i != id.size(); ++i)
     {
-      TEST_EQUAL(id.getContainer()[i].first, container[i].first)
+      TEST_EQUAL(round(id.getContainer()[i].first), container[i].first)
       TEST_REAL_SIMILAR(id.getContainer()[i].second, container[i].second)
     }
   }
