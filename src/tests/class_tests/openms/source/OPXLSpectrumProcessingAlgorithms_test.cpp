@@ -62,7 +62,7 @@ specGen.setParameters(param);
 specGen.getCommonIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 3, true, 3);
 specGen.getCommonIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true, 3);
 
-START_SECTION(mergeAnnotatedSpectra())
+START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum))
 
   PeakSpectrum merged_spec = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theo_spec_1, theo_spec_2);
 
@@ -84,7 +84,7 @@ START_SECTION(mergeAnnotatedSpectra())
 
 END_SECTION
 
-START_SECTION(nLargestSpectrumFilter())
+START_SECTION( static void nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count))
 
   OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(theo_spec_1, 5);
   TEST_EQUAL(theo_spec_1.size(), 5)
@@ -97,7 +97,7 @@ START_SECTION(nLargestSpectrumFilter())
 
 END_SECTION
 
-START_SECTION(getSpectrumAlignment())
+START_SECTION(static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0))
   std::vector <std::pair <Size, Size> > alignment1;
   std::vector <std::pair <Size, Size> > alignment2;
 
@@ -115,7 +115,7 @@ START_SECTION(getSpectrumAlignment())
 
 END_SECTION
 
-START_SECTION(deisotopeAndSingleChargeMSSpectrum())
+START_SECTION(static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false))
 
   // this is basically testing, that nothing weird happens to an already deisotoped spectrum
   // TODO expand tests, use spectra with isotopic patterns

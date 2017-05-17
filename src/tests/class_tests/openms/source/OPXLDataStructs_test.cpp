@@ -54,16 +54,8 @@ START_TEST(OPXLDataStructs, "$Id$")
   cross_link.term_spec_alpha = ResidueModification::N_TERM;
   cross_link.term_spec_beta = ResidueModification::ANYWHERE;
 
-START_SECTION(ProteinProteinCrossLink)
+START_SECTION(ProteinProteinCrossLink())
 
-//  OPXLDataStructs::ProteinProteinCrossLink cross_link;
-//  cross_link.alpha = AASequence::fromString("PEPTIDE");
-//  cross_link.beta = AASequence::fromString("EDEPITPEPE");
-//  cross_link.cross_link_position = std::make_pair<SignedSize, SignedSize>(3, 5);
-//  cross_link.cross_linker_mass = 150.0;
-//  cross_link.cross_linker_name = "NOTDSS";
-//  cross_link.term_spec_alpha = ResidueModification::N_TERM;
-//  cross_link.term_spec_beta = ResidueModification::ANYWHERE;
   TEST_EQUAL(cross_link.getType(), OPXLDataStructs::CROSS)
 
   cross_link.beta = AASequence::fromString("");
@@ -75,7 +67,7 @@ START_SECTION(ProteinProteinCrossLink)
 END_SECTION
 
 
-START_SECTION(XLPrecursor)
+START_SECTION(XLPrecursor())
 
   std::vector<OPXLDataStructs::XLPrecursor> precursors;
   for (Size i = 20; i > 1; --i)
@@ -102,7 +94,7 @@ START_SECTION(XLPrecursor)
 
 END_SECTION
 
-START_SECTION(AASeqWithMass)
+START_SECTION(AASeqWithMass())
 
   std::vector<OPXLDataStructs::AASeqWithMass> peptides;
 
