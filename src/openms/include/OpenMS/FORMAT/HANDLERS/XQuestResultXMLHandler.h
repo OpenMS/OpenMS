@@ -105,6 +105,15 @@ namespace OpenMS
       std::vector< std::vector< PeptideIdentification > > & csms_;
       std::vector< ProteinIdentification > & prot_ids_;
 
+      UInt n_hits_; // Total no. of hits found in the result XML file
+
+      // Keeps track of the minscore and maxscore encountered
+      double min_score_;
+      double max_score_;
+
+      Size min_n_ions_per_spectrum_;
+      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
+
       // Whether or not current xquest result tag comes from OpenProXL (xQuest otherwise)
       bool is_openproxl_;
 
@@ -119,10 +128,6 @@ namespace OpenMS
       UInt min_precursor_charge_;
       UInt max_precursor_charge_;
 
-      // Keeps track of the minscore and maxscore encountered
-      double min_score_;
-      double max_score_;
-
       // Current Retention time of light spectrum
       double rt_light_;
 
@@ -131,9 +136,6 @@ namespace OpenMS
 
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
-      UInt n_hits_; // Total no. of hits found in the result XML file
-      Size min_n_ions_per_spectrum_;
-      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
 
       // Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values_;
