@@ -356,6 +356,7 @@ namespace OpenMS
         peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
 
         PeptideHit peptide_hit_alpha;
+        PeptideHit peptide_hit_beta;
         vector<PeptideHit> peptide_hits;
         // XL Type, determined by "type"
         String xlink_type_string = this->attributeAsString_(attributes, "type");
@@ -437,7 +438,6 @@ namespace OpenMS
           search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
           this->prot_ids_[0].setSearchParameters(search_params);
 
-          PeptideHit peptide_hit_beta;
           peptide_hit_beta.setScore(score);
 
           String seq2 = String(this->attributeAsString_(attributes, "seq2"));
@@ -502,7 +502,6 @@ namespace OpenMS
                                  DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
             }
           }
-          peptide_hits.push_back(peptide_hit_beta);
         }
         else if (xlink_type_string == "intralink")
         {
@@ -535,6 +534,12 @@ namespace OpenMS
 
         // Finalize this record
         peptide_hits.push_back(peptide_hit_alpha);
+
+        if (peptide_hit_beta.metaValueExists("xl_pos"))
+        {
+          peptide_hits.push_back(peptide_hit_beta);
+        }
+
         peptide_identification.setHits(peptide_hits);
         this->peptide_id_meta_values_.clear();
         this->current_spectrum_search_.push_back(peptide_identification);
