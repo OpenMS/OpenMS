@@ -93,7 +93,6 @@ MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
-XQuestXMLWriter.h
 ZlibCompression.h
 )
 
