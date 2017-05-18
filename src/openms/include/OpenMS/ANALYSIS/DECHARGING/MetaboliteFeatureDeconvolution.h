@@ -50,9 +50,9 @@ namespace OpenMS
   class Compomer;
 
   /**
-    @brief An algorithm to decharge features (i.e. as found by FeatureFinder).
+    @brief An algorithm to decharge small molecule features (i.e. as found by FeatureFinder).
 
-    @htmlinclude OpenMS_FeatureDeconvolution.parameters
+    @htmlinclude OpenMS_MetaboliteFeatureDeconvolution.parameters
 
     @ingroup Analysis
   */

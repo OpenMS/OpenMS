@@ -111,15 +111,15 @@ namespace OpenMS
   };
 
   MetaboliteFeatureDeconvolution::MetaboliteFeatureDeconvolution() :
-    DefaultParamHandler("FeatureDeconvolution"),
+    DefaultParamHandler("MetaboliteFeatureDeconvolution"),
     potential_adducts_(),
     map_label_(),
     map_label_inverse_(),
     enable_intensity_filter_(false)
   {
     defaults_.setValue("charge_min", 1, "Minimal possible charge");
-    defaults_.setValue("charge_max", 10, "Maximal possible charge");
-    defaults_.setValue("charge_span_max", 4, "Maximal range of charges for a single analyte, i.e. observing q1=[5,6,7] implies span=3. Setting this to 1 will only find adduct variants of the same charge");
+    defaults_.setValue("charge_max", 3, "Maximal possible charge");
+    defaults_.setValue("charge_span_max", 3, "Maximal range of charges for a single analyte, i.e. observing q1=[5,6,7] implies span=3. Setting this to 1 will only find adduct variants of the same charge");
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
     defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
     defaults_.setValidStrings("q_try", ListUtils::create<String>("feature,heuristic,all"));
@@ -127,7 +127,7 @@ namespace OpenMS
     defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
     defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
     /// TODO should be m/z ppm?!
-    defaults_.setValue("mass_max_diff", 0.5, "Maximum allowed mass difference [in Th] for a single feature.");
+    defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass difference [in Th] for a single feature.");
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
     defaults_.setValue("potential_adducts", ListUtils::create<String>("H+:0.9"), "Adducts used to explain mass differences in format: 'Element(+)*:Probability[:RTShift[:Label]]', i.e. the number of '+' indicate the charge, e.g. 'Ca++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fourth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
@@ -183,7 +183,7 @@ namespace OpenMS
       it->split(':', adduct);
       if (adduct.size() != 2 && adduct.size() != 3 && adduct.size() != 4)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two, three or four entries ('Element:Probability' or 'Element:Probability:RTShift' or 'Element:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two, three or four entries ('Element:Probability' or 'Element:Probability:RTShift' or 'Element:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine charge of adduct (by # of '+')
@@ -193,7 +193,7 @@ namespace OpenMS
       float prob = adduct[1].toFloat();
       if (prob > 1.0 || prob <= 0.0)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
+        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       EmpiricalFormula ef(adduct[0].remove('+'));
@@ -219,7 +219,7 @@ namespace OpenMS
       }
 
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), adduct[0].remove('+'), log(prob), rt_shift, label);
-      //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.toString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
+      //std::cout << "MetaboliteFeatureDeconvolution: inserting potential adduct " << ef.toString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
       potential_adducts_.push_back(a);
 
       verbose_level_ = param_.getValue("verbose_level");
@@ -251,7 +251,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  MetaboliteFeatureDeconvolution::FeatureDeconvolution(const MetaboliteFeatureDeconvolution& source) :
+  MetaboliteFeatureDeconvolution::MetaboliteFeatureDeconvolution(const MetaboliteFeatureDeconvolution& source) :
     DefaultParamHandler(source),
     potential_adducts_(source.potential_adducts_),
     map_label_(source.map_label_),
@@ -416,7 +416,7 @@ namespace OpenMS
             CoordinateType naive_mass_diff = mz2 * q2 - m1;
             double abs_mass_diff = mz_diff_max * q1 + mz_diff_max * q2; // tolerance must increase when looking at M instead of m/z, as error margins increase as well
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
-            OPENMS_PRECONDITION(hits >= 0, "FeatureDeconvolution querying #hits got negative result!");
+            OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
 
             // DEBUG: write out all mass values that need explanation:
             /*if (fabs(naive_mass_diff) < 150.0)
@@ -520,7 +520,7 @@ namespace OpenMS
 
               if (best_hit == null_compomer)
               {
-                //std::cout << "FeatureDeconvolution.h:: could not find a compomer which complies with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
+                //std::cout << "MetaboliteFeatureDeconvolution.h:: could not find a compomer which complies with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
                 ++no_cmp_hit;
               }
               else
@@ -1115,7 +1115,7 @@ namespace OpenMS
             }
             else
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): discovered internal error!", String(new_cmp.getNegativeCharges()));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaboliteFeatureDeconvolution::inferMoreEdges_(): discovered internal error!", String(new_cmp.getNegativeCharges()));
             }
           }
 

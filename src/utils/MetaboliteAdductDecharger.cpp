@@ -36,7 +36,7 @@
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 
-#include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
+#include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -116,9 +116,9 @@ protected:
   Param getSubsectionDefaults_(const String & /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
-    FeatureDeconvolution fdc;
+    MetaboliteFeatureDeconvolution fdc;
     Param tmp;
-    tmp.insert("FeatureDeconvolution:", fdc.getParameters());
+    tmp.insert("MetaboliteFeatureDeconvolution:", fdc.getParameters());
     return tmp;
   }
 
@@ -132,8 +132,8 @@ protected:
     String outfile_cm = getStringOption_("out_cm");
     String outfile_p = getStringOption_("outpairs");
 
-    FeatureDeconvolution fdc;
-    Param const & dc_param = getParam_().copy("algorithm:FeatureDeconvolution:", true);
+    MetaboliteFeatureDeconvolution fdc;
+    Param const & dc_param = getParam_().copy("algorithm:MetaboliteFeatureDeconvolution:", true);
 
     writeDebug_("Parameters passed to MetaboliteAdductDecharger", dc_param, 3);
 
