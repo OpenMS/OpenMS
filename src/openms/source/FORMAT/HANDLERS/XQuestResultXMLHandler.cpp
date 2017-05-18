@@ -148,7 +148,7 @@ namespace OpenMS
       vector< PeptideEvidence > evidences;
       evidences.reserve(prot_list.size());
 
-      for( StringList::const_iterator prot_list_it = prot_list.begin();
+      for (StringList::const_iterator prot_list_it = prot_list.begin();
            prot_list_it != prot_list.end(); ++prot_list_it)
       {
         PeptideEvidence pep_ev;
@@ -230,7 +230,7 @@ namespace OpenMS
         {
           /* Currently the correct rank order within the xQuest file is assumed
             vector< PeptideIdentification > newvec(current_spectrum_size);
-            for(vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
+            for (vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
                 it != this->current_spectrum_search.end(); ++it)
             {
               int index = (int) it->getMetaValue("xl_rank") - 1;
