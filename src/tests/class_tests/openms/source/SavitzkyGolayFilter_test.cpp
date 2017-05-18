@@ -39,7 +39,6 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 ///////////////////////////
 
@@ -100,10 +99,10 @@ START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<P
 
 	param.setValue("frame_length",4);
 
-	MSExperiment<RichPeak1D> exp;
+	PeakMap exp;
   exp.resize(4);
 
-  RichPeak1D p;
+  Peak1D p;
   for (int i=0; i<9; ++i)
   {
   	p.setIntensity(0.0f);

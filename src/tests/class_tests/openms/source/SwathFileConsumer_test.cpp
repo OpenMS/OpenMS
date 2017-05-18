@@ -54,7 +54,7 @@ static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath:
   return left.lower < right.lower;
 }
 
-void getSwathFile(MSExperiment<>& exp, int nr_swathes=32, bool ms1=true)
+void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
 {
   if (ms1)
   {
@@ -102,7 +102,7 @@ END_SECTION
 START_SECTION(([EXTRA] consumeAndRetrieve))
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -133,7 +133,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_known_boundaries))
 {
   // Using the second constructor
   std::vector< OpenSwath::SwathMap > boundaries;
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
   for (int i = 0; i< 32; i++)
   {
@@ -178,7 +178,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_scrambled))
   // of the MS2 spectra and consumer another 5 MS2 spectra.
 
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
 
   regular_sfc_ptr->consumeSpectrum(exp.getSpectra()[6]);   // MS2
@@ -224,7 +224,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_scrambled_known_boundaries))
 {
   // Using the second constructor
   std::vector< OpenSwath::SwathMap > boundaries;
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp);
   // add some extra windows for confusion
   for (int i = 0; i < 2; i++)
@@ -312,7 +312,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
   int nr_swath = 32;
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, false);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -343,7 +343,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
 {
   int nr_swath = 0;
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, true);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -430,7 +430,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve))
   int nr_swath = 2;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -468,7 +468,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
   int nr_swath = 2;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, false);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)
@@ -500,7 +500,7 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
   int nr_swath = 0;
   std::vector<int> nr_ms2_spectra(nr_swath,1);
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 1, nr_ms2_spectra);
-  MSExperiment<> exp;
+  PeakMap exp;
   getSwathFile(exp, nr_swath, true);
   // Consume all the spectra
   for (Size i = 0; i < exp.getSpectra().size(); i++)

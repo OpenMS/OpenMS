@@ -38,6 +38,8 @@
 ///////////////////////////
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <vector>
 ///////////////////////////
 

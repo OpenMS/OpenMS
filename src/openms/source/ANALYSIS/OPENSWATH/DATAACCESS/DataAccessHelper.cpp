@@ -33,21 +33,23 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 namespace OpenMS
 {
   void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<> & spectrum)
   {
-    // recreate a spectrum from the data arrays!
-    OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
-    OpenSwath::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
-    spectrum.reserve(mz_arr->data.size());
-    for (Size i = 0; i < mz_arr->data.size(); i++)
+    spectrum.reserve(sptr->getMZArray()->data.size());
+
+    std::vector<double>::const_iterator mz_it = sptr->getMZArray()->data.begin();
+    std::vector<double>::const_iterator int_it = sptr->getIntensityArray()->data.begin();
+    for (; mz_it != sptr->getMZArray()->data.end(); ++mz_it, ++int_it)
     {
       Peak1D p;
-      p.setMZ(mz_arr->data[i]);
-      p.setIntensity(int_arr->data[i]);
+      p.setMZ(*mz_it);
+      p.setIntensity(*int_it);
       spectrum.push_back(p);
     }
   }
@@ -68,17 +70,38 @@ namespace OpenMS
     return sptr;
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram<> & chromatogram)
   {
-    OpenSwath::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
-    OpenSwath::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
-    chromatogram.reserve(rt_arr->data.size());
-    for (Size i = 0; i < rt_arr->data.size(); i++)
+    chromatogram.reserve(cptr->getTimeArray()->data.size());
+
+    std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
+    std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
+    for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
     {
-      ChromatogramPeak p;
-      p.setRT(rt_arr->data[i]);
-      p.setIntensity(int_arr->data[i]);
-      chromatogram.push_back(p);
+      ChromatogramPeak peak;
+      peak.setRT(*rt_it);
+      peak.setIntensity(*int_it);
+      chromatogram.push_back(peak);
+    }
+  }
+
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr, 
+                                                                    double rt_min, double rt_max)
+  {
+    chromatogram.reserve(cptr->getTimeArray()->data.size());
+
+    std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
+    std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
+    for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
+    {
+      if (*rt_it < rt_min || *rt_it > rt_max)
+      {
+        continue;
+      }
+      ChromatogramPeak peak;
+      peak.setRT(*rt_it);
+      peak.setIntensity(*int_it);
+      chromatogram.push_back(peak);
     }
   }
 
@@ -172,7 +195,7 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
-    OpenSwath::LightModification m;
+    OpenSwath::LightModification light_mod;
 
     p.id = pep.id;
     if (!pep.rts.empty())
@@ -206,20 +229,22 @@ namespace OpenMS
     // Mapping of peptide modifications (don't do this for metabolites...)
     if (p.isPeptide())
     {
+
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
+
       if (aa_sequence.hasNTerminalModification())
       {
         const ResidueModification& rmod = *(aa_sequence.getNTerminalModification());
-        m.location = -1;
-        m.unimod_id = rmod.getUniModAccession();
-        p.modifications.push_back(m);
+        light_mod.location = -1;
+        light_mod.unimod_id = rmod.getUniModRecordId();
+        p.modifications.push_back(light_mod);
       }
       if (aa_sequence.hasCTerminalModification())
       {
         const ResidueModification& rmod = *(aa_sequence.getCTerminalModification());
-        m.location = boost::numeric_cast<int>(aa_sequence.size());
-        m.unimod_id = rmod.getUniModAccession();
-        p.modifications.push_back(m);
+        light_mod.location = boost::numeric_cast<int>(aa_sequence.size());
+        light_mod.unimod_id = rmod.getUniModRecordId();
+        p.modifications.push_back(light_mod);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
@@ -227,9 +252,9 @@ namespace OpenMS
         {
           // search the residue in the modification database (if the sequence is valid, we should find it)
           const ResidueModification& rmod = *(aa_sequence.getResidue(i).getModification());
-          m.location = boost::numeric_cast<int>(i);
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+          light_mod.location = boost::numeric_cast<int>(i);
+          light_mod.unimod_id = rmod.getUniModRecordId();
+          p.modifications.push_back(light_mod);
         }
       }
 
@@ -265,7 +290,7 @@ namespace OpenMS
     {
       TargetedExperimentHelper::setModification(it->location, 
                                                 boost::numeric_cast<int>(peptide.sequence.size()), 
-                                                it->unimod_id, aa_sequence);
+                                                "UniMod:" + String(it->unimod_id), aa_sequence);
     }
   }
 

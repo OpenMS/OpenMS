@@ -127,7 +127,7 @@ protected:
     }
     writeLog_("Splitting file into " + String(parts) + " parts...");
 
-    MSExperiment<> experiment;
+    PeakMap experiment;
     MzMLFile().load(in, experiment);
 
     vector<MSSpectrum<Peak1D> > spectra;
@@ -161,7 +161,7 @@ protected:
       ostringstream out_name;
       out_name << out << "_part" << setw(width) << setfill('0') << counter
                << "of" << parts << ".mzML";
-      MSExperiment<> part = experiment;
+      PeakMap part = experiment;
       addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
 
       Size remaining = parts - counter + 1;

@@ -84,7 +84,7 @@ using namespace std;
 
 */
 
-typedef MSExperiment<Peak1D> MapType;
+typedef PeakMap MapType;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

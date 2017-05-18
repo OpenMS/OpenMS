@@ -38,6 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -113,7 +114,7 @@ public:
 
     /// Adds a peak map
     template <class PeakType>
-    void add(MSExperiment<PeakType> & exp)
+    void add(PeakMap & exp)
     {
       add(static_cast<ExperimentalSettings &>(exp));
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());

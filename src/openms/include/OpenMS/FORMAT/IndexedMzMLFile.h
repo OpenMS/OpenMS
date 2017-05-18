@@ -44,8 +44,6 @@
 #include <string>
 #include <fstream>
 
-//#define DEBUG_READER
-
 namespace OpenMS
 {
 
@@ -175,4 +173,5 @@ namespace OpenMS
   };
 }
 
-#endif
+#endif // OPENMS_FORMAT_INDEXEDMZMLFILE_H
+

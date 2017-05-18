@@ -10,6 +10,7 @@ CVTermList.h
 CVTermListInterface.h
 ChromatogramSettings.h
 ContactPerson.h
+DataArrays.h
 DataProcessing.h
 Digestion.h
 DocumentIDTagger.h

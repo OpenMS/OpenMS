@@ -39,6 +39,9 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h> //ONLY used for checking if pepxml transformation produced a reusable id file
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -70,7 +73,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   String pep_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.pepxml");
   String mz_file = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
   String exp_name = "PepXMLFile_test";
-  MSExperiment<> experiment;
+  PeakMap experiment;
   MzMLFile().load(mz_file, experiment);
   SpectrumMetaDataLookup lookup;
   lookup.readSpectra(experiment.getSpectra());

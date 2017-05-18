@@ -35,6 +35,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 using namespace std;
 
@@ -129,26 +130,20 @@ namespace OpenMS
     fixed_mods_.clear();
     variable_mods_.clear();
 
-    if (!fixed_modifications.empty())
+    for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
     {
-      for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
-      {
-        ModificationDefinition def;
-        def.setModification(*it);
-        def.setFixedModification(true);
-        fixed_mods_.insert(def);
-      }
+      ModificationDefinition def;
+      def.setModification(*it);
+      def.setFixedModification(true);
+      fixed_mods_.insert(def);
     }
 
-    if (!variable_modifications.empty())
+    for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
-      for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
-      {
-        ModificationDefinition def;
-        def.setModification(*it);
-        def.setFixedModification(false);
-        variable_mods_.insert(def);
-      }
+      ModificationDefinition def;
+      def.setModification(*it);
+      def.setFixedModification(false);
+      variable_mods_.insert(def);
     }
   }
 
@@ -168,11 +163,11 @@ namespace OpenMS
     set<String> mod_names;
     for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     return mod_names;
   }
@@ -192,7 +187,7 @@ namespace OpenMS
     set<String> mod_names;
     for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     return mod_names;
   }
@@ -202,7 +197,7 @@ namespace OpenMS
     set<String> mod_names;
     for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
     {
-      mod_names.insert(it->getModification());
+      mod_names.insert(it->getModificationName());
     }
     return mod_names;
   }
@@ -228,36 +223,33 @@ namespace OpenMS
     }
 
     // check whether the fixed modifications are fulfilled
-    if (!fixed_names.empty())
+    for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
     {
-      for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
+      String origin = ModificationsDB::getInstance()->getModification(*it1).getOrigin();
+      // only single 1lc amino acids are allowed
+      if (origin.size() != 1)
       {
-        String origin = ModificationsDB::getInstance()->getModification(*it1).getOrigin();
-        // only single 1lc amino acids are allowed
-        if (origin.size() != 1)
+        continue;
+      }
+      for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
+      {
+        if (origin == it2->getOneLetterCode())
         {
-          continue;
-        }
-        for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
-        {
-          if (origin == it2->getOneLetterCode())
+          // check whether the residue is modified (has to be)
+          if (!it2->isModified())
           {
-            // check whether the residue is modified (has to be)
-            if (!it2->isModified())
-            {
-              return false;
-            }
-            // check whether the modification is the same
-            if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModificationName())
-            {
-              return false;
-            }
+            return false;
+          }
+          // check whether the modification is the same
+          if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModificationName())
+          {
+            return false;
           }
         }
       }
     }
 
-    // check wether other modifications than the variable are present
+    // check whether other modifications than the variable are present
     for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it)
     {
       if (it->isModified())
@@ -304,6 +296,64 @@ namespace OpenMS
   bool ModificationDefinitionsSet::operator!=(const ModificationDefinitionsSet& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  void ModificationDefinitionsSet::addMatches_(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, const set<ModificationDefinition>& source, bool is_delta, double tolerance)
+  {
+    for (set<ModificationDefinition>::const_iterator it = source.begin();
+         it != source.end(); ++it)
+    {
+      const ResidueModification& mod = it->getModification();
+      // do the residues match?
+      char origin = mod.getOrigin();
+      if (!(residue.empty() || (origin == 'X') || (residue[0] == origin) ||
+            (residue == ".") || (residue == "X"))) continue;
+      // do the term specificities match?
+      if (!((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+            (term_spec == mod.getTermSpecificity()))) continue;
+      // do the masses match?
+      double mass_error = tolerance;
+      if (is_delta)
+      {
+        mass_error = fabs(mod.getDiffMonoMass() - mass);
+        if (mass_error > tolerance) continue;
+      }
+      else
+      {
+        double mod_mass = mod.getMonoMass();
+        if ((mod_mass <= 0) && !residue.empty())
+        {
+          // no absolute mass stored? - calculate it based on the residue
+          // (see 'ModificationsDB::getBestModificationByMonoMass'):
+          const Residue* res = ResidueDB::getInstance()->getResidue(residue);
+          if (res == 0) continue;
+          double weight = (res->getMonoWeight() - 
+                           res->getInternalToFull().getMonoWeight());
+          mod_mass = mod.getDiffMonoMass() + weight;
+        }
+        mass_error = fabs(mod_mass - mass);
+        if (mass_error > tolerance) continue;
+      }
+      matches.insert(make_pair(mass_error, *it));
+    }
+  }
+
+  void ModificationDefinitionsSet::findMatches(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, bool consider_fixed, bool consider_variable, bool is_delta, double tolerance) const
+  {
+    if (!consider_variable && !consider_fixed)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No modifications to consider - set 'consider_variable' and/or 'consider_fixed' to true.");
+    }
+
+    matches.clear();
+    if (consider_fixed)
+    {
+      addMatches_(matches, mass, residue, term_spec, fixed_mods_, is_delta, tolerance);
+    }
+    if (consider_variable)
+    {
+      addMatches_(matches, mass, residue, term_spec, variable_mods_, is_delta, tolerance);
+    }
   }
 
 } // namespace OpenMS

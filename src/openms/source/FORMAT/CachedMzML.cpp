@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/CachedMzML.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 namespace OpenMS
 {
 

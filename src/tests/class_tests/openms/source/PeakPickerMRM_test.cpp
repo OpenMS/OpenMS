@@ -44,12 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
-/*
-// TODO also test the picker with the LightTransition interface
-// typedef MRMTransitionGroup<RichPeakChromatogram, OpenSwath::LightTransition> MRMTransitionGroupType;
-typedef MRMTransitionGroup<RichPeakChromatogram, ReactionMonitoringTransition> MRMTransitionGroupType;
-*/
+typedef MSChromatogram<> RichPeakChromatogram;
 
 RichPeakChromatogram get_chrom(int i)
 {

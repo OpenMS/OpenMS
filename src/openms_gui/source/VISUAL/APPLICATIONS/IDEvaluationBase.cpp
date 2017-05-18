@@ -384,7 +384,7 @@ namespace OpenMS
 
     data_.addSpectrum(points);
 
-    MSExperiment<>* exp = new MSExperiment<>();
+    PeakMap* exp = new PeakMap();
     exp->addSpectrum(points);
     spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
     spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, points.getMetaValue("search_engine"));
@@ -394,7 +394,7 @@ namespace OpenMS
     return true;
   }
   
-  const MSExperiment<>& IDEvaluationBase::getPoints() const
+  const PeakMap& IDEvaluationBase::getPoints() const
   {
      return data_;
   }

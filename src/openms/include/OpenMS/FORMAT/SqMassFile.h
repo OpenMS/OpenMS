@@ -28,79 +28,61 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/HANDLERS/XTandemInfileXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
+#ifndef OPENMS_FORMAT_SQMASS_H
+#define OPENMS_FORMAT_SQMASS_H
 
-using namespace std;
-using namespace xercesc;
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
-  namespace Internal
+
+  /**
+    @brief An class that uses on-disk SQLite database to read and write spectra and chromatograms
+
+    This class provides functions to read and write spectra and chromatograms
+    to disk using a SQLite database.
+
+  */
+  class OPENMS_DLLAPI SqMassFile
   {
+public:
 
-    XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String & filename, vector<XTandemInfileNote> & notes) :
-      XMLHandler(filename, ""),
-      notes_(notes), // this is a reference!
-      actual_note_(),
-      tag_()
-    {
-    }
+    typedef MSExperiment MapType;
 
-    XTandemInfileXMLHandler::~XTandemInfileXMLHandler()
-    {
-    }
+    /** @name Constructors and Destructor
+    */
+    //@{
+    /// Default constructor
+    SqMassFile();
 
-    void XTandemInfileXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
-    {
+    /// Default destructor
+    ~SqMassFile();
+    //@}
 
-      tag_.push_back(String(sm_.convert(qname)));
+    /** @name Read / Write a complete mass spectrometric experiment
+    */
+    //@{
 
-      if (tag_.back() == "note")
-      {
-        int type_idx = attributes.getIndex(sm_.convert("type"));
-        int label_idx = attributes.getIndex(sm_.convert("label"));
+    void load(const String& filename, MapType& map);
 
-        if (type_idx != -1)
-        {
-          actual_note_.note_type = String(sm_.convert(attributes.getValue(type_idx)));
-        }
-        if (label_idx != -1)
-        {
-          actual_note_.note_label = String(sm_.convert(attributes.getValue(label_idx)));
-        }
-      }
+    void store(const String& filename, MapType& map);
 
-    }
+    // maybe later ...
+    // static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
+    //                                     OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level,
+    //                                     double& rt)
 
-    void XTandemInfileXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
-    {
-      String tag_close = String(sm_.convert(qname)).trim();
-      if (tag_.back() != tag_close)
-      {
-        fatalError(LOAD, "Invalid closing/opening tag sequence. Unexpected tag '</ " + tag_close + ">'!");
-      }
-      if (tag_.back() == "note")
-      {
-        notes_.push_back(actual_note_);
-        // prepare for new note
-        actual_note_ = XTandemInfileNote();
-      }
-      
-      tag_.pop_back();
-    }
+    // static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1,
+    //                                        OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
 
-    void XTandemInfileXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
-    {
-      if (tag_.back() == "note")
-      {
-        actual_note_.note_value = ((String)sm_.convert(chars)).trim();
-      }
-    }
+protected:
 
-  }   // namespace Internal
-} // namespace OpenMS
+  };
+}
+
+#endif // OPENMS_FORMAT_SQMASS_H
+

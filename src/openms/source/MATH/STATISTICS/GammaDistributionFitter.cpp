@@ -70,7 +70,11 @@ namespace OpenMS
       int values() const { return m_values; }
 
       GammaFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data) :
-        m_inputs(dimensions), m_values(data->size()), m_data(data) {}
+        m_inputs(dimensions), 
+        m_values(static_cast<int>(data->size())), 
+        m_data(data) 
+      {
+      }
 
       int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
       {

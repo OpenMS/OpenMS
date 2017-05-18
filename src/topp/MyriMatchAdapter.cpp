@@ -466,7 +466,7 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
 
-    MSExperiment<> exp;
+    PeakMap exp;
     if (File::exists(pep_file))
     {
       MzMLFile fh;

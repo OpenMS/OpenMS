@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>

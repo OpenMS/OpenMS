@@ -37,6 +37,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -66,7 +67,7 @@ END_SECTION
 
 START_SECTION((template<typename PeakConstIterator> SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const))
 	DTAFile file;
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(4);
 	PeakTypeEstimator pte;
 	// raw data (with zeros)

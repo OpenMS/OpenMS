@@ -68,7 +68,7 @@ START_SECTION(~FeatureFindingMetabo())
 END_SECTION
 
 // load a mzML file for testing the algorithm
-MSExperiment<Peak1D> input;
+PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input1.mzML"), input);
 
 FeatureMap test_fm;

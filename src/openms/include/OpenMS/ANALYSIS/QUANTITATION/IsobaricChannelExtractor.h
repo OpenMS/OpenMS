@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -89,7 +90,7 @@ public:
       @param ms_exp_data Raw data to search for isobaric quantitation channels.
       @param consensus_map Output map containing the identified channels and the corresponding intensities.
     */
-    void extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
+    void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
 
 private:
     /**
@@ -102,21 +103,21 @@ private:
     struct PuritySate_
     {
       /// Iterator pointing to the potential MS1 precursor scan
-      MSExperiment<Peak1D>::ConstIterator precursorScan;
+      PeakMap::ConstIterator precursorScan;
       /// Iterator pointing to the potential follow up MS1 scan
-      MSExperiment<Peak1D>::ConstIterator followUpScan;
+      PeakMap::ConstIterator followUpScan;
 
       /// Indicates if a follow up scan was found
       bool hasFollowUpScan;
       /// reference to the experiment to analyze
-      const MSExperiment<Peak1D>& baseExperiment;
+      const PeakMap& baseExperiment;
 
       /**
         @brief C'tor taking the experiment that will be analyzed.
 
         @param targetExp The experiment that will be analyzed.
       */
-      PuritySate_(const MSExperiment<>& targetExp);
+      PuritySate_(const PeakMap& targetExp);
 
       /**
         @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
@@ -189,7 +190,7 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate_& pState) const;
+    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const;
 
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
@@ -198,7 +199,7 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computeSingleScanPrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const;
+    double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
 
 protected:
     /// implemented for DefaultParamHandler

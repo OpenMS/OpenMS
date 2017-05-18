@@ -46,7 +46,7 @@ int main(int argc, const char** argv)
   MzMLFile mzml;
 
   // temporary data storage
-  MSExperiment<Peak1D> map;
+  PeakMap map;
 
   // convert MzXML to MzML
   mzxml.load(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map);

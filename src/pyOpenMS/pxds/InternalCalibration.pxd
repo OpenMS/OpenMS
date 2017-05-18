@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         InternalCalibration(InternalCalibration) nogil except +
 
 
-        Size fillCalibrants(MSExperiment[Peak1D,ChromatogramPeak],
+        Size fillCalibrants(MSExperiment,
                             libcpp_vector[InternalCalibration_LockMass],
                             double tol_ppm,
                             bool lock_require_mono,
@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
         Size fillCalibrants(FeatureMap, double) nogil except +
         Size fillCalibrants(libcpp_vector[PeptideIdentification], double) nogil except +
         CalibrationData getCalibrationPoints() nogil except +
-        bool calibrate(MSExperiment[Peak1D,ChromatogramPeak],
+        bool calibrate(MSExperiment,
                        libcpp_vector[int],
                        MZTrafoModel_MODELTYPE,
                        double rt_chunk,
@@ -51,7 +51,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                              MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
     void applyTransformation(MSSpectrum[Peak1D] & spec, IntList& target_mslvl,
                              MZTrafoModel & trafo) nogil except + # wrap-attach:InternalCalibration
-    void applyTransformation(MSExperiment[Peak1D, ChromatogramPeak] & exp,
+    void applyTransformation(MSExperiment & exp,
                              IntList& target_mslvl, MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
 
 cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":

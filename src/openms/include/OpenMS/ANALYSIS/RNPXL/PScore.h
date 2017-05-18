@@ -37,6 +37,10 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <vector>
+#include <map>
+
 namespace OpenMS
 {
   /**

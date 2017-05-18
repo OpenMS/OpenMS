@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>

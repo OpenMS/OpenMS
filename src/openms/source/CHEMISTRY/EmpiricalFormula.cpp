@@ -101,6 +101,22 @@ namespace OpenMS
     return weight;
   }
 
+  bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double remaining_weight = average_weight - S * db->getElement("S")->getAverageWeight();
+
+    // The number of sulfurs is set to 0 because we're explicitly specifying their count.
+    // We propagate the return value to let the programmer know if the approximation succeeded
+    // without requesting a negative number of hydrogens.
+    bool ret = estimateFromWeightAndComp(remaining_weight, C, H, N, O, 0.0, P);
+
+    formula_.at(db->getElement("S")) = S;
+
+    return ret;
+  }
+
   bool EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
     const ElementDB* db = ElementDB::getInstance();

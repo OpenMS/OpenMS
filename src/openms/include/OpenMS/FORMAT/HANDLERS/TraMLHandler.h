@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 

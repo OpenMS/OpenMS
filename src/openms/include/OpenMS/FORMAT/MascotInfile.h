@@ -71,7 +71,7 @@ public:
     void store(const String & filename, const PeakSpectrum & spec, double mz, double retention_time, String search_title);
 
     /// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
-    void store(const String & filename, const MSExperiment<> & experiment, String search_title);
+    void store(const String & filename, const PeakMap & experiment, String search_title);
 
     /** loads a Mascot Generic File into a PeakMap
 
@@ -269,7 +269,7 @@ protected:
     /// writes the MSExperiment
     void writeMSExperiment_(FILE * fp,
                             const String & filename,
-                            const MSExperiment<> & experiment);
+                            const PeakMap & experiment);
 
     bool getNextSpectrum_(std::istream & is, std::vector<std::pair<double, double> > & spectrum, UInt & charge, double & precursor_mz, double & precursor_int, double & rt, String & title);
   };

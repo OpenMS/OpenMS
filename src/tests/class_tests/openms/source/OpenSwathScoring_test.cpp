@@ -124,7 +124,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
   // test result for empty map
   {
-    boost::shared_ptr<MSExperiment<> > swath_map (new MSExperiment<>);
+    boost::shared_ptr<PeakMap > swath_map (new PeakMap);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     OpenSwathScoring sc;
@@ -135,7 +135,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
   // test result for map with single spectrum
   {
-    MSExperiment<>* eptr = new MSExperiment<>;
+    PeakMap* eptr = new PeakMap;
     MSSpectrum<> s;
     Peak1D p;
     p.setMZ(20.0);
@@ -143,7 +143,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
     s.push_back(p);
     s.setRT(20.0);
     eptr->addSpectrum(s);
-    boost::shared_ptr<MSExperiment<> > swath_map (eptr);
+    boost::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 1)
@@ -159,7 +159,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
   // test result for map with three spectra
   {
-    MSExperiment<>* eptr = new MSExperiment<>;
+    PeakMap* eptr = new PeakMap;
     MSSpectrum<> s;
     Peak1D p;
     p.setMZ(20.0);
@@ -171,7 +171,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
     eptr->addSpectrum(s);
     s.setRT(30.0);
     eptr->addSpectrum(s);
-    boost::shared_ptr<MSExperiment<> > swath_map (eptr);
+    boost::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 3)
@@ -187,7 +187,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
   // test result for map with uneven number of spectra
   {
-    MSExperiment<>* eptr = new MSExperiment<>;
+    PeakMap* eptr = new PeakMap;
     MSSpectrum<> s;
     Peak1D p;
     p.setMZ(20.0);
@@ -201,7 +201,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
     s.setRT(30.0);
     eptr->addSpectrum(s);
     */
-    boost::shared_ptr<MSExperiment<> > swath_map (eptr);
+    boost::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 2)

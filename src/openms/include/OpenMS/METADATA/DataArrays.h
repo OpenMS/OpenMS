@@ -28,72 +28,40 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Katharina Albers $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
+#ifndef OPENMS_METADATA_DATAARRAYS_H
+#define OPENMS_METADATA_DATAARRAYS_H
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/METADATA/MetaInfoDescription.h>
 
 namespace OpenMS
 {
-  /**
-     @deprecated Deprecated in OpenMS 1.7.
-
-   @brief A map feature grouping algorithm for identified features.
-
-   It takes many maps and searches for corresponding features.
-   The corresponding features must be aligned, but may have small position deviations.
-
-   @htmlinclude OpenMS_FeatureGroupingAlgorithmIdentification.parameters
-
-   @ingroup FeatureGrouping
-   */
-  class OPENMS_DLLAPI FeatureGroupingAlgorithmIdentification :
-    public FeatureGroupingAlgorithm
+  namespace DataArrays
   {
-public:
-    /// Default constructor
-    FeatureGroupingAlgorithmIdentification();
 
-    /// Destructor
-    virtual
-    ~FeatureGroupingAlgorithmIdentification();
+    ///Float data array class
+    class FloatDataArray :
+    public MetaInfoDescription,
+    public std::vector<float>
+    {};
 
-    /**
-     @brief Applies the algorithm
+    ///Integer data array class
+    class IntegerDataArray :
+    public MetaInfoDescription,
+    public std::vector<Int>
+    {};
 
-     @exception IllegalArgument is thrown if less than two input maps are given.
-     */
-    virtual void
-    group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
+    ///String data array class
+    class StringDataArray :
+    public MetaInfoDescription,
+    public std::vector<String>
+    {};
 
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm *
-    create()
-    {
-      return new FeatureGroupingAlgorithmIdentification();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String
-    getProductName()
-    {
-      return "identification";
-    }
-
-private:
-
-    /// Copy constructor intentionally not implemented -> private
-    FeatureGroupingAlgorithmIdentification(const FeatureGroupingAlgorithmIdentification &);
-    /// Assignment operator intentionally not implemented -> private
-    FeatureGroupingAlgorithmIdentification &
-    operator=(const FeatureGroupingAlgorithmIdentification &);
-
-  };
-
+  }
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMIDENTIFICATION_H
+
+#endif // OPENMS_METADATA_DATAARRAYS_H

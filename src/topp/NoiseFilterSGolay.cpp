@@ -193,7 +193,7 @@ public:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     mz_data_file.load(in, exp);
 
     if (exp.empty() && exp.getChromatograms().size() == 0)

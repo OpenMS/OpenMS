@@ -35,6 +35,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -62,7 +63,7 @@ namespace OpenMS
     *
     * @throw Exception::UnableToFit if the B-spline initialisation fails.
     */
-    PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries);
+    PeakWidthEstimator(const PeakMap & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries);
 
     /**
     * @brief returns the estimated peak width at m/z

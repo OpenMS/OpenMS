@@ -158,7 +158,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_exp_raw;
+    PeakMap ms_exp_raw;
     mz_data_file.load(in, ms_exp_raw);
 
     if (ms_exp_raw.empty())
@@ -186,7 +186,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
 
     Param pepi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to PeakPickerWavelet", pepi_param, 3);

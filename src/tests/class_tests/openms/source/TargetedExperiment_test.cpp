@@ -62,15 +62,66 @@ START_SECTION(virtual ~TargetedExperiment())
 }
 END_SECTION
 
+TargetedExperiment te;
+
 START_SECTION((TargetedExperiment(const TargetedExperiment &rhs)))
 {
-  // TODO
+  TargetedExperiment t; 
+  ReactionMonitoringTransition tr;
+  t.addTransition(tr);
+
+  {
+    TargetedExperiment::Peptide p;
+    p.id = "myPep";
+    t.addPeptide(p);
+  }
+
+  {
+    TargetedExperiment::Protein p;
+    p.id = "myProtein";
+    t.addProtein(p);
+  }
+
+  {
+    TargetedExperiment::Compound c;
+    c.id = "myCompound";
+    t.addCompound(c);
+  }
+
+  TargetedExperiment t2(t); 
+    
+  TEST_EQUAL(t2 == t, true)
 }
 END_SECTION
 
 START_SECTION((bool operator==(const TargetedExperiment &rhs) const ))
 {
-  // TODO
+  TargetedExperiment t; 
+  ReactionMonitoringTransition tr;
+  t.addTransition(tr);
+
+  {
+    TargetedExperiment::Peptide p;
+    p.id = "myPep";
+    t.addPeptide(p);
+  }
+
+  {
+    TargetedExperiment::Protein p;
+    p.id = "myProtein";
+    t.addProtein(p);
+  }
+
+  {
+    TargetedExperiment::Compound c;
+    c.id = "myCompound";
+    t.addCompound(c);
+  }
+
+  TargetedExperiment t2; 
+  t2 = t;
+    
+  TEST_EQUAL(t2 == t, true)
 }
 END_SECTION
 
@@ -166,79 +217,177 @@ END_SECTION
 
 START_SECTION((void setProteins(const std::vector< Protein > &proteins)))
 {
-  // TODO
+  TargetedExperiment t; 
+  TargetedExperiment::Protein p;
+
+  std::vector<TargetedExperiment::Protein> proteins;
+  proteins.push_back(p);
+  t.setProteins(proteins);
+    
+  TEST_EQUAL(t.getProteins().size(), 1)
 }
 END_SECTION
 
 START_SECTION((const std::vector<Protein>& getProteins() const ))
 {
-  // TODO
+  TEST_EQUAL(te.getProteins().size(), 0)
+}
+END_SECTION
+
+START_SECTION((bool hasProtein(const String & ref) const))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Protein p;
+  p.id = "myProtein";
+  t.addProtein(p);
+  TEST_EQUAL(t.hasProtein("myProtein"), true)
 }
 END_SECTION
 
 START_SECTION((void addProtein(const Protein &protein)))
 {
-  // TODO
+  TargetedExperiment t; 
+  TargetedExperiment::Protein p;
+  t.addProtein(p);
+  TEST_EQUAL(t.getProteins().size(), 1)
 }
 END_SECTION
 
 START_SECTION((void setCompounds(const std::vector< Compound > &rhs)))
 {
-  // TODO
+  TargetedExperiment t; 
+  TargetedExperiment::Compound c;
+
+  std::vector<TargetedExperiment::Compound> compounds;
+  compounds.push_back(c);
+  t.setCompounds(compounds);
+    
+  TEST_EQUAL(t.getCompounds().size(), 1)
 }
 END_SECTION
 
 START_SECTION((const std::vector<Compound>& getCompounds() const ))
 {
-  // TODO
+  TEST_EQUAL(te.getCompounds().size(), 0)
+}
+END_SECTION
+
+START_SECTION((bool hasCompound(const String & ref) const))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Compound c;
+  c.id = "myCompound";
+  t.addCompound(c);
+  TEST_EQUAL(t.hasCompound("myCompound"), true)
 }
 END_SECTION
 
 START_SECTION((void addCompound(const Compound &rhs)))
 {
-  // TODO
+  TargetedExperiment t; 
+  TargetedExperiment::Compound c;
+  t.addCompound(c);
+  TEST_EQUAL(t.getCompounds().size(), 1)
 }
 END_SECTION
 
 START_SECTION((void setPeptides(const std::vector< Peptide > &rhs)))
 {
-  // TODO
+  TargetedExperiment t; 
+  TargetedExperiment::Peptide p;
+
+  std::vector<TargetedExperiment::Peptide> peptides;
+  peptides.push_back(p);
+  t.setPeptides(peptides);
+    
+  TEST_EQUAL(t.getPeptides().size(), 1)
 }
 END_SECTION
 
 START_SECTION((const std::vector<Peptide>& getPeptides() const ))
 {
-  // TODO
+  TEST_EQUAL(te.getPeptides().size(), 0)
 }
 END_SECTION
 
 START_SECTION((void addPeptide(const Peptide &rhs)))
 {
-  // TODO
+  TargetedExperiment t; 
+  TargetedExperiment::Peptide p;
+  t.addPeptide(p);
+    
+  TEST_EQUAL(t.getPeptides().size(), 1)
+}
+END_SECTION
+
+START_SECTION((bool hasPeptide(const String & ref) const))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Peptide p;
+  p.id = "myPep";
+  t.addPeptide(p);
+  TEST_EQUAL(t.hasPeptide("myPep"), true)
 }
 END_SECTION
 
 START_SECTION((void setTransitions(const std::vector< ReactionMonitoringTransition > &transitions)))
 {
-  // TODO
+  TargetedExperiment t; 
+  ReactionMonitoringTransition tr;
+
+  std::vector<ReactionMonitoringTransition> transitions;
+  transitions.push_back(tr);
+  t.setTransitions(transitions);
+    
+  TEST_EQUAL(t.getTransitions().size(), 1)
 }
 END_SECTION
 
 START_SECTION((const std::vector<ReactionMonitoringTransition>& getTransitions() const ))
 {
-  // TODO
+  TEST_EQUAL(te.getTransitions().size(), 0)
 }
 END_SECTION
 
 START_SECTION((void addTransition(const ReactionMonitoringTransition &transition)))
 {
-  // TODO
+  TargetedExperiment t; 
+  ReactionMonitoringTransition tr;
+
+  t.addTransition(tr);
+    
+  TEST_EQUAL(t.getTransitions().size(), 1)
 }
 END_SECTION
 
 START_SECTION((TargetedExperiment& operator=(const TargetedExperiment &rhs)))
 {
-  // TODO
+  TargetedExperiment t; 
+  ReactionMonitoringTransition tr;
+  t.addTransition(tr);
+
+  {
+    TargetedExperiment::Peptide p;
+    p.id = "myPep";
+    t.addPeptide(p);
+  }
+
+  {
+    TargetedExperiment::Protein p;
+    p.id = "myProtein";
+    t.addProtein(p);
+  }
+
+  {
+    TargetedExperiment::Compound c;
+    c.id = "myCompound";
+    t.addCompound(c);
+  }
+
+  TargetedExperiment t2; 
+  t2 = t;
+    
+  TEST_EQUAL(t2 == t, true)
 }
 END_SECTION
 

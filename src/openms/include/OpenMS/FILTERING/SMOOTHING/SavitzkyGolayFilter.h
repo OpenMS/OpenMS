@@ -37,6 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -218,8 +219,7 @@ public:
     /**
       @brief Removed the noise from an MSExperiment containing profile data.
     */
-    template <typename PeakType>
-    void filterExperiment(MSExperiment<PeakType> & map)
+    void filterExperiment(PeakMap & map)
     {
       Size progress = 0;
       startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");

@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_ID_IDMAPPER_H
 #define OPENMS_ANALYSIS_ID_IDMAPPER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -93,15 +94,14 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
-    template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
     {
       checkHits_(peptide_ids);
 
       if (clear_ids)
       { // start with empty IDs
         std::vector<PeptideIdentification> empty_ids;
-        for (typename MSExperiment<PeakType>::iterator it = map.begin(); it != map.end(); ++it)
+        for (PeakMap::iterator it = map.begin(); it != map.end(); ++it)
         {
           it->setPeptideIdentifications(empty_ids);
         }
@@ -208,8 +208,7 @@ public:
       @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
     */
-    template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
     {
       const std::vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
       std::vector<PeptideIdentification> peptide_ids;
@@ -248,7 +247,7 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
+    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
 
     /**
       @brief Mapping method for consensus maps
@@ -270,7 +269,7 @@ public:
                   const std::vector<ProteinIdentification>& protein_ids, 
                   bool measure_from_subelements = false, 
                   bool annotate_ids_with_subelements = false, 
-                  const MSExperiment<Peak1D>& spectra = MSExperiment<Peak1D>());
+                  const PeakMap& spectra = PeakMap());
 
 
     /**
@@ -298,8 +297,7 @@ public:
 
       @return A struct of vectors holding spectra indices of the partitioning.
     */
-    template <typename PeakType>
-    static SpectraIdentificationState mapPrecursorsToIdentifications(const MSExperiment<PeakType>& spectra, 
+    static SpectraIdentificationState mapPrecursorsToIdentifications(const PeakMap& spectra, 
                                                                      const std::vector<PeptideIdentification>& ids, 
                                                                      double mz_tol = 0.001, 
                                                                      double rt_tol = 0.001)
@@ -329,8 +327,6 @@ public:
 
               double mz_id = pid.getMZ();
               double rt_id = pid.getRT();
-
-              std::cout << fabs(mz_id - mz_p) << "\t" << fabs(rt_s - rt_id) << std::endl; 
 
               if ( fabs(mz_id - mz_p) < mz_tol && fabs(rt_s - rt_id) < rt_tol )
               {

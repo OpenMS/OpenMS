@@ -53,10 +53,17 @@ namespace OpenMS
     defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("recalculate_peaks", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("use_precursors", "false", "Use precursor chromatogram for peak picking", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("use_precursors", ListUtils::create<String>("true,false"));
+
     defaults_.setValue("recalculate_peaks_max_z", 1.0, "Determines the maximal Z-Score (difference measured in standard deviations) that is considered too large for peak boundaries. If the Z-Score is above this value, the median is used for peak boundaries (default value 1.0).", ListUtils::create<String>("advanced"));
-    // defaults_.setValue("detect_outliers", "false", "Tries to detect outlier transitions", ListUtils::create<String>("advanced"));
+
     defaults_.setValue("minimal_quality", -10000.0, "Only if compute_peak_quality is set, this parameter will not consider peaks below this quality threshold", ListUtils::create<String>("advanced"));
+
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("compute_peak_quality", ListUtils::create<String>("true,false"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
 
@@ -85,17 +92,17 @@ namespace OpenMS
     stop_after_intensity_ratio_ = (double)param_.getValue("stop_after_intensity_ratio");
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
+    use_precursors_ = (bool)param_.getValue("use_precursors").toBool();
     recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
-    // detect_outliers_ = (bool)param_.getValue("detect_outliers").toBool();
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
   }
 
-  double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& chromatogram, double best_left, double best_right)
+  double MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right)
   {
     // determine (in the chromatogram) the intensity at the left / right border
-    RichPeakChromatogram::const_iterator it = chromatogram.begin();
+    MSChromatogram<>::const_iterator it = chromatogram.begin();
     int nr_points = 0;
     for (; it != chromatogram.end(); ++it)
     {
@@ -129,7 +136,7 @@ namespace OpenMS
     return avg_noise_level * nr_points;
   }
 
-  void MRMTransitionGroupPicker::findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx)
+  void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram<> >& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
     ChromatogramPeak largest_pos;

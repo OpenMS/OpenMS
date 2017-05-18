@@ -59,6 +59,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         ExtractionCoordinates(ExtractionCoordinates) nogil except + 
 
         double mz # mz around which should be extracted
+        double mz_precursor # precursor m/z value (is currently ignored by the algorithm)
         double rt_start # rt start of extraction (in seconds)
         double rt_end # rt end of extraction (in seconds)
         libcpp_string id # identifier
