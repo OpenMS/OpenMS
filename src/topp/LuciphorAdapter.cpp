@@ -521,22 +521,12 @@ protected:
     PeakMap exp;
     MzMLFile file;
     file.setLogType(log_type_);
-    //String in_tmp;
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
 
     file.load(in, exp);
     exp.sortSpectra(true);
-
-    // check if mz/intenisty precision have different values - set them to 64-bit - see issue #2381
-    //writeLog_("Warning: Luciphor requires a precision of either 32 or 64-bit float. Precision is automtically converted to 64-bit float.");
-
-    //file.getOptions().setMz32Bit(false);
-    //file.getOptions().setIntensity32Bit(false);
-    //String in_file_name = File::removeExtension(File::basename(in));
-    //in_tmp = temp_dir + in_file_name + ".mzML";
-    //file.store(in_tmp, exp);
 
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
