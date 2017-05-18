@@ -86,7 +86,8 @@
 
   <b>Metabolite Identification</b>
   - @subpage UTILS_AccurateMassSearch - Find potential HMDB IDs within the given mass error window.
-  - @subpage UTILS_MetaboliteSpectralMatcher - Identify small molecules from tandem MS spectra.
+  - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
+  - @subpage UTILS_MetaboliteSpectralMatcher - Identify small molecules from tandem MS spectra.  
 
   <b>Quality Control</b>
   - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.

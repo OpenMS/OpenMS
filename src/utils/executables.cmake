@@ -24,6 +24,7 @@ LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
 MapAlignmentEvaluation
 MassCalculator
+MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
