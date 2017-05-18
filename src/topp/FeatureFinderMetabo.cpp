@@ -34,7 +34,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>d
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
@@ -122,6 +122,9 @@ protected:
     registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
+    registerOutputFile_("out_chrom", "<file>", "", "mzML file", false);
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
+
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -155,6 +158,7 @@ protected:
 
     Param p_ffm = FeatureFindingMetabo().getDefaults();
     p_ffm.remove("chrom_fwhm");
+    p_ffm.remove("report_chromatograms");
     combined.insert("ffm:", p_ffm);
     combined.setSectionDescription("ffm", "FeatureFinder parameters (assembling mass traces to charged features)");
 
@@ -170,6 +174,7 @@ protected:
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    String out_chrom = getStringOption_("out_chrom");
 
     //-------------------------------------------------------------
     // loading input
@@ -232,7 +237,6 @@ protected:
 
     mtdet.run(ms_peakmap, m_traces);
 
-
     //-------------------------------------------------------------
     // configure and run elution peak detection
     //-------------------------------------------------------------
@@ -271,8 +275,6 @@ protected:
       }
     }
 
-//    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
-
     //-------------------------------------------------------------
     // configure and run feature finding
     //-------------------------------------------------------------
@@ -280,11 +282,13 @@ protected:
     ffm_param.insert("", common_param);
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
+    String report_chromatograms = out_chrom.empty() ? "false" : "true";
+    ffm_param.setValue("report_chromatograms", report_chromatograms);
 
     FeatureMap feat_map;
     feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
 
-    std::vector<std::vector< OpenMS::MSChromatogram<> > > feat_chromatograms;
+    std::vector< std::vector< OpenMS::MSChromatogram<> > > feat_chromatograms;
 
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
@@ -308,37 +312,27 @@ protected:
         return UNEXPECTED_RESULT;
     }
 
-    feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-    //Chromatograms
-    //iterate over vector in vector and give same featureID
-    //iterate over chromatogram in vector of vector and give native id (featureID_index) - isotope pattern
-    if (ffm_param.getValue("report_chromatograms").toBool())
+    // store chromatograms
+    if (!out_chrom.empty())
     {
-        cout << "Size vector Chrom: " << feat_chromatograms.size() << endl;
-        cout << "Size feat_map: " << feat_map.size() << endl;
         if (feat_chromatograms.size() == feat_map.size())
         {
-            for (Size i = 0; i < feat_map.size(); ++i)
+          MSExperiment<> out_exp;
+            for (Size i = 0; i < feat_chromatograms.size(); ++i)
             {
-                String id(feat_map[i].getUniqueId());
-                cout << "ID: " << id << endl;
-
                 for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
                 {
-                    feat_chromatograms[i][j].setName(id + "_" + j);
-                    cout << "Name: " << feat_chromatograms[i][j].getName() << endl;
+                    out_exp.addChromatogram(feat_chromatograms[i][j]);
                 }
             }
+          MzMLFile().store(out_chrom, out_exp);
         }
         else
         {
-            LOG_ERROR << "FF-Metabo: Internal error. The number of features and chromatograms are different! Aborting." << std::endl;
+            LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
             return UNEXPECTED_RESULT;
         }
     }
-
-    feat_map.sortByMZ();
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
     if (feat_map.size() > 0)
@@ -350,9 +344,7 @@ protected:
       }
       // concat to single string
       StringList sl_pols;
-      for (set<IonSource::Polarity>::const_iterator it = pols.begin();
-           it != pols.end();
-           ++it)
+      for (set<IonSource::Polarity>::const_iterator it = pols.begin(); it != pols.end(); ++it)
       {
         sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
       }
@@ -369,6 +361,7 @@ protected:
     FeatureXMLFile feature_xml_file;
     feature_xml_file.setLogType(log_type_);
     feature_xml_file.store(out, feat_map);
+
 
     return EXECUTION_OK;
   }

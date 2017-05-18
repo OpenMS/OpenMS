@@ -40,7 +40,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 
-
 ///////////////////////////
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 ///////////////////////////
@@ -91,7 +90,6 @@ sl.push_back("<featureMap");
 fsc.setWhitelist(sl);
 
 //std::cout << "\n\n" << fsc.compareStrings("529090", "529091") << "\n\n\n";
-
 
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {

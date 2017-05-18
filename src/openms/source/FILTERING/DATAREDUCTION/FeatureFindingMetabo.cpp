@@ -39,6 +39,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <vector>
 #include <map>
@@ -149,9 +150,9 @@ namespace OpenMS
     return tmp_hulls;
   }
 
-  std::vector< OpenMS::MSChromatogram<> > FeatureHypothesis::getChromatograms() const
+  std::vector< OpenMS::MSChromatogram <> > FeatureHypothesis::getChromatograms(UInt64 feature_id) const
   {
-    std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
+    std::vector< OpenMS::MSChromatogram <> > tmp_chromatograms;
     for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
     {
       OpenMS::MSChromatogram<> chromatogram;
@@ -163,7 +164,7 @@ namespace OpenMS
         peak.setIntensity((*l_it).getIntensity());
         chromatogram.push_back(peak);
       }
-
+      chromatogram.setNativeID(String(feature_id) + "_" + String(mt_idx));
       tmp_chromatograms.push_back(chromatogram);
     }
     return tmp_chromatograms;
@@ -287,7 +288,7 @@ namespace OpenMS
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
     defaults_.setValidStrings("report_convex_hulls", ListUtils::create<String>("false,true"));
 
-    defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (increases featureXML file size considerably).");
+    defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (Output in mzml).");
     defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
 
     defaultsToParam_();
@@ -771,6 +772,7 @@ namespace OpenMS
     // Step 2 Iterate through all mass traces to find likely matches 
     // and generate isotopic / charge hypotheses
     // *********************************************************** //
+
     std::vector<FeatureHypothesis> feat_hypos;
     Size progress(0);
 #ifdef _OPENMP
@@ -906,14 +908,18 @@ namespace OpenMS
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       output_featmap.push_back(f);
 
-      if (report_chromatograms_) output_chromatograms.push_back(feat_hypos[hypo_idx].getChromatograms());
-
+      if (report_chromatograms_)
+      {
+        output_chromatograms.push_back(feat_hypos[hypo_idx].getChromatograms(f.getUniqueId()));
+      }
       // add used traces to exclusion map
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {
         trace_excl_map[labels[lab_idx]] = true;
       }
     }
+    output_featmap.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    output_featmap.sortByMZ();
   } // end of FeatureFindingMetabo::run
   
 }

@@ -102,7 +102,7 @@ public:
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
-    std::vector< OpenMS::MSChromatogram<> > getChromatograms() const;
+    std::vector< OpenMS::MSChromatogram<> > getChromatograms(UInt64 feature_id) const;
 
 private:
 
