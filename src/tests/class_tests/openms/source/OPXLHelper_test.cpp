@@ -44,11 +44,8 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-//#include <OpenMS/CHEMISTRY/ResidueModification.h>
-//#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <QStringList>
-//#include <vector>
 
 using namespace OpenMS;
 
