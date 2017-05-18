@@ -94,7 +94,7 @@ class UTILMetaboliteAdductDecharger :
 {
 public:
   UTILMetaboliteAdductDecharger() :
-    TOPPBase("MetaboliteAdductDecharger", "Decharges and merges different feature charge variants of the same metabolite.")
+    TOPPBase("MetaboliteAdductDecharger", "Decharges and merges different feature charge variants of the same metabolite.", false)
   {
   }
 
