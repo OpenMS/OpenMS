@@ -121,7 +121,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_chrom", "<file>", "", "Optinal mzML file with chromatograms", false);
+    registerOutputFile_("out_chrom", "<file>", "", "Optional mzML file with chromatograms", false);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
 
     addEmptyLine_();
