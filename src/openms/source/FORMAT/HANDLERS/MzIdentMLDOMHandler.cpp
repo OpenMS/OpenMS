@@ -1699,17 +1699,6 @@ namespace OpenMS
       current_pep_id.setScoreType("OpenXQuest:combined score");
       current_pep_id.setHigherScoreBetter(true);
 
-      // correction for terminal modifications
-      if (alpha_pos == -1)
-      {
-        ++alpha_pos;
-      }
-      else if (alpha_pos == static_cast<SignedSize>((*pep_map_.find(peptides[alpha[0]])).second.size()))
-      {
-        --alpha_pos;
-      }
-
-
       vector<PeptideHit> phs;
       PeptideHit ph_alpha;
       ph_alpha.setSequence((*pep_map_.find(peptides[alpha[0]])).second);
@@ -1718,7 +1707,6 @@ namespace OpenMS
       ph_alpha.setRank(rank);
       ph_alpha.setMetaValue("spectrum_reference", spectrumIDs[0]);
       ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
-      ph_alpha.setMetaValue("xl_pos", alpha_pos);
 
       if (labeled)
       {
@@ -1769,6 +1757,23 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
       }
 
+      // correction for terminal modifications
+      if (alpha_pos == -1)
+      {
+        ph_alpha.setMetaValue("xl_pos", ++alpha_pos);
+        ph_alpha.setMetaValue("xl_term_spec", "N_TERM");
+      }
+      else if (alpha_pos == static_cast<SignedSize>((*pep_map_.find(peptides[alpha[0]])).second.size()))
+      {
+        ph_alpha.setMetaValue("xl_pos", --alpha_pos);
+        ph_alpha.setMetaValue("xl_term_spec", "C_TERM");
+      }
+      else
+      {
+        ph_alpha.setMetaValue("xl_pos", alpha_pos);
+        ph_alpha.setMetaValue("xl_term_spec", "ANYWHERE");
+      }
+
       phs.push_back(ph_alpha);
 
       if (xl_type == "cross-link")
@@ -1776,22 +1781,13 @@ namespace OpenMS
         PeptideHit ph_beta;
         SignedSize beta_pos = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
 
-        // correction for terminal modifications
-        if (beta_pos == -1)
-        {
-          ++beta_pos;
-        }
-        else if (beta_pos == static_cast<SignedSize>((*pep_map_.find(peptides[beta[0]])).second.size()))
-        {
-          --beta_pos;
-        }
         ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
         ph_beta.setRank(rank);
         ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-        ph_beta.setMetaValue("xl_pos", beta_pos);
+
 
         if (labeled)
         {
@@ -1819,6 +1815,23 @@ namespace OpenMS
           {
             ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
           }
+        }
+
+        // correction for terminal modifications
+        if (beta_pos == -1)
+        {
+          ph_beta.setMetaValue("xl_pos", ++beta_pos);
+          ph_beta.setMetaValue("xl_term_spec", "N_TERM");
+        }
+        else if (beta_pos == static_cast<SignedSize>((*pep_map_.find(peptides[beta[0]])).second.size()))
+        {
+          ph_beta.setMetaValue("xl_pos", --beta_pos);
+          ph_beta.setMetaValue("xl_term_spec", "C_TERM");
+        }
+        else
+        {
+          ph_beta.setMetaValue("xl_pos", beta_pos);
+          ph_beta.setMetaValue("xl_term_spec", "ANYWHERE");
         }
 
         phs.push_back(ph_beta);
@@ -2369,11 +2382,25 @@ namespace OpenMS
                     }
                     if (index == 0)
                     {
-                      aas.setNTerminalModification(cv.getName());
+                      try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      {
+                        aas.setNTerminalModification(cv.getName());
+                      }
+                      catch (...)
+                      {
+                        // TODO Residue and AASequence should use CrossLinksDB as well
+                      }
                     }
                     else if (index == static_cast<SignedSize>(aas.size() + 1))
                     {
-                      aas.setCTerminalModification(cv.getName());
+                      try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      {
+                        aas.setCTerminalModification(cv.getName());
+                      }
+                      catch (...)
+                      {
+                        // TODO Residue and AASequence should use CrossLinksDB as well
+                      }
                     }
                     else
                     {
