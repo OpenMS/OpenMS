@@ -90,8 +90,8 @@ fsc.setAcceptableAbsolute(1);
 StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("<featureMap");
+sl.push_back("<feature id");
 fsc.setWhitelist(sl);
-
 
 //std::cout << "\n\n" << fsc.compareStrings("529090", "529091") << "\n\n\n";
 

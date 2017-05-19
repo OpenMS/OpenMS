@@ -361,7 +361,6 @@ protected:
     feature_xml_file.setLogType(log_type_);
     feature_xml_file.store(out, feat_map);
 
-
     return EXECUTION_OK;
   }
 
