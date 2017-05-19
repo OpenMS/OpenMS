@@ -534,7 +534,7 @@ namespace OpenMS
         // modifications:
         if (search_params.fixed_modifications.empty() &&
             search_params.variable_modifications.empty()
-            && (!is_ppxl)) // TODO some OpenProXL modifications are not covered by the unimod.obo and cause problems in the search_params
+            && (!is_ppxl)) // TODO some OpenPepXL modifications are not covered by the unimod.obo and cause problems in the search_params
         {
           // no modifications used or are they just missing from the parameters?
           ModificationDefinitionsSet mod_defs;
