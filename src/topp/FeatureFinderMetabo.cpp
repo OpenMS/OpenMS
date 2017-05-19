@@ -34,7 +34,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>d
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
@@ -317,7 +316,7 @@ protected:
     {
         if (feat_chromatograms.size() == feat_map.size())
         {
-          MSExperiment<> out_exp;
+          MSExperiment out_exp;
             for (Size i = 0; i < feat_chromatograms.size(); ++i)
             {
                 for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
