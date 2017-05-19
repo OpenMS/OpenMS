@@ -53,12 +53,15 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_MRMTransitionGroupPicker </td>
           </tr>
       </table>
   </CENTER>

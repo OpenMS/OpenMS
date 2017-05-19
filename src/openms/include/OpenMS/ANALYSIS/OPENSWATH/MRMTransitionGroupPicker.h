@@ -62,13 +62,12 @@ namespace OpenMS
 
     @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-      @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+    @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
 
     It is called through pickTransitionGroup which will accept an
     MRMTransitionGroup filled with n chromatograms and perform the following steps:
      - Step 1: find features (peaks) in individual chromatograms
      - Step 2: merge these features to consensus features that span multiple chromatograms
-
 
     Step 1 is performed by smoothing the individual chromatogram and applying the
     PeakPickerHiRes.
