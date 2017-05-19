@@ -382,7 +382,17 @@ namespace OpenMS
           
           if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+          }
+
+          if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
+          {
+            const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
+                                   " ) are invalid or point outside of protein '" + accession + 
+                                   "' (length: " + String(protein_length) + 
+                                   "). Cannot compute coverage!";
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
           }
           
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);

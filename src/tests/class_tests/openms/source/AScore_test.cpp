@@ -47,7 +47,7 @@ using namespace std;
 class AScoreTest : public AScore
 {
   public:
-    void computeSiteDeterminingIonsTest_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+    void computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<PeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
     {
       return computeSiteDeterminingIons_(th_spectra, candidates, site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
     }
@@ -61,7 +61,7 @@ class AScoreTest : public AScore
       return computePermutations_(sites, n_phosphorylation_events);
     }
 
-    Size numberOfMatchedIonsTest_(const RichPeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const
+    Size numberOfMatchedIonsTest_(const PeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const
     {
       return numberOfMatchedIons_(th, windows, depth, fragment_mass_tolerance, fragment_mass_tolerance_ppm);
     }
@@ -85,7 +85,7 @@ class AScoreTest : public AScore
       return removePhosphositesFromSequence_(sequence);
     }
     
-    std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const
+    std::vector<PeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const
     {
       return createTheoreticalSpectra_(permutations, seq_without_phospho);
     }
@@ -95,7 +95,7 @@ class AScoreTest : public AScore
       return peakPickingPerWindowsInSpectrum_(real_spectrum);
     }
     
-    //std::vector<std::vector<double> > calculatePermutationPeptideScoresTest_(std::vector<RichPeakSpectrum> & th_spectra, const std::vector<RichPeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    //std::vector<std::vector<double> > calculatePermutationPeptideScoresTest_(std::vector<PeakSpectrum> & th_spectra, const std::vector<PeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
     
     std::multimap<double, Size> rankWeightedPermutationPeptideScoresTest_(const std::vector<std::vector<double> > & peptide_site_scores) const
     {
@@ -399,20 +399,20 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
 }
 END_SECTION
 
-START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm))
+START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<PeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm))
 {
   double fragment_mass_tolerance = 0.05;
   bool fragment_mass_unit_ppm = false;
 
   ProbablePhosphoSites candidates;
-  RichPeakSpectrum temp1,temp2;
-  vector<RichPeakSpectrum> site_determining_ions;
+  PeakSpectrum temp1,temp2;
+  vector<PeakSpectrum> site_determining_ions;
   
   PeakSpectrum &real_spectrum = tmp;
   std::vector<PeakSpectrum> windows_top10(ptr_test->peakPickingPerWindowsInSpectrumTest_(real_spectrum));
   
   AASequence seq = seq_without_phospho;
-  vector<RichPeakSpectrum> th_s(ptr_test->createTheoreticalSpectraTest_(permutations, seq));
+  vector<PeakSpectrum> th_s(ptr_test->createTheoreticalSpectraTest_(permutations, seq));
   
   candidates.seq_1 = 3;
   candidates.seq_2 = 4;
@@ -679,7 +679,7 @@ START_SECTION(AASequence removePhosphositesFromSequenceTest_(const String sequen
 }
 END_SECTION
 
-START_SECTION(std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrumTest_(PeakSpectrum & real_spectrum))
+START_SECTION(std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrumTest_(PeakSpectrum & real_spectrum))
 {
   PeakSpectrum &real_spectrum = tmp;
   
@@ -692,17 +692,17 @@ START_SECTION(std::vector<RichPeakSpectrum> peakPickingPerWindowsInSpectrumTest_
 }
 END_SECTION
 
-START_SECTION(Size numberOfMatchedIonsTest_(const RichPeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false))
+START_SECTION(Size numberOfMatchedIonsTest_(const PeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false))
 {
   PeakSpectrum &real_spectrum = tmp;
   double fragment_mass_tolerance = 0.5;
   bool fragment_mass_tolerance_ppm = false;
   
-  vector<RichPeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
+  vector<PeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
   std::vector<PeakSpectrum> windows_top10(ptr_test->peakPickingPerWindowsInSpectrumTest_(real_spectrum));
   
   //QSSVTQVTEQS(phospho)PK
-  vector<RichPeakSpectrum>::iterator it = th_spectra.end() - 1;
+  vector<PeakSpectrum>::iterator it = th_spectra.end() - 1;
   TEST_EQUAL(ptr_test->numberOfMatchedIonsTest_(*it, windows_top10[0], 1, fragment_mass_tolerance, fragment_mass_tolerance_ppm), 1);
   TEST_EQUAL(ptr_test->numberOfMatchedIonsTest_(*it, windows_top10[1], 1, fragment_mass_tolerance, fragment_mass_tolerance_ppm), 1);
 }
@@ -727,11 +727,11 @@ START_SECTION(calculateCumulativeBinominalProbabilityScore)
   
   PeakSpectrum &real_spectrum = tmp;
   std::vector<PeakSpectrum> windows_top10(ptr_test->peakPickingPerWindowsInSpectrumTest_(real_spectrum));
-  vector<RichPeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
+  vector<PeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
   
   for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it < phospho_sites.end(); ++s_it)
   {
-    vector<RichPeakSpectrum> site_determining_ions;
+    vector<PeakSpectrum> site_determining_ions;
     ptr_test->computeSiteDeterminingIonsTest_(th_spectra, *s_it, site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
     
     Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
@@ -750,10 +750,10 @@ START_SECTION(calculateCumulativeBinominalProbabilityScore)
 }
 END_SECTION
 
-START_SECTION(std::vector<RichPeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho))
+START_SECTION(std::vector<PeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho))
 {
   // create theoretical based on permutations
-  vector<RichPeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
+  vector<PeakSpectrum> th_spectra(ptr_test->createTheoreticalSpectraTest_(permutations, seq_without_phospho));
   TEST_EQUAL(th_spectra.size(),5);
   TEST_EQUAL(th_spectra[0].getName(),"QS(Phospho)SVTQVTEQSPK");
   TEST_EQUAL(th_spectra[4].getName(),"QSSVTQVTEQS(Phospho)PK");

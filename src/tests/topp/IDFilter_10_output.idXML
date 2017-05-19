@@ -65,7 +65,7 @@
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.4788" sequence="QEPSQGTTTFAVTSILR" charge="2" protein_refs="PH_3 PH_4" >
+			<PeptideHit score="0.4788" sequence="QEPSQGTTTFAVTSILR" charge="2" protein_refs="PH_4 PH_3" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>

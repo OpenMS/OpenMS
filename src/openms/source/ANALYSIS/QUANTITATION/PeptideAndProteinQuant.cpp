@@ -88,7 +88,7 @@ namespace OpenMS
         data.id_count++;
         data.abundances[hit.getCharge()]; // insert empty element for charge
         // add protein accessions:
-        set<String> protein_accessions = hit.extractProteinAccessions();
+        set<String> protein_accessions = hit.extractProteinAccessionsSet();
         data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
       }
     }
@@ -147,7 +147,7 @@ namespace OpenMS
            ++hit_it)
       {
         String seq = hit_it->getSequence().toUnmodifiedString();
-        set<String> accessions = hit_it->extractProteinAccessions();
+        set<String> accessions = hit_it->extractProteinAccessionsSet();
         // If a peptide is seen multiple times, the protein accessions should
         // always be the same, so only the first time it should be necessary to
         // insert them. However, just in case there a differences in the

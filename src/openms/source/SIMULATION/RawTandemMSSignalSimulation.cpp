@@ -166,7 +166,7 @@ namespace OpenMS
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
-      RichPeakSpectrum tmp_spec;
+      PeakSpectrum tmp_spec;
       Int prec_charge = features[i_f].getCharge();
 
       if (tandem_mode && svm_model_charges.count(prec_charge))
@@ -175,7 +175,7 @@ namespace OpenMS
       }
       else
       {
-        simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+        simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
       }
       for (Size peak = 0; peak < tmp_spec.size(); ++peak)
       {
@@ -349,7 +349,7 @@ namespace OpenMS
       {
         double prec_intens = ms2[i].getPrecursors()[id].getIntensity();
         AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-        RichPeakSpectrum tmp_spec;
+        PeakSpectrum tmp_spec;
 
         Int prec_charge = features[ids[id]].getCharge();
 
@@ -359,7 +359,7 @@ namespace OpenMS
         }
         else
         {
-          simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+          simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
         }
 
         // scale intensity and copy 

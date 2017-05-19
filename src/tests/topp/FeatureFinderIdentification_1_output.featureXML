@@ -193,7 +193,7 @@
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="1"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.764252063684777"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.860376056103047"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.860376056103046"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.74808804926625"/>
 			<UserParam type="float" name="PrecursorMZ" value="461.747653035421"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -861,11 +861,11 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999826714315203"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999757773001665"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00144004892103053"/>
-			<UserParam type="float" name="var_library_sangle" value="0.00269456187368486"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00144004892103053"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00151895727538698"/>
-			<UserParam type="float" name="var_library_dotprod" value="0.999998886455478"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00144004892103045"/>
+			<UserParam type="float" name="var_library_sangle" value="0.00269456187360245"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00144004892103045"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00151895727538687"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999998886455479"/>
 			<UserParam type="float" name="var_intensity_score" value="0.994648915812717"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="100.706242859935"/>
@@ -1254,9 +1254,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.859158419623954"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.795954623732148"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0387753364781597"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0738293770300598"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0387753364781597"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0387753364781598"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0738293770300613"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0387753364781598"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.0403113938333929"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999208292111752"/>
 			<UserParam type="float" name="var_intensity_score" value="0.141288564394706"/>
@@ -1517,7 +1517,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="404.203002929688" RT="2003.33984375" >
-				<PeptideHit score="0.0454545454545455" sequence="LAADDFR" charge="2" aa_before="K X X X X X X" aa_after="T X X X X X X" protein_refs="PH_9 PH_10 PH_11 PH_12 PH_7 PH_6 PH_8">
+				<PeptideHit score="0.0454545454545455" sequence="LAADDFR" charge="2" aa_before="K X X X X X X" aa_after="T X X X X X X" protein_refs="PH_7 PH_10 PH_11 PH_9 PH_8 PH_6 PH_12">
 					<UserParam type="float" name="OMSSA_score" value="0.060731076753908"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 				</PeptideHit>
@@ -1643,7 +1643,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="12.751237371524"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.729948670007111"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.72994867000711"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.16861748604685"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.20901495370698"/>
 			<UserParam type="float" name="PrecursorMZ" value="300.195528597604"/>
@@ -2011,11 +2011,11 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999855522861782"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999819433927319"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00155698400061233"/>
-			<UserParam type="float" name="var_library_sangle" value="0.00266588296529541"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00155698400061233"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0017855188631794"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00155698400061227"/>
+			<UserParam type="float" name="var_library_sangle" value="0.00266588296521212"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00155698400061227"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00178551886317935"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999998543005867"/>
 			<UserParam type="float" name="var_intensity_score" value="0.995940359920697"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -2201,7 +2201,7 @@
 			<UserParam type="float" name="var_library_rmsd" value="0.0607613750242852"/>
 			<UserParam type="float" name="var_library_sangle" value="0.107918735760252"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0607613750242852"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0672493863158573"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0672493863158574"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.997885894058429"/>
 			<UserParam type="float" name="var_intensity_score" value="0.832191728872341"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>

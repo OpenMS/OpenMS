@@ -108,9 +108,6 @@ START_SECTION((bool getNewToolName(const String &old_name, const String &tools_t
   i.getNewToolName("PeakPicker", "wavelet", new_name);
   TEST_EQUAL(new_name, "PeakPickerWavelet");
 
-  i.getNewToolName("ITRAQAnalyzer", "4plex", new_name);
-  TEST_EQUAL(new_name, "ITRAQAnalyzer");
-
   i.getNewToolName("FileInfo", "", new_name);
   TEST_EQUAL(new_name, "FileInfo");
 

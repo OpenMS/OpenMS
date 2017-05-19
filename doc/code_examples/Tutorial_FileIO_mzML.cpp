@@ -44,7 +44,7 @@ int main(int argc, const char** argv)
   IndexedMzMLFileLoader imzml;
 
   // load data from an indexed MzML file
-  OnDiscMSExperiment<> map;
+  OnDiscPeakMap map;
   imzml.load(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", map);
   // Get the first spectrum in memory, do some constant (non-changing) data processing
   MSSpectrum<> s = map.getSpectrum(0);

@@ -93,7 +93,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
+  PeakSpectrum rspec;
   tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
   PeakSpectrum spec;
@@ -132,7 +132,7 @@ START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpect
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
+  PeakSpectrum rspec;
   tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
   PeakSpectrum spec;

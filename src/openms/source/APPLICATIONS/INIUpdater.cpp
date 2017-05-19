@@ -91,9 +91,6 @@ namespace OpenMS
 
       map_[TDE("PeakPicker", ListUtils::create<String>("wavelet"))] = TDE("PeakPickerWavelet", ListUtils::create<String>(""));
       map_[TDE("PeakPicker", ListUtils::create<String>("high_res"))] = TDE("PeakPickerHiRes", ListUtils::create<String>(""));
-
-      // ITRAQAnalyzer && MSSimulator: no need to list here, as the type simply was made optional (no additional tools)
-
     }
 
     return map_;
