@@ -34,21 +34,21 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+//#include <OpenMS/CONCEPT/Constants.h>
+//#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+//#include <OpenMS/KERNEL/MSChromatogram.h>
+//#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <numeric>
-#include <sstream>
+//#include <vector>
+//#include <map>
+//#include <algorithm>
+//#include <numeric>
+//#include <sstream>
 #include <fstream>
 
-#include <boost/dynamic_bitset.hpp>
+//#include <boost/dynamic_bitset.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -906,6 +906,7 @@ namespace OpenMS
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
+      f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       output_featmap.push_back(f);
 
       if (report_chromatograms_)
@@ -918,7 +919,7 @@ namespace OpenMS
         trace_excl_map[labels[lab_idx]] = true;
       }
     }
-    output_featmap.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    output_featmap.setUniqueId(UniqueIdGenerator::getUniqueId());
     output_featmap.sortByMZ();
   } // end of FeatureFindingMetabo::run
   
