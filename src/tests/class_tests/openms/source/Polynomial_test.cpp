@@ -28,73 +28,73 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nikos Patikas $
-// $Authors: Nikos Patikas $
+// $Maintainer: Patikas Nikos $
+// $Authors: Patikas Nikos $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <vector>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+#include <OpenMS/DATASTRUCTURES/Polynomial.h>
+#include <numeric>
+#include <functional>
+#include <iterator>
 
 
-namespace OpenMS
+///////////////////////////
+
+#include <string>
+
+///////////////////////////
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
+START_TEST(Polynomial, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+const UInt N = 5115;
+CounterSet *ptr = 0;
+CounterSet *nullPointer = 0; 
+
+
+START_SECTION((CounterSet()))
+  ptr = new CounterSet(N);
+  TEST_NOT_EQUAL(ptr, nullPointer);
+END_SECTION
+
+//START_SECTION((~CounterSet()))
+//  delete ptr;
+//END_SECTION
+
+START_SECTION((CounterSet& CounterSet::operator++()))
 {
-  typedef std::pair<Size, Size> Range;
-
-  // TODO(Nikos) add openMP support
-  // TODO(Nikos) add documentation
-  class CounterSet
+  const CounterSet::ContainerType& results = ptr->getCounters();
+  for(int i = 0; i < 3; ++i)
   {
-  public:
-    class RangeCounter;
-    typedef std::vector<Size> ContainerType;
-    typedef std::vector<RangeCounter> Ranges;
-    typedef ContainerType::reverse_iterator ReverseIterator;
-    typedef ContainerType::iterator Iterator;
-    typedef ContainerType::const_iterator ConstIterator;
-    
-    class RangeCounter
+    ptr->addCounter(i,N);
+    while(ptr->notLast())
     {
-   private:
-      Size min_;
-      Size max_;
-      Size& value;
+      ++(*ptr);
+      UInt sum = 0;
+      accumulate(results.begin(), results.end(), sum, plus<UInt>());
+      if(sum != N)
+      {
+        cout << "Error" << endl;
+      }
+      copy(results.begin(), results.end(), ostream_iterator<UInt>(cout, ", "));
+    }
 
-   public:
-      RangeCounter(Size min, Size max, Size& value);
-      RangeCounter& operator++();
-      Size& getValue();
-      bool wasReset() const;
-      void reset();
-      const Size& min() const;
-      const Size& max() const;
-    };
-
-    struct initCounter
-    {
-      ContainerType& container_;
-      initCounter(ContainerType&);
-      RangeCounter operator()(Range&);
-      void operator()(RangeCounter& c);
-    };
-    
-    CounterSet(UInt, std::vector<Range>);
-    CounterSet(UInt);
-    const ContainerType& getCounters();
-    Size& operator[](const Size& index);
-    CounterSet& operator++();
-    void addCounter(Size min, Size max);
-    void reset();
-    ConstIterator begin() const;
-    ConstIterator end() const;
-    const bool& notLast() const;
-  private:
-    UInt N;
-    struct initCounter initializer;
-    std::vector<RangeCounter> range_counters;
-    ContainerType counters;
-    bool hasNext;
-    
-  };
-
-
+  }
 }
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST
+
+#pragma clang diagnostic pop

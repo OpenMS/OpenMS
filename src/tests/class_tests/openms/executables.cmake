@@ -50,6 +50,7 @@ set(datastructures_executables_list
   Matrix_test
   #MatrixUtils_test
   Param_test
+  Polynomial_test
   QTCluster_test
   RangeManager_test
   SparseVector_test

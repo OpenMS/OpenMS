@@ -36,29 +36,36 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>
 #include <algorithm>
+#include <numeric>
+#include <functional>
 
 using namespace std;
 
 namespace OpenMS
-{
+{ 
   
-  
-  CounterSet::RangeCounter::RangeCounter(Size min, Size max): 
-    min_(min), max_(max), value(min){}
+  CounterSet::RangeCounter::RangeCounter(Size min, Size max, Size& val): 
+    min_(min), max_(max), value(val)
+  {
+    value = min_;
+  }
 
   CounterSet::RangeCounter& CounterSet::RangeCounter::operator++()
   {
     value = min_ + (this->value + 1) % (max_ - min_);
     return *this;
   }
-  Size& CounterSet::RangeCounter::operator()()
+  
+  Size& CounterSet::RangeCounter::getValue()
   {
     return value;
   }
+  
   void CounterSet::RangeCounter::reset()
   {
     value = min_;
   }
+
   bool CounterSet::RangeCounter::wasReset() const
   {
     return value == min_;
@@ -74,9 +81,14 @@ namespace OpenMS
     return max_;
   }
 
+  CounterSet::initCounter::initCounter(CounterSet::ContainerType& container):container_(container)
+  {
+    
+  }
   CounterSet::RangeCounter CounterSet::initCounter::operator()(Range& r)
   {
-    return CounterSet::RangeCounter(r.first, r.second);
+    container_.push_back(0);
+    return CounterSet::RangeCounter(r.first, r.second, container_.back());
   }
 
   void CounterSet::initCounter::operator()(RangeCounter& c)
@@ -84,20 +96,24 @@ namespace OpenMS
     c.reset();
   }
 
-  CounterSet::CounterSet(vector<Range> ranges)
+  CounterSet::CounterSet(UInt n, vector<Range> ranges):N(n), initializer(this->counters)
   {
-    transform(ranges.begin(), ranges.end(), back_inserter(counters), initCounter());
+    transform(ranges.begin(), ranges.end(), back_inserter(range_counters), initializer);
+  }
+
+  CounterSet::CounterSet(UInt n): N(n), initializer(this->counters)
+  {
   }
 
   void CounterSet::reset()
   {
-    for_each(counters.begin(), counters.end(), initCounter());
+    for_each(range_counters.begin(), range_counters.end(), initializer);
     hasNext = true;
   }
   
   Size& CounterSet::operator[](const Size& index)
   {
-      return counters[index]();
+      return counters[index];
   }
 
   CounterSet& CounterSet::operator++()
@@ -108,15 +124,58 @@ namespace OpenMS
       return *this;
     }
 
-    for(ReverseIterator it = counters.rbegin(); it != counters.rend(); ++it)
+    for(Ranges::reverse_iterator it = range_counters.rbegin(); it != range_counters.rend(); ++it)
     {
-      ++(*it);
-      if(!it->wasReset()){
+      UInt sum = 0;
+      accumulate(counters.begin(), counters.end(), sum, plus<UInt>());
+      if(sum > this->N)
+      {
+        it->reset();
+        continue;
+      }
+      else if(sum < this->N)
+      {
+        ++(*it);
+        it = it == range_counters.rbegin() ? it : --it;
+      }
+      else
+      {
         return *this;
       }
+      //if(!it->wasReset())
+      //{
+      //  return *this;
+      //}
     }
-    hasNext=false;
+    //hasNext=false;
     return *this;
+  }
+  
+  const CounterSet::ContainerType& CounterSet::getCounters()
+  {
+    return counters;
+  }
+        
+  CounterSet::ConstIterator CounterSet::begin() const
+  {
+    return counters.begin();
+  }
+  
+  CounterSet::ConstIterator CounterSet::end() const
+  {
+    return counters.end();
+  }
+  
+  void CounterSet::addCounter(Size min, Size max)
+  {
+    counters.push_back(0);
+    range_counters.push_back(RangeCounter(min, max, counters.back()));
+  }
+  
+
+  const bool& CounterSet::notLast() const
+  {
+    return hasNext;
   }
 
 }

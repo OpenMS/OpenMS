@@ -54,8 +54,8 @@ namespace OpenMS
   class OPENMS_DLLAPI Element
   {
 public:
-    typedef IsotopeDistribution::MassAbundance::first_type Mass;
-    typedef IsotopeDistribution::MassAbundance::second_type Abundance;
+
+   
     /** @name Constructor and Destructors
     */
     //@{

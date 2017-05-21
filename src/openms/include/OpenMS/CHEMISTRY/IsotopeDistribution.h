@@ -36,7 +36,6 @@
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
 
 #include <OpenMS/CONCEPT/Types.h>
-
 #include <utility>
 #include <vector>
 #include <set>
@@ -59,6 +58,8 @@ namespace OpenMS
         By default all possible isotopes are calculated, which leads to a large
         number of values, if the mass value is large!
     */
+  class Element; 
+
   class OPENMS_DLLAPI IsotopeDistribution
   {
 public:
@@ -67,6 +68,8 @@ public:
     //@{
     /// container type, first holds the weight of the isotope, second the probability
     typedef std::pair<double, double> MassAbundance;
+    typedef MassAbundance::first_type Mass;
+    typedef MassAbundance::second_type Abundance;
     typedef std::vector<MassAbundance> ContainerType;
     typedef ContainerType::iterator iterator;
     typedef ContainerType::iterator Iterator;
@@ -390,6 +393,45 @@ protected:
     /// stores the isotope distribution
     ContainerType distribution_;
   };
+
+  class MIDAsPolynomialID : public IsotopeDistribution
+  {
+ public:
+    MIDAsPolynomialID();
+    void multiplyPolynomial(Element&, SignedSize);
+ private:
+    double fact_ln(UInt);
+    static const UInt N = 10;
+    double mw_resolution;
+    double resolution;
+    double min_resolution;
+    struct PMember
+    {
+      double power;
+      double probability;
+      struct prob
+      {
+        inline bool operator()(const struct PMember& p0, const struct PMember& p) const 
+        { 
+          return p0.probability < p.probability; 
+        }
+      };
+      struct power
+      {
+        inline bool operator()(const struct PMember& p0, const struct PMember& p) const 
+        {
+          return p0.power < p.power; 
+        }
+      };
+    };
+    typedef std::vector<struct PMember> Polynomial;
+
+    std::vector<Polynomial> polynomial;
+    
+    
+
+  };
+
 
 } // namespace OpenMS
 

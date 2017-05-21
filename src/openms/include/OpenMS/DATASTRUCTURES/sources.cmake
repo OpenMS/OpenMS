@@ -33,6 +33,7 @@ Map.h
 MassExplainer.h
 Matrix.h
 Param.h
+Polynomial.h
 QTCluster.h
 SeqanIncludeWrapper.h
 SparseVector.h

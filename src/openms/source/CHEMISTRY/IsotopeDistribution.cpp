@@ -37,9 +37,13 @@
 #include <cstdlib>
 #include <algorithm>
 #include <limits>
+#include <functional>
+#include <numeric>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/DATASTRUCTURES/Polynomial.h>
 
 using namespace std;
 
@@ -527,5 +531,59 @@ namespace OpenMS
       }
     }
   }
+
+  MIDAsPolynomialID::MIDAsPolynomialID(): IsotopeDistribution()
+  {
+    
+  }
+
+  double MIDAsPolynomialID::fact_ln(UInt x)
+  {    
+    return x>1 ? fact_ln(x-1) + log(x) : 0;
+  }
+
+
+  void MIDAsPolynomialID::multiplyPolynomial(Element& p, SignedSize size)
+  {
+    const IsotopeDistribution::ContainerType& isotope = p.getIsotopeDistribution().getContainer();
+    CounterSet c(size);
+    Polynomial pol;
+    // for(IsotopeDistribution::ConstIterator iso_it = isotope.begin(); iso_it != isotope.end(); ++iso_it)
+    // {
+    //   double prob = iso_it->second;
+    //   double expectation = size*prob;
+    //   double var = size*prob*(1-prob);
+    //   UInt U = expectation + (N*sqrt(1+var));
+    //   UInt B = expectation > (N*sqrt(1+var)) ? expectation -(N*sqrt(1+var)) : 0;
+    //   c.addCounter(B,U);
+    // }
+    
+    // pair<UInt,UInt> min_max = c.popLast();
+
+    // for(;c();++c)
+    // {
+    //   struct PMember member;
+    //   UInt s = 0;
+    //   //accumulate(c.begin(), c.end(), s, rc_sum()
+     
+    //   double power = 0, prob = fact_ln(size);
+    //   UInt index = 0;
+    //   for(CounterSet::ConstIterator counter = c.begin(); counter != c.end(); ++c, ++index)
+    //   {
+    //     UInt isotope_count = counter->getValue();
+    //     s += isotope_count;
+    //     prob -= fact_ln(isotope_count);
+    //     prob += isotope_count*log(isotope[index].second);
+    //     power += isotope_count*isotope[index].first;
+    //     member.power = power;
+    //     member.probability = prob;
+    //   }
+    //   pol.push_back(member);
+    // }
+
+  }
+
+  
+
 
 }
