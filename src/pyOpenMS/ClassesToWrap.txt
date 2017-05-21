@@ -126,7 +126,6 @@ n    IDSplitter.cpp
 n    ImageCreator.cpp
 n    INIUpdater.cpp
 n    LabeledEval.cpp
-n    MapAlignmentEvaluation.cpp
 n    MassCalculator.cpp
 n    MRMPairFinder.cpp
 ?    MSSimulator.cpp  # 250 lines =
