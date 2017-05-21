@@ -459,6 +459,7 @@ set(analysis_executables_list
   MapAlignmentTransformer_test
   MassDecompositionAlgorithm_test
   MassDecomposition_test
+  MetaboliteFeatureDeconvolution_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
