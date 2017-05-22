@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,7 +100,7 @@ public:
       {
         if (bin_size_ <= 0)
         {
-          throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         else
         {
@@ -168,7 +168,7 @@ public:
       {
         if (index >= bins_.size())
         {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         return bins_[index];
       }
@@ -182,7 +182,7 @@ public:
       {
         if (bin_index >= bins_.size())
         {
-          throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
 
         return (BinSizeType)(min_ + ((BinSizeType)bin_index + 0.5) * bin_size_);
@@ -226,7 +226,7 @@ public:
 
         if (bin_size_ <= 0)
         {
-          throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         else
         {
@@ -313,7 +313,7 @@ protected:
         //std::cout << "val: " << val << " (min: " << min_ << " max: " << max_ << ")" << std::endl;
         if (val < min_ || val > max_)
         {
-          throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
         if (val == max_)
         {

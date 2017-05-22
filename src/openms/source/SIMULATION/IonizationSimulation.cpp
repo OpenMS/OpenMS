@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,7 +193,7 @@ namespace OpenMS
     else
     {
       /// unsupported ionization model
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IonizationSimulation got invalid Ionization type '" + type + "'");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IonizationSimulation got invalid Ionization type '" + type + "'");
     }
 
     // get basic residues from params
@@ -207,7 +207,7 @@ namespace OpenMS
     // parse possible ESI adducts
     StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
     if (esi_charge_impurity.empty())
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
     StringList components;
     max_adduct_charge_ = 0;
     // reset internal state:
@@ -219,7 +219,7 @@ namespace OpenMS
     {
       esi_charge_impurity[i].split(':', components);
       if (components.size() != 2)
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
       // determine charge of adduct (by # of '+')
       Size l_charge = components[0].size();
       l_charge -= components[0].remove('+').size();
@@ -252,7 +252,7 @@ namespace OpenMS
 
     if (minimal_mz_measurement_limit_ > maximal_mz_measurement_limit_)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z measurement limits do not define a valid interval!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z measurement limits do not define a valid interval!");
     }
 
   }

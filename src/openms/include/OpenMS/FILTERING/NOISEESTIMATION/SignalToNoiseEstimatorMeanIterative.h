@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,7 +193,7 @@ protected:
           String s = auto_max_percentile_;
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!",
                                         s);
         }
@@ -243,7 +243,7 @@ protected:
           String s = max_intensity_;
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!",
                                         s);
         }

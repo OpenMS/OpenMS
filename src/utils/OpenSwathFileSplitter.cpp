@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-// Consumers
-#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-
 // Files
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
@@ -53,14 +48,18 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathFileSplitter OpenSwathFileSplitter
+  @page UTILS_OpenSwathFileSplitter OpenSwathFileSplitter
 
   @brief A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window (plus one file for the MS1 survey scans).
-
 
   Will use the input SWATH / DIA file to generate one output file containing
   the MS1 survey scans and \a n individual files for each SWATH / DIA window in
   the input file. The number of windows is read from the input file itself.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_OpenSwathFileSplitter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_OpenSwathFileSplitter.html
 
 */
 
@@ -108,7 +107,7 @@ protected:
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Input file needs to have ending mzML or mzXML");
       }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_XMASSFILE_H
 #define OPENMS_FORMAT_XMASSFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -88,7 +89,7 @@ public:
       Internal::FidHandler fid(filename);
       if (!fid)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       //  Delete old spectrum
@@ -173,13 +174,12 @@ public:
     /**
         @brief Import settings from a XMass file.
 
-@param filename File from which the experimental settings should be loaded.
-@param exp MSExperiment where the experimental settings will be stored.
+        @param filename File from which the experimental settings should be loaded.
+        @param exp MSExperiment where the experimental settings will be stored.
 
-@exception Exception::FileNotFound is thrown if the file could not be opened.
+        @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    template <class PeakType>
-    void importExperimentalSettings(const String & filename, MSExperiment<PeakType> & exp)
+    void importExperimentalSettings(const String & filename, PeakMap & exp)
     {
       Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
 
@@ -242,7 +242,7 @@ public:
     template <typename SpectrumType>
     void store(const String & /*filename*/, const SpectrumType & /*spectrum*/)
     {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
   };

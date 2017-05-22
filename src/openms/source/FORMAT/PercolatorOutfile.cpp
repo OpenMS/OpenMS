@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
 
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -74,9 +75,88 @@ namespace OpenMS
     {
       return SCORE;
     }
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "Not a valid Percolator score type",
                                   score_type_name);
+  }
+
+
+  void PercolatorOutfile::resolveMisassignedNTermMods_(String& peptide) const
+  {
+    boost::regex re("^[A-Z]\\[(?<MOD1>-?\\d+(\\.\\d+)?)\\](\\[(?<MOD2>-?\\d+(\\.\\d+)?)\\])?");
+    boost::smatch match;
+    bool found = boost::regex_search(peptide, match, re);
+    if (found && match["MOD1"].matched)
+    {
+      const ResidueModification* null = 0;
+      vector<const ResidueModification*> maybe_nterm(2, null);
+      String residue = peptide[0];
+      String mod1 = match["MOD1"].str();
+      double mass1 = mod1.toDouble();
+      maybe_nterm[0] = ModificationsDB::getInstance()->
+        getBestModificationByDiffMonoMass(mass1, 0.01, residue,
+                                          ResidueModification::N_TERM);
+      if (maybe_nterm[0] && !match["MOD2"].matched &&
+          ((maybe_nterm[0]->getId() != "Carbamidomethyl") || (residue != "C")))
+      { // only 1 mod, may be terminal -> assume terminal (unless it's CAM!):
+        String replacement = ".(" + maybe_nterm[0]->getId() + ")" + residue;
+        peptide = boost::regex_replace(peptide, re, replacement);
+      }
+      // only 1 mod, may not be terminal -> nothing to do
+      else if (match["MOD2"].matched) // two mods
+      {
+        String mod2 = match["MOD2"].str();
+        double mass2 = mod2.toDouble();
+        maybe_nterm[1] = ModificationsDB::getInstance()->
+          getBestModificationByDiffMonoMass(mass2, 0.01, residue,
+                                            ResidueModification::N_TERM);
+        if (maybe_nterm[0] && !maybe_nterm[1])
+        { // first mod is terminal:
+          String replacement = "(" + maybe_nterm[0]->getId() + ")" + residue +
+            "[" + mod2 + "]";
+          peptide = boost::regex_replace(peptide, re, replacement);
+        }
+        else if (maybe_nterm[1] && !maybe_nterm[0])
+        { // second mod is terminal:
+          String replacement = "(" + maybe_nterm[1]->getId() + ")" + residue +
+            "[" + mod1 + "]";
+          peptide = boost::regex_replace(peptide, re, replacement);
+        }
+        else // ambiguous cases
+        {
+          vector<const ResidueModification*> maybe_residue(2, null);
+          maybe_residue[0] = ModificationsDB::getInstance()->
+            getBestModificationByDiffMonoMass(mass1, 0.01, residue,
+                                              ResidueModification::ANYWHERE);
+          maybe_residue[1] = ModificationsDB::getInstance()->
+            getBestModificationByDiffMonoMass(mass2, 0.01, residue,
+                                              ResidueModification::ANYWHERE);
+          if (maybe_nterm[0] && maybe_nterm[1]) // both mods may be terminal
+          {
+            if (maybe_residue[0] && !maybe_residue[1])
+            { // first mod must be non-terminal -> second mod is terminal:
+              String replacement = "(" + maybe_nterm[1]->getId() + ")" +
+                residue + "[" + mod1 + "]";
+              peptide = boost::regex_replace(peptide, re, replacement);
+            }
+            else if (maybe_residue[1] && !maybe_residue[0])
+            { // second mod must be non-terminal -> first mod is terminal:
+              String replacement = "(" + maybe_nterm[0]->getId() + ")" +
+                residue + "[" + mod2 + "]";
+              peptide = boost::regex_replace(peptide, re, replacement);
+            }
+            else // both mods may be terminal or non-terminal :-(
+            { // arbitrarily assume first mod is terminal
+              String replacement = "(" + maybe_nterm[0]->getId() + ")" +
+                residue + "[" + mod2 + "]";
+              peptide = boost::regex_replace(peptide, re, replacement);
+            }
+          }
+          // if neither mod can be terminal, something is wrong -> let
+          // AASequence deal with it
+        }
+      }
+    }
   }
 
 
@@ -101,104 +181,16 @@ namespace OpenMS
     boost::regex re("\\[UNIMOD:(\\d+)\\]");
     std::string replacement = "(UniMod:$1)";
     peptide = boost::regex_replace(peptide, re, replacement);
+    // search results from X! Tandem:
+    // N-terminal mods may be wrongly assigned to the first residue; there may
+    // be up to two mass shifts (one terminal, one residue) in random order!
+    resolveMisassignedNTermMods_(peptide);
+    // positive mass shifts are missing the "+":
+    re.assign("\\[(\\d)");
+    replacement = "[+$1";
+    peptide = boost::regex_replace(peptide, re, replacement);
+
     seq = AASequence::fromString(peptide);
-  }
-
-
-  String PercolatorOutfile::getFullModName_(const String& residue,
-                                            const String& mod) const
-  {
-    if (residue == "N-term")
-    {
-      try
-      {
-        const ResidueModification& n_term_mod =
-          ModificationsDB::getInstance()->
-          getModification(mod, "", ResidueModification::N_TERM);
-        return n_term_mod.getFullId();
-      }
-      catch (Exception::ElementNotFound) {};
-    }
-    else if (residue == "C-term")
-    {
-      try
-      {
-        const ResidueModification& c_term_mod =
-          ModificationsDB::getInstance()->
-          getModification(mod, "", ResidueModification::C_TERM);
-        return c_term_mod.getFullId();
-      }
-      catch (Exception::ElementNotFound) {};
-    }
-
-    return mod + " (" + residue + ")";
-  }
-
-
-  void PercolatorOutfile::addModsToSearchParams_(
-    const map<String, set<String> >::const_iterator& map_it,
-    ProteinIdentification::SearchParameters& params) const
-  {
-    set<String>::const_iterator set_it = map_it->second.begin();
-
-    // if there's only one mod, it's probably a fixed one:
-    if ((map_it->second.size() == 1) && (!set_it->empty()))
-    {
-      params.fixed_modifications.push_back(getFullModName_(map_it->first,
-                                                           *set_it));
-    }
-    else // variable mod(s)
-    {
-      for (; set_it != map_it->second.end(); ++set_it)
-      {
-        if (!set_it->empty())
-        {
-          params.variable_modifications.push_back(getFullModName_(map_it->first,
-                                                                  *set_it));
-        }
-      }
-    }
-  }
-
-
-  void PercolatorOutfile::getSearchModifications_(
-    const vector<PeptideIdentification>& peptides,
-    ProteinIdentification::SearchParameters& params) const
-  {
-    // amino acid (or terminus) -> set of modifications (incl. no mod.):
-    map<String, set<String> > mod_map;
-
-    for (vector<PeptideIdentification>::const_iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
-    {
-      for (vector<PeptideHit>::const_iterator hit_it =
-             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
-           ++hit_it)
-      {
-        const String& n_term_mod =
-          hit_it->getSequence().getNTerminalModificationName();
-        mod_map["N-term"].insert(n_term_mod);
-        const String& c_term_mod =
-          hit_it->getSequence().getCTerminalModificationName();
-        mod_map["C-term"].insert(c_term_mod);
-
-        for (AASequence::ConstIterator seq_it = hit_it->getSequence().begin();
-             seq_it != hit_it->getSequence().end(); ++seq_it)
-        {
-          const String& mod = seq_it->getModificationName();
-          mod_map[seq_it->getOneLetterCode()].insert(mod);
-        }
-      }
-    }
-
-    for (map<String, set<String> >::const_iterator map_it =
-           mod_map.begin(); map_it != mod_map.end(); ++map_it)
-    {
-      addModsToSearchParams_(map_it, params);
-    }
-    sort(params.fixed_modifications.begin(), params.fixed_modifications.end());
-    sort(params.variable_modifications.begin(),
-         params.variable_modifications.end());
   }
 
 
@@ -220,6 +212,8 @@ namespace OpenMS
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
       lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+      // X! Tandem Percolator format:
+      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+");
     }
 
     vector<String> items;
@@ -229,7 +223,7 @@ namespace OpenMS
     if (header != 
         "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds")
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   header, "Not a valid header for Percolator (PSM level) output");
     }
 
@@ -306,7 +300,7 @@ namespace OpenMS
           peptide.setHigherScoreBetter(false);
           break;
         case SIZE_OF_SCORETYPE:
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
       }
 
       AASequence seq;
@@ -339,8 +333,11 @@ namespace OpenMS
     }
 
     // add info about allowed modifications:
+    ModificationDefinitionsSet mod_defs;
+    mod_defs.inferFromPeptides(peptides);
     ProteinIdentification::SearchParameters params;
-    getSearchModifications_(peptides, params);
+    mod_defs.getModificationNames(params.fixed_modifications,
+                                  params.variable_modifications);
     proteins.setSearchParameters(params);
 
     LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"

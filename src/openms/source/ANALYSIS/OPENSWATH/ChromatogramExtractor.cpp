@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+
 namespace OpenMS
 {
 
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
     std::vector< ExtractionCoordinates > & coordinates,
-    OpenMS::TargetedExperiment & transition_exp_used,
+    const OpenMS::TargetedExperiment & transition_exp_used,
     const double rt_extraction_window, const bool ms1) const
   {
     // hash of the peptide reference containing all transitions
@@ -79,19 +83,28 @@ namespace OpenMS
         coord.id = transition.getNativeID();
       }
 
-      if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+      if (rt_extraction_window < 0)
       {
-        // we don't have retention times -> this is only a problem if we actually
-        // wanted to use the RT limit feature.
-        if (rt_extraction_window < 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
-        }
         coord.rt_end = -1;
         coord.rt_start = 0;
       }
-      else
+      else if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+      {
+        // we don't have retention times -> this is only a problem if we actually
+        // wanted to use the RT limit feature.
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
+      }
+      else if (boost::math::isnan(rt_extraction_window))
+      {
+        if (pep.rts.size() != 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Expected exactly two retention time entries for peptide '" + pep.id + "', found " + String(pep.rts.size()));
+        }
+        coord.rt_start = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+        coord.rt_end = pep.rts[1].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      }
+      else // if 'rt_extraction_window' is zero, just write the (first) RT value for later processing
       {
         double rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
         coord.rt_start = rt - rt_extraction_window / 2.0;
@@ -139,7 +152,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Filter either needs to be tophat or bartlett");
     }
   }
@@ -157,7 +170,7 @@ namespace OpenMS
           // wanted to use the RT limit feature.
           if (rt_extraction_window >= 0)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                              "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
           }
           continue;
@@ -165,5 +178,8 @@ namespace OpenMS
         PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
       }
   }
+
+
+
 
 }

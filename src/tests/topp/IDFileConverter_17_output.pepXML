@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
+<msms_run_summary base_name="IDFileConverter_17_output" raw_data_type="raw" raw_data=".mzML" search_engine="X! Tandem">
+	<sample_enzyme name="unknown_enzyme">
+		<specificity cut="" sense="C"/>
+	</sample_enzyme>
+	<search_summary base_name="IDFileConverter_17_output" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="/share/usr/bertsch/sequences/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta.pro" type="AA"/>
+		<aminoacid_modification aminoacid="C" massdiff="57.021464" mass="160.0306489852" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
+		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
+		<terminal_modification terminus="n" massdiff="-17.026549" mass="0" variable="Y" description="Ammonia-loss (N-term C)" protein_terminus=""/>
+	</search_summary>
+	<spectrum_query spectrum="IDFileConverter_17_output.1.1.3" start_scan="1" end_scan="1" precursor_neutral_mass="924.5868884244" assumed_charge="3" index="0" retention_time_sec="230.609" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="RSPLALLR" peptide_prev_aa="R" peptide_next_aa="R" protein="tr|A9EQF2|A9EQF2_SORC5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="924.5868884244" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="13.1"/>
+			<search_score name="nextscore" value="13.1"/>
+			<search_score name="expect" value="0.79432823472"/>
+			<search_score name="Posterior Error Probability" value="0.999999703800026"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="2.9619997399255e-07" all_ntt_prob="(0.0000,0.0000,2.9619997399255e-07)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.2.2.3" start_scan="2" end_scan="2" precursor_neutral_mass="924.5868884244" assumed_charge="3" index="1" retention_time_sec="444.348" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="SRALPLLR" peptide_prev_aa="R" peptide_next_aa="L" protein="tr|A9ETU3|A9ETU3_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="924.5868884244" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="12.1"/>
+			<search_score name="nextscore" value="12.1"/>
+			<search_score name="expect" value="0.34673685045"/>
+			<search_score name="Posterior Error Probability" value="0.999997619610497"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="2.38038950295394e-06" all_ntt_prob="(0.0000,0.0000,2.38038950295394e-06)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.3.3.2" start_scan="3" end_scan="3" precursor_neutral_mass="759.3762876907" assumed_charge="2" index="2" retention_time_sec="778.61" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="EAQSPTK" peptide_prev_aa="R" peptide_next_aa="F" protein="tr|A9EQC1|A9EQC1_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="759.3762876907" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="19.3"/>
+			<search_score name="nextscore" value="19.3"/>
+			<search_score name="expect" value="0.30199517204"/>
+			<search_score name="Posterior Error Probability" value="0.999996682184601"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="3.31781539897325e-06" all_ntt_prob="(0.0000,0.0000,3.31781539897325e-06)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.4.4.2" start_scan="4" end_scan="4" precursor_neutral_mass="759.3762876907" assumed_charge="2" index="3" retention_time_sec="847.233" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="EASAAPSK" peptide_prev_aa="R" peptide_next_aa="R" protein="tr|A9FGL6|A9FGL6_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="759.3762876907" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="13.7"/>
+			<search_score name="nextscore" value="13.7"/>
+			<search_score name="expect" value="0.13182567386"/>
+			<search_score name="Posterior Error Probability" value="0.999977806014592"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="2.21939854080366e-05" all_ntt_prob="(0.0000,0.0000,2.21939854080366e-05)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.5.5.2" start_scan="5" end_scan="5" precursor_neutral_mass="749.3820406269" assumed_charge="2" index="4" retention_time_sec="998.481" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="VANYQR" peptide_prev_aa="R" peptide_next_aa="D" protein="P00432|CATA_BOVIN" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="749.3820406269" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="17.3"/>
+			<search_score name="nextscore" value="17.3"/>
+			<search_score name="expect" value="0.0457088189615"/>
+			<search_score name="Posterior Error Probability" value="0.999799808981541"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.000200191018459028" all_ntt_prob="(0.0000,0.0000,0.000200191018459028)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.6.6.3" start_scan="6" end_scan="6" precursor_neutral_mass="923.6419437115" assumed_charge="3" index="5" retention_time_sec="1225.87" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="VIALLIGII" peptide_prev_aa="F" peptide_next_aa="P" protein="tr|A9G6B1|A9G6B1_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="923.6419437115" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="9.4"/>
+			<search_score name="nextscore" value="9.4"/>
+			<search_score name="expect" value="0.0389045144994"/>
+			<search_score name="Posterior Error Probability" value="0.99972646822851"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.000273531771490032" all_ntt_prob="(0.0000,0.0000,0.000273531771490032)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.7.7.3" start_scan="7" end_scan="7" precursor_neutral_mass="1139.5094893287" assumed_charge="3" index="6" retention_time_sec="1232.33" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="GTAGDDDKAYK" peptide_prev_aa="R" peptide_next_aa="N" protein="tr|A9F5L5|A9F5L5_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1139.5094893287" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="14.4"/>
+			<search_score name="nextscore" value="14.4"/>
+			<search_score name="expect" value="0.00851138038202"/>
+			<search_score name="Posterior Error Probability" value="0.995387619683354"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00461238031664601" all_ntt_prob="(0.0000,0.0000,0.00461238031664601)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.8.8.3" start_scan="8" end_scan="8" precursor_neutral_mass="1435.6718650943" assumed_charge="3" index="7" retention_time_sec="1257.34" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="ELDEETSELFPK" peptide_prev_aa="R" peptide_next_aa="A" protein="tr|A9EV04|A9EV04_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1435.6718650943" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="15.1"/>
+			<search_score name="nextscore" value="15.1"/>
+			<search_score name="expect" value="0.00831763771103"/>
+			<search_score name="Posterior Error Probability" value="0.99519248174031"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00480751825968995" all_ntt_prob="(0.0000,0.0000,0.00480751825968995)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.9.9.3" start_scan="9" end_scan="9" precursor_neutral_mass="1202.5536180758" assumed_charge="3" index="8" retention_time_sec="1261.06" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="HQGVMVGMGQK" peptide_prev_aa="R" peptide_next_aa="D" protein="P62739|ACTA_BOVIN" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1202.5536180758" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="HQGVM[147]VGM[147]GQK">
+				<mod_aminoacid_mass position="5" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="8" mass="147.0354000171"/>
+			</modification_info>
+			<search_score name="hyperscore" value="16.8"/>
+			<search_score name="nextscore" value="16.8"/>
+			<search_score name="expect" value="0.00691830970919"/>
+			<search_score name="Posterior Error Probability" value="0.993318846453717"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00668115354628296" all_ntt_prob="(0.0000,0.0000,0.00668115354628296)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.10.10.3" start_scan="10" end_scan="10" precursor_neutral_mass="1226.5423850758" assumed_charge="3" index="9" retention_time_sec="1270.41" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="MLCEGGYLER" peptide_prev_aa="R" peptide_next_aa="A" protein="tr|A9EW83|A9EW83_SORC5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1226.5423850758" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="MLC[160]EGGYLER">
+				<mod_aminoacid_mass position="3" mass="160.0306489852"/>
+			</modification_info>
+			<search_score name="hyperscore" value="14.2"/>
+			<search_score name="nextscore" value="14.2"/>
+			<search_score name="expect" value="0.0063095734448"/>
+			<search_score name="Posterior Error Probability" value="0.992137188268975"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00786281173102499" all_ntt_prob="(0.0000,0.0000,0.00786281173102499)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.11.11.2" start_scan="11" end_scan="11" precursor_neutral_mass="1226.5415184882" assumed_charge="2" index="10" retention_time_sec="1273.15" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="EGTEKSEEYR" peptide_prev_aa="R" peptide_next_aa="G" protein="tr|A9FHD9|A9FHD9_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1226.5415184882" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="16"/>
+			<search_score name="nextscore" value="16"/>
+			<search_score name="expect" value="0.00144543977075"/>
+			<search_score name="Posterior Error Probability" value="0.915003523314301"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.084996476685699" all_ntt_prob="(0.0000,0.0000,0.084996476685699)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.12.12.2" start_scan="12" end_scan="12" precursor_neutral_mass="715.3500725631" assumed_charge="2" index="11" retention_time_sec="1276.4" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="LTDDPR" peptide_prev_aa="R" peptide_next_aa="W" protein="P00722|BGAL_ECOLI" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="715.3500725631" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="21"/>
+			<search_score name="nextscore" value="21"/>
+			<search_score name="expect" value="0.000223872113857"/>
+			<search_score name="Posterior Error Probability" value="0.453250508471886"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.546749491528114" all_ntt_prob="(0.0000,0.0000,0.546749491528114)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.13.13.3" start_scan="13" end_scan="13" precursor_neutral_mass="1098.5530243606" assumed_charge="3" index="12" retention_time_sec="1282.27" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="AAAGGGAAAGAGAAR" peptide_prev_aa="R" peptide_next_aa="Q" protein="tr|A9G4M9|A9G4M9_SORC5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1098.5530243606" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="22.7"/>
+			<search_score name="nextscore" value="22.7"/>
+			<search_score name="expect" value="7.58577575029e-05"/>
+			<search_score name="Posterior Error Probability" value="0.205898136317334"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.794101863682666" all_ntt_prob="(0.0000,0.0000,0.794101863682666)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.14.14.3" start_scan="14" end_scan="14" precursor_neutral_mass="1462.581686331" assumed_charge="3" index="13" retention_time_sec="1292.89" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="TCVADESHAGCEK" peptide_prev_aa="K" peptide_next_aa="S" protein="P02769|ALBU_BOVIN" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1462.581686331" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="TC[160]VADESHAGC[160]EK">
+				<mod_aminoacid_mass position="2" mass="160.0306489852"/>
+				<mod_aminoacid_mass position="11" mass="160.0306489852"/>
+			</modification_info>
+			<search_score name="hyperscore" value="23.4"/>
+			<search_score name="nextscore" value="23.4"/>
+			<search_score name="expect" value="3.0199517204e-05"/>
+			<search_score name="Posterior Error Probability" value="0.105295709433451"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.894704290566549" all_ntt_prob="(0.0000,0.0000,0.894704290566549)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.15.15.3" start_scan="15" end_scan="15" precursor_neutral_mass="1446.6521487286" assumed_charge="3" index="14" retention_time_sec="1293.91" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="GTGKECVPNSNER" peptide_prev_aa="K" peptide_next_aa="Y" protein="Q29443|TRFE_BOVIN" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1446.6521487286" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="GTGKEC[160]VPNSNER">
+				<mod_aminoacid_mass position="6" mass="160.0306489852"/>
+			</modification_info>
+			<search_score name="hyperscore" value="23.1"/>
+			<search_score name="nextscore" value="23.1"/>
+			<search_score name="expect" value="2.08929613085e-05"/>
+			<search_score name="Posterior Error Probability" value="0.0829167864461242"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.917083213553876" all_ntt_prob="(0.0000,0.0000,0.917083213553876)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.16.16.2" start_scan="16" end_scan="16" precursor_neutral_mass="1462.581686331" assumed_charge="2" index="15" retention_time_sec="1294.92" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="TCVADESHAGCEK" peptide_prev_aa="K" peptide_next_aa="S" protein="P02769|ALBU_BOVIN" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1462.581686331" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="TC[160]VADESHAGC[160]EK">
+				<mod_aminoacid_mass position="2" mass="160.0306489852"/>
+				<mod_aminoacid_mass position="11" mass="160.0306489852"/>
+			</modification_info>
+			<search_score name="hyperscore" value="24.9"/>
+			<search_score name="nextscore" value="24.9"/>
+			<search_score name="expect" value="1e-05"/>
+			<search_score name="Posterior Error Probability" value="0.0552026346076845"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.944797365392316" all_ntt_prob="(0.0000,0.0000,0.944797365392316)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.17.17.3" start_scan="17" end_scan="17" precursor_neutral_mass="1132.565897282" assumed_charge="3" index="16" retention_time_sec="1297" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="MNVVAADGGKR" peptide_prev_aa="R" peptide_next_aa="K" protein="tr|A9EYD8|A9EYD8_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1132.565897282" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="M[147]NVVAADGGKR">
+				<mod_aminoacid_mass position="1" mass="147.0354000171"/>
+			</modification_info>
+			<search_score name="hyperscore" value="21.3"/>
+			<search_score name="nextscore" value="21.3"/>
+			<search_score name="expect" value="4.78630092323e-06"/>
+			<search_score name="Posterior Error Probability" value="0.039216373494282"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.960783626505718" all_ntt_prob="(0.0000,0.0000,0.960783626505718)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.18.18.2" start_scan="18" end_scan="18" precursor_neutral_mass="1405.5997627753" assumed_charge="2" index="17" retention_time_sec="1303.03" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="IGGDDSWSPSVSAE" peptide_prev_aa="G" peptide_next_aa="F" protein="P00722|BGAL_ECOLI" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1405.5997627753" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="14.3"/>
+			<search_score name="nextscore" value="14.3"/>
+			<search_score name="expect" value="2.08929613085e-06"/>
+			<search_score name="Posterior Error Probability" value="0.0265340096810519"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.973465990318948" all_ntt_prob="(0.0000,0.0000,0.973465990318948)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.19.19.3" start_scan="19" end_scan="19" precursor_neutral_mass="966.5862204882" assumed_charge="3" index="18" retention_time_sec="1308.11" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="IHSEILKK" peptide_prev_aa="R" peptide_next_aa="T" protein="P00489|PYGM_RABIT" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="966.5862204882" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="22.2"/>
+			<search_score name="nextscore" value="22.2"/>
+			<search_score name="expect" value="1.17489755494e-06"/>
+			<search_score name="Posterior Error Probability" value="0.0201592377248982"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.979840762275102" all_ntt_prob="(0.0000,0.0000,0.979840762275102)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_17_output.20.20.2" start_scan="20" end_scan="20" precursor_neutral_mass="866.4181086759" assumed_charge="2" index="19" retention_time_sec="1315.16" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="CHVANRK" peptide_prev_aa="K" peptide_next_aa="E" protein="tr|A9EU91|A9EU91_SORC5rev" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="866.4181086759" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="n[-16]C[160]HVANRK" mod_nterm_mass="-16.0187239681">
+				<mod_aminoacid_mass position="1" mass="160.0306489852"/>
+			</modification_info>
+			<search_score name="hyperscore" value="13.5"/>
+			<search_score name="nextscore" value="13.5"/>
+			<search_score name="expect" value="2.39883291902e-07"/>
+			<search_score name="Posterior Error Probability" value="0.00935505970276241"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.990644940297238" all_ntt_prob="(0.0000,0.0000,0.990644940297238)"/>
+			</analysis_result>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

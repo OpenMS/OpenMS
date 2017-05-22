@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ namespace OpenMS
       if (verbose)
       {
         LOG_INFO << " failed" << std::endl;
-        LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "'\n"
+        LOG_ERROR << "Error: 'Rscript' executable returned with error (command: 'Rscript " << args.join(" ").toStdString() << "')\n"
                   << "Output was:\n------>\n"
                   << QString(p.readAllStandardOutput()).toStdString()
                   << "\n<------\n"
@@ -150,7 +150,7 @@ namespace OpenMS
     catch (...)
     {
       if (verbose) LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, script_file);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, script_file);
     }
     return s;
   }

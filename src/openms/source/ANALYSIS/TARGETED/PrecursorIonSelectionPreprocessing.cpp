@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -152,7 +152,7 @@ namespace OpenMS
       return iter->second;
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
     }
   }
 
@@ -256,7 +256,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
   }
 
@@ -751,7 +751,7 @@ namespace OpenMS
 #endif
       if (bin_masses_.empty())
       {
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
       }
       counter_.resize(size, 0);
 #ifdef PISP_DEBUG
@@ -833,7 +833,7 @@ namespace OpenMS
     out.precision(10);
     if (!out)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
     // header: db_name  precursor_mass_tolerance precursor_mass_tolerance_unit  taxonomy);
     Size pos1 = db_path.rfind("/") + 1;
@@ -867,7 +867,7 @@ namespace OpenMS
     //      std::ofstream out2((path + "_counter").c_str());
     //      if (!out2)
     //      {
-    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
+    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_counter");
     //      }
     //      out2.precision(10);
 
@@ -888,7 +888,7 @@ namespace OpenMS
       //                std::ofstream out3((path + "_bin_masses").c_str());
       //                if (!out3)
       //                {
-      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
+      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_bin_masses");
       //                }
 
       //                out3.precision(10);
@@ -909,7 +909,7 @@ namespace OpenMS
     out.precision(10);
     if (!out)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
     // header: db_name  precursor_mass_tolerance precursor_mass_tolerance_unit  taxonomy);
     Size pos1 = db_path.rfind("/") + 1;
@@ -977,7 +977,7 @@ namespace OpenMS
     //      std::ofstream out2((path + "_counter").c_str());
     //      if (!out2)
     //      {
-    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
+    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_counter");
     //      }
     //      out2.precision(10);
 
@@ -998,7 +998,7 @@ namespace OpenMS
       //                std::ofstream out3((path + "_bin_masses").c_str());
       //                if (!out3)
       //                {
-      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
+      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_bin_masses");
       //                }
 
       //                out3.precision(10);
@@ -1099,7 +1099,7 @@ namespace OpenMS
     if (param_.getValue("precursor_mass_tolerance_unit") == "ppm")
     {
       if (iter == file.end())
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
       else if (iter->hasPrefix("###"))
@@ -1117,7 +1117,7 @@ namespace OpenMS
 
       }
       else
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,7 +156,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_peakmap;
+    PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
@@ -201,7 +201,7 @@ protected:
 
     if (!use_epd)
     {
-      m_traces_final = m_traces;
+      swap(m_traces_final, m_traces);
     }
     else
     {
@@ -213,6 +213,7 @@ protected:
       ep_det.setParameters(epd_param);
 
       std::vector<MassTrace> split_mtraces;
+      // note: this step will destroy any meta data annotation (e.g. FWHM_mz_avg)
       ep_det.detectPeaks(m_traces, split_mtraces);
 
       if (ep_det.getParameters().getValue("width_filtering") == "auto")
@@ -220,12 +221,13 @@ protected:
         m_traces_final.clear();
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() <<
-        " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
+        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
+                 << " of total " << split_mtraces.size() 
+                 << " were dropped because of too low peak width." << std::endl;
       }
       else
       {
-        m_traces_final = split_mtraces;
+        swap(m_traces_final, split_mtraces);
       }
     }
 

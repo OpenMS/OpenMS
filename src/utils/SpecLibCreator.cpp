@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
@@ -85,14 +88,14 @@ protected:
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
     setValidFormats_("info", ListUtils::create<String>("csv"));
 
-    registerStringOption_("itemseperator", "<char>", ",", " Seperator between items. e.g. ,", false);
+    registerStringOption_("itemseperator", "<char>", ",", " Separator between items. e.g. ,", false);
     registerStringOption_("itemenclosed", "<bool>", "false", "'true' or 'false' if true every item is enclosed e.g. '$peptide$,$run$...", false);
     setValidStrings_("itemenclosed", ListUtils::create<String>("true,false"));
 
     registerInputFile_("spec", "<file>", "", "spectra");
     setValidFormats_("spec", ListUtils::create<String>("mzData,mzXML"));
 
-    registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
+    registerOutputFile_("out", "<file>", "", "output MSP formatted spectra library");
     setValidFormats_("out", ListUtils::create<String>("msp"));
   }
 
@@ -118,11 +121,11 @@ protected:
     String spec = getStringOption_("spec");
     if (info == String::EMPTY)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "info");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "info");
     }
     if (spec == String::EMPTY)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "spec");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spec");
     }
 
 
@@ -179,19 +182,19 @@ protected:
     }
     if (retention_time  == -1)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unclear which parameter is retention time");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unclear which parameter is retention time");
     }
     if (peptide  == -1)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unclear which parameter is peptide");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unclear which parameter is peptide");
     }
     if (measured_weight  == -1)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unclear which parameter is measured weight");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unclear which parameter is measured weight");
     }
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(spec);
-    /*MSExperiment<>*/ PeakMap msexperiment;
+    PeakMap msexperiment;
 
     if (in_type == FileTypes::UNKNOWN)
     {
@@ -209,9 +212,9 @@ protected:
     }
     if (msexperiment.getMinRT() == 0)
     {
-      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, "EMPTY??");
+      throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "EMPTY??");
     }
-    RichPeakMap library;
+    PeakMap library;
 
     //-------------------------------------------------------------
     // creating library
@@ -223,7 +226,7 @@ protected:
       bool no_peptide = true;
       double rt =  (60 * (list[i][retention_time].toFloat())); // from minutes to seconds
       double mz = list[i][measured_weight].toFloat();
-      for (MSExperiment<>::Iterator it = msexperiment.begin(); it < msexperiment.end(); ++it)
+      for (PeakMap::Iterator it = msexperiment.begin(); it < msexperiment.end(); ++it)
       {
         //cout<<"i =" <<i<<endl;
         //cout<<rt <<" (rt) - " << it->getRT()<<" (getRT) = "<<(rt - it->getRT())<<endl;
@@ -241,14 +244,14 @@ protected:
           //  spec.push_back(it->operator[](k));
           //
           // }
-          MSSpectrum<RichPeak1D> speci;
+          MSSpectrum<Peak1D> speci;
           speci.setRT(it->getRT());
           speci.setMSLevel(2);
           speci.setPrecursors(it->getPrecursors());
           for (UInt j = 0; j < it->size(); ++j)
           {
 
-            RichPeak1D richy;
+            Peak1D richy;
             richy.setIntensity(it->operator[](j).getIntensity());
             richy.setPosition(it->operator[](j).getPosition());
             richy.setMZ(it->operator[](j).getMZ());
@@ -277,7 +280,6 @@ protected:
       }
     }
     cout << "Found " << found_counter << " peptides\n";
-    //library = static_cast<MSExperiment<MSSpectrum<RichPeak1D> > >(msexperiment);
 
     //-------------------------------------------------------------
     // writing output
@@ -285,13 +287,13 @@ protected:
     in_type = fh.getType(out);
     if (in_type == FileTypes::MZDATA)
     {
-      MzDataFile mzData;
-      mzData.store(out, library);
+      MzDataFile f;
+      f.store(out, library);
     }
     else if (in_type == FileTypes::MZXML)
     {
-      MzXMLFile mzXML;
-      mzXML.store(out, library);
+      MzXMLFile f;
+      f.store(out, library);
     }
     else
     {

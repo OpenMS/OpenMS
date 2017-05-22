@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -112,6 +113,19 @@ public:
 
     /// Computes an (approximate) inverse of the transformation
     void invert();
+
+    /**
+       @brief Get the deviations between the data pairs
+
+       @param diffs Output
+       @param do_apply Get deviations after applying the model?
+       @param do_sort Sort @p diffs before returning?
+    */
+    void getDeviations(std::vector<double>& diffs, bool do_apply = false,
+                       bool do_sort = true) const;
+
+    /// Print summary statistics for the transformation
+    void printSummary(std::ostream& os = std::cout) const;
 
 protected:
     /// Data points

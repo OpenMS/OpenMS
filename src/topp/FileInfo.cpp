@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,18 +39,20 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
@@ -124,6 +126,30 @@ namespace OpenMS
               << "  variance:       " << rhs.variance << "\n";
   }
 
+  struct MemUsage
+  {
+    size_t mem_before, mem_after;
+    MemUsage()
+      : mem_before(0), mem_after(0)
+    {}
+
+    void before()
+    {
+      SysInfo::getProcessMemoryConsumption(mem_before);
+    }
+    void after()
+    {
+      SysInfo::getProcessMemoryConsumption(mem_after);
+    }
+  };
+  ostream& operator<<(ostream& os, const MemUsage& m)
+  {
+    if (m.mem_after < m.mem_before) os << "-" << (m.mem_before - m.mem_after) / 1024;
+    else os << (m.mem_after - m.mem_before) / 1024;
+    os << " MB";
+    return os;
+  }
+
 }
 
 class TOPPFileInfo :
@@ -140,9 +166,9 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
+    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
@@ -190,6 +216,8 @@ protected:
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
+    MemUsage mu;
+
     if (in_type == FileTypes::UNKNOWN)
     {
       in_type = fh.getType(in);
@@ -211,7 +239,7 @@ protected:
     os_tsv << "file name" << "\t" << in << "\n"
            << "file type" << "\t" << FileTypes::typeToName(in_type) << "\n";
 
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     FeatureMap feat;
     ConsensusMap cons;
     IdData id_data;
@@ -264,6 +292,11 @@ protected:
         os << " against XML schema version " << PepXMLFile().getVersion() << "\n";
         valid = PepXMLFile().isValid(in, os);
         break;
+
+      case FileTypes::TRANSFORMATIONXML:
+        os << " against XML schema version " << TransformationXMLFile().getVersion() << "\n";
+        valid = TransformationXMLFile().isValid(in, os);
+        break;        
 
       default:
         os << "\n" << "Aborted: Validation of this file type is not supported!" << "\n";
@@ -374,14 +407,13 @@ protected:
       FeatureXMLFile ff;
       ff.getOptions().setLoadConvexHull(false); // CH's currently not needed here
       ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
-
+      
+      mu.before();
       // reading input
       ff.load(in, feat);
+      mu.after();
 
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
       feat.updateRanges();
 
       os << "Number of features: " << feat.size() << "\n"
@@ -391,30 +423,38 @@ protected:
 
       // Charge distribution and TIC
       Map<UInt, UInt> charges;
+      Map<UInt, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         charges[feat[i].getCharge()]++;
         tic += feat[i].getIntensity();
+        const vector<PeptideIdentification>& peptide_ids = feat[i].getPeptideIdentifications();
+        numberofids[peptide_ids.size()]++;
       }
 
       os << "Total ion current in features: " << tic << "\n";
-      os << "Charge distribution:" << "\n";
+      os << "\n" << "Charge distribution:" << "\n";
       for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
+
+      os << "\n" << "Distribution of peptide identifications (IDs) per feature:\n";
+      for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
+      {
+        os << "  " << it->first << " IDs: " << it->second << "\n";
+      }
+
+      os << "\n" << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
-
+      mu.before();
       // reading input
       ConsensusXMLFile().load(in, cons);
-
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+      mu.after();
+      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
 
       cons.updateRanges();
 
@@ -468,11 +508,8 @@ protected:
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
 
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
-
       // reading input
-
+      mu.before();
       if (in_type == FileTypes::MZIDENTML)
       {
         MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
@@ -481,9 +518,8 @@ protected:
       {
         IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
       }
-
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+      mu.after();
+      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
 
       // export metadata to second output stream
       os_tsv << "database" << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
@@ -552,12 +588,16 @@ protected:
     {
       os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << "\n";
     }
+    else if (in_type == FileTypes::TRANSFORMATIONXML)
+    {
+      TransformationDescription trafo;
+      TransformationXMLFile().load(in, trafo);
+      os << "\nTransformation model: " << trafo.getModelType() << "\n";
+      trafo.printSummary(os);
+    }
     else //peaks
     {
-
-      size_t mem1, mem2;
-      SysInfo::getProcessMemoryConsumption(mem1);
-
+      mu.before();
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
@@ -566,8 +606,8 @@ protected:
       }
 
       // report memory consumption
-      SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+      mu.after();
+      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;
@@ -637,7 +677,7 @@ protected:
 
       //count how many spectra per MS level there are
       map<Size, UInt> counts;
-      for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
+      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         ++counts[it->getMSLevel()];
       }
@@ -654,7 +694,7 @@ protected:
       }
 
       // show meta data array names
-      for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
+      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         for (i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
@@ -760,7 +800,7 @@ protected:
         os << "\n"
            << "-- Detailed spectrum listing --" << "\n";
         UInt count = 0;
-        for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
+        for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
         {
           ++count;
           os << "\n"
@@ -1200,13 +1240,13 @@ protected:
         Size size = exp.getSize();
         vector<double> intensities;
         intensities.reserve(size);
-        for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+        for (PeakMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
         {
           if (spec->getMSLevel() != 1)
           {
             continue;
           }
-          for (MSExperiment<Peak1D>::SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
+          for (PeakMap::SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
           {
             intensities.push_back(it->getIntensity());
           }
@@ -1221,7 +1261,7 @@ protected:
         {
           String name = it->first;
           vector<double> m_values;
-          for (MSExperiment<Peak1D>::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
+          for (PeakMap::const_iterator spec = exp.begin(); spec != exp.end(); ++spec)
           {
             for (Size meta = 0; meta < spec->getFloatDataArrays().size(); ++meta)
             {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,12 +53,12 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathHelper::checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+  void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper)
   {
     if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Swath map has no Spectra");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
     const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
@@ -70,11 +70,11 @@ namespace OpenMS
       const std::vector<Precursor> prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " does not have exactly one precursor.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");
       }
       if (swath_map[index].getMSLevel() != expected_mslevel)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " if of a different MS level than the first scan.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " if of a different MS level than the first scan.");
       }
       if (
         fabs(prec[0].getMZ() - first_prec[0].getMZ()) > 0.1 ||
@@ -82,7 +82,7 @@ namespace OpenMS
         fabs(prec[0].getIsolationWindowUpperOffset() - first_prec[0].getIsolationWindowUpperOffset()) > 0.1
         )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
       }
 
     }
@@ -128,7 +128,7 @@ namespace OpenMS
   {
     if (exp.getCompounds().empty()) 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Input list of targets is empty.");
     }
     double max = exp.getCompounds()[0].rt;
@@ -149,36 +149,20 @@ namespace OpenMS
     for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
         trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      // we need at least one feature to find the best one
-      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
-      if (transition_group->getFeatures().size() == 0)
-      {
-        std::cout << "Did not find any features for group " + transition_group->getTransitionGroupID() << std::endl;
-        continue;
-      }
+      if (trgroup_it->second.getFeatures().empty() ) {continue;}
 
       // Find the feature with the highest score
-      MRMFeature * bestf = NULL;
-      double highest_score = 0;
-      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-           mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
-      {
-        if (!bestf || mrmfeature->getOverallQuality() > highest_score)
-        {
-          bestf = &(*mrmfeature);
-          highest_score = mrmfeature->getOverallQuality();
-        }
-      }
+      const MRMFeature & bestf = trgroup_it->second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (!bestf || (useQualCutoff && bestf->getOverallQuality() < qualCutoff) ) 
+      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
       {
         continue;
       }
 
       // If we have a found a best feature, add it to the vector
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-      result[ pepref ] = bestf->getRT();
+      result[ pepref ] = bestf.getRT();
     }
     return result;
   }

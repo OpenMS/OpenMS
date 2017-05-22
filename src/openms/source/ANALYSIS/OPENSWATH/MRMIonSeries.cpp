@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ namespace OpenMS
     std::vector<String> best_annotation;
     annotation.split("/", best_annotation);
 
-    if (best_annotation[0] == "Precursor_i0")
+    if (best_annotation[0] == "Precursor_i0" || best_annotation[0] == "MS2_Precursor_i0")
     {
       return interpretation;
     }
@@ -523,7 +523,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, *ft_it + " ion series for peptide sequence \"" + sequence.toString() + "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *ft_it + " ion series for peptide sequence \"" + sequence.toString() + "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
           }
 
           ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);

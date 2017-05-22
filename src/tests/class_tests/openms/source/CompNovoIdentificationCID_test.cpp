@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,10 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -89,8 +93,8 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  PeakSpectrum rspec;
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -128,8 +132,8 @@ START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpect
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  PeakSpectrum rspec;
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)

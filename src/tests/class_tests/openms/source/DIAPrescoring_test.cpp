@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,8 +132,8 @@ START_SECTION ( testscorefunction)
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  TEST_REAL_SIMILAR(dotprod, 0.644473950768828)
-  TEST_REAL_SIMILAR(manhattan, 1.00199893289589)
+  TEST_REAL_SIMILAR(dotprod, 0.649257055562646)
+  TEST_REAL_SIMILAR(manhattan, 0.99470376511618)
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ protected:
     }
     else 
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
     }
     return p;
   }
@@ -216,7 +216,7 @@ protected:
     }
     else
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
     }
 
     // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
@@ -272,7 +272,7 @@ protected:
       }
       if (charges.empty())
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no charges found!");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no charges found!");
       }
     }
     for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
@@ -287,7 +287,7 @@ protected:
     set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
     if (split_charge && charges.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'split_charge' is set, but the list of charge states is empty");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
     }
     map<String, vector<vector<double> > > all_scores;
     char splitter = ','; // to split the engine from the charge state later on

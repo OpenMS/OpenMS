@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -306,7 +306,7 @@ namespace OpenMS
         std::cout << hits[h].getScore() << " >= " << new_pep_ids[i].getSignificanceThreshold() << " "
                   << hits[h].getMetaValue("Rank") << std::endl;
 #endif
-        std::set<String> protein_accessions = hits[h].extractProteinAccessions();
+        std::set<String> protein_accessions = hits[h].extractProteinAccessionsSet();
         std::set<String>::const_iterator acc_it = protein_accessions.begin();
         for (; acc_it != protein_accessions.end(); ++acc_it)
         {
@@ -661,7 +661,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
                                           std::vector<ProteinIdentification>& prot_ids,
                                           PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                          String path, MSExperiment<>& experiment, String precursor_path)
+                                          String path, PeakMap& experiment, String precursor_path)
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
@@ -805,7 +805,7 @@ namespace OpenMS
           for (UInt pep_hit = 0; pep_hit < pep_hits.size(); ++pep_hit)
           {
             // get their accessions
-            std::set<String> accs = pep_hits[pep_hit].extractProteinAccessions();
+            std::set<String> accs = pep_hits[pep_hit].extractProteinAccessionsSet();
             //std::cout << accs.size() << std::endl;
             const std::vector<ProteinIdentification>& prot_ids = features.getProteinIdentifications();
             // get ProteinIds for accession and save them
@@ -981,7 +981,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, MSExperiment<>& experiment,
+  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, PeakMap& experiment,
                                                       std::vector<PeptideIdentification>& param_pep_ids,
                                                       std::vector<ProteinIdentification>& prot_ids,
                                                       PrecursorIonSelectionPreprocessing& preprocessed_db,
@@ -1161,7 +1161,7 @@ namespace OpenMS
                     << pep_ids[0].getSignificanceThreshold() << " "
                     << pep_ids[0].getHits()[0].getMetaValue("Rank");
 
-          std::set<String> protein_accessions = pep_ids[0].getHits()[0].extractProteinAccessions();
+          std::set<String> protein_accessions = pep_ids[0].getHits()[0].extractProteinAccessionsSet();
           if (!protein_accessions.empty())
           {
             String acc = *protein_accessions.begin();
@@ -1337,7 +1337,7 @@ namespace OpenMS
           pep_ids[i].setHits(hits);
         }
         else
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid score type, should be either a posterior error probability or a probability!", pep_ids[i].getScoreType());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid score type, should be either a posterior error probability or a probability!", pep_ids[i].getScoreType());
       }
     }
   }

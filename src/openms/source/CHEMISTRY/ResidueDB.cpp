@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
@@ -68,7 +69,7 @@ namespace OpenMS
     {
       return residue_names_.at(name);
     }
-    return 0;
+    return NULL;
   }
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
@@ -90,7 +91,7 @@ namespace OpenMS
   {
     if (!residues_by_set_.has(residue_set))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Residue set cannot be found: '" + residue_set + "'");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
     }
 
     return residues_by_set_[residue_set];
@@ -147,6 +148,7 @@ namespace OpenMS
 
       mod_names.push_back(mod->getId());
       mod_names.push_back(mod->getFullName());
+      mod_names.push_back(mod->getFullId());
       const set<String>& mod_synonyms = mod->getSynonyms();
       for (set<String>::const_iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
       {
@@ -157,6 +159,7 @@ namespace OpenMS
       {
         for (vector<String>::const_iterator mod_it = mod_names.begin(); mod_it != mod_names.end(); ++mod_it)
         {
+          if ( mod_it->empty() || it->empty() ) continue;
           residue_mod_names_[*it][*mod_it] = r;
         }
       }
@@ -194,7 +197,7 @@ namespace OpenMS
 
     if (!param.begin().getName().hasPrefix("Residues"))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "");
     }
 
     try
@@ -232,7 +235,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, e.what(), "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
     }
   }
 
@@ -457,18 +460,20 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
+    OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
     // search if the mod already exists
     String res_name = residue->getName();
 
     if (residue_names_.find(res_name) == residue_names_.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
     }
 
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     String id = mod.getId();
+    if (id.empty()) id = mod.getFullId();
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {

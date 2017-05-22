@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,7 +165,7 @@ class TOPPBaseTest
       outputFileWritable_(filename, param_name);
     }
 
-    void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
+    void addDataProcessing(PeakMap& map, DataProcessing::ProcessingAction action)
     {
     	DataProcessing dp = getProcessingInfo_(action);
 
@@ -712,23 +712,8 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 }
 END_SECTION
 
-START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
-{
-	//ini file
-	const char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
-	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
-
-	Param good_params = tmp_topp.getParam();
-	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
-	good_params.setValue( "ini", OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini") );
-	good_params.setValue( "stringoption", "instance1" );
-
-	TEST_EQUAL(tmp_topp.getParam(), good_params);
-}
-END_SECTION
-
 START_SECTION(([EXTRA] data processing methods))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(2);
 
 	TOPPBaseTest topp;

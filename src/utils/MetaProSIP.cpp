@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,6 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -72,6 +71,8 @@
 
 #include <math.h>
 
+//#define DEBUG_METAPROSIP
+
 using namespace OpenMS;
 using namespace std;
 using boost::math::normal;
@@ -94,8 +95,9 @@ struct SIPIncorporation
   double correlation; ///< correlation coefficient
 
   double abundance; ///< abundance of isotopologue
-
-  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution
+#ifdef DEBUG_METAPROSIP
+  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution. Large memory consumption.
+#endif
 };
 
 /// datastructure for reporting a peptide with one or more incorporation rates
@@ -149,7 +151,9 @@ struct SIPPeptide
 
   IsotopePatterns patterns;
 
+#ifdef DEBUG_METAPROSIP
   vector<PeakSpectrum> pattern_spectra;
+#endif
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
@@ -257,7 +261,7 @@ public:
 class MetaProSIPClustering
 {
 public:
-  static vector<double> getRIAClusterCenter(const vector<SIPPeptide>& sip_peptides)
+  static vector<double> getRIAClusterCenter(const vector<SIPPeptide>& sip_peptides, bool debug = false)
   {
     vector<double> cluster;
     MapRateToScoreType hist;
@@ -298,16 +302,7 @@ public:
       ria_density[i] = density[i];
     }
 
-    /*
-    TextFile t;
-    for (MapRateToScoreType::const_iterator mit = ria_density.begin(); mit != ria_density.end(); ++mit)
-    {
-      t.addLine(String(mit->second));
-    }
-    t.store("/abi-data/sachsenb/OpenMS_IDE/dump.txt");
-    */
-
-    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density, true);
+    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density, debug);
 
     // return cluster centers
     for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
@@ -1835,17 +1830,17 @@ public:
 class MetaProSIPXICExtraction
 {
 public:
-  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const MSExperiment<Peak1D>& peak_map)
+  static vector<vector<double> > extractXICs(double seed_rt, vector<double> xic_mzs, double mz_toelrance_ppm, double rt_tolerance_s, const PeakMap& peak_map)
   {
     // point on first spectrum in tolerance window
-    MSExperiment<>::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
+    PeakMap::ConstIterator rt_begin = peak_map.RTBegin(seed_rt - rt_tolerance_s);
 
     // point on after last spectrum in tolerance window
-    MSExperiment<>::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
+    PeakMap::ConstIterator rt_end = peak_map.RTBegin(seed_rt + rt_tolerance_s);
 
     // create set containing all rts of spectra in tolerance window
     set<double> all_rts;
-    for (MSExperiment<>::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
+    for (PeakMap::ConstIterator rt_it = rt_begin; rt_it != rt_end; ++rt_it)
     {
       all_rts.insert(rt_it->getRT());
     }
@@ -1862,7 +1857,7 @@ public:
       }
 
       double mz_da = mz_toelrance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
-      MSExperiment<>::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
+      PeakMap::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
 
       for (; it != peak_map.areaEndConst(); ++it)
       {
@@ -1902,7 +1897,7 @@ public:
     return rrs;
   }
 
-  static vector<double> extractXICsOfIsotopeTraces(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double seed_charge, const MSExperiment<Peak1D>& peak_map, const double min_corr_mono = -1.0)
+  static vector<double> extractXICsOfIsotopeTraces(Size element_count, double mass_diff, double mz_tolerance_ppm, double rt_tolerance_s, double seed_rt, double seed_mz, double seed_charge, const PeakMap& peak_map, const double min_corr_mono = -1.0)
   {
     vector<double> xic_mzs;
 
@@ -2203,7 +2198,10 @@ protected:
   {
     double min_observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
-    LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
+    if (debug_level_ > 0)
+    {
+      cout << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
+    }
 
     double TIC_threshold(0.0);
     
@@ -2331,7 +2329,7 @@ protected:
     }
   }
 
-  PeakSpectrum extractPeakSpectrum(Size element_count, double mass_diff, double rt, double feature_hit_theoretical_mz, Int feature_hit_charge, const MSExperiment<>& peak_map)
+  PeakSpectrum extractPeakSpectrum(Size element_count, double mass_diff, double rt, double feature_hit_theoretical_mz, Int feature_hit_charge, const PeakMap& peak_map)
   {
     PeakSpectrum spec = *peak_map.RTBegin(rt - 1e-8);
     PeakSpectrum::ConstIterator begin_it = spec.MZBegin(feature_hit_theoretical_mz - 1e-8);
@@ -2351,7 +2349,7 @@ protected:
   // collects intensities starting at seed_mz/_rt, if no peak is found at the expected position a 0 is added
   vector<double> extractIsotopicIntensities(Size element_count, double mass_diff, double mz_tolerance_ppm,
                                             double seed_rt, double seed_mz, double seed_charge,
-                                            const MSExperiment<Peak1D>& peak_map)
+                                            const PeakMap& peak_map)
   {
     vector<double> isotopic_intensities;
     for (Size k = 0; k != element_count; ++k)
@@ -2377,7 +2375,7 @@ protected:
 
       double found_peak_int = 0;
 
-      MSExperiment<Peak1D>::ConstAreaIterator aait = peak_map.areaBeginConst(min_rt, max_rt, min_mz, max_mz);
+      PeakMap::ConstAreaIterator aait = peak_map.areaBeginConst(min_rt, max_rt, min_mz, max_mz);
 
       // find 13C/15N peak in window around theoretical predicted position
       vector<double> found_peaks;
@@ -2495,7 +2493,7 @@ protected:
   // Used to compensate for slight RT shifts (e.g. important if features of a different map are used)
   // n_scans corresponds to the number of neighboring scan rts that should be extracted
   // n_scan = 2 -> vector size = 1 + 2 + 2
-  vector<double> findApexRT(const FeatureMap::iterator feature_it, double hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
+  vector<double> findApexRT(const FeatureMap::iterator feature_it, double hit_rt, const PeakMap& peak_map, Size n_scans)
   {
     vector<double> seeds_rt;
     vector<Peak2D> mono_trace;
@@ -2507,7 +2505,7 @@ protected:
       const DBoundingBox<2>& mono_bb = feature_it->getConvexHulls()[0].getBoundingBox();
 
       //(min_rt, max_rt, min_mz, max_mz)
-      MSExperiment<Peak1D>::ConstAreaIterator ait = peak_map.areaBeginConst(mono_bb.minPosition()[0], mono_bb.maxPosition()[0], mono_bb.minPosition()[1], mono_bb.maxPosition()[1]);
+      PeakMap::ConstAreaIterator ait = peak_map.areaBeginConst(mono_bb.minPosition()[0], mono_bb.maxPosition()[0], mono_bb.minPosition()[1], mono_bb.maxPosition()[1]);
       for (; ait != peak_map.areaEndConst(); ++ait)
       {
         Peak2D p2d;
@@ -2572,7 +2570,7 @@ protected:
     return seeds_rt;
   }
 
-  PeakSpectrum mergeSpectra(const MSExperiment<>& to_merge)
+  PeakSpectrum mergeSpectra(const PeakMap& to_merge)
   {
     PeakSpectrum merged;
     for (Size i = 0; i != to_merge.size(); ++i)
@@ -2655,8 +2653,9 @@ protected:
             closest_idx = i;
           }
         }
+#ifdef DEBUG_METAPROSIP
         sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
-
+#endif
         if (int_sum > 1e-4)
         {
           sip_incorporations.push_back(sip_incorporation);
@@ -2840,7 +2839,10 @@ protected:
           closest_idx = i;
         }
       }
+
+#ifdef DEBUG_METAPROSIP
       sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
+#endif
 
       sip_incorporations.push_back(sip_incorporation);
     }
@@ -2931,19 +2933,37 @@ protected:
     double decomposition_threshold = getDoubleOption_("decomposition_threshold");
 
     Size min_consecutive_isotopes = (Size)getIntOption_("min_consecutive_isotopes");
+
     String qc_output_directory = getStringOption_("qc_output_directory");
+
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
-    QDir qc_dir(qc_output_directory.toQString());
+    String tmp_path = File::getTempDirectory();
+    tmp_path.substitute('\\', '/');
 
-    // convert relative paths into absolute path
-    qc_output_directory = String(qc_dir.absolutePath());
-
-    // trying to create qc_output_directory if not present
-    if (!qc_dir.exists())
+    // Do we want to create a qc report?  
+    if (!qc_output_directory.empty())
     {
-      qc_dir.mkpath(qc_output_directory.toQString());
+      // convert path to absolute path
+      QDir qc_dir(qc_output_directory.toQString());
+      qc_output_directory = String(qc_dir.absolutePath());
+
+      // trying to create qc_output_directory if not present
+      if (!qc_dir.exists())
+      {
+        qc_dir.mkpath(qc_output_directory.toQString());
+      }
+      // check if R and dependencies are installed    
+      StringList package_names;
+      package_names.push_back("gplots");
+
+      bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
+      if (!R_is_working)
+      {
+        LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
     }
 
     String out_csv = getStringOption_("out_csv");
@@ -2968,19 +2988,6 @@ protected:
     double xic_threshold = getDoubleOption_("xic_threshold");
 
     double min_correlation_distance_to_averagine = getDoubleOption_("min_correlation_distance_to_averagine");
-
-    String tmp_path = File::getTempDirectory();
-    tmp_path.substitute('\\', '/');
-
-    // check if R and dependencies are installed
-    StringList package_names;
-    package_names.push_back("gplots");
-    bool R_is_working = RIntegration::checkRDependencies(tmp_path, package_names, executable);
-    if (!R_is_working)
-    {
-      LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
-      return EXTERNAL_PROGRAM_ERROR;
-    }
 
     bool cluster_flag = getFlag_("cluster");
 
@@ -3048,7 +3055,7 @@ protected:
     if (use_averagine_ids)
     {
       // load only MS2 spectra with precursor information
-      MSExperiment<Peak1D> peak_map;
+      PeakMap peak_map;
       MzMLFile mh;
       std::vector<Int> ms_level(1, 2);
       mh.getOptions().setMSLevels(ms_level);
@@ -3093,8 +3100,8 @@ protected:
       vector<Size> blacklist_idx;
       for (vector<Peak2D>::const_iterator it = blacklisted_precursors.begin(); it != blacklisted_precursors.end(); ++it)
       {
-        MSExperiment<>::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
-        MSExperiment<>::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
+        PeakMap::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
+        PeakMap::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
         Size index = std::distance(map_rt_begin, rt_begin);
         //cout << "Blacklist Index: " << index << endl;
         blacklist_idx.push_back(index);
@@ -3135,7 +3142,7 @@ protected:
     }
 
     LOG_INFO << "loading experiment..." << endl;
-    MSExperiment<Peak1D> peak_map;
+    PeakMap peak_map;
     MzMLFile mh;
     std::vector<Int> ms_level(1, 1);
     mh.getOptions().setMSLevels(ms_level);
@@ -3236,7 +3243,7 @@ protected:
         LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
-      const set<String> protein_accessions = feature_hit.extractProteinAccessions();
+      const set<String> protein_accessions = feature_hit.extractProteinAccessionsSet();
       sip_peptide.accessions = vector<String>(protein_accessions.begin(), protein_accessions.end());
       sip_peptide.sequence = feature_hit_aaseq;
       sip_peptide.mz_theo = feature_hit_theoretical_mz;
@@ -3386,7 +3393,11 @@ protected:
           ++non_zero_isotopic_intensities;
         }
       }
-      cout << "isotopic intensities missing / total: " << isotopic_intensities.size() - non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
+
+      if (debug_level > 0)
+      {
+        cout << "Isotopic intensities found / total: " << non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
+      }
 
       LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
 
@@ -3436,7 +3447,9 @@ protected:
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);
+#ifdef DEBUG_METAPROSIP
         sip_peptide.pattern_spectra.push_back(p);
+#endif
       }
 
       // calculate decomposition into isotopic patterns
@@ -3529,7 +3542,7 @@ protected:
     }
 
     // copy meta information
-    MSExperiment<Peak1D> debug_exp = peak_map;
+    PeakMap debug_exp = peak_map;
     debug_exp.clear(false);
 
     vector<vector<SIPPeptide> > sippeptide_clusters; // vector of cluster
@@ -3591,17 +3604,8 @@ protected:
       MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix, report_natural_peptides);
     }
 
-    // plot debug spectra
-    /*
-    if (!debug_patterns_name.empty())
-    {
-      MzMLFile mtest;
-      mtest.store(debug_patterns_name, debug_exp);
-    }
-    */
-
     // quality report
-    if (!qc_output_directory.empty() && R_is_working)
+    if (!qc_output_directory.empty())
     {
       // TODO plot merged is now passed as false
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, executable);

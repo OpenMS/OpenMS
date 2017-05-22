@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,13 +95,13 @@ namespace OpenMS
     }
     
     // split the labels_ string
-    String temp_labels(labels_);
+    String temp_labels_string(labels_);
     std::vector<String> temp_samples;
     
-    boost::replace_all(temp_labels, "[]", "no_label");
-    boost::replace_all(temp_labels, "()", "no_label");
-    boost::replace_all(temp_labels, "{}", "no_label");
-    boost::split(temp_samples, temp_labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    boost::replace_all(temp_labels_string, "[]", "no_label");
+    boost::replace_all(temp_labels_string, "()", "no_label");
+    boost::replace_all(temp_labels_string, "{}", "no_label");
+    boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
     
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
@@ -146,7 +146,7 @@ namespace OpenMS
 
     if (!(SILAC || Leu || Dimethyl || ICPL || none))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Leu, Dimethyl nor ICPL.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown labelling. Neither SILAC, Leu, Dimethyl nor ICPL.");
     }
     
     // check if the labels are included in advanced section "labels"
@@ -159,7 +159,7 @@ namespace OpenMS
         {
           std::stringstream stream;
           stream << "The label " << samples_labels_[i][j] << " is unknown.";
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
         }
       }
     }
@@ -322,14 +322,14 @@ namespace OpenMS
     if (delta_masses_list_.empty())
     {
       // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
-      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
     
     unsigned n = delta_masses_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     unsigned m = delta_masses_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Knock-outs for singlet detection not relevant.");
     }
     else if (n == 2)
     {
@@ -434,7 +434,7 @@ namespace OpenMS
     }
     else if (n > 4)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
     }
     
     // sort mass patterns

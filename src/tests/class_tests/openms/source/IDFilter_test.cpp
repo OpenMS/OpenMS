@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
-#include <vector>
 
 ///////////////////////////
 
@@ -147,7 +146,6 @@ START_SECTION((template <class IdentificationType> static bool getBestHit(const 
   TEST_REAL_SIMILAR(best_hit.getScore(), 10);
   TEST_EQUAL(best_hit.getSequence().toString(),
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
-
   ProteinHit best_hit2;
   IDFilter::getBestHit(global_proteins, false, best_hit2);
   TEST_REAL_SIMILAR(best_hit2.getScore(), 32.3);
@@ -161,6 +159,7 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
   IDFilter::extractPeptideSequences(global_peptides, seqs);
   TEST_EQUAL(seqs.size(), 11);
   vector<String> expected = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNM(Oxidation)ISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
+  vector<String> expected_unmodified = ListUtils::create<String>("AITSDFANQAKTVLQNFK,DLEPGTDYEVTVSTLFGR,EGASTDFAALRTFLAEDGK,FINFGVNVEVLSRFQTK,LHASGITVTEIPVTATNFK,MRSLGYVAVISAVATDTDK,MSLLSNMISIVKVGYNAR,MSLLSNMISIVKVGYNAR,TGCDTWGQGTLVTVSSASTK,THPYGHAIVAGIERYPSK,TLCHHDATFDNLVWTPK");
   Size counter = 0;
   for (set<String>::iterator it = seqs.begin(); it != seqs.end(); ++it,
          ++counter)
@@ -176,7 +175,7 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
          ++counter)
   {
     if (counter == 6) counter++; // skip the modified sequence
-    TEST_EQUAL(*it, expected[counter]);
+    TEST_EQUAL(*it, expected_unmodified[counter]);
   }
 }
 END_SECTION
@@ -698,7 +697,7 @@ START_SECTION((static void keepPeptidesWithMatchingModifications(vector<PeptideI
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
 
   // terminal mods:
-  AASequence seq = AASequence::fromString("(Acetyl)PEPTIDER(Arg-loss)");
+  AASequence seq = AASequence::fromString("(Acetyl)PEPTIDER.(Arg-loss)");
   peptides[0].getHits().resize(2);
   peptides[0].getHits()[1].setSequence(seq);
   mods.insert("Acetyl (N-term)");
@@ -859,7 +858,7 @@ END_SECTION
 
 START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
   ids[0].assignRanks();
@@ -902,7 +901,7 @@ END_SECTION
 
 START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExperiment<PeakT>& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
   ids[0].assignRanks();
@@ -945,7 +944,7 @@ END_SECTION
 
 START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<PeakT>& experiment, Size n)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
   ids[0].assignRanks();
@@ -980,7 +979,7 @@ END_SECTION
 
 START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExperiment<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<FASTAFile::FASTAEntry> proteins;
   vector<PeptideIdentification> peptides = global_peptides;
 

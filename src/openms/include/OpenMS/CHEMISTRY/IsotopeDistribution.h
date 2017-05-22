@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 
 #include <utility>
 #include <vector>
+#include <set>
 
 namespace OpenMS
 {
@@ -70,6 +71,11 @@ public:
     typedef ContainerType::iterator Iterator;
     typedef ContainerType::const_iterator const_iterator;
     typedef ContainerType::const_iterator ConstIterator;
+
+    typedef ContainerType::reverse_iterator reverse_iterator;
+    typedef ContainerType::reverse_iterator ReverseIterator;
+    typedef ContainerType::const_reverse_iterator const_reverse_iterator;
+    typedef ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
     /// @name Constructors and Destructors
@@ -129,6 +135,17 @@ public:
     void estimateFromPeptideWeight(double average_weight);
 
     /**
+        @brief Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
+
+        @param average_weight: Average weight to estimate an EmpiricalFormula for
+        @param S: The exact number of Sulfurs in this molecule
+
+        @pre S <= average_weight / average_weight(sulfur)
+        @pre average_weight >= 0
+    */
+    void estimateFromPeptideWeightAndS(double average_weight, UInt S);
+
+    /**
         @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
 
         averagine model from Zubarev, R. A.; Demirev, P. A. in
@@ -149,6 +166,129 @@ public:
 
     */
     void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
+        @brief Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition
+
+        @param average_weight: Average weight to estimate an IsotopeDistribution for
+        @param S: The exact numbers of Sulfurs in this molecule
+        @param C: The approximate relative stoichiometry of Carbons to other elements (excluding Sulfur) in this molecule
+        @param H: The approximate relative stoichiometry of Hydrogens to other elements (excluding Sulfur) in this molecule
+        @param N: The approximate relative stoichiometry of Nitrogens to other elements (excluding Sulfur) in this molecule
+        @param O: The approximate relative stoichiometry of Oxygens to other elements (excluding Sulfur) in this molecule
+        @param P: The approximate relative stoichiometry of Phosphoruses to other elements (excluding Sulfur) in this molecule
+
+        @pre S, C, H, N, O, P >= 0
+        @pre average_weight >= 0
+    */
+    void estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
+
+    /**
+        @brief Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor peptide
+        @param average_weight_fragment: average weight of the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+
+        @pre average_weight_precursor >= average_weight_fragment
+        @pre average_weight_fragment > 0
+        @pre average_weight_precursor > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
+        number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
+        and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor peptide
+        @param S_precursor: The exact number of Sulfurs in the precursor peptide
+        @param average_weight_fragment: average weight of the fragment
+        @param S_fragment: The exact number of Sulfurs in the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated
+
+        @pre S_fragment <= average_weight_fragment / average_weight(sulfur)
+        @pre S_precursor - S_fragment <= (average_weight_precursor - average_weight_fragment) / average_weight(sulfur)
+        @pre average_weight_precursor >= average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor nucleotide
+        @param average_weight_fragment: average weight of the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+
+        @pre average_weight_precursor >= average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, and a list of isolated precursor isotopes.
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor nucleotide
+        @param average_weight_fragment: average weight of the fragment
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+
+        @pre average_weight_precursor >= average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+    */
+    void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
+
+    /**
+        @brief Estimate fragment IsotopeDistribution from the precursor's average weight,
+        fragment's average weight, a list of isolated precursor isotopes, and average composition
+
+        The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
+        @param average_weight_precursor: average weight of the precursor molecule
+        @param average_weight_fragment: average weight of the fragment molecule
+        @param precursor_isotopes: the precursor isotopes that were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+        @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
+        @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+        @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+        @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
+        @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+        @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+        @pre S, C, H, N, O, P >= 0
+        @pre average_weight_precursor >= average_weight_fragment
+        @pre average_weight_precursor > 0
+        @pre average_weight_fragment > 0
+        @pre precursor_isotopes.size() > 0
+     */
+    void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
+
+    /**
+        @brief Calculate isotopic distribution for a fragment molecule
+
+        This calculates the isotopic distribution for a fragment molecule given
+        the isotopic distribution of the fragment and complementary fragment
+        (as if they were precursors), and which precursor isotopes were isolated.
+        Do consider normalising the distribution afterwards to get conditional probabilities.
+        Equations come from Rockwood, AL; Kushnir, MA; Nelson, GJ. in
+        "Dissociation of Individual Isotopic Peaks: Predicting Isotopic Distributions of Product Ions in MSn"
+        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+    */
+    void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
     /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
 
@@ -211,6 +351,14 @@ public:
     inline ConstIterator begin() const { return distribution_.begin(); }
 
     inline ConstIterator end() const { return distribution_.end(); }
+
+    inline ReverseIterator rbegin() { return distribution_.rbegin(); }
+
+    inline ReverseIterator rend()   { return distribution_.rend(); }
+
+    inline ConstReverseIterator rbegin() const { return distribution_.rbegin(); }
+
+    inline ConstReverseIterator rend() const { return distribution_.rend(); }
     //@}
 
 protected:
@@ -223,6 +371,14 @@ protected:
 
     /// convolves the distribution @p input with itself and stores the result in @p result
     void convolveSquare_(ContainerType & result, const ContainerType & input) const;
+
+    /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
+
+        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
+        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
+        @param precursor_isotopes which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+     */
+    void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
     ContainerType fillGaps_(const ContainerType& id) const;

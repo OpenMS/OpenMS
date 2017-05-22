@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,7 +144,7 @@ START_SECTION((virtual void test_dia_scores()))
   OpenSWATH_Test::MRMTransitionGroupType transition_group;
   transition_group = OpenSWATH_Test::createMockTransitionGroup();
 
-  MSExperiment<Peak1D> swath_map;
+  PeakMap swath_map;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), swath_map);
 
   MRMFeature mrmfeature = OpenSWATH_Test::createMockFeature();
@@ -202,8 +202,8 @@ START_SECTION((virtual void test_dia_scores()))
   OpenMS::AASequence aas = AASequence::fromString(sequence);
   diascoring.dia_by_ion_score(sptr, aas, by_charge_state, bseries_score, yseries_score);
 
-  TEST_REAL_SIMILAR(isotope_corr, 0.286635451556 * transition_group.getTransitions().size() )
-  TEST_REAL_SIMILAR(isotope_corr, 0.859906354668202)
+  TEST_REAL_SIMILAR(isotope_corr, 0.2866618 * transition_group.getTransitions().size() )
+  TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0599970892071724)
 
   TEST_REAL_SIMILAR(ppm_score, 1.76388919944981)

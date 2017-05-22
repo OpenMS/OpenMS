@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,7 +184,7 @@ namespace OpenMS
       if (adduct.size() != 2 && adduct.size() != 3 && adduct.size() != 4)
       {
         String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two, three or four entries ('Element:Probability' or 'Element:Probability:RTShift' or 'Element:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine charge of adduct (by # of '+')
       Size l_charge = adduct[0].size();
@@ -194,7 +194,7 @@ namespace OpenMS
       if (prob > 1.0 || prob <= 0.0)
       {
         String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       EmpiricalFormula ef(adduct[0].remove('+'));
       ef -= EmpiricalFormula("H" + String(l_charge));
@@ -480,7 +480,7 @@ namespace OpenMS
 
                   if (hc_left < 0 || hc_right < 0)
                   {
-                    throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "WARNING!!! implicit number of H+ is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
+                    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of H+ is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
                   }
 
                   // intensity constraint:
@@ -744,7 +744,7 @@ namespace OpenMS
         if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
         {
           if (ef_l.toString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.toString());
         }
         else
         {
@@ -757,7 +757,7 @@ namespace OpenMS
         fm_out[f0_idx].setCharge(new_q0);
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
         if (labels.size() > 0)
         {
           fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -768,7 +768,7 @@ namespace OpenMS
         if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
         {
           if (ef_r.toString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.toString());
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.toString());
         }
         else
         {
@@ -781,7 +781,7 @@ namespace OpenMS
         fm_out[f1_idx].setCharge(new_q1);
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
         if (labels.size() > 0)
         {
           fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -1115,7 +1115,7 @@ namespace OpenMS
             }
             else
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureDeconvolution::inferMoreEdges_(): discovered internal error!", String(new_cmp.getNegativeCharges()));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): discovered internal error!", String(new_cmp.getNegativeCharges()));
             }
           }
 
@@ -1202,7 +1202,7 @@ namespace OpenMS
       return feature_charge == putative_charge;
     }
 
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "q_try_ has unhandled enum value!", String((Int)q_try_));
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));
 
   }
 

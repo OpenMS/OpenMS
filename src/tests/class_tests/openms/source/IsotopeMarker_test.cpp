@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <map>
 
@@ -88,14 +90,14 @@ START_SECTION((template<typename SpectrumType> void apply(std::map<double, bool>
 	map<double, bool> marked;
 	e_ptr->apply(marked, spec);
 	
-	TEST_EQUAL(marked.size(), 51)
+	TEST_EQUAL(marked.size(), 48)
 
 	Param iso_param = e_ptr->getParameters();
 	iso_param.setValue("marks", 2);
 	e_ptr->setParameters(iso_param);
 	marked.clear();
 	e_ptr->apply(marked, spec);
-	TEST_EQUAL(marked.size(), 18)
+	TEST_EQUAL(marked.size(), 17)
 END_SECTION
 
 START_SECTION((static PeakMarker* create()))

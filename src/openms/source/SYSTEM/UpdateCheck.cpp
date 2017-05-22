@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,7 +93,15 @@ namespace OpenMS
     bool first_run(false);
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
-      Param p = File::getSystemParameters(); // initializes .OpenMS folder
+      // create OpenMS folder for .ver files
+      String home_path = File::getOpenMSHomePath();
+      String dirname = home_path + "/.OpenMS";
+      QDir dir(dirname.toQString());
+
+      if (!dir.exists())
+      {
+        dir.mkpath(".");
+      }
 
       // touch file to create it and set initial modification time stamp
       QFile f;

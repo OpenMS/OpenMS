@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -329,7 +329,7 @@ namespace OpenMS
         }
       }
     }
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::mouseMoveEvent(QMouseEvent * e)
@@ -366,7 +366,7 @@ namespace OpenMS
             (*it)->move(delta);
           }
         }
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
         last_mouse_pos_ = p;
       }
       else if (action_mode_ == AM_TRANSLATE)
@@ -396,7 +396,7 @@ namespace OpenMS
         {
           selected_peak_ = near_peak;
           last_mouse_pos_ = p;
-          update_(__PRETTY_FUNCTION__);
+          update_(OPENMS_PRETTY_FUNCTION);
         }
       }
       else if (action_mode_ == AM_ZOOM)
@@ -413,13 +413,13 @@ namespace OpenMS
         }
         rubber_band_.show();         //if the mouse button is pressed before the zoom key is pressed
 
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
       }
     }
     else if (!e->buttons())     //no buttons pressed
     {
       selected_peak_ = findPeakAtPosition_(p);
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
 
     //show coordinates
@@ -499,7 +499,7 @@ namespace OpenMS
       moving_annotations_ = false;
 
       measurement_start_.clear();
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -510,14 +510,14 @@ namespace OpenMS
     {
       e->accept();
       getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
     // 'a' pressed && in zoom mode (ctrl pressed) => select all annotation items
     else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_A))
     {
       e->accept();
       getCurrentLayer_().getCurrentAnnotations().selectAll();
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
     else
     {
@@ -613,7 +613,7 @@ namespace OpenMS
     if (layers_.empty())
     {
       overall_data_range_ = DRange<3>::empty;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
       return;
     }
 
@@ -624,7 +624,6 @@ namespace OpenMS
 
     //update range area
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
@@ -644,7 +643,7 @@ namespace OpenMS
                         overall_data_range_.maxX(), overall_data_range_.maxY());
       changeVisibleArea_(new_area, true, true);
     }
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::setDrawMode(DrawModes mode)
@@ -656,7 +655,7 @@ namespace OpenMS
     if (draw_modes_[current_layer_] != mode)
     {
       draw_modes_[current_layer_] = mode;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -800,7 +799,7 @@ namespace OpenMS
         break;
 
         default:
-          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
 
         // draw all annotation items
@@ -1000,7 +999,7 @@ namespace OpenMS
 
     if (repaint)
     {
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -1077,7 +1076,6 @@ namespace OpenMS
 
     // update ranges
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
@@ -1261,7 +1259,7 @@ namespace OpenMS
 
   void Spectrum1DCanvas::currentLayerParamtersChanged_()
   {
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent * e)
@@ -1279,7 +1277,7 @@ namespace OpenMS
     {
       annots_1d.deselectAll();
       annots_1d.selectItemAt(e->pos());
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
 
       context_menu->addAction("Edit");
       context_menu->addAction("Delete");
@@ -1293,7 +1291,7 @@ namespace OpenMS
         {
           annot_item->editText();
         }
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
       }
     }
     else // !annot_item
@@ -1459,7 +1457,7 @@ namespace OpenMS
     Annotation1DItem * item = new Annotation1DTextItem(position, text);
     getCurrentLayer_().getCurrentAnnotations().push_front(item);
 
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::addUserPeakAnnotation_(PeakIndex near_peak)
@@ -1479,7 +1477,7 @@ namespace OpenMS
     Annotation1DItem * item = new Annotation1DPeakItem(position, text, color);
     item->setSelected(false);
     getCurrentLayer_().getCurrentAnnotations().push_front(item);
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
     return item;
   }
 
@@ -1561,7 +1559,6 @@ namespace OpenMS
 
     //update ranges
     recalculateRanges_(0, 2, 1);
-    overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
     double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
@@ -1704,7 +1701,7 @@ namespace OpenMS
   {
     mirror_mode_ = b;
     qobject_cast<Spectrum1DWidget *>(spectrum_widget_)->toggleMirrorView(b);
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::paintGridLines_(QPainter & painter)
@@ -1833,7 +1830,7 @@ namespace OpenMS
     }
 
     show_alignment_ = true;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
 
     SpectrumAlignmentScore scorer;
     scorer.setParameters(param);
@@ -1847,7 +1844,7 @@ namespace OpenMS
     aligned_peaks_mz_delta_.clear();
     qobject_cast<Spectrum1DWidget *>(spectrum_widget_)->resetAlignment();
     show_alignment_ = false;
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::drawAlignment(QPainter & painter)
@@ -1898,7 +1895,7 @@ namespace OpenMS
   {
     recalculateSnapFactor_();
     ensureAnnotationsWithinDataRange_();
-    update_(__PRETTY_FUNCTION__);
+    update_(OPENMS_PRETTY_FUNCTION);
   }
 
   void Spectrum1DCanvas::ensureAnnotationsWithinDataRange_()
@@ -1942,7 +1939,7 @@ namespace OpenMS
       recalculateSnapFactor_();
       if (repaint)
       {
-        update_(__PRETTY_FUNCTION__);
+        update_(OPENMS_PRETTY_FUNCTION);
       }
     }
   }
@@ -1963,7 +1960,7 @@ namespace OpenMS
     if (peak_penstyle_[current_layer_] != ps)
     {
       peak_penstyle_[current_layer_] = ps;
-      update_(__PRETTY_FUNCTION__);
+      update_(OPENMS_PRETTY_FUNCTION);
     }
   }
 

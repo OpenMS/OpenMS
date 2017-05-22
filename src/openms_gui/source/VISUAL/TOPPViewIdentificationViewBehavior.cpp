@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -216,8 +216,9 @@ namespace OpenMS
           ++itic;
         }
         Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                          QString(),
-                                                          cols[i]);
+                                                         QString(),
+                                                         cols[i],
+                                                         current_layer.param.getValue("peak_color").toQString());
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
@@ -327,14 +328,14 @@ namespace OpenMS
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
         Annotation1DDistanceItem * item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
-        // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
+        // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
         ticks.push_back(it->getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
 
         temporary_annotations_.push_back(item); // for removal (no ownership)
-        current_layer.getCurrentAnnotations().push_front(item); // for visualisation (ownership)
+        current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
       }
     }
     else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -378,10 +379,14 @@ namespace OpenMS
 
     const Param & tv_params = tv_->getParameters();
 
-    RichPeakSpectrum rich_spec;
+    PeakSpectrum spectrum;
     TheoreticalSpectrumGenerator generator;
     Param p;
     p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+    // these two are true by default, initialize to false here and set to true in the loop below
+    p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
+    p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
 
     p.setValue("max_isotope", tv_params.getValue("preferences:idview:max_isotope"), "Number of isotopic peaks");
     p.setValue("add_losses", tv_params.getValue("preferences:idview:add_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
@@ -395,48 +400,23 @@ namespace OpenMS
     p.setValue("y_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
     p.setValue("z_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
     p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
-    generator.setParameters(p);
+
+    p.setValue("add_a_ions", tv_params.getValue("preferences:idview:show_a_ions"), "Add peaks of a-ions to the spectrum");
+    p.setValue("add_b_ions", tv_params.getValue("preferences:idview:show_b_ions"), "Add peaks of b-ions to the spectrum");
+    p.setValue("add_c_ions", tv_params.getValue("preferences:idview:show_c_ions"), "Add peaks of c-ions to the spectrum");
+    p.setValue("add_x_ions", tv_params.getValue("preferences:idview:show_x_ions"), "Add peaks of x-ions to the spectrum");
+    p.setValue("add_y_ions", tv_params.getValue("preferences:idview:show_y_ions"), "Add peaks of y-ions to the spectrum");
+    p.setValue("add_z_ions", tv_params.getValue("preferences:idview:show_z_ions"), "Add peaks of z-ions to the spectrum");
+    p.setValue("add_precursor_peaks", tv_params.getValue("preferences:idview:show_precursor"), "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
 
     try
     {
       Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
-      // generate mass ladder for each charge state
-      for (Int charge = 1; charge <= max_charge; ++charge)
-      {
-        if (tv_params.getValue("preferences:idview:show_a_ions").toBool()) // "A-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_b_ions").toBool()) // "B-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_c_ions").toBool()) // "C-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_x_ions").toBool()) // "X-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_y_ions").toBool()) // "Y-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_z_ions").toBool()) // "Z-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
-        }
-        if (tv_params.getValue("preferences:idview:show_precursor").toBool()) // "Precursor"
-        {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-        }
-      }
-      if (tv_params.getValue("preferences:idview:add_abundant_immonium_ions").toBool()) // "abundant Immonium-ions"
-      {
-        generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
-      }
+      // generate mass ladder for all charge states
+      generator.setParameters(p);
+      generator.getSpectrum(spectrum, aa_sequence, 1, max_charge);
+
     }
     catch (Exception::BaseException & e)
     {
@@ -444,15 +424,8 @@ namespace OpenMS
       return;
     }
 
-    // convert rich spectrum to simple spectrum
-    PeakSpectrum new_spec;
-    for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-    {
-      new_spec.push_back(static_cast<Peak1D>(*it));
-    }
-
     PeakMap new_exp;
-    new_exp.addSpectrum(new_spec);
+    new_exp.addSpectrum(spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -468,32 +441,31 @@ namespace OpenMS
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
 
     // kind of a hack to check whether adding the layer was successful
-    if (current_spectrum_layer_index != theoretical_spectrum_layer_index)
+    if (current_spectrum_layer_index != theoretical_spectrum_layer_index && !spectrum.getStringDataArrays().empty())
     {
       // Ensure theoretical spectrum is drawn as dashed sticks
       tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
       tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
 
       // Add ion names as annotations to the theoretical spectrum
-      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-      {
-        if (it->getMetaValue("IonName") != DataValue::EMPTY)
-        {
-          DPosition<2> position = DPosition<2>(it->getMZ(), it->getIntensity());
-          QString s(((string)it->getMetaValue("IonName")).c_str());
+      PeakSpectrum::StringDataArray sa = spectrum.getStringDataArrays()[0];
 
-          if (s.at(0) == 'y')
-          {
-            Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkRed);
-            item->setSelected(false);
-            tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-          }
-          else if (s.at(0) == 'b')
-          {
-            Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
-            item->setSelected(false);
-            tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-          }
+      for (Size i = 0; i != spectrum.size(); ++i)
+      {
+        DPosition<2> position = DPosition<2>(spectrum[i].getMZ(), spectrum[i].getIntensity());
+        QString s(sa[i].c_str());
+
+        if (s.at(0) == 'y')
+        {
+          Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkRed);
+          item->setSelected(false);
+          tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+        }
+        else if (s.at(0) == 'b')
+        {
+          Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
+          item->setSelected(false);
+          tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
       }
 
@@ -526,7 +498,7 @@ namespace OpenMS
       for (Size i = 0; i != aligned_peak_indices.size(); ++i)
       {
         PeakIndex pi(current_spectrum_index, aligned_peak_indices[i].first);
-        QString s(((string)rich_spec[aligned_peak_indices[i].second].getMetaValue("IonName")).c_str());
+        QString s(sa[aligned_peak_indices[i].second].c_str());
         QString ion_nr_string = s;
 
         if (s.at(0) == 'y')

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Eva Lange $
+// $Authors: Hannes Röst $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -47,9 +47,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PeakPickerHiRes PeakPickerHiRes
+  @page UTILS_LowMemPeakPickerHiRes LowMemPeakPickerHiRes
 
-  @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
+  @brief A tool for peak detection on streamed profile data (low-memory requirements). Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
 
   <center>
   <table>
@@ -84,9 +84,9 @@ using namespace std;
   @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeakPickerHiRes.cli
+  @verbinclude TOPP_LowMemPeakPickerHiRes.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PeakPickerHiRes.html
+  @htmlinclude TOPP_LowMemPeakPickerHiRes.html
 
   For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
 
@@ -145,7 +145,7 @@ protected:
 
     void processChromatogram_(MapType::ChromatogramType & /* c */)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Cannot handle chromatograms yet.");
     }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -274,6 +274,17 @@ namespace OpenMS
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
 
+    FileNameTooLong::FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) throw() :
+      BaseException(file, line, function, "FileNameTooLong", "")
+    {
+      stringstream ss;
+      ss << "the file '" << filename << "' is too long (" << filename.size() << " chars) "
+         << "and exceeds the allowed limit of " << max_length << ". "
+         << "Use shorter filenames and/or less sub-directories.";
+      what_ = ss.str();
+      GlobalExceptionHandler::getInstance().setMessage(what_);
+    }
+
     IOException::IOException(const char* file, int line, const char* function, const std::string& filename) throw() :
       BaseException(file, line, function, "IOException", "")
     {
@@ -317,15 +328,13 @@ namespace OpenMS
     }
 
     IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const string& error_message) throw() :
-      BaseException(file, line, function)
+      BaseException(file, line, function, "IllegalArgument", error_message)
     {
-      what_ = error_message;
     }
 
     MissingInformation::MissingInformation(const char* file, int line, const char* function, const string& error_message) throw() :
-      BaseException(file, line, function)
+      BaseException(file, line, function, "MissingInformation", error_message)
     {
-      what_ = error_message;
     }
 
     ElementNotFound::ElementNotFound(const char* file, int line, const char* function, const string& element)   throw() :

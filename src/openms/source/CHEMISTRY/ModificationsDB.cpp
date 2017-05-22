@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <vector>
 #include <algorithm>
@@ -54,6 +55,7 @@ namespace OpenMS
   {
     readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
     readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
+    readFromOBOFile("CHEMISTRY/XLMOD.obo");
   }
 
 
@@ -77,7 +79,7 @@ namespace OpenMS
   {
     if (index >= mods_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, mods_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, mods_.size());
     }
     return *mods_[index];
   }
@@ -89,7 +91,7 @@ namespace OpenMS
 
     if (!modification_names_.has(mod_name))
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        mod_name);
     }
 
@@ -110,11 +112,19 @@ namespace OpenMS
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
     set<const ResidueModification*> mods;
-    searchModifications(mods, mod_name, residue, term_spec);
+    // if residue is specified, try residue-specific search first to avoid
+    // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
+    if (!residue.empty() &&
+        (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY))
+    {
+      searchModifications(mods, mod_name, residue,
+                          ResidueModification::ANYWHERE);
+    }
+    if (mods.empty()) searchModifications(mods, mod_name, residue, term_spec);
 
     if (mods.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
     }
     if (mods.size() > 1)
     {
@@ -132,23 +142,24 @@ namespace OpenMS
 
   bool ModificationsDB::has(String modification) const
   {
+    OPENMS_PRECONDITION(!modification_names_.has(modification) || (int)findModificationIndex(modification) >= 0,
+        "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.has(modification);
   }
 
-
-  Size ModificationsDB::findModificationIndex(const String& mod_name) const
+  Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
-    Size idx(0);
+    Int idx(-1);
     if (modification_names_.has(mod_name))
     {
       if (modification_names_[mod_name].size() > 1)
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "more than one element of name '" + mod_name + "' found!");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "more than one element of name '" + mod_name + "' found!");
       }
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, mod_name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
     }
 
     const ResidueModification* mod = *modification_names_[mod_name].begin();
@@ -160,6 +171,13 @@ namespace OpenMS
         break;
       }
     }
+
+    // throw if we did not find the modification
+    if (idx < 0)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
+    }
+
     return idx;
   }
 
@@ -172,7 +190,7 @@ namespace OpenMS
     {
       if ((fabs((*it)->getDiffMonoMass() - mass) <= max_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         mods.push_back((*it)->getFullId());
@@ -181,10 +199,12 @@ namespace OpenMS
   }
 
 
-  const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue,
+                                                                            ResidueModification::TermSpecificity term_spec)
   {
     double min_error = max_error;
     const ResidueModification* mod = 0;
+    const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue); // is NULL if not found
     for (vector<ResidueModification*>::const_iterator it = mods_.begin();
          it != mods_.end(); ++it)
     {
@@ -195,8 +215,7 @@ namespace OpenMS
         // map to multiple residues), we calculate a monoisotopic mass from the
         // delta mass.
         // First the internal (inside an AA chain) weight of the residue:
-        const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
-        if (residue_ == 0) continue; // @TODO: throw an exception here?
+        if (residue_ != NULL) continue; // @TODO: throw an exception here?
         double internal_weight = residue_->getMonoWeight() -
           residue_->getInternalToFull().getMonoWeight();
         mono_mass = (*it)->getDiffMonoMass() + internal_weight;
@@ -207,7 +226,7 @@ namespace OpenMS
       double mass_error = fabs(mono_mass - mass);
       if ((mass_error < min_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         min_error = mass_error;
@@ -231,7 +250,7 @@ namespace OpenMS
       double mass_error = fabs((*it)->getDiffMonoMass() - mass);
       if ((mass_error < min_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         min_error = mass_error;
@@ -248,28 +267,9 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::iterator it = new_mods.begin(); it != new_mods.end(); ++it)
     {
-      if ((*it)->getTermSpecificity() != ResidueModification::ANYWHERE && // Terminal specificity
-          (*it)->getOrigin().size() == 1) // single amino acids letter
-      {
-        String term_spec;
-        if ((*it)->getTermSpecificity() == ResidueModification::C_TERM)
-        {
-          term_spec = "C-term";
-        }
-        else if ((*it)->getTermSpecificity() == ResidueModification::N_TERM)
-        {
-          term_spec = "N-term";
-        }
-        else
-        {
-          // TODO log message
-        }
-        (*it)->setFullId((*it)->getId() + " (" + term_spec + " " + (*it)->getOrigin() + ")");
-      }
-      else
-      {
-        (*it)->setFullId((*it)->getId() + " (" + (*it)->getOrigin() + ")");
-      }
+      // create full ID based on other information:
+      (*it)->setFullId();
+
       // e.g. Oxidation (M)
       modification_names_[(*it)->getFullId()].insert(*it);
       // e.g. Oxidation
@@ -279,18 +279,35 @@ namespace OpenMS
       // e.g. UniMod:312
       modification_names_[(*it)->getUniModAccession()].insert(*it);
       mods_.push_back(*it);
-
-      //cerr << (*it)->getFullId() << " " << (*it)->getTermSpecificity() << endl;
     }
+  }
+
+  void ModificationsDB::addModification(ResidueModification* new_mod)
+  {
+    if (has(new_mod->getFullId()))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
+    }
+    modification_names_[new_mod->getFullId()].insert(new_mod);
+    modification_names_[new_mod->getId()].insert(new_mod);
+    modification_names_[new_mod->getFullName()].insert(new_mod);
+    modification_names_[new_mod->getUniModAccession()].insert(new_mod);
+
+    mods_.push_back(new_mod); // we probably want that
   }
 
   void ModificationsDB::readFromOBOFile(const String& filename)
   {
     ResidueModification mod;
-    Map<String, ResidueModification> all_mods;
+    // add multiple mods for multiple specificities
+    //Map<String, ResidueModification> all_mods;
+    multimap<String, ResidueModification> all_mods;
 
     ifstream is(File::find(filename).c_str());
     String line, line_wo_spaces, id;
+    String origin = "";
+
+    bool reading_cross_link = false;
 
     //parse file
     while (getline(is, line, '\n'))
@@ -306,13 +323,54 @@ namespace OpenMS
 
       if (line_wo_spaces == "[Term]")       //new term
       {
-        if (id != "") //store last term
+        // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
+        if (id != "" && !reading_cross_link) //store last term
         {
-          all_mods[id] = mod;
+          // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
+          vector<String> origins;
+          origin.split(",", origins);
+
+          std::sort(origins.begin(), origins.end());
+          vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+          origins.resize(distance(origins.begin(), unique_end));
+
+          for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+          {
+            // we don't allow modifications with ambiguity codes as origin (except "X"):
+            if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
+            {
+              mod.setOrigin((*orig_it)[0]);
+              all_mods.insert(make_pair(id, mod));
+            }
+          }
+
+          // for mono-links from XLMOD.obo:
+          if (origin.hasSubstring("ProteinN-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::N_TERM);
+            mod.setOrigin('X');
+            all_mods.insert(make_pair(id, mod));
+          }
+          if (origin.hasSubstring("ProteinC-term"))
+          {
+            mod.setTermSpecificity(ResidueModification::C_TERM);
+            mod.setOrigin('X');
+            all_mods.insert(make_pair(id, mod));
+          }
+
           id = "";
+          origin = "";
           mod = ResidueModification();
         }
+        else if (reading_cross_link) // re-initialize before reading next [Term]
+        {
+          id = "";
+          origin = "";
+          mod = ResidueModification();
+          reading_cross_link = false;
+        }
       }
+
       //new id line
       else if (line_wo_spaces.hasPrefix("id:"))
       {
@@ -322,7 +380,14 @@ namespace OpenMS
       }
       else if (line_wo_spaces.hasPrefix("name:"))
       {
-        mod.setFullName(line.substr(line.find(':') + 1).trim());
+        String name = line.substr(line.find(':') + 1).trim();
+        mod.setFullName(name);
+        if (mod.getId().hasSubstring("XLMOD"))
+        {
+          mod.setName(name);
+          mod.setId(name);
+          mod.setFullName(name);
+        }
       }
       else if (line_wo_spaces.hasPrefix("is_a:"))
       {
@@ -339,7 +404,9 @@ namespace OpenMS
         {
           if (split[i].hasPrefix("UniMod:"))
           {
-            mod.setUniModAccession(split[i].trim());
+            // Parse UniMod identifier to int
+            String identifier = split[i].substr(7, split[i].size());
+            mod.setUniModRecordId(identifier.toInt());
           }
         }
       }
@@ -353,7 +420,7 @@ namespace OpenMS
         line.split('"', val_split);
         if (val_split.size() < 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "missing \" characters to enclose argument!");
         }
         mod.addSynonym(val_split[1]);
 
@@ -376,7 +443,7 @@ namespace OpenMS
         val.split('"', val_split);
         if (val_split.size() != 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "missing \" characters to enclose argument!");
         }
         if (val.hasPrefix("DiffAvg:"))
         {
@@ -407,7 +474,8 @@ namespace OpenMS
         }
         else if (val.hasPrefix("Origin:"))
         {
-          mod.setOrigin(val_split[1]);
+          //mod.setOrigin(val_split[1]);
+          origin = val_split[1];
         }
         else if (val.hasPrefix("Source:"))
         {
@@ -417,20 +485,77 @@ namespace OpenMS
         {
           mod.setTermSpecificity(val_split[1]);
         }
+        // XLMOD specific fields
+        else if (val.hasPrefix("reactionSites:"))
+        {
+          if (val_split[1] == "2")
+          {
+            reading_cross_link = true;
+          }
+        }
+        else if (val.hasPrefix("monoisotopicMass:"))
+        {
+          mod.setDiffMonoMass(val_split[1].toDouble());
+        }
+        else if (val.hasPrefix("specificities:"))
+        {
+          // TODO cross-linker specificities can be different for both chain sides, right now the union of both sides is used
+          // Input parameters of the cross-link search tool make sure, that the chemistry is not violated
+          origin = val_split[1];
+
+          // remove brackets
+          origin.remove('(');
+          origin.remove(')');
+          origin.substitute("&", ",");
+        }
       }
     }
 
     if (id != "") //store last term
     {
-      all_mods[id] = mod;
+      // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
+      vector<String> origins;
+      origin.split(",", origins);
+
+      std::sort(origins.begin(), origins.end());
+      vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
+      origins.resize(distance(origins.begin(), unique_end));
+
+      for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+      {
+        // we don't allow modifications with ambiguity codes as origin (except "X"):
+        if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
+        {
+          mod.setOrigin((*orig_it)[0]);
+          all_mods.insert(make_pair(id, mod));
+        }
+      }
+
+      // for mono-links from XLMOD.obo:
+      if (origin.hasSubstring("ProteinN-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::N_TERM);
+        mod.setOrigin('X');
+        all_mods.insert(make_pair(id, mod));
+      }
+      if (origin.hasSubstring("ProteinC-term"))
+      {
+        mod.setTermSpecificity(ResidueModification::C_TERM);
+        mod.setOrigin('X');
+        all_mods.insert(make_pair(id, mod));
+      }
+
+      id = "";
+      origin = "";
+      mod = ResidueModification();
     }
 
     // now use the term and all synonyms to build the database
-    for (Map<String, ResidueModification>::ConstIterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
     {
 
       // check whether a unimod definition already exists, then simply add synonyms to it
-      if (it->second.getUniModAccession() != "")
+      if (it->second.getUniModRecordId() > 0)
       {
         //cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
         set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
@@ -444,7 +569,9 @@ namespace OpenMS
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        if (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X")
+        if ((it->second.getOrigin() != 'X') ||
+            ((it->second.getTermSpecificity() != ResidueModification::ANYWHERE) &&
+             (it->second.getDiffMonoMass() != 0)))
         {
           mods_.push_back(new ResidueModification(it->second));
 
@@ -453,7 +580,10 @@ namespace OpenMS
           synonyms.insert(it->second.getFullName());
           //synonyms.insert(it->second.getUniModAccession());
           synonyms.insert(it->second.getPSIMODAccession());
-          mods_.back()->setFullId(it->second.getFullName() + " (" + it->second.getOrigin() + ")");
+          // full ID is auto-generated based on (short) ID, but we want the name instead:
+          mods_.back()->setId(it->second.getFullName());
+          mods_.back()->setFullId();
+          mods_.back()->setId(it->second.getId());
           synonyms.insert(mods_.back()->getFullId());
 
           // now check each of the names and link it to the residue modification
@@ -472,7 +602,7 @@ namespace OpenMS
 
     for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
     {
-      if ((*it)->getUniModAccession() != "")
+      if ((*it)->getUniModRecordId() > 0)
       {
         modifications.push_back((*it)->getFullId());
       }
@@ -481,13 +611,9 @@ namespace OpenMS
   }
 
 
-  bool ModificationsDB::residuesMatch_(const String& residue, const String& origin) const
+  bool ModificationsDB::residuesMatch_(const String& residue, char origin) const
   {
-    // maybe @TODO: translate residue to one letter code, if necessary
-    return (residue.empty() || (origin == residue) ||
-            (origin == "N-term") || (origin == "C-term") ||
-            // are the following cases actually possible?:
-            origin.empty() || (origin == "X") || (origin == "."));
+    return (residue.empty() || (origin == residue[0]) || (residue == "X") || (origin == 'X') || (residue == "."));
   }
 
 } // namespace OpenMS

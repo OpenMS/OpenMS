@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <fstream>
 
 using namespace OpenMS;
@@ -147,7 +148,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
   if (&pep == NULL)
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Did not find the peptide " + peptide_ref + " in the targeted experiment.");
   }
 
@@ -197,7 +198,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     }
     else if (transition->getCVTerms().has("MS:1002007") && transition->getCVTerms().has("MS:1002008"))    // both == illegal
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Peptide " + peptide_ref + " cannot be target and decoy at the same time.");
     }
     else
@@ -223,7 +224,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Did not find the peptide " + peptide_ref + " in the targeted experiment.");
   }
 
@@ -351,7 +352,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
     Feature *bestfeature = find_best_feature(peptide_it->second, best_score);
     if (bestfeature == NULL)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Did not find best feature for peptide " + peptide_it->first);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find best feature for peptide " + peptide_it->first);
     }
     write_out_body_(os, bestfeature, transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
   }
@@ -435,13 +436,13 @@ protected:
 
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, out);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
     }
 
     // write the csv header (we need to know which parameters are in the map to do that)
     if (file_list.empty())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No input files given ");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No input files given ");
     }
     FeatureMap feature_map;
     FeatureXMLFile feature_file;
@@ -455,7 +456,7 @@ protected:
 
     if (feature_map.empty() && file_list.size() > 1)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Feature map " + file_list[0] + " is empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature map " + file_list[0] + " is empty.");
     }
     else if (feature_map.empty())
     {

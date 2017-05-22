@@ -86,13 +86,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
-if (${USE_COINOR})
-	set(CF_USECOINOR 1)
-  find_package(COIN REQUIRED)
-else()
-	set(CF_USECOINOR 0)
-	set(CONTRIB_CBC)
-endif()
+set(CF_USECOINOR 1)
+find_package(COIN REQUIRED)
 
 #------------------------------------------------------------------------------
 # GLPK
@@ -124,11 +119,20 @@ if (WM5_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Find Crawdad libraries if requested
 # cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
 if (WITH_CRAWDAD)
-  find_package(Crawdad)
+  message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
+  find_package(Crawdad REQUIRED)
+  # find archive (static) version and add it to the OpenMS library
+  find_library(Crawdad_LIBRARY
+   NAMES Crawdad.a Crawdad
+    HINTS ${Crawdad_DIR})
 endif()
+
+#------------------------------------------------------------------------------
+# SQLITE
+find_package(SQLITE 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries

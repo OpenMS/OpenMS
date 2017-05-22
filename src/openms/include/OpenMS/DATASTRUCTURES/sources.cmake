@@ -26,6 +26,7 @@ DefaultParamHandler.h
 DistanceMatrix.h
 GridFeature.h
 IsotopeCluster.h
+KDTree.h
 ListUtils.h
 ListUtilsIO.h
 Map.h

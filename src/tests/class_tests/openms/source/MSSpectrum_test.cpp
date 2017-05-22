@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,12 @@
 
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -120,6 +124,17 @@ START_SECTION((void setRT(double rt)))
   TEST_REAL_SIMILAR(s.getRT(),0.451)
 END_SECTION
 
+START_SECTION((double getDriftTime() const ))
+  MSSpectrum<> s;
+  TEST_REAL_SIMILAR(s.getDriftTime(),-1.0)
+END_SECTION
+
+START_SECTION((void setDriftTime(double dt)))
+  MSSpectrum<> s;
+  s.setDriftTime(0.451);
+  TEST_REAL_SIMILAR(s.getDriftTime(),0.451)
+END_SECTION
+
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const))
 	MSSpectrum<> s;
   TEST_EQUAL(s.getFloatDataArrays().size(),0)
@@ -151,6 +166,83 @@ START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
   MSSpectrum<> s;
   s.getIntegerDataArrays().resize(2);
   TEST_EQUAL(s.getIntegerDataArrays().size(),2)
+END_SECTION
+
+START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
+  MSSpectrum<> s;
+  s.push_back(p1);
+  s.push_back(p2);
+  s.push_back(p3);
+  s.push_back(p3);
+  s.push_back(p2);
+
+  int air[] = {1, 2, 3, 4, 5};
+  float afr[] = {1.0, 2.0, 3.0, 4.0, 5.0};
+  String asr[] = {"1", "2" , "3", "4", "5"};
+  std::vector<int> ai(&air[0], &air[5]);
+  MSSpectrum<>::IntegerDataArray aia;
+  swap(aia, ai);
+  std::vector<float> af(&afr[0], &afr[5]);
+  MSSpectrum<>::FloatDataArray afa;
+  swap(afa, af);
+  std::vector<String> as(&asr[0], &asr[5]);
+  MSSpectrum<>::StringDataArray asa;
+  swap(asa, as);
+  //MSSpectrum<>::IntegerDataArray
+  s.getFloatDataArrays().push_back(afa);
+  s.getIntegerDataArrays().push_back(aia);
+  s.getStringDataArrays().push_back(asa);
+  s.getFloatDataArrays().push_back(afa);
+  s.getIntegerDataArrays().push_back(aia);
+  s.getStringDataArrays().push_back(asa);
+
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 1.0)
+  TEST_REAL_SIMILAR(s[4].getIntensity(), 2.0)
+  TEST_EQUAL(s.getFloatDataArrays().size(), 2)
+  TEST_EQUAL(s.getFloatDataArrays()[0].size(), 5)
+  TEST_EQUAL(s.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(s.getIntegerDataArrays()[0].size(), 5)
+  TEST_EQUAL(s.getStringDataArrays().size(), 2)
+  TEST_EQUAL(s.getStringDataArrays()[0].size(), 5)
+
+  // re-order
+  MSSpectrum<> s2 = s;
+  Size order[] = {4, 2, 3, 1, 0};
+  s2.select(std::vector<Size>(&order[0], &order[5]));
+  TEST_REAL_SIMILAR(s2[0].getIntensity(), 2.0)
+  TEST_REAL_SIMILAR(s2[4].getIntensity(), 1.0)
+  TEST_EQUAL(s2.getFloatDataArrays().size(), 2)
+  TEST_EQUAL(s2.getFloatDataArrays()[0].size(), 5)
+  TEST_EQUAL(s2.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0].size(), 5)
+  TEST_EQUAL(s2.getStringDataArrays().size(), 2)
+  TEST_EQUAL(s2.getStringDataArrays()[0].size(), 5)
+  
+  TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
+  TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
+
+  // subset
+  s2 = s;
+  Size subset[] = {4, 2, 3};
+  // --> new values in Meta arrays are: 
+  //     5, 3, 4
+  s2.select(std::vector<Size>(&subset[0], &subset[3]));
+  TEST_REAL_SIMILAR(s2[0].getIntensity(), 2.0)
+  TEST_REAL_SIMILAR(s2[1].getIntensity(), 3.0)
+  TEST_REAL_SIMILAR(s2[2].getIntensity(), 3.0)
+  TEST_EQUAL(s2.getFloatDataArrays().size(), 2)
+  TEST_EQUAL(s2.getFloatDataArrays()[0].size(), 3)
+  TEST_EQUAL(s2.getIntegerDataArrays().size(), 2)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0].size(), 3)
+  TEST_EQUAL(s2.getStringDataArrays().size(), 2)
+  TEST_EQUAL(s2.getStringDataArrays()[0].size(), 3)
+
+  TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
+  TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
+
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////
@@ -191,6 +283,7 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
 	tmp.setMetaValue("label",5.0);
 	tmp.setMSLevel(17);
 	tmp.setRT(7.0);
+	tmp.setDriftTime(8.0);
 	tmp.setName("bla");
 	//peaks
 	MSSpectrum<>::PeakType peak;
@@ -202,6 +295,7 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
 	TEST_EQUAL(tmp2.getMSLevel(), 17)
 	TEST_REAL_SIMILAR(tmp2.getRT(), 7.0)
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(), 8.0)
 	TEST_EQUAL(tmp2.getName(),"bla")
 	//peaks
 	TEST_EQUAL(tmp2.size(),1);
@@ -215,6 +309,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 	tmp.setMetaValue("label",5.0);
 	tmp.setMSLevel(17);
 	tmp.setRT(7.0);
+	tmp.setDriftTime(8.0);
 	tmp.setName("bla");
 	//peaks
 	MSSpectrum<>::PeakType peak;
@@ -228,6 +323,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 	TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
 	TEST_EQUAL(tmp2.getMSLevel(), 17)
 	TEST_REAL_SIMILAR(tmp2.getRT(), 7.0)
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(), 8.0)
 	TEST_EQUAL(tmp2.getName(),"bla")
 	TEST_EQUAL(tmp2.size(),1);
 	TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
@@ -239,6 +335,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 	TEST_EQUAL(tmp2.metaValueExists("label"), false)
 	TEST_EQUAL(tmp2.getMSLevel(),1)
 	TEST_REAL_SIMILAR(tmp2.getRT(), -1.0)
+	TEST_REAL_SIMILAR(tmp2.getDriftTime(), -1.0)
 	TEST_EQUAL(tmp2.getName(),"")
 	TEST_EQUAL(tmp2.size(),0);
 END_SECTION
@@ -260,6 +357,11 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 	edit.setMetaValue("label",String("bla"));
 	TEST_EQUAL(empty==edit, false);
 
+	edit = empty;
+	edit.setDriftTime(5);
+	TEST_EQUAL(empty==edit, false);
+
+	edit = empty;
 	edit.setRT(5);
 	TEST_EQUAL(empty==edit, false);
 
@@ -309,6 +411,11 @@ START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
 	edit.setMetaValue("label",String("bla"));
 	TEST_EQUAL(edit!=empty,true);
 
+	edit = empty;
+	edit.setDriftTime(5);
+	TEST_EQUAL(edit!=empty,true);
+
+	edit = empty;
 	edit.setRT(5);
 	TEST_EQUAL(edit!=empty,true);
 
@@ -925,6 +1032,7 @@ START_SECTION(void clear(bool clear_meta_data))
 	edit.resize(1);
 	edit.setMetaValue("label",String("bla"));
 	edit.setRT(5);
+	edit.setDriftTime(6);
 	edit.setMSLevel(5);
 	edit.getFloatDataArrays().resize(5);
 	edit.getIntegerDataArrays().resize(5);

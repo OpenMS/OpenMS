@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotGenericFile.h>
+
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -134,7 +140,7 @@ namespace OpenMS
   {
     if (!File::writable(filename))
     {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     ofstream os(filename.c_str());
     store(os, filename, experiment, compact);
@@ -309,7 +315,7 @@ namespace OpenMS
     {
       String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
         " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
     double mz(precursor.getMZ()), rt(spec.getRT());

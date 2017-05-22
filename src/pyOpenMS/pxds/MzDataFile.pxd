@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
 
         MzDataFile() nogil except +
 
-        void load(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
-        void store(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
+        void load(String, MSExperiment &) nogil except+
+        void store(String, MSExperiment &) nogil except+
 
         PeakFileOptions getOptions() nogil except +
         void setOptions(PeakFileOptions) nogil except +

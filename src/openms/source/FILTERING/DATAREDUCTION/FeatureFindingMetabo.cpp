@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,7 @@ namespace OpenMS
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "FeatureHypothesis is empty, no traces contained!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getIntensity(smoothed);
@@ -210,7 +210,7 @@ namespace OpenMS
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidMZ();
@@ -220,7 +220,7 @@ namespace OpenMS
   {
     if (iso_pattern_.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidRT();
@@ -336,7 +336,7 @@ namespace OpenMS
 
     if (svm_feat_centers_.empty() || svm_feat_scales_.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Isotope filtering invoked, but no model loaded. Internal error. Please report this!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Isotope filtering invoked, but no model loaded. Internal error. Please report this!");
     }
 
     std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
@@ -414,7 +414,7 @@ namespace OpenMS
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
     if (isotope_filt_svm_ == NULL)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);
     }
 
@@ -444,7 +444,7 @@ namespace OpenMS
 
     if (svm_feat_centers_.size() != svm_feat_scales_.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Numbers of centers and scales from file " + scale_filename + " are different!",
           String(svm_feat_centers_.size()) + " and " + String(svm_feat_scales_.size()));
     }

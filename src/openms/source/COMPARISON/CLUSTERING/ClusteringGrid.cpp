@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <functional>
 
 namespace OpenMS
 {
@@ -101,28 +103,13 @@ ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
     if (position.getX() < range_x_.first || position.getX() > range_x_.second || position.getY() < range_y_.first || position.getY() > range_y_.second)
     {
         std::stringstream stream;
-        stream << "This position (x,y)=(" << position.getX() << "," << position.getY() << ") is outside the range of the grid. (" << range_x_.first << " < x < " << range_x_.second << ", " << range_y_.first << " < y < " << range_y_.second << ")";
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+        stream << "This position (x,y)=(" << position.getX() << "," << position.getY() << ") is outside the range of the grid. (" << range_x_.first << " <= x <= " << range_x_.second << ", " << range_y_.first << " <= y <= " << range_y_.second << ")";
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
     
-    int i = -1;
-    int j = -1;
-    
-    if (range_x_.first <= position.getX() && position.getX() <= range_x_.second)
-    {
-        i = std::lower_bound(grid_spacing_x_.begin(), grid_spacing_x_.end(), position.getX(), std::less_equal< double >()) - grid_spacing_x_.begin();
-    }
-    
-    if (range_y_.first <= position.getY() && position.getY() <= range_y_.second)
-    {
-        j = std::lower_bound(grid_spacing_y_.begin(), grid_spacing_y_.end(), position.getY(), std::less_equal< double >()) - grid_spacing_y_.begin();
-    }
-    
-    if (i < 0 || j < 0)
-    {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Cell index is negative.","");
-    }
-    
+    int i = std::lower_bound(grid_spacing_x_.begin(), grid_spacing_x_.end(), position.getX(), std::less_equal< double >()) - grid_spacing_x_.begin();
+    int j = std::lower_bound(grid_spacing_y_.begin(), grid_spacing_y_.end(), position.getY(), std::less_equal< double >()) - grid_spacing_y_.begin();
+        
     return ClusteringGrid::CellIndex (i,j);
 }
 

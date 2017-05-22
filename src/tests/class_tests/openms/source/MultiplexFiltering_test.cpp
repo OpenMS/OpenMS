@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ using namespace OpenMS;
 START_TEST(MultiplexFiltering, "$Id$")
 
 // read data
-MSExperiment<Peak1D> exp;
+PeakMap exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexFiltering.mzML"), exp);
 exp.updateRanges();
 
@@ -58,7 +58,7 @@ picker.setParameters(param);
 std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-MSExperiment<Peak1D> exp_picked;
+PeakMap exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
@@ -96,7 +96,7 @@ for (int c = charge_max; c >= charge_min; --c)
 MultiplexFiltering* nullPointer = 0;
 MultiplexFiltering* ptr;
 
-START_SECTION(MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
+START_SECTION(MultiplexFiltering(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
     MultiplexFiltering filtering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
     ptr = new MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
     TEST_NOT_EQUAL(ptr, nullPointer);

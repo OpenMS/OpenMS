@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,15 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <QString>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -248,7 +252,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
 
     if (cells.size() < 3)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
     }
 
     // parse metadata section

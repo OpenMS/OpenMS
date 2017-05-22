@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,7 +166,7 @@ namespace OpenMS
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
-      RichPeakSpectrum tmp_spec;
+      PeakSpectrum tmp_spec;
       Int prec_charge = features[i_f].getCharge();
 
       if (tandem_mode && svm_model_charges.count(prec_charge))
@@ -175,7 +175,7 @@ namespace OpenMS
       }
       else
       {
-        simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+        simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
       }
       for (Size peak = 0; peak < tmp_spec.size(); ++peak)
       {
@@ -195,7 +195,7 @@ namespace OpenMS
          ||
           !features[i_f].metaValueExists("elution_profile_intensities"))
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MetaValue:elution_profile_***");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaValue:elution_profile_***");
       }
       // check if values fit the experiment:
 
@@ -269,7 +269,7 @@ namespace OpenMS
       // merge all MS2 spectra
       sm.mergeSpectraBlockWise(MS2_spectra);
       if (MS2_spectra.size() != 1)
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, MS2_spectra.size());
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, MS2_spectra.size());
       // store merged spectrum
       MS2_spectra[0].setMetaValue("MSE_Spectrum", "true");
       MS2_spectra[0].setMetaValue("MSE_sequences", feature_seq);
@@ -349,7 +349,7 @@ namespace OpenMS
       {
         double prec_intens = ms2[i].getPrecursors()[id].getIntensity();
         AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-        RichPeakSpectrum tmp_spec;
+        PeakSpectrum tmp_spec;
 
         Int prec_charge = features[ids[id]].getCharge();
 
@@ -359,7 +359,7 @@ namespace OpenMS
         }
         else
         {
-          simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+          simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
         }
 
         // scale intensity and copy 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 #include <vector>
 #include <map>
+#include <functional> 
 
 using namespace std;
 
@@ -46,18 +47,18 @@ namespace OpenMS
   {
     if (x.size() != y.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors are not of the same size.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "x and y vectors are not of the same size.");
     }
 
     if (x.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors need to contain two or more elements.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "x and y vectors need to contain two or more elements.");
     }
 
     // assert spectrum is sorted
     if (std::adjacent_find(x.begin(), x.end(), std::greater<double>()) != x.end())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x vector is not sorted.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "x vector is not sorted.");
     }
 
     init_(x, y);
@@ -67,7 +68,7 @@ namespace OpenMS
   {
     if (m.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map needs to contain two or more elements.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Map needs to contain two or more elements.");
     }
 
     std::vector<double> x;
@@ -90,11 +91,11 @@ namespace OpenMS
   {
     if (x < x_.front() || x > x_.back())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Argument out of range of spline interpolation.");
     }
 
     // determine index of closest node left of (or exactly at) x
-    unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
+    unsigned i = static_cast<unsigned>(std::lower_bound(x_.begin(), x_.end(), x) - x_.begin());
     if (x_[i] > x || x_.back() == x)
     {
         --i;
@@ -108,16 +109,16 @@ namespace OpenMS
   {
     if (x < x_.front() || x > x_.back())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Argument out of range of spline interpolation.");
     }
 
     if (order < 1 || order > 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first, second and third derivative defined on cubic spline");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only first, second and third derivative defined on cubic spline");
     }
 
     // determine index of closest node left of (or exactly at) x
-    unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
+    unsigned i = static_cast<unsigned>(std::lower_bound(x_.begin(), x_.end(), x) - x_.begin());
     if (x_[i] > x || x_.back() == x) // also, i must not point to last index in 'x_', since all other vectors are one element shorter
     {
       --i;
@@ -170,7 +171,7 @@ namespace OpenMS
     d_.resize(n);
     c_.resize(n+1);
     c_.back() = 0;
-    for (int j = n - 1; j >= 0; --j)
+    for (int j = static_cast<int>(n) - 1; j >= 0; --j)
     {
       c_[j] = z[j] - mu[j] * c_[j + 1];
       b_[j] = (y[j + 1] - y[j]) / h[j] - h[j] * (c_[j + 1] + 2 * c_[j]) / 3;

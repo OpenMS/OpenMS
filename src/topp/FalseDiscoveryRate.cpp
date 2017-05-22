@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -63,15 +64,18 @@ using namespace std;
     </table>
 </CENTER>
 
-    This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. It can handle separate searches of a target database (e.g. forward sequences) and a decoy database (e.g. reversed sequences), or a combined search of a concatenated target-decoy database. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
+    This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
 
     The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
 
-    When using a combined database of target and decoy sequences (thus only running one search per ID engine), @ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
+    @ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
 
     @note When no decoy hits were found you will get a warning like this:<br>
     "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
+
+    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
+    Alternativly, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -103,19 +107,22 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Identification input file containing a search against a concatenated sequence database. Either specify '-in' alone or 'in_target' together with 'in_decoy' as input.", false);
+    registerInputFile_("in", "<file>", "", "Identifications from searching a target-decoy database.");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-
-    registerInputFile_("in_target", "<file>", "", "Identification input file containing a search against a target-only database.", false);
-    setValidFormats_("in_target", ListUtils::create<String>("idXML"));
-    registerInputFile_("in_decoy", "<file>", "", "Identification input file containing a search against a decoy-only database.", false);
-    setValidFormats_("in_decoy", ListUtils::create<String>("idXML"));
-
-    registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
+    registerOutputFile_("out", "<file>", "", "Identifications with annotated FDR");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerFlag_("proteins_only", "If set only the FDR on protein level is calculated");
-    registerFlag_("peptides_only", "If set only the FDR on peptide (PSM) level is calculated");
+    registerStringOption_("PSM", "<FDR level>", "true", "Perform FDR calculation on PSM level", false);
+    setValidStrings_("PSM", ListUtils::create<String>("true,false"));
+    registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
+    setValidStrings_("protein", ListUtils::create<String>("true,false"));
 
+    registerTOPPSubsection_("FDR", "FDR control");
+    registerDoubleOption_("FDR:PSM", "<fraction>", 1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
+    setMinFloat_("FDR:PSM", 0);
+    setMaxFloat_("FDR:PSM", 1);
+    registerDoubleOption_("FDR:protein", "<fraction>", 1, "Filter proteins based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
+    setMinFloat_("FDR:protein", 0);
+    setMaxFloat_("FDR:protein", 1);
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
 
@@ -135,104 +142,60 @@ protected:
     }
 
     // input/output files
-    // either "in_target" and "in_decoy" must be given, or just "in" (which contains results of a search against a concatenated target-decoy sequence db):
-    String in_target = getStringOption_("in_target"),
-      in_decoy = getStringOption_("in_decoy"), in = getStringOption_("in");
-    bool combined = false;
-    if (!in_target.empty() && !in_decoy.empty())
-    {
-      if (!in.empty())
-      {
-        writeLog_("Error, either 'in_target' and 'in_decoy' must be given or 'in', but not both");
-        return ILLEGAL_PARAMETERS;
-      }
-    }
-    else
-    {
-      if (!in.empty())
-      {
-        combined = true;
-      }
-      else
-      {
-        writeLog_("Error, at least 'in_target' and 'in_decoy' or 'in' must be given");
-        return ILLEGAL_PARAMETERS;
-      }
-    }
+    String in = getStringOption_("in");
     String out = getStringOption_("out");
-    bool proteins_only = getFlag_("proteins_only");
-    bool peptides_only = getFlag_("peptides_only");
+    const double protein_fdr = getDoubleOption_("FDR:protein");
+    const double psm_fdr = getDoubleOption_("FDR:PSM");
 
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
 
-    if (combined) // "in" was given
+    vector<PeptideIdentification> pep_ids;
+    vector<ProteinIdentification> prot_ids;
+
+    IdXMLFile().load(in, prot_ids, pep_ids);
+
+    try
     {
-      vector<PeptideIdentification> pep_ids;
-      vector<ProteinIdentification> prot_ids;
-
-      IdXMLFile().load(in, prot_ids, pep_ids);
-
-      try
+      if (getStringOption_("protein") == "true")
       {
-        if (!proteins_only)
+        fdr.apply(prot_ids);
+
+        if (protein_fdr < 1)
         {
-          fdr.apply(pep_ids);
-        }
-        if (!peptides_only)
-        {
-          fdr.apply(prot_ids);
+          LOG_INFO << "FDR control: Filtering proteins..." << endl;
+          IDFilter::filterHitsByScore(prot_ids, protein_fdr);
         }
       }
-      catch (Exception::MissingInformation)
-      {
-        LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
-        return INCOMPATIBLE_INPUT_DATA;
-      }
 
-      for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+      if (getStringOption_("PSM") == "true")
       {
-        it->assignRanks();
-      }
-      for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
-      {
-        it->assignRanks();
-      }
+        fdr.apply(pep_ids);
 
-      IdXMLFile().store(out, prot_ids, pep_ids);
+        if (psm_fdr < 1)
+        {      
+          LOG_INFO << "FDR control: Filtering PSMs..." << endl;
+          IDFilter::filterHitsByScore(pep_ids, psm_fdr);
+        }
+      }
     }
-    else // "in_target" and "in_decoy" given
+    catch (Exception::MissingInformation)
     {
-      vector<PeptideIdentification> pep_target, pep_decoy;
-      vector<ProteinIdentification> prot_target, prot_decoy;
-
-      IdXMLFile().load(in_target, prot_target, pep_target);
-      IdXMLFile().load(in_decoy, prot_decoy, pep_decoy);
-
-      //-------------------------------------------------------------
-      // calculations
-      //-------------------------------------------------------------
-
-      writeDebug_("Starting calculations with " + String(pep_target.size()) + " target and " + String(pep_decoy.size()) + " decoy peptide IDs", 1);
-
-      if (!proteins_only)
-      {
-        fdr.apply(pep_target, pep_decoy);
-      }
-      if (!peptides_only)
-      {
-        fdr.apply(prot_target, prot_decoy);
-      }
-
-      // TODO @all shouldn't ranks be assigned here as well?
-
-      //-------------------------------------------------------------
-      // writing output
-      //-------------------------------------------------------------
-      IdXMLFile().store(out, prot_target, pep_target);
+      LOG_FATAL_ERROR << "FalseDiscoveryRate failed due to missing information (see above).\n";
+      return INCOMPATIBLE_INPUT_DATA;
     }
 
+    for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+    {
+      it->assignRanks();
+    }
+    for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    {
+      it->assignRanks();
+    }
+
+    IdXMLFile().store(out, prot_ids, pep_ids);
     return EXECUTION_OK;
   }
 

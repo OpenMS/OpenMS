@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
@@ -138,7 +140,7 @@ namespace OpenMS
     ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     if (Size invalid_unique_ids = feature_map.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId))
@@ -384,12 +386,12 @@ namespace OpenMS
     else if (tag == "featureList")
     {
       if (options_.getMetadataOnly())
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       Size count = attributeAsInt_(attributes, "count");
       if (size_only_) // true if loadSize() was used instead of load()
       {
         expected_size_ = count;
-        throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
       startProgress(0, count, "Loading featureXML file");
@@ -519,8 +521,21 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
       //set identifier
       String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      prot_id_.setIdentifier(identifier);
-      id_identifier_[attributeAsString_(attributes, "id")] = identifier;
+      String id = attributeAsString_(attributes, "id");
+
+      if (!id_identifier_.has(id))
+      {
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
+      else
+      {
+        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
+        UInt64 uid = UniqueIdGenerator::getUniqueId();
+        identifier = identifier + String(uid);
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
     }
     else if (tag == "SearchParameters")
     {
@@ -1046,33 +1061,42 @@ namespace OpenMS
     // write peptide hits
     for (Size j = 0; j < id.getHits().size(); ++j)
     {
+      const PeptideHit& h = id.getHits()[j];
       os << indent << "\t<PeptideHit";
-      os << " score=\"" << id.getHits()[j].getScore() << "\"";
-      os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
-      os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
+      os << " score=\"" << h.getScore() << "\"";
+      os << " sequence=\"" << h.getSequence() << "\"";
+      os << " charge=\"" << h.getCharge() << "\"";
 
-      vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
+      const vector<PeptideEvidence>& pes = id.getHits()[j].getPeptideEvidences();
 
       os << IdXMLFile::createFlankingAAXMLString_(pes);
       os << IdXMLFile::createPositionXMLString_(pes);
 
-      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
-
-      if (!protein_accessions.empty())
+      String accs;
+      for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
       {
-        String accs;
-        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        if (!accs.empty())
         {
-          if (s_it != protein_accessions.begin())
-          {
-            accs += " ";
-          }
-          accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
+          accs += " ";
         }
+        String protein_accession = pe->getProteinAccession();
+
+        // empty accessions are not written out (legacy code)
+        if (!protein_accession.empty())
+        {
+          accs += "PH_";
+          accs += String(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
+        }
+      }
+
+      // don't write protein_refs if no peptide evidences present
+      if (!accs.empty())
+      {
         os << " protein_refs=\"" << accs << "\"";
       }
+
       os << ">\n";
+
       writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }

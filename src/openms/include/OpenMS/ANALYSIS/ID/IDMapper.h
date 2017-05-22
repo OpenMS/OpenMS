@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_ID_IDMAPPER_H
 #define OPENMS_ANALYSIS_ID_IDMAPPER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -93,15 +94,14 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
-    template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
     {
       checkHits_(peptide_ids);
 
       if (clear_ids)
       { // start with empty IDs
         std::vector<PeptideIdentification> empty_ids;
-        for (typename MSExperiment<PeakType>::iterator it = map.begin(); it != map.end(); ++it)
+        for (PeakMap::iterator it = map.begin(); it != map.end(); ++it)
         {
           it->setPeptideIdentifications(empty_ids);
         }
@@ -208,8 +208,7 @@ public:
       @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
     */
-    template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
     {
       const std::vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
       std::vector<PeptideIdentification> peptide_ids;
@@ -243,10 +242,12 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
       @param use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
+      @param spectra Whether precursors not contained in the identifications are annotated with 
+                     an empty PeptideIdentification object containing the scan index. 
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false);
+    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
 
     /**
       @brief Mapping method for consensus maps
@@ -259,10 +260,98 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
       @param annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
+      @param spectra Whether precursors not contained in the identifications are annotated with 
+                     an empty PeptideIdentification object containing the scan index.
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
-    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false);
+    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, 
+                  const std::vector<ProteinIdentification>& protein_ids, 
+                  bool measure_from_subelements = false, 
+                  bool annotate_ids_with_subelements = false, 
+                  const PeakMap& spectra = PeakMap());
+
+
+    /**
+      @brief Result of a partitioning by identification state with mapPrecursorsToIdentifications().
+    */
+    struct SpectraIdentificationState
+    {
+      std::vector<Size> no_precursors;
+      std::vector<Size> identified;
+      std::vector<Size> unidentified;
+    }; 
+
+    /**
+      @brief Mapping of peptide identifications to spectra
+             This helper function partitions all spectra into those that had: 
+              - no precursor (e.g. MS1 spectra),
+              - at least one identified precursor, 
+              - or only unidentified precursor.
+      @param spectra The mass spectra
+      @param ids The peptide identifications
+      @mz_tol Tolerance used to map to precursor m/z
+      @rt_tol Tolerance used to map to spectrum retention time
+
+      Note: mz/tol and rt_tol should, in principle, be zero (or close to zero under numeric inaccuracies). 
+
+      @return A struct of vectors holding spectra indices of the partitioning.
+    */
+    static SpectraIdentificationState mapPrecursorsToIdentifications(const PeakMap& spectra, 
+                                                                     const std::vector<PeptideIdentification>& ids, 
+                                                                     double mz_tol = 0.001, 
+                                                                     double rt_tol = 0.001)
+    {
+      SpectraIdentificationState ret;
+      for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
+      {
+        const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+        if (!spectrum.getPrecursors().empty())
+        {
+          bool identified(false);
+          const std::vector<Precursor>& precursors = spectrum.getPrecursors();
+
+          // check if precursor has been identified
+          for (Size i_p = 0; i_p < precursors.size(); ++i_p)
+          {
+            // check by precursor mass and spectrum RT
+            double mz_p = precursors[i_p].getMZ();
+            double rt_s = spectrum.getRT();
+          
+            for (Size i_id = 0; i_id != ids.size(); ++i_id)
+            {
+              const PeptideIdentification& pid = ids[i_id];
+
+              // do not count empty ids as identification of a spectrum
+              if (pid.getHits().empty()) continue;
+
+              double mz_id = pid.getMZ();
+              double rt_id = pid.getRT();
+
+              if ( fabs(mz_id - mz_p) < mz_tol && fabs(rt_s - rt_id) < rt_tol )
+              {
+                identified = true;
+                break; 
+              }
+            }
+          }   
+          if (!identified) 
+          {
+            ret.unidentified.push_back(spectrum_index);
+          }
+          else
+          {
+            ret.identified.push_back(spectrum_index);
+          }
+        }
+        else
+        {
+          ret.no_precursors.push_back(spectrum_index);
+        }
+      }
+      return ret;
+    }
+
 
 protected:
     void updateMembers_();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -73,7 +74,7 @@ namespace OpenMS
     delete c1_;
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::align(std::vector<MSExperiment<> >& peakmaps, std::vector<TransformationDescription>& transformation)
+  void MapAlignmentAlgorithmSpectrumAlignment::align(std::vector<PeakMap >& peakmaps, std::vector<TransformationDescription>& transformation)
   {
     transformation.clear();
     TransformationDescription trafo;
@@ -93,11 +94,11 @@ namespace OpenMS
     }
     catch (Exception::OutOfRange& /*e*/)
     {
-      throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>*>& pattern, MSExperiment<>& aligned, std::vector<TransformationDescription>& transformation)
+  void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>*>& pattern, PeakMap& aligned, std::vector<TransformationDescription>& transformation)
   {
     //tempalign ->container for holding only MSSpectrums with MS-Level 1
     std::vector<MSSpectrum<>*> tempalign;
@@ -309,7 +310,7 @@ namespace OpenMS
               }
               catch (Exception::OutOfRange /*&e*/)
               {
-                throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+                throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
               }
             }
           }
@@ -415,7 +416,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(MSExperiment<>& peakmap, std::vector<MSSpectrum<>*>& spectrum_pointer_container)
+  void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(PeakMap& peakmap, std::vector<MSSpectrum<>*>& spectrum_pointer_container)
   {
     std::vector<UInt> pattern;
     peakmap.updateRanges(-1);
@@ -433,7 +434,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No spectra contained");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectra contained");
     }
   }
 

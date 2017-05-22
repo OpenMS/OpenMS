@@ -8,7 +8,7 @@
 	<featureList count="6">
 		<feature id="f_5233264595117471314">
 			<position dim="0">101.000000298023</position>
-			<position dim="1">0</position>
+			<position dim="1">412.5</position>
 			<intensity>25525.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -113,7 +113,7 @@
 		</feature>
 		<feature id="f_3332699010107892018">
 			<position dim="0">112.006757080555</position>
-			<position dim="1">0</position>
+			<position dim="1">437.5</position>
 			<intensity>25378.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -218,7 +218,7 @@
 		</feature>
 		<feature id="f_474525871221756682">
 			<position dim="0">122.984792172909</position>
-			<position dim="1">0</position>
+			<position dim="1">462.5</position>
 			<intensity>24599.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -323,7 +323,7 @@
 		</feature>
 		<feature id="f_10306100746905639127">
 			<position dim="0">133.987525045872</position>
-			<position dim="1">0</position>
+			<position dim="1">487.5</position>
 			<intensity>23744.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -428,7 +428,7 @@
 		</feature>
 		<feature id="f_8119044117483804262">
 			<position dim="0">145.374985635281</position>
-			<position dim="1">0</position>
+			<position dim="1">510.05</position>
 			<intensity>22539.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -533,7 +533,7 @@
 		</feature>
 		<feature id="f_17716858074023296841">
 			<position dim="0">145.374985635281</position>
-			<position dim="1">0</position>
+			<position dim="1">500.01</position>
 			<intensity>22539.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>

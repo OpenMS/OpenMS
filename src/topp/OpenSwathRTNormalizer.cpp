@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,7 @@ public:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerOptionsAndFlags_()
   {
@@ -145,38 +145,6 @@ protected:
       return p;
     }
     return Param();
-  }
-
-  bool computeBinnedCoverage(const std::pair<double,double> & rtRange, 
-      const std::vector<std::pair<double, double> > & pairs, int nrBins, 
-      int minPeptidesPerBin, int minBinsFilled)
-  {
-    std::vector<int> binCounter(nrBins, 0);
-    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
-    {
-      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
-      normRT *= nrBins;
-      int bin = (int)normRT;
-      if (bin >= nrBins)
-      {
-        // this should never happen, but just to make sure
-        std::cerr << "MRMRTNormalizer::countPeptidesInBins : computed bin was too large (" << bin << "), setting it to the maximum of " << nrBins << std::endl;
-        bin = nrBins - 1;
-      }
-      binCounter[ bin ]++;
-    }
-
-    int binsFilled = 0;
-    for (Size i = 0; i < binCounter.size(); i++)
-    {
-      std::cout <<" In bin " << i << " out of " << binCounter.size() << " we have " << binCounter[i] << " peptides " << std::endl;
-      if (binCounter[i] >= minPeptidesPerBin) 
-      {
-        binsFilled++;
-      }
-    }
-
-    return (binsFilled >= minBinsFilled);
   }
 
   ExitCodes main_(int, const char **)
@@ -261,10 +229,11 @@ protected:
       featureFinder.setParameters(scoring_params);
       featureFinder.setStrictFlag(false);
       
-      OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+      std::vector< OpenSwath::SwathMap > swath_maps(1);
+      swath_maps[0].sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      featureFinder.pickExperiment(chromatogram_ptr, featureFile, targeted_exp, trafo, swath_ptr, transition_group_map);
+      featureFinder.pickExperiment(chromatogram_ptr, featureFile, targeted_exp, trafo, swath_maps, transition_group_map);
 
       // add all the chromatograms to the output
       for (Size k = 0; k < xic_map->getChromatograms().size(); k++)
@@ -307,19 +276,19 @@ protected:
     }
     else 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
     // 5. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
-    bool enoughPeptides = computeBinnedCoverage(RTRange, pairs_corrected,
+    bool enoughPeptides = MRMRTNormalizer::computeBinnedCoverage(RTRange, pairs_corrected,
       pepEstimationParams.getValue("NrRTBins"),
       pepEstimationParams.getValue("MinPeptidesPerBin"),
       pepEstimationParams.getValue("MinBinsFilled") );
     if (estimateBestPeptides && !enoughPeptides)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "There were not enough bins with the minimal number of peptides");
     }
 

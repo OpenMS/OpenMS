@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ namespace OpenMS
       {
         std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
         std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to a 64 bit integer.");
       }
 
@@ -84,7 +84,7 @@ namespace OpenMS
         std::cerr << "Your system may not support addressing a file of this size,"
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
           " bit integer are supported on your system." << std::endl;
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Could not convert string '") + s + "' to an integer on your system.");
       }
 
@@ -100,7 +100,7 @@ namespace OpenMS
     std::ifstream f(filename.c_str());
     if (!f.is_open())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     // get length of file:
@@ -162,7 +162,7 @@ namespace OpenMS
 
     if (!f.is_open())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     // Read the last few bytes and hope our offset is there to be found

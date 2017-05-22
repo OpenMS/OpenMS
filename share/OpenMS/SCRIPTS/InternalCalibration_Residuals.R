@@ -18,7 +18,7 @@ if (!all(required_cols %in% colnames(d))) {
 
 dpm = melt(d[, grep("^mz.[ab]", colnames(d), invert = TRUE)], id.vars = c("RT", "mz.ref", "intensity"))
 head(dpm)
-## for peptide´ID data, mz.ref will be mostly unique
+## for peptide ID data, mz.ref will be mostly unique
 if (length(unique(d$mz.ref)) / nrow(d) > 0.5) {
   dpm2 = dpm
   dpm2$masstrace = ""

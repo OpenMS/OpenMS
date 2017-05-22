@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,8 @@
 
 namespace OpenMS
 {
+  class TOPPASScene;
+
   /**
       @brief A vertex representing a TOPP tool
 
@@ -238,6 +240,10 @@ protected:
     //@{
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
     //@}
+	
+
+    /// get parent Scene
+    TOPPASScene* getScene_() const;
 
     /// determines if according to current status_, a parameter change would invalidate the pipeline status (e.g., because this node was already processed)
     bool doesParamChangeInvalidate_();

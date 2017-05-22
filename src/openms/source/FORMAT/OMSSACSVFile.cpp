@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,14 +55,14 @@ namespace OpenMS
     ifstream is(filename.c_str());
     if (!is)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     String line;
     getline(is, line, '\n');
     if (!line.hasPrefix("Spectrum"))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "first line does not contain a description", "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "first line does not contain a description", "");
     }
 
     // line number counter
@@ -95,7 +95,7 @@ namespace OpenMS
       line.split(',', split);
       if (split.size() != 14 && split.size() != 14 + offset)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "number of columns should be 14 in line " + String(line_number));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "number of columns should be 14 in line " + String(line_number));
       }
       PeptideHit p;
       p.setSequence(AASequence::fromString(split[2].trim()));

@@ -72,10 +72,11 @@ include(Dart)
 # - do NOT hardcode them here!
 # - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
 #------------------------------------------------------------------------------
-# CMAKE_FIND_ROOT_PATH
+# CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
 # ADDRESS_SANITIZER
+# OPENMS_COVERAGE
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
@@ -191,6 +192,16 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable Coverage
+#------------------------------------------------------------------------------
+option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
+ is slower and uses a lot of disk space (>40GB). Enables the target OpenMS_coverage to generate
+ a coverage report in html format." OFF)
+if(OPENMS_COVERAGE)
+  include(cmake/Coverage.cmake)
+endif()
+
+#------------------------------------------------------------------------------
 # Enable usage statistics
 #------------------------------------------------------------------------------
 option(ENABLE_UPDATE_CHECK "Enable update check." ON)
@@ -258,10 +269,14 @@ foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
 endforeach()
 
 #------------------------------------------------------------------------------
-# lib naming when building with msvc
+# lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
+	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}/build.bat")
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

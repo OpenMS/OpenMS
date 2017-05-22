@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,15 +197,15 @@ START_SECTION((void setPeptideEvidences(const vector<PeptideEvidence> & peptide_
 END_SECTION
 
 
-START_SECTION((const std::set<String>& extractProteinAccessions() const))
+START_SECTION((const std::set<String>& extractProteinAccessionsSet() const))
      PeptideHit hit;
      vector<PeptideEvidence> pes(2, PeptideEvidence());
      pes[0].setProteinAccession("ACC392");
      pes[1].setProteinAccession("ACD392");
      hit.setPeptideEvidences(pes);
-     TEST_EQUAL(hit.extractProteinAccessions().size(), 2)
-     TEST_EQUAL(*hit.extractProteinAccessions().begin(), "ACC392")
-     TEST_EQUAL(*hit.extractProteinAccessions().rbegin(), "ACD392")
+     TEST_EQUAL(hit.extractProteinAccessionsSet().size(), 2)
+     TEST_EQUAL(*hit.extractProteinAccessionsSet().begin(), "ACC392")
+     TEST_EQUAL(*hit.extractProteinAccessionsSet().rbegin(), "ACD392")
 END_SECTION
 
 START_SECTION((Int getCharge() const))
@@ -269,6 +269,27 @@ START_SECTION(([PeptideHit::ScoreMore] template < typename Arg > bool operator()
   TEST_EQUAL(PeptideHit::ScoreMore().operator()(b,a), false)
   TEST_EQUAL(PeptideHit::ScoreMore().operator()(a,a), false)
 }
+END_SECTION
+
+START_SECTION((void setFragmentAnnotations(const vector<PeptideHit::FragmentAnnotation> & fragment_annotations)))
+  PeptideHit hit;
+  vector<PeptideHit::FragmentAnnotation> frag_annos(2, PeptideHit::FragmentAnnotation());
+  frag_annos[0].annotation = "test string";
+  frag_annos[0].charge = 2;
+  frag_annos[0].mz = 1234.567;
+  frag_annos[0].intensity = 1.0;
+  frag_annos[1].annotation = "second test string";
+  frag_annos[1].charge = 1;
+  frag_annos[1].mz = 89.10;
+  frag_annos[1].intensity = 0.5;
+  hit.setFragmentAnnotations(frag_annos);
+  TEST_EQUAL(hit.getFragmentAnnotations().size(), 2)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].annotation == "test string", true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].charge == 2, true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].mz == 1234.567, true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[0].intensity == 1.0, true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[1].annotation == "second test string", true)
+  TEST_EQUAL(hit.getFragmentAnnotations()[1].mz == 89.1, true)
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

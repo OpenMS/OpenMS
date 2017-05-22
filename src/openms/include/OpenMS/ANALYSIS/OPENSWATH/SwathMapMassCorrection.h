@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,9 @@ public:
      *
      */
     static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type, double mz_extr_window = 0.05);
+                          std::vector< OpenSwath::SwathMap > & swath_maps,
+                          std::string corr_type,
+                          double mz_extr_window = 0.05, bool ppm = false);
 
   };
 }

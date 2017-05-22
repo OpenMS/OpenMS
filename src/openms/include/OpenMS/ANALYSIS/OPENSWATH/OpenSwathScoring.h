@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,10 +40,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
+#include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -67,6 +69,10 @@ namespace OpenMS
     bool use_nr_peaks_score_;
     bool use_sn_score_;
     bool use_dia_scores_;
+    bool use_sonar_scores;
+    bool use_ms1_correlation;
+    bool use_ms1_fullscan;
+    bool use_uis_scores;
     
     OpenSwath_Scores_Usage() :
       use_coelution_score_(true),
@@ -78,12 +84,13 @@ namespace OpenMS
       use_total_xic_score_(true),
       use_nr_peaks_score_(true),
       use_sn_score_(true),
-      use_dia_scores_(true)
+      use_dia_scores_(true),
+      use_sonar_scores(true),
+      use_ms1_correlation(true),
+      use_ms1_fullscan(true),
+      use_uis_scores(true)
     {}
 
-    bool use_ms1_correlation;
-    bool use_ms1_fullscan;
-    bool use_uis_scores;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -118,6 +125,8 @@ namespace OpenMS
     std::string ind_log_sn_score;
     int ind_num_transitions;
     std::string ind_transition_names;
+    std::string ind_area_intensity;
+    std::string ind_apex_intensity;
     std::string ind_log_intensity;
 
     double weighted_coelution_score;
@@ -129,6 +138,13 @@ namespace OpenMS
     double ms1_ppm_score;
     double ms1_isotope_correlation;
     double ms1_isotope_overlap;
+
+    double sonar_sn;
+    double sonar_diff;
+    double sonar_trend;
+    double sonar_rsq;
+    double sonar_shape;
+    double sonar_lag;
 
     double library_manhattan;
     double library_dotprod;
@@ -176,6 +192,12 @@ namespace OpenMS
       ms1_ppm_score(0),
       ms1_isotope_correlation(0),
       ms1_isotope_overlap(0),
+      sonar_sn(0),
+      sonar_diff(0),
+      sonar_trend(0),
+      sonar_rsq(0),
+      sonar_shape(0),
+      sonar_lag(0),
       library_manhattan(0),
       library_dotprod(0),
       intensity(0),
@@ -469,6 +491,7 @@ var_yseries_score   -0.0327896378737766
     void calculateChromatographicScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
+          const std::string& precursor_chrom_id,
           const std::vector<double>& normalized_library_intensity,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);
@@ -516,7 +539,7 @@ var_yseries_score   -0.0327896378737766
     void calculateLibraryScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<TransitionType> & transitions,
-          const CompoundType& pep,
+          const CompoundType& compound,
           const double normalized_feature_rt,
           OpenSwath_Scores & scores);
 
@@ -526,7 +549,7 @@ var_yseries_score   -0.0327896378737766
      *
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
-     * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
@@ -535,11 +558,29 @@ var_yseries_score   -0.0327896378737766
     */
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
         const std::vector<TransitionType> & transitions,
-        OpenSwath::SpectrumAccessPtr swath_map,
+        std::vector<OpenSwath::SwathMap> swath_maps,
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
-        const CompoundType& pep,
+        const CompoundType& compound,
         OpenSwath_Scores & scores);
+
+    /** @brief Score a single chromatographic feature using the precursor map.
+     *
+     * The scores are returned in the OpenSwath_Scores object. 
+     *
+     * @param ms1_map The MS1 (precursor ion map) from which the precursor spectra can be retrieved
+     * @param diascoring DIA Scoring object to use for scoring
+     * @param precursor_mz The m/z ratio of the precursor
+     * @param rt The compound retention time
+     * @param scores The object to store the result
+     *
+    */
+    void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
+                                     OpenMS::DIAScoring & diascoring, 
+                                     double precursor_mz, 
+                                     double rt, 
+                                     const CompoundType& compound, 
+                                     OpenSwath_Scores & scores);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
@@ -547,14 +588,14 @@ var_yseries_score   -0.0327896378737766
      *
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
-     * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param diascoring DIA Scoring object to use for scoring
      * @param scores The object to store the result
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
         const TransitionType & transition,
-        OpenSwath::SpectrumAccessPtr swath_map,
+        std::vector<OpenSwath::SwathMap> swath_maps,
         OpenMS::DIAScoring & diascoring,
         OpenSwath_Scores & scores);
 
@@ -582,6 +623,21 @@ var_yseries_score   -0.0327896378737766
     */
     OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
         double RT, int nr_spectra_to_add);
+
+    /** @brief Returns an averaged spectrum
+     *
+     * This function will sum up (add) the intensities of multiple spectra from
+     * multiple swath maps (assuming these are SONAR maps of shifted precursor
+     * isolation windows) around the given retention time and return an
+     * "averaged" spectrum which may contain less noise.
+     *
+     * @param swath_maps The maps containing the spectra
+     * @param RT The target retention time
+     * @param nr_spectra_to_add How many spectra to add up
+     *
+    */
+    OpenSwath::SpectrumPtr getAddedSpectra_(std::vector<OpenSwath::SwathMap> swath_maps,
+                                            double RT, int nr_spectra_to_add);
 
   };
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -413,7 +413,7 @@ namespace OpenMS
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
 
       String accessions;
-      set<String> protein_accessions = hit_it->extractProteinAccessions();
+      set<String> protein_accessions = hit_it->extractProteinAccessionsSet();
       for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
       {
         if (acc_it != protein_accessions.begin())
@@ -710,7 +710,7 @@ protected:
           if (!consensus_centroids_file)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__,
+                                                OPENMS_PRETTY_FUNCTION,
                                                 consensus_centroids);
           }
 
@@ -738,7 +738,7 @@ protected:
           if (!consensus_elements_file)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__,
+                                                OPENMS_PRETTY_FUNCTION,
                                                 consensus_elements);
           }
 
@@ -778,7 +778,7 @@ protected:
           if (!consensus_features_file)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__,
+                                                OPENMS_PRETTY_FUNCTION,
                                                 consensus_features);
           }
 
@@ -892,7 +892,7 @@ protected:
                      ++hit_it)
                 {
                   peptides_by_source[index].insert(hit_it->getSequence().toString());
-                  set<String> protein_accessions = hit_it->extractProteinAccessions();
+                  set<String> protein_accessions = hit_it->extractProteinAccessionsSet();
                   proteins_by_source[index].insert(protein_accessions.begin(), protein_accessions.end());
                 }
               }
@@ -924,7 +924,7 @@ protected:
           if (!outstr)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__,
-                                                __PRETTY_FUNCTION__, out);
+                                                OPENMS_PRETTY_FUNCTION, out);
           }
 
           SVOutStream output(outstr, sep, replacement, quoting_method);
@@ -1106,7 +1106,7 @@ protected:
         bool peptides_only = getFlag_("id:peptides_only");
         if (proteins_only && peptides_only)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'id:proteins_only' and 'id:peptides_only' cannot be used together");
         }
 
         String what = peptides_only ? "" : "PEPTIDE";
@@ -1172,7 +1172,7 @@ protected:
           Size output_count(0);
 
           output << "#MS" << "level" << "rt" << "mz" << "charge" << "peaks" << "index" << "name" << nl;
-          for (MSExperiment<>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+          for (PeakMap::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
           {
             int index = (it - exp.getSpectra().begin());
             String name = it->getName();

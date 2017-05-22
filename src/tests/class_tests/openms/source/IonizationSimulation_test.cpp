@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,6 +143,55 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
 
   esi_sim.ionize(esi_features, cm, exp);
 
+  // somewhere between 52 and 58 the discrete boost RNG started to produce different numbers
+
+/*
+boost < 1.56
+
+2 6 TVQMENQFVAFVDK Adducts: H2 Parent: 0
+2 2 TVQMENQFVAFVDK Adducts: H1H4N1 Parent: 0
+3 1 TVQMENQFVAFVDK Adducts: Ca1H1 Parent: 0
+1 1 TVQMENQFVAFVDK Adducts: H1 Parent: 0
+7 2 ACHKKKKHHACAC Adducts: Ca1H3H8N2 Parent: 1
+7 2 ACHKKKKHHACAC Adducts: H5H8N2 Parent: 1
+6 1 ACHKKKKHHACAC Adducts: H5H4N1 Parent: 1
+4 3 AAAAHTKLRTTIPPEFG Adducts: H3H4N1 Parent: 2
+3 2 AAAAHTKLRTTIPPEFG Adducts: H2H4N1 Parent: 2
+4 1 AAAAHTKLRTTIPPEFG Adducts: Ca1H1H4N1 Parent: 2
+4 1 AAAAHTKLRTTIPPEFG Adducts: H2H8N2 Parent: 2
+3 1 AAAAHTKLRTTIPPEFG Adducts: Ca1H1 Parent: 2
+3 1 AAAAHTKLRTTIPPEFG Adducts: H3 Parent: 2
+1 1 AAAAHTKLRTTIPPEFG Adducts: H1 Parent: 2
+4 5 RYCNHKTUIKL Adducts: H3H4N1 Parent: 3
+4 3 RYCNHKTUIKL Adducts: H4 Parent: 3
+3 1 RYCNHKTUIKL Adducts: H3 Parent: 3
+2 1 RYCNHKTUIKL Adducts: H1H4N1 Parent: 3
+
+
+boost > 1.55
+
+2 7 TVQMENQFVAFVDK Adducts: H2 Parent: 0
+3 2 TVQMENQFVAFVDK Adducts: Ca1H1 Parent: 0
+1 1 TVQMENQFVAFVDK Adducts: H1 Parent: 0
+6 2 ACHKKKKHHACAC Adducts: H4H8N2 Parent: 1
+7 1 ACHKKKKHHACAC Adducts: Ca1H5 Parent: 1
+7 1 ACHKKKKHHACAC Adducts: H7 Parent: 1
+6 1 ACHKKKKHHACAC Adducts: H5H4N1 Parent: 1
+6 1 ACHKKKKHHACAC Adducts: H6 Parent: 1
+3 4 AAAAHTKLRTTIPPEFG Adducts: H3 Parent: 2
+4 3 AAAAHTKLRTTIPPEFG Adducts: H3H4N1 Parent: 2
+5 1 AAAAHTKLRTTIPPEFG Adducts: Ca1H3 Parent: 2
+2 1 AAAAHTKLRTTIPPEFG Adducts: H1H4N1 Parent: 2
+1 1 AAAAHTKLRTTIPPEFG Adducts: H1 Parent: 2
+4 4 RYCNHKTUIKL Adducts: H2H8N2 Parent: 3
+4 2 RYCNHKTUIKL Adducts: H4 Parent: 3
+6 1 RYCNHKTUIKL Adducts: Ca2H2 Parent: 3
+4 1 RYCNHKTUIKL Adducts: H3H4N1 Parent: 3
+3 1 RYCNHKTUIKL Adducts: H2H4N1 Parent: 3
+2 1 RYCNHKTUIKL Adducts: H2 Parent: 3
+*/
+
+#if OPENMS_BOOST_VERSION_MINOR < 56
   TEST_EQUAL(esi_features.size(), 18)
   ABORT_IF(esi_features.size()!=18)
 
@@ -199,6 +248,71 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
 
   TEST_EQUAL(esi_features[17].getCharge(), 2)
   TEST_EQUAL(esi_features[17].getIntensity(), 1)
+#else
+  TEST_EQUAL(esi_features.size(), 19)
+  ABORT_IF(esi_features.size()!=19)
+
+  // TVQMENQFVAFVDK
+  TEST_EQUAL(esi_features[0].getCharge(), 2)
+  TEST_EQUAL(esi_features[0].getIntensity(), 7)
+
+  TEST_EQUAL(esi_features[1].getCharge(), 3)
+  TEST_EQUAL(esi_features[1].getIntensity(), 2)
+
+  TEST_EQUAL(esi_features[2].getCharge(), 1)
+  TEST_EQUAL(esi_features[2].getIntensity(), 1)
+
+  // ACHKKKKHHACAC
+  TEST_EQUAL(esi_features[3].getCharge(), 6)
+  TEST_EQUAL(esi_features[3].getIntensity(), 2)
+
+  TEST_EQUAL(esi_features[4].getCharge(), 7)
+  TEST_EQUAL(esi_features[4].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[5].getCharge(), 7)
+  TEST_EQUAL(esi_features[5].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[6].getCharge(), 6)
+  TEST_EQUAL(esi_features[6].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[7].getCharge(), 6)
+  TEST_EQUAL(esi_features[7].getIntensity(), 1)
+
+  // AAAAHTKLRTTIPPEFG
+  TEST_EQUAL(esi_features[8].getCharge(), 3)
+  TEST_EQUAL(esi_features[8].getIntensity(), 4)
+
+  TEST_EQUAL(esi_features[9].getCharge(), 4)
+  TEST_EQUAL(esi_features[9].getIntensity(), 3)
+
+  TEST_EQUAL(esi_features[10].getCharge(), 5)
+  TEST_EQUAL(esi_features[10].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[11].getCharge(), 2)
+  TEST_EQUAL(esi_features[11].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[12].getCharge(), 1)
+  TEST_EQUAL(esi_features[12].getIntensity(), 1)
+
+  // RYCNHKTUIKL
+  TEST_EQUAL(esi_features[13].getCharge(), 4)
+  TEST_EQUAL(esi_features[13].getIntensity(), 4)
+
+  TEST_EQUAL(esi_features[14].getCharge(), 4)
+  TEST_EQUAL(esi_features[14].getIntensity(), 2)
+
+  TEST_EQUAL(esi_features[15].getCharge(), 6)
+  TEST_EQUAL(esi_features[15].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[16].getCharge(), 4)
+  TEST_EQUAL(esi_features[16].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[17].getCharge(), 3)
+  TEST_EQUAL(esi_features[17].getIntensity(), 1)
+
+  TEST_EQUAL(esi_features[18].getCharge(), 2)
+  TEST_EQUAL(esi_features[18].getIntensity(), 1)
+#endif
 
   for(SimTypes::FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
       ++fmIt)
@@ -242,6 +356,27 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
 
   TEST_EQUAL(maldi_features.size(), 6)
 
+
+/*
+boost < 1.56
+
+  1 9 TVQMENQFVAFVDK
+  2 1 TVQMENQFVAFVDK
+  1 9 ACHKKKKHHACAC
+  2 1 ACHKKKKHHACAC
+  1 10 AAAAHTKLRTTIPPEFG
+  1 10 RYCNHKTUIKL
+
+
+boost > 1.55
+  1 10 TVQMENQFVAFVDK
+  1 10 ACHKKKKHHACAC
+  1 8 AAAAHTKLRTTIPPEFG
+  2 2 AAAAHTKLRTTIPPEFG
+  1 9 RYCNHKTUIKL
+  2 1 RYCNHKTUIKL
+*/
+#if OPENMS_BOOST_VERSION_MINOR < 56
   TEST_EQUAL(maldi_features[0].getCharge(), 1)
   TEST_EQUAL(maldi_features[0].getIntensity(), 9)
 
@@ -259,12 +394,32 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
 
   TEST_EQUAL(maldi_features[5].getCharge(), 1)
   TEST_EQUAL(maldi_features[5].getIntensity(), 10)
+#else
+  TEST_EQUAL(maldi_features[0].getCharge(), 1)
+  TEST_EQUAL(maldi_features[0].getIntensity(), 10)
+
+  TEST_EQUAL(maldi_features[1].getCharge(), 1)
+  TEST_EQUAL(maldi_features[1].getIntensity(), 10)
+
+  TEST_EQUAL(maldi_features[2].getCharge(), 1)
+  TEST_EQUAL(maldi_features[2].getIntensity(), 8)
+
+  TEST_EQUAL(maldi_features[3].getCharge(), 2)
+  TEST_EQUAL(maldi_features[3].getIntensity(), 2)
+
+  TEST_EQUAL(maldi_features[4].getCharge(), 1)
+  TEST_EQUAL(maldi_features[4].getIntensity(), 9)
+
+  TEST_EQUAL(maldi_features[5].getCharge(), 2)
+  TEST_EQUAL(maldi_features[5].getIntensity(), 1)
+#endif
 
   for(SimTypes::FeatureMapSim::const_iterator fmIt = maldi_features.begin(); fmIt != maldi_features.end();
       ++fmIt)
   {
     std::cout << (*fmIt).getCharge() << " " << (*fmIt).getIntensity() << " " << (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << std::endl;
   }
+
 }
 END_SECTION
 

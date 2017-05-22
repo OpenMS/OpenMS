@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" id="MS-GF+" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2016-10-17T18:34:37">
+<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" id="MS-GF+" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2017-01-30T12:53:48">
 <cvList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
   <cv fullName="PSI-MS" version="3.30.0" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
   <cv fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" id="UNIMOD"/>
   <cv fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" id="UO"/>
 </cvList>
 <AnalysisSoftwareList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
-  <AnalysisSoftware version="Release (v2016.10.14)" id="ID_software" name="MS-GF+">
+  <AnalysisSoftware version="Release (v2017.01.13)" id="ID_software" name="MS-GF+">
     <SoftwareName>
       <cvParam cvRef="PSI-MS" accession="MS:1002048" name="MS-GF+"/>
     </SoftwareName>
@@ -90,7 +90,7 @@
 </AnalysisProtocolCollection>
 <DataCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
   <Inputs>
-    <SearchDatabase numDatabaseSequences="10" location="/Users/timosachsenberg/oms210/src/tests/topp/THIRDPARTY/proteins.fasta" id="SearchDB_1">
+    <SearchDatabase numDatabaseSequences="10" location="/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" id="SearchDB_1">
       <FileFormat>
         <cvParam cvRef="PSI-MS" accession="MS:1001348" name="FASTA format"/>
       </FileFormat>
@@ -98,7 +98,7 @@
         <userParam name="proteins.fasta"/>
       </DatabaseName>
     </SearchDatabase>
-    <SpectraData location="/Users/timosachsenberg/oms210/src/tests/topp/THIRDPARTY/spectra.mzML" id="SID_1" name="spectra.mzML">
+    <SpectraData location="/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML" id="SID_1" name="spectra.mzML">
       <FileFormat>
         <cvParam cvRef="PSI-MS" accession="MS:1000584" name="mzML file"/>
       </FileFormat>
@@ -124,7 +124,7 @@
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
-        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4587.669" unitAccession="UO:0000010" unitName="second"/>
+        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4587.669" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
       </SpectrumIdentificationResult>
       <SpectrumIdentificationResult spectrumID="spectrum=2" spectraData_ref="SID_1" id="SIR_3">
         <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="775.38720703125" calculatedMassToCharge="775.3854370117188" peptide_ref="Pep_RPGADSDIGGFGGLFDLAQAGFR" rank="1" passThreshold="true" id="SII_3_1">
@@ -136,7 +136,7 @@
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
-        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4923.7773" unitAccession="UO:0000010" unitName="second"/>
+        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="4923.7773" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
       </SpectrumIdentificationResult>
       <SpectrumIdentificationResult spectrumID="spectrum=0" spectraData_ref="SID_1" id="SIR_1">
         <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="520.2628173828125" calculatedMassToCharge="520.2635498046875" peptide_ref="Pep_DFASSGGYVLHLHR" rank="1" passThreshold="true" id="SII_1_1">
@@ -148,7 +148,7 @@
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
-        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="2655.0957" unitAccession="UO:0000010" unitName="second"/>
+        <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="2655.0957" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
       </SpectrumIdentificationResult>
     </SpectrumIdentificationList>
   </AnalysisData>

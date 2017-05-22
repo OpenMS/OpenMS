@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -203,7 +203,7 @@ protected:
       if (index != String::npos)
       {
         String::size_type index_end = (it->description).find(']', index);
-        if (index_end == String::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
+        if (index_end == String::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
 
         //std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
         StringList meta_values = ListUtils::create<String>((it->description).substr(index + 2, index_end - index - 3).removeWhitespaces(), ',');
@@ -211,9 +211,9 @@ protected:
         {
           StringList components;
           meta_values[i].split('=', components);
-          if (components.size() != 2) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' is missing an assignment ('=').");
+          if (components.size() != 2) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' is missing an assignment ('=').");
           // check if component is known
-          if (!ListUtils::contains(valid_meta_values, components[0])) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value.");
+          if (!ListUtils::contains(valid_meta_values, components[0])) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value.");
 
           if (components[0] == "intensity" || String(components[0]).toUpper() == "RT")
           {
@@ -345,7 +345,7 @@ protected:
       writeLog_(String("Storing ground-truth peptide IDs in: ") + id_out);
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      ms_simulation.getMS2Identifications(proteins, peptides);
+      ms_simulation.getIdentifications(proteins, peptides);
       IdXMLFile().store(id_out, proteins, peptides);
     }
 

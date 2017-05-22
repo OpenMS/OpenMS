@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -43,12 +46,14 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
@@ -1107,7 +1112,7 @@ namespace OpenMS
         IdXMLFile().load(abs_filename, proteins, peptides);
         if (peptides.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications found");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
         }
         // check if RT (and sequence) information is present:
         vector<PeptideIdentification> peptides_with_rt;
@@ -1129,7 +1134,40 @@ namespace OpenMS
         }
         if (peptides_with_rt.empty())
         {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No peptide identifications with sufficient information remaining.");
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
+        }
+        peptides.swap(peptides_with_rt);
+        data_type = LayerData::DT_IDENT;
+      }
+      else if (file_type == FileTypes::MZIDENTML)
+      {
+        vector<ProteinIdentification> proteins; // not needed later
+        MzIdentMLFile().load(abs_filename, proteins, peptides);
+        if (peptides.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
+        }
+        // check if RT (and sequence) information is present:
+        vector<PeptideIdentification> peptides_with_rt;
+        for (vector<PeptideIdentification>::const_iterator it =
+               peptides.begin(); it != peptides.end(); ++it)
+        {
+          if (!it->getHits().empty() && it->hasRT())
+          {
+            peptides_with_rt.push_back(*it);
+          }
+        }
+        Size diff = peptides.size() - peptides_with_rt.size();
+        if (diff)
+        {
+          String msg = String(diff) + " peptide identification(s) without"
+                                      " sequence and/or retention time information were removed.\n" +
+                       peptides_with_rt.size() + " peptide identification(s) remaining.";
+          showLogMessage_(LS_WARNING, "While loading file:", msg);
+        }
+        if (peptides_with_rt.empty())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications with sufficient information remaining.");
         }
         peptides.swap(peptides_with_rt);
         data_type = LayerData::DT_IDENT;
@@ -1581,21 +1619,6 @@ namespace OpenMS
     if (w)
     {
       intensity_button_group_->button(index)->setChecked(true);
-      Spectrum2DWidget* w2d = dynamic_cast<Spectrum2DWidget*>(w);
-      // 2D widget and intensity mode changed?
-      if (w2d && w2d->canvas()->getIntensityMode() != index)
-      {
-        if (index == OpenMS::SpectrumCanvas::IM_LOG)
-        {
-          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLogarithmicIntensityMode().toString());
-          w2d->canvas()->recalculateCurrentLayerDotGradient();
-        }
-        else if (index != OpenMS::SpectrumCanvas::IM_LOG)
-        {
-          w2d->canvas()->getCurrentLayer().param.setValue("dot:gradient", MultiGradient::getDefaultGradientLinearIntensityMode().toString());
-          w2d->canvas()->recalculateCurrentLayerDotGradient();
-        }
-      }
       w->setIntensityMode((OpenMS::SpectrumCanvas::IntensityModes)index);
     }
   }
@@ -1731,7 +1754,7 @@ namespace OpenMS
       }
       else
       {
-        showLogMessage_(LS_ERROR, __PRETTY_FUNCTION__, "Button for intensity mode does not exist");
+        showLogMessage_(LS_ERROR, OPENMS_PRETTY_FUNCTION, "Button for intensity mode does not exist");
       }
     }
 
@@ -1935,7 +1958,7 @@ namespace OpenMS
     else
     {
       cerr << "Error: tab_index " << tab_index << endl;
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     updateViewBar();
@@ -2977,7 +3000,8 @@ namespace OpenMS
     QString fname = QFileDialog::getOpenFileName(this,
                                                 "Select protein/AMT identification data",
                                                 current_path_.toQString(),
-                                                "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
+                                                "idXML files (*.idXML); mzIdentML files (*.mzid,*.mzIdentML); featureXML files (*.featureXML); all files (*.*)");
+
     if (fname.isEmpty()) return;
 
     FileTypes::Type type = FileHandler::getType(fname);
@@ -3041,7 +3065,42 @@ namespace OpenMS
         mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
       }
     }
-    else // file type other than idXML or featureXML
+    else if (type == FileTypes::MZIDENTML)
+    {
+      vector<PeptideIdentification> identifications;
+      vector<ProteinIdentification> protein_identifications;
+
+      try
+      {
+        MzIdentMLFile().load(fname, protein_identifications, identifications);
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
+        return;
+      }
+
+      IDMapper mapper;
+      if (layer.type == LayerData::DT_PEAK)
+      {
+        Param p = mapper.getDefaults();
+        p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
+        p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
+        p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
+        mapper.setParameters(p);
+        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications, true);
+        views_tabwidget_->setTabEnabled(1, true); // enable identification view
+      }
+      else if (layer.type == LayerData::DT_FEATURE)
+      {
+        mapper.annotate(*layer.getFeatureMap(), identifications, protein_identifications);
+      }
+      else
+      {
+        mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
+      }
+    }
+    else // file type other than mzIdentML, idXML or featureXML
     {
       QMessageBox::warning(this, "Error", QString("Unknown file type. No annotation performed."));
       return;
@@ -3074,11 +3133,15 @@ namespace OpenMS
       }
       Int charge = spec_gen_dialog.spin_box->value();
 
-      RichPeakSpectrum rich_spec;
+      PeakSpectrum spectrum;
       TheoreticalSpectrumGenerator generator;
       Param p;
 
       p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+
+      // these two are true by default, initialize to false here and set to true in the loop below
+      p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
+      p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
 
       bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
       String losses_str = losses ? "true" : "false";
@@ -3092,6 +3155,10 @@ namespace OpenMS
       String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
       p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
 
+      bool precursor_ions = (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked); // "add precursor ions"
+      String precursor_ions_str = precursor_ions ? "true" : "false";
+      p.setValue("add_precursor_peaks", precursor_ions_str, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+
       Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
       p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
       p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
@@ -3102,42 +3169,36 @@ namespace OpenMS
       p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
       double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
       p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
+
+      if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+      {
+        p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
+      }
+      if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
+      {
+        p.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+      }
+      if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
+      {
+        p.setValue("add_c_ions", "true", "Add peaks of c-ions to the spectrum");
+      }
+      if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
+      {
+        p.setValue("add_x_ions", "true", "Add peaks of x-ions to the spectrum");
+      }
+      if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
+      {
+        p.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+      }
+      if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
+      {
+        p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
+      }
       generator.setParameters(p);
 
       try
       {
-        if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::AIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::BIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::CIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::XIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::YIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
-        {
-          generator.addPeaks(rich_spec, aa_sequence, Residue::ZIon, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked) // "Precursor"
-        {
-          generator.addPrecursorPeaks(rich_spec, aa_sequence, charge);
-        }
-        if (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked) // "abundant Immonium-ions"
-        {
-          generator.addAbundantImmoniumIons(rich_spec, aa_sequence);
-        }
+        generator.getSpectrum(spectrum, aa_sequence, charge, charge);
       }
       catch (Exception::BaseException& e)
       {
@@ -3146,22 +3207,16 @@ namespace OpenMS
       }
 
       // set precursor information
-      PeakSpectrum new_spec;
       vector<Precursor> precursors;
       Precursor precursor;
       precursor.setMZ(aa_sequence.getMonoWeight());
       precursor.setCharge(charge);
       precursors.push_back(precursor);
-      new_spec.setPrecursors(precursors);
-      new_spec.setMSLevel(2);
-      // convert rich spectrum to simple spectrum
-      for (RichPeakSpectrum::Iterator it = rich_spec.begin(); it != rich_spec.end(); ++it)
-      {
-        new_spec.push_back(static_cast<Peak1D>(*it));
-      }
+      spectrum.setPrecursors(precursors);
+      spectrum.setMSLevel(2);
 
       PeakMap new_exp;
-      new_exp.addSpectrum(new_spec);
+      new_exp.addSpectrum(spectrum);
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -3171,8 +3226,6 @@ namespace OpenMS
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
       setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-
-
     }
   }
 

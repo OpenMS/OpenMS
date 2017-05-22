@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,25 @@ namespace OpenMS
   // static
   void ModifiedPeptideGenerator::applyFixedModifications(const vector<ResidueModification>::const_iterator& fixed_mods_begin, const vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide)
   {
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
+    {
+      if (fixed_it->getTermSpecificity() == ResidueModification::N_TERM)
+      {
+        if (!peptide.hasNTerminalModification())
+        {
+          peptide.setNTerminalModification(fixed_it->getFullName());
+        }
+      }
+      else if (fixed_it->getTermSpecificity() == ResidueModification::C_TERM)
+      {
+        if (!peptide.hasCTerminalModification())
+        {
+          peptide.setCTerminalModification(fixed_it->getFullName());
+        }
+      }
+    }
+
     //iterate over each residue
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
@@ -60,7 +79,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode() != fixed_it->getOrigin())
+        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin())
         {
           continue;
         }
@@ -120,6 +139,25 @@ namespace OpenMS
     //which amino acid (peptide index) is compatible with which modification
     map<int, vector<ResidueModification> > map_compatibility;
 
+    // set terminal modifications for modifications without amino acid preference
+    for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+    {
+      if (variable_it->getTermSpecificity() == ResidueModification::N_TERM)
+      {
+        if (!peptide.hasNTerminalModification())
+        {
+          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+      else if (variable_it->getTermSpecificity() == ResidueModification::C_TERM)
+      {
+        if (!peptide.hasCTerminalModification())
+        {
+          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+    }
+
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
     {
       // skip already modified residues
@@ -134,7 +172,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode() != variable_it->getOrigin())
+        if (residue_it->getOneLetterCode()[0] != variable_it->getOrigin())
         {
           continue;
         }
@@ -214,6 +252,7 @@ namespace OpenMS
     all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
   }
 
+
   // static
   void ModifiedPeptideGenerator::recurseAndGenerateVariableModifiedPeptides_(const vector<int>& subset_indices, const map<int, vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, vector<AASequence>& modified_peptides)
   {
@@ -280,7 +319,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode() != variable_it->getOrigin())
+        if (residue_it->getOneLetterCode()[0] != variable_it->getOrigin())
         {
           continue;
         }
@@ -311,5 +350,5 @@ namespace OpenMS
       }
     }
   }
-
 }
+

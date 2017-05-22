@@ -22,6 +22,7 @@ FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
+FeatureLinkerUnlabeledKD
 FeatureLinkerUnlabeledQT
 FidoAdapter
 FileConverter
@@ -42,7 +43,6 @@ InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
-ITRAQAnalyzer
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
@@ -94,7 +94,6 @@ SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
 TextExporter
-TMTAnalyzer
 TOFCalibration
 XTandemAdapter
 )
