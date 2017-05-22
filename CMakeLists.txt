@@ -92,7 +92,6 @@ if(NOT CMAKE_MODULE_PATH)
 endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
-
 #------------------------------------------------------------------------------
 # OpenMS Version Information
 #------------------------------------------------------------------------------
@@ -316,7 +315,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-openms_export_targes()
+openms_export_targets()
 install_export_targets()
 
 #------------------------------------------------------------------------------

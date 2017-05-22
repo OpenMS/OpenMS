@@ -108,15 +108,18 @@ if (WITH_CRAWDAD)
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
+list(REMOVE_DUPLICATES OPENMS_DEP_LIBRARIES)
+
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include
-                                     ${PROJECT_BINARY_DIR}/include
+                   INTERNAL_INCLUDES /fuckyou
+                                     ${CMAKE_CURRENT_SOURCE_DIR}/include
+                                     ${CMAKE_CURRENT_BINARY_DIR}/include
 									 PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${QT_INCLUDES}
-                                     ${GSL_INCLUDE_DIRS}
+                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_LIBS}/include
+                                     ${QT_INCLUDES}
                                      ${Boost_INCLUDE_DIRS}
                                      ${SEQAN_INCLUDE_DIRS}
                                      ${SQLITE_INCLUDE_DIR}
