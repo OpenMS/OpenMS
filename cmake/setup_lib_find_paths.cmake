@@ -44,13 +44,12 @@
 # for searching and as first entry in the includes/libraries to avoid
 # mismatches with installed system libraries
 if(NOT OPENMS_CONTRIB_LIBS)
-  message(FATAL_ERROR "Please specify an explicit path to the built contrib libraries via
+  message(WARNING "Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
 -DOPENMS_CONTRIB_LIBS")
 else()
   list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
   list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
 endif()
-message("CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 #------------------------------------------------------------------------------
 # Ensure Qt includes it's libs as SYSTEM
