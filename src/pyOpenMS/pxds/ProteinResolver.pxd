@@ -48,7 +48,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         Size index
-        # POINTER # ISDGroup * isd_group
+        ISDGroup * isd_group
         Size number_of_decoy
         Size number_of_target
         Size number_of_target_plus_decoy
@@ -67,9 +67,9 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         # std::vector<PeptideEntry> * peptide_entries;
         # std::vector<Size> * reindexed_peptides;
         # std::vector<Size> * reindexed_proteins;
-        # enum type  {PeptideIdent, Consensus} input_type;
+        ProteinResolverResult_Type input_type
         # std::vector<PeptideIdentification> * peptide_identification;
-        # ConsensusMap * consensus_map;
+        ConsensusMap * consensus_map
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
@@ -114,6 +114,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size number_of_experimental_peptides
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ProteinEntry":
+
     cdef enum ProteinEntry_type "OpenMS::ProteinResolver::ProteinEntry::type":
         #wrap-attach:
         #    ProteinEntry
