@@ -23,6 +23,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #   RichMSSpectrum := MSSpectrum[RichPeak1D]
         #   ChromatogramSpectrum := MSSpectrum[ChromatogramPeak]
 
+        # COMMENT: get raw data through get_peaks or by iterating through peaks
+        # COMMENT: set raw data through set_peaks
 
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum[PeakT] &) nogil except + 
