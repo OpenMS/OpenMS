@@ -492,8 +492,8 @@ namespace OpenMS
         }
       }
 
-      // we mono-charge spectra, generating b- and y-ions with charge 1 is the default behavior of the TSG
-      spectrum_generator.getSpectrum(th_spectra[i], seq);
+      // we mono-charge spectra, generating b- and y-ions is the default behavior of the TSG
+      spectrum_generator.getSpectrum(th_spectra[i], seq, 1, 1);
       th_spectra[i].setName(seq.toString());
     }
     return th_spectra;
