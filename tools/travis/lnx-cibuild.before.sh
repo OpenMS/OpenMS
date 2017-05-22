@@ -1,5 +1,11 @@
 #!/bin/bash
 
+mkdir cmake_tmp
+cd cmake_tmp
+wget http://www.cmake.org/files/v3.2/cmake-3.2.2-Linux-x86_64.tar.gz
+tar xf cmake-3.2.2-Linux-x86_64.tar.gz
+sudo cp -r cmake-3.2.2-Linux-x86_64/* /usr
+
 function build_contrib {
   cmake . -DBUILD_TYPE=$1
 
