@@ -179,7 +179,7 @@ protected:
     registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
-    registerStringOption_("precursor_charge", "[min]:[max]", ":", "charge range to search: 0 0 == search all charges, 2 6 == from +2 to +6, 3 3 == +3", false, false);
+    registerStringOption_("precursor_charge", "0:0", ":", "charge range to search: 0 0 == search all charges, 2 6 == from +2 to +6, 3 3 == +3", false, false);
     registerStringOption_("override_charge", "<choice>", "keep any known", "0 = keep any known precursor charge state, 1 = ignore known precursor charge state and use precursor_charge parameter, 2 = ignore precursor charges outside precursor_charge range, 3 = keep any known precursor charge state. For unknown charge states, search as singly charged if there is no signal above the precursor m/z or use the precursor_charge range", false, false);
     setValidStrings_("override_charge", ListUtils::create<String>("keep any known,ignore known,ignore outside range,keep known search unknown"));
     registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, false);
@@ -189,7 +189,7 @@ protected:
     setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
 
     //Misc. parameters
-    registerStringOption_("digest_mass_range", "[min]:[max]", ":", "MH+ peptide mass range to analyze", false, true);
+    registerStringOption_("digest_mass_range", "600:5000", ":", "MH+ peptide mass range to analyze", false, true);
     registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, false);
     registerStringOption_("max_precursor_charge", "<num>", "0+", "set maximum precursor charge state to analyze (allowed max 9)", false, true);
     registerStringOption_("clip_nterm_methionine", "<num>", "false", "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
@@ -203,7 +203,7 @@ protected:
     registerStringOption_("remove_precursor_peak", "<choice>", "no", "0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)", false, true);
     setValidStrings_("remove_precursor_peak", ListUtils::create<String>("no,yes,all"));
     registerIntOption_("remove_precursor_tolerance", "<num>", 1.5, "+- Da tolerance for precursor removal", false, true);
-    registerStringOption_("clear_mz_range", "[min]:[max]", ":", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
+    registerStringOption_("clear_mz_range", "0:0", ":", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
 
     //Modifications
     registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
@@ -520,7 +520,7 @@ protected:
     //QDir d;
     //d.mkpath(tmp_dir.toQString());
     String tmp_pepxml = tmp_dir + "result.pep.xml";
-    String tmp_pin = tmp_dir + "result.csv";
+    String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
