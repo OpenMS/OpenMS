@@ -1,3 +1,18 @@
+from Types cimport *
+from String cimport *
+
+cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
+
+    cdef cppclass FileTypes:
+
+        FileTypes() nogil except +
+        FileTypes(FileTypes) nogil except +
+
+        String typeToName(FileType t) nogil except +
+
+        String typeToMZML(FileType t) nogil except +
+
+        FileType nameToType(String name) nogil except +
 
 cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
 
