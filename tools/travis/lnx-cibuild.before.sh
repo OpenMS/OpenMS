@@ -2,7 +2,7 @@
 
 mkdir cmake_tmp
 cd cmake_tmp
-wget https://cmake.org/files/v3.0/cmake-3.0.2.tar.gz
+wget --no-check-certificate https://cmake.org/files/v3.0/cmake-3.0.2.tar.gz
 tar xf cmake-3.0.2.tar.gz
 sudo cp -r cmake-3.0.2*/* /usr
 
