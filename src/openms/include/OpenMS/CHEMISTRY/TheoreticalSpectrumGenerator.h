@@ -86,7 +86,7 @@ namespace OpenMS
      */
     //@{
     /// returns a spectrum with the ion types, that are set in the tool parameters
-    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge = 1, Int max_charge = 1) const;
+    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge, Int max_charge) const;
 
     /// overwrite
     void updateMembers_();
