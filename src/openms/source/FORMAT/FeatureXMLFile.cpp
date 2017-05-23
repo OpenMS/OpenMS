@@ -270,7 +270,7 @@ namespace OpenMS
         accession_to_id_[current_prot_id.getIdentifier() + "_" + current_prot_id.getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
-        os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
+        os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
         
         double coverage = current_prot_id.getHits()[j].getCoverage();
