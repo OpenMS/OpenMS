@@ -62,6 +62,8 @@ namespace OpenMS
 
     defaults_.setValue("minimal_quality", -10000.0, "Only if compute_peak_quality is set, this parameter will not consider peaks below this quality threshold", ListUtils::create<String>("advanced"));
 
+    defaults_.setValue("resample_boundary", 15.0, "For computing peak quality, how many extra seconds should be sample left and right of the actual peak", ListUtils::create<String>("advanced"));
+
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_quality", ListUtils::create<String>("true,false"));
 
@@ -97,6 +99,7 @@ namespace OpenMS
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
+    resample_boundary_ = (double)param_.getValue("resample_boundary");
   }
 
   double MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right)
