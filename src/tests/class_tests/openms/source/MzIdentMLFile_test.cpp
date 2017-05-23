@@ -401,9 +401,8 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence().toString(), "KELLK")
 
   // Reading and writing
-  String filename = "/home/eugen/Development/OpenMS-build/Testing/Temporary/test.mzid";
-//  String filename;
-//  NEW_TMP_FILE(filename)
+  String filename;
+  NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
 
