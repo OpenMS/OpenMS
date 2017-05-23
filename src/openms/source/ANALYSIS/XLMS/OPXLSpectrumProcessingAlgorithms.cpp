@@ -351,6 +351,7 @@ namespace OpenMS
     {
       PeakSpectrum out;
       PeakSpectrum::IntegerDataArray charge_array;
+      charge_array.setName("Charges");
 
       vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
       vector<double> mono_iso_peak_intensity(old_spectrum.size(), 0);
@@ -446,19 +447,15 @@ namespace OpenMS
           {
             Peak1D p;
             p.setMZ(old_spectrum[i].getMZ());
-//            p.setIntensity(old_spectrum[i].getIntensity());
             p.setIntensity(mono_iso_peak_intensity[i]);
-//            p.setMetaValue("z", z);
             charge_array.push_back(z);
             out.push_back(p);
           }
           else
           {
             Peak1D p;
-//            p.setIntensity(old_spectrum[i].getIntensity());
             p.setIntensity(mono_iso_peak_intensity[i]);
             p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-//            p.setMetaValue("z", 1);
             charge_array.push_back(1);
             out.push_back(p);
           }
@@ -471,7 +468,6 @@ namespace OpenMS
             Peak1D p;
             p.setMZ(old_spectrum[i].getMZ());
             p.setIntensity(old_spectrum[i].getIntensity());
-//            p.setMetaValue("z", 0);
             charge_array.push_back(0);
             out.push_back(p);
             continue;
@@ -485,8 +481,6 @@ namespace OpenMS
               Peak1D p;
               p.setMZ(old_spectrum[i].getMZ());
               p.setIntensity(mono_iso_peak_intensity[i]);
-//              p.setIntensity(old_spectrum[i].getIntensity());
-//              p.setMetaValue("z", z);
               charge_array.push_back(z);
               out.push_back(p);
             }
@@ -495,8 +489,6 @@ namespace OpenMS
               Peak1D p;
               p.setMZ(old_spectrum[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
               p.setIntensity(mono_iso_peak_intensity[i]);
-//              p.setIntensity(old_spectrum[i].getIntensity());
-//              p.setMetaValue("z", z);
               charge_array.push_back(z);
               out.push_back(p);
             }
