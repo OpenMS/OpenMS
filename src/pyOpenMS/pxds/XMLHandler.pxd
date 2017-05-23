@@ -9,6 +9,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Inte
     cdef cppclass XMLHandler:
         XMLHandler() nogil except + #wrap-ignore
         XMLHandler(XMLHandler) nogil except + #wrap-ignore
+
         # NAMESPACE # void fatalError(xercesc::SAXParseException & exception) nogil except +
         # NAMESPACE # void error(xercesc::SAXParseException & exception) nogil except +
         # NAMESPACE # void warning(xercesc::SAXParseException & exception) nogil except +

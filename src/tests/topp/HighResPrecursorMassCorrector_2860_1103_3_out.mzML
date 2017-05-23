@@ -467,7 +467,7 @@
 						</scanWindowList>
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1103.17912460413" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -482,11 +482,11 @@
 							</selectedIon>
 						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000422" name="high-energy collision-induced dissociation" />
-						<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="28" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
+							<cvParam cvRef="MS" accession="MS:1000422" name="beam-type collision-induced dissociation" />
+							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="28" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="3488">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1059,22 +1059,22 @@
 		<offset idRef="controllerType=0 controllerNumber=1 scan=18063">29071</offset>
 		<offset idRef="controllerType=0 controllerNumber=1 scan=18079">31990</offset>
 		<offset idRef="controllerType=0 controllerNumber=1 scan=18083">35007</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18095">44611</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18111">47562</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18127">50563</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18136">53579</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18139">56546</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18155">59564</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18171">62564</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18181">65532</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18184">68484</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18200">71464</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18211">74334</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18222">77302</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18232">80185</offset>
-		<offset idRef="controllerType=0 controllerNumber=1 scan=18235">83089</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18095">44612</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18111">47563</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18127">50564</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18136">53580</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18139">56547</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18155">59565</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18171">62565</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18181">65533</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18184">68485</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18200">71465</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18211">74335</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18222">77303</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18232">80186</offset>
+		<offset idRef="controllerType=0 controllerNumber=1 scan=18235">83090</offset>
 	</index>
 </indexList>
-<indexListOffset>8</indexListOffset>
+<indexListOffset>86022</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

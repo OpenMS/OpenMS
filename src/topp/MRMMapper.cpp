@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,12 +53,15 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_MRMTransitionGroupPicker </td>
           </tr>
       </table>
   </CENTER>
@@ -129,8 +132,8 @@ protected:
     bool nostrict = getFlag_("no-strict");
 
     OpenMS::TargetedExperiment targeted_exp;
-    OpenMS::MSExperiment<ChromatogramPeak> chromatogram_map;
-    OpenMS::MSExperiment<ChromatogramPeak> output;
+    OpenMS::PeakMap chromatogram_map;
+    OpenMS::PeakMap output;
 
     TraMLFile().load(tr_file, targeted_exp);
     MzMLFile().load(in, chromatogram_map);
@@ -180,7 +183,7 @@ protected:
               break;
             }
           }
-          // add precursor to spectrum
+          // add precursor to chromatogram
           chromatogram.setPrecursor(precursor);
 
           // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)

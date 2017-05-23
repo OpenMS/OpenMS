@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+  MultiplexFilteringProfile::MultiplexFilteringProfile(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), exp_profile_(exp_profile), boundaries_(boundaries)
   {
     if (exp_profile_.size() != exp_picked_.size())
@@ -82,7 +82,7 @@ namespace OpenMS
     registry_.reserve(exp_picked_.getNrSpectra());
 
     // fill peak registry and initialise blacklist
-    MSExperiment<Peak1D>::Iterator it_rt;
+    PeakMap::Iterator it_rt;
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
     {
       int index = it_rt - exp_picked_.begin();
@@ -141,8 +141,8 @@ namespace OpenMS
       MultiplexFilterResult result;
 
       // iterate over spectra
-      MSExperiment<Peak1D>::Iterator it_rt_profile;
-      MSExperiment<Peak1D>::ConstIterator it_rt_picked;
+      PeakMap::Iterator it_rt_profile;
+      PeakMap::ConstIterator it_rt_picked;
       vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
       for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_.begin(), it_rt_boundaries = boundaries_.begin();
            it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
@@ -358,7 +358,7 @@ namespace OpenMS
 
   int MultiplexFilteringProfile::findNearest_(int spectrum_index, double mz, double scaling) const
   {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
+    PeakMap::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
 
     MSSpectrum<Peak1D>::ConstIterator it_mz;

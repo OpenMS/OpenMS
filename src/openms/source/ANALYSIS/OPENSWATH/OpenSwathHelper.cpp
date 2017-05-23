@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathHelper::checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+  void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper)
   {
     if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)

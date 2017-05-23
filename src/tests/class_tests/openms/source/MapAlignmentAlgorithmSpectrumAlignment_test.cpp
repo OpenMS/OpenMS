@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,10 +60,10 @@ START_SECTION((virtual ~MapAlignmentAlgorithmSpectrumAlignment()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void align(std::vector<MSExperiment<> >&, std::vector<TransformationDescription>&)))
+START_SECTION((virtual void align(std::vector<PeakMap >&, std::vector<TransformationDescription>&)))
 {
   MapAlignmentAlgorithmSpectrumAlignment ma;
-  std::vector<MSExperiment<> > maps;
+  std::vector<PeakMap > maps;
 	PeakMap map1;
 	PeakMap map2;	
 	for (UInt i = 0; i < 15; ++i)

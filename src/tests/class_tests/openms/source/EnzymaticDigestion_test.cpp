@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-
+#include <vector>
 using namespace OpenMS;
 using namespace std;
 
@@ -527,7 +527,24 @@ START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size
     TEST_EQUAL(ed.isValidProduct(prot, 1, 7, true), true); // valid N-term (since protein starts with Met)
     TEST_EQUAL(ed.isValidProduct(prot, 1, 7), false); // invalid N-term (since Met cleavage is not allowed.)
     TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
-    
+
+    // test with different missed cleavages when this is not ignored (ignore_missed_cleavages = false)
+    ed.setEnzyme("Trypsin/P");    
+    prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB"); // cleavages on {0,8,12,16,19}
+    ed.setMissedCleavages(0); // redundant, by default zero, should be zero
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 4, false, false), true); //   valid fully-tryptic
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 8, false, false), false); //  invalid, fully-tryptic but with a missing cleavage    
+    ed.setMissedCleavages(1);
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 8, false, false), true); // valid, fully-tryptic with a missing cleavage  (allow)
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 11, false, false), false); //  invalid, fully-tryptic but with two missing cleavages
+    ed.setMissedCleavages(2);
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 11, false, false), true); //  invalid, fully-tryptic but with a missing cleavage
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, true), true); //  boundary case,  length of protein
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false); //  boundary case, this exceeds missing cleavages
+    ed.setMissedCleavages(4); // maximum cleavages for this peptide
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted:enough allowed missed cleavages
+    ed.setMissedCleavages(0); // set back to default
+
     //################################################
     // same as above, just with other specificity
     
@@ -572,6 +589,7 @@ START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size
     TEST_EQUAL(ed.isValidProduct(prot, 3, 6), true); // invalid C+N-term
     TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true); // invalid N-term
     TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
+
 
 END_SECTION
 

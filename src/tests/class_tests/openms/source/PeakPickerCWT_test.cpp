@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ END_SECTION
 
 // load input and output data
 MzMLFile mz_ml_file;
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test.mzML"), input);
 mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), output);
 
@@ -81,7 +81,7 @@ pp.setParameters(param);
 START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output) const))
   MSSpectrum<> spec;
   pp.pick(input[0],spec);
-  //updating results: MSExperiment<> sp; sp.addSpectrum(spec); MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), sp);
+  //updating results: PeakMap sp; sp.addSpectrum(spec); MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), sp);
 
 // TEST_EQUAL(spec.SpectrumSettings::operator==(output[0]), true)-> are not equal as peak picking step is written to the spectrum settings
   for (Size p=0; p<spec.size(); ++p)
@@ -92,8 +92,8 @@ START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output) const)
 END_SECTION
 
 
-START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &output)))
-  MSExperiment<> exp;
+START_SECTION((void pickExperiment(const PeakMap &input, PeakMap &output)))
+  PeakMap exp;
   pp.pickExperiment(input, exp);
   TEST_EQUAL(exp.ExperimentalSettings::operator==(input), true)
 
@@ -108,7 +108,7 @@ START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &
   }
 END_SECTION
 
-START_SECTION(double estimatePeakWidth(const MSExperiment<>& input))
+START_SECTION(double estimatePeakWidth(const PeakMap& input))
   PeakPickerCWT pp;
   // add empty spectra.. make sure that the algorithm does not stumble
   double peak_width = pp.estimatePeakWidth(input);

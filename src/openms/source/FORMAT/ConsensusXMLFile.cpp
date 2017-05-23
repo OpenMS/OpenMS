@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -985,30 +985,31 @@ namespace OpenMS
       os << IdXMLFile::createFlankingAAXMLString_(pes);
       os << IdXMLFile::createPositionXMLString_(pes);
 
-      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
-
-      if (!protein_accessions.empty() && !accession_to_id_.empty())
+      String accs;
+      for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
       {
-        String accs;
-        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
-        {
-          String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
-          if (a_2_id.size() > 0)
-          {
-            if (!accs.empty())
-            {
-              accs += " ";
-            }
-            accs += "PH_";
-            accs += a_2_id;
-          }
-        }
         if (!accs.empty())
         {
-          os << " protein_refs=\"" << accs << "\"";
+          accs += " ";
+        }
+        String protein_accession = pe->getProteinAccession();
+
+        // empty accessions are not written out (legacy code)
+        if (!protein_accession.empty())
+        {
+          accs += "PH_";
+          accs += String(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
         }
       }
+
+      // don't write protein_refs if no peptide evidences present
+      if (!accs.empty())
+      {
+        os << " protein_refs=\"" << accs << "\"";
+      }
+
       os << ">\n";
+
       writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }

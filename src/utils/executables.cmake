@@ -22,7 +22,6 @@ IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
-MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
 MetaProSIP
@@ -58,8 +57,7 @@ XMLValidator
 if(NOT DISABLE_OPENSWATH)
   set(UTILS_executables
     ${UTILS_executables}
-    ConvertTSVToTraML
-    ConvertTraMLToTSV
+    TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow

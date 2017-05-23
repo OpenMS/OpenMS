@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
-#include <vector>
 
 ///////////////////////////
 
@@ -859,7 +858,7 @@ END_SECTION
 
 START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
   ids[0].assignRanks();
@@ -902,7 +901,7 @@ END_SECTION
 
 START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExperiment<PeakT>& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
   ids[0].assignRanks();
@@ -945,7 +944,7 @@ END_SECTION
 
 START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<PeakT>& experiment, Size n)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
   ids[0].assignRanks();
@@ -980,7 +979,7 @@ END_SECTION
 
 START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExperiment<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
 {
-  MSExperiment<> experiment;
+  PeakMap experiment;
   vector<FASTAFile::FASTAEntry> proteins;
   vector<PeptideIdentification> peptides = global_peptides;
 

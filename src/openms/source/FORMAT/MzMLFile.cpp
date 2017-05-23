@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
 {
@@ -115,12 +119,10 @@ namespace OpenMS
 
   void MzMLFile::loadSize(const String& filename, Size& scount, Size& ccount)
   {
-    typedef MSExperiment<> MapType;
-
-    MapType dummy;
+    PeakMap dummy;
     bool size_only_before_ = options_.getSizeOnly();
     options_.setSizeOnly(true);
-    Internal::MzMLHandler<MapType> handler(dummy, filename, getVersion(), *this);
+    Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
     handler.setOptions(options_);
 
     // TODO catch errors as above ?
@@ -150,6 +152,79 @@ namespace OpenMS
       mess.append(e.getName());
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
     }
+  }
+
+  void MzMLFile::load(const String& filename, PeakMap& map)
+  {
+    map.reset();
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    safeParse_(filename, &handler);
+  }
+
+  void MzMLFile::store(const String& filename, const PeakMap& map) const
+  {
+    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    save_(filename, &handler);
+  }
+
+  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
+  {
+    // First pass through the file -> get the meta-data and hand it to the consumer
+    if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
+
+    // Second pass through the data, now read the spectra!
+    {
+      PeakMap dummy;
+      Internal::MzMLHandler handler(dummy, filename_in, getVersion(), *this);
+      handler.setOptions(options_);
+      handler.setMSDataConsumer(consumer);
+      safeParse_(filename_in, &handler);
+    }
+  }
+
+  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
+  {
+    // First pass through the file -> get the meta-data and hand it to the consumer
+    if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
+
+    // Second pass through the data, now read the spectra!
+    {
+      PeakFileOptions tmp_options(options_);
+      Internal::MzMLHandler handler(map, filename_in, getVersion(), *this);
+      tmp_options.setAlwaysAppendData(true);
+      handler.setOptions(tmp_options);
+      handler.setMSDataConsumer(consumer);
+
+      safeParse_(filename_in, &handler);
+    }
+  }
+
+  void MzMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
+  {
+    // Create temporary objects and counters
+    PeakFileOptions tmp_options(options_);
+    Size scount = 0, ccount = 0;
+    PeakMap experimental_settings;
+    Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
+
+    // set temporary options for handler
+    tmp_options.setSizeOnly(true);
+    tmp_options.setMetadataOnly( skip_full_count );
+    handler.setOptions(tmp_options);
+
+    safeParse_(filename_in, &handler);
+
+    // After parsing, collect information
+    handler.getCounts(scount, ccount);
+    consumer->setExpectedSize(scount, ccount);
+    consumer->setExperimentalSettings(experimental_settings);
   }
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1026,7 +1026,10 @@ namespace OpenMS
           {
             fn += "_to_" + QFileInfo(per_round_basenames[r].last()).fileName() + "_merged";
           }
-          fn += file_suffix.toQString();
+          if (!fn.endsWith(file_suffix.toQString()))
+          {
+            fn += file_suffix.toQString();
+          }
           fn = QDir::toNativeSeparators(fn);
           if (filename_output_set.count(fn) > 0)
           {

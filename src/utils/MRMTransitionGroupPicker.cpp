@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,9 +65,44 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MRMTransitionGroupPicker MRMTransitionGroupPicker
+  @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in MRM chromatograms.
+  @brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
+
+    <CENTER>
+        <table>
+            <tr>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMTransitionGroupPicker \f$ \longrightarrow \f$</td>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+            </tr>
+        </table>
+    </CENTER>
+
+
+  This tools accepts a set of chromatograms and picks peaks in them, correctly
+  grouping related transitions from the same precursor together. It will
+  perform the following steps:
+  - Step 1: find features (peaks) in individual chromatograms </li>
+  - Step 2: merge these features to consensus features that span multiple chromatograms </li>
+
+  Step 1 is performed by smoothing the individual chromatogram and applying the
+  PeakPickerHiRes.
+
+  Step 2 is performed by finding the largest peak overall and use this to
+  create a feature, propagating this through all chromatograms.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_MRMTransitionGroupPicker.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_MRMTransitionGroupPicker.html
 
 */
 
@@ -79,16 +114,15 @@ class TOPPMRMTransitionGroupPicker
 public:
 
   TOPPMRMTransitionGroupPicker() 
-    : TOPPBase("MRMTransitionGroupPicker", "", false)
+    : TOPPBase("MRMTransitionGroupPicker", "Picks peaks in SRM/MRM chromatograms.", false)
   {
   }
 
 protected:
 
-  typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; // this is the type in which we store the chromatograms for this analysis
   typedef ReactionMonitoringTransition TransitionType;
   typedef TargetedExperiment TargetedExpType;
-  typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; // a transition group holds the MSSpectra with the Chromatogram peaks from above
+  typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
   void registerOptionsAndFlags_()
   {
@@ -164,8 +198,8 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
         MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
-        RichPeakChromatogram chromatogram;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
+        MSChromatogram<> chromatogram;
 
         // copy old to new chromatogram
         for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
@@ -230,7 +264,7 @@ protected:
     String out = getStringOption_("out");
     String tr_file = getStringOption_("tr");
 
-    boost::shared_ptr<MSExperiment<> > exp ( new MSExperiment<> );
+    boost::shared_ptr<PeakMap > exp ( new PeakMap );
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
     mzmlfile.load(in, *exp);

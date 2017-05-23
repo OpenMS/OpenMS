@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -234,7 +234,7 @@ END_SECTION
 
 // assignment operator
 
-START_SECTION((DataValue& operator = (const DataValue&)))
+START_SECTION((DataValue& operator=(const DataValue&)))
 	DataValue p1((double) 1.23);
 	DataValue p3((float) 1.23);
 	DataValue p4((Int) -3);
@@ -271,17 +271,18 @@ END_SECTION
 // Is DataValue object empty?
 
 START_SECTION((bool isEmpty() const))
+{
 	DataValue p1;
-	bool res1 =  p1.isEmpty();
-	TEST_NOT_EQUAL( res1, false)
+  TEST_EQUAL(p1.isEmpty(), true);
 	DataValue p2((float)1.2);
-	bool res2 =  p2.isEmpty();
-	TEST_EQUAL( res2, false)
-	TEST_REAL_SIMILAR( (float) p2, 1.2)
+	TEST_EQUAL(p2.isEmpty(), false);
+	TEST_REAL_SIMILAR((float) p2, 1.2);
+  DataValue p3("");
+  TEST_EQUAL(p3.isEmpty(), false); // empty string does not count as empty!
 	DataValue p4("2");
-	bool res4 =  p4.isEmpty();
-	TEST_EQUAL( res4, false)
-	TEST_EQUAL( (std::string) p4, "2")
+	TEST_EQUAL(p4.isEmpty(), false)
+  TEST_EQUAL((std::string) p4, "2");
+}
 END_SECTION
 
 // conversion operators

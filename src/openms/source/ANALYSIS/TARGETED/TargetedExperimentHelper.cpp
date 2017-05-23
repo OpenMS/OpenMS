@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
+
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -62,19 +65,29 @@ namespace OpenMS
 
     OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
     {
+
+      // Note that the peptide.sequence is the "naked sequence" without any
+      // modifications on it, therefore we have to populate the AASequence with
+      // the correct modifications afterwards.
       OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
       OpenMS::AASequence aas = AASequence::fromString(peptide.sequence);
 
+      // Populate the AASequence with the correct modifications derived from
+      // the Peptide::Modification objects.
       for (std::vector<Peptide::Modification>::const_iterator it = peptide.mods.begin(); 
           it != peptide.mods.end(); ++it)
       {
-        // Step 1: First look whether the UniMod ID is set (we dont use a CVTerm any more but a member)
+        // Step 1: First look whether the UniMod ID is set (we don't use a CVTerm any more but a member)
         if (it->unimod_id != -1)
         {
           setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
               "UniMod:" + String(it->unimod_id), aas);
           continue;
         }
+
+        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+          ". Will try to infer modification id by mass next." << std::endl;
+
         // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
 
         // Step 2: If the above step fails, try to find the correct

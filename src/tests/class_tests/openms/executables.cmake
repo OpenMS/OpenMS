@@ -215,6 +215,7 @@ set(format_executables_list
   SequestInfile_test
   SequestOutfile_test
   SpecArrayFile_test
+  SqMassFile_test
   SwathMapMassCorrection_test
   SwathFile_test
   SwathFileConsumer_test
@@ -229,6 +230,7 @@ set(format_executables_list
   XMLValidator_test
   XTandemInfile_test
   XTandemXMLFile_test
+  ZlibCompression_test
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
@@ -418,7 +420,6 @@ set(analysis_executables_list
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
-  FeatureGroupingAlgorithmIdentification_test
   FeatureGroupingAlgorithmKD_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
@@ -437,13 +438,11 @@ set(analysis_executables_list
   IsobaricQuantitationMethod_test
   IsobaricQuantifier_test
   IsobaricQuantifierStatistics_test
-  ItraqChannelExtractor_test
   ItraqConstants_test
   ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
-  ItraqQuantifier_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -548,14 +547,6 @@ set(transformations_executables_list
   TraceFitter_test
 )
 
-if(NOT DISABLE_WAVELET2DTEST)
-set(transformations_executables_list
-  ${transformations_executables_list}
-  TwoDOptimization_test
-)
-endif(NOT DISABLE_WAVELET2DTEST)
-
-
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list
   ${transformations_executables_list}
@@ -588,6 +579,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
+    TransitionPQPReader_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
@@ -623,6 +615,7 @@ set(Boost_dependent_tests
   StatisticFunctions_test
   String_test
   TransitionTSVReader_test
+  TransitionPQPReader_test
 )
 
 ### collect test executables

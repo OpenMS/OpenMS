@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,7 @@
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 // Algorithms
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
@@ -182,6 +183,8 @@ namespace OpenMS
   class OPENMS_DLLAPI OpenSwathWorkflow :
     public ProgressLogger
   {
+    typedef OpenSwath::LightTransition TransitionType;
+    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
 
   public:
 
@@ -207,6 +210,7 @@ namespace OpenMS
      * @param out_featureFile Output feature map to store identified features
      * @param store_features Whether features should be appended to the output feature map
      * @param tsv_writer TSV Writer object to store identified features in csv format
+     * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param load_into_memory Whether to cache the current SWATH map in memory
@@ -220,7 +224,8 @@ namespace OpenMS
                            FeatureMap& out_featureFile, 
                            bool store_features, 
                            OpenSwathTSVWriter & tsv_writer,
-                           Interfaces::IMSDataConsumer<> * chromConsumer, 
+                           OpenSwathOSWWriter & osw_writer,
+                           Interfaces::IMSDataConsumer * chromConsumer, 
                            int batchSize,
                            bool load_into_memory);
 
@@ -234,18 +239,19 @@ namespace OpenMS
                                     const FeatureMap & featureFile,
                                     FeatureMap& out_featureFile,
                                     bool store_features,
-                                    Interfaces::IMSDataConsumer<> * chromConsumer);
+                                    Interfaces::IMSDataConsumer * chromConsumer);
 
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps, 
                         std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer<> * chromConsumer, 
+                        Interfaces::IMSDataConsumer * chromConsumer, 
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp, 
                         const TransformationDescription& trafo_inverse,
-                        bool load_into_memory);
+                        bool load_into_memory, 
+                        bool ms1only = false);
 
     /** @brief Perform scoring on a set of chromatograms
      *
@@ -261,6 +267,7 @@ namespace OpenMS
      * @param rt_extraction_window RT extraction window
      * @param output Output map
      * @param tsv_writer TSV writer for storing output (on the fly)
+     * @param osw_writer OSW Writer object to store identified features in SQLite format
      *
     */
     void scoreAllChromatograms(
@@ -271,8 +278,10 @@ namespace OpenMS
         const Param& feature_finder_param,
         TransformationDescription trafo, 
         const double rt_extraction_window,
-        FeatureMap& output, OpenSwathTSVWriter & tsv_writer);
-
+        FeatureMap& output,
+        OpenSwathTSVWriter & tsv_writer,
+        OpenSwathOSWWriter & osw_writer,
+        bool ms1only = false);
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
@@ -307,21 +316,24 @@ namespace OpenMS
 
     /** @brief Function to prepare extraction coordinates that also correctly handles RT transformations
      *
-     * This will take the targeted experiment and prepare extraction
-     * coordinates (either MS1 or MS2) for extraction by the
-     * ChromatogramExtractor.
+     * Creates a set of (empty) chromatograms and extraction coordinates with
+     * the correct ids, m/z and retention time start/end points to be extracted
+     * by the ChromatogramExtractor.
+     *
+     * Handles rt extraction windows by calculating the correct transformation
+     * for each coordinate.
      *
      * @param chrom_list Output of chromatograms (will be filled with empty chromatogram ptrs)
      * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
      * @param transition_exp_used The transition experiment used to create the coordinates
-     * @param ms1 Whether extraction coordinates should be created for MS1 (if false, it will be for MS2)
+     * @param ms1 Whether to perform MS1 (precursor ion) or MS2 (fragment ion) extraction 
      * @param trafo_inverse Inverse transformation function
-     * @param cp_irt Parameter set for the chromatogram extraction
+     * @param cp Parameter set for the chromatogram extraction
      *
     */
     void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      OpenSwath::LightTargetedExperiment & transition_exp_used,
+      const OpenSwath::LightTargetedExperiment & transition_exp_used,
       const bool ms1, const TransformationDescription trafo_inverse,
       const ChromExtractParams & cp) const;
 
@@ -340,17 +352,8 @@ namespace OpenMS
     */
     void prepare_coordinates_sub(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      OpenSwath::LightTargetedExperiment & transition_exp_used,
+      const OpenSwath::LightTargetedExperiment & transition_exp_used,
       const double rt_extraction_window, const bool ms1) const;
-
-    /** @brief Extract part of a chromatogram inside the extraction windows
-     *
-     * @note The chromatogram will be returned as MSSpectrum<ChromatogramPeak>
-     * which is used by the feature finders.
-     *
-    */
-    void selectChrom_(const MSChromatogram<ChromatogramPeak>& chromatogram_old,
-      MSSpectrum<ChromatogramPeak>& chromatogram, double rt_extraction_window, double center_rt);
 
     /**
      * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
@@ -404,6 +407,7 @@ namespace OpenMS
      * @param out_featureFile Output feature map to store identified features
      * @param store_features Whether features should be appended to the output feature map
      * @param tsv_writer TSV Writer object to store identified features in csv format
+     * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param load_into_memory Whether to cache the current SONAR map(s) in memory
@@ -417,7 +421,8 @@ namespace OpenMS
                                 FeatureMap& out_featureFile,
                                 bool store_features, 
                                 OpenSwathTSVWriter & tsv_writer,
-                                Interfaces::IMSDataConsumer<> * chromConsumer, 
+                                OpenSwathOSWWriter & osw_writer,
+                                Interfaces::IMSDataConsumer * chromConsumer, 
                                 int batchSize,
                                 bool load_into_memory);
 

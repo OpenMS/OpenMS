@@ -8,20 +8,20 @@ FidHandler.h
 IndexedMzMLDecoder.h
 MascotXMLHandler.h
 MzDataHandler.h
+MzIdentMLDOMHandler.h
+MzIdentMLHandler.h
 MzMLHandler.h
 MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h
+MzMLSqliteHandler.h
+MzQuantMLHandler.h
 MzXMLHandler.h
 PTMXMLHandler.h
 ParamXMLHandler.h
 ToolDescriptionHandler.h
+TraMLHandler.h
 UnimodXMLHandler.h
 XMLHandler.h
-XTandemInfileXMLHandler.h
-MzIdentMLHandler.h
-MzIdentMLDOMHandler.h
-MzQuantMLHandler.h
-TraMLHandler.h
 )
 
 ### add path to the filenames

@@ -33,6 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass ISDGroup "OpenMS::ProteinResolver::ISDGroup":
         ISDGroup() nogil except +
         ISDGroup(ISDGroup) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         Size index
@@ -43,6 +44,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass MSDGroup "OpenMS::ProteinResolver::MSDGroup":
         MSDGroup() nogil except +
         MSDGroup(MSDGroup) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         Size index
@@ -74,6 +76,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass PeptideEntry "OpenMS::ProteinResolver::PeptideEntry":
         PeptideEntry() nogil except +
         PeptideEntry(PeptideEntry) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         bool traversed
         String sequence
@@ -97,6 +100,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass ProteinEntry "OpenMS::ProteinResolver::ProteinEntry":
         ProteinEntry() nogil except +
         ProteinEntry(ProteinEntry) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         bool traversed
         # NAMESPACE # # POINTER # FASTAFile::FASTAEntry * fasta_entry

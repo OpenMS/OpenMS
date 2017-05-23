@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -935,8 +935,7 @@ protected:
     PeakIndex measurement_start_;
 
     /// Data processing setter for peak maps
-    template <typename PeakType>
-    void addDataProcessing_(MSExperiment<PeakType> & map, DataProcessing::ProcessingAction action) const
+    void addDataProcessing_(PeakMap & map, DataProcessing::ProcessingAction action) const
     {
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(action);

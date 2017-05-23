@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,23 +62,30 @@ using namespace std;
     </table>
   </CENTER>
 
-  This tool performs phosphorylation analysis and site localization.
-  Input files are an LC-MS/MS data file as well as the corresponding identification file.
-  Firstly, the peptide identifications are mapped onto the spectra.
-  Secondly, the tool uses an implementation of the Ascore according to Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
+  This tool performs phosphorylation analysis and site localization.  Input files are an LC-MS/MS
+  data file as well as the corresponding identification file.  Firstly, the peptide identifications
+  are mapped onto the spectra.  Secondly, the tool uses an implementation of the Ascore according to
+  Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
 
   For details, see:\n
-  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based approach for high-throughput protein phosphorylation analysis and site localization</a> (Nat. Biotechnol., 2006, PMID: 16964243).
+  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based
+  approach for high-throughput protein phosphorylation analysis and site localization</a> 
+  (Nat. Biotechnol., 2006, PMID: 16964243).
   
-  In the output the score of the peptide hit describes the peptide score, which is a weighted average of all ten scores of the selected peptide sequence. 
-  For each phosphorylation site an individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1, AScore_2).
+  In the output the score of the peptide hit describes the peptide score, which is a weighted
+  average of all ten scores of the selected peptide sequence.  For each phosphorylation site an
+  individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1,
+  AScore_2).
   
-  The Ascore results of this TOPP tool differes with the results of the Ascore calculation provided on the website <a href="http://ascore.med.harvard.edu/ascore.html">,
-  but it seems that the implementation according to Beausoleil <em>et al.</em> has some calculation errors. 
-  It is not possible to recalculate the Ascore using the cumulative binomial probability formula with the given values (see Fig. 3c). 
-  In addition the site determining ions calculation seems not reliable, because in some test cases more site determining ions were calculated than it could be possible.
+  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided 
+  <a href="http://ascore.med.harvard.edu/ascore.html">on the website</a>, but it seems that the
+  implementation according to Beausoleil <em>et al.</em> has some calculation errors.  It is not
+  possible to recalculate the Ascore using the cumulative binomial probability formula with the
+  given values (see Fig. 3c).  In addition the site determining ions calculation seems not reliable,
+  because in some test cases more site determining ions were calculated than it could be possible.
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool.
+  Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PhosphoScoring.cli
@@ -257,7 +264,7 @@ protected:
   // If the score_type has a different name in the meta_values, it is not possible to find it.
   // E.g. Percolator_qvalue <-> q-value.
   // Improvement for the future would be to have unique names for the score_types
-  // LuciphorAdapter uses the same stragety to backup previous scores.
+  // LuciphorAdapter uses the same strategy to backup previous scores.
   void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
   {
     if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
@@ -298,7 +305,7 @@ protected:
     vector<PeptideIdentification> pep_out;
     IdXMLFile().load(id, prot_ids, pep_ids);
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
 

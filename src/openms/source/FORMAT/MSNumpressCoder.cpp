@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ namespace OpenMS
 
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig & config)
   {
     if (in.empty()) return;
 
@@ -92,10 +92,23 @@ namespace OpenMS
       {
       case LINEAR:
       {
-        if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize); }
+        if (config.estimate_fixed_point)
+        {
+          // estimate fixed point either by mass accuracy or by using maximal permissable value
+          if (config.linear_fp_mass_acc > 0)
+          {
+            fixedPoint = numpress::MSNumpress::optimalLinearFixedPointMass(&in[0], dataSize, config.linear_fp_mass_acc);
+            // catch failure
+            if (fixedPoint < 0.0) fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+          }
+          else
+          {
+            fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+          }
+        }
         byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeLinear(numpressed, unpressed);
         }
@@ -106,7 +119,7 @@ namespace OpenMS
       {
         byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodePic(numpressed, unpressed);
         }
@@ -118,7 +131,7 @@ namespace OpenMS
         if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeSlof(numpressed, unpressed);
         }
@@ -136,7 +149,7 @@ namespace OpenMS
       }
 
 #ifdef NUMPRESS_DEBUG
-      std::cout << "encodeNP_: numpressed array with with length " << numpressed.size() << std::endl;
+      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << std::endl;
       for (int i = 0; i < byteCount; i++)
       {
         std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
@@ -146,7 +159,7 @@ namespace OpenMS
 
       // 3. Now check to see if encoding introduces excessive error
       int n = -1;
-      if (config.numpressErrorTolerance)
+      if (config.numpressErrorTolerance > 0.0)
       {
         if (PIC == config.np_compression) // integer rounding, abs accuracy is +- 0.5
         {
@@ -217,7 +230,11 @@ namespace OpenMS
     }
     catch (int e)
     {
-      std::cerr << "MZNumpress encoder threw exception: " << e << std::endl;
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
+    }
+    catch (char const * e)
+    {
+      std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
     catch (...)
     {
@@ -225,7 +242,7 @@ namespace OpenMS
     }
   }
 
-  void MSNumpressCoder::decodeNP_(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNPRaw(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
   {
     decodeNPInternal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
@@ -238,7 +255,7 @@ namespace OpenMS
     size_t byteCount = in_size;
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNP_: array input with length " << in_size << std::endl;
+    std::cout << "decodeNPRaw: array input with length " << in_size << std::endl;
     for (int i = 0; i < in_size; i++)
     {
       std::cout << "array[" << i << "] : " << (int)in[i] << std::endl;

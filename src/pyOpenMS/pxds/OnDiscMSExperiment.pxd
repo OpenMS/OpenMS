@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         # wrap-instances:
         #   OnDiscMSExperiment := OnDiscMSExperiment[Peak1D, ChromatogramPeak]
 
+
         OnDiscMSExperiment() nogil except +
         OnDiscMSExperiment(OnDiscMSExperiment &) nogil except +
 

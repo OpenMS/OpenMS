@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -158,7 +159,7 @@ protected:
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     addEmptyLine_();
-    registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, Percolator only] Retention times will be looked up in this file", false);
+    registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, mzid, Percolator only] Retention times and native spectrum ids (spectrum_references) will be looked up in this file", false);
     setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
     addEmptyLine_();
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
@@ -169,6 +170,7 @@ protected:
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
+    registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -198,7 +200,7 @@ protected:
 
       UInt i = 0;
       FileTypes::Type type;
-      MSExperiment<Peak1D> msexperiment;
+      PeakMap msexperiment;
       // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, float> num_and_rt;)  However, now String::toInt() might throw.
       map<Int, float> num_and_rt;
       vector<String> NativeID;
@@ -209,7 +211,7 @@ protected:
         type = fh.getTypeByFileName(mz_file);
         fh.loadExperiment(mz_file, msexperiment, type, log_type_, false, false);
 
-        for (MSExperiment<Peak1D>::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
+        for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
           String(spectra_it->getNativeID()).split('=', NativeID);
           try
@@ -313,7 +315,7 @@ protected:
         }
         else
         {
-          MSExperiment<> exp;
+          PeakMap exp;
           fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
@@ -328,6 +330,12 @@ protected:
       else if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_identifications, peptide_identifications);
+        // get spectrum_references from the mz data, if necessary:
+        if (!mz_file.empty())
+        {
+          SpectrumMetaDataLookup::addMissingSpectrumReferences(
+            peptide_identifications, mz_file, false, !getFlag_("no_spectra_data_override"), protein_identifications);
+        }
       }
 
       else if (in_type == FileTypes::MZIDENTML)
@@ -336,7 +344,7 @@ protected:
         MzIdentMLFile().load(in, protein_identifications,
                              peptide_identifications);
 
-        // get retention times from the raw data, if necessary:
+        // get retention times from the mz data, if necessary:
         if (!mz_file.empty())
         {
           SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
@@ -379,7 +387,9 @@ protected:
       else if (in_type == FileTypes::XML) // X! Tandem
       {
         ProteinIdentification protein_id;
-        XTandemXMLFile().load(in, protein_id, peptide_identifications);
+        ModificationDefinitionsSet mod_defs;
+        XTandemXMLFile().load(in, protein_id, peptide_identifications,
+                              mod_defs);
         protein_id.setSearchEngineVersion("");
         protein_id.setSearchEngine("XTandem");
         protein_identifications.push_back(protein_id);
@@ -421,7 +431,7 @@ protected:
           PercolatorOutfile::getScoreType(score_type);
         if (!mz_file.empty())
         {
-          MSExperiment<> experiment;
+          PeakMap experiment;
           fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
@@ -502,44 +512,6 @@ protected:
 
     else if (out_type == FileTypes::MZIDENTML)
     {
-      if (!mz_file.empty())
-      {
-        vector<String> spectra_data(1);
-        spectra_data[0] = "file://" + File::absolutePath(mz_file);
-        for (vector<ProteinIdentification>::iterator it =
-               protein_identifications.begin(); it !=
-               protein_identifications.end(); ++it)
-        {
-          // @TODO: should we add an option to *not* overwrite existing entries?
-          it->setMetaValue("spectra_data", spectra_data);
-        }
-        if (lookup.empty()) // raw data hasn't been read yet
-        {
-          MSExperiment<> experiment;
-          fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_,
-                            false, false);
-          lookup.readSpectra(experiment.getSpectra());
-        }
-        if (!lookup.empty())
-        {
-          for (vector<PeptideIdentification>::iterator it =
-                 peptide_identifications.begin(); it !=
-                 peptide_identifications.end(); ++it)
-          {
-            try
-            {
-              Size index = lookup.findByRT(it->getRT());
-              SpectrumMetaDataLookup::SpectrumMetaData meta;
-              lookup.getSpectrumMetaData(index, meta);
-              it->setMetaValue("spectrum_reference", meta.native_id);
-            }
-            catch (Exception::ElementNotFound&)
-            {
-              LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide ID with retention time '" + String(it->getRT()) + "'." << endl;
-            }
-          }
-        }
-      }
       MzIdentMLFile().store(out, protein_identifications,
                             peptide_identifications);
     }
@@ -554,7 +526,7 @@ protected:
         {
           const PeptideHit& hit = peptide_identifications[i].getHits()[l];
           String seq = hit.getSequence().toUnmodifiedString();
-          std::set<String> prot = hit.extractProteinAccessions();
+          std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
                 << " " << hit.getSequence().toString() 

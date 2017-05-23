@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,8 +63,11 @@ public:
     /// copy constructor
     ModificationDefinition(const ModificationDefinition& rhs);
 
-    /// detailed constructor specifying the modifications name
-    explicit ModificationDefinition(const String& mod);
+    /// detailed constructor specifying the modification by name
+    explicit ModificationDefinition(const String& mod, bool fixed = true, UInt max_occur = 0);
+
+    /// direct constructor from a residue modification
+    explicit ModificationDefinition(const ResidueModification& mod, bool fixed = true, UInt max_occur = 0);
 
     /// destructor
     virtual ~ModificationDefinition();
@@ -73,29 +76,30 @@ public:
     /** @name Accessors
     */
     //@{
-    /// sets the allowed position of the modification
-    void setTermSpecificity(ResidueModification::TermSpecificity pos);
-
-    /// returns the allowed position of the modification
-    ResidueModification::TermSpecificity getTermSpecificity() const;
-
     /// sets whether this modification definition is fixed or variable (modification must occur vs. can occur)
     void setFixedModification(bool fixed);
 
     /// returns if the modification if fixed true, else false
     bool isFixedModification() const;
 
-    /// set the maximal number of occurences per peptide, unbound if 0
-    void setMaxOccurences(UInt num);
+    /// set the maximal number of occurrences per peptide (unbounded if 0)
+    void setMaxOccurrences(UInt num);
 
-    /// returns the maximal number of occurences per peptide
-    UInt getMaxOccurences() const;
+    /// returns the maximal number of occurrences per peptide
+    UInt getMaxOccurrences() const;
 
-    /// returns the modification set
-    String getModification() const;
+    /// returns the name of the modification
+    String getModificationName() const;
 
     /// sets the modification, allowed are unique names provided by ModificationsDB
     void setModification(const String& modification);
+
+    /**
+       @brief Returns the modification
+
+       @throw Exception::InvalidValue if no modification was set
+    */
+    const ResidueModification& getModification() const;
     //@}
 
     /** @name Assignment
@@ -120,17 +124,14 @@ public:
 
 protected:
 
-    /// allowed position
-    ResidueModification::TermSpecificity term_spec_;
-
     /// the modification
     const ResidueModification* mod_;
 
     /// fixed (true) or variable (false)
     bool fixed_modification_;
 
-    /// maximal number of occurences per peptide
-    UInt max_occurences_;
+    /// maximal number of occurrences per peptide
+    UInt max_occurrences_;
   };
 
 } // namespace OpenMS

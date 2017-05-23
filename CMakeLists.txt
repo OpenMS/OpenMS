@@ -40,6 +40,10 @@ project("OpenMS_host")
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
+# Set C++ version
+SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
 ## updating CMake.
@@ -269,10 +273,14 @@ foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
 endforeach()
 
 #------------------------------------------------------------------------------
-# lib naming when building with msvc
+# lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
+	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}/build.bat")
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

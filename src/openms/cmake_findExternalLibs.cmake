@@ -86,13 +86,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
-if (${USE_COINOR})
-	set(CF_USECOINOR 1)
-  find_package(COIN REQUIRED)
-else()
-	set(CF_USECOINOR 0)
-	set(CONTRIB_CBC)
-endif()
+set(CF_USECOINOR 1)
+find_package(COIN REQUIRED)
 
 #------------------------------------------------------------------------------
 # GLPK
@@ -134,6 +129,10 @@ if (WITH_CRAWDAD)
    NAMES Crawdad.a Crawdad
     HINTS ${Crawdad_DIR})
 endif()
+
+#------------------------------------------------------------------------------
+# SQLITE
+find_package(SQLITE 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries

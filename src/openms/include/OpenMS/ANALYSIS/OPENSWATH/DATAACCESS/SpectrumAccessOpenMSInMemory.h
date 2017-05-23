@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSINMEMORY_H
 #define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSINMEMORY_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -75,7 +76,7 @@ namespace OpenMS
     public OpenSwath::ISpectrumAccess
   {
 public:
-    typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
+    typedef OpenMS::PeakMap MSExperimentType;
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
