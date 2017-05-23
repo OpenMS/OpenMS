@@ -264,7 +264,7 @@ protected:
 protected:
   PeakMap preprocessSpectra_(PeakMap& exp)
   {
-    Size peptide_min_size = getIntOption_("peptide:min_size") * 2; //  x2 because cross-links
+    Size peptide_min_size = getIntOption_("peptide:min_size");
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
 
@@ -286,44 +286,52 @@ protected:
 
     PeakMap deisotoped_spectra;
 
+    // with a lower resolution there is no use in trying to deisotope
+    if (fragment_mass_tolerance_ppm && (fragment_mass_tolerance_xlinks < 100))
+    {
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
-    {
-      vector<Precursor> precursor = exp[exp_index].getPrecursors();
-      bool process_this_spectrum = false;
-      if (precursor.size() == 1 && exp[exp_index].size() >= peptide_min_size*2)
+      for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
       {
-        int precursor_charge = precursor[0].getCharge();
-        if (precursor_charge >= min_precursor_charge && precursor_charge <= max_precursor_charge)
+        vector<Precursor> precursor = exp[exp_index].getPrecursors();
+        bool process_this_spectrum = false;
+        if (precursor.size() == 1 && exp[exp_index].size() >= peptide_min_size * 2)
         {
-          process_this_spectrum = true;
+          int precursor_charge = precursor[0].getCharge();
+          if (precursor_charge >= min_precursor_charge && precursor_charge <= max_precursor_charge)
+          {
+            process_this_spectrum = true;
+          }
         }
-      }
 
-      if (!process_this_spectrum)
-      {
-        continue;
-      }
-      exp[exp_index].sortByPosition();
+        if (!process_this_spectrum)
+        {
+          continue;
+        }
+        exp[exp_index].sortByPosition();
 
-      // params:                                                                                                                       (PeakSpectrum,  min_charge, max_charge,  fragment_tol,                                 tol_unit_ppm,                              only_keep_deiso, min_iso_peaks, max_iso_peaks, make_single_charged);
-      PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1,                 7,                    fragment_mass_tolerance_xlinks, fragment_mass_tolerance_ppm, false,                    3,                      10,                     false);
+        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_ppm, false, 3, 10, false);
 
-      // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
-      if (deisotoped.size() > peptide_min_size * 2)
-      {
-        OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(deisotoped, 500);
-        deisotoped.sortByPosition();
+        // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
+        if (deisotoped.size() > peptide_min_size * 2)
+        {
+//          OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(deisotoped, 500);
+          deisotoped.sortByPosition();
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-        deisotoped_spectra.addSpectrum(deisotoped);
+          deisotoped_spectra.addSpectrum(deisotoped);
+        }
       }
+      return deisotoped_spectra;
     }
-    return deisotoped_spectra;
+    else
+    {
+      return exp;
+    }
   }
 
   ExitCodes main_(int, const char**)
@@ -584,6 +592,20 @@ protected:
     sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OPXLDataStructs::XLPrecursorComparator());
     cout << "Sorting of enumerated precursors finished" << endl;
 
+//    // Debug output, writes out all cross-link candidates (which can be a lot!!!), not recommended for real datasets, only small test cases
+//    LOG_DEBUG << "Enumerated candidates: " << endl;
+//    for (Size k = 0; k < enumerated_cross_link_masses.size(); ++k)
+//    {
+//      if (enumerated_cross_link_masses[k].beta_index < filtered_peptide_masses.size())
+//      {
+//        LOG_DEBUG << "alpha: " << filtered_peptide_masses[enumerated_cross_link_masses[k].alpha_index].peptide_seq.toString() << " | beta: " << filtered_peptide_masses[enumerated_cross_link_masses[k].beta_index].peptide_seq.toString() << " | mass: " << enumerated_cross_link_masses[k].precursor_mass << endl;
+//      }
+//      else
+//      {
+//        LOG_DEBUG << "alpha: " << filtered_peptide_masses[enumerated_cross_link_masses[k].alpha_index].peptide_seq.toString() << " | mass: " << enumerated_cross_link_masses[k].precursor_mass << endl;
+//      }
+//    }
+
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > > all_top_csms;
@@ -658,6 +680,13 @@ protected:
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
       prescore_csms_spectrum.clear();
 
+//      // Debug output, writes out all cross-link candidates for the current spectrum (which can be a lot!!!), not recommended for real datasets, only small test cases
+//      LOG_DEBUG << "Candidates build from precursors: " << endl;
+//      for (Size i = 0; i < cross_link_candidates.size(); ++i)
+//      {
+//        LOG_DEBUG << cross_link_candidates[i].alpha.toString() << "-" << cross_link_candidates[i].beta.toString() << " | mass " << cross_link_candidates[i].cross_linker_mass << " | pos " << cross_link_candidates[i].cross_link_position.first << ", " << cross_link_candidates[i].cross_link_position.second << " | term "  << cross_link_candidates[i].term_spec_alpha << ", " << cross_link_candidates[i].term_spec_beta << endl;
+//      }
+
       for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
@@ -688,8 +717,11 @@ protected:
         }
 
         PeakSpectrum theoretical_spec_common = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_alpha, theoretical_spec_common_beta);
+        LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_common_alpha.size() << " | " << theoretical_spec_common_beta.size() << " | " << theoretical_spec_common.size() << " | exp spectrum size: " << spectrum.size() <<endl;
         vector< pair< Size, Size > > matched_spec_common;
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_common, theoretical_spec_common, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+
+        LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_common.size() << endl;
 
         // Pre-Score calculations
         Size matched_common_count = matched_spec_common.size();
@@ -707,9 +739,7 @@ protected:
         csm.score = pre_score;
         csm.pre_score = pre_score;
 
-        // THIS IS A HACK FOR TESTING, will be overwritten afterwards anyway
-        csm.matched_common_alpha = matched_common_count;
-        csm.matched_common_beta = theor_common_count;
+        LOG_DEBUG << "Pre-scoring | score: " << pre_score << endl;
 
 
         prescore_csms_spectrum.push_back(csm);
@@ -721,12 +751,13 @@ protected:
       vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.3);
       vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.2);
 
+//      // Debug output for pre-scoring ranks
 //      for (Size i = 0; i < prescore_csms_spectrum.size(); ++i)
 //      {
 //#ifdef _OPENMP
 //#pragma omp critical (cout)
 //#endif
-//        cout << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << " \t| matched peaks = " << prescore_csms_spectrum[i].matched_common_alpha  << " | theoretical peaks = " << prescore_csms_spectrum[i].matched_common_beta << endl;
+//        LOG_DEBUG << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << endl;
 //      }
 
       Size last_candidate_index = min(prescore_csms_spectrum.size(), Size(100));
