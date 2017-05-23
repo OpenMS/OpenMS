@@ -245,8 +245,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-      {
+//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
+//      {
         double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
         if (peptide.hasNTerminalModification())
         {
@@ -273,18 +273,18 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
+          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
             addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
-      }
+//      }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-      {
+//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
+//      {
         double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
         if (peptide.hasCTerminalModification())
         {
@@ -309,13 +309,13 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
+          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
             addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
-      }
+//      }
     }
 
     return;
@@ -432,8 +432,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-      {
+//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
+//      {
         // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
         double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight());
 
@@ -463,18 +463,19 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
+          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
             addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
-      }
+//      }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-      {
+        // not needed yet, since there is no alternative yet
+//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
+//      {
         // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
         double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight()); // whole mass
 
@@ -503,13 +504,13 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 //          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
 
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_isotopes_ && max_isotope_ == 2) // add second isotopic peak with fast method, of only two peaks are asked for
+          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
           {
             pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
             addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           }
         }
-      }
+//      }
     }
     return;
   }
