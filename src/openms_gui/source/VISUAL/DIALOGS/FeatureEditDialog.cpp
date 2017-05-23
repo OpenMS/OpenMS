@@ -34,6 +34,7 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
+#include <ui_FeatureEditDialog.h>
 
 using namespace std;
 
@@ -42,9 +43,15 @@ namespace OpenMS
 
   FeatureEditDialog::FeatureEditDialog(QWidget * parent) :
     QDialog(parent),
-    feature_()
+    feature_(),
+    ui_(new Ui::FeatureEditDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
+  }
+
+  FeatureEditDialog::~FeatureEditDialog()
+  {
+    delete ui_;
   }
 
   void FeatureEditDialog::setFeature(const Feature & feature)
@@ -52,19 +59,19 @@ namespace OpenMS
     //copy feature
     feature_ = feature;
     //update widgets according to feature data
-    mz_->setValue(feature_.getMZ());
-    rt_->setValue(feature_.getRT());
-    int_->setValue(feature_.getIntensity());
-    charge_->setValue(feature_.getCharge());
+    ui_->mz_->setValue(feature_.getMZ());
+    ui_->rt_->setValue(feature_.getRT());
+    ui_->int_->setValue(feature_.getIntensity());
+    ui_->charge_->setValue(feature_.getCharge());
   }
 
   const Feature & FeatureEditDialog::getFeature() const
   {
     //update feature data according to widget
-    feature_.setMZ(mz_->value());
-    feature_.setRT(rt_->value());
-    feature_.setIntensity(int_->value());
-    feature_.setCharge(charge_->value());
+    feature_.setMZ(ui_->mz_->value());
+    feature_.setRT(ui_->rt_->value());
+    feature_.setIntensity(ui_->int_->value());
+    feature_.setCharge(ui_->charge_->value());
 
     //return feature
     return feature_;

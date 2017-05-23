@@ -41,6 +41,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
@@ -116,6 +117,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
@@ -360,6 +362,7 @@ int main(int argc, char** argv)
   DOCME(DetectabilitySimulation);
   DOCME(DIAScoring);
   DOCME(DigestSimulation);
+  DOCME(ElutionModelFitter);
   DOCME(EmgFitter1D);
   DOCME(EmgModel);
   DOCME(ExtendedIsotopeFitter1D);
@@ -411,6 +414,7 @@ int main(int argc, char** argv)
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
   DOCME(SimplePairFinder);
+  DOCME(SimpleSVM);
   DOCME(StablePairFinder);
   DOCME(SpectrumAlignment);
   DOCME(SpectrumAlignmentScore);

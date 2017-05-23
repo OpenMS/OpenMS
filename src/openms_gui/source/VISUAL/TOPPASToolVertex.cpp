@@ -176,7 +176,9 @@ namespace OpenMS
     {
       if (!File::exists(old_ini_file))
       {
-        QMessageBox::critical(0, "Error", (String("Could not open '") + old_ini_file + "'!").c_str());
+        String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
+        if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+        else LOG_ERROR << msg << std::endl;
         tool_ready_ = false;
         return false;
       }
@@ -187,15 +189,22 @@ namespace OpenMS
     // actually request the INI
     QProcess p;
     p.start(program, arguments);
-    if (!p.waitForFinished(-1))
+    if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
     {
-      QMessageBox::critical(0, "Error", (String("Could not execute '") + program + " " + String(arguments.join(" ")) + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+      String msg = String("Error! Call to '") + program + "' '" + String(arguments.join("' '")) +
+          " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
+          "\noutput:\n" + String(QString(p.readAll())) +
+          "\n";
+      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+      else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
     }
     if (!File::exists(ini_file))
-    {
-      QMessageBox::critical(0, "Error", (String("Could not open '") + ini_file + "'!").c_str());
+    { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
+      String msg = String("Could not open '") + ini_file + "'! It does not exist!";
+      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+      else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
     }
@@ -289,7 +298,12 @@ namespace OpenMS
       emit parameterChanged(doesParamChangeInvalidate_());
     }
 
-    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
+    getScene_()->updateEdgeColors();
+  }
+
+  TOPPASScene* TOPPASToolVertex::getScene_() const
+  {
+    return qobject_cast<TOPPASScene*>(scene());
   }
 
   bool TOPPASToolVertex::doesParamChangeInvalidate_()
@@ -529,7 +543,7 @@ namespace OpenMS
       LOG_ERROR << "This should not happen. Calling an already finished node '" << this->name_ << "' (#" << this->getTopoNr() << ")!" << std::endl;
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    TOPPASScene* ts = getScene_();
 
     QString ini_file = ts->getTempDir()
                        + QDir::separator()
@@ -610,7 +624,7 @@ namespace OpenMS
         if (!store_to_ini)
           args << "-" + param_name.toQString();
 
-        QStringList file_list = ite->second.filenames;
+        const QStringList& file_list = ite->second.filenames.get();
 
         if (store_to_ini)
         {
@@ -654,7 +668,7 @@ namespace OpenMS
         if (!store_to_ini)
           args << "-" + param_name.toQString();
 
-        const QStringList& output_files = output_files_[round][param_index].filenames;
+        const QStringList& output_files = output_files_[round][param_index].filenames.get();
 
         if (store_to_ini)
         {
@@ -735,7 +749,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    TOPPASScene* ts = getScene_();
 
     //** ERROR handling
     if (es != QProcess::NormalExit)
@@ -849,7 +863,7 @@ namespace OpenMS
             LOG_ERROR << "Could not rename " << String(it->second.filenames[fi]) << " to " << new_filename << "\n";
             return false;
           }
-          it->second.filenames[fi] = new_filename.toQString();
+          it->second.filenames.set(new_filename.toQString(), fi);
         }
       }
     }
@@ -933,7 +947,7 @@ namespace OpenMS
     std::vector<QStringList> per_round_basenames;
     for (Size i = 0; i < pkg.size(); ++i)
     {
-      per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames);
+      per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames.get());
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
     }
 
@@ -944,7 +958,7 @@ namespace OpenMS
     output_files_.clear();
     output_files_.resize(pkg.size()); // #rounds
 
-    const TOPPASScene* ts = qobject_cast<const TOPPASScene*>(scene());
+    const TOPPASScene* ts = getScene_();
     
     // output names for each outgoing edge
     for (int i = 0; i < out_params.size(); ++i)
@@ -988,15 +1002,10 @@ namespace OpenMS
       // create common path of output files
       QString path = ts->getTempDir()
                      + QDir::separator()
-                     + getOutputDir().toQString()
+                     + getOutputDir().toQString() // includes TopoNr
                      + QDir::separator()
                      + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
                      + QDir::separator();
-      if (path.length() > 150)
-      {
-        LOG_WARN << "Warning: the temporary path '" << String(path) << "' used in TOPPAS has many characters.\n"
-                 << "         TOPPAS might not be able to write files properly.\n";
-      }
 
       VertexRoundPackage vrp;
       vrp.edge = edge_out;
@@ -1017,7 +1026,6 @@ namespace OpenMS
           {
             fn += "_to_" + QFileInfo(per_round_basenames[r].last()).fileName() + "_merged";
           }
-          fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
           fn += file_suffix.toQString();
           fn = QDir::toNativeSeparators(fn);
           if (filename_output_set.count(fn) > 0)
@@ -1150,13 +1158,13 @@ namespace OpenMS
 
   String TOPPASToolVertex::getFullOutputDirectory() const
   {
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    TOPPASScene* ts = getScene_();
     return QDir::toNativeSeparators(ts->getTempDir() + QDir::separator() + getOutputDir().toQString());
   }
 
   String TOPPASToolVertex::getOutputDir() const
   {
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    TOPPASScene* ts = getScene_();
     String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
     if (workflow_dir == "")
     {
@@ -1235,7 +1243,7 @@ namespace OpenMS
 
   bool TOPPASToolVertex::refreshParameters()
   {
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
+    TOPPASScene* ts = getScene_();
     QString old_ini_file = ts->getTempDir() + QDir::separator() + "TOPPAS_" + name_.toQString() + "_";
     if (type_ != "")
     {

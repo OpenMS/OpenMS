@@ -34,6 +34,8 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
+#include <ui_LayerStatisticsDialog.h>
+
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 
 using namespace std;
@@ -42,9 +44,10 @@ namespace OpenMS
 {
 
   LayerStatisticsDialog::LayerStatisticsDialog(SpectrumWidget * parent) :
-    QDialog(parent)
+    QDialog(parent),
+    ui_(new Ui::LayerStatisticsDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
 
     canvas_ = parent->canvas();
     layer_data_ = canvas_->getCurrentLayer();
@@ -58,46 +61,46 @@ namespace OpenMS
       computeFeatureStats_();
 
       // add two rows for charge and quality
-      table_->setRowCount(table_->rowCount() + 2);
+      ui_->table_->setRowCount(ui_->table_->rowCount() + 2);
       QTableWidgetItem * item = new QTableWidgetItem();
       item->setText(QString("Charge"));
-      table_->setVerticalHeaderItem(1, item);
+      ui_->table_->setVerticalHeaderItem(1, item);
       item = new QTableWidgetItem();
       item->setText(QString("Quality"));
-      table_->setVerticalHeaderItem(2, item);
+      ui_->table_->setVerticalHeaderItem(2, item);
 
       // add computed charge and quality stats to the table
       item = new QTableWidgetItem();
       item->setText("-");
-      table_->setItem(1, 0, item);
+      ui_->table_->setItem(1, 0, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(min_charge_, 'f', 2));
-      table_->setItem(1, 1, item);
+      ui_->table_->setItem(1, 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(max_charge_, 'f', 2));
-      table_->setItem(1, 2, item);
+      ui_->table_->setItem(1, 2, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(avg_charge_, 'f', 2));
-      table_->setItem(1, 3, item);
+      ui_->table_->setItem(1, 3, item);
 
       item = new QTableWidgetItem();
       item->setText("-");
-      table_->setItem(2, 0, item);
+      ui_->table_->setItem(2, 0, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(min_quality_, 'f', 2));
-      table_->setItem(2, 1, item);
+      ui_->table_->setItem(2, 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(max_quality_, 'f', 2));
-      table_->setItem(2, 2, item);
+      ui_->table_->setItem(2, 2, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(avg_quality_, 'f', 2));
-      table_->setItem(2, 3, item);
+      ui_->table_->setItem(2, 3, item);
 
     }
     else if (layer_data_.type == LayerData::DT_CONSENSUS)
@@ -105,65 +108,65 @@ namespace OpenMS
       computeConsensusStats_();
 
       // add thres rows for charge, quality and elements
-      table_->setRowCount(table_->rowCount() + 3);
+      ui_->table_->setRowCount(ui_->table_->rowCount() + 3);
       QTableWidgetItem * item = new QTableWidgetItem();
       item->setText(QString("Charge"));
-      table_->setVerticalHeaderItem(1, item);
+      ui_->table_->setVerticalHeaderItem(1, item);
       item = new QTableWidgetItem();
       item->setText(QString("Quality"));
-      table_->setVerticalHeaderItem(2, item);
+      ui_->table_->setVerticalHeaderItem(2, item);
       item = new QTableWidgetItem();
       item->setText(QString("Elements"));
-      table_->setVerticalHeaderItem(3, item);
+      ui_->table_->setVerticalHeaderItem(3, item);
 
       // add computed charge and quality stats to the table
       item = new QTableWidgetItem();
       item->setText("-");
-      table_->setItem(1, 0, item);
+      ui_->table_->setItem(1, 0, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(min_charge_, 'f', 2));
-      table_->setItem(1, 1, item);
+      ui_->table_->setItem(1, 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(max_charge_, 'f', 2));
-      table_->setItem(1, 2, item);
+      ui_->table_->setItem(1, 2, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(avg_charge_, 'f', 2));
-      table_->setItem(1, 3, item);
+      ui_->table_->setItem(1, 3, item);
 
       item = new QTableWidgetItem();
       item->setText("-");
-      table_->setItem(2, 0, item);
+      ui_->table_->setItem(2, 0, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(min_quality_, 'f', 2));
-      table_->setItem(2, 1, item);
+      ui_->table_->setItem(2, 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(max_quality_, 'f', 2));
-      table_->setItem(2, 2, item);
+      ui_->table_->setItem(2, 2, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(avg_quality_, 'f', 2));
-      table_->setItem(2, 3, item);
+      ui_->table_->setItem(2, 3, item);
 
       item = new QTableWidgetItem();
       item->setText("-");
-      table_->setItem(3, 0, item);
+      ui_->table_->setItem(3, 0, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(min_elements_, 'f', 2));
-      table_->setItem(3, 1, item);
+      ui_->table_->setItem(3, 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(max_elements_, 'f', 2));
-      table_->setItem(3, 2, item);
+      ui_->table_->setItem(3, 2, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(avg_elements_, 'f', 2));
-      table_->setItem(3, 3, item);
+      ui_->table_->setItem(3, 3, item);
 
     }
     else if (layer_data_.type == LayerData::DT_CHROMATOGRAM)
@@ -173,51 +176,51 @@ namespace OpenMS
     // add computed intensity stats to the table
     QTableWidgetItem * item = new QTableWidgetItem();
     item->setText("-");
-    table_->setItem(0, 0, item);
+    ui_->table_->setItem(0, 0, item);
     item = new QTableWidgetItem();
     item->setText(QString::number(min_intensity_, 'f', 2));
-    table_->setItem(0, 1, item);
+    ui_->table_->setItem(0, 1, item);
     item = new QTableWidgetItem();
     item->setText(QString::number(max_intensity_, 'f', 2));
-    table_->setItem(0, 2, item);
+    ui_->table_->setItem(0, 2, item);
     item = new QTableWidgetItem();
     item->setText(QString::number(avg_intensity_, 'f', 2));
-    table_->setItem(0, 3, item);
-    QPushButton * button = new QPushButton("intensity", table_);
-    table_->setCellWidget(0, 4, button);
+    ui_->table_->setItem(0, 3, item);
+    QPushButton * button = new QPushButton("intensity", ui_->table_);
+    ui_->table_->setCellWidget(0, 4, button);
     connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
 
 
     // add computed stats about meta infos in the FloatDataArrays of the spectra to the table
     for (std::map<String, MetaStatsValue_>::const_iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); ++it)
     {
-      table_->setRowCount(table_->rowCount() + 1);
+      ui_->table_->setRowCount(ui_->table_->rowCount() + 1);
       String name = it->first;
 
       item = new QTableWidgetItem();
       item->setText(name.toQString());
-      table_->setVerticalHeaderItem(table_->rowCount() - 1, item);
+      ui_->table_->setVerticalHeaderItem(ui_->table_->rowCount() - 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(it->second.count));
-      table_->setItem(table_->rowCount() - 1, 0, item);
+      ui_->table_->setItem(ui_->table_->rowCount() - 1, 0, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(it->second.min, 'f', 2));
-      table_->setItem(table_->rowCount() - 1, 1, item);
+      ui_->table_->setItem(ui_->table_->rowCount() - 1, 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(it->second.max, 'f', 2));
-      table_->setItem(table_->rowCount() - 1, 2, item);
+      ui_->table_->setItem(ui_->table_->rowCount() - 1, 2, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(it->second.avg, 'f', 2));
-      table_->setItem(table_->rowCount() - 1, 3, item);
+      ui_->table_->setItem(ui_->table_->rowCount() - 1, 3, item);
 
       if (it->second.count >= 2 && it->second.min < it->second.max)
       {
-        button = new QPushButton(name.toQString(), table_);
-        table_->setCellWidget(table_->rowCount() - 1, 4, button);
+        button = new QPushButton(name.toQString(), ui_->table_);
+        ui_->table_->setCellWidget(ui_->table_->rowCount() - 1, 4, button);
         connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
       }
     }
@@ -226,35 +229,35 @@ namespace OpenMS
     String name;
     for (MetaIterator_ it = meta_stats_.begin(); it != meta_stats_.end(); it++)
     {
-      table_->setRowCount(table_->rowCount() + 1);
+      ui_->table_->setRowCount(ui_->table_->rowCount() + 1);
       name = MetaInfo::registry().getName(it->first);
 
       item = new QTableWidgetItem();
       item->setText(name.toQString());
-      table_->setVerticalHeaderItem(table_->rowCount() - 1, item);
+      ui_->table_->setVerticalHeaderItem(ui_->table_->rowCount() - 1, item);
 
       item = new QTableWidgetItem();
       item->setText(QString::number(it->second.count));
-      table_->setItem(table_->rowCount() - 1, 0, item);
+      ui_->table_->setItem(ui_->table_->rowCount() - 1, 0, item);
 
       if (it->second.min <= it->second.max)      // if (min <= max) --> value numerical
       {
         item = new QTableWidgetItem();
         item->setText(QString::number(it->second.min, 'f', 2));
-        table_->setItem(table_->rowCount() - 1, 1, item);
+        ui_->table_->setItem(ui_->table_->rowCount() - 1, 1, item);
 
         item = new QTableWidgetItem();
         item->setText(QString::number(it->second.max, 'f', 2));
-        table_->setItem(table_->rowCount() - 1, 2, item);
+        ui_->table_->setItem(ui_->table_->rowCount() - 1, 2, item);
 
         item = new QTableWidgetItem();
         item->setText(QString::number(it->second.avg, 'f', 2));
-        table_->setItem(table_->rowCount() - 1, 3, item);
+        ui_->table_->setItem(ui_->table_->rowCount() - 1, 3, item);
 
         if (it->second.count >= 2 && it->second.min < it->second.max)
         {
-          button = new QPushButton(name.toQString(), table_);
-          table_->setCellWidget(table_->rowCount() - 1, 4, button);
+          button = new QPushButton(name.toQString(), ui_->table_);
+          ui_->table_->setCellWidget(ui_->table_->rowCount() - 1, 4, button);
           connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
         }
       }
@@ -262,16 +265,22 @@ namespace OpenMS
       {
         item = new QTableWidgetItem();
         item->setText("-");
-        table_->setItem(table_->rowCount() - 1, 1, item);
+        ui_->table_->setItem(ui_->table_->rowCount() - 1, 1, item);
         item = new QTableWidgetItem();
         item->setText("-");
-        table_->setItem(table_->rowCount() - 1, 2, item);
+        ui_->table_->setItem(ui_->table_->rowCount() - 1, 2, item);
         item = new QTableWidgetItem();
         item->setText("-");
-        table_->setItem(table_->rowCount() - 1, 3, item);
+        ui_->table_->setItem(ui_->table_->rowCount() - 1, 3, item);
       }
     }
   }
+  
+  LayerStatisticsDialog::~LayerStatisticsDialog()
+  {
+    delete ui_;
+  }
+
 
   void LayerStatisticsDialog::computePeakStats_()
   {

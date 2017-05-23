@@ -124,10 +124,15 @@ if (WM5_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Find Crawdad libraries if requested
 # cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
 if (WITH_CRAWDAD)
-  find_package(Crawdad)
+  message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
+  find_package(Crawdad REQUIRED)
+  # find archive (static) version and add it to the OpenMS library
+  find_library(Crawdad_LIBRARY
+   NAMES Crawdad.a Crawdad
+    HINTS ${Crawdad_DIR})
 endif()
 
 #------------------------------------------------------------------------------
@@ -158,8 +163,7 @@ include_directories(${Qt5Network_INCLUDE_DIRS})
 add_definitions(${Qt5Core_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
 
-set(CMAKE_CXX_FLAGS "${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
-set(CMAKE_CXX_FLAGS "${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
 
 #------------------------------------------------------------------------------

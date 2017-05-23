@@ -35,11 +35,12 @@
 #ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
 #define OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilterAlgorithm.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
 
@@ -59,8 +60,8 @@ namespace OpenMS
     is the standard derivation.
 
     @note The wider the kernel width the smoother the signal (the more detail information get lost!).
-          Use a gaussian filter kernel which has approximately the same width as your mass peaks,
-          whereas the gaussian peak width corresponds approximately to 8*sigma.
+          Use a Gaussian filter kernel which has approximately the same width as your mass peaks,
+          whereas the Gaussian peak width corresponds approximately to 8*sigma.
 
         @note The data must be sorted according to ascending m/z!
 
@@ -112,15 +113,15 @@ public:
       found_signal = gauss_algo_.filter(mz_in.begin(), mz_in.end(), int_in.begin(), mz_out_it, int_out_it);
 
       // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
-      // This is the case if the gaussian filter is smaller than the spacing of raw data
+      // This is the case if the Gaussian filter is smaller than the spacing of raw data
       if (!found_signal && spectrum.size() >= 3)
       {
-        String error_message = "Found no signal. The gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
+        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
         if (spectrum.getRT() > 0.0)
         {
-          error_message += String(" The error occured in the spectrum with retention time ") + spectrum.getRT() + ".\n";
+          error_message += String(" The error occured in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
-        std::cerr << error_message;
+        LOG_ERROR << error_message << std::endl;
       }
       else
       {

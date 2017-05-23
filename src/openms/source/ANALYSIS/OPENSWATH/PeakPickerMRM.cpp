@@ -137,6 +137,7 @@ namespace OpenMS
     pepi_param.setValue("spacing_difference_gap", 0.0);
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
+    LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {

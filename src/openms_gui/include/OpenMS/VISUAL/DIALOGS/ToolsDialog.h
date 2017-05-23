@@ -38,6 +38,9 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/LayerData.h>
+
 class QLabel;
 class QComboBox;
 class QPushButton;
@@ -45,8 +48,6 @@ class QRadioButton;
 class QString;
 
 #include <QtWidgets/QDialog>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerData.h>
 
 namespace OpenMS
 {

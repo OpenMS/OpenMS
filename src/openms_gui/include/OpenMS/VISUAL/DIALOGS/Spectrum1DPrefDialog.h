@@ -38,7 +38,12 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DPrefDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class Spectrum1DPrefDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -46,14 +51,16 @@ namespace OpenMS
   {
     ///Preferences dialog for Spectrum1DWidget
     class OPENMS_GUI_DLLAPI Spectrum1DPrefDialog :
-      public QDialog,
-      public Ui::Spectrum1DPrefDialogTemplate
+      public QDialog
     {
       Q_OBJECT
 
 public:
       ///Constructor
       Spectrum1DPrefDialog(QWidget * parent);
+      ~Spectrum1DPrefDialog();
+private:
+      Ui::Spectrum1DPrefDialogTemplate* ui_;
     };
   }
 }

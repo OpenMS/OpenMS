@@ -46,7 +46,7 @@
 #include <QPainterPath>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QMenu>
-
+#include <QGuiApplication>
 
 namespace OpenMS
 {
@@ -171,7 +171,7 @@ namespace OpenMS
 
     TOPPASToolVertex* ttv_source = qobject_cast<TOPPASToolVertex*>(this->getSourceVertex());
     // when copying parameters (using CTRL); only for incomplete edges drawn from tool nodes
-    if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_ && ttv_source)
+    if (Qt::ControlModifier && !this->to_ && ttv_source)
     {
       pen.setColor(Qt::darkMagenta);
       pen.setWidth(1);

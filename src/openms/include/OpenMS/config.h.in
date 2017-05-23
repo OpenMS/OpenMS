@@ -119,7 +119,7 @@
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
 
-#cmakedefine ENABLE_USAGE_STATISTICS
+#cmakedefine ENABLE_UPDATE_CHECK
 
 // is libc++ or has stream bug
 #cmakedefine OPENMS_HAS_STREAM_EXTRACTION_BUG

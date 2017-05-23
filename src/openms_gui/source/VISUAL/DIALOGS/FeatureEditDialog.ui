@@ -1,0 +1,139 @@
+<ui version="4.0" >
+ <class>FeatureEditDialogTemplate</class>
+ <widget class="QDialog" name="FeatureEditDialogTemplate" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>225</width>
+    <height>149</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Edit feature</string>
+  </property>
+  <layout class="QGridLayout" >
+   <item row="0" column="0" >
+    <widget class="QLabel" name="label" >
+     <property name="text" >
+      <string>m/z:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1" >
+    <widget class="QDoubleSpinBox" name="mz_" >
+     <property name="decimals" >
+      <number>3</number>
+     </property>
+     <property name="minimum" >
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum" >
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="singleStep" >
+      <double>0.001000000000000</double>
+     </property>
+     <property name="value" >
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" >
+    <widget class="QLabel" name="label_2" >
+     <property name="text" >
+      <string>RT:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" >
+    <widget class="QDoubleSpinBox" name="rt_" >
+     <property name="decimals" >
+      <number>3</number>
+     </property>
+     <property name="maximum" >
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="singleStep" >
+      <double>0.001000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" >
+    <widget class="QLabel" name="label_3" >
+     <property name="text" >
+      <string>Intensity:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" >
+    <widget class="QDoubleSpinBox" name="int_" >
+     <property name="minimum" >
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum" >
+      <double>100000000.000000000000000</double>
+     </property>
+     <property name="value" >
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" >
+    <widget class="QLabel" name="label_4" >
+     <property name="text" >
+      <string>Charge:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1" >
+    <widget class="QSpinBox" name="charge_" />
+   </item>
+   <item row="4" column="0" colspan="2" >
+    <widget class="QDialogButtonBox" name="cancel_button_" >
+     <property name="orientation" >
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons" >
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::NoButton|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>cancel_button_</sender>
+   <signal>accepted()</signal>
+   <receiver>FeatureEditDialogTemplate</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancel_button_</sender>
+   <signal>rejected()</signal>
+   <receiver>FeatureEditDialogTemplate</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

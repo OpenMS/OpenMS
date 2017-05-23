@@ -32,11 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-// Consumers
-#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-
 // Files
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>

@@ -211,4 +211,5 @@ private:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
+

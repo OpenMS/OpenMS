@@ -519,8 +519,21 @@ namespace OpenMS
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
       //set identifier
       String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      prot_id_.setIdentifier(identifier);
-      id_identifier_[attributeAsString_(attributes, "id")] = identifier;
+      String id = attributeAsString_(attributes, "id");
+
+      if (!id_identifier_.has(id))
+      {
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
+      else
+      {
+        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
+        UInt64 uid = UniqueIdGenerator::getUniqueId();
+        identifier = identifier + String(uid);
+        prot_id_.setIdentifier(identifier);
+        id_identifier_[id] = identifier;
+      }
     }
     else if (tag == "SearchParameters")
     {

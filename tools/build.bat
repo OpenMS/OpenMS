@@ -8,6 +8,8 @@ REM
 
 IF "%~1"=="" (
   ECHO.
+  ECHO.  This build script will use ALL your CPU cores ^(but on low priority^).
+  ECHO.
   ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^>]
   ECHO.
   ECHO  e.g.
@@ -47,20 +49,24 @@ echo.
 
 if not exist %SLN% (
   ECHO.
-  ECHO The .sln file '%SLN%' was not found. This script should be invoked from the root of the build tree. Change CWD and try again!
+  ECHO The .sln file '%%SLN%%' was not found. This script should be invoked from the root of the build tree. Change CWD and try again!
   goto end
 )
 
 REM
-REM MSBUild is usually found in C:\Windows\Microsoft.NET\Framework\v4.0.30319\
+REM MSBuild is usually found in C:\Windows\Microsoft.NET\Framework\v4.0.30319\
 REM
 where /q MSBuild.exe
 if not %ERRORLEVEL%==0 (
   ECHO.
-  ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this .bat file to point to the correct location or make it available in $PATH.
+  ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this .bat file to point to the correct location or make it available in %%PATH%%.
   goto end
 )
-MSBuild.exe %SLN% /target:%TARGET% /p:Configuration=%CFG%
+REM Invoke MSBuild.exe
+REM do not use "START /WAIT /B /LOW ..." since: 
+REM   - it does not allow to cancel the job on the console (it will keep running in the background)
+REM   - it might trick MSBuild.exe into assuming only single-core CPU, even if /maxcpucount is specified
+MSBuild.exe %SLN% /maxcpucount /target:%TARGET% /p:Configuration=%CFG%
 
 
 :end

@@ -1955,7 +1955,7 @@ namespace OpenMS
       else if (action_mode_ == AM_ZOOM)
       {
         //translate (if not moving features)
-        if (!getCurrentLayer().type == LayerData::DT_FEATURE || !selected_peak_.isValid())
+        if ( !(getCurrentLayer().type == LayerData::DT_FEATURE) || !selected_peak_.isValid())
         {
           rubber_band_.setGeometry(QRect(e->pos(), QSize()));
           rubber_band_.show();

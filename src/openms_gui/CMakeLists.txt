@@ -38,12 +38,17 @@ cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #------------------------------------------------------------------------------
-find_package(Qt5 COMPONENTS Widgets Network Svg OpenGL Concurrent WebEngine REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Network Svg OpenGL Concurrent REQUIRED)
 
 IF (NOT Qt5Widgets_FOUND)
   message(STATUS "QT5Widgets not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)>' <src-dir>")
 ENDIF()
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 
 # The Qt5Widgets_INCLUDES also includes the include directories for
 # dependencies QtCore and QtGui
@@ -51,7 +56,6 @@ include_directories(${Qt5Widgets_INCLUDE_DIRS})
 include_directories(${Qt5Svg_INCLUDE_DIRS})
 include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 include_directories(${Qt5Network_INCLUDE_DIRS})
-include_directories(${Qt5WebEngine_INCLUDE_DIRS})
 include_directories(${Qt5Concurrent_INCLUDE_DIRS})
 
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
@@ -59,19 +63,18 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 add_definitions(${Qt5Svg_DEFINITIONS})
 add_definitions(${Qt5OpenGL_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
-add_definitions(${Qt5WebEngine_DEFINITIONS})
 add_definitions(${Qt5Concurrent_DEFINITIONS})
 
 # Executables fail to build with Qt 5 in the default configuration
 # without -fPIE. We add that here.
-set(CMAKE_CXX_FLAGS "${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 # required to indicate we use qtopengl
 set(QT_USE_QTOPENGL TRUE)
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
-include(qt_wrap_ui.cmake)
+#include(qt_wrap_ui.cmake)
 include(add_mac_bundle.cmake)
 
 #------------------------------------------------------------------------------
@@ -92,8 +95,7 @@ set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                              ${Qt5Svg_LIBRARIES}
                              ${Qt5OpenGL_LIBRARIES}
                              ${Qt5Network_LIBRARIES}
-                             ${Qt5WebEngine_LIBRARIES}
-   )
+                            )
 
 # --------------------------------------------------------------------------
 # handle OpenGL on macosx systems

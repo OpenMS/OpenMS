@@ -146,8 +146,8 @@ namespace OpenMS
 
     box_layout->addWidget(tab_bar_);
     ws_ = new QMdiArea(dummy);
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateTabBar(QWidget*)));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
 
     box_layout->addWidget(ws_);
 
@@ -904,7 +904,8 @@ namespace OpenMS
     QList<QMdiSubWindow *> all_windows = ws_->subWindowList();
     foreach(QMdiSubWindow * w, all_windows)
     {
-      bool close_this = dynamic_cast<TOPPASWidget*>(w)->getScene()->saveIfChanged();
+      TOPPASWidget * widget = dynamic_cast<TOPPASWidget*>(w->widget());
+      bool close_this = widget->getScene()->saveIfChanged();
       if (!close_this)
       {
         close = false;
@@ -936,11 +937,11 @@ namespace OpenMS
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     for (int i = 0; i < windows.size(); ++i)
     {
-      TOPPASWidget* window = dynamic_cast<TOPPASWidget*>(windows.at(i));
-      //cout << "  Tab " << i << ": " << window->window_id << endl;
-      if (window->getWindowId() == id)
+      TOPPASWidget* w = dynamic_cast<TOPPASWidget*>(windows.at(i)->widget());
+      //cout << "  Tab " << i << ": " << w->window_id << endl;
+      if (w != 0 && w->getWindowId() == id)
       {
-        return window;
+        return w;
       }
     }
     return 0;
@@ -948,10 +949,10 @@ namespace OpenMS
 
   TOPPASWidget* TOPPASBase::activeSubWindow_() const
   {
-    if (!ws_->activeSubWindow())
+    if (ws_ == 0 || ws_->currentSubWindow() == 0 || ws_->currentSubWindow()->widget() == 0)
       return 0;
 
-    return dynamic_cast<TOPPASWidget*>(ws_->activeSubWindow());
+    return dynamic_cast<TOPPASWidget*>(ws_->currentSubWindow()->widget());
   }
 
   void TOPPASBase::closeByTab(int id)
@@ -990,7 +991,10 @@ namespace OpenMS
 
   void TOPPASBase::closeFile()
   {
-    ws_->activeSubWindow()->close();
+    if (ws_ != 0 && ws_->currentSubWindow() != 0)
+    {
+      ws_->currentSubWindow()->close();
+    }
     updateMenu();
   }
 
@@ -1018,12 +1022,16 @@ namespace OpenMS
 
   }
 
-  void TOPPASBase::updateTabBar(QWidget* w)
+  void TOPPASBase::updateTabBar(QMdiSubWindow* w)
   {
     if (w)
     {
-      Int window_id = dynamic_cast<TOPPASWidget*>(w)->getWindowId();
-      tab_bar_->setCurrentId(window_id);
+      TOPPASWidget* tw = dynamic_cast<TOPPASWidget*>(w->widget());
+      if (tw)
+      {
+        Int window_id = tw->getWindowId();
+        tab_bar_->setCurrentId(window_id);
+      }
     }
   }
 

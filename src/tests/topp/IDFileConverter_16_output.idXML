@@ -39,7 +39,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="566.77033723893" RT="0" >
-			<PeptideHit score="0.0505509" sequence="(Glu->pyro-Glu)EAGIVDELAYA" charge="2" aa_before="K" aa_after="V" protein_refs="PH_4" >
+			<PeptideHit score="0.0505509" sequence=".(Glu->pyro-Glu)EAGIVDELAYA" charge="2" aa_before="K" aa_after="V" protein_refs="PH_4" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="608.957491373047" RT="0" >
@@ -47,7 +47,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="681.29334749284" RT="0" >
-			<PeptideHit score="2.01282e-05" sequence="(Pyro-carbamidomethyl)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
+			<PeptideHit score="2.01282e-05" sequence=".(Pyro-carbamidomethyl)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

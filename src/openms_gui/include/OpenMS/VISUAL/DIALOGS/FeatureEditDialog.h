@@ -40,7 +40,13 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_FeatureEditDialog.h>
+
+#include <QDialog>
+
+namespace Ui
+{
+  class FeatureEditDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -50,8 +56,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI FeatureEditDialog :
-    public QDialog,
-    public Ui::FeatureEditDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -59,6 +64,9 @@ public:
 
     /// Constructor
     FeatureEditDialog(QWidget * parent);
+    /// Destructor
+    ~FeatureEditDialog();
+
     /// Sets the feature
     void setFeature(const Feature & feature);
     /// Returns the feature
@@ -72,6 +80,8 @@ protected:
 private:
     ///Not implemented
     FeatureEditDialog();
+
+    Ui::FeatureEditDialogTemplate* ui_;
 
   };
 

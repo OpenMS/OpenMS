@@ -237,4 +237,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZMLFILE_H
+#endif // OPENMS_FORMAT_MZMLFILE_H
+

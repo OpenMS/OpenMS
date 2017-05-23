@@ -204,12 +204,12 @@ endif()
 #------------------------------------------------------------------------------
 # Enable usage statistics
 #------------------------------------------------------------------------------
-option(ENABLE_USAGE_STATISTICS "Enable collection of usage statistics." ON)
-if(ENABLE_USAGE_STATISTICS)
+option(ENABLE_UPDATE_CHECK "Enable update check." ON)
+if(ENABLE_UPDATE_CHECK)
   message(STATUS "Collection of usage statistics and update notifications enabled.")
   message(STATUS "  If you don't want this information to be transmitted to our update sever, you can:")
-  message(STATUS "    - Switch the build variable ENABLE_USAGE_STATISTICS to OFF to remove the functionality at build time.")
-  message(STATUS "    - Set the environment variable OPENMS_DISABLE_USAGE_STATISTICS to disable the functionality at runtime.")
+  message(STATUS "    - Switch the build variable ENABLE_UPDATE_CHECK to OFF to remove the functionality at build time.")
+  message(STATUS "    - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.")
 endif()
 
 #------------------------------------------------------------------------------

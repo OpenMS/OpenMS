@@ -337,7 +337,7 @@ protected:
 
   Param getSubsectionDefaults_(const String & /*section*/) const
   {
-    String type = getStringOption_("type");
+    String type = getStringOption_("type"); // this will throw() if not set in param_
     // find params for 'type'
     Internal::ToolDescription gw = ToolHandler::getTOPPToolList(true)[toolName_()];
     for (Size i = 0; i < gw.types.size(); ++i)
@@ -347,7 +347,8 @@ protected:
         return gw.external_details[i].param;
       }
     }
-    return Param();
+    // requested TDD is not found -- might be a custom TTD
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of 'Type' is invalid! Are you missing a TTD?", type);
   }
 
   ExitCodes main_(int, const char **)
@@ -367,7 +368,7 @@ protected:
         String in = it->value.toString().trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
         if (in.empty() || in == "[]") // any required parameter should have a value
         {
-          LOG_ERROR << "The INI-parameter '" << it->name << "' is required, but was not given! Aborting ...";
+          LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
         else if ((it->tags).count("input file") > 0) // any required input file should exist
@@ -382,7 +383,7 @@ protected:
               ifs = it->value;
               break;
             default:
-              LOG_ERROR << "The INI-parameter '" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
+              LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
               return wrapExit(ILLEGAL_PARAMETERS);
           }
           for (StringList::const_iterator itf = ifs.begin(); itf != ifs.end(); ++itf)
@@ -490,7 +491,7 @@ protected:
 
     if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode() != 0)
     {
-      LOG_ERROR << ("External tool returned with non-zero exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
+      LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
       LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
       return wrapExit(EXTERNAL_PROGRAM_ERROR);
     }
@@ -504,9 +505,9 @@ protected:
       const Internal::FileMapping & fm = tde_.tr_table.post_moves[i];
       // find target param:
       Param p = tool_param.copy("ETool:", true);
-      String source = fm.location;
+      String source_file = fm.location;
       // fragment's placeholder evaluation:
-      createFragment_(source, p, mappings);
+      createFragment_(source_file, p, mappings);
       // check if target already exists:
       String target = fm.target;
       if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
@@ -527,11 +528,21 @@ protected:
         }
       }
       // move to target
-      writeDebug_(String("moving '") + source + "' to '" + target_file + "'", 1);
-      bool move_ok = QFile::rename(source.toQString(), target_file.toQString());
+      writeDebug_(String("<file_post>: moving '") + source_file + "' to '" + target_file + "'", 1);
+      if (!File::exists(source_file))
+      {
+        LOG_ERROR << "Moving the source file '" + source_file + "' during <file_post> failed, since it does not exist!\n"
+                  << "Make sure the external program created the file and its filename is either\n"
+                  << "unique or you only run one GenericWrapper at a time to avoid overwriting of files!\n"
+                  << "Ideally, (if the external program allows to specify output filenames directly) avoid <file_post>\n"
+                  << "in the TTD and request the output file directly. Aborting ..." << std::endl;
+        return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
+      }
+      bool move_ok = QFile::rename(source_file.toQString(), target_file.toQString());
       if (!move_ok)
       {
-        LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source + "' failed! Aborting ..." << std::endl;
+        LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source_file + "' failed!\n"
+                  << "This file exists, but is either currently open for writing or otherwise blocked (concurrent process?). Aborting ..." << std::endl;
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
     }

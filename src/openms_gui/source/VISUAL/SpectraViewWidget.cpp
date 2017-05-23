@@ -668,7 +668,7 @@ namespace OpenMS
           {
             const MSChromatogram<> & current_chromatogram = exp->getChromatograms()[*vit];
 
-            // Childen chromatogram entry
+            // Children chromatogram entry
             QTreeWidgetItem * sub_item = new QTreeWidgetItem(item);
             if ((int)*vit == this_selected_item)
             {
@@ -695,7 +695,7 @@ namespace OpenMS
 
             case ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM:         sub_item->setText(6, QString("Selected ion current chromatogram")); break;
 
-            case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     sub_item->setText(6, QString("Basepeak chromaogram")); break;
+            case ChromatogramSettings::BASEPEAK_CHROMATOGRAM:                     sub_item->setText(6, QString("Basepeak chromatogram")); break;
 
             case ChromatogramSettings::SELECTED_ION_MONITORING_CHROMATOGRAM:      sub_item->setText(6, QString("Selected ion monitoring chromatogram")); break;
 

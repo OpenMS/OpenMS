@@ -51,6 +51,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <QApplication>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -238,7 +239,7 @@ namespace OpenMS
 
       // check for parameter copy action (only if source is a tool node (--> edge is purple already, user expects this to happen))
       TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*>(source);
-      if (QApplication::keyboardModifiers() && Qt::ControlModifier && tv_source)
+      if (Qt::ControlModifier && tv_source)
       {
         TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*>(target);
         if (!(tv_source && tv_target))
@@ -2155,7 +2156,10 @@ namespace OpenMS
       if (allowUserOverride)
       {
         QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges", QString("Node") + (strange_vertices.size() > 1 ? "s " : " ") + strange_vertices.join(", ") + (strange_vertices.size() > 1 ? " have " : " has ") + "no outgoing edges.\n\nDo you still want to run the pipeline?", QMessageBox::Yes | QMessageBox::No);
+        ret = QMessageBox::warning(views().first(), "Nodes without outgoing edges", QString("Node") +
+                                   (strange_vertices.size() > 1 ? "s " : " ") + strange_vertices.join(", ") +
+                                   (strange_vertices.size() > 1 ? " have " : " has ") +
+                                   "no outgoing edges.\n\nDo you still want to run the pipeline?", QMessageBox::Yes | QMessageBox::No);
         if (ret == QMessageBox::No)
         {
           return false;
@@ -2344,11 +2348,16 @@ namespace OpenMS
     allowed_threads_ = num_jobs;
   }
 
+  bool TOPPASScene::isGUIMode() const
+  {
+    return gui_;
+  }
+
   bool TOPPASScene::isDryRun() const
   {
     return dry_run_;
   }
-
+  
   void TOPPASScene::quitWithError()
   {
     exit(1);

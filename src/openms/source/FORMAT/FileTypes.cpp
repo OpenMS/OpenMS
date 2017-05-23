@@ -130,6 +130,7 @@ namespace OpenMS
     targetMap[FileTypes::PSQ] = "psq";
     targetMap[FileTypes::MRM] = "mrm";
     targetMap[FileTypes::PSMS] = "psms";
+    targetMap[FileTypes::PARAMXML] = "paramXML";
 
     return targetMap;
   }

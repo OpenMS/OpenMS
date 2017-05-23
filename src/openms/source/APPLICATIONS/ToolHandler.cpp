@@ -70,6 +70,7 @@ namespace OpenMS
     tools_map["FeatureFinderSuperHirn"] = Internal::ToolDescription("FeatureFinderSuperHirn", "Quantitation");
     tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", "Map Alignment");
+    tools_map["FeatureLinkerUnlabeledKD"] = Internal::ToolDescription("FeatureLinkerUnlabeledKD", "Map Alignment");
     tools_map["FeatureLinkerUnlabeledQT"] = Internal::ToolDescription("FeatureLinkerUnlabeledQT", "Map Alignment");
     tools_map["FidoAdapter"] = Internal::ToolDescription("FidoAdapter", "ID Processing");
     tools_map["FileConverter"] = Internal::ToolDescription("FileConverter", "File Handling");
@@ -190,6 +191,7 @@ namespace OpenMS
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
+    util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
@@ -224,11 +226,13 @@ namespace OpenMS
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
+    util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);
     util_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", util_category);
     util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", util_category);
+    util_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", util_category);
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
     util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);

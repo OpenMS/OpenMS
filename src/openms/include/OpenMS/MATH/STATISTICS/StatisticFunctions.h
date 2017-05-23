@@ -51,8 +51,6 @@
 #include <iterator>
 #include <algorithm>
 
-
-
 using std::iterator_traits;
 
 namespace OpenMS
@@ -68,108 +66,110 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType>
-    static void checkIteratorsNotNULL(
-        IteratorType begin, IteratorType end)
+    static void checkIteratorsNotNULL(IteratorType begin, IteratorType end)
     {
       if (begin == end)
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
+
     /**
-    @brief Helper function checking if two iterators are equal
+       @brief Helper function checking if two iterators are equal
+       
+       @exception Exception::InvalidRange is thrown if the iterators are not equal
 
-    @exception Exception::InvalidRange is thrown if the iterators are not equal
-
-    @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static void checkIteratorsEqual(
-      IteratorType begin, IteratorType end)
-  {
-    if (begin != end)
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static void checkIteratorsEqual(IteratorType begin, IteratorType end)
     {
-      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      if (begin != end)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
     }
-  }
-  /**
-  @brief Helper function checking if an iterator and a co-iterator both have a next element
 
-  @exception Exception::InvalidRange is thrown if the iterator do not end simultaneously
-
-  @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType1, typename IteratorType2>
-  static void checkIteratorsAreValid(
+    /**
+       @brief Helper function checking if an iterator and a co-iterator both have a next element
+       
+       @exception Exception::InvalidRange is thrown if the iterator do not end simultaneously
+       
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType1, typename IteratorType2>
+    static void checkIteratorsAreValid(
       IteratorType1 begin_b, IteratorType1 end_b,
       IteratorType2 begin_a, IteratorType2 end_a)
-  {
-    if(begin_b != end_b && begin_a == end_a)
     {
-      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      if (begin_b != end_b && begin_a == end_a)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
     }
-  }
-  /**
-    @brief Calculates the sum of a range of values
 
-    @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double sum(IteratorType begin, IteratorType end)
-  {
-    return std::accumulate(begin, end, 0.0);
-  }
+    /**
+       @brief Calculates the sum of a range of values
+       
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double sum(IteratorType begin, IteratorType end)
+    {
+      return std::accumulate(begin, end, 0.0);
+    }
 
-  /**
-    @brief Calculates the mean of a range of values
+    /**
+       @brief Calculates the mean of a range of values
+      
+       @exception Exception::InvalidRange is thrown if the range is NULL
+       
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double mean(IteratorType begin, IteratorType end)
+    {
+      checkIteratorsNotNULL(begin, end);
+      return sum(begin, end) / std::distance(begin, end);
+    }
 
-    @exception Exception::InvalidRange is thrown if the range is NULL
-
-    @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double mean(IteratorType begin, IteratorType end)
-  {
-    checkIteratorsNotNULL(begin, end);
-    return sum(begin, end) / std::distance(begin, end);
-  }
-
-  /**
-    @brief Calculates the median of a range of values
-
-    @param begin Start of range
-    @param end End of range (past-the-end iterator)
-    @param sorted Is the range already sorted? If not, it will be sorted.
+    /**
+       @brief Calculates the median of a range of values
+       
+       @param begin Start of range
+       @param end End of range (past-the-end iterator)
+       @param sorted Is the range already sorted? If not, it will be sorted.
     @return Median (as floating point, since we need to support average of middle values)
-    @exception Exception::InvalidRange is thrown if the range is NULL
+       @exception Exception::InvalidRange is thrown if the range is NULL
 
-    @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double median(IteratorType begin, IteratorType end, bool sorted = false)
-  {
-    checkIteratorsNotNULL(begin, end);
-    if (!sorted)
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double median(IteratorType begin, IteratorType end, 
+                         bool sorted = false)
     {
-      std::sort(begin, end);
+      checkIteratorsNotNULL(begin, end);
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+      
+      Size size = std::distance(begin, end);
+      if (size % 2 == 0) // even size => average two middle values
+      {
+        IteratorType it1 = begin;
+        std::advance(it1, size / 2 - 1);
+        IteratorType it2 = it1;
+        std::advance(it2, 1);
+        return (*it1 + *it2) / 2.0;
+      }
+      else
+      {
+        IteratorType it = begin;
+        std::advance(it, (size - 1) / 2);
+        return *it;
+      }
     }
-
-    Size size = std::distance(begin, end);
-    if (size % 2 == 0)        // even size => average two middle values
-    {
-      IteratorType it1 = begin;
-      std::advance(it1, size / 2 - 1);
-      IteratorType it2 = it1;
-      std::advance(it2, 1);
-      return (*it1 + *it2) / 2.0;
-    }
-    else
-    {
-      IteratorType it = begin;
-      std::advance(it, (size - 1) / 2);
-      return *it;
-    }
-  }
 
   
     /** 
@@ -203,186 +203,181 @@ namespace OpenMS
       return median(diffs.begin(), diffs.end(), false);
     }
 
-  /**
-    @brief Calculates the first quantile of a range of values
+    /**
+       @brief Calculates the first quantile of a range of values
+       
+       The range is divided into half and the median for the first half is returned.
 
-    The range is divided into half and the median for the first half is returned.
+       @param begin Start of range
+       @param end End of range (past-the-end iterator)
+       @param sorted Is the range already sorted? If not, it will be sorted.
+       
+       @exception Exception::InvalidRange is thrown if the range is NULL
+       
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double quantile1st(IteratorType begin, IteratorType end, 
+                              bool sorted = false)
+    {
+      checkIteratorsNotNULL(begin, end);
 
-    @param begin Start of range
-    @param end End of range (past-the-end iterator)
-    @param sorted Is the range already sorted? If not, it will be sorted.
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
 
-    @exception Exception::InvalidRange is thrown if the range is NULL
+      Size size = std::distance(begin, end);
+      if (size % 2 == 0)
+      {
+        return median(begin, begin + (size/2)-1, true); //-1 to exclude median values
+      }
+      return median(begin, begin + (size/2), true);
+    }
 
-    @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double quantile1st(
+    /**
+       @brief Calculates the third quantile of a range of values
+
+       The range is divided into half and the median for the second half is returned.
+
+       @param begin Start of range
+       @param end End of range (past-the-end iterator)
+       @param sorted Is the range already sorted? If not, it will be sorted.
+
+       @exception Exception::InvalidRange is thrown if the range is NULL
+
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double quantile3rd(
       IteratorType begin, IteratorType end, bool sorted = false)
-  {
-    checkIteratorsNotNULL(begin, end);
-
-    if (!sorted)
     {
-      std::sort(begin, end);
+      checkIteratorsNotNULL(begin, end);
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+
+      Size size = std::distance(begin, end);
+      return median(begin + (size/2)+1, end, true); //+1 to exclude median values
     }
 
-    Size size = std::distance(begin, end);
-    if (size % 2 == 0)
-    {
-      return median(begin, begin + (size/2)-1, true); //-1 to exclude median values
-    }
-    return median(begin, begin + (size/2), true);
-  }
-
-  /**
-    @brief Calculates the third quantile of a range of values
-
-    The range is divided into half and the median for the second half is returned.
-
-    @param begin Start of range
-    @param end End of range (past-the-end iterator)
-    @param sorted Is the range already sorted? If not, it will be sorted.
-
-    @exception Exception::InvalidRange is thrown if the range is NULL
-
-    @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double quantile3rd(
-      IteratorType begin, IteratorType end, bool sorted = false)
-  {
-    checkIteratorsNotNULL(begin, end);
-    if (!sorted)
-    {
-      std::sort(begin, end);
-    }
-
-    Size size = std::distance(begin, end);
-    return median(begin + (size/2)+1, end, true); //+1 to exclude median values
-  }
-
-  /**
-  @brief Calculates the variance of a range of values
+    /**
+       @brief Calculates the variance of a range of values
 
   The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
-  @exception Exception::InvalidRange is thrown if the range is empty
+       @exception Exception::InvalidRange is thrown if the range is empty
 
-  @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double variance(
-      IteratorType begin, IteratorType end,
-      double mean = std::numeric_limits<double>::max())
-  {
-    checkIteratorsNotNULL(begin, end);
-    double sum = 0.0;
-    if (mean == std::numeric_limits<double>::max())
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double variance(IteratorType begin, IteratorType end,
+                           double mean = std::numeric_limits<double>::max())
     {
-      mean = Math::mean(begin, end);
+      checkIteratorsNotNULL(begin, end);
+      double sum = 0.0;
+      if (mean == std::numeric_limits<double>::max())
+      {
+        mean = Math::mean(begin, end);
+      }
+      for (IteratorType iter=begin; iter!=end; ++iter)
+      {
+        double diff = *iter - mean;
+        sum += diff * diff;
+      }
+      return sum / (std::distance(begin, end)-1);
     }
-    for (IteratorType iter=begin; iter!=end; ++iter)
-    {
-      double diff = *iter - mean;
-      sum += diff * diff;
-    }
-    return sum / (std::distance(begin, end)-1);
-  }
 
-  /**
-  @brief Calculates the standard deviation of a range of values.
+    /**
+       @brief Calculates the standard deviation of a range of values.
 
   The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
-  @exception Exception::InvalidRange is thrown if the range is empty
+       @exception Exception::InvalidRange is thrown if the range is empty
 
-  @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double sd(
-      IteratorType begin, IteratorType end,
-      double mean = std::numeric_limits<double>::max())
-  {
-    checkIteratorsNotNULL(begin, end);
-    return std::sqrt( variance(begin, end, mean) );
-  }
-
-  /**
-  @brief Calculates the absolute deviation of a range of values
-
-  @exception Exception::InvalidRange is thrown if the range is empty
-
-  @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType>
-  static double absdev(
-      IteratorType begin, IteratorType end,
-      double mean = std::numeric_limits<double>::max())
-  {
-    checkIteratorsNotNULL(begin, end);
-    double sum = 0.0;
-    if (mean == std::numeric_limits<double>::max())
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double sd(IteratorType begin, IteratorType end,
+                     double mean = std::numeric_limits<double>::max())
     {
-      mean = Math::mean(begin, end);
+      checkIteratorsNotNULL(begin, end);
+      return std::sqrt( variance(begin, end, mean) );
     }
-    for (IteratorType iter=begin; iter!=end; ++iter)
+
+    /**
+       @brief Calculates the absolute deviation of a range of values
+
+       @exception Exception::InvalidRange is thrown if the range is empty
+
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double absdev(IteratorType begin, IteratorType end,
+                         double mean = std::numeric_limits<double>::max())
     {
-      sum += *iter - mean;
+      checkIteratorsNotNULL(begin, end);
+      double sum = 0.0;
+      if (mean == std::numeric_limits<double>::max())
+      {
+        mean = Math::mean(begin, end);
+      }
+      for (IteratorType iter=begin; iter!=end; ++iter)
+      {
+        sum += *iter - mean;
+      }
+      return sum / std::distance(begin, end);
     }
-    return sum / std::distance(begin, end);
-  }
 
-  /**
-  @brief Calculates the covariance of two ranges of values.
+    /**
+       @brief Calculates the covariance of two ranges of values.
 
-  Note that the two ranges must be of equal size.
+       Note that the two ranges must be of equal size.
 
-  @exception Exception::InvalidRange is thrown if the range is empty
+       @exception Exception::InvalidRange is thrown if the range is empty
 
-  @ingroup MathFunctionsStatistics
-  */
-  template <typename IteratorType1, typename IteratorType2>
-  static double covariance(
-      IteratorType1 begin_a, IteratorType1 end_a,
-      IteratorType2 begin_b, IteratorType2 end_b)
-  {
-    //no data or different lengths
-    checkIteratorsNotNULL(begin_a, end_a);
-
-    double sum = 0.0;
-    double mean_a = Math::mean(begin_a, end_a);
-    double mean_b = Math::mean(begin_b, end_b);
-    IteratorType1 iter_a = begin_a;
-    IteratorType2 iter_b = begin_b;
-    for (; iter_a != end_a; ++iter_a, ++iter_b)
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType1, typename IteratorType2>
+    static double covariance(IteratorType1 begin_a, IteratorType1 end_a,
+                             IteratorType2 begin_b, IteratorType2 end_b)
     {
-    /* assure both ranges have the same number of elements */
-    checkIteratorsAreValid(begin_b, end_b, begin_a, end_a);
-      sum += (*iter_a - mean_a) * (*iter_b - mean_b);
+      //no data or different lengths
+      checkIteratorsNotNULL(begin_a, end_a);
+
+      double sum = 0.0;
+      double mean_a = Math::mean(begin_a, end_a);
+      double mean_b = Math::mean(begin_b, end_b);
+      IteratorType1 iter_a = begin_a;
+      IteratorType2 iter_b = begin_b;
+      for (; iter_a != end_a; ++iter_a, ++iter_b)
+      {
+        /* assure both ranges have the same number of elements */
+        checkIteratorsAreValid(begin_b, end_b, begin_a, end_a);
+        sum += (*iter_a - mean_a) * (*iter_b - mean_b);
+      }
+      /* assure both ranges have the same number of elements */
+      checkIteratorsEqual(iter_b, end_b);
+      Size n = std::distance(begin_a, end_a);
+      return sum / (n-1);
     }
-    /* assure both ranges have the same number of elements */
-    checkIteratorsEqual(iter_b, end_b);
-    Size n = std::distance(begin_a, end_a);
-    return sum / (n-1);
-  }
 
 
 
 
     /**
-      @brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
+       @brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)
 
-      Calculates the mean square error for the data given by the two iterator ranges.
+       Calculates the mean square error for the data given by the two iterator ranges.
 
-      @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
-      @ingroup MathFunctionsStatistics
+       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static double meanSquareError(
-        IteratorType1 begin_a, IteratorType1 end_a,
-        IteratorType2 begin_b, IteratorType2 end_b)
+    static double meanSquareError(IteratorType1 begin_a, IteratorType1 end_a,
+                                  IteratorType2 begin_b, IteratorType2 end_b)
     {
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);
@@ -406,18 +401,17 @@ namespace OpenMS
     }
 
     /**
-    @brief Calculates the classification rate for the values in [begin_a, end_a) and [begin_b, end_b)
+       @brief Calculates the classification rate for the values in [begin_a, end_a) and [begin_b, end_b)
 
-    Calculates the classification rate for the data given by the two iterator ranges.
+       Calculates the classification rate for the data given by the two iterator ranges.
 
-    @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
-    @ingroup MathFunctionsStatistics
+       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static double classificationRate(
-        IteratorType1 begin_a, IteratorType1 end_a,
-        IteratorType2 begin_b, IteratorType2 end_b)
+    static double classificationRate(IteratorType1 begin_a, IteratorType1 end_a,
+                                     IteratorType2 begin_b, IteratorType2 end_b)
     {
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);
@@ -443,21 +437,21 @@ namespace OpenMS
     }
 
     /**
-      @brief Calculates the Matthews correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+       @brief Calculates the Matthews correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
-      Calculates the Matthews correlation coefficient for the data given by the
-      two iterator ranges. The values in [begin_a, end_a) have to be the
-      predicted labels and the values in [begin_b, end_b) have to be the real
-      labels.
+       Calculates the Matthews correlation coefficient for the data given by the
+       two iterator ranges. The values in [begin_a, end_a) have to be the
+       predicted labels and the values in [begin_b, end_b) have to be the real
+       labels.
 
-      @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
-      @ingroup MathFunctionsStatistics
+       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
     static double matthewsCorrelationCoefficient(
-        IteratorType1 begin_a, IteratorType1 end_a,
-        IteratorType2 begin_b, IteratorType2 end_b)
+      IteratorType1 begin_a, IteratorType1 end_a,
+      IteratorType2 begin_b, IteratorType2 end_b)
     {
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_b);
@@ -490,27 +484,27 @@ namespace OpenMS
           ++fp;
         }
       }
-    /* assure both ranges have the same number of elements */
-    checkIteratorsEqual(iter_b, end_b);
+      /* assure both ranges have the same number of elements */
+      checkIteratorsEqual(iter_b, end_b);
 
       return (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
     }
 
     /**
-      @brief Calculates the Pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+       @brief Calculates the Pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
-      Calculates the linear correlation coefficient for the data given by the two iterator ranges.
+       Calculates the linear correlation coefficient for the data given by the two iterator ranges.
 
-      If one of the ranges contains only the same values 'nan' is returned.
+       If one of the ranges contains only the same values 'nan' is returned.
 
-      @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
-      @ingroup MathFunctionsStatistics
+       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
     static double pearsonCorrelationCoefficient(
-        IteratorType1 begin_a, IteratorType1 end_a,
-        IteratorType2 begin_b, IteratorType2 end_b)
+      IteratorType1 begin_a, IteratorType1 end_a,
+      IteratorType2 begin_b, IteratorType2 end_b)
     {
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);
@@ -524,9 +518,9 @@ namespace OpenMS
       double denominator_a = 0;
       double denominator_b = 0;
       IteratorType1 iter_a = begin_a;
-    IteratorType2 iter_b = begin_b;
-    for (; iter_a != end_a; ++iter_a, ++iter_b)
-    {
+      IteratorType2 iter_b = begin_b;
+      for (; iter_a != end_a; ++iter_a, ++iter_b)
+      {
         /* assure both ranges have the same number of elements */
         checkIteratorsAreValid(iter_b, end_b, iter_a, end_a);
         double temp_a = *iter_a - avg_a;
@@ -535,7 +529,7 @@ namespace OpenMS
         denominator_a += (temp_a * temp_a);
         denominator_b += (temp_b * temp_b);
       }
-    /* assure both ranges have the same number of elements */
+      /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
       return numerator / sqrt(denominator_a * denominator_b);
     }
@@ -593,20 +587,20 @@ namespace OpenMS
     }
 
     /**
-      @brief calculates the rank correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+       @brief calculates the rank correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
-      Calculates the rank correlation coefficient for the data given by the two iterator ranges.
+       Calculates the rank correlation coefficient for the data given by the two iterator ranges.
 
-      If one of the ranges contains only the same values 'nan' is returned.
+       If one of the ranges contains only the same values 'nan' is returned.
 
-      @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
-      @ingroup MathFunctionsStatistics
+       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
     static double rankCorrelationCoefficient(
-        IteratorType1 begin_a, IteratorType1 end_a,
-        IteratorType2 begin_b, IteratorType2 end_b)
+      IteratorType1 begin_a, IteratorType1 end_a,
+      IteratorType2 begin_b, IteratorType2 end_b)
     {
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);

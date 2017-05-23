@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 language: cpp
 os:
@@ -23,10 +24,8 @@ addons:
          - libxerces-c3.1
          - libxerces-c-dev
          - libicu-dev
-         - qt4-dev-tools
-         - libqt4-dev
-         - libqt4-core
-         - libqt4-gui
+         - qt5-default
+         - qtbase5-dev-tools 
          - libsvm-dev
          - libsvm3
          - glpk
