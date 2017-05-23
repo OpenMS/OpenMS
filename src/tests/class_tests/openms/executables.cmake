@@ -554,14 +554,6 @@ set(transformations_executables_list
   TraceFitter_test
 )
 
-if(NOT DISABLE_WAVELET2DTEST)
-set(transformations_executables_list
-  ${transformations_executables_list}
-  TwoDOptimization_test
-)
-endif(NOT DISABLE_WAVELET2DTEST)
-
-
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list
   ${transformations_executables_list}

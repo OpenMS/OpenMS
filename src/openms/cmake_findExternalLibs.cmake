@@ -86,13 +86,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
-if (${USE_COINOR})
-	set(CF_USECOINOR 1)
-  find_package(COIN REQUIRED)
-else()
-	set(CF_USECOINOR 0)
-	set(CONTRIB_CBC)
-endif()
+set(CF_USECOINOR 1)
+find_package(COIN REQUIRED)
 
 #------------------------------------------------------------------------------
 # GLPK
@@ -151,7 +146,7 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.6.0")
+SET(QT_MIN_VERSION "4.8.1")
 
 # find qt
 find_package(Qt4 REQUIRED QtCore QtNetwork)

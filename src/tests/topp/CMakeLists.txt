@@ -790,15 +790,15 @@ add_test("TOPP_IDFileConverter_17_out1" ${DIFF} -in1 IDFileConverter_17_output.t
 set_tests_properties("TOPP_IDFileConverter_17_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_17")
 # Tests nextscore
 add_test("TOPP_IDFileConverter_18" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_18_input.idXML -out IDFileConverter_18_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_18_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_18_out1" ${DIFF} -in1 IDFileConverter_18_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_18_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_18_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_18")
 # Tests Percolator_score
 add_test("TOPP_IDFileConverter_19" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_19_input.idXML -out IDFileConverter_19_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_19_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_19_out1" ${DIFF} -in1 IDFileConverter_19_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_19_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_19_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_19")
 # Tests hyperscore
 add_test("TOPP_IDFileConverter_20" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_20_input.idXML -out IDFileConverter_20_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 IDFileConverter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_20_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_20_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_20")
 # Testing spectrum_reference addition
 add_test("TOPP_IDFileConverter_21" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_21_input.idXML -out_type idXML -out IDFileConverter_21_output.tmp -mz_file ${DATA_DIR_TOPP}/IDMapper_4_input.mzML)
@@ -1312,19 +1312,6 @@ set_tests_properties("TOPP_PeakPickerWavelet_1_out1" PROPERTIES DEPENDS "TOPP_Pe
 add_test("TOPP_PeakPickerWavelet_2" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_input.mzML -out PeakPickerWavelet_2.tmp)
 add_test("TOPP_PeakPickerWavelet_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_2")
-add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_input.mzML -out PeakPickerWavelet_3.tmp)
-if(NOT DISABLE_WAVELET2DTEST)
-  #  
-  # See https://github.com/OpenMS/OpenMS/issues/1202
-  # On Ubuntu 14.04 in Release mode only (not Debug mode), the output of this
-  # file is slightly different due to a small numerical error. Since FuzzyDiff is
-  # not able to compare the numbers in base64, we have to "whitelist" the
-  # corresponding base64 string.
-  # See https://github.com/OpenMS/OpenMS/issues/1555
-  # For travis, PPWavelet_3 does not work, so we disable it
-  add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -whitelist ${INDEX_WHITELIST} "3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah")
-  set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
-endif(NOT DISABLE_WAVELET2DTEST)
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4")
@@ -1737,22 +1724,30 @@ set_tests_properties("TOPP_ProteinInference_1_out1" PROPERTIES DEPENDS "TOPP_Pro
 
 #------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
-add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_1.tmp -peptides_only)
+add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_1.tmp -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_1_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_1.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_1.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_1_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_1")
-add_test("TOPP_FalseDiscoveryRate_2" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_2.tmp -peptides_only -algorithm:treat_runs_separately)
+add_test("TOPP_FalseDiscoveryRate_2" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_2.tmp -algorithm:treat_runs_separately -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_2_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_2.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_2.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_2_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_2")
-add_test("TOPP_FalseDiscoveryRate_3" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_3.tmp -peptides_only -algorithm:split_charge_variants)
+add_test("TOPP_FalseDiscoveryRate_3" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_3.tmp -algorithm:split_charge_variants -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_3_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_3.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_3.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_3_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_3")
-add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA_4.idXML -out FalseDiscoveryRate_output_4.tmp -peptides_only -algorithm:split_charge_variants)
+add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA_4.idXML -out FalseDiscoveryRate_output_4.tmp -algorithm:split_charge_variants -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_4_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_4.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_4.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_4_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_4")
 # proteins only (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
-add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -proteins_only)
-add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML )
+add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true)
+add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_5_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_5")
+# FDR filtering
+add_test("TOPP_FalseDiscoveryRate_6" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_input.idXML -out FalseDiscoveryRate_6_output.tmp -PSM true -protein false -FDR:PSM 0.05)
+add_test("TOPP_FalseDiscoveryRate_6_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_6_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_6_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_6")
+add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.05)
+add_test("TOPP_FalseDiscoveryRate_7_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_7_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_7")
+
 
 #------------------------------------------------------------------------------
 # IDPosteriorErrorProbability
