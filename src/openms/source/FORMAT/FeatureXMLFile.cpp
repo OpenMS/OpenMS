@@ -207,15 +207,15 @@ namespace OpenMS
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
       os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
-      os << "search_engine=\"" << current_prot_id.getSearchEngine() << "\" ";
-      os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
+      os << "search_engine=\"" << writeXMLEscape(current_prot_id.getSearchEngine()) << "\" ";
+      os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
       const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
       os << "\t\t<SearchParameters "
-         << "db=\"" << search_param.db << "\" "
-         << "db_version=\"" << search_param.db_version << "\" "
-         << "taxonomy=\"" << search_param.taxonomy << "\" ";
+         << "db=\"" << writeXMLEscape(search_param.db) << "\" "
+         << "db_version=\"" << writeXMLEscape(search_param.db_version) << "\" "
+         << "taxonomy=\"" << writeXMLEscape(search_param.taxonomy) << "\" ";
       if (search_param.mass_type == ProteinIdentification::MONOISOTOPIC)
       {
         os << "mass_type=\"monoisotopic\" ";
@@ -241,12 +241,12 @@ namespace OpenMS
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)
       {
-        os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />\n";
+        os << "\t\t\t<FixedModification name=\"" << writeXMLEscape(search_param.fixed_modifications[j]) << "\" />\n";
         //Add MetaInfo, when modifications has it (Andreas)
       }
       for (Size j = 0; j != search_param.variable_modifications.size(); ++j)
       {
-        os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />\n";
+        os << "\t\t\t<VariableModification name=\"" << writeXMLEscape(search_param.variable_modifications[j]) << "\" />\n";
         //Add MetaInfo, when modifications has it (Andreas)
       }
 
@@ -256,7 +256,7 @@ namespace OpenMS
 
       //write protein identifications
       os << "\t\t<ProteinIdentification";
-      os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
+      os << " score_type=\"" << writeXMLEscape(current_prot_id.getScoreType()) << "\"";
       os << " higher_score_better=\"" << (current_prot_id.isHigherScoreBetter() ? "true" : "false") << "\"";
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
@@ -279,7 +279,7 @@ namespace OpenMS
           os << " coverage=\"" << coverage << "\"";
         }
         
-        os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
+        os << " sequence=\"" << writeXMLEscape(current_prot_id.getHits()[j].getSequence()) << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
 
@@ -1037,7 +1037,7 @@ namespace OpenMS
     }
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
-    os << "score_type=\"" << id.getScoreType() << "\" ";
+    os << "score_type=\"" << writeXMLEscape(id.getScoreType()) << "\" ";
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
@@ -1064,7 +1064,7 @@ namespace OpenMS
       const PeptideHit& h = id.getHits()[j];
       os << indent << "\t<PeptideHit";
       os << " score=\"" << h.getScore() << "\"";
-      os << " sequence=\"" << h.getSequence() << "\"";
+      os << " sequence=\"" << writeXMLEscape(h.getSequence().toString()) << "\"";
       os << " charge=\"" << h.getCharge() << "\"";
 
       const vector<PeptideEvidence>& pes = id.getHits()[j].getPeptideEvidences();
