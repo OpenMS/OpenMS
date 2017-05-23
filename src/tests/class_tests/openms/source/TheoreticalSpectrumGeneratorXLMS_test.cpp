@@ -197,6 +197,39 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   ptr->getCommonIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, false, 1, 14);
   TEST_EQUAL(spec.size(), 3)
 
+  // test isotopic peaks
+  spec.clear(true);
+  param = ptr->getParameters();
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 1); // not very useful combination, but it should at least run
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "false");
+  param.setValue("add_y_ions", "true");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_metainfo", "false");
+  ptr->setParameters(param);
+  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  // 6 ion types with 3 charges each are expected
+  TEST_EQUAL(spec.size(), 18)
+
+  spec.clear(true);
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 2); //
+  ptr->setParameters(param);
+  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  // 6 ion types with 3 charges each are expected, each with a second isotopic peak
+  TEST_EQUAL(spec.size(), 36)
+
+  spec.clear(true);
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 3); // not supported yet, but it should at least run (with the maximal possible number of peaks)
+  ptr->setParameters(param);
+  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  // 6 ion types with 3 charges each are expected, each with a second isotopic peak
+  TEST_EQUAL(spec.size(), 36)
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  // for quick benchmarking of implementation chances
 //  param = ptr->getParameters();
@@ -222,6 +255,8 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 
   // reinitialize TSG to standard parameters
   Param param(ptr->getParameters());
+  param.setValue("add_isotopes", "false");
+  param.setValue("max_isotope", 2);
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
   param.setValue("add_c_ions", "false");
@@ -348,6 +383,39 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   spec.clear(true);
   ptr->getXLinkIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, 2000.0, false, 1, 1, 13);
   TEST_EQUAL(spec.size(), 4)
+
+  // test isotopic peaks
+  spec.clear(true);
+  param = ptr->getParameters();
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 1); // not very useful combination, but it should at least run
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "false");
+  param.setValue("add_y_ions", "true");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_metainfo", "false");
+  ptr->setParameters(param);
+  ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 5);
+  // 6 ion types with 4 charges each are expected
+  TEST_EQUAL(spec.size(), 24)
+
+  spec.clear(true);
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 2); //
+  ptr->setParameters(param);
+  ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 5);
+  // 6 ion types with 4 charges each are expected, each with a second isotopic peak
+  TEST_EQUAL(spec.size(), 48)
+
+  spec.clear(true);
+  param.setValue("add_isotopes", "true");
+  param.setValue("max_isotope", 3); // not supported yet, but it should at least run (with the maximal possible number of peaks)
+  ptr->setParameters(param);
+  ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 5);
+  // 6 ion types with 4 charges each are expected, each with a second isotopic peak
+  TEST_EQUAL(spec.size(), 48)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  // for quick benchmarking of implementation chances
