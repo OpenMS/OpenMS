@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         libcpp_vector[PeptideEvidence] getPeptideEvidences() nogil except +
         void setPeptideEvidences(libcpp_vector[PeptideEvidence]) nogil except +
         void addPeptideEvidence(PeptideEvidence) nogil except +
-        libcpp_set[String] extractProteinAccessions() nogil except +
+        libcpp_set[String] extractProteinAccessionsSet() nogil except +
 
         void setAnalysisResults(libcpp_vector[PeptideHit_AnalysisResult] aresult) nogil except +
         void addAnalysisResults(PeptideHit_AnalysisResult aresult) nogil except +
