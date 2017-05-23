@@ -250,7 +250,17 @@ protected:
       // Add to output
       for (Size i = 0; i < transition_group.getFeatures().size(); i++)
       {
-        output.push_back(transition_group.getFeatures()[i]);
+        MRMFeature mrmfeature = transition_group.getFeatures()[i];
+        // Prepare the subordinates for the mrmfeature (process all current
+        // features and then append all precursor subordinate features)
+        std::vector<Feature> allFeatures = mrmfeature.getFeatures();
+        for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
+        {
+          f_it->getConvexHulls().clear();
+          f_it->ensureUniqueId();
+        }
+        mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates
+        output.push_back(mrmfeature);
       }
     }
   }
