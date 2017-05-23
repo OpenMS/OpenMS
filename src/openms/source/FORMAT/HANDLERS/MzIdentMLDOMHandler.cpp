@@ -1246,18 +1246,14 @@ namespace OpenMS
               String spectrumID = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectrumID")));
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(element_res->getChildNodes());
 
-
-
-
-
-
-              if (xl_ms_search_)
+              if (xl_ms_search_) // XL-MS data has a different structure (up to 4 spectrum identification items for the same PSM)
               {
                 std::multimap<String, int> xl_val_map;
                 std::set<String> xl_val_set;
                 int index_counter = 0;
                 DOMElement* sii = element_res->getFirstElementChild();
 
+                // loop over all SIIs of a spectrum and group together the SIIs belonging to the same cross-link spectrum match
                 while (sii)
                 {
                   if ((std::string)XMLString::transcode(sii->getTagName()) == "SpectrumIdentificationItem")
@@ -1284,10 +1280,8 @@ namespace OpenMS
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
                 }
                 pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
-
-
               }
-              else // start of "not-XLMS-results"
+              else // general case
               {
                 pep_id_->push_back(PeptideIdentification());
                 pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
@@ -1360,7 +1354,6 @@ namespace OpenMS
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemSetXLMS(set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, DOMElement* element_res, String spectrumID)
     {
-
       // each value in the set corresponds to one PeptideIdentification object
       std::pair <std::multimap<String, int>::iterator, std::multimap<String, int>::iterator> range;
       range = xl_val_map.equal_range(*set_it);
@@ -1464,165 +1457,170 @@ namespace OpenMS
         // Fragmentation, does not matter where to get them. Look for them as long as the vector is empty
         if (frag_annotations.empty())
         {
-          DOMElement* frag_element = dynamic_cast<xercesc::DOMElement*>(cl_sii->getElementsByTagName(XMLString::transcode("Fragmentation"))->item(0));
-          DOMNodeList* ion_types = frag_element->getElementsByTagName(XMLString::transcode("IonType"));
-          const  XMLSize_t ion_type_count = ion_types->getLength();
-          for (XMLSize_t i = 0; i < ion_type_count; ++i)
+          DOMNodeList* frag_element_list = cl_sii->getElementsByTagName(XMLString::transcode("Fragmentation"));
+
+          if (frag_element_list->getLength() > 0)
           {
-            DOMElement* ion_type_element = dynamic_cast<xercesc::DOMElement*>(ion_types->item(i));
-            int ion_charge = String(XMLString::transcode(ion_type_element ->getAttribute(XMLString::transcode("charge")))).toInt();
-            vector<String> indices;
-            vector<String> positions;
-            vector<String> intensities;
-            vector<String> chains;
-            vector<String> categories;
-            String frag_type;
-            String loss = "";
-
-            String(XMLString::transcode(ion_type_element ->getAttribute(XMLString::transcode("index")))).split(" ", indices);
-
-            DOMNodeList* frag_arrays = ion_type_element ->getElementsByTagName(XMLString::transcode("FragmentArray"));
-            const XMLSize_t frag_array_count = frag_arrays->getLength();
-            for (XMLSize_t f = 0; f < frag_array_count; ++f)
+            DOMElement* frag_element = dynamic_cast<xercesc::DOMElement*>(frag_element_list->item(0));
+            DOMNodeList* ion_types = frag_element->getElementsByTagName(XMLString::transcode("IonType"));
+            const  XMLSize_t ion_type_count = ion_types->getLength();
+            for (XMLSize_t i = 0; i < ion_type_count; ++i)
             {
-              DOMElement* frag_array_element = dynamic_cast<xercesc::DOMElement*>(frag_arrays->item(f));
-              if ( String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref")))) == "Measure_mz")
-              {
-                String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("values")))).split(" ", positions);
-              }
-              if ( String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref")))) == "Measure_int")
-              {
-                String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("values")))).split(" ", intensities);
+              DOMElement* ion_type_element = dynamic_cast<xercesc::DOMElement*>(ion_types->item(i));
+              int ion_charge = String(XMLString::transcode(ion_type_element ->getAttribute(XMLString::transcode("charge")))).toInt();
+              vector<String> indices;
+              vector<String> positions;
+              vector<String> intensities;
+              vector<String> chains;
+              vector<String> categories;
+              String frag_type;
+              String loss = "";
 
-              }
-            }
+              String(XMLString::transcode(ion_type_element ->getAttribute(XMLString::transcode("index")))).split(" ", indices);
 
-            DOMNodeList* userParams = ion_type_element->getElementsByTagName(XMLString::transcode("userParam"));
-            const XMLSize_t userParam_count = userParams->getLength();
-            for (XMLSize_t u = 0; u < userParam_count; ++u)
-            {
-              DOMElement* userParam_element = dynamic_cast<xercesc::DOMElement*>(userParams->item(u));
-              if ( String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name")))) == "cross-link_chain")
+              DOMNodeList* frag_arrays = ion_type_element ->getElementsByTagName(XMLString::transcode("FragmentArray"));
+              const XMLSize_t frag_array_count = frag_arrays->getLength();
+              for (XMLSize_t f = 0; f < frag_array_count; ++f)
               {
-                String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("value")))).split(" ", chains);
-              }
-              if ( String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name")))) == "cross-link_ioncategory")
-              {
-                String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("value")))).split(" ", categories);
-              }
-            }
-
-            DOMNodeList* cvts = ion_type_element->getElementsByTagName(XMLString::transcode("cvParam"));
-            const XMLSize_t cvt_count = cvts->getLength();
-            for (XMLSize_t cvt = 0; cvt < cvt_count; ++cvt)
-            {
-              DOMElement* cvt_element = dynamic_cast<xercesc::DOMElement*>(cvts->item(cvt));
-
-              // Standard ions
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001229") // frag: a ion
-              {
-                frag_type = "a";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001224") // frag: b ion
-              {
-                frag_type = "b";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001231") // frag: c ion
-              {
-                frag_type = "c";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001228") // frag: x ion
-              {
-                frag_type = "x";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001220") // frag: y ion
-              {
-                frag_type = "y";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001230") // frag: z ion
-              {
-                frag_type = "z";
+                DOMElement* frag_array_element = dynamic_cast<xercesc::DOMElement*>(frag_arrays->item(f));
+                if ( String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref")))) == "Measure_mz")
+                {
+                  String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("values")))).split(" ", positions);
+                }
+                if ( String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("measure_ref")))) == "Measure_int")
+                {
+                  String(XMLString::transcode(frag_array_element->getAttribute(XMLString::transcode("values")))).split(" ", intensities);
+                }
               }
 
-              // Ions with H2O losses
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001234") // frag: a ion - H2O
+              DOMNodeList* userParams = ion_type_element->getElementsByTagName(XMLString::transcode("userParam"));
+              const XMLSize_t userParam_count = userParams->getLength();
+              for (XMLSize_t u = 0; u < userParam_count; ++u)
               {
-                frag_type = "a";
-                loss = "-H2O";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001222") // frag: b ion - H20
-              {
-                frag_type = "b";
-                loss = "-H2O";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001515") // frag: c ion - H20
-              {
-                frag_type = "c";
-                loss = "-H2O";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001519") // frag: x ion - H20
-              {
-                frag_type = "x";
-                loss = "-H2O";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001223") // frag: y ion - H20
-              {
-                frag_type = "y";
-                loss = "-H2O";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001517") // frag: z ion - H20
-              {
-                frag_type = "z";
-                loss = "-H2O";
+                DOMElement* userParam_element = dynamic_cast<xercesc::DOMElement*>(userParams->item(u));
+                if ( String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name")))) == "cross-link_chain")
+                {
+                  String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("value")))).split(" ", chains);
+                }
+                if ( String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("name")))) == "cross-link_ioncategory")
+                {
+                  String(XMLString::transcode(userParam_element ->getAttribute(XMLString::transcode("value")))).split(" ", categories);
+                }
               }
 
-              // Ions with NH3 losses
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001235") // frag: a ion - NH3
+              DOMNodeList* cvts = ion_type_element->getElementsByTagName(XMLString::transcode("cvParam"));
+              const XMLSize_t cvt_count = cvts->getLength();
+              for (XMLSize_t cvt = 0; cvt < cvt_count; ++cvt)
               {
-                frag_type = "a";
-                loss = "-NH3";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001232") // frag: b ion - NH3
-              {
-                frag_type = "b";
-                loss = "-NH3";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001516") // frag: c ion - NH3
-              {
-                frag_type = "c";
-                loss = "-NH3";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001520") // frag: x ion - NH3
-              {
-                frag_type = "x";
-                loss = "-NH3";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001233") // frag: y ion - NH3
-              {
-                frag_type = "y";
-                loss = "-NH3";
-              }
-              if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001518") // frag: z ion - NH3
-              {
-                frag_type = "z";
-                loss = "-NH3";
-              }
-            }
+                DOMElement* cvt_element = dynamic_cast<xercesc::DOMElement*>(cvts->item(cvt));
 
-            for (Size s = 0; s < indices.size(); ++s)
-            {
-              String annotation= "[" + chains[s] + "|" + categories[s]  + "$" + frag_type + indices[s] + loss + "]";
+                // Standard ions
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001229") // frag: a ion
+                {
+                  frag_type = "a";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001224") // frag: b ion
+                {
+                  frag_type = "b";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001231") // frag: c ion
+                {
+                  frag_type = "c";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001228") // frag: x ion
+                {
+                  frag_type = "x";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001220") // frag: y ion
+                {
+                  frag_type = "y";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001230") // frag: z ion
+                {
+                  frag_type = "z";
+                }
 
-              PeptideHit::FragmentAnnotation frag_anno;
-              frag_anno.charge = ion_charge;
-              frag_anno.mz = positions[s].toDouble();
-              frag_anno.intensity = intensities[s].toDouble();
-              frag_anno.annotation = annotation;
-              frag_annotations.push_back(frag_anno);
+                // Ions with H2O losses
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001234") // frag: a ion - H2O
+                {
+                  frag_type = "a";
+                  loss = "-H2O";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001222") // frag: b ion - H20
+                {
+                  frag_type = "b";
+                  loss = "-H2O";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001515") // frag: c ion - H20
+                {
+                  frag_type = "c";
+                  loss = "-H2O";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001519") // frag: x ion - H20
+                {
+                  frag_type = "x";
+                  loss = "-H2O";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001223") // frag: y ion - H20
+                {
+                  frag_type = "y";
+                  loss = "-H2O";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001517") // frag: z ion - H20
+                {
+                  frag_type = "z";
+                  loss = "-H2O";
+                }
+
+                // Ions with NH3 losses
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001235") // frag: a ion - NH3
+                {
+                  frag_type = "a";
+                  loss = "-NH3";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001232") // frag: b ion - NH3
+                {
+                  frag_type = "b";
+                  loss = "-NH3";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001516") // frag: c ion - NH3
+                {
+                  frag_type = "c";
+                  loss = "-NH3";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001520") // frag: x ion - NH3
+                {
+                  frag_type = "x";
+                  loss = "-NH3";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001233") // frag: y ion - NH3
+                {
+                  frag_type = "y";
+                  loss = "-NH3";
+                }
+                if (String(XMLString::transcode(cvt_element->getAttribute(XMLString::transcode("accession")))) == "MS:1001518") // frag: z ion - NH3
+                {
+                  frag_type = "z";
+                  loss = "-NH3";
+                }
+              }
+
+              for (Size s = 0; s < indices.size(); ++s)
+              {
+                String annotation= "[" + chains[s] + "|" + categories[s]  + "$" + frag_type + indices[s] + loss + "]";
+
+                PeptideHit::FragmentAnnotation frag_anno;
+                frag_anno.charge = ion_charge;
+                frag_anno.mz = positions[s].toDouble();
+                frag_anno.intensity = intensities[s].toDouble();
+                frag_anno.annotation = annotation;
+                frag_annotations.push_back(frag_anno);
+              }
             }
           }
         }
       }
+
       // Generate and fill PeptideIdentification
       vector<Size> light;
       vector<Size> heavy;
