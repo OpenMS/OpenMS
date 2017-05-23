@@ -245,7 +245,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-      if ((!add_isotopes_) || max_isotope_ == 2) // add single peaks (and maybe a second isotopic peak)
+      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
       {
         double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
         if (peptide.hasNTerminalModification())
@@ -283,7 +283,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-      if ((!add_isotopes_) || max_isotope_ == 2) // add single peaks (and maybe a second isotopic peak)
+      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
       {
         double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
         if (peptide.hasCTerminalModification())
@@ -432,7 +432,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-      if ((!add_isotopes_) || max_isotope_ == 2) // add single peaks (and maybe a second isotopic peak)
+      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
       {
         // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
         double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight());
@@ -473,7 +473,7 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-      if ((!add_isotopes_) || max_isotope_ == 2) // add single peaks (and maybe a second isotopic peak)
+      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
       {
         // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
         double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight()); // whole mass
