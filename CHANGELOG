@@ -8,6 +8,68 @@ INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 2.2                                        ----
+------------------------------------------------------------------------------------------
+OpenMS 2.2 introduces a considerable number of new features and bug fixes.
+
+Notable changes since version 2.1 are:
+
+New tools:
+  - RNPxlSearch -- Annotate RNA to peptide crosslinks in MS/MS spectra. (UTIL)
+  - SpectraSTAdapter -- Spectra library search using SpectraST (experimental, only search supported)
+
+Deprecated and removed tools:
+
+
+Major changes in functionality:
+  - XTandemAdapter 
+    - removed deprecated parameters
+    - support for "Vengeance" and "ALANINE"
+  - IsobaricAnalyzer
+    - Support for TMT10plex
+    - Support for isotopic labeling in MS3
+  - IDMapper: 
+    - Allows to map unidentified tandem spectra to features.
+  - FeatureFinderIdentification
+    - Advanced multi-sample support
+  - FileFilter
+    - allows users to enable the zlib compression option
+    - allows users to set desired mass accuracy
+  - IDFilter
+    - Filter results if they are valid digestion products
+  - FalseDiscoveryRate
+    - Allow filtering by q-value in the tool (no need for IDFilter score:pep option)
+  - Library:
+  	- Averagine approximation for fragment isotope distributions
+	- Precursor mass correction supports correction to highest intensity peak in tolerance window
+	- Functionality for resampling and adding of spectra
+	- Protein-Protein cross-link spectrum generator
+	- Terminal mods are now separated by "."
+	- SQLite support in OpenSWATH
+	- TheoreticalSpectrumGenerator speedup and removal of RichPeak code
+	- Allow estimation of isotope distributions with preconfigured number of sulfurs
+	- Improved handling of residues
+	- Improved annotation of spectrum references
+	- Improved handling of X in sequences
+
+File formats:
+  - Improved mzML support for SONAR data and mzML with drift time (experimental)
+  - Improved support for cross-link data in mzIdentML
+  - mzXML writer able to write MaxQuant compatible files
+
+Scripts:
+  - new R script for visualizing RT transformations (trafoXML) 
+ 
+Databases:
+  - By default, decoy sequences are now denoted by a prefix 'DECOY_'.
+
+Third-party software:
+  
+Changed tool parameters:
+
+
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 2.1                                        ----
 ------------------------------------------------------------------------------------------
 OpenMS 2.1 introduces a considerable number of new features and bug fixes.
