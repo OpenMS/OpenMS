@@ -40,6 +40,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <vector>
 #include <map>
@@ -152,6 +153,12 @@ namespace OpenMS
 
   std::vector< OpenMS::MSChromatogram <> > FeatureHypothesis::getChromatograms(UInt64 feature_id) const
   {
+    double mz = iso_pattern_[0]->getCentroidMZ();
+    Precursor prec;
+    prec.setMZ(mz);
+    prec.setCharge(charge_);
+    prec.setMetaValue("peptide_sequence", String(feature_id));
+
     std::vector< OpenMS::MSChromatogram <> > tmp_chromatograms;
     for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
     {
@@ -165,6 +172,11 @@ namespace OpenMS
         chromatogram.push_back(peak);
       }
       chromatogram.setNativeID(String(feature_id) + "_" + String(mt_idx));
+      chromatogram.setName(String(feature_id) + "_" + String(mt_idx));
+      chromatogram.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+      chromatogram.setPrecursor(prec);
+      chromatogram.sortByPosition();
+
       tmp_chromatograms.push_back(chromatogram);
     }
     return tmp_chromatograms;
@@ -234,7 +246,7 @@ namespace OpenMS
     if (iso_pattern_.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
+                                    "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidMZ();
   }
