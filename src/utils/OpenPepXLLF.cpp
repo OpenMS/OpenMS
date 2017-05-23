@@ -970,7 +970,7 @@ protected:
       // Write PeptideIdentifications and PeptideHits for n top hits
       OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index);
 
-      LOG_DEBUG << "Next Spectrum ################################## \n";
+      LOG_DEBUG << "Next Spectrum ##################################" << endl;
     }
 
     // end of matching / scoring
