@@ -28,7 +28,6 @@ addons:
          - qtbase5-dev-tools 
          - libsvm-dev
          - libsvm3
-         - glpk
          - subversion
          - doxygen 
          - graphviz
