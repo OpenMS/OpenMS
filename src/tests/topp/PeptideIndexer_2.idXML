@@ -18,14 +18,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="EDQSCPSERRRAFSRLRXAAX" charge="2" protein_refs="" >
-			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="SERRRAFSRLRXAAX" charge="2" protein_refs="" >
-			</PeptideHit>
-		</PeptideIdentification>
+
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="40" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" protein_refs="PH_0 PH_3" >
 			</PeptideHit>
@@ -37,7 +30,7 @@
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="40" sequence="EWATYTCVLGFHVYVPVR" charge="2" protein_refs="PH_2" >
 			</PeptideHit>
-			<PeptideHit score="0.0001" sequence="UNMATCHED" charge="2" protein_refs="" >
+			<PeptideHit score="0.0001" sequence="NIEMATCHED" charge="2" protein_refs="" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >

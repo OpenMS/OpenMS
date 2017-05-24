@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Andreas Bertsch, Chris Bielow, Knut Reinert $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
@@ -48,38 +48,26 @@ namespace OpenMS
 /**
   @brief Refreshes the protein references for all peptide hits in a vector of PeptideIdentifications and adds target/decoy information.
 
-  All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix). For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
+  All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". For proteins the possible values are "target" and "decoy", 
+  depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) as a suffix or prefix, respectively (see parameter @p prefix).
+  For peptides, the possible values are "target", "decoy" and "target+decoy", depending on whether the peptide sequence is found only in target proteins,
+  only in decoy proteins, or in both. The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool.
+  (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
   @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
         If the decoy identifier is not recognized successfully all proteins will be assumed to stem from the target-part of the query.<br>
-        E.g., "sw|P33354_REV|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
-        A correct identifier could be "rev_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_rev Uncharacterized li", depending on whether you are
-        using prefix annotation or not.<br>
+        E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
+        A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are
+        using prefix or suffix annotation.<br>
         This tool will also report some helpful target/decoy statistics when it is done.
 
   By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
   You can force it to return successfully in this case by using the flag @p allow_unmatched.
 
-  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
-  This will cause such peptides to not be found by exactly matching their sequences to the database. However, we can recover these cases by using tolerant search (done automatically).
-
-  Two search modes are available:
-    - exact: [default mode] Peptide sequences require exact match in protein database.
-             If at least one protein hit is found, no tolerant search is used for this peptide.
-             If no protein for this peptide can be found, tolerant matching is automatically used for this peptide.
-    - tolerant:
-             Allow ambiguous amino acids in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
-             This mode might yield more protein hits for some peptides (those that contain ambiguous amino acids).
-             Tolerant search also allows for real sequence mismatches (see 'mismatches_max'), in case you want to find related proteins which
-             might be the origin of a peptide if it had a SNP for example. Runtime increase is moderate when allowing a single
-             mismatch, but rises drastically for two or more.
-
-  The exact mode is much faster (about 10 times) and consumes less memory (about 2.5 times),
-  but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
-  The exact mode also supports usage of multiple threads (@p threads option) to speed up computation even further, at the cost of some memory.
-  If tolerant searching needs to be done for unassigned peptides,
-  the latter will consume the major share of the runtime.
-  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
+  Search engines (such as Mascot) will replace ambiguous amino acids ('B', 'J', 'Z' and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
+  This will cause such peptides to not be found by exactly matching their sequences to the protein database.
+  However, we can recover these cases by using tolerant search for ambiguous amino acids in the protein sequence. This is done by default with up to four amino acids
+  per peptide hit. If you only want exact matches, set @p aaa_max to zero (but expect that unmatched peptides might occur)!
 
   Leucine/Isoleucine:
   Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences.
@@ -89,7 +77,11 @@ namespace OpenMS
   For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit,
   but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would
   report both "Protein1" and "Protein2" as accessions for "PEPTIDE".
-  (This is independent of the error-tolerant search controlled by @p full_tolerant_search and @p aaa_max.)
+  (This is independent of ambiguous matching via @p aaa_max.)
+  Additionally, setting this flag will convert all 'J's in any protein sequence to 'I'. This way, no tolerant search is required for 'J' (but is still possible for all
+  the other ambiguous amino acids).
+  If @p write_protein_sequences is requested and @p IL_equivalent is set as well, both the I/L-version and unmodified protein sequences need to be stored internally.
+  This wastes some memory, roughly equivalent to the size of the FASTA database file itself.
 
   Enzyme specificity:
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
@@ -99,6 +91,8 @@ namespace OpenMS
   which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
   You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
   or <tt>none</tt> (essentially allowing all hits, no matter their context).
+  
+  This tool support multiple threads (@p threads option) to speed up computation further, at the cost of little extra memory.
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
@@ -141,7 +135,7 @@ protected:
     bool allow_unmatched_;
     bool IL_equivalent_;
 
-    Size aaa_max_;
+    Int aaa_max_;
 
   };
 }

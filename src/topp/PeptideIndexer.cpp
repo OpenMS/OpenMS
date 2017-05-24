@@ -187,8 +187,7 @@ protected:
     LOG_INFO << "done" << std::endl;
 
 	  //std::cin.get(); // press any key
-    if ((indexer_exit == PeptideIndexing::DATABASE_EMPTY) ||
-	      (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+    if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
     {
 	    return INPUT_FILE_EMPTY;       
     }
@@ -196,7 +195,8 @@ protected:
     {
       return UNEXPECTED_RESULT;
     }
-    else if (indexer_exit != PeptideIndexing::EXECUTION_OK)
+    else if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+             (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
     {
       return UNKNOWN_ERROR;
     }

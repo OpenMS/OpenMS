@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Sandro Andreotti, Tobias Rausch $
+// $Authors: Chris Bielow, Tobias Rausch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
