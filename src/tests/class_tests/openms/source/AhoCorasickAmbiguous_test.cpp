@@ -267,7 +267,7 @@ START_SECTION([EXTRA]template<typename T> inline void _getSpawnRange(const AAcid
   }
   for (char c = 'a'; c <= 'z'; ++c)
   {
-    TEST_EQUAL(char(seqan::AAcid(c)), c)
+    TEST_EQUAL(char(seqan::AAcid(c)), String(c).toUpper()[0])
   }
 
   // check correct range
