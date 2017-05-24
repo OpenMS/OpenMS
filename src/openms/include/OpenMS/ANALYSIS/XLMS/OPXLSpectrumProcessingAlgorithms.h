@@ -63,12 +63,23 @@ namespace OpenMS
       static void nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count);
 
       /**
-       * @brief preprocessSpectraLabeled
-       * @param exp All MS2 spectra from an XL-MS experiment in a PeakMap
+       * @brief Preprocesses spectra
+       *
+       * Filters out spectra with too few peaks (based on peptide_min_size) and those that do not fit into the precursor charge range.
+       * Removes zero intensity peaks and normalizes intensities.
+       * If the given tolerance is low enough, deisotoping is performed. Otherwise only the 500 most intense peaks are kept, if the param labeled is false.
+       * The number of returned spectra is equal to the number of input spectra for labeled data (otherwise not necessarily).
+       *
+       * @param exp
        * @param fragment_mass_tolerance_xlinks
        * @param fragment_mass_tolerance_unit_ppm
+       * @param peptide_min_size
+       * @param min_precursor_charge
+       * @param max_precursor_charge
+       * @param labeled
+       * @return A PeakMap of preprocessed spectra
        */
-      static void preprocessSpectraLabeled(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm);
+      static PeakMap preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool labeled);
 
       /**
        * @brief Computes a spectrum alignment while considering fragment charges stored in a IntegerDataArray and an intensity difference ratio

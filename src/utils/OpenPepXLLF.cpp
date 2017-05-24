@@ -261,79 +261,6 @@ protected:
     return modifications;
   }
 
-protected:
-  PeakMap preprocessSpectra_(PeakMap& exp)
-  {
-    Size peptide_min_size = getIntOption_("peptide:min_size");
-    Int min_precursor_charge = getIntOption_("precursor:min_charge");
-    Int max_precursor_charge = getIntOption_("precursor:max_charge");
-
-    String fragment_mass_tolerance_unit = getStringOption_("fragment:mass_tolerance_unit");
-    bool fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit == "ppm";
-    double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
-
-    // filter MS2 map
-    // remove 0 intensities
-    ThresholdMower threshold_mower_filter;
-    threshold_mower_filter.filterPeakMap(exp);
-
-    Normalizer normalizer;
-    normalizer.filterPeakMap(exp);
-
-    // sort by rt
-    exp.sortSpectra(false);
-    LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
-
-    PeakMap deisotoped_spectra;
-
-    // with a lower resolution there is no use in trying to deisotope
-    if (fragment_mass_tolerance_ppm && (fragment_mass_tolerance_xlinks < 100))
-    {
-
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-      for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
-      {
-        vector<Precursor> precursor = exp[exp_index].getPrecursors();
-        bool process_this_spectrum = false;
-        if (precursor.size() == 1 && exp[exp_index].size() >= peptide_min_size * 2)
-        {
-          int precursor_charge = precursor[0].getCharge();
-          if (precursor_charge >= min_precursor_charge && precursor_charge <= max_precursor_charge)
-          {
-            process_this_spectrum = true;
-          }
-        }
-
-        if (!process_this_spectrum)
-        {
-          continue;
-        }
-        exp[exp_index].sortByPosition();
-
-        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_ppm, false, 3, 10, false);
-
-        // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
-        if (deisotoped.size() > peptide_min_size * 2)
-        {
-//          OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(deisotoped, 500);
-          deisotoped.sortByPosition();
-
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-          deisotoped_spectra.addSpectrum(deisotoped);
-        }
-      }
-      return deisotoped_spectra;
-    }
-    else
-    {
-      return exp;
-    }
-  }
-
   ExitCodes main_(int, const char**)
   {
     ProgressLogger progresslogger;
@@ -403,11 +330,10 @@ protected:
     options.addMSLevel(2);
     f.getOptions() = options;
     f.load(in_mzml, unprocessed_spectra);
-    unprocessed_spectra.sortSpectra(true);
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    PeakMap spectra = preprocessSpectra_(unprocessed_spectra);
+    PeakMap spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, false);
     progresslogger.endProgress();
 
     // load linked features

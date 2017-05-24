@@ -115,36 +115,88 @@ namespace OpenMS
     }
   }
 
-  void OPXLSpectrumProcessingAlgorithms::preprocessSpectraLabeled(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
+  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool labeled)
   {
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
-    // TODO perl code filters by dynamic range (1000), meaning everything below max_intensity / 1000 is filtered out additionally to 0 int, before scaling / normalizing
 
     Normalizer normalizer;
     normalizer.filterPeakMap(exp);
-    // TODO perl code scales to 0-100: int / max_int * 100
 
     // sort by rt
     exp.sortSpectra(false);
+    LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
+
+    PeakMap filtered_spectra;
+
+    // with a lower resolution there is no use in trying to deisotope
+    bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
-      // sort by mz and deisotope
+      vector<Precursor> precursor = exp[exp_index].getPrecursors();
+      // for labeled experiments, the pairs of heavy and light spectra are linked by spectra indices from the consensusXML, so the returned number of spectra has to be equal to the input
+      bool process_this_spectrum = labeled;
+      if (precursor.size() == 1 && exp[exp_index].size() >= peptide_min_size * 2)
+      {
+        int precursor_charge = precursor[0].getCharge();
+        if (precursor_charge >= min_precursor_charge && precursor_charge <= max_precursor_charge)
+        {
+          process_this_spectrum = true;
+        }
+      }
+
+      if (!process_this_spectrum)
+      {
+        continue;
+      }
       exp[exp_index].sortByPosition();
 
-      // TODO this is a lazy heuristic, but usually tolerances given in Da are too high for deisotoping anyway
-      // Usually, high resolution data from Orbitrap instruments has an MS2 tolerance of about 20 ppm
-        if (fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100))
+      if (deisotope_spectra)
+      {
+        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
+
+        // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
+        if (deisotoped.size() > peptide_min_size * 2 || labeled)
         {
-          exp[exp_index] = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index] , 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
+          deisotoped.sortByPosition();
+
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+          {
+            filtered_spectra.addSpectrum(deisotoped);
+          }
         }
-     }
+      }
+      else
+      {
+        PeakSpectrum filtered = exp[exp_index];
+        if (!labeled) // this kind of filtering is not necessary for labeled cross-links, since they area filtered by comparing heavy and light spectra later
+        {
+          OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(filtered, 500);
+        }
+
+        // only consider spectra, that have at least as many peaks as two times the minimal peptide size after filtering
+        if (filtered.size() > peptide_min_size * 2 || labeled)
+        {
+          filtered.sortByPosition();
+
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+          {
+            filtered_spectra.addSpectrum(filtered);
+          }
+        }
+      }
+    }
+    return filtered_spectra;
   }
 
   void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff)

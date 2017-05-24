@@ -459,7 +459,7 @@ protected:
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
     
     // load MS2 map
-    PeakMap spectra;
+    PeakMap unprocessed_spectra;
     MzMLFile f;
     f.setLogType(log_type_);
 
@@ -467,12 +467,11 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in_mzml, spectra);
-    spectra.sortSpectra(true);
+    f.load(in_mzml, unprocessed_spectra);
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    OPXLSpectrumProcessingAlgorithms::preprocessSpectraLabeled(spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+    PeakMap spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, true);
     progresslogger.endProgress();
 
     // load linked features
