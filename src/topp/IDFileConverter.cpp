@@ -148,7 +148,7 @@ public:
   }
 
 private:
-  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename,  double tolerance)
+  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename, double tolerance)
   {
       TheoreticalSpectrumGenerator tg;
       Param tgp(tg.getDefaults());
@@ -383,13 +383,6 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
           PepXMLFile().load(in, protein_identifications,
                             peptide_identifications, mz_name, lookup);
-
-// not sure if this would work with that kind of lookup object
-//          double add_ions = getDoubleOption_("add_ionmatch_annotation");
-//          if (add_ions>0)
-//          {
-//            add_ionmatches_(lookup, peptide_identifications, add_ions);
-//          }
         }
       }
 
@@ -423,7 +416,7 @@ protected:
             peptide_identifications, mz_file, false);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
-          if (add_ions>0)
+          if (add_ions > 0)
           {
             add_ionmatches_(peptide_identifications, mz_file, add_ions);
           }

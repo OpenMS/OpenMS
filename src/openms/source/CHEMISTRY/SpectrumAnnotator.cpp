@@ -135,7 +135,7 @@ namespace OpenMS
     vector<pair<Size, Size> > al;
     Int zmin = 1;
     Int zmax = 2;
-    tg.getSpectrum(theoretical_spec, ph.getSequence(), zmin, min(ph.getCharge(),zmax));
+    tg.getSpectrum(theoretical_spec, ph.getSequence(), zmin, min(ph.getCharge(), zmax));
     if (!theoretical_spec.isSorted())
     {
       theoretical_spec.sortByPosition();
@@ -279,8 +279,8 @@ namespace OpenMS
           else
           {
             vector<double> fe(fragmenterrors);
-            std::size_t mid = fe.size()/2;
-            std::size_t lq = fe.size()/4;
+            std::size_t mid = fe.size() / 2;
+            std::size_t lq = fe.size() / 4;
             std::size_t uq = lq + mid;
             std::nth_element(fe.begin(), fe.begin()+mid, fe.end());
             if (fe.size() % 2 != 0)
@@ -290,8 +290,8 @@ namespace OpenMS
             else
             {
               double right2mid = fe[mid];
-              std::nth_element(fe.begin(), fe.begin()+mid-1, fe.end());
-              ph->setMetaValue("median_fragment_error", (right2mid+fe[mid-1])/2.0);
+              std::nth_element(fe.begin(), fe.begin() + mid-1, fe.end());
+              ph->setMetaValue("median_fragment_error", (right2mid + fe[mid-1]) / 2.0);
             }
             std::nth_element(fe.begin(),          fe.begin() + lq, fe.end());
             std::nth_element(fe.begin() + lq + 1, fe.begin() + mid, fe.end());
@@ -348,9 +348,9 @@ namespace OpenMS
         //TODO parent peak intensity complement pairs number
         if (SN_statistics_)
         {
-          float sn_by_matched_intensity = (match_intensity/ions.size())/
-                  ((sum_intensity-match_intensity)/(spec.size()-ions.size()));
-          if (spec.size()-ions.size() == 0)
+          float sn_by_matched_intensity = (match_intensity / ions.size()) /
+                  ((sum_intensity-match_intensity) / (spec.size()-ions.size()));
+          if (spec.size() - ions.size() == 0)
           {
             sn_by_matched_intensity = 0;
           }
@@ -359,9 +359,9 @@ namespace OpenMS
           float median = 0;
           // spec is already in sorted order of intensity
           if (spec.size() % 2 == 0)
-            median = (spec[spec.size()/2 - 1].getIntensity() + spec[spec.size()/2].getIntensity()) / 2;
+            median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
           else
-            median = spec[spec.size()/2].getIntensity();
+            median = spec[spec.size() / 2].getIntensity();
           float sign_int= 0;
           float nois_int = 0;
           size_t sign_count= 0;
@@ -379,7 +379,7 @@ namespace OpenMS
               sign_int += pt->getIntensity();
             }
           }
-          float sn_by_median_intensity = (sign_int/sign_count)/(nois_int/nois_count);
+          float sn_by_median_intensity = (sign_int / sign_count) / (nois_int / nois_count);
           if (nois_count == 0 || sign_count == 0)
           {
             sn_by_median_intensity = 0;
