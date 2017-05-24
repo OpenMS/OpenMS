@@ -24,8 +24,8 @@
 			<VariableModification name="Oxidation (M)" />
 			<VariableModification name="Deamidated (Q)" />
 			<VariableModification name="Deamidated (N)" />
-			<VariableModification name="Gln->pyro-Glu (Q)" />
-			<VariableModification name="Glu->pyro-Glu (E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="XP_005270768.1" score="0" sequence="">

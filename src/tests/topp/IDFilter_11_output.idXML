@@ -71,7 +71,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="383.2173500319" RT="391" >
-			<PeptideHit score="0" sequence=".(Glu->pyro-Glu)EELLLHPEDAEGK(Dimethyl:2H(4)13C(2))" charge="4" aa_before="K" aa_after="D" protein_refs="PH_1" >
+			<PeptideHit score="0" sequence=".(Glu-&gt;pyro-Glu)EELLLHPEDAEGK(Dimethyl:2H(4)13C(2))" charge="4" aa_before="K" aa_after="D" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
