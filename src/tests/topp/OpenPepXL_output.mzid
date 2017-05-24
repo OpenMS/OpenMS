@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17037743280630708180"
-	creationDate="2017-05-16T21:56:53">
+	creationDate="2017-05-24T18:56:36">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -362,7 +362,7 @@
 	<PeptideEvidence id="PEV_9672067365742190701" peptide_ref="PEP_17475759268436611148" dBSequence_ref="PROT_15916652588957785155" post="Q" pre="K" start="119" end="127" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-16T21:56:52">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-24T18:56:36">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -423,7 +423,7 @@
 			</DatabaseName>
 			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="329"/>
 		</SearchDatabase>
-		<SpectraData location="file:///home/eugen/MSData/01_ExampleFiles/OpenProXL_ToolTest/test_rt1.mzML" id="SDAT_15004869347769368353">
+		<SpectraData location="UNKNOWN" id="SDAT_15004869347769368353">
 			<FileFormat>
 				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
 			</FileFormat>
@@ -488,11 +488,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.440931318327785"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0135569732217083"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="2.32188530481077"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.285303947993"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="23.1125196810251"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="4.22209930911571"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="37.6098506032867"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -542,11 +542,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.440931318327785"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0135569732217083"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="2.32188530481077"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.285303947993"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="23.1125196810251"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="4.22209930911571"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="37.6098506032867"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -566,11 +566,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.440931318327785"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0135569732217083"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="2.32188530481077"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.285303947993"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="23.1125196810251"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="4.22209930911571"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="37.6098506032867"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -590,11 +590,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.440931318327785"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0135569732217083"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="2.32188530481077"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.285303947993"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="23.1125196810251"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="4.22209930911571"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="37.6098506032867"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -638,10 +638,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00773229755314678"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.34878902380535"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.8265553283676"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="1.93652555192242"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="18.4618370128244"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -685,10 +685,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00773229755314678"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.34878902380535"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.8265553283676"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="1.93652555192242"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="18.4618370128244"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -709,10 +709,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00773229755314678"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.34878902380535"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.8265553283676"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="1.93652555192242"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="18.4618370128244"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -733,10 +733,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00773229755314678"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.34878902380535"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.8265553283676"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="1.93652555192242"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="18.4618370128244"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -795,11 +795,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.12720237276517"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.178056740635364"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="27.2556783892165"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="27.1351451550135"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="84.4322964548297"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="84.4322964548297"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -856,11 +856,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.12720237276517"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.178056740635364"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="27.2556783892165"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="27.1351451550135"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="84.4322964548297"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="84.4322964548297"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -926,11 +926,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.76293919188902"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.422192662875283"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="33.6522040718975"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="69.5697145525153"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.0367170147272"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="39.9804689610611"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="109.963189229647"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -994,11 +994,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.76293919188902"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.422192662875283"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="33.6522040718975"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="69.5697145525153"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.0367170147272"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="39.9804689610611"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="109.963189229647"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1018,11 +1018,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.76293919188902"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.422192662875283"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="33.6522040718975"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="69.5697145525153"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.0367170147272"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="39.9804689610611"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="109.963189229647"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1042,11 +1042,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.76293919188902"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.422192662875283"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="33.6522040718975"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="69.5697145525153"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.0367170147272"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="39.9804689610611"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="109.963189229647"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1112,11 +1112,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.16479219379835"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.401950839854361"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="35.4254985894299"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="68.3078048583777"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="48.2405758656012"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="37.6896097124227"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="114.577243702962"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1180,11 +1180,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.16479219379835"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.401950839854361"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="35.4254985894299"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="68.3078048583777"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="48.2405758656012"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="37.6896097124227"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="114.577243702962"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1204,11 +1204,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.16479219379835"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.401950839854361"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="35.4254985894299"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="68.3078048583777"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="48.2405758656012"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="37.6896097124227"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="114.577243702962"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1228,11 +1228,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="9.16479219379835"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.401950839854361"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="35.4254985894299"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="68.3078048583777"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="48.2405758656012"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="37.6896097124227"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="114.577243702962"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1305,11 +1305,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.06652321061119"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.24674043499139"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="41.0408688521426"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="72.1942397564942"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="46.6936916044779"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="41.7540139494573"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="118.570506919384"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1380,11 +1380,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.06652321061119"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.24674043499139"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="41.0408688521426"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="72.1942397564942"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="46.6936916044779"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="41.7540139494573"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="118.570506919384"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1404,11 +1404,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.06652321061119"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.24674043499139"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="41.0408688521426"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="72.1942397564942"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="46.6936916044779"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="41.7540139494573"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="118.570506919384"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1428,11 +1428,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.06652321061119"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.24674043499139"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="41.0408688521426"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="72.1942397564942"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="46.6936916044779"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="41.7540139494573"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="118.570506919384"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1498,11 +1498,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.75906949769706"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.330027614444791"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="45.1512117621981"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="75.1356258377917"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="44.301827331652"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="46.8964144022947"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="121.951301326775"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1566,11 +1566,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.75906949769706"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.330027614444791"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="45.1512117621981"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="75.1356258377917"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="44.301827331652"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="46.8964144022947"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="121.951301326775"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1590,11 +1590,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.75906949769706"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.330027614444791"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="45.1512117621981"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="75.1356258377917"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="44.301827331652"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="46.8964144022947"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="121.951301326775"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1614,11 +1614,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.75906949769706"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.330027614444791"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="45.1512117621981"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="75.1356258377917"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="44.301827331652"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="46.8964144022947"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="121.951301326775"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1829,10 +1829,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0196200221537875"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.0435863815012"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="10.1281298127597"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.37826087438795"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.7956663500494"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1883,10 +1883,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0196200221537875"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.0435863815012"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="10.1281298127597"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.37826087438795"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.7956663500494"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1907,10 +1907,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0196200221537875"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.0435863815012"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="10.1281298127597"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.37826087438795"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.7956663500494"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1931,10 +1931,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0196200221537875"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.0435863815012"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="10.1281298127597"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.37826087438795"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.7956663500494"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -1980,10 +1980,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0455132768677981"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="21.7554850019853"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="28.9302046175665"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="42.0788474969207"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -2027,10 +2027,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0455132768677981"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="21.7554850019853"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="28.9302046175665"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="42.0788474969207"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -2051,10 +2051,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0455132768677981"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="21.7554850019853"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="28.9302046175665"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="42.0788474969207"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -2075,10 +2075,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0455132768677981"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="21.7554850019853"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="28.9302046175665"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="42.0788474969207"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -2264,7 +2264,7 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00616880881191606"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.4888257708497"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
@@ -2311,7 +2311,7 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00616880881191606"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.4888257708497"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
@@ -2335,7 +2335,7 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00616880881191606"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.4888257708497"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
@@ -2359,7 +2359,7 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.00616880881191606"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.4888257708497"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
@@ -2421,11 +2421,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.29035271517932"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.310082348251543"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="40.6753558889782"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="20.2975617161375"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="74.2846401044383"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="74.2846401044383"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -2482,11 +2482,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.29035271517932"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.310082348251543"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="40.6753558889782"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="20.2975617161375"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="74.2846401044383"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="74.2846401044383"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -2922,11 +2922,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="1.32676239404827"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0396089084380319"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="5.48888303167291"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="42.3362410162834"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="47.1749076316451"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="16.1018870175165"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="83.0317465233745"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3004,11 +3004,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="1.32676239404827"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0396089084380319"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="5.48888303167291"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="42.3362410162834"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="47.1749076316451"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="16.1018870175165"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="83.0317465233745"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3028,11 +3028,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="1.32676239404827"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0396089084380319"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="5.48888303167291"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="42.3362410162834"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="47.1749076316451"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="16.1018870175165"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="83.0317465233745"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3052,11 +3052,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="1.32676239404827"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0396089084380319"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="5.48888303167291"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="42.3362410162834"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="47.1749076316451"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="16.1018870175165"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="83.0317465233745"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3122,11 +3122,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.42313123913482"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405471048520041"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="37.8012088572233"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="53.1934695058506"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="36.6094375584516"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="22.9517132462866"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="81.6711812382197"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3190,11 +3190,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.42313123913482"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405471048520041"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="37.8012088572233"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="53.1934695058506"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="36.6094375584516"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="22.9517132462866"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="81.6711812382197"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3214,11 +3214,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.42313123913482"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405471048520041"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="37.8012088572233"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="53.1934695058506"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="36.6094375584516"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="22.9517132462866"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="81.6711812382197"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3238,11 +3238,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="7.42313123913482"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405471048520041"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="37.8012088572233"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="53.1934695058506"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="36.6094375584516"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="22.9517132462866"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="81.6711812382197"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3308,11 +3308,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.41192637383938"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.3362867279552"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="40.6282697377869"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="51.1891558401297"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="38.9170281245428"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="29.1859846627713"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="93.4333184838254"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3376,11 +3376,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.41192637383938"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.3362867279552"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="40.6282697377869"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="51.1891558401297"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="38.9170281245428"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="29.1859846627713"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="93.4333184838254"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3400,11 +3400,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.41192637383938"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.3362867279552"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="40.6282697377869"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="51.1891558401297"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="38.9170281245428"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="29.1859846627713"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="93.4333184838254"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3424,11 +3424,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.41192637383938"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.3362867279552"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="40.6282697377869"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="51.1891558401297"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="38.9170281245428"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="29.1859846627713"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="93.4333184838254"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3501,11 +3501,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.29650114011019"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.289099869711646"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="43.1767609240977"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="78.3331398100592"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.1139879771433"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="49.992683205124"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="122.75711648138"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3576,11 +3576,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.29650114011019"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.289099869711646"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="43.1767609240977"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="78.3331398100592"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.1139879771433"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="49.992683205124"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="122.75711648138"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3600,11 +3600,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.29650114011019"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.289099869711646"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="43.1767609240977"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="78.3331398100592"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.1139879771433"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="49.992683205124"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="122.75711648138"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3624,11 +3624,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.29650114011019"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.289099869711646"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="43.1767609240977"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="78.3331398100592"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="42.1139879771433"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="49.992683205124"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="122.75711648138"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3694,11 +3694,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.03121388703585"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.300915196487522"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="38.4258405837261"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="59.0407351965035"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="35.1131960115868"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="43.0452320349028"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="104.850641244672"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3762,11 +3762,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.03121388703585"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.300915196487522"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="38.4258405837261"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="59.0407351965035"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="35.1131960115868"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="43.0452320349028"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="104.850641244672"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3786,11 +3786,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.03121388703585"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.300915196487522"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="38.4258405837261"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="59.0407351965035"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="35.1131960115868"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="43.0452320349028"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="104.850641244672"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3810,11 +3810,11 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="8.03121388703585"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.300915196487522"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="38.4258405837261"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="59.0407351965035"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="35.1131960115868"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="43.0452320349028"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="104.850641244672"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3881,10 +3881,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0198433311105498"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.6317403595"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="14.7573177288512"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="30.0537155596856"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3949,10 +3949,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0198433311105498"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.6317403595"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="14.7573177288512"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="30.0537155596856"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3973,10 +3973,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0198433311105498"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.6317403595"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="14.7573177288512"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="30.0537155596856"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -3997,10 +3997,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0198433311105498"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.6317403595"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="14.7573177288512"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="30.0537155596856"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -4051,10 +4051,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0120283025412202"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="11.0061731423826"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.82070305734647"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.6707395107561"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -4105,10 +4105,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0120283025412202"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="11.0061731423826"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.82070305734647"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.6707395107561"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -4129,10 +4129,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0120283025412202"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="11.0061731423826"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.82070305734647"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.6707395107561"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -4153,10 +4153,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0120283025412202"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="11.0061731423826"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.36060157805623"/>
+					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.82070305734647"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="21.6707395107561"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -4207,10 +4207,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0169802825912857"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.69463002147964"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="28.6698923903326"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="28.6698923903326"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
@@ -4261,10 +4261,10 @@
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0169802825912857"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.69463002147964"/>
+					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="28.6698923903326"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="28.6698923903326"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
