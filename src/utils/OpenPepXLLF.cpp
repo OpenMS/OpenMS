@@ -449,6 +449,7 @@ protected:
 
     // Setting parameters for cross-link fragmentation
     Param specGenParams = specGen.getParameters();
+    specGenParams.setValue("add_metainfo", "true");
     specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
     specGenParams.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
@@ -531,6 +532,9 @@ protected:
 //        LOG_DEBUG << "alpha: " << filtered_peptide_masses[enumerated_cross_link_masses[k].alpha_index].peptide_seq.toString() << " | mass: " << enumerated_cross_link_masses[k].precursor_mass << endl;
 //      }
 //    }
+
+    // for PScore, precompute ranks
+//    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
 
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
@@ -823,6 +827,26 @@ protected:
         double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
         double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
 
+//        map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
+//        csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_common);
+//        csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_xlinks);
+//        csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec);
+//        csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_alpha);
+//        csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_beta);
+
+        csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_common);
+        csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_alpha);
+        if (theoretical_spec_beta.size() > 0)
+        {
+          csm.HyperBeta = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_beta);
+        }
+        else
+        {
+          csm.HyperBeta = 0;
+        }
+        csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_xlinks);
+        csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec);
+
         // These fields are not written yet, so at lest avoid random values by initializing to 0
         csm.PScoreCommon = 0;
         csm.PScoreXlink = 0;
@@ -830,11 +854,11 @@ protected:
         csm.PScoreAlpha = 0;
         csm.PScoreBeta = 0;
 
-        csm.HyperCommon = 0;
-        csm.HyperAlpha = 0;
-        csm.HyperBeta = 0;
-        csm.HyperXlink = 0;
-        csm.HyperBoth = 0;
+//        csm.HyperCommon = 0;
+//        csm.HyperAlpha = 0;
+//        csm.HyperBeta = 0;
+//        csm.HyperXlink = 0;
+//        csm.HyperBoth = 0;
 
         // Compute score from the 4 scores and 4 weights
         // The weights are adapted from the xQuest algorithm (O. Rinner et al., 2008, "Identification of cross-linked peptides from large sequence databases"),
