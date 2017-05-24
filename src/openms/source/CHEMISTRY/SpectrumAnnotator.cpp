@@ -40,6 +40,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <algorithm>
 #include <numeric>
@@ -136,10 +137,11 @@ namespace OpenMS
     Int zmin = 1;
     Int zmax = 2;
     tg.getSpectrum(theoretical_spec, ph.getSequence(), zmin, min(ph.getCharge(), zmax));
-    if (!theoretical_spec.isSorted())
+    OPENMS_PRECONDITION(!theoretical_spec.isSorted(), "TheoreticalSpectrumGenerator::getSpectrum did not yield a sorted spectrum!")
     {
       theoretical_spec.sortByPosition();
     }
+
     if (!spec.isSorted())
     {
       spec.sortByPosition();
