@@ -84,19 +84,6 @@ START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spe
 
 END_SECTION
 
-START_SECTION( static void nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count))
-
-  OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(theo_spec_1, 5);
-  TEST_EQUAL(theo_spec_1.size(), 5)
-
-  // the intensity of y-ions was set to 10, while b-ions have an intensity of 1. all 5 remaining ions should be y-ions
-  for (Size i = 0; i < theo_spec_1.size(); ++i)
-  {
-    TEST_EQUAL(theo_spec_1.getStringDataArrays()[0][i].hasSubstring("y"), true)
-  }
-
-END_SECTION
-
 START_SECTION(static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0))
   std::vector <std::pair <Size, Size> > alignment1;
   std::vector <std::pair <Size, Size> > alignment2;
@@ -106,7 +93,7 @@ START_SECTION(static void getSpectrumAlignment(std::vector <std::pair <Size, Siz
   OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, exp_spec_1, 50, true);
   OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_2, exp_spec_2, 50, true);
 
-  TEST_EQUAL(alignment1.size(), 3)
+  TEST_EQUAL(alignment1.size(), 15)
   TEST_EQUAL(alignment2.size(), 15)
   for (Size i = 0; i < alignment2.size(); i++)
   {
