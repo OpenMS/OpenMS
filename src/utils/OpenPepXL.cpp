@@ -51,6 +51,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 
 // TESTING SCORES
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
@@ -362,8 +363,9 @@ protected:
       // TODO make this a tool parameter ? Leave it out completely? Comparing Light/Heavy spectra should already be good enough filtering
       // maximal peak number for the common and xlink peak spectra, the merged spectrum has twice as many
       Size max_peak_number = 250;
-      OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(common_peaks, max_peak_number);
-      OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(xlink_peaks, max_peak_number);
+      NLargest nfilter(max_peak_number);
+      nfilter.filterSpectrum(common_peaks);
+      nfilter.filterSpectrum(xlink_peaks);
 
       PeakSpectrum all_peaks = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(common_peaks, xlink_peaks);
 

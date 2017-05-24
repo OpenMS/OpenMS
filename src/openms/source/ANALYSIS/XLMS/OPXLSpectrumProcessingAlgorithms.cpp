@@ -37,6 +37,7 @@
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 
 using namespace std;
 
@@ -88,31 +89,6 @@ namespace OpenMS
     // Spectra were simply concatenated, so they are not sorted by position anymore
     resulting_spectrum.sortByPosition();
     return resulting_spectrum;
-  }
-
-  void OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count)
-  {
-    if (spectrum.size() <= peak_count) return;
-
-    // sort by reverse intensity
-    spectrum.sortByIntensity(true);
-
-    // keep the n largest peaks if more than n are present
-    spectrum.resize(peak_count);
-
-    // also resize DataArrays
-    for (Size i = 0; i < spectrum.getFloatDataArrays().size(); i++)
-    {
-      spectrum.getFloatDataArrays()[i].resize(peak_count);
-    }
-    for (Size i = 0; i < spectrum.getStringDataArrays().size(); i++)
-    {
-      spectrum.getStringDataArrays()[i].resize(peak_count);
-    }
-    for (Size i = 0; i < spectrum.getIntegerDataArrays().size(); i++)
-    {
-      spectrum.getIntegerDataArrays()[i].resize(peak_count);
-    }
   }
 
   PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool labeled)
@@ -179,7 +155,8 @@ namespace OpenMS
         PeakSpectrum filtered = exp[exp_index];
         if (!labeled) // this kind of filtering is not necessary for labeled cross-links, since they area filtered by comparing heavy and light spectra later
         {
-          OPXLSpectrumProcessingAlgorithms::nLargestSpectrumFilter(filtered, 500);
+          NLargest nfilter(500);
+          nfilter.filterSpectrum(filtered);
         }
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after filtering

@@ -56,13 +56,6 @@ namespace OpenMS
       static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum);
 
       /**
-       * @brief Filters a spectrum by keeping only the given number of largest peaks while correctly considering metainfo in DataArrays
-       * @param spectrum The filtered spectrum
-       * @param peak_count The number of largest peaks to keep
-       */
-      static void nLargestSpectrumFilter(PeakSpectrum & spectrum, Size peak_count);
-
-      /**
        * @brief Preprocesses spectra
        *
        * Filters out spectra with too few peaks (based on peptide_min_size) and those that do not fit into the precursor charge range.
