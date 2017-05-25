@@ -40,7 +40,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <algorithm>
 #include <numeric>
@@ -302,18 +303,18 @@ namespace OpenMS
 
             vector<double> topn_fe;
             topn_fe.resize(fragmenterrors.size());
-            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin()); //possible due to the sortByIntensity
+            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin());  // fragmenterrors is sortByIntensity before, get TopN from the back of the vector
             topn_fe.resize(topNmatch_fragmenterrors_);
 
-            double sum = std::accumulate(topn_fe.begin(), topn_fe.end(), 0.0);
-            double mean = sum / topn_fe.size();
+            double mean = Math::mean(topn_fe.begin(), topn_fe.end());
+            double stdev = Math::sd(topn_fe.begin(), topn_fe.end(), mean);
 
-            std::vector<double> diff(topn_fe.size());
-            std::transform(topn_fe.begin(), topn_fe.end(), diff.begin(),
-                           std::bind2nd(std::minus<double>(), mean));
-            double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+            double sq_sum = 0;
+            for (std::vector<double>::iterator it = topn_fe.begin(); it != topn_fe.end(); ++it)
+            {
+              sq_sum += *it * *it;
+            }
             double m_sq_sum = (sq_sum / topn_fe.size());
-            double stdev = std::sqrt(sq_sum / topn_fe.size());
 
             ph->setMetaValue("topN_meanfragmenterror", mean);
             ph->setMetaValue("topN_MSEfragmenterror", m_sq_sum);

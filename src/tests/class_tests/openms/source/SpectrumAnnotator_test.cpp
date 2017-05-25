@@ -123,7 +123,7 @@ START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentificati
     TEST_EQUAL(pi.getHits()[i].getMetaValue("precursor_in_ms2"), false)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("topN_meanfragmenterror"),0.00051117)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("topN_MSEfragmenterror"),0)
-    TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("topN_stddevfragmenterror"),0.0002346)
+    TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("topN_stddevfragmenterror"),0.0002534)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("median_fragment_error"),0.0003167)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("IQR_fragment_error"),0.000486)
     TEST_REAL_SIMILAR(pi.getHits()[i].getMetaValue("NTermIonCurrentRatio"),0.454545)
