@@ -130,7 +130,13 @@ function(openms_add_library)
   set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
       CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
-    
+
+  #------------------------------------------------------------------------------
+  # Include directories
+  include_directories(${openms_add_library_INTERNAL_INCLUDES})
+  include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
+  include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
+
   #------------------------------------------------------------------------------
   # Check if we want a unity build
   if (ENABLE_UNITYBUILD)
@@ -141,17 +147,6 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
-
-
-  #------------------------------------------------------------------------------
-  # Include directories
-  target_include_directories(${openms_add_library_TARGET_NAME}
-                             PUBLIC
-                             "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
-                             "$<INSTALL_INTERFACE:include>")
-  #include_directories()
-  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_EXTERNAL_INCLUDES})
-  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
@@ -172,9 +167,9 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Link library against other libraries
   if(openms_add_library_LINK_LIBRARIES)
-    ## check for consistent lib arch (e.g. all 64bit?)
+    ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} PRIVATE ${openms_add_library_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
 
