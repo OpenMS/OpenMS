@@ -91,6 +91,8 @@ if(NOT CMAKE_MODULE_PATH)
 	set(CMAKE_MODULE_PATH)
 endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+## CMake looks for the NSIS script in the module path.
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
 
 #------------------------------------------------------------------------------
@@ -126,9 +128,6 @@ else()
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
   message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
 endif()
-
-# add some informations used when building packages
-include(cmake/package_definitions.cmake)
 
 #------------------------------------------------------------------------------
 # Unsupported systems
@@ -288,7 +287,8 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "rpm"  # rpm package
                         "deb"  # deb package
-                        "dmg") # a drag&drop dmg package for macosx
+                        "dmg"  # a drag&drop dmg package for macosx
+                        "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
 is_valid_package(${PACKAGE_TYPE})
@@ -323,12 +323,28 @@ install_export_targets()
 # build settings and configs for external code
 #------------------------------------------------------------------------------
 # install routines for ..
-if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
-  include(cmake/package_dragndrop_dmg.cmake)
-elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
-  include(cmake/package_rpm.cmake)
-elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. deps
-  include(cmake/package_deb.cmake)
+if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
+  ## Needed in package_general.cmake
+  set(PACKAGE_LIB_DIR lib)
+  set(PACKAGE_BIN_DIR bin)
+  
+  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
+    set(PACKAGE_BIN_DIR TOPP)
+    include(cmake/package_general.cmake)
+    include(cmake/package_dragndrop_dmg.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+    include(cmake/package_general.cmake)
+    include(cmake/package_rpm.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
+    include(cmake/package_general.cmake)
+    include(cmake/package_deb.cmake)
+    elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
+    set(PACKAGE_LIB_DIR bin)
+    include(cmake/package_general.cmake)
+    include(cmake/package_nsis.cmake)
+  endif()
+  
+  include(CPack)
 endif()
 
 #------------------------------------------------------------------------------
