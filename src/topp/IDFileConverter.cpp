@@ -396,7 +396,7 @@ protected:
             peptide_identifications, mz_file, false, !getFlag_("no_spectra_data_override"), protein_identifications);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
-          if (add_ions>0)
+          if (add_ions > 0)
           {
             add_ionmatches_(peptide_identifications, mz_file, add_ions);
           }
