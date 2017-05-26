@@ -27,7 +27,7 @@ SetCompressor /SOLID lzma
 ### let Cfg_Settings.nsh.in be configured by CMake. Then include:
 !include ..\..\..\Cfg_Settings.nsh
 ### NSISRESOURCES now consists of the cmake/Windows directory of the source tree.
-!addplugindir ${NSISRESOURCES}
+!addplugindir ${NSISRESOURCES}\Plugins\x86-unicode
 
 # set to "0" for deployment!!! use "1" to build the executable fast (for script debugging) 
 !define DEBUG_BUILD 0
