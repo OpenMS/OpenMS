@@ -14,5 +14,5 @@
 # path to OpenMS - doc
 !define OPENMSDOCDIR "@PROJECT_BINARY_DIR@\doc"
 # path to Thirdparty executables
-!defin THIRDPARTYDIR "@SEARCH_ENGINES_DIRECTORY@"
+!define THIRDPARTYDIR "@SEARCH_ENGINES_DIRECTORY@"
 
