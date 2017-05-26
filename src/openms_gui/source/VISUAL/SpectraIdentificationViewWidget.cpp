@@ -891,28 +891,6 @@ namespace OpenMS
       return;
     }
 
-    Size n_col = table_widget_->columnCount();
-    Size id_col = 0;
-    Size ph_col = 0;
-    Size sel_col = 0;
-
-    for (Size c = 0; c < n_col; ++c)
-    {
-      String col_head = table_widget_->horizontalHeaderItem(c)->text();
-      if (col_head == "#ID")
-      {
-        id_col = c;
-      }
-      if (col_head == "#PH")
-      {
-        ph_col = c;
-      }
-      if (col_head == "Curated")
-      {
-        sel_col = c;
-      }
-    }
-
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "mzIdentML file (*.mzid)");
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
@@ -952,7 +930,6 @@ namespace OpenMS
     Size n_col = table_widget_->columnCount();
     Size id_col = 0;
     Size ph_col = 0;
-    Size sel_col = 0;
 
     for (Size c = 0; c < n_col; ++c)
     {
@@ -964,10 +941,6 @@ namespace OpenMS
       if (col_head == "#PH")
       {
         ph_col = c;
-      }
-      if (col_head == "Curated")
-      {
-        sel_col = c;
       }
     }
 
