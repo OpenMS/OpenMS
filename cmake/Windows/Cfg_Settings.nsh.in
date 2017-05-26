@@ -1,7 +1,7 @@
 # path to visual studio redistributable (has to match your CMake generator)
-!define VS_REDISTRIBUTABLE_EXE "@VS_REDIST_PATH@"
+!define VS_REDISTRIBUTABLE_EXE "@VC_REDIST_PATH@"
 # define your platform:
-!define PLATFORM "64"
+!define PLATFORM "@PLATFORM@"
 # path to QT dlls
 !define QTLIBDIR "@QT_BINARY_DIR@"
 # path to contrib
@@ -10,9 +10,9 @@
 !define OPENMSDIR "@PROJECT_BINARY_DIR@"
 # path to OpenMS - source tree
 !define OPENMSDIRSRC "@PROJECT_SOURCE_DIR@"
-!define NSISRESOURCES "${OPENMSDIRSRC}\cmake\Windows"
+!define NSISRESOURCES "@PROJECT_SOURCE_DIR@/cmake/Windows"
 # path to OpenMS - doc
-!define OPENMSDOCDIR "@PROJECT_BINARY_DIR@\doc"
+!define OPENMSDOCDIR "@PROJECT_BINARY_DIR@/doc"
 # path to Thirdparty executables
 !define THIRDPARTYDIR "@SEARCH_ENGINES_DIRECTORY@"
 

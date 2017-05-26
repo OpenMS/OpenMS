@@ -1,5 +1,8 @@
 ## most of this is copied from VLC install script
 ## , with bugfixes and decorated with some additional comments for better understanding
+!ifndef FOLDERLIST_EXE
+  !define FOLDERLIST_EXE FolderList.exe
+!endif
 
 ;;;;;;;;;;;;;;;
 ; 4. Logging  ;
@@ -46,8 +49,8 @@ Var UninstallLog   # handle to a log file
 
 !macro InstallFolder FOLDER EXCLUDEREGEX
   #old: File /r "${FOLDER}"
-  !system "FolderList.exe /r $\"${FOLDER} $\" $\"${EXCLUDEREGEX}$\"" 
-  !include "FolderList.exe.txt" 
+  !system "${FOLDERLIST_EXE} /r $\"${FOLDER} $\" $\"${EXCLUDEREGEX}$\"" 
+  !include "${FOLDERLIST_EXE}.txt" 
   
   Push "$OUTDIR"
   Call InstallFolderInternal

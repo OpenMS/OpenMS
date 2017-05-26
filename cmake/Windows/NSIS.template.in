@@ -18,12 +18,16 @@ OutFile "@CPACK_TOPLEVEL_DIRECTORY@/@CPACK_OUTPUT_FILE_NAME@"
 SetCompressor /SOLID lzma
 !define INST_DIR "@CPACK_TEMPORARY_DIRECTORY@"
 !define VERSION "@CPACK_PACKAGE_VERSION@"
+## Long version has to have 4 levels...
+!define VERSION_LONG "@CPACK_PACKAGE_VERSION@.0"
 
 ##################
 ###   config   ###
 ##################
 ### let Cfg_Settings.nsh.in be configured by CMake. Then include:
 !include ..\..\..\Cfg_Settings.nsh
+### NSISRESOURCES now consists of the cmake/Windows directory of the source tree.
+!addplugindir ${NSISRESOURCES}
 
 # set to "0" for deployment!!! use "1" to build the executable fast (for script debugging) 
 !define DEBUG_BUILD 0
@@ -86,6 +90,7 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 !include FileFunc.nsh
 !include ${NSISRESOURCES}\UAC.nsh
 !include ${NSISRESOURCES}\IncludeScript_Misc.nsh
+!define FOLDERLIST_EXE ${NSISRESOURCES}\FolderList.exe
 !include ${NSISRESOURCES}\IncludeScript_FileLogging.nsh
 !include ${NSISRESOURCES}\EnvVarUpdate.nsh
 !include x64.nsh
@@ -171,7 +176,6 @@ InstType "Minimum"      #2
 InstType "Full"         #3
 
 # Installer attributes
-OutFile ${CPACK_PACKAGE_FILE_NAME}.exe
 !if ${PLATFORM} == 32
 	InstallDir "$PROGRAMFILES32\OpenMS-${VERSION}"
 !else
@@ -436,8 +440,7 @@ FunctionEnd
 
 
 Section "-Create_StartMenu" SEC_StartMenuCreate
-  GetFunctionAddress $0 CreateShortcuts
-  UAC::ExecCodeSegment $0
+  Call CreateShortcuts
 SectionEnd
 
 Section "-Create_command_bat" SEC_CmdBat
@@ -579,7 +582,7 @@ Function .onInit
   # show splash screen
   InitPluginsDir
   Push $R1
-  File /oname=$PLUGINSDIR\spltmp.bmp OpenMS_splash.bmp
+  File /oname=$PLUGINSDIR\spltmp.bmp ${NSISRESOURCES}\OpenMS_splash.bmp
   advsplash::show 1000 600 400 -1 $PLUGINSDIR\spltmp
   Pop $R1
   Pop $R1
@@ -736,8 +739,7 @@ Section "Uninstall"
     RmDir /REBOOTOK $INSTDIR
 
     ## delete start menu entries (via user process to find the correct $SMPROGRAMS directory)
-    GetFunctionAddress $0 un.clearStartMenu
-    UAC::ExecCodeSegment $0
+    Call un.clearStartMenu
 
 
 SectionEnd
