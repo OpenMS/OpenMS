@@ -248,13 +248,14 @@ endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
 
+## Why force it absolute??
 # Make relative paths absolute (needed later on)
-foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
-  set(var INSTALL_${p}_DIR)
-  if(NOT IS_ABSOLUTE "${${var}}")
-    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
-  endif()
-endforeach()
+# foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
+#   set(var INSTALL_${p}_DIR)
+#   if(NOT IS_ABSOLUTE "${${var}}")
+#     set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+#   endif()
+# endforeach()
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat

@@ -78,18 +78,18 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 
 # Included files
 
-# MUI2 somehow crashes with NSIS3.0 release/stable. Switched to MuiEx (from UltraMui) that seems better supported and has legacy option.
+# MUI2 somehow crashes with NSIS3.0 release/stable. Switched to MuiEx (belongs to UltraMui) that seems better supported and has legacy option.
 #!include MUI2.nsh
 !include MUIEx.nsh
 !include Sections.nsh
 !include Library.nsh
 !include FileFunc.nsh
-!include UAC.nsh
-!include IncludeScript_Misc.nsh
-!include IncludeScript_FileLogging.nsh
-!include EnvVarUpdate.nsh
+!include ${NSISRESOURCES}\UAC.nsh
+!include ${NSISRESOURCES}\IncludeScript_Misc.nsh
+!include ${NSISRESOURCES}\IncludeScript_FileLogging.nsh
+!include ${NSISRESOURCES}\EnvVarUpdate.nsh
 !include x64.nsh
-!include LogicLib.nsh
+!include ${NSISRESOURCES}\LogicLib.nsh
 
 # Reserved Files
 !insertmacro MUI_RESERVEFILE_LANGDLL
