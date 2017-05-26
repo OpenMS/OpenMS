@@ -917,33 +917,6 @@ namespace OpenMS
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
-    // update all "selected" fields in the PeptideHits
-    for (int r = 0; r < table_widget_->rowCount(); ++r)
-    {
-      int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
-      int num_id = table_widget_->item(r, id_col)->text().toInt();
-      int num_ph = table_widget_->item(r, ph_col)->text().toInt();
-      bool selected = table_widget_->item(r, sel_col)->checkState() == 2;
-
-
-      vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
-
-
-      if (selected)
-      {
-        // update "selected" value
-        vector<PeptideHit> hits = pep_id[num_id].getHits();
-        // update both PeptideHits, since they belong to the same cross-link (XL-MS specific)
-        hits[0].setMetaValue("selected", "true");
-        if (hits.size() >= 2)
-        {
-          hits[1].setMetaValue("selected", "true");
-        }
-        pep_id[num_id].setHits(hits);
-      }
-      (*layer_->getPeakData())[spectrum_index].setPeptideIdentifications(pep_id);
-    }
-
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
     vector<int> added_spectra;
     for (int r = 0; r < table_widget_->rowCount(); ++r)
