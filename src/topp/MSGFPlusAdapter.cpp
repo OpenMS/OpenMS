@@ -730,6 +730,9 @@ protected:
         for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
         {
           switchScores_(*pep_it);
+
+          // MSGFPlus doesn't store the unit (minutes) used for retention times. Convert it to the default (seconds).
+          pep_it.setRT(pep_it.getRT() * 60.0);
         }
 
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
