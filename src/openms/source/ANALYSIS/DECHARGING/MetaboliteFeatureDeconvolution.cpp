@@ -223,28 +223,31 @@ namespace OpenMS
       Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
       if (pos_charge > 0 && neg_charge > 0)
       {
-        String error = "MetaboliteFeatureDeconvolution::potential_adducts mixes charges for an adduct!";      
-      }
-      if (pos_charge > 0)
+        String error = "MetaboliteFeatureDeconvolution::potential_adducts mixes charges for an adduct!";
+      }else if (pos_charge > 0)
       {
         EmpiricalFormula ef(adduct[0]);
         ef -= EmpiricalFormula("H" + String(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
         potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
-      }      
-      if (neg_charge > 0)
+      }else if (neg_charge > 0)
       {
         if(adduct[0] == "H-1")
         {
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
-        }else//stuff like Cl-, Br-. Dont want to think about it currently, just mirror positive mode case and add the electronweight
+        }else        
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
-        }
-        
-      }      
+        }        
+      }else//pos,neg == 0
+      {//in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
+        EmpiricalFormula ef(adduct[0]);
+        ef -= EmpiricalFormula("H" + String(pos_charge));
+        ef.setCharge(pos_charge); // effectively subtract electron masses
+        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));      
+      }    
 
       verbose_level_ = param_.getValue("verbose_level");
     }
@@ -351,15 +354,14 @@ namespace OpenMS
     Adduct default_adduct;
     if(is_neg)
     {
-      //For negative mode, we need deprotonation. We know that this should be the only negative one, just add it manually. Provide high probability.
+      //for negative mode, the default adduct should be deprotonation (added by the user)
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
     // e^(log prob_H)*e^(log prob_Na) = *e^(log prob_Na) * *e^(log prob_Na)
     }else
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
     }
-    potential_adducts_.push_back(default_adduct);
-
+    
 
 
 
@@ -1127,8 +1129,7 @@ namespace OpenMS
         {
           it->second.setLogProb(0);
         }
-        ChargePair cp(edges[i]); // make a copy
-       
+        ChargePair cp(edges[i]); // make a copy       
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
 
         LOG_INFO << "original cmp: " << cp.getCompomer().getAdductsAsString() << "\n";
@@ -1136,33 +1137,46 @@ namespace OpenMS
 
         new_cmp.add(to_add, Compomer::LEFT);
         new_cmp.add(to_add, Compomer::RIGHT);
-        new_cmp.getAdductsAsString();
-        LOG_INFO << "undefault with added: " << new_cmp.getAdductsAsString() << "\n";       
+        LOG_INFO << "undefault with added candidate: " << new_cmp.getAdductsAsString() << "\n";       
         // refill with default adducts (usually H+):
         if (((cp.getCharge(0) - new_cmp.getNegativeCharges()) % default_adduct.getCharge() == 0) &&
             ((cp.getCharge(1) - new_cmp.getPositiveCharges()) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
         {
           int hc_left, hc_right;
+          LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
+          LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
+          // this is only the absolute charge            
+          LOG_INFO << "new_cmp.getNegativeCharges(): " << new_cmp.getNegativeCharges() << "\n";
+          LOG_INFO << "new_cmp.getPositiveCharges(): " << new_cmp.getPositiveCharges() << "\n";
+
           if(is_neg)
           {
-            LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
-            LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
-            // this is only the absolute charge
-            
-            LOG_INFO << "new_cmp.getNegativeCharges(): " << new_cmp.getNegativeCharges() << "\n";
-            LOG_INFO << "new_cmp.getPositiveCharges(): " << new_cmp.getPositiveCharges() << "\n";            
-            
             //not sure how to proceed, for now don't use in negative mode
-          
             //We swap the positive/negative charge of the compomer because we go from e.g., -3 to -1 but only see the absolute amount 3 to 1
             //I.e., instead of hc gain count, count of h-1 losses
             //OR NOT??
-            int hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!
-            int hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!          
+            hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!
+            hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!          
           }else
           {
-            int hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
-            int hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!         
+          LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
+          LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
+          // this is only the absolute charge            
+          LOG_INFO << "new_cmp.getNegativeCharges(): " << new_cmp.getNegativeCharges() << "\n";
+          LOG_INFO << "new_cmp.getPositiveCharges(): " << new_cmp.getPositiveCharges() << "\n";
+          LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
+          LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
+          // this is only the absolute charge            
+          LOG_INFO << "hcleft delta: " << (cp.getCharge(0) - new_cmp.getNegativeCharges()) << "\n";
+          LOG_INFO << "hcright delta: " << (cp.getCharge(1) - new_cmp.getPositiveCharges()) << "\n";
+          LOG_INFO << "default adduct charge: " << default_adduct.getCharge() << "\n";
+
+
+            hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
+            hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!         
+          LOG_INFO << "hcleft: " << hc_left << "\n";
+          LOG_INFO << "hcright: " << hc_right << "\n";
+
           }
           
 
@@ -1182,6 +1196,7 @@ namespace OpenMS
             //agains, swap hack? or not?
             if (is_neg)
             {
+              std:cout << "is_neg is true!\n";
               left_charge = new_cmp.getNegativeCharges();
               right_charge = new_cmp.getPositiveCharges();
             }else
