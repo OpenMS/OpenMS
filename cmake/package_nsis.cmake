@@ -14,10 +14,7 @@ endif()
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)
 	if(CMAKE_GENERATOR MATCHES ".*Visual Studio 1[1-9].*")
-
-	  ## TODO make it to NATIVE PATH!!!
-	  
-	  set(VC_REDIST_PATH "$ENV{VSINSTALLDIR}/VC/redist/1033/vcredist_${ARCH}.exe")
+	  set(VC_REDIST_PATH "$ENV{VSINSTALLDIR}VC\redist\1033\vcredist_${ARCH}.exe")
 	else()
 	  message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Before Visual Studio 2012 you have to provide the file and its path on your own.")
 	endif()

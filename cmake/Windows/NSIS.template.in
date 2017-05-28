@@ -50,12 +50,6 @@ SetCompressor /SOLID lzma
   !define VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE "vcredist2013_x64_upd2.exe"
 !endif
 
-!if ${THIRDPARTYDIR} == ""
-!warning "Variable THIRDPARTYDIR not set. Will deactivate installation of Thirdparty binaries."
-## TODO SetSectionFlag not defined??
-##!insertmacro SetSectionFlag ${SEC_ThirdParty} ${SECTION_OFF} 
-!endif
-
 # which extensions to connect to TOPPView and TOPPAS
 !macro OpenMSGUIExtensions _action
   !insertmacro ${_action} ".mzData" "TOPPView"
@@ -101,6 +95,11 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 # Modify the next line to adapt to the plugin for other NSIS versions (currently 3.0 release)
 # e.g. NSIS 2.x does not have the subfolders x86-unicode or x86-ansi, so remove them.
 ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
+
+!if ${THIRDPARTYDIR} == ""
+!warning "Variable THIRDPARTYDIR not set. Will deactivate installation of Thirdparty binaries."
+  !insertmacro SetSectionFlag ${SEC_ThirdParty} ${SECTION_OFF} 
+!endif
 
 ;--------------------------------
 ;Interface Configuration
@@ -308,7 +307,7 @@ SectionEnd
 ## Third party libs
 SectionGroup "ThirdParty" SEC_ThirdParty   
 	!if ${DEBUG_BUILD} == 0
-		Section "Proteowizard"
+		Section "Proteowizard" SEC_pwiz
 		    SectionIn 1 3
 			!insertmacro OpenUninstallLog
 			SetOverwrite on
@@ -316,30 +315,36 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 			SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
       !insertmacro InstallFolder "${THIRDPARTYDIR}\pwiz-bin\*.*" ".git\"
 
+      !insertmacro CloseUninstallLog
+    SectionEnd
+
+    Section ".NET and VCRedist for Proteowizard" SEC_dotnet
+        SectionIn 1 3
+      !insertmacro OpenUninstallLog
+      SetOverwrite on
+
+      Var /GLOBAL netSilentArgs
+      StrCpy netSilentArgs ""
+      IfSilent 0 +2
+        StrCpy netSilentArgs "/q /norestart"
+
 			## download .NET 3.5 and 4.0 (required by pwiz)
-			MessageBox MB_YESNO "Proteowizard requires both .NET 3.5 SP1 and .NET 4.0 installed. The installer will now download 'Microsoft .NET 3.5 SP1'. \
-					   If you already have 'Microsoft .NET 3.5 SP1' installed you can skip this step. Do you wish to download it?" \
-					   IDNO net35_install_success
 
 			inetc::get /BANNER "Getting .NET 3.5 SP1 installer." \
 					"http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f0%2f6%2f1%2f061F001C-8752-4600-A198-53214C69B51F%2fdotnetfx35setup.exe" \
 					"$EXEDIR\NET3.5_SP1_installer.exe"
 			Pop $0
 			StrCmp $0 "OK" dl35ok
-			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 3.5 SP1' failed. You must download and install it manually in order for Proteowizard to work!"
+			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 3.5 SP1' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 				
 			dl35ok:
 			ClearErrors
-			ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe"' $0
+			ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe" netSilentArgs' $0
 			StrCmp $0 0 net35_install_success
-			MessageBox MB_OK "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!"
+			MessageBox MB_OK "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 			
 			net35_install_success:
 			## .NET 3.5 installed, yeah!
-
-			MessageBox MB_YESNO "The installer will now download 'Microsoft .NET 4.0', which is required by Proteowizard. \
-					   If you already have 'Microsoft .NET 4.0' installed you can skip this step. Do you wish to download it?" \
-					   IDNO net40_install_success
 
 			inetc::get /BANNER "Getting .NET 4.0 installer." \
 					"http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f9%2f5%2fA%2f95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE%2fdotNetFx40_Full_x86_x64.exe" \
@@ -347,13 +352,13 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 					
 			Pop $0
 			StrCmp $0 "OK" dl40ok
-			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 4.0' failed. You must download and install it manually in order for Proteowizard to work!"
+			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 4.0' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 				
 			dl40ok:
 			ClearErrors
-			ExecWait '"$EXEDIR\NET4.0_installer.exe"' $0
+			ExecWait '"$EXEDIR\NET4.0_installer.exe" netSilentArgs' $0
 			StrCmp $0 0 net40_install_success
-			MessageBox MB_OK "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!"
+			MessageBox MB_OK "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 			
 			net40_install_success:
 			## .NET 4.0 installed, yeah!
@@ -363,7 +368,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 			SetOutPath $TEMP
 			SetOverwrite on
 
-			!insertmacro InstallFile  ${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}
+			!insertmacro InstallFile  "${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}"
 			ClearErrors
 			ExecWait '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE} /q' $0
 			StrCmp $0 0 vs_pwiz_install_success
@@ -371,7 +376,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 			
 			vs_pwiz_install_success:
 			
-      !insertmacro InstallFile  ${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}
+      !insertmacro InstallFile  "${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}"
 			ClearErrors
 			ExecWait '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE} /q' $0
 			StrCmp $0 0 vs_pwiz_add1_install_success
@@ -379,7 +384,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 
 			vs_pwiz_add1_install_success:
 
-      !insertmacro InstallFile  ${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}
+      !insertmacro InstallFile  "${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}"
 			ClearErrors
 			ExecWait '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE} /q' $0
 			StrCmp $0 0 vs_pwiz_add2_install_success
@@ -400,8 +405,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
       !delfile "${filelist}"
 
 	!endif
-	
-
+	 
 SectionGroupEnd
 
 Section "-License" SEC_License
@@ -548,7 +552,7 @@ Section "-hidden VSRuntime"
 	SetOutPath $TEMP
     SetOverwrite on
 
-    !insertmacro InstallFile  ${VS_REDISTRIBUTABLE_EXE}
+    !insertmacro InstallFile "${VS_REDISTRIBUTABLE_EXE}"
 	ClearErrors
     ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /q' $0
 	StrCmp $0 0 vs_install_success
@@ -576,13 +580,55 @@ Section -post SEC0008
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
 SectionEnd
 
+Function parseParameters
+
+    ; /nothirdparty
+    ${GetOptions} $cmdLineParams '/nothirdparty' $R0
+    IfErrors 0 +2
+    !insertmacro ClearSectionFlag ${SEC_ThirdParty} ${SF_SELECTED} 
+
+    ; /nopwiz
+    ${GetOptions} $cmdLineParams '/nopwiz' $R0
+    IfErrors 0 +2
+    !insertmacro ClearSectionFlag ${SEC_pwiz} ${SF_SELECTED} 
+
+    ; /nodotnet
+    ${GetOptions} $cmdLineParams '/nodotnet' $R0
+    IfErrors 0 +2
+    !insertmacro ClearSectionFlag ${SEC_dotnet} ${SF_SELECTED} 
+
+FunctionEnd
+
 # Installer functions
 Function .onInit
  
+  # Command line options for silent install (with "/S")
+
+  # Get parameters
+  Var /GLOBAL cmdLineParams
+  Push $R0
+  ${GetParameters} $cmdLineParams
+
+  ; /? param (help)
+  ClearErrors
+  ${GetOptions} $cmdLineParams '/?' $R0
+  IfErrors +3 0
+  MessageBox MB_OK "You can use the following command line parameters to disable the corresponding sections: /nothirdparty, /nopwiz, /nodotnet"
+  Abort
+
+  Pop $R0
+
+  #Initialise options
+
+  # Parse Parameters
+  Push $R0
+  Call parseParameters
+  Pop $R0
+
   # show splash screen
   InitPluginsDir
   Push $R1
-  File /oname=$PLUGINSDIR\spltmp.bmp ${NSISRESOURCES}\OpenMS_splash.bmp
+  File /oname=$PLUGINSDIR\spltmp.bmp "${NSISRESOURCES}\images\OpenMS_splash.bmp"
   advsplash::show 1000 600 400 -1 $PLUGINSDIR\spltmp
   Pop $R1
   Pop $R1
