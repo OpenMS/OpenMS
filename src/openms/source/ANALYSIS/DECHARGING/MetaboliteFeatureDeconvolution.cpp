@@ -468,11 +468,7 @@ namespace OpenMS
             // choose most probable hit (TODO think of something clever here)
             // for now, we take the one that has highest p in terms of the compomer structure
             if (hits > 0)
-            {
-              std::cout << "DEBUG reached mz1: " << mz1 << " putative charge: " << q1 << "\n";
-              std::cout << "DEBUG reached mz2: " << mz2 << " putative charge: " << q2 << "\n";
-              std::cout << "DEBUG reached hits: " << hits << " with delta_m: " << naive_mass_diff << " and thres: " << thresh_logp << "\n";            
-              
+            {      
               Compomer best_hit = null_compomer;
               for (; md_s != md_e; ++md_s)
               {
@@ -480,39 +476,12 @@ namespace OpenMS
                 if (fabs(f1.getRT() - f2.getRT() + md_s->getRTShift()) > rt_diff_max_local)
                   continue;
 
-                std::cout << md_s->getAdductsAsString() << " neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
-
-//DEBUG reached mz1: 98.9927 putative charge: -3
-//DEBUG reached mz2: 298.993 putative charge: -1
-//DEBUG reached hits: 1 with delta_m: 2.01455 and thres: -2.30259
-//(H-2) --> () neg: 0 pos: 2 p: 0 
-
-//DEBUG reached mz1: 298.993 putative charge: -1
-//DEBUG reached mz2: 320.975 putative charge: -1
-//DEBUG reached hits: 1 with delta_m: 21.9819 and thres: -2.30259
-//() --> (H-1Na1) neg: 1 pos: 1 p: -2.30259                 
-                //getNegativeCharges: net charges on left
-                //if negative mode, charge goes from 3 to 1, i.e it loses 2 charges
-                //think about positive case: from 1..3; 101 vs 301, assumed charges q1=3, q2=1
-                
-//pos
-//DEBUG default adduct charge: 1
-//DEBUG reached mz1: 101.007 putative charge: 3
-//DEBUG reached mz2: 301.007 putative charge: 1
-//DEBUG reached hits: 1 with delta_m: -2.01455 and thres: -6.90776
-//(H2) --> () neg: 2 pos: 0 p: 0 
-
-
-//DEBUG default adduct charge: 1
-//DEBUG reached mz1: 301.007 putative charge: 1
-//DEBUG reached mz2: 322.989 putative charge: 1
-//DEBUG reached hits: 1 with delta_m: 21.9819 and thres: -6.90776
-//(H1) --> (Na1) neg: 1 pos: 1 p: -2.30259 
+                //std::cout << md_s->getAdductsAsString() << " neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
                 int left_charges, right_charges;
                 if (is_neg)
                 {
-                  left_charges = -md_s->getPositiveCharges();//right this way? verify with CL- Do we have to think in charge deltas? substract opposing charges?
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case..                                
+                  left_charges = -md_s->getPositiveCharges();
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)                                
                 }else
                 {
                   left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
@@ -534,7 +503,7 @@ namespace OpenMS
                   Compomer cmp = me.getCompomerById(md_s->getID());
                   if (is_neg)
                   {
-                    left_charges = -cmp.getPositiveCharges();//right this way? verify with CL-
+                    left_charges = -cmp.getPositiveCharges();
                     right_charges = -cmp.getNegativeCharges();                                   
                   }else
                   {
@@ -550,7 +519,6 @@ namespace OpenMS
                     continue;
                   }
 
-                  std::cout << "DEBUG default adduct charge: " << default_adduct.getCharge() << "\n";
                   int hc_left  = (q1 - left_charges) / default_adduct.getCharge();//this should always be positive! check!!
                   int hc_right = (q2 - right_charges) / default_adduct.getCharge();//this should always be positive! check!!
 
@@ -589,7 +557,6 @@ namespace OpenMS
                     cmp.add(default_adduct * hc_right, Compomer::RIGHT);
 
                   ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
-                  //std::cout << print charge pair? << "\n";
                   feature_relation.push_back(cp);
                 }
               } // ! hits loop
@@ -1132,50 +1099,22 @@ namespace OpenMS
         ChargePair cp(edges[i]); // make a copy       
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
 
-        LOG_INFO << "original cmp: " << cp.getCompomer().getAdductsAsString() << "\n";
-        LOG_INFO << "original cmp without default: " << new_cmp.getAdductsAsString() << "\n";        
-
         new_cmp.add(to_add, Compomer::LEFT);
         new_cmp.add(to_add, Compomer::RIGHT);
-        LOG_INFO << "undefault with added candidate: " << new_cmp.getAdductsAsString() << "\n";       
         // refill with default adducts (usually H+):
         if (((cp.getCharge(0) - new_cmp.getNegativeCharges()) % default_adduct.getCharge() == 0) &&
             ((cp.getCharge(1) - new_cmp.getPositiveCharges()) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
         {
           int hc_left, hc_right;
-          LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
-          LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
-          // this is only the absolute charge            
-          LOG_INFO << "new_cmp.getNegativeCharges(): " << new_cmp.getNegativeCharges() << "\n";
-          LOG_INFO << "new_cmp.getPositiveCharges(): " << new_cmp.getPositiveCharges() << "\n";
 
           if(is_neg)
           {
-            //not sure how to proceed, for now don't use in negative mode
-            //We swap the positive/negative charge of the compomer because we go from e.g., -3 to -1 but only see the absolute amount 3 to 1
-            //I.e., instead of hc gain count, count of h-1 losses
-            //OR NOT??
             hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!
             hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!          
           }else
           {
-          LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
-          LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
-          // this is only the absolute charge            
-          LOG_INFO << "new_cmp.getNegativeCharges(): " << new_cmp.getNegativeCharges() << "\n";
-          LOG_INFO << "new_cmp.getPositiveCharges(): " << new_cmp.getPositiveCharges() << "\n";
-          LOG_INFO << "cp charge(0): " << cp.getCharge(0) << "\n";
-          LOG_INFO << "cp charge(1): " << cp.getCharge(1) << "\n";          
-          // this is only the absolute charge            
-          LOG_INFO << "hcleft delta: " << (cp.getCharge(0) - new_cmp.getNegativeCharges()) << "\n";
-          LOG_INFO << "hcright delta: " << (cp.getCharge(1) - new_cmp.getPositiveCharges()) << "\n";
-          LOG_INFO << "default adduct charge: " << default_adduct.getCharge() << "\n";
-
-
             hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
             hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!         
-          LOG_INFO << "hcleft: " << hc_left << "\n";
-          LOG_INFO << "hcright: " << hc_right << "\n";
 
           }
           
@@ -1189,14 +1128,11 @@ namespace OpenMS
             if (hc_right > 0)
               new_cmp.add(default_adduct * hc_right, Compomer::RIGHT);
 
-            LOG_INFO << "undefault with added and redefaulted: " << new_cmp.getAdductsAsString() << "\n";       
-
             // charge constraints of feature still fulfilled?
             int left_charge, right_charge;
             //agains, swap hack? or not?
             if (is_neg)
             {
-              std:cout << "is_neg is true!\n";
               left_charge = new_cmp.getNegativeCharges();
               right_charge = new_cmp.getPositiveCharges();
             }else
