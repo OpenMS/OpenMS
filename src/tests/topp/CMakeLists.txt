@@ -269,6 +269,9 @@ set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_2" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out FeatureFinderMetabo_2.tmp)
 add_test("TOPP_FeatureFinderMetabo_2_out" ${DIFF} -whitelist "id=" "completion_time" -in1 FeatureFinderMetabo_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_2_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_2")
+add_test("TOPP_FeatureFinderMetabo_3" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_3.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_input.mzML -out FeatureFinderMetabo_3.tmp -out_chrom FeatureFinderMetabo_3_chrom.tmp)
+add_test("TOPP_FeatureFinderMetabo_3_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_3_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderMetabo_3_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_3")
 
 #------------------------------------------------------------------------------
 # FeatureFinderCentroided test
