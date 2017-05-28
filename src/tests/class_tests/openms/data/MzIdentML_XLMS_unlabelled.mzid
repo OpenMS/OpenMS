@@ -61,7 +61,7 @@
 		<Modification location="2" residues="M"> 
 			<cvParam accession="UNIMOD:35" name="Oxidation" cvRef="UNIMOD"/>
 		</Modification> 
-		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796"> 
+		<Modification location="0" residues="K" monoisotopicMassDelta="138.0680796"> 
 			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7259119189301972185"/>
 		</Modification> 

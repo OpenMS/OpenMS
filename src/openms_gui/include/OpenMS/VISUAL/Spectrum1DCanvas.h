@@ -41,6 +41,8 @@
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 
+#include <QTextDocument>
+
 // STL
 #include <vector>
 #include <utility>
@@ -125,6 +127,9 @@ public:
 
     /// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
     PointType widgetToData(double x, double y, bool percentage = false);
+
+    /// Display a static text box on the top right
+    void setTextBox(const QString& html);
 
     /// ----- Annotations
 
@@ -278,6 +283,8 @@ protected:
 
     /// Ensure that all annotations are within data range
     void ensureAnnotationsWithinDataRange_();
+
+    QTextDocument text_box_content_;
 
     /** @name Reimplemented QT events */
     //@{
