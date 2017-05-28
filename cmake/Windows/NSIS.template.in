@@ -324,9 +324,9 @@ SectionGroup "ThirdParty" SEC_ThirdParty
       SetOverwrite on
 
       Var /GLOBAL netSilentArgs
-      StrCpy netSilentArgs ""
+      StrCpy $netSilentArgs ""
       IfSilent 0 +2
-        StrCpy netSilentArgs "/q /norestart"
+        StrCpy $netSilentArgs "/q /norestart"
 
 			## download .NET 3.5 and 4.0 (required by pwiz)
 
@@ -339,7 +339,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 				
 			dl35ok:
 			ClearErrors
-			ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe" netSilentArgs' $0
+			ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe" $netSilentArgs' $0
 			StrCmp $0 0 net35_install_success
 			MessageBox MB_OK "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 			
@@ -356,7 +356,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 				
 			dl40ok:
 			ClearErrors
-			ExecWait '"$EXEDIR\NET4.0_installer.exe" netSilentArgs' $0
+			ExecWait '"$EXEDIR\NET4.0_installer.exe" $netSilentArgs' $0
 			StrCmp $0 0 net40_install_success
 			MessageBox MB_OK "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 			
