@@ -97,7 +97,7 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
 
 !if ${THIRDPARTYDIR} == ""
-!warning "Variable THIRDPARTYDIR not set. Will deactivate installation of Thirdparty binaries."
+  !warning "Variable THIRDPARTYDIR not set. Will deactivate installation of Thirdparty binaries."
   !insertmacro SetSectionFlag ${SEC_ThirdParty} ${SECTION_OFF} 
 !endif
 
@@ -582,21 +582,28 @@ SectionEnd
 
 Function parseParameters
 
+  ClearErrors
+  
     ; /nothirdparty
     ${GetOptions} $cmdLineParams '/nothirdparty' $R0
-    IfErrors 0 +2
-    !insertmacro ClearSectionFlag ${SEC_ThirdParty} ${SF_SELECTED} 
+    IfErrors nopwiz 0
+      !insertmacro ClearSectionFlag ${SEC_ThirdParty} ${SF_SELECTED}
+      goto parsedParams   
 
     ; /nopwiz
+  nopwiz:
     ${GetOptions} $cmdLineParams '/nopwiz' $R0
-    IfErrors 0 +2
-    !insertmacro ClearSectionFlag ${SEC_pwiz} ${SF_SELECTED} 
-
+    IfErrors nodotnet 0
+      !insertmacro ClearSectionFlag ${SEC_pwiz} ${SF_SELECTED} 
+      goto parsedParams
+    
     ; /nodotnet
+  nodotnet:
     ${GetOptions} $cmdLineParams '/nodotnet' $R0
-    IfErrors 0 +2
-    !insertmacro ClearSectionFlag ${SEC_dotnet} ${SF_SELECTED} 
+    IfErrors parsedParams 0
+      !insertmacro ClearSectionFlag ${SEC_dotnet} ${SF_SELECTED} 
 
+  parsedParams:
 FunctionEnd
 
 # Installer functions
