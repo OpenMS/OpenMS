@@ -44,7 +44,7 @@ Major changes in functionality:
   - FeatureFinderIdentification
     - Advanced multi-sample support
   - FileFilter
-    - allows users to enable the zlib compression option
+    - allows users to enable zlib and lossy compression (see "-lossy_compression")
     - allows users to set desired mass accuracy
   - IDFilter
     - Filter results if they are valid digestion products
@@ -58,15 +58,17 @@ Major changes in functionality:
 	- Terminal mods are now separated by "."
 	- SQLite support in OpenSWATH
 	- TheoreticalSpectrumGenerator speedup and removal of RichPeak code
+	- removal of template parameters from MSExperiment (speedup of compile time, reduction of binary size)
 	- Allow estimation of isotope distributions with preconfigured number of sulfurs
-	- Improved handling of residues
+	- Improved handling of residues and bracket notation (e.g. N[2457.877]VSVK)
 	- Improved annotation of spectrum references
 	- Improved handling of X in sequences
 
 File formats:
   - Improved mzML support for SONAR data and mzML with drift time (experimental)
-  - Improved support for cross-link data in mzIdentML
+  - Improved support for cross-link data and unknown modifications in mzIdentML
   - mzXML writer able to write MaxQuant compatible files
+  - mzML files now routinely support substantial compression (up to 5x compression, see #2449, #2458)
 
 Scripts:
   - new R script for visualizing RT transformations (trafoXML) 
@@ -78,6 +80,7 @@ Third-party software:
   
 Changed tool parameters:
 
+  - FileFilter now supports 
 
 
 ------------------------------------------------------------------------------------------
