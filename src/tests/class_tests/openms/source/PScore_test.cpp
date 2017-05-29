@@ -41,7 +41,6 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -147,13 +146,13 @@ START_SECTION((static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(co
 }
 END_SECTION
 
-START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const std::vector< RichPeakSpectrum > &theo_spectra, double mz_window=100.0)))
+START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const std::vector< PeakSpectrum > &theo_spectra, double mz_window=100.0)))
 {
   // Convenience function. Calculations tested via computePScore
 }
 END_SECTION
 
-START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const RichPeakSpectrum &theo_spectrum, double mz_window=100.0)))
+START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const PeakSpectrum &theo_spectrum, double mz_window=100.0)))
 {
   DTAFile dta_file;
   PeakSpectrum spec;
@@ -165,10 +164,10 @@ START_SECTION((static double computePScore(double fragment_mass_tolerance, bool 
     intensities.push_back(spec[i].getIntensity());
   }
 
-  RichPeakSpectrum theo_spec;
+  PeakSpectrum theo_spec;
   for (Size i = 0; i != spec.size(); ++i)
   {
-    RichPeak1D p;
+    Peak1D p;
     p.setMZ(spec[i].getMZ());
     p.setIntensity(spec[i].getIntensity());
     theo_spec.push_back(p);
