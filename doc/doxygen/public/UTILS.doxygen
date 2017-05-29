@@ -81,12 +81,13 @@
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file).
+  - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.  
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
   - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
 
   <b>Metabolite Identification</b>
   - @subpage UTILS_AccurateMassSearch - Find potential HMDB IDs within the given mass error window.
-  - @subpage UTILS_MetaboliteSpectralMatcher - Identify small molecules from tandem MS spectra.
+  - @subpage UTILS_MetaboliteSpectralMatcher - Identify small molecules from tandem MS spectra.  
 
   <b>Quality Control</b>
   - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.

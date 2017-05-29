@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,17 +89,8 @@ namespace OpenMS
       return 0.0;
     }
 
-    //for (MSSpectrum<Peak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
     for (Size i = 0; i < theo_spectrum.size(); ++i)
     {
-//      if (!theo_peak_it->metaValueExists("IonName"))
-//      {
-//        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
-//        return 0.0;
-//      }
-
-//      const double theo_mz = theo_peak_it->getMZ();
-//      const double theo_intensity = theo_peak_it->getIntensity();
       const double theo_mz = theo_spectrum[i].getMZ();
       const double theo_intensity = theo_spectrum[i].getIntensity();
 
@@ -113,20 +104,17 @@ namespace OpenMS
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
         dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
-//        if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
-        if (ion_names[i][0] == 'y')
+        // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
+        if (ion_names[i][0] == 'y' || ion_names[i].hasSubstring("$y"))
         {
           #ifdef DEBUG_HYPERSCORE
-//            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
             std::cout << ion_names[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++y_ion_count;
         }
-//        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
-        else if (ion_names[i][0] == 'b')
+        else if (ion_names[i][0] == 'b' || ion_names[i].hasSubstring("$b"))
         {
           #ifdef DEBUG_HYPERSCORE
-//            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
             std::cout << ion_names[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++b_ion_count;

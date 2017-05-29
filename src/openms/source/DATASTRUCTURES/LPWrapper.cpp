@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,12 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
-#if COINOR_SOLVER == 1
+#define NOMINMAX //avoid redefinition of min max
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
-# pragma warning( push ) // save warning state
-# pragma warning( disable : 4267 )
+#pragma warning( push ) // save warning state
+#pragma warning( disable : 4267 )
 #else
-# pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 #include "coin/CoinModel.hpp"
 #include "coin/OsiClpSolverInterface.hpp"
@@ -56,11 +56,13 @@
 #include "coin/CglFlowCover.hpp"
 #include "coin/CglMixedIntegerRounding.hpp"
 #ifdef _MSC_VER
-# pragma warning( pop ) // restore old warning state
+#pragma warning( pop ) // restore old warning state
 #else
-# pragma GCC diagnostic warning "-Wunused-parameter"
+#pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
-#endif
+#undef NOMINMAX
+
+
 
 #include <glpk.h>
 #include <cstddef>
@@ -665,11 +667,12 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
     {
-#ifdef COIN_HAS_CLP
+//Removed ifdef and OsiOslSolverInterface because Windows couldn't find it/both flags failed. For linux on the other hand the flags worked. But afaik we prefer CLP as solver anyway so no need to look for different solvers.
+//#ifdef COIN_HAS_CLP
       OsiClpSolverInterface solver;
-#elif COIN_HAS_OSL
-      OsiOslSolverInterface solver;
-#endif
+//#elif COIN_HAS_OSL
+//      OsiOslSolverInterface solver;
+//#endif
       solver.loadFromCoinModel(*model_);
       /* Now let MIP calculate a solution */
       // Pass to solver
@@ -899,13 +902,27 @@ namespace OpenMS
 
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      /* Non-zero coefficient count in the row. */
-      // glpk uses arrays beginning at pos 1, so we need to shift
+    /* Non-zero coefficient count in the row. */
+    // glpk uses arrays beginning at pos 1, so we need to shift
       return glp_get_mat_row(lp_problem_, idx + 1, NULL, NULL);
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    {
+      Int n_cols =  getNumberOfColumns();
+      Int* ind = new Int[n_cols];
+      double* values = new double[n_cols];
+      Int nonzeroentries = 0;
+      model_->getRow(idx, ind, values);
+      for (Int i = 0; i < n_cols; i++)
+      {
+        nonzeroentries += values[i] != 0 ? 1 : 0; 
+      }
+      delete[] ind;   
+      delete[] values;   
+
+      return nonzeroentries;
+    }
 #endif
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
@@ -927,7 +944,22 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    {
+      indexes.clear();
+
+      Int n_cols =  getNumberOfColumns();
+      Int* ind = new Int[n_cols];
+      double* values = new double[n_cols];
+        
+      model_->getRow(idx, ind, values);
+      for (Int i = 0; i < n_cols; i++)//or ++i ???
+      {
+        if (values[i] != 0)
+          indexes.push_back(ind[i]); 
+      }
+      delete[] ind;   
+      delete[] values;   
+    }
 #endif
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));

@@ -269,6 +269,9 @@ set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_2" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out FeatureFinderMetabo_2.tmp)
 add_test("TOPP_FeatureFinderMetabo_2_out" ${DIFF} -whitelist "id=" "completion_time" -in1 FeatureFinderMetabo_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_2_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_2")
+add_test("TOPP_FeatureFinderMetabo_3" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_3.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_input.mzML -out FeatureFinderMetabo_3.tmp -out_chrom FeatureFinderMetabo_3_chrom.tmp)
+add_test("TOPP_FeatureFinderMetabo_3_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_3_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderMetabo_3_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_3")
 
 #------------------------------------------------------------------------------
 # FeatureFinderCentroided test
@@ -790,15 +793,15 @@ add_test("TOPP_IDFileConverter_17_out1" ${DIFF} -in1 IDFileConverter_17_output.t
 set_tests_properties("TOPP_IDFileConverter_17_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_17")
 # Tests nextscore
 add_test("TOPP_IDFileConverter_18" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_18_input.idXML -out IDFileConverter_18_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_18_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_18_out1" ${DIFF} -in1 IDFileConverter_18_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_18_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_18_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_18")
 # Tests Percolator_score
 add_test("TOPP_IDFileConverter_19" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_19_input.idXML -out IDFileConverter_19_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_19_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_19_out1" ${DIFF} -in1 IDFileConverter_19_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_19_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_19_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_19")
 # Tests hyperscore
 add_test("TOPP_IDFileConverter_20" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_20_input.idXML -out IDFileConverter_20_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 IDFileConverter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_20_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_20_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_20")
 # Testing spectrum_reference addition
 add_test("TOPP_IDFileConverter_21" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_21_input.idXML -out_type idXML -out IDFileConverter_21_output.tmp -mz_file ${DATA_DIR_TOPP}/IDMapper_4_input.mzML)
@@ -1316,19 +1319,6 @@ set_tests_properties("TOPP_PeakPickerWavelet_1_out1" PROPERTIES DEPENDS "TOPP_Pe
 add_test("TOPP_PeakPickerWavelet_2" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_input.mzML -out PeakPickerWavelet_2.tmp)
 add_test("TOPP_PeakPickerWavelet_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_2")
-add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_input.mzML -out PeakPickerWavelet_3.tmp)
-if(NOT DISABLE_WAVELET2DTEST)
-  #  
-  # See https://github.com/OpenMS/OpenMS/issues/1202
-  # On Ubuntu 14.04 in Release mode only (not Debug mode), the output of this
-  # file is slightly different due to a small numerical error. Since FuzzyDiff is
-  # not able to compare the numbers in base64, we have to "whitelist" the
-  # corresponding base64 string.
-  # See https://github.com/OpenMS/OpenMS/issues/1555
-  # For travis, PPWavelet_3 does not work, so we disable it
-  add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -whitelist ${INDEX_WHITELIST} "3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah")
-  set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
-endif(NOT DISABLE_WAVELET2DTEST)
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4")
@@ -2116,3 +2106,24 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+# OpenPepXL test:
+add_test("UTILS_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
+add_test("UTILS_OpenPepXL_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.xquest.xml )
+add_test("UTILS_OpenPepXL_1_out_2" ${DIFF} -in1 OpenPepXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.spec.xml )
+add_test("UTILS_OpenPepXL_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "OpenPepXL_input" -in1 OpenPepXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.mzid )
+add_test("UTILS_OpenPepXL_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXL_input" -in1 OpenPepXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.idXML )
+set_tests_properties("UTILS_OpenPepXL_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+
+# OpenPepXLLF test:
+add_test("UTILS_OpenPepXLLF_1" ${TOPP_BIN_PATH}/OpenPepXLLF -test -in ${DATA_DIR_TOPP}/OpenPepXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input.fasta -out_xquestxml OpenPepXLLF_output.xquest.xml.tmp -out_xquest_specxml OpenPepXLLF_output.spec.xml.tmp -out_mzIdentML OpenPepXLLF_output.mzid.tmp -out_idXML OpenPepXLLF_output.idXML.tmp)
+add_test("UTILS_OpenPepXLLF_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXLLF_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.xquest.xml )
+add_test("UTILS_OpenPepXLLF_1_out_2" ${DIFF} -in1 OpenPepXLLF_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.spec.xml )
+add_test("UTILS_OpenPepXLLF_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "input_mzML" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.mzid )
+add_test("UTILS_OpenPepXLLF_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.idXML )
+set_tests_properties("UTILS_OpenPepXLLF_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")

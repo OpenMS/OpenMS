@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -876,6 +876,20 @@ namespace OpenMS
       drawCoordinates_(*painter, selected_peak_);
     }
 
+    // draw text box (supporting HTML) on the right side of the canvas
+    if (!text_box_content_.isEmpty())
+    {
+      painter->save();
+      double w = text_box_content_.size().width();
+      double h = text_box_content_.size().height();
+      //draw text
+      painter->setPen(Qt::black);
+      painter->translate(width() - w - 2, 3);
+      painter->fillRect(width() - w - 2, 3, w, h, QColor(255, 255, 255, 200));
+      text_box_content_.drawContents(painter);
+      painter->restore();
+    }
+
     if (show_timing_)
     {
       cout << "paint event took " << timer.elapsed() << " ms" << endl;
@@ -1437,6 +1451,11 @@ namespace OpenMS
       }
     }
     e->accept();
+  }
+
+  void Spectrum1DCanvas::setTextBox(const QString& html)
+  {
+    text_box_content_.setHtml(html);
   }
 
   void Spectrum1DCanvas::addUserLabelAnnotation_(const QPoint & screen_position)

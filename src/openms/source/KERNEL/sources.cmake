@@ -27,7 +27,6 @@ RangeManager.cpp
 RichPeak1D.cpp
 RichPeak2D.cpp
 StandardTypes.cpp
-SpectrumHelper.cpp
 ChromatogramPeak.cpp
 MSChromatogram.cpp
 ChromatogramTools.cpp

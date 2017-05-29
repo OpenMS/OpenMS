@@ -22,8 +22,8 @@ IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
-MapAlignmentEvaluation
 MassCalculator
+MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
@@ -31,6 +31,8 @@ MSSimulator
 MultiplexResolver
 MzMLSplitter
 OpenMSInfo
+OpenPepXL
+OpenPepXLLF
 PeakPickerIterative
 QCCalculator
 QCEmbedder

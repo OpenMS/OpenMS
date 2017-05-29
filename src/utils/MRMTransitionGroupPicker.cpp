@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,37 @@ using namespace OpenMS;
 /**
   @page UTILS_MRMTransitionGroupPicker MRMTransitionGroupPicker
 
-  @brief Picks peaks in SRM/MRM chromatograms.
+  @brief Picks peaks in SRM/MRM chromatograms that belong to the same precursors.
+
+    <CENTER>
+        <table>
+            <tr>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMTransitionGroupPicker \f$ \longrightarrow \f$</td>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+            </tr>
+        </table>
+    </CENTER>
+
+
+  This tools accepts a set of chromatograms and picks peaks in them, correctly
+  grouping related transitions from the same precursor together. It will
+  perform the following steps:
+  - Step 1: find features (peaks) in individual chromatograms </li>
+  - Step 2: merge these features to consensus features that span multiple chromatograms </li>
+
+  Step 1 is performed by smoothing the individual chromatogram and applying the
+  PeakPickerHiRes.
+
+  Step 2 is performed by finding the largest peak overall and use this to
+  create a feature, propagating this through all chromatograms.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_MRMTransitionGroupPicker.cli
