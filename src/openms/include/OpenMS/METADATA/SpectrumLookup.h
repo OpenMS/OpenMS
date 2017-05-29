@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSSpectrumHelper.h>
 
 #include <boost/regex.hpp>
 
