@@ -41,6 +41,7 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -102,7 +103,7 @@ START_SECTION((static std::vector<std::vector<Size> > calculateRankMap(const Pea
 }
 END_SECTION
 
-START_SECTION((static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(const PeakSpectrum &spec, const std::vector< Size > &ranks, Size min_level=2, Size max_level=10)))
+START_SECTION((static std::map<Size, PeakSpectrum> calculatePeakLevelSpectra(const PeakSpectrum &spec, const std::vector< Size > &ranks, Size min_level=2, Size max_level=10)))
 {
   DTAFile dta_file;
   PeakSpectrum spec;
@@ -182,6 +183,29 @@ START_SECTION((static double computePScore(double fragment_mass_tolerance, bool 
 
   TEST_REAL_SIMILAR(pscore_all_match_top_1, 83.867454)
   TEST_REAL_SIMILAR(pscore_all_match_top_2, 154.682242)
+
+  AASequence peptide = AASequence::fromString("IFSQVGK");
+  TheoreticalSpectrumGenerator tg;
+  Param param(tg.getParameters());
+  param.setValue("add_first_prefix_ion", "true");
+  tg.setParameters(param);
+  spec.clear(true);
+  tg.getSpectrum(spec, peptide, 1, 1);
+  TEST_EQUAL(spec.size(), 12)
+
+  mz.clear();
+  intensities.clear();
+
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    mz.push_back(spec[i].getMZ());
+    intensities.push_back(spec[i].getIntensity());
+  }
+
+  ranks = PScore::calculateIntensityRankInMZWindow(mz, intensities, 100.0);
+  pls = PScore::calculatePeakLevelSpectra(spec, ranks, 0, 0);
+  double all_match = PScore::computePScore(0.1, true, pls, spec);
+  TEST_REAL_SIMILAR(all_match, 240)
 }
 END_SECTION
 
