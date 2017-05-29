@@ -47,6 +47,16 @@ namespace OpenMS
   /**
       @brief Generates theoretical spectra with various options
 
+      If the tool parameter add_metainfo is set to true,
+      ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name "IonNames"
+      and charges are written as integers in an IntegerDataArray with the name "Charges"
+      in the returned PeakSpectrum.
+
+      The getSpectrum function can be called with the same PeakSpectrum multiple times to add additional peaks.
+      If the PeakSpectrum already has DataArrays, then the first StringDataArray and the first IntegerDataArray
+      are extended. Therefore it is not recommended to add to or change the PeakSpectrum or these DataArrays
+      between calls of the getSpectrum function with the same PeakSpectrum.
+
   @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
 
       @ingroup Chemistry
@@ -75,8 +85,8 @@ namespace OpenMS
     /** @name Acessors
      */
     //@{
-    /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge = 1, Int max_charge = 1) const;
+    /// returns a spectrum with the ion types, that are set in the tool parameters
+    virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge, Int max_charge) const;
 
     /// overwrite
     void updateMembers_();
@@ -84,22 +94,22 @@ namespace OpenMS
     //@}
 
     protected:
-      /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
+      /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
 
-      /// adds the precursor peaks to the spectrum
+      /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       virtual void addPrecursorPeaks_(PeakSpectrum & spec, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
 
-      /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
+      /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
 
-      /// helper to add an isotope cluster to a spectrum
+      /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
 
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
-      /// helper to add full neutral loss ladders
+      /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
 
       bool add_b_ions_;

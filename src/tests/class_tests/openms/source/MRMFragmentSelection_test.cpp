@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,7 @@ START_SECTION((void selectFragments(std::vector< Peak1D > &selected_peaks, const
 	Param tsg_param(tsg.getParameters());
 	tsg_param.setValue("add_metainfo", "true");
 	tsg.setParameters(tsg_param);
-	tsg.getSpectrum(spec, AASequence::fromString("DFPIANGER"));
+	tsg.getSpectrum(spec, AASequence::fromString("DFPIANGER"), 1, 1);
 
 	spec.sortByPosition();
 	Precursor prec;

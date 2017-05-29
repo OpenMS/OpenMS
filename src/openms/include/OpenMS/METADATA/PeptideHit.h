@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,9 +57,26 @@ namespace OpenMS
   {
 public:
 
+    /**
+   * @brief Contains annotations of a peak
+
+      The mz and intensity values contain the same information as a spectrum would have about the peaks,
+      and can be used to map the additional information to the correct peak or reconstruct the annotated spectrum.
+      Additionally the charge of the peak and an arbitrary string annotaion can be stored.
+      The string annotation can be e.g. a fragment type like "y3".
+      This information can be used e.g. to label peaks in TOPPView.
+
+      The specific application in OpenProXL uses a more complex syntax to define the larger number of different ion types
+      found in XL-MS data.
+      In the example "[alpha|ci$y3-H2O-NH3]" "alpha" or "beta" determines on which of the two peptides the fragmentation occured,
+      "ci" or "xi" determines whether the cross-link and with it the other peptide is contained in the fragment,
+      and the last part is the ion type with the fragmentation position (index) and losses.
+      The separators "|" and "$" are used to separate the parts easily when parsing the annotation.
+
+   */
   struct FragmentAnnotation
   {
-    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]5+
+    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge;
     double mz;
     double intensity;
