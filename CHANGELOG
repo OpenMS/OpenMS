@@ -17,11 +17,22 @@ Notable changes since version 2.1 are:
 New tools:
   - RNPxlSearch -- Annotate RNA to peptide crosslinks in MS/MS spectra. (UTIL)
   - SpectraSTAdapter -- Spectra library search using SpectraST (experimental, only search supported)
-
+  - FeatureLinkerUnlabeledKD -- Feature linking using a KD tree
+  - DatabaseFilter
+  - SpectraSTSearchAdapter -- Spectral library search with SpectraST
+  - TargetedFileConverter -- Conversion of multiple targeted file formats (CSV, TraML etc)
+  
 Deprecated and removed tools:
-
-
+  - ITRAQAnalyzer
+  - TMTAnalyzer
+  - ConvertTSVToTraML - see TargetedFileConverter now
+  - ConvertTraMLToTSV - see TargetedFileConverter now
+  
 Major changes in functionality:
+  - OpenSwath Analysis
+    - support for metabolomics workflows
+    - support for scanning SWATH (Sonar)
+    - support for SQL-based file formats    
   - XTandemAdapter 
     - removed deprecated parameters
     - support for "Vengeance" and "ALANINE"
