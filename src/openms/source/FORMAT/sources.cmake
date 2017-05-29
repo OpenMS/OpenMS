@@ -67,6 +67,7 @@ TransformationXMLFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
+XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
 MzIdentMLFile.cpp

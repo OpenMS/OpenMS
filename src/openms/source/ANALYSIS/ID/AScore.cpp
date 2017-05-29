@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -492,8 +492,8 @@ namespace OpenMS
         }
       }
 
-      // we mono-charge spectra, generating b- and y-ions with charge 1 is the default behavior of the TSG
-      spectrum_generator.getSpectrum(th_spectra[i], seq);
+      // we mono-charge spectra, generating b- and y-ions is the default behavior of the TSG
+      spectrum_generator.getSpectrum(th_spectra[i], seq, 1, 1);
       th_spectra[i].setName(seq.toString());
     }
     return th_spectra;
