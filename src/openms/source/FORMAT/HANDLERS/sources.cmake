@@ -22,7 +22,7 @@ set(sources_list
 	TraMLHandler.cpp
 	UnimodXMLHandler.cpp
 	XMLHandler.cpp
-  XQuestResultXMLHandler.cpp
+	XQuestResultXMLHandler.cpp
 )
 
 ### add path to the filenames

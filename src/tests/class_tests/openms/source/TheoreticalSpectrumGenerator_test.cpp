@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -316,7 +316,7 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   param.setValue("add_abundant_immonium_ions", "true");
   ptr->setParameters(param);
   spec.clear(true);
-  ptr->getSpectrum(spec, AASequence::fromString("HFYLWCP"));
+  ptr->getSpectrum(spec, AASequence::fromString("HFYLWCP"), 1, 1);
   TEST_EQUAL(spec.size(), 7)
   TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
   TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221)
@@ -327,11 +327,11 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   TEST_REAL_SIMILAR(spec[6].getPosition()[0], 159.0922)
 
   spec.clear(true);
-  ptr->getSpectrum(spec, AASequence::fromString("H"));
+  ptr->getSpectrum(spec, AASequence::fromString("H"), 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
   spec.clear(true);
-  ptr->getSpectrum(spec, AASequence::fromString("A"));
+  ptr->getSpectrum(spec, AASequence::fromString("A"), 1, 1);
   TEST_EQUAL(spec.size(), 0)
 
 

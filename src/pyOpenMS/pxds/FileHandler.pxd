@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler":
 
     int  getType(String filename) nogil except + # wrap-attach:FileHandler
-    Type getTypeByFileName(String & filename) nogil except + # wrap-attach:FileHandler 
-    Type getTypeByContent(String & filename) nogil except + # wrap-attach:FileHandler 
+    FileType getTypeByFileName(String & filename) nogil except + # wrap-attach:FileHandler 
+    FileType getTypeByContent(String & filename) nogil except + # wrap-attach:FileHandler 
     String computeFileHash(String & filename) nogil except + # wrap-attach:FileHandler 
-    bool isSupported(Type type_) nogil except + # wrap-attach:FileHandler 
+    bool isSupported(FileType type_) nogil except + # wrap-attach:FileHandler 

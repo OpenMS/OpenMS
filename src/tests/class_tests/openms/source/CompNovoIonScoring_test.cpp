@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -104,7 +104,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   tsg_param.setValue("add_y_ions", "false");
   tsg_param.setValue("add_z_ions", "true");
   tsg.setParameters(tsg_param);
-  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"));
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 1, 1);
 
   tsg_param.setValue("add_z_ions", "false");
   tsg_param.setValue("add_precursor_peaks", "true");

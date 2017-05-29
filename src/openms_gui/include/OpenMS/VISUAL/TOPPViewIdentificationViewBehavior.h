@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,9 +76,15 @@ public:
 
 public slots:
     /// Behavior for showSpectrumAs1D
+    virtual void showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index);
+
+    /// Show spectrum without selecting an identification
     virtual void showSpectrumAs1D(int index);
 
     /// Behavior for activate1DSpectrum
+    virtual void activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index);
+
+    /// select spectrum without selecting an identification
     virtual void activate1DSpectrum(int index);
 
     /// Behavior for deactivate1DSpectrum
@@ -107,6 +113,18 @@ private:
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
     void addPeakAnnotations_(const std::vector<PeptideIdentification> & ph);
+
+    /// Adds fragment annotations to peaks in 1D spectra
+    void addFragmentAnnotations_(const PeptideHit & ph);
+
+  /// Helper function for text formatting
+  String n_times(Size n, String input);
+
+  /// Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
+  void extractCoverageStrings(std::vector<PeptideHit::FragmentAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
+
+  /// Helper function, that collapses a vector of Strings into one String
+  String collapseStringVector(std::vector<String> strings);
 
 private:
     TOPPViewBase * tv_;

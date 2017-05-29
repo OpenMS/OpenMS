@@ -82,9 +82,9 @@ namespace OpenMS
       XMLHandler(filename, "1.0"),
       csms_(csms),
       prot_ids_(prot_ids),
+      n_hits_(0),
       min_score_(0),
       max_score_(0),
-      n_hits_(0),
       min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
       load_to_peptideHit_(load_to_peptideHit)
     {
@@ -95,7 +95,7 @@ namespace OpenMS
       prot_id.setSearchEngineVersion(VersionInfo::getVersion());
       prot_id.setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
       this->prot_ids_.push_back(prot_id);
-      
+
       // Fetch the enzymes database
       this->enzymes_db_ = EnzymesDB::getInstance();
 
@@ -140,28 +140,28 @@ namespace OpenMS
       pair.first = xlink_position_split[0].toInt();
       pair.second = xlink_position_split.size() == 2 ? xlink_position_split[1].toInt() : 0;
     }
-    
+
     void XQuestResultXMLHandler::setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit)
     {
       StringList prot_list;
       StringUtils::split(prot_string, ",", prot_list);
       vector< PeptideEvidence > evidences;
       evidences.reserve(prot_list.size());
-      
+
       for (StringList::const_iterator prot_list_it = prot_list.begin();
            prot_list_it != prot_list.end(); ++prot_list_it)
       {
         PeptideEvidence pep_ev;
         String accession = *prot_list_it;
-        
+
         if (this->accessions_.find(accession) == this->accessions_.end())
         {
           this->accessions_.insert(accession);
-          
+
           ProteinHit prot_hit;
           prot_hit.setAccession(accession);
           prot_hit.setMetaValue("target_decoy", accession.hasSubstring("decoy") ? "decoy" : "target");
-          
+
           this->prot_ids_[0].getHits().push_back(prot_hit);
         }
 
@@ -170,7 +170,7 @@ namespace OpenMS
         pep_ev.setEnd(PeptideEvidence::UNKNOWN_POSITION);
         pep_ev.setAABefore(PeptideEvidence::UNKNOWN_AA);
         pep_ev.setAAAfter(PeptideEvidence::UNKNOWN_AA);
-        
+
         evidences.push_back(pep_ev);
       }
       pep_hit.setPeptideEvidences(evidences);
@@ -230,7 +230,7 @@ namespace OpenMS
         {
           /* Currently the correct rank order within the xQuest file is assumed
             vector< PeptideIdentification > newvec(current_spectrum_size);
-            for(vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
+            for (vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
                 it != this->current_spectrum_search.end(); ++it)
             {
               int index = (int) it->getMetaValue("xl_rank") - 1;
@@ -301,12 +301,12 @@ namespace OpenMS
         search_params.fragment_mass_tolerance = this->attributeAsDouble_(attributes, "ms2tolerance");
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
         search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
-        
+
         // Modifications
         vector< String > variable_mod_list;
         vector< String > variable_mod_split;
         StringUtils::split(this->attributeAsString_(attributes, "variable_mod"), ",", variable_mod_split);
-        
+
         // Oxidation of M
         if (variable_mod_split[0] == "M")
         {
@@ -356,6 +356,7 @@ namespace OpenMS
         peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
 
         PeptideHit peptide_hit_alpha;
+        PeptideHit peptide_hit_beta;
         vector<PeptideHit> peptide_hits;
         // XL Type, determined by "type"
         String xlink_type_string = this->attributeAsString_(attributes, "type");
@@ -437,7 +438,6 @@ namespace OpenMS
           search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
           this->prot_ids_[0].setSearchParameters(search_params);
 
-          PeptideHit peptide_hit_beta;
           peptide_hit_beta.setScore(score);
 
           String seq2 = String(this->attributeAsString_(attributes, "seq2"));
@@ -502,7 +502,6 @@ namespace OpenMS
                                  DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
             }
           }
-          peptide_hits.push_back(peptide_hit_beta);
         }
         else if (xlink_type_string == "intralink")
         {
@@ -535,6 +534,12 @@ namespace OpenMS
 
         // Finalize this record
         peptide_hits.push_back(peptide_hit_alpha);
+
+        if (peptide_hit_beta.metaValueExists("xl_pos"))
+        {
+          peptide_hits.push_back(peptide_hit_beta);
+        }
+
         peptide_identification.setHits(peptide_hits);
         this->peptide_id_meta_values_.clear();
         this->current_spectrum_search_.push_back(peptide_identification);

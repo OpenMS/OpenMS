@@ -100,21 +100,26 @@ namespace OpenMS
       UInt getNumberOfHits() const;
 
     private:
-   
+
       // Main data structures that are populated during loading the file
       std::vector< std::vector< PeptideIdentification > > & csms_;
-      std::vector< ProteinIdentification > & prot_ids_; 
-      
+      std::vector< ProteinIdentification > & prot_ids_;
+
+      UInt n_hits_; // Total no. of hits found in the result XML file
+
       // Keeps track of the minscore and maxscore encountered
       double min_score_;
       double max_score_;
+
+      Size min_n_ions_per_spectrum_;
+      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
 
       // Whether or not current xquest result tag comes from OpenProXL (xQuest otherwise)
       bool is_openproxl_;
 
       // Set of all protein accessions that are within the ProteinHits.
       std::set< String > accessions_;
-      
+
       // The enzyme database for enzyme lookup
       EnzymesDB * enzymes_db_;
 
@@ -128,13 +133,10 @@ namespace OpenMS
 
       // The masses of the Monolinks
       std::set< double > monolinks_masses_;
-      
+
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
-      UInt n_hits_; // Total no. of hits found in the result XML file
-      Size min_n_ions_per_spectrum_;
-      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
-      
+
       // Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values_;
 
@@ -157,7 +159,7 @@ namespace OpenMS
        * @param pair Pair to be populated with the xlinkposition in xQuest.
        */
       void getLinkPosition_(const xercesc::Attributes & attributes, std::pair<SignedSize, SignedSize> & pair);
-      
+
       /**
        * @brief Sets the peptide evidence for Alpha and Beta.
        * @param prot_string Protein string of the xquest file the peptide evidence should be populated from.

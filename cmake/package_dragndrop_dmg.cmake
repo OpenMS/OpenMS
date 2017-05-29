@@ -50,8 +50,6 @@ set(CPACK_GENERATOR "DragNDrop")
 ## Note: That the mac app bundles (TOPPView) take care of them selfes
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
 
-## If you want to rename the binary dir on the dmg.
-set(DMG_BINARY_DIR_NAME "TOPP")
 
 ## Fix OpenMS dependencies for all executables in the install directory
 ########################################################### Fix Dependencies
@@ -59,17 +57,31 @@ install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dep
   COMPONENT zzz-fixing-dependencies
 )
 
+########################################################### Share
+install(DIRECTORY share/
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share
+  COMPONENT share
+  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                        GROUP_READ
+                        WORLD_READ
+  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ
+                        WORLD_EXECUTE WORLD_READ
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+)
+
 ########################################################### Libraries
 # Libraries hack, avoid cmake interferring with our own lib fixes
 install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/lib/
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
   COMPONENT library
 )
 
 ########################################################### TOPP Binaries
 # Binary hack, avoid cmake interferring with our own lib fixes
 install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
-	DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${DMG_BINARY_DIR_NAME}
+  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_BIN_DIR}
   COMPONENT applications
   FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_READ GROUP_EXECUTE
@@ -78,20 +90,6 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
                         GROUP_READ GROUP_EXECUTE
                         WORLD_READ WORLD_EXECUTE
   PATTERN "*.app" EXCLUDE
-  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
-  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
-)
-
-########################################################### Share
-install(DIRECTORY share/
-	DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share
-	COMPONENT share
-  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
-                        GROUP_READ
-                        WORLD_READ
-  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                        GROUP_EXECUTE GROUP_READ
-                        WORLD_EXECUTE WORLD_READ
   REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
@@ -146,8 +144,24 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
         REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
 
+
+## TODO make function and group into component group
 ########################################################### SEARCHENGINES
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/Comet)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/Comet
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-Comet
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+  endif()
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/Fido
             DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
@@ -221,7 +235,20 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
-  ## MyriMatch does not exist for MacOSX
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/MyriMatch
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-MyriMatch
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+  endif()
 endif()
 
 ########################################################### TOPPShell
@@ -277,6 +304,3 @@ else()
     COMMENT "Building intermediate dmg package"
   )
 endif()
-
-include(CPack)
-
