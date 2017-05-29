@@ -18,7 +18,6 @@ MRMFeature.cpp
 MRMTransitionGroup.cpp
 MSExperiment.cpp
 MSSpectrum.cpp
-MSSpectrumHelper.cpp
 OnDiscMSExperiment.cpp
 Peak1D.cpp
 Peak2D.cpp
@@ -30,6 +29,7 @@ StandardTypes.cpp
 ChromatogramPeak.cpp
 MSChromatogram.cpp
 ChromatogramTools.cpp
+SpectrumHelper.cpp
 )
 
 ### add path to the filenames

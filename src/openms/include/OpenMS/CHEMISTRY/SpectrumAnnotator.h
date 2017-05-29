@@ -45,7 +45,6 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSSpectrumHelper.h>
 
 #include <boost/regex.hpp>
 

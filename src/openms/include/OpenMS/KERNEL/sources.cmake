@@ -23,7 +23,6 @@ MRMTransitionGroup.h
 MSChromatogram.h
 MSExperiment.h
 MSSpectrum.h
-MSSpectrumHelper.h
 OnDiscMSExperiment.h
 Peak1D.h
 Peak2D.h
@@ -33,6 +32,7 @@ RangeUtils.h
 RichPeak1D.h
 RichPeak2D.h
 StandardTypes.h
+SpectrumHelper.h
 )
 
 ### add path to the filenames
