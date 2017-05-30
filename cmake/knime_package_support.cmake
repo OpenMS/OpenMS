@@ -184,7 +184,7 @@ if (APPLE)
   )
 elseif(WIN32)
   # assemble required libraries for win32
-  # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces
+  # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces, sqlite
   get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
   get_filename_component(WIN32_DLLPATH "${WIN32_DLLLOCATION}" PATH)
 
@@ -211,15 +211,22 @@ elseif(WIN32)
     copy_library(${target_lib} ${PAYLOAD_LIB_PATH})
   endforeach()
 
+  
+  ## Include needed contrib dll-libraries other than QT
+  # Caution: The ..._LIBRARY variables from the find packages point to the *.lib files
+  # instead of the *.dlls
+  
   # xerces-c
-  file(TO_NATIVE_PATH "${XercesC_LIBRARY_RELEASE}" target_native_xerces)
+  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
+  file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
   add_custom_command(
       TARGET prepare_knime_payload_libs POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
   )
     
   # sqlite3
-  file(TO_NATIVE_PATH "${SQLITE_LIBRARY}" target_native_sqlite)
+  get_filename_component(sqlite_path "${SQLITE_LIBRARY}" PATH)
+  file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
   add_custom_command(
       TARGET prepare_knime_payload_libs POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
