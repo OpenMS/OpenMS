@@ -113,8 +113,8 @@ protected:
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
-    registerOutputFile_("out", "<file>", "", "Output file in idXML format", false);
-    registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", false);
+    registerOutputFile_("out", "<file>", StringList(), "Output file in mzid or idXML format", true);
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
     // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
@@ -212,7 +212,7 @@ protected:
         }
         else
         {
-          // will collapse the list (reference)
+          // will collapse the list (based on spectrum_reference)
           PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(all_peptide_ids, peptide_ids, search_engine);
         }
       }
@@ -255,7 +255,7 @@ protected:
     else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
     else
     {
-      writeLog_("No known input to create PSM features from. Aborting");
+      LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -266,25 +266,31 @@ protected:
       PercolatorFeatureSetHelper::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features
     }
     
-    // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
-    for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
+    if (all_protein_ids.size() > 1)
     {
-      ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
+      LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+    else
+    {
+      ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
       
       search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
       feature_set.insert(feature_set.end(), extra_features.begin(), extra_features.end());
       search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
-      it->setSearchParameters(search_parameters);
+      all_protein_ids.front().setSearchParameters(search_parameters);
     }
     
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    if (!mzid_out.empty())
+    FileTypes::Type out_type = fh.getType(out);
+    LOG_INFO << "writing output file: " << out << endl;
+    if (out_type == FileTypes::IDXML)
     {
-      MzIdentMLFile().store(mzid_out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+      IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
-    if (!out.empty())
+    else if (out_type == FileTypes::MZIDENTML)
     {
-      IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+      MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
     writeLog_("PSMFeatureExtractor finished successfully!");

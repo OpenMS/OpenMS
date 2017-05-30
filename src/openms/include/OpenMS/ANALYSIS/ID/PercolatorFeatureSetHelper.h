@@ -32,8 +32,8 @@
 // $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_TOPPERC_H
-#define OPENMS_ANALYSIS_ID_TOPPERC_H
+#ifndef OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
+#define OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
 
 #include <vector>
 #include <iostream>
@@ -57,9 +57,9 @@ namespace OpenMS
 
         This class contains functions to handle (compute, aggregate, integrate)
         Percolator features. This includes the calculation or extraction of
-        Percolator features for the specific search engine usage, preparation for
-        PercolatorApater usage and result reintegration and in the case of
-        multiple search engine incorporation of different features.
+        Percolator features depending on the search engine(s) for later use with
+        PercolatorAdapter. It also includes handling the reintegration of the
+        percolator result into the set of Identifications.
     */
 
     class OPENMS_DLLAPI PercolatorFeatureSetHelper
@@ -72,7 +72,7 @@ namespace OpenMS
          * @param new_peptide_ids PeptideIdentification vector to be appended
          * @param search_engine search engine to depend on for feature creation
          *
-         * Appends a vector of PeptideIdentification to another and registers concatenation Percolator features depending on given search engine.
+         * Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
          */
         static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
 
@@ -82,7 +82,7 @@ namespace OpenMS
          * @param new_peptide_ids PeptideIdentification vector to merge
          * @param search_engine search engine to create features from their scores
          *
-         * Merges a vector of PeptideIdentification into another and registers merge Percolator features depending on given search engine.
+         * Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
          */
         static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
 
@@ -91,7 +91,7 @@ namespace OpenMS
          * @param all_protein_ids ProteinIdentification vector to be merged into
          * @param new_protein_ids ProteinIdentification vector to merge
          *
-         * Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, registers the created Percolator features
+         * Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration.
          */
         static void mergeMULTISEProteinIds(std::vector<ProteinIdentification>& all_protein_ids, std::vector<ProteinIdentification>& new_protein_ids);
         
@@ -101,7 +101,7 @@ namespace OpenMS
          * @param peptide_ids PeptideIdentification vector to create Percolator features in
          * @param feature_set register of added features
          *
-         * Creates and adds MSGF+ specific Percolator features and registers them in feature_set
+         * Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled.
          */
         static void addMSGFFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set);
 
@@ -171,7 +171,7 @@ namespace OpenMS
         /// Rescales the fragment features to penalize features calculated by few ions, adapted from MSGFtoPercolator
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
 
-        /// helper functin for assigning the frequently occurring feature delta score
+        /// helper function for assigning the frequently occurring feature delta score
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
 
         /// gets the scan identifer to merge by

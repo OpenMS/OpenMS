@@ -80,7 +80,7 @@ bool check_proids(vector<ProteinIdentification> check, vector<ProteinIdentificat
     return true;
 }
 
-START_TEST(TopPerc, "$Id$")
+START_TEST(PercolatorFeatureSetHelper, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
