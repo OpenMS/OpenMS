@@ -232,7 +232,7 @@ namespace OpenMS
         potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
       }else if (neg_charge > 0)
       {
-        if(adduct[0] == "H-1")
+        if (adduct[0] == "H-1")
         {
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
         }else        
@@ -352,7 +352,7 @@ namespace OpenMS
                          adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
 
     Adduct default_adduct;
-    if(is_neg)
+    if (is_neg)
     {
       //for negative mode, the default adduct should be deprotonation (added by the user)
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
@@ -579,7 +579,7 @@ namespace OpenMS
 
     LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
 
-    if(!is_neg)// for now defer until clear about behavior
+    if (!is_neg)// for now defer until clear about behavior
     {
       inferMoreEdges_(feature_relation, feature_adducts);
     }
@@ -1107,7 +1107,7 @@ namespace OpenMS
         {
           int hc_left, hc_right;
 
-          if(is_neg)
+          if (is_neg)
           {
             hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!
             hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!          
