@@ -138,10 +138,7 @@ namespace OpenMS
     Int zmin = 1;
     Int zmax = 2;
     tg.getSpectrum(theoretical_spec, ph.getSequence(), zmin, min(ph.getCharge(), zmax));
-    OPENMS_PRECONDITION(!theoretical_spec.isSorted(), "TheoreticalSpectrumGenerator::getSpectrum did not yield a sorted spectrum!")
-    {
-      theoretical_spec.sortByPosition();
-    }
+    OPENMS_PRECONDITION(theoretical_spec.isSorted(), "TheoreticalSpectrumGenerator::getSpectrum did not yield a sorted spectrum!")
 
     if (!spec.isSorted())
     {
