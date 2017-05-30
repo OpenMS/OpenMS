@@ -40,9 +40,11 @@ MascotRemoteQuery.cpp
 MascotXMLFile.cpp
 MsInspectFile.cpp
 MzDataFile.cpp
+MzIdentMLFile.cpp
+MzMLFile.cpp
+MzQuantMLFile.cpp
 MzTab.cpp
 MzTabFile.cpp
-MzMLFile.cpp
 MzXMLFile.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
@@ -55,6 +57,7 @@ PepXMLFile.cpp
 PepXMLFileMascot.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
+QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
@@ -63,6 +66,7 @@ SwathFile.cpp
 SVOutStream.cpp
 TextFile.cpp
 ToolDescriptionFile.cpp
+TraMLFile.cpp
 TransformationXMLFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
@@ -70,10 +74,6 @@ XMLFile.cpp
 XQuestResultXMLFile.cpp
 XTandemInfile.cpp
 XTandemXMLFile.cpp
-MzIdentMLFile.cpp
-MzQuantMLFile.cpp
-QcMLFile.cpp
-TraMLFile.cpp
 ZlibCompression.cpp
 )
 
