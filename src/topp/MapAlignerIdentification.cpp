@@ -306,7 +306,6 @@ private:
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
-      vector<Size> fraction;
       String design_file = getStringOption_("design");
 
       // determine map of fractions to runs

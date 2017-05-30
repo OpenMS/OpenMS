@@ -53,8 +53,6 @@ namespace OpenMS
 
     TextFile tf(tsv_file, true);
 
-    bool header_parsed(false);
-
     int line_number = 0;
 
     for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
@@ -81,7 +79,6 @@ namespace OpenMS
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
               "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
           }
-          header_parsed = true;
           ++line_number;
           continue;
         }
