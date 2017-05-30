@@ -54,7 +54,20 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    ///@name Type definitions
+    ///@{
+    /// Dimension
+    enum {DIMENSION = 1};
+    /// Intensity type
+    typedef Peak1D::IntensityType IntensityType;
+    /// Position type
+    typedef Peak1D::PositionType PositionType;
+    /// Coordinate type
+    typedef Peak1D::CoordinateType CoordinateType;
+    ///@}
 
+    ///@name Constructors and Destructor
+    ///@{
     /// Default constructor
     inline RichPeak1D() :
       Peak1D(),
@@ -66,12 +79,19 @@ public:
       Peak1D(p),
       MetaInfoInterface(p)
     {}
+        
+    /// Peak1D "c'tor"
+    inline RichPeak1D(const Peak1D & p) :
+      Peak1D(p),
+      MetaInfoInterface()
+    {}
 
     /// construct with position and intensity
     inline explicit RichPeak1D(PositionType a, IntensityType b) :
       Peak1D(a, b),
       MetaInfoInterface()
     {}
+    ///@}
 
     /// Destructor
     ~RichPeak1D()
