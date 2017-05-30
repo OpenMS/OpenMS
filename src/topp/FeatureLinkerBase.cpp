@@ -130,7 +130,15 @@ protected:
     ConsensusMap out_map;
     StringList ms_run_locations;
 
-    if (file_type == FileTypes::CONSENSUSXML && !getStringOption_("design").empty())
+    String design_file;
+
+    // TODO: support design in labeled feature linker
+    if (!labeled)
+    {
+      design_file = getStringOption_("design");
+    }
+
+    if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
     {
       writeLog_("Error: Using fractionated design with consensusXML als input is not supported!");
       return ILLEGAL_PARAMETERS;
@@ -142,7 +150,6 @@ protected:
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
-      String design_file = getStringOption_("design");
 
       // determine map of fractions to runs
       map<unsigned, set<unsigned> > frac2run;
