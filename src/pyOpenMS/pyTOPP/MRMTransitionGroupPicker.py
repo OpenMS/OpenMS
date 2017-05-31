@@ -18,7 +18,6 @@ def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
 def algorithm(exp, targeted, picker):
 
     output = pyopenms.FeatureMap()
-    # output = []
 
     chrom_map = {}
     pepmap = {}
@@ -43,7 +42,6 @@ def algorithm(exp, targeted, picker):
                 # f.getConvexHulls().clear()
                 f.ensureUniqueId()
 
-            # TODO 
             mrmfeature.setSubordinates(features) # add all the subfeatures as subordinates
             output.push_back(mrmfeature)
 
@@ -61,7 +59,6 @@ def main(options):
     pp_params = pp.getDefaults();
     pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
     pp_params.setValue("PeakPickerMRM:method", options.method, '')
-    pp_params.setValue("PeakPickerMRM:method", "legacy", '')
     pp.setParameters(pp_params);
 
     chromatograms = pyopenms.MSExperiment()
